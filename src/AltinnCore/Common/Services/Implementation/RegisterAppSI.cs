@@ -42,7 +42,6 @@ namespace AltinnCore.Common.Services.Implementation
         public IDSF DSF
         {
             get { return _dsf; }
-            protected set { }
         }
 
         /// <summary>
@@ -51,7 +50,6 @@ namespace AltinnCore.Common.Services.Implementation
         public IER ER
         {
             get { return _er; }
-            protected set { }
         }
 
         /// <inheritdoc/>

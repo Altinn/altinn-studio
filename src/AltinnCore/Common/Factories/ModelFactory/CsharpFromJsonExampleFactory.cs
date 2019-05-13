@@ -61,32 +61,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        /// <summary>
-        /// The build.
-        /// </summary>
-        /// <param name="input">
-        /// The JSON.
-        /// </param>
-        /// <returns>
-        /// The <see cref="string"/>.
-        /// </returns>
+        /// <inheritdoc />
         public string Build(string input)
         {
             return Build(input, null);
         }
 
-        /// <summary>
-        /// The build.
-        /// </summary>
-        /// <param name="input">
-        /// The JSON.
-        /// </param>
-        /// <param name="navneStrategi">
-        /// The name strategy.
-        /// </param>
-        /// <returns>
-        /// The <see cref="string"/>.
-        /// </returns>
+        /// <inheritdoc />
         public string Build(string input, Action<TypeDescription> navneStrategi)
         {
             var rawJson = (JObject)JsonConvert.DeserializeObject(input);

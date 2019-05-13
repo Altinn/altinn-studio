@@ -27,9 +27,9 @@ namespace AltinnCore.Designer.Controllers
     public class DeployController : Controller
     {
         private readonly ISourceControl _sourceControl;
-        private IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
         private readonly IGitea _giteaAPI;
-        private ILogger<DeployController> _logger;
+        private readonly ILogger<DeployController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly PlatformStorageSettings _storage_settings;
 

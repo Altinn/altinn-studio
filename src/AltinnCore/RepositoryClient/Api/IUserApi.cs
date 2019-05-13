@@ -22,7 +22,6 @@ namespace AltinnCore.RepositoryClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
-    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "CS1574:XML comment has cref attribute '{0}' that could not be resolved", Justification = "Justification")]
     public interface IUserApi : IApiAccessor
     {
         #region Synchronous Operations
@@ -30,7 +29,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a repository
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Repository</returns>
         Repository CreateCurrentUserRepo(CreateRepoOption body = null);
@@ -38,7 +37,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a repository
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Repository</returns>
         ApiResponse<Repository> CreateCurrentUserRepoWithHttpInfo(CreateRepoOption body = null);
@@ -46,7 +45,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Add email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>List&lt;Email&gt;</returns>
         List<Email> UserAddEmail(CreateEmailOption body = null);
@@ -54,7 +53,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Add email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of List&lt;Email&gt;</returns>
         ApiResponse<List<Email>> UserAddEmailWithHttpInfo(CreateEmailOption body = null);
@@ -62,7 +61,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         void UserCheckFollowing(string follower, string followee);
@@ -70,7 +69,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
@@ -79,14 +78,14 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create an access token
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="name"> (optional)</param>
         void UserCreateToken(string name = null);
 
         /// <summary>
         /// Create an access token
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="name"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCreateTokenWithHttpInfo(string name = null);
@@ -94,14 +93,14 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="followee">username of followed user</param>
         void UserCurrentCheckFollowing(string followee);
 
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentCheckFollowingWithHttpInfo(string followee);
@@ -109,7 +108,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         void UserCurrentCheckStarring(string owner, string repo);
@@ -117,7 +116,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>ApiResponse of Object(void)</returns>
@@ -126,14 +125,14 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unfollow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to unfollow</param>
         void UserCurrentDeleteFollow(string username);
 
         /// <summary>
         /// Unfollow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to unfollow</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentDeleteFollowWithHttpInfo(string username);
@@ -141,14 +140,14 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Remove a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         void UserCurrentDeleteGPGKey(int? id);
 
         /// <summary>
         /// Remove a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentDeleteGPGKeyWithHttpInfo(int? id);
@@ -156,14 +155,14 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         void UserCurrentDeleteKey(int? id);
 
         /// <summary>
         /// Delete a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentDeleteKeyWithHttpInfo(int? id);
@@ -171,7 +170,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unstar the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         void UserCurrentDeleteStar(string owner, string repo);
@@ -179,7 +178,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unstar the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>ApiResponse of Object(void)</returns>
@@ -188,7 +187,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>GPGKey</returns>
         GPGKey UserCurrentGetGPGKey(int? id);
@@ -196,7 +195,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>ApiResponse of GPGKey</returns>
         ApiResponse<GPGKey> UserCurrentGetGPGKeyWithHttpInfo(int? id);
@@ -204,7 +203,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>PublicKey</returns>
         PublicKey UserCurrentGetKey(int? id);
@@ -212,7 +211,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>ApiResponse of PublicKey</returns>
         ApiResponse<PublicKey> UserCurrentGetKeyWithHttpInfo(int? id);
@@ -220,105 +219,105 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;User&gt;</returns>
         List<User> UserCurrentListFollowers();
 
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserCurrentListFollowersWithHttpInfo();
 
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;User&gt;</returns>
         List<User> UserCurrentListFollowing();
 
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserCurrentListFollowingWithHttpInfo();
 
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;GPGKey&gt;</returns>
         List<GPGKey> UserCurrentListGPGKeys();
 
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;GPGKey&gt;</returns>
         ApiResponse<List<GPGKey>> UserCurrentListGPGKeysWithHttpInfo();
 
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;PublicKey&gt;</returns>
         List<PublicKey> UserCurrentListKeys();
 
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;PublicKey&gt;</returns>
         ApiResponse<List<PublicKey>> UserCurrentListKeysWithHttpInfo();
 
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
         List<Repository> UserCurrentListRepos();
 
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserCurrentListReposWithHttpInfo();
 
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
         List<Repository> UserCurrentListStarred();
 
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserCurrentListStarredWithHttpInfo();
 
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
         List<Repository> UserCurrentListSubscriptions();
 
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserCurrentListSubscriptionsWithHttpInfo();
 
         /// <summary>
         /// Create a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="form"> (optional)</param>
         /// <returns>GPGKey</returns>
         GPGKey UserCurrentPostGPGKey(CreateGPGKeyOption form = null);
@@ -326,7 +325,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="form"> (optional)</param>
         /// <returns>ApiResponse of GPGKey</returns>
         ApiResponse<GPGKey> UserCurrentPostGPGKeyWithHttpInfo(CreateGPGKeyOption form = null);
@@ -334,7 +333,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>PublicKey</returns>
         PublicKey UserCurrentPostKey(CreateKeyOption body = null);
@@ -342,7 +341,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of PublicKey</returns>
         ApiResponse<PublicKey> UserCurrentPostKeyWithHttpInfo(CreateKeyOption body = null);
@@ -350,14 +349,14 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Follow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to follow</param>
         void UserCurrentPutFollow(string username);
 
         /// <summary>
         /// Follow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to follow</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentPutFollowWithHttpInfo(string username);
@@ -365,7 +364,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Star the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         void UserCurrentPutStar(string owner, string repo);
@@ -373,7 +372,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Star the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>ApiResponse of Object(void)</returns>
@@ -382,28 +381,28 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;TrackedTime&gt;</returns>
         List<TrackedTime> UserCurrentTrackedTimes();
 
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;TrackedTime&gt;</returns>
         ApiResponse<List<TrackedTime>> UserCurrentTrackedTimesWithHttpInfo();
 
         /// <summary>
         /// Delete email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         void UserDeleteEmail(DeleteEmailOption body = null);
 
         /// <summary>
         /// Delete email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserDeleteEmailWithHttpInfo(DeleteEmailOption body = null);
@@ -411,7 +410,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to get</param>
         /// <returns>User</returns>
         User UserGet(string username);
@@ -419,7 +418,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to get</param>
         /// <returns>ApiResponse of User</returns>
         ApiResponse<User> UserGetWithHttpInfo(string username);
@@ -427,48 +426,48 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>User</returns>
         User UserGetCurrent();
 
         /// <summary>
         /// Get the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of User</returns>
         ApiResponse<User> UserGetCurrentWithHttpInfo();
 
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         void UserGetTokens();
 
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserGetTokensWithHttpInfo();
 
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Email&gt;</returns>
         List<Email> UserListEmails();
 
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Email&gt;</returns>
         ApiResponse<List<Email>> UserListEmailsWithHttpInfo();
 
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;User&gt;</returns>
         List<User> UserListFollowers(string username);
@@ -476,7 +475,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserListFollowersWithHttpInfo(string username);
@@ -484,7 +483,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;User&gt;</returns>
         List<User> UserListFollowing(string username);
@@ -492,7 +491,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserListFollowingWithHttpInfo(string username);
@@ -500,7 +499,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;GPGKey&gt;</returns>
         List<GPGKey> UserListGPGKeys(string username);
@@ -508,7 +507,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;GPGKey&gt;</returns>
         ApiResponse<List<GPGKey>> UserListGPGKeysWithHttpInfo(string username);
@@ -516,7 +515,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;PublicKey&gt;</returns>
         List<PublicKey> UserListKeys(string username);
@@ -524,7 +523,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;PublicKey&gt;</returns>
         ApiResponse<List<PublicKey>> UserListKeysWithHttpInfo(string username);
@@ -532,7 +531,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;Repository&gt;</returns>
         List<Repository> UserListRepos(string username);
@@ -540,7 +539,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserListReposWithHttpInfo(string username);
@@ -548,7 +547,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;Repository&gt;</returns>
         List<Repository> UserListStarred(string username);
@@ -556,7 +555,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserListStarredWithHttpInfo(string username);
@@ -564,7 +563,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>List&lt;Repository&gt;</returns>
         List<Repository> UserListSubscriptions(string username);
@@ -572,7 +571,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserListSubscriptionsWithHttpInfo(string username);
@@ -580,7 +579,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Search for users
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="q">keyword (optional)</param>
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>List&lt;User&gt;</returns>
@@ -589,7 +588,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Search for users
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="q">keyword (optional)</param>
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
@@ -598,7 +597,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <param name="user">username of user</param>
@@ -608,7 +607,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <param name="user">username of user</param>
@@ -620,7 +619,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a repository
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of Repository</returns>
         System.Threading.Tasks.Task<Repository> CreateCurrentUserRepoAsync(CreateRepoOption body = null);
@@ -628,7 +627,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a repository
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (Repository)</returns>
         System.Threading.Tasks.Task<ApiResponse<Repository>> CreateCurrentUserRepoAsyncWithHttpInfo(CreateRepoOption body = null);
@@ -636,7 +635,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Add email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of List&lt;Email&gt;</returns>
         System.Threading.Tasks.Task<List<Email>> UserAddEmailAsync(CreateEmailOption body = null);
@@ -644,7 +643,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Add email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (List&lt;Email&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Email>>> UserAddEmailAsyncWithHttpInfo(CreateEmailOption body = null);
@@ -652,7 +651,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of void</returns>
@@ -661,7 +660,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
@@ -670,7 +669,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create an access token
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="name"> (optional)</param>
         /// <returns>Task of void</returns>
         System.Threading.Tasks.Task UserCreateTokenAsync(string name = null);
@@ -678,7 +677,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create an access token
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="name"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCreateTokenAsyncWithHttpInfo(string name = null);
@@ -686,7 +685,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of void</returns>
         System.Threading.Tasks.Task UserCurrentCheckFollowingAsync(string followee);
@@ -694,7 +693,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentCheckFollowingAsyncWithHttpInfo(string followee);
@@ -702,7 +701,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>Task of void</returns>
@@ -711,7 +710,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>Task of ApiResponse</returns>
@@ -720,7 +719,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unfollow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to unfollow</param>
         /// <returns>Task of void</returns>
         System.Threading.Tasks.Task UserCurrentDeleteFollowAsync(string username);
@@ -728,7 +727,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unfollow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to unfollow</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteFollowAsyncWithHttpInfo(string username);
@@ -736,7 +735,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Remove a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of void</returns>
         System.Threading.Tasks.Task UserCurrentDeleteGPGKeyAsync(int? id);
@@ -744,7 +743,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Remove a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteGPGKeyAsyncWithHttpInfo(int? id);
@@ -752,7 +751,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of void</returns>
         System.Threading.Tasks.Task UserCurrentDeleteKeyAsync(int? id);
@@ -760,7 +759,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteKeyAsyncWithHttpInfo(int? id);
@@ -768,7 +767,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unstar the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>Task of void</returns>
@@ -777,7 +776,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unstar the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>Task of ApiResponse</returns>
@@ -786,7 +785,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>Task of GPGKey</returns>
         System.Threading.Tasks.Task<GPGKey> UserCurrentGetGPGKeyAsync(int? id);
@@ -794,7 +793,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>Task of ApiResponse (GPGKey)</returns>
         System.Threading.Tasks.Task<ApiResponse<GPGKey>> UserCurrentGetGPGKeyAsyncWithHttpInfo(int? id);
@@ -802,7 +801,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>Task of PublicKey</returns>
         System.Threading.Tasks.Task<PublicKey> UserCurrentGetKeyAsync(int? id);
@@ -810,7 +809,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>Task of ApiResponse (PublicKey)</returns>
         System.Threading.Tasks.Task<ApiResponse<PublicKey>> UserCurrentGetKeyAsyncWithHttpInfo(int? id);
@@ -818,105 +817,105 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;User&gt;</returns>
         System.Threading.Tasks.Task<List<User>> UserCurrentListFollowersAsync();
 
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserCurrentListFollowersAsyncWithHttpInfo();
 
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;User&gt;</returns>
         System.Threading.Tasks.Task<List<User>> UserCurrentListFollowingAsync();
 
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserCurrentListFollowingAsyncWithHttpInfo();
 
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;GPGKey&gt;</returns>
         System.Threading.Tasks.Task<List<GPGKey>> UserCurrentListGPGKeysAsync();
 
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;GPGKey&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<GPGKey>>> UserCurrentListGPGKeysAsyncWithHttpInfo();
 
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;PublicKey&gt;</returns>
         System.Threading.Tasks.Task<List<PublicKey>> UserCurrentListKeysAsync();
 
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;PublicKey&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<PublicKey>>> UserCurrentListKeysAsyncWithHttpInfo();
 
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
         System.Threading.Tasks.Task<List<Repository>> UserCurrentListReposAsync();
 
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListReposAsyncWithHttpInfo();
 
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
         System.Threading.Tasks.Task<List<Repository>> UserCurrentListStarredAsync();
 
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListStarredAsyncWithHttpInfo();
 
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
         System.Threading.Tasks.Task<List<Repository>> UserCurrentListSubscriptionsAsync();
 
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListSubscriptionsAsyncWithHttpInfo();
 
         /// <summary>
         /// Create a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="form"> (optional)</param>
         /// <returns>Task of GPGKey</returns>
         System.Threading.Tasks.Task<GPGKey> UserCurrentPostGPGKeyAsync(CreateGPGKeyOption form = null);
@@ -924,7 +923,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="form"> (optional)</param>
         /// <returns>Task of ApiResponse (GPGKey)</returns>
         System.Threading.Tasks.Task<ApiResponse<GPGKey>> UserCurrentPostGPGKeyAsyncWithHttpInfo(CreateGPGKeyOption form = null);
@@ -932,7 +931,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of PublicKey</returns>
         System.Threading.Tasks.Task<PublicKey> UserCurrentPostKeyAsync(CreateKeyOption body = null);
@@ -940,7 +939,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (PublicKey)</returns>
         System.Threading.Tasks.Task<ApiResponse<PublicKey>> UserCurrentPostKeyAsyncWithHttpInfo(CreateKeyOption body = null);
@@ -948,7 +947,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Follow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to follow</param>
         /// <returns>Task of void</returns>
         System.Threading.Tasks.Task UserCurrentPutFollowAsync(string username);
@@ -956,7 +955,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Follow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to follow</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentPutFollowAsyncWithHttpInfo(string username);
@@ -964,7 +963,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Star the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>Task of void</returns>
@@ -973,7 +972,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Star the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>Task of ApiResponse</returns>
@@ -982,21 +981,21 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;TrackedTime&gt;</returns>
         System.Threading.Tasks.Task<List<TrackedTime>> UserCurrentTrackedTimesAsync();
 
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;TrackedTime&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<TrackedTime>>> UserCurrentTrackedTimesAsyncWithHttpInfo();
 
         /// <summary>
         /// Delete email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of void</returns>
         System.Threading.Tasks.Task UserDeleteEmailAsync(DeleteEmailOption body = null);
@@ -1004,7 +1003,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserDeleteEmailAsyncWithHttpInfo(DeleteEmailOption body = null);
@@ -1012,7 +1011,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to get</param>
         /// <returns>Task of User</returns>
         System.Threading.Tasks.Task<User> UserGetAsync(string username);
@@ -1020,7 +1019,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to get</param>
         /// <returns>Task of ApiResponse (User)</returns>
         System.Threading.Tasks.Task<ApiResponse<User>> UserGetAsyncWithHttpInfo(string username);
@@ -1028,49 +1027,49 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of User</returns>
         System.Threading.Tasks.Task<User> UserGetCurrentAsync();
 
         /// <summary>
         /// Get the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (User)</returns>
         System.Threading.Tasks.Task<ApiResponse<User>> UserGetCurrentAsyncWithHttpInfo();
 
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of void</returns>
         System.Threading.Tasks.Task UserGetTokensAsync();
 
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserGetTokensAsyncWithHttpInfo();
 
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Email&gt;</returns>
         System.Threading.Tasks.Task<List<Email>> UserListEmailsAsync();
 
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Email&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Email>>> UserListEmailsAsyncWithHttpInfo();
 
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;User&gt;</returns>
         System.Threading.Tasks.Task<List<User>> UserListFollowersAsync(string username);
@@ -1078,7 +1077,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserListFollowersAsyncWithHttpInfo(string username);
@@ -1086,7 +1085,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;User&gt;</returns>
         System.Threading.Tasks.Task<List<User>> UserListFollowingAsync(string username);
@@ -1094,7 +1093,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserListFollowingAsyncWithHttpInfo(string username);
@@ -1102,7 +1101,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;GPGKey&gt;</returns>
         System.Threading.Tasks.Task<List<GPGKey>> UserListGPGKeysAsync(string username);
@@ -1110,7 +1109,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;GPGKey&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<GPGKey>>> UserListGPGKeysAsyncWithHttpInfo(string username);
@@ -1118,7 +1117,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;PublicKey&gt;</returns>
         System.Threading.Tasks.Task<List<PublicKey>> UserListKeysAsync(string username);
@@ -1126,7 +1125,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;PublicKey&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<PublicKey>>> UserListKeysAsyncWithHttpInfo(string username);
@@ -1134,7 +1133,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
         System.Threading.Tasks.Task<List<Repository>> UserListReposAsync(string username);
@@ -1142,7 +1141,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListReposAsyncWithHttpInfo(string username);
@@ -1150,7 +1149,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
         System.Threading.Tasks.Task<List<Repository>> UserListStarredAsync(string username);
@@ -1158,7 +1157,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListStarredAsyncWithHttpInfo(string username);
@@ -1166,7 +1165,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
         System.Threading.Tasks.Task<List<Repository>> UserListSubscriptionsAsync(string username);
@@ -1174,7 +1173,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListSubscriptionsAsyncWithHttpInfo(string username);
@@ -1182,7 +1181,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Search for users
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="q">keyword (optional)</param>
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>Task of List&lt;User&gt;</returns>
@@ -1191,7 +1190,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Search for users
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="q">keyword (optional)</param>
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
@@ -1200,7 +1199,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <param name="user">username of user</param>
@@ -1210,7 +1209,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <param name="user">username of user</param>
@@ -1330,7 +1329,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a repository
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Repository</returns>
         public Repository CreateCurrentUserRepo(CreateRepoOption body = null)
@@ -1342,7 +1341,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a repository
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Repository</returns>
         public ApiResponse<Repository> CreateCurrentUserRepoWithHttpInfo(CreateRepoOption body = null)
@@ -1439,7 +1438,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a repository
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of Repository</returns>
         public async System.Threading.Tasks.Task<Repository> CreateCurrentUserRepoAsync(CreateRepoOption body = null)
@@ -1451,7 +1450,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a repository
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (Repository)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<Repository>> CreateCurrentUserRepoAsyncWithHttpInfo(CreateRepoOption body = null)
@@ -1548,7 +1547,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Add email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>List&lt;Email&gt;</returns>
         public List<Email> UserAddEmail(CreateEmailOption body = null)
@@ -1560,7 +1559,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Add email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of List&lt;Email&gt;</returns>
         public ApiResponse<List<Email>> UserAddEmailWithHttpInfo(CreateEmailOption body = null)
@@ -1658,7 +1657,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Add email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of List&lt;Email&gt;</returns>
         public async System.Threading.Tasks.Task<List<Email>> UserAddEmailAsync(CreateEmailOption body = null)
@@ -1670,7 +1669,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Add email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (List&lt;Email&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Email>>> UserAddEmailAsyncWithHttpInfo(CreateEmailOption body = null)
@@ -1768,7 +1767,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         public void UserCheckFollowing(string follower, string followee)
@@ -1779,7 +1778,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
@@ -1892,7 +1891,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of void</returns>
@@ -1904,7 +1903,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
@@ -2017,7 +2016,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create an access token
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="name"> (optional)</param>
         public void UserCreateToken(string name = null)
         {
@@ -2027,7 +2026,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create an access token
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="name"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserCreateTokenWithHttpInfo(string name = null)
@@ -2120,7 +2119,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create an access token
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="name"> (optional)</param>
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCreateTokenAsync(string name = null)
@@ -2131,7 +2130,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create an access token
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="name"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserCreateTokenAsyncWithHttpInfo(string name = null)
@@ -2224,7 +2223,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="followee">username of followed user</param>
         public void UserCurrentCheckFollowing(string followee)
         {
@@ -2234,7 +2233,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserCurrentCheckFollowingWithHttpInfo(string followee)
@@ -2335,7 +2334,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentCheckFollowingAsync(string followee)
@@ -2346,7 +2345,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentCheckFollowingAsyncWithHttpInfo(string followee)
@@ -2447,7 +2446,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         public void UserCurrentCheckStarring(string owner, string repo)
@@ -2458,7 +2457,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>ApiResponse of Object(void)</returns>
@@ -2571,7 +2570,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>Task of void</returns>
@@ -2583,7 +2582,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>Task of ApiResponse</returns>
@@ -2696,7 +2695,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unfollow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to unfollow</param>
         public void UserCurrentDeleteFollow(string username)
         {
@@ -2706,7 +2705,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unfollow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to unfollow</param>
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserCurrentDeleteFollowWithHttpInfo(string username)
@@ -2807,7 +2806,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unfollow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to unfollow</param>
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentDeleteFollowAsync(string username)
@@ -2818,7 +2817,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unfollow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to unfollow</param>
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteFollowAsyncWithHttpInfo(string username)
@@ -2919,7 +2918,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Remove a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         public void UserCurrentDeleteGPGKey(int? id)
         {
@@ -2929,7 +2928,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Remove a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserCurrentDeleteGPGKeyWithHttpInfo(int? id)
@@ -3029,7 +3028,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Remove a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentDeleteGPGKeyAsync(int? id)
@@ -3040,7 +3039,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Remove a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteGPGKeyAsyncWithHttpInfo(int? id)
@@ -3140,7 +3139,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         public void UserCurrentDeleteKey(int? id)
         {
@@ -3150,7 +3149,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserCurrentDeleteKeyWithHttpInfo(int? id)
@@ -3250,7 +3249,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentDeleteKeyAsync(int? id)
@@ -3261,7 +3260,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteKeyAsyncWithHttpInfo(int? id)
@@ -3361,7 +3360,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unstar the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         public void UserCurrentDeleteStar(string owner, string repo)
@@ -3372,7 +3371,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unstar the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>ApiResponse of Object(void)</returns>
@@ -3485,7 +3484,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unstar the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>Task of void</returns>
@@ -3497,7 +3496,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Unstar the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>Task of ApiResponse</returns>
@@ -3610,7 +3609,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>GPGKey</returns>
         public GPGKey UserCurrentGetGPGKey(int? id)
@@ -3622,7 +3621,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>ApiResponse of GPGKey</returns>
         public ApiResponse<GPGKey> UserCurrentGetGPGKeyWithHttpInfo(int? id)
@@ -3722,7 +3721,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>Task of GPGKey</returns>
         public async System.Threading.Tasks.Task<GPGKey> UserCurrentGetGPGKeyAsync(int? id)
@@ -3734,7 +3733,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>Task of ApiResponse (GPGKey)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<GPGKey>> UserCurrentGetGPGKeyAsyncWithHttpInfo(int? id)
@@ -3834,7 +3833,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>PublicKey</returns>
         public PublicKey UserCurrentGetKey(int? id)
@@ -3846,7 +3845,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>ApiResponse of PublicKey</returns>
         public ApiResponse<PublicKey> UserCurrentGetKeyWithHttpInfo(int? id)
@@ -3946,7 +3945,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>Task of PublicKey</returns>
         public async System.Threading.Tasks.Task<PublicKey> UserCurrentGetKeyAsync(int? id)
@@ -3958,7 +3957,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="id">id of key to get</param>
         /// <returns>Task of ApiResponse (PublicKey)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<PublicKey>> UserCurrentGetKeyAsyncWithHttpInfo(int? id)
@@ -4058,7 +4057,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserCurrentListFollowers()
         {
@@ -4069,7 +4068,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         public ApiResponse<List<User>> UserCurrentListFollowersWithHttpInfo()
         {
@@ -4157,7 +4156,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserCurrentListFollowersAsync()
         {
@@ -4168,7 +4167,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<User>>> UserCurrentListFollowersAsyncWithHttpInfo()
         {
@@ -4256,7 +4255,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserCurrentListFollowing()
         {
@@ -4267,7 +4266,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         public ApiResponse<List<User>> UserCurrentListFollowingWithHttpInfo()
         {
@@ -4355,7 +4354,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserCurrentListFollowingAsync()
         {
@@ -4366,7 +4365,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<User>>> UserCurrentListFollowingAsyncWithHttpInfo()
         {
@@ -4454,7 +4453,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;GPGKey&gt;</returns>
         public List<GPGKey> UserCurrentListGPGKeys()
         {
@@ -4465,7 +4464,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;GPGKey&gt;</returns>
         public ApiResponse<List<GPGKey>> UserCurrentListGPGKeysWithHttpInfo()
         {
@@ -4553,7 +4552,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;GPGKey&gt;</returns>
         public async System.Threading.Tasks.Task<List<GPGKey>> UserCurrentListGPGKeysAsync()
         {
@@ -4564,7 +4563,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;GPGKey&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<GPGKey>>> UserCurrentListGPGKeysAsyncWithHttpInfo()
         {
@@ -4652,7 +4651,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;PublicKey&gt;</returns>
         public List<PublicKey> UserCurrentListKeys()
         {
@@ -4663,7 +4662,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;PublicKey&gt;</returns>
         public ApiResponse<List<PublicKey>> UserCurrentListKeysWithHttpInfo()
         {
@@ -4751,7 +4750,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;PublicKey&gt;</returns>
         public async System.Threading.Tasks.Task<List<PublicKey>> UserCurrentListKeysAsync()
         {
@@ -4762,7 +4761,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;PublicKey&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<PublicKey>>> UserCurrentListKeysAsyncWithHttpInfo()
         {
@@ -4850,7 +4849,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Repository> UserCurrentListRepos()
         {
@@ -4861,7 +4860,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserCurrentListReposWithHttpInfo()
         {
@@ -4949,7 +4948,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Repository>> UserCurrentListReposAsync()
         {
@@ -4960,7 +4959,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListReposAsyncWithHttpInfo()
         {
@@ -5048,7 +5047,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Repository> UserCurrentListStarred()
         {
@@ -5059,7 +5058,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserCurrentListStarredWithHttpInfo()
         {
@@ -5147,7 +5146,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Repository>> UserCurrentListStarredAsync()
         {
@@ -5158,7 +5157,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListStarredAsyncWithHttpInfo()
         {
@@ -5246,7 +5245,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Repository> UserCurrentListSubscriptions()
         {
@@ -5257,7 +5256,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserCurrentListSubscriptionsWithHttpInfo()
         {
@@ -5345,7 +5344,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Repository>> UserCurrentListSubscriptionsAsync()
         {
@@ -5356,7 +5355,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListSubscriptionsAsyncWithHttpInfo()
         {
@@ -5444,7 +5443,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="form"> (optional)</param>
         /// <returns>GPGKey</returns>
         public GPGKey UserCurrentPostGPGKey(CreateGPGKeyOption form = null)
@@ -5456,7 +5455,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="form"> (optional)</param>
         /// <returns>ApiResponse of GPGKey</returns>
         public ApiResponse<GPGKey> UserCurrentPostGPGKeyWithHttpInfo(CreateGPGKeyOption form = null)
@@ -5553,7 +5552,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="form"> (optional)</param>
         /// <returns>Task of GPGKey</returns>
         public async System.Threading.Tasks.Task<GPGKey> UserCurrentPostGPGKeyAsync(CreateGPGKeyOption form = null)
@@ -5565,7 +5564,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a GPG key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="form"> (optional)</param>
         /// <returns>Task of ApiResponse (GPGKey)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<GPGKey>> UserCurrentPostGPGKeyAsyncWithHttpInfo(CreateGPGKeyOption form = null)
@@ -5662,7 +5661,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>PublicKey</returns>
         public PublicKey UserCurrentPostKey(CreateKeyOption body = null)
@@ -5674,7 +5673,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of PublicKey</returns>
         public ApiResponse<PublicKey> UserCurrentPostKeyWithHttpInfo(CreateKeyOption body = null)
@@ -5771,7 +5770,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of PublicKey</returns>
         public async System.Threading.Tasks.Task<PublicKey> UserCurrentPostKeyAsync(CreateKeyOption body = null)
@@ -5783,7 +5782,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Create a public key
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (PublicKey)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<PublicKey>> UserCurrentPostKeyAsyncWithHttpInfo(CreateKeyOption body = null)
@@ -5880,7 +5879,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Follow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to follow</param>
         public void UserCurrentPutFollow(string username)
         {
@@ -5890,7 +5889,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Follow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to follow</param>
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserCurrentPutFollowWithHttpInfo(string username)
@@ -5991,7 +5990,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Follow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to follow</param>
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserCurrentPutFollowAsync(string username)
@@ -6002,7 +6001,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Follow a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to follow</param>
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentPutFollowAsyncWithHttpInfo(string username)
@@ -6103,7 +6102,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Star the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         public void UserCurrentPutStar(string owner, string repo)
@@ -6114,7 +6113,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Star the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>ApiResponse of Object(void)</returns>
@@ -6227,7 +6226,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Star the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>Task of void</returns>
@@ -6239,7 +6238,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Star the given repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>Task of ApiResponse</returns>
@@ -6352,7 +6351,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;TrackedTime&gt;</returns>
         public List<TrackedTime> UserCurrentTrackedTimes()
         {
@@ -6363,7 +6362,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;TrackedTime&gt;</returns>
         public ApiResponse<List<TrackedTime>> UserCurrentTrackedTimesWithHttpInfo()
         {
@@ -6451,7 +6450,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;TrackedTime&gt;</returns>
         public async System.Threading.Tasks.Task<List<TrackedTime>> UserCurrentTrackedTimesAsync()
         {
@@ -6462,7 +6461,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;TrackedTime&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<TrackedTime>>> UserCurrentTrackedTimesAsyncWithHttpInfo()
         {
@@ -6550,7 +6549,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         public void UserDeleteEmail(DeleteEmailOption body = null)
         {
@@ -6560,7 +6559,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserDeleteEmailWithHttpInfo(DeleteEmailOption body = null)
@@ -6658,7 +6657,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserDeleteEmailAsync(DeleteEmailOption body = null)
@@ -6669,7 +6668,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Delete email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserDeleteEmailAsyncWithHttpInfo(DeleteEmailOption body = null)
@@ -6767,7 +6766,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to get</param>
         /// <returns>User</returns>
         public User UserGet(string username)
@@ -6779,7 +6778,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to get</param>
         /// <returns>ApiResponse of User</returns>
         public ApiResponse<User> UserGetWithHttpInfo(string username)
@@ -6879,7 +6878,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to get</param>
         /// <returns>Task of User</returns>
         public async System.Threading.Tasks.Task<User> UserGetAsync(string username)
@@ -6891,7 +6890,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user to get</param>
         /// <returns>Task of ApiResponse (User)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<User>> UserGetAsyncWithHttpInfo(string username)
@@ -6991,7 +6990,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>User</returns>
         public User UserGetCurrent()
         {
@@ -7002,7 +7001,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of User</returns>
         public ApiResponse<User> UserGetCurrentWithHttpInfo()
         {
@@ -7090,7 +7089,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of User</returns>
         public async System.Threading.Tasks.Task<User> UserGetCurrentAsync()
         {
@@ -7101,7 +7100,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Get the authenticated user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (User)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<User>> UserGetCurrentAsyncWithHttpInfo()
         {
@@ -7189,7 +7188,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         public void UserGetTokens()
         {
              UserGetTokensWithHttpInfo();
@@ -7198,7 +7197,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserGetTokensWithHttpInfo()
         {
@@ -7286,7 +7285,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of void</returns>
         public async System.Threading.Tasks.Task UserGetTokensAsync()
         {
@@ -7296,7 +7295,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserGetTokensAsyncWithHttpInfo()
         {
@@ -7384,7 +7383,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>List&lt;Email&gt;</returns>
         public List<Email> UserListEmails()
         {
@@ -7395,7 +7394,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>ApiResponse of List&lt;Email&gt;</returns>
         public ApiResponse<List<Email>> UserListEmailsWithHttpInfo()
         {
@@ -7483,7 +7482,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of List&lt;Email&gt;</returns>
         public async System.Threading.Tasks.Task<List<Email>> UserListEmailsAsync()
         {
@@ -7494,7 +7493,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <returns>Task of ApiResponse (List&lt;Email&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Email>>> UserListEmailsAsyncWithHttpInfo()
         {
@@ -7582,7 +7581,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserListFollowers(string username)
@@ -7594,7 +7593,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         public ApiResponse<List<User>> UserListFollowersWithHttpInfo(string username)
@@ -7694,7 +7693,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserListFollowersAsync(string username)
@@ -7706,7 +7705,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<User>>> UserListFollowersAsyncWithHttpInfo(string username)
@@ -7806,7 +7805,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;User&gt;</returns>
         public List<User> UserListFollowing(string username)
@@ -7818,7 +7817,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         public ApiResponse<List<User>> UserListFollowingWithHttpInfo(string username)
@@ -7918,7 +7917,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;User&gt;</returns>
         public async System.Threading.Tasks.Task<List<User>> UserListFollowingAsync(string username)
@@ -7930,7 +7929,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<User>>> UserListFollowingAsyncWithHttpInfo(string username)
@@ -8030,7 +8029,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;GPGKey&gt;</returns>
         public List<GPGKey> UserListGPGKeys(string username)
@@ -8042,7 +8041,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;GPGKey&gt;</returns>
         public ApiResponse<List<GPGKey>> UserListGPGKeysWithHttpInfo(string username)
@@ -8142,7 +8141,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;GPGKey&gt;</returns>
         public async System.Threading.Tasks.Task<List<GPGKey>> UserListGPGKeysAsync(string username)
@@ -8154,7 +8153,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;GPGKey&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<GPGKey>>> UserListGPGKeysAsyncWithHttpInfo(string username)
@@ -8254,7 +8253,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;PublicKey&gt;</returns>
         public List<PublicKey> UserListKeys(string username)
@@ -8266,7 +8265,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;PublicKey&gt;</returns>
         public ApiResponse<List<PublicKey>> UserListKeysWithHttpInfo(string username)
@@ -8366,7 +8365,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;PublicKey&gt;</returns>
         public async System.Threading.Tasks.Task<List<PublicKey>> UserListKeysAsync(string username)
@@ -8378,7 +8377,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;PublicKey&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<PublicKey>>> UserListKeysAsyncWithHttpInfo(string username)
@@ -8478,7 +8477,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Repository> UserListRepos(string username)
@@ -8490,7 +8489,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserListReposWithHttpInfo(string username)
@@ -8590,7 +8589,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Repository>> UserListReposAsync(string username)
@@ -8602,7 +8601,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListReposAsyncWithHttpInfo(string username)
@@ -8702,7 +8701,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Repository> UserListStarred(string username)
@@ -8714,7 +8713,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserListStarredWithHttpInfo(string username)
@@ -8814,7 +8813,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Repository>> UserListStarredAsync(string username)
@@ -8826,7 +8825,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListStarredAsyncWithHttpInfo(string username)
@@ -8926,7 +8925,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>List&lt;Repository&gt;</returns>
         public List<Repository> UserListSubscriptions(string username)
@@ -8938,7 +8937,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserListSubscriptionsWithHttpInfo(string username)
@@ -9038,7 +9037,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>Task of List&lt;Repository&gt;</returns>
         public async System.Threading.Tasks.Task<List<Repository>> UserListSubscriptionsAsync(string username)
@@ -9050,7 +9049,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="username">username of the user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListSubscriptionsAsyncWithHttpInfo(string username)
@@ -9150,7 +9149,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Search for users
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="q">keyword (optional)</param>
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>List&lt;User&gt;</returns>
@@ -9163,7 +9162,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Search for users
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="q">keyword (optional)</param>
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
@@ -9263,7 +9262,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Search for users
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="q">keyword (optional)</param>
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>Task of List&lt;User&gt;</returns>
@@ -9276,7 +9275,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Search for users
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="q">keyword (optional)</param>
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
@@ -9376,7 +9375,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <param name="user">username of user</param>
@@ -9390,7 +9389,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <param name="user">username of user</param>
@@ -9514,7 +9513,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <param name="user">username of user</param>
@@ -9528,7 +9527,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
-        /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
+        /// IO.Swagger.Client.ApiException thrown when fails to make API call
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <param name="user">username of user</param>

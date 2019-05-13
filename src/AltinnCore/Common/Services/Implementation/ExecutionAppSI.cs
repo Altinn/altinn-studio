@@ -31,13 +31,10 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     public class ExecutionAppSI : IExecution
     {
-        private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
-
         private readonly ServiceRepositorySettings _settings;
         private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly ILogger _logger;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
@@ -48,19 +45,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
-        /// <param name="logger">the logger</param>
         public ExecutionAppSI(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             IHttpContextAccessor httpContextAccessor,
-            IHostingEnvironment hostingEnvironment,
-            ILogger<ExecutionAppSI> logger)
+            IHostingEnvironment hostingEnvironment)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
             _hostingEnvironment = hostingEnvironment;
-            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -184,12 +178,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return fileContent;
-        }
-
-        /// <inheritdoc />
-        public void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId, string developer)
-        {
-            _logger.LogInformation("Method CheckAndUpdateWorkflowFile is not implemented for app");
         }
     }
 }

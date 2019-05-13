@@ -29,13 +29,9 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     public class ExecutionStudioSI : IExecution
     {
-        private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
-
         private readonly ServiceRepositorySettings _settings;
         private readonly IRepository _repository;
         private readonly Interfaces.ICompilation _compilation;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly GeneralSettings _generalSettings;
         private readonly IHostingEnvironment _hostingEnvironment;
 
         /// <summary>
@@ -45,45 +41,39 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
         /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
-        /// <param name="httpContextAccessor">the http context accessor</param>
-        /// <param name="generalSettings">the current general settings</param>
         /// <param name="hostingEnvironment">the hosting environment</param>
         public ExecutionStudioSI(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             Interfaces.ICompilation compilationService,
             ApplicationPartManager partManager,
-            IHttpContextAccessor httpContextAccessor,
-            IOptions<GeneralSettings> generalSettings,
             IHostingEnvironment hostingEnvironment)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _compilation = compilationService;
-            _httpContextAccessor = httpContextAccessor;
-            _generalSettings = generalSettings.Value;
             _hostingEnvironment = hostingEnvironment;
         }
 
         /// <inheritdoc/>
-        public IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag)
+        public IServiceImplementation GetServiceImplementation(string applicationOwnerId, string applicationId, bool startServiceFlag)
         {
-            string assemblyName = LoadServiceAssembly(org, service, startServiceFlag);
-            string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service) + ".ServiceImplementation," + assemblyName;
+            string assemblyName = LoadServiceAssembly(applicationOwnerId, applicationId, startServiceFlag);
+            string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, applicationOwnerId, applicationId) + ".ServiceImplementation," + assemblyName;
 
             return (IServiceImplementation)Activator.CreateInstance(Type.GetType(implementationTypeName));
         }
 
         /// <inheritdoc/>
-        public ServiceContext GetServiceContext(string org, string service, bool startServiceFlag)
+        public ServiceContext GetServiceContext(string applicationOwnerId, string applicationId, bool startServiceFlag)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(org, service, false).GetServiceModelType(),
-                ServiceText = _repository.GetServiceTexts(org, service),
-                ServiceMetaData = _repository.GetServiceMetaData(org, service),
+                ServiceModelType = GetServiceImplementation(applicationOwnerId, applicationId, false).GetServiceModelType(),
+                ServiceText = _repository.GetServiceTexts(applicationOwnerId, applicationId),
+                ServiceMetaData = _repository.GetServiceMetaData(applicationOwnerId, applicationId),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = _repository.GetWorkFlow(org, service),
+                WorkFlow = _repository.GetWorkFlow(applicationOwnerId, applicationId),
             };
 
             if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)
@@ -101,27 +91,27 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetCodelist(string org, string service, string name)
+        public string GetCodelist(string applicationOwnerId, string applicationId, string name)
         {
-            string codeList = _repository.GetCodelist(org, service, name);
+            string codeList = _repository.GetCodelist(applicationOwnerId, applicationId, name);
             if (string.IsNullOrEmpty(codeList))
             {
                 // Try find the codelist at the service owner level
-                codeList = _repository.GetCodelist(org, null, name);
+                codeList = _repository.GetCodelist(applicationOwnerId, null, name);
             }
 
             return codeList;
         }
 
         /// <inheritdoc/>
-        public byte[] GetServiceResource(string org, string service, string resource)
+        public byte[] GetServiceResource(string applicationOwnerId, string applicationId, string resource)
         {
-            return _repository.GetServiceResource(org, service, resource);
+            return _repository.GetServiceResource(applicationOwnerId, applicationId, resource);
         }
 
-        private string LoadServiceAssembly(string org, string service, bool startServiceFlag)
+        private string LoadServiceAssembly(string applicationOwnerId, string applicationId, bool startServiceFlag)
         {
-            var codeCompilationResult = _compilation.CreateServiceAssembly(org, service, startServiceFlag);
+            var codeCompilationResult = _compilation.CreateServiceAssembly(applicationOwnerId, applicationId, startServiceFlag);
             if (!codeCompilationResult.Succeeded)
             {
                 var errorMessages = codeCompilationResult?.CompilationInfo?.Where(e => e.Severity == "Error")
@@ -137,60 +127,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceMetadata GetServiceMetaData(string org, string service)
+        public ServiceMetadata GetServiceMetaData(string applicationOwnerId, string applicationId)
         {
-            return _repository.GetServiceMetaData(org, service);
-        }
-
-        /// <inheritdoc/>
-        public void CheckAndUpdateWorkflowFile(string owner, string service, string developer)
-        {
-            string workflowFullFilePath = _settings.GetWorkflowPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
-            string templateWorkflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
-
-            if (!File.Exists(workflowFullFilePath))
-            {
-                // Create the workflow folder
-                Directory.CreateDirectory(_settings.GetWorkflowPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-                File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
-            }
-            else
-            {
-                if (ShouldUpdateFile(workflowFullFilePath, templateWorkflowData))
-                {
-                    // Overwrite existing file
-                    File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
-                }
-            }
-        }
-
-        private bool ShouldUpdateFile(string fullPath, string workflowData)
-        {
-            string currentworkflowData = File.ReadAllText(fullPath, Encoding.UTF8);
-            Definitions templateWorkflowModel = null;
-            Definitions currentWorkflowModel = null;
-
-            // Getting template version
-            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
-            using (TextReader tr = new StringReader(workflowData))
-            {
-                templateWorkflowModel = (Definitions)serializer.Deserialize(tr);
-            }
-
-            // Getting current version
-            using (TextReader tr = new StringReader(currentworkflowData))
-            {
-                currentWorkflowModel = (Definitions)serializer.Deserialize(tr);
-            }
-
-            if (templateWorkflowModel != null && currentWorkflowModel != null && templateWorkflowModel.Id != currentWorkflowModel.Id)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return _repository.GetServiceMetaData(applicationOwnerId, applicationId);
         }
 
         /// <inheritdoc/>

@@ -58,16 +58,6 @@ namespace AltinnCore.Designer
         public void ConfigureServices(IServiceCollection services)
         {
             // Adding services to Dependency Injection TODO: Make this environment specific
-            bool loadFromPackage = false;
-            if (loadFromPackage)
-            {
-                services.AddSingleton<IExecution, ExecutionSIIntegrationTest>();
-            }
-            else
-            {
-                services.AddSingleton<IExecution, ExecutionStudioSI>();
-            }
-
             services.AddSingleton<IExecution, ExecutionStudioSI>();
             services.AddSingleton<IInstance, InstanceStudioSI>();
             services.AddSingleton<IData, DataStudioSI>();
@@ -80,7 +70,6 @@ namespace AltinnCore.Designer
 
             services.AddSingleton<IArchive, ArchiveStudioSI>();
             services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
-            services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
@@ -212,10 +201,10 @@ namespace AltinnCore.Designer
                 routes.MapRoute(
                     name: "orgRoute",
                     template: "designer/{org}/{controller}/{action=Index}/",
-                    defaults: new { controller = "Owner" },
+                    defaults: new { controller = "Config" },
                     constraints: new
                     {
-                        controller = "Codelist|Owner|Config",
+                        controller = "Codelist|Config",
                     });
 
                 routes.MapRoute(

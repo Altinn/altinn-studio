@@ -14,20 +14,20 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Returns the ServiceImplementation for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
+        /// <param name="applicationOwnerId">The application owner id.</param>
+        /// <param name="applicationId">The application id.</param>
         /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>The service implementation.</returns>
-        IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag);
+        IServiceImplementation GetServiceImplementation(string applicationOwnerId, string applicationId, bool startServiceFlag);
 
         /// <summary>
         /// Returns the serviceContext.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
+        /// <param name="applicationOwnerId">The application owner id.</param>
+        /// <param name="applicationId">The application id.</param>
         /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>The serviceContext.</returns>
-        ServiceContext GetServiceContext(string org, string service, bool startServiceFlag);
+        ServiceContext GetServiceContext(string applicationOwnerId, string applicationId, bool startServiceFlag);
 
         /// <summary>
         /// Returns a new instanceId for a service.
@@ -38,28 +38,28 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets the raw content of a code list.
         /// </summary>
-        /// <param name="org">The organization code of the service owner.</param>
-        /// <param name="service">The service code of the current service.</param>
+        /// <param name="applicationOwnerId">The application owner id.</param>
+        /// <param name="applicationId">The application id.</param>
         /// <param name="name">The name of the code list to retrieve.</param>
         /// <returns>Raw contents of a code list file.</returns>
-        string GetCodelist(string org, string service, string name);
+        string GetCodelist(string applicationOwnerId, string applicationId, string name);
 
         /// <summary>
         /// Get the resource for the given parameters.
         /// </summary>
-        /// <param name="org">the organisation.</param>
-        /// <param name="service">the service.</param>
+        /// <param name="applicationOwnerId">The application owner id.</param>
+        /// <param name="applicationId">The application id.</param>
         /// <param name="resource">the resource.</param>
         /// <returns>The service resource.</returns>
-        byte[] GetServiceResource(string org, string service, string resource);
+        byte[] GetServiceResource(string applicationOwnerId, string applicationId, string resource);
 
         /// <summary>
         /// Returns the service metadata for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
+        /// <param name="applicationOwnerId">The application owner id.</param>
+        /// <param name="applicationId">The application id.</param>
         /// <returns>The service metadata for a service.</returns>
-        ServiceMetadata GetServiceMetaData(string org, string service);
+        ServiceMetadata GetServiceMetaData(string applicationOwnerId, string applicationId);
 
         /// <summary>
         /// Method that fetches the runtime resources stored in wwwroot
@@ -67,13 +67,5 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="resource">the resource</param>
         /// <returns>The filestream for the resource file</returns>
         byte[] GetRuntimeResource(string resource);
-
-        /// <summary>
-        /// Method that adds the workflow file to the repository if its not there, or replaces it if its an old version of the workflow file.
-        /// </summary>
-        /// <param name="applicationOwnerId">The application owner id</param>
-        /// <param name="applicationId">The application id</param>
-        /// <param name="developer">The developer of the service.</param>
-        void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId, string developer);
     }
 }
