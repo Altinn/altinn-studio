@@ -129,7 +129,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 ApplicationMetadata existingApplication = await repository.FindOne(applicationId, applicationOwnerId);
 
-                return BadRequest("Application already exists in repsitory! Try update application instead. ");
+                return BadRequest("Application already exists in repository! Try update application instead. ");
             }
             catch (DocumentClientException e)
             {

@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.ModelBinding;
@@ -28,6 +31,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly IGitea _giteaAPI;
         private ILogger<DeployController> _logger;
         private readonly ServiceRepositorySettings _settings;
+        private readonly PlatformStorageSettings _storage_settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeployController"/> class
@@ -37,35 +41,38 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="giteaAPI">The gitea api service</param>
         /// <param name="logger">The logger</param>
         /// <param name="settings">The settings service</param>
+        /// <param name="storage_settings">The storage settings</param>
         public DeployController(
             ISourceControl sourceControl,
             IConfiguration configuration,
             IGitea giteaAPI,
             ILogger<DeployController> logger,
-            IOptions<ServiceRepositorySettings> settings)
+            IOptions<ServiceRepositorySettings> settings,
+            IOptions<PlatformStorageSettings> storage_settings)
         {
             _sourceControl = sourceControl;
             _configuration = configuration;
             _giteaAPI = giteaAPI;
             _logger = logger;
             _settings = settings.Value;
+            _storage_settings = storage_settings.Value;
         }
 
         /// <summary>
         /// Start a new deployment
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="applicationOwnerId">The Organization code for the application owner</param>
+        /// <param name="applicationCode">The application code for the current service</param>
         /// <returns>The result of trying to start a new deployment</returns>
         [HttpPost]
-        public async Task<IActionResult> StartDeployment(string org, string service)
+        public async Task<IActionResult> StartDeployment(string applicationOwnerId, string applicationCode)
         {
-            if (org == null || service == null)
+            if (applicationOwnerId == null || applicationCode == null)
             {
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "Org or service not supplied",
+                    Message = "ApplicationOwnerId and applicationCode must be supplied",
                 });
             }
 
@@ -82,14 +89,59 @@ namespace AltinnCore.Designer.Controllers
             string credentials = _configuration["AccessTokenDevOps"];
 
             string result = string.Empty;
-            Branch masterBranch = _giteaAPI.GetBranch(org, service, "master").Result;
+            Branch masterBranch = _giteaAPI.GetBranch(applicationOwnerId, applicationCode, "master").Result;
             if (masterBranch == null)
             {
-                _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {service}");
+                _logger.LogWarning($"Unable to fetch branch information for app owner {applicationOwnerId} and app {applicationCode}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
                     Message = "Deployment failed: unable to find latest commit",
+                });
+            }
+
+            // register application in platform storage
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    string applicationId = $"{applicationOwnerId}-{applicationCode}";
+                    string versionId = $"{masterBranch.Commit.Id}";
+
+                    string storageEndpoint = Environment.GetEnvironmentVariable("PlatformStorage__ApiEndPoint") ?? _storage_settings.ApiEndPoint;
+                    ApplicationMetadataClient applicationMetadataClient = new ApplicationMetadataClient(client, storageEndpoint);
+
+                    ApplicationMetadata application = null;
+                    string message;
+
+                    try
+                    {                         
+                        application = applicationMetadataClient.GetApplicationMetadata(applicationId);
+                        message = $"updated from versionId {application.VersionId}";
+                    }
+                    catch (Exception)
+                    {
+                        application = applicationMetadataClient.CreateApplication(applicationId);
+                        message = "created";
+                    }                    
+
+                    if (application != null)
+                    { 
+                        application.VersionId = versionId;
+
+                        ApplicationMetadata updated = applicationMetadataClient.UpdateApplicationMetadata(application);
+
+                        _logger.LogInformation($"Application Metadata for {applicationId} is {message}. New versionId is {versionId}.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Unable to deploy app {applicationCode} for {applicationOwnerId} to Platform Storage: {ex}");
+                return StatusCode(500, new DeploymentResponse
+                {
+                    Success = false,
+                    Message = $"Deployment of Application Metadata to Platform Storage failed {ex}",
                 });
             }
 
@@ -106,7 +158,7 @@ namespace AltinnCore.Designer.Controllers
                         {
                             id = 5,
                         },
-                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
+                        parameters = $"{{\"APP_OWNER\":\"{applicationOwnerId}\",\"APP_REPO\":\"{applicationCode}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
@@ -121,7 +173,7 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Unable deploy app {service} for {org} because {ex}");
+                _logger.LogWarning($"Unable deploy app {applicationCode} for {applicationOwnerId} because {ex}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,

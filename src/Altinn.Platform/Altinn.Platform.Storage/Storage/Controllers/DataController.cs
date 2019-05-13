@@ -406,37 +406,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return UnprocessableEntity();
-        }
-
-        /// <summary>
-        /// Delete an instance
-        /// </summary>
-        /// <param name="instanceId">instance id</param>
-        /// <param name="instanceOwnerId">instance owner</param>
-        /// <param name="dataId">data id</param>
-        /// <returns>updated instance object</returns>
-        /// <!-- DELETE /instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={dataId} -->
-        [HttpDelete("{dataId:guid}")]
-        public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId, Guid dataId)
-        {
-            Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
-            if (instance == null)
-            {
-                return NotFound($"Didn't find the data object {dataId} that should be deleted in instanceId={instanceId}");
-            }
-            else
-            {
-                if (await _dataRepository.DeleteDataInStorage(dataId.ToString()))
-                {
-                    Data toDeleteData = instance.Data.Find(m => m.Id == dataId.ToString());
-                    instance.Data.Remove(toDeleteData);
-                    instance = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
-                    return Ok(instance);
-                }
-
-                return BadRequest();
-            }
-        }
+        }        
 
         private ApplicationMetadata GetApplicationInformation(string applicationId)
         {
