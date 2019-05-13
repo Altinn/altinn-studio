@@ -4,16 +4,16 @@ import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { thirdPartyComponentWithElementHandler } from '../../srcOld/containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
+import { IDataModelBindings } from '../features/form/layout/types';
 import ValidationActions from '../features/form/validation/actions';
-import components from './';
-
 import { IRuntimeState } from '../types';
+import components from './';
 
 export interface IProvidedProps {
   id: string;
   type: string;
   textResourceBindings: any;
-  dataBinding: string;
+  dataModelBindings: IDataModelBindings;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {
@@ -24,9 +24,16 @@ export interface IGenericComponentProps extends IProvidedProps {
 
 class GenericComponent extends React.Component<any> {
 
-  public handleDataUpdate = (data: any) => {
-    FormDataActions.updateFormData(this.props.dataBinding, data);
-    // TODO: ValidationActions.runSingleFieldValidation(null, null);
+  public handleDataUpdate = (value: any, key?: string) => {
+    key = key ? key : 'simpleBinding';
+    if (!this.props.dataModelBindings || !this.props.dataModelBindings[key]) {
+      return;
+    }
+    FormDataActions.updateFormData(this.props.dataModelBindings[key], value);
+  }
+  public getTextResource = (resourceKey: string): string => {
+    const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
+    return textResource ? textResource.value : resourceKey;
   }
 
   public render() {
@@ -38,12 +45,13 @@ class GenericComponent extends React.Component<any> {
         {...this.props}
         title={getLanguageFromKey(this.props.textResourceBindings.title, this.props.textResources)}
         handleDataChange={this.handleDataUpdate}
+        getTextResource={this.getTextResource}
       />
     );
   }
 }
 const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => ({
-  formData: state.formData.formData[props.dataBinding],
+  formData: state.formData.formData[props.dataModelBindings],
   isValid: true,
   textResources: state.formResources.languageResource.resources,
   ...props,
