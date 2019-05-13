@@ -4,6 +4,7 @@ import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { thirdPartyComponentWithElementHandler } from '../../srcOld/containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
+import ValidationActions from '../features/form/validation/actions';
 import components from './';
 
 import { IRuntimeState } from '../types';
@@ -25,6 +26,7 @@ class GenericComponent extends React.Component<any> {
 
   public handleDataUpdate = (data: any) => {
     FormDataActions.updateFormData(this.props.dataBinding, data);
+    // TODO: ValidationActions.runSingleFieldValidation(null, null);
   }
 
   public render() {
