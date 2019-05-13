@@ -149,6 +149,7 @@ namespace AltinnCore.Designer
                     options.SupportedCultures = supportedCultures;
                     options.SupportedUICultures = supportedCultures;
                 });
+            services.Configure<PlatformStorageSettings>(Configuration.GetSection("PlatformStorageSettings"));
         }
 
         /// <summary>

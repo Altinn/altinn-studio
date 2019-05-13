@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.ModelBinding;
@@ -28,6 +31,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly IGitea _giteaAPI;
         private ILogger<DeployController> _logger;
         private readonly ServiceRepositorySettings _settings;
+        private readonly PlatformStorageSettings _storage_settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeployController"/> class
@@ -37,18 +41,21 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="giteaAPI">The gitea api service</param>
         /// <param name="logger">The logger</param>
         /// <param name="settings">The settings service</param>
+        /// <param name="storage_settings">The storage settings</param>
         public DeployController(
             ISourceControl sourceControl,
             IConfiguration configuration,
             IGitea giteaAPI,
             ILogger<DeployController> logger,
-            IOptions<ServiceRepositorySettings> settings)
+            IOptions<ServiceRepositorySettings> settings,
+            IOptions<PlatformStorageSettings> storage_settings)
         {
             _sourceControl = sourceControl;
             _configuration = configuration;
             _giteaAPI = giteaAPI;
             _logger = logger;
             _settings = settings.Value;
+            _storage_settings = storage_settings.Value;
         }
 
         /// <summary>
@@ -90,6 +97,51 @@ namespace AltinnCore.Designer.Controllers
                 {
                     Success = false,
                     Message = "Deployment failed: unable to find latest commit",
+                });
+            }
+
+            // register application in platform storage
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    string applicationId = $"{org}-{service}";
+                    string versionId = $"{masterBranch.Commit.Id}";
+
+                    string storageEndpoint = Environment.GetEnvironmentVariable("PlatformStorage__ApiEndPoint") ?? _storage_settings.ApiEndPoint;
+                    ApplicationMetadataClient applicationMetadataClient = new ApplicationMetadataClient(client, storageEndpoint);
+
+                    ApplicationMetadata application = null;
+                    string message;
+
+                    try
+                    {                         
+                        application = applicationMetadataClient.GetApplicationMetadata(applicationId);
+                        message = $"updated from versionId {application.VersionId}";
+                    }
+                    catch (Exception)
+                    {
+                        application = applicationMetadataClient.CreateApplication(applicationId);
+                        message = "created";
+                    }                    
+
+                    if (application != null)
+                    { 
+                        application.VersionId = versionId;
+
+                        ApplicationMetadata updated = applicationMetadataClient.UpdateApplicationMetadata(application);
+
+                        _logger.LogInformation($"Application Metadata for {applicationId} is {message}. New versionId is {versionId}.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Unable to deploy app {service} for {org} to Platform Storage: {ex}");
+                return StatusCode(500, new DeploymentResponse
+                {
+                    Success = false,
+                    Message = $"Deployment of Application Metadata to Platform Storage failed {ex}",
                 });
             }
 
