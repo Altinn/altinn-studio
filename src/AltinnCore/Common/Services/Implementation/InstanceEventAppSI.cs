@@ -35,7 +35,7 @@ namespace AltinnCore.Common.Services.Implementation
             string apiUrl = $"{_platformStorageSettings.ApiEndPoint}/instances/{instanceId}/events";
 
             using (HttpClient client = new HttpClient())
-            {                
+            {
                 client.BaseAddress = new Uri(apiUrl);
 
                 try
@@ -54,7 +54,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
         {
-            string apiUri = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/events";
+            string apiUri = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/events?";
 
             if (!(eventTypes == null))
             {
@@ -83,7 +83,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     throw new Exception("Unable to retrieve instance event");
                 }
-               
+
             }
         }
 
@@ -95,14 +95,14 @@ namespace AltinnCore.Common.Services.Implementation
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceEvent.InstanceId}/events";
 
             using (HttpClient client = new HttpClient())
-            {                
+            {
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
                 try
                 {
-                    HttpResponseMessage response = await client.PostAsync(apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8));
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
                     string eventData = await response.Content.ReadAsStringAsync();
                     InstanceEvent result = JsonConvert.DeserializeObject<InstanceEvent>(eventData);
                     return result.Id.ToString();
