@@ -61,18 +61,18 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Start a new deployment
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="applicationOwnerId">The Organization code for the application owner</param>
+        /// <param name="applicationCode">The application code for the current service</param>
         /// <returns>The result of trying to start a new deployment</returns>
         [HttpPost]
-        public async Task<IActionResult> StartDeployment(string org, string service)
+        public async Task<IActionResult> StartDeployment(string applicationOwnerId, string applicationCode)
         {
-            if (org == null || service == null)
+            if (applicationOwnerId == null || applicationCode == null)
             {
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "Org or service not supplied",
+                    Message = "ApplicationOwnerId and applicationCode must be supplied",
                 });
             }
 
@@ -89,10 +89,10 @@ namespace AltinnCore.Designer.Controllers
             string credentials = _configuration["AccessTokenDevOps"];
 
             string result = string.Empty;
-            Branch masterBranch = _giteaAPI.GetBranch(org, service, "master").Result;
+            Branch masterBranch = _giteaAPI.GetBranch(applicationOwnerId, applicationCode, "master").Result;
             if (masterBranch == null)
             {
-                _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {service}");
+                _logger.LogWarning($"Unable to fetch branch information for app owner {applicationOwnerId} and app {applicationCode}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
@@ -105,7 +105,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    string applicationId = $"{org}-{service}";
+                    string applicationId = $"{applicationOwnerId}-{applicationCode}";
                     string versionId = $"{masterBranch.Commit.Id}";
 
                     string storageEndpoint = Environment.GetEnvironmentVariable("PlatformStorage__ApiEndPoint") ?? _storage_settings.ApiEndPoint;
@@ -137,7 +137,7 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Unable to deploy app {service} for {org} to Platform Storage: {ex}");
+                _logger.LogWarning($"Unable to deploy app {applicationCode} for {applicationOwnerId} to Platform Storage: {ex}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
@@ -158,7 +158,7 @@ namespace AltinnCore.Designer.Controllers
                         {
                             id = 5,
                         },
-                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
+                        parameters = $"{{\"APP_OWNER\":\"{applicationOwnerId}\",\"APP_REPO\":\"{applicationCode}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
@@ -173,7 +173,7 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Unable deploy app {service} for {org} because {ex}");
+                _logger.LogWarning($"Unable deploy app {applicationCode} for {applicationOwnerId} because {ex}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
