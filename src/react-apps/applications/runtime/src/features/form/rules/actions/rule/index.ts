@@ -15,7 +15,6 @@ export function checkIfRuleShouldRun(
   lastUpdatedDataValue: string,
   repeatingContainerId?: string,
 ): ICheckIfRuleShouldRun {
-  console.log('action is running ', lastUpdatedComponentId, lastUpdatedDataBinding, lastUpdatedDataValue);
   return {
     type: ActionTypes.CHECK_IF_RULE_SHOULD_RUN,
     lastUpdatedComponentId,

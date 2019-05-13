@@ -98,7 +98,7 @@ const mapStateToProps = (state: IRuntimeState): IFormFillerProps => {
     formConfig: state.formConfig,
     formDataCount: 1,
     textResources: state.language.language,
-    unsavedChanges: false,
+    unsavedChanges: state.formData.unsavedChanges,
     validationResults: null,
     workflowStep: state.formWorkflow.state,
   };

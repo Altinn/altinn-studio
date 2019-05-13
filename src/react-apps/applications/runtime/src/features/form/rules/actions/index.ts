@@ -23,9 +23,6 @@ const actions: IFormRulesActions = {
   fetchRuleModelRejected: FetchRuleModel.fetchRuleModelRejectedAction,
 };
 
-const FormRulesActions: IFormRulesActions = bindActionCreators<
-  any,
-  IFormRulesActions
->(actions, store.dispatch);
+const FormRulesActions: IFormRulesActions = bindActionCreators<any, IFormRulesActions>(actions, store.dispatch);
 
 export default FormRulesActions;

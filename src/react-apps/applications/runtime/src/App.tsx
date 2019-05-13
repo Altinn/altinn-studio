@@ -33,6 +33,10 @@ export default () => {
     FormRuleActions.fetchRuleModel(
       `${window.location.origin}/runtime/api/resource/${org}/${service}/RuleHandler.js`,
     );
+    // TODO: This link should point to
+    // tslint:disable-next-line:max-line-length
+    // `${altinnWindow.location.origin}/runtime/api/workflow/${reportee}/${servicePath}/GetCurrentState?instanceId=${instanceId}`);
+    // WHEN WE MERGE WITH MASTER
     FormWorkflowActions.getCurrentState(
       `${window.location.origin}/runtime/${org}/${service}/${instanceId}/GetCurrentState?reporteeId=${reportee}`,
     );

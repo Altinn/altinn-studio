@@ -3,10 +3,8 @@ import { fork } from 'redux-saga/effects';
 
 import {
   watchGetCurrentStateSaga,
-  watchSetCurrentStateSaga,
 } from './workflow';
 
-export default function*(): SagaIterator {
+export default function* (): SagaIterator {
   yield fork(watchGetCurrentStateSaga);
-  yield fork(watchSetCurrentStateSaga);
 }

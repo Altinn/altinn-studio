@@ -42,7 +42,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     }
   }
 
-  public onDataChanged = (selectedValue: any, index: number) => {
+  public onDataChanged = (selectedValue: any, index: number, label: string) => {
     const newSelected = this.state.selected;
     if (newSelected[index] === selectedValue) {
       newSelected[index] = '';
@@ -52,7 +52,13 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     this.setState({
       selected: newSelected,
     });
-    this.props.handleDataChange(newSelected.join());
+    let count = 0;
+    for (const i in newSelected) {
+      if (newSelected[i]) {
+        count++;
+      }
+    }
+    this.props.handleDataChange(count > 1 ? newSelected.join() : selectedValue);
   }
 
   public isOptionSelected = (option: string) => {
@@ -82,7 +88,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
             key={index}
             className={classNames('custom-control', 'custom-checkbox', 'a-custom-checkbox', 'pl-0', 'pr-4 mr-3',
               { 'no-cursor': this.props.readOnly })}
-            onClick={this.props.readOnly ? null : this.onDataChanged.bind(this, option.value, index)}
+            onClick={this.props.readOnly ? null : this.onDataChanged.bind(this, option.value, index, option.label)}
           >
             <input
               type='checkbox'

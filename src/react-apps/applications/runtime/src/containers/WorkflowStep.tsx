@@ -119,6 +119,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public handleSubmitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
+    // TODO: UPDATE WITH NEW RUNTIME API LINK WHEN MERGING WITH MASTER
     FormFillerActions.completeAndSendInForm(
       `${window.location.origin}/runtime/${org}/${service}/${instanceId}/CompleteAndSendIn`);
   }

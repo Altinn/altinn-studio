@@ -1,5 +1,6 @@
 import Immutable from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { ICompleteAndSendInFormRejected } from '../actions/complete';
 import {
   IFetchFormDataFulfilled,
   IFetchFormDataRejected,
@@ -20,11 +21,13 @@ export interface IFormData {
 export interface IFormDataState {
   formData: IFormData;
   error: Error;
+  unsavedChanges: boolean;
 }
 
 const initialState: IFormDataState = {
   formData: {},
   error: null,
+  unsavedChanges: false,
 };
 
 Immutable.extend('$setField', (params: any, original: IFormData) => {
@@ -46,7 +49,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
       return Immutable<IFormDataState>(state, {
         formData: {
           $merge: formData,
-        }
+        },
       });
     }
     case actionTypes.FETCH_FORM_DATA_REJECTED: {
@@ -66,8 +69,12 @@ const FormDataReducer: Reducer<IFormDataState> = (
             data,
           },
         },
+        unsavedChanges: {
+          $set: true,
+        },
       });
-    };
+    }
+
     case actionTypes.UPDATE_FORM_DATA_REJECTED: {
       const { error } = action as IUpdateFormDataRejected;
       return Immutable<IFormDataState>(state, {
@@ -84,10 +91,28 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
       });
     }
+
+    case actionTypes.SUBMIT_FORM_DATA_FULFILLED: {
+      return Immutable<IFormDataState>(state, {
+        unsavedChanges: {
+          $set: false,
+        },
+      });
+    }
+
+    case actionTypes.COMPLETE_AND_SEND_IN_FORM_REJECTED: {
+      const { error } = action as ICompleteAndSendInFormRejected;
+      return Immutable<IFormDataState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+
     default: {
       return state;
     }
   }
-}
+};
 
 export default FormDataReducer;
