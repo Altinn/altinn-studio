@@ -199,20 +199,6 @@ namespace Altinn.Platform.Storage.Controllers
             string applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
             ApplicationMetadata existingApplication;
 
-            try
-            {
-                existingApplication = await repository.FindOne(applicationId, application.ApplicationOwnerId);
-            }
-            catch (Exception e) 
-            {
-                return NotFound($"Unable to find application with applicationId={applicationId} for applicationOwnerId={applicationOwnerId} for update: {e.Message}");
-            }
-
-            if (application == null)
-            {
-                return BadRequest("Missing application metadata object. Please attach one.");
-            }
-
             if (application.Id == null || !application.Id.Equals(applicationId))
             {
                 return BadRequest("applicationId in path does not match id in attached object");
@@ -221,6 +207,15 @@ namespace Altinn.Platform.Storage.Controllers
             if (application.ApplicationOwnerId == null || !application.ApplicationOwnerId.Equals(applicationOwnerId))
             {
                 return BadRequest("ApplicationOwnerId from applicationId is not matching attached object");
+            }
+
+            try
+            {
+                existingApplication = await repository.FindOne(applicationId, application.ApplicationOwnerId);
+            }
+            catch (Exception e)
+            {
+                return NotFound($"Unable to find application with applicationId={applicationId} for applicationOwnerId={applicationOwnerId} for update: {e.Message}");
             }
 
             application.LastChangedBy = User.Identity.Name;

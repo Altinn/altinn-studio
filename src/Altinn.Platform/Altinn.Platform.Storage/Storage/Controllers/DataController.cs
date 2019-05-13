@@ -93,9 +93,9 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{dataId:guid}")]
         public async Task<IActionResult> Get(int instanceOwnerId, Guid instanceId, Guid dataId)
         {
-            if (instanceOwnerId == 0 || instanceId == null || dataId == null)
+            if (instanceOwnerId == 0)
             {
-                return BadRequest("Missing parameter values: neither of instanceId, dataId or instanceOwnerId can be empty");
+                return BadRequest("Missing parameter value: instanceOwnerId can not be empty");
             }
 
             // check if instance id exist and user is allowed to change the instance data            
@@ -140,9 +140,9 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMany(int instanceOwnerId, Guid instanceId)
         {
-            if (instanceOwnerId == 0 || instanceId == null)
+            if (instanceOwnerId == 0)
             {
-                return BadRequest("Missing parameter values: neither of instanceId, instanceOwnerId can be empty");
+                return BadRequest("Missing parameter value: instanceOwnerId can not be empty");
             }
 
             // check if instance id exist and user is allowed to change the instance data            
