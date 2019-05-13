@@ -387,10 +387,10 @@ namespace AltinnCore.Common.Services.Implementation
                     string htmlContent = await response.Content.ReadAsStringAsync();
                     string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
                     List<string> keys = FindAllAppKeysId(htmlContent, keyName);
-                    _logger.LogInformation("The number of app keys matching keyname " + keyName + " is " + keys.Count);
+                    _logger.LogInformation($"The number of app keys matching keyname {keyName} is {keys.Count}");
                     foreach (string key in keys)
                     {
-                        _logger.LogInformation("Keyvalue is " + key);
+                        _logger.LogInformation($"Keyvalue is {key}");
                     }
 
                     KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
