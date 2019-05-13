@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
@@ -50,6 +52,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IWorkflow _workflowSI;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
+        private readonly IInstanceEvent _event;
 
         private const string FORM_ID = "default";
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
@@ -72,6 +75,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="instanceSI">The instance si</param>
         /// <param name="platformSI">The platform si</param>
         /// <param name="data">the data service</param>
+        /// <param name="eventSI">the instance event service handler</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             IOptions<GeneralSettings> generalSettings,
@@ -87,7 +91,8 @@ namespace AltinnCore.Runtime.Controllers
             IWorkflow workflowSI,
             IInstance instanceSI,
             IPlatformServices platformSI,
-            IData data)
+            IData data,
+            IInstanceEvent eventSI)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -105,6 +110,7 @@ namespace AltinnCore.Runtime.Controllers
             _instance = instanceSI;
             _platformSI = platformSI;
             _data = data;
+            _event = eventSI;
         }
 
         /// <summary>
@@ -415,7 +421,7 @@ namespace AltinnCore.Runtime.Controllers
 
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
             Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
-            
+
             // Save Formdata to database
             this._data.UpdateData(
                 serviceModel,
@@ -425,6 +431,22 @@ namespace AltinnCore.Runtime.Controllers
                 service,
                 requestContext.UserContext.ReporteeId,
                 dataId);
+
+            // Create and store instance saved event
+            if (apiMode.Equals(ApiMode.Update))
+            {
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
+                    EventType = InstanceEventType.Saved.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
+                    UserId = requestContext.UserContext.UserId,
+                    WorkflowStep = instance.CurrentWorkflowStep
+                };
+
+                await _event.SaveInstanceEvent(instanceEvent, org, service);
+            }
 
             if (apiMode.Equals(ApiMode.Complete))
             {
