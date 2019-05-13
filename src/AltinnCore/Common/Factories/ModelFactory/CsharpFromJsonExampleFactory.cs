@@ -155,7 +155,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             var first = true;
-            foreach (var c in name.ToCharArray())
+            foreach (var c in name)
             {
                 if (first)
                 {
