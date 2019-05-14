@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Factories.ModelFactory;
@@ -172,6 +173,58 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Creates the application meta data file
+        /// </summary>
+        /// <param name="applicationOwnerId">the application owner</param>
+        /// <param name="applicationId">the application id</param>
+        public void CreateApplicationMetaData(string applicationOwnerId, string applicationId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            ApplicationMetadata appMetadata = new ApplicationMetadata
+            {
+                Id = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId),
+                VersionId = null,
+                ApplicationOwnerId = applicationOwnerId,
+                CreatedDateTime = DateTime.UtcNow,
+                CreatedBy = developer,
+                LastChangedDateTime = DateTime.UtcNow,
+                LastChangedBy = developer
+            };
+
+            if (appMetadata.Title == null)
+            {
+                appMetadata.Title = new Dictionary<string, string>();
+            }
+            
+            appMetadata.Title.Add("nb-no", applicationId);
+            if (appMetadata.Forms == null)
+            {
+                appMetadata.Forms = new List<ApplicationForm>();
+            }
+
+            appMetadata.Forms.Add(new ApplicationForm
+            {
+                Id = "default",
+                AllowedContentType = new List<string>() { "application/xml" },
+                ShouldEncrypt = true,
+            });
+
+            string metaDataDir = _settings.GetMetadataPath(
+                                    applicationOwnerId,
+                                    applicationId,
+                                    developer);
+            DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
+            if (!metaDirectoryInfo.Exists)
+            {
+                metaDirectoryInfo.Create();
+            }
+
+            string metadata = JsonConvert.SerializeObject(appMetadata);
+            string filePath = metaDataDir + _settings.ApplicationMetaDataFileName;
+            File.WriteAllText(filePath, metadata, Encoding.UTF8);
+        }
+
+        /// <summary>
         /// Updates serviceMetadata
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -184,6 +237,30 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
                 string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceMetadataFileName;
+
+                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Updates application metadata
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="applicationMetadata">The service Metadata</param>
+        /// <returns>A boolean indicating if saving was ok</returns>
+        public bool UpdateApplicationMetadata(string org, string service, ApplicationMetadata applicationMetadata)
+        {
+            try
+            {
+                string metadataAsJson = JsonConvert.SerializeObject(applicationMetadata);
+                string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetaDataFileName;
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
@@ -979,6 +1056,7 @@ namespace AltinnCore.Common.Services.Implementation
                 };
 
                 CreateServiceMetadata(metadata);
+                CreateApplicationMetaData(owner, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
