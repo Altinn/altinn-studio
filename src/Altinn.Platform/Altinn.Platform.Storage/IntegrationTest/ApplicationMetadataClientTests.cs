@@ -35,6 +35,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             ApplicationMetadata appMetadata = applicationClient.CreateApplication("TEST-sailor", title);
 
             Assert.Equal("TEST-sailor", appMetadata.Id);
+
+            ApplicationMetadata appMetadata2 = applicationClient.GetApplicationMetadata("TEST-sailor");
+
+            Assert.Equal(appMetadata.Id, appMetadata2.Id);
         }
 
         [Fact]

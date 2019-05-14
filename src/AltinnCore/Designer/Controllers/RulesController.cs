@@ -20,7 +20,6 @@ namespace AltinnCore.Designer.Controllers
     public class RulesController : Controller
     {
         private readonly IRepository _repository;
-        private readonly ICodeGeneration _codeGeneration;
         private readonly ICompilation _compilation;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -29,19 +28,16 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="RulesController"/> class
         /// </summary>
         /// <param name="repositoryService">The service repository service</param>
-        /// <param name="codeGenerationService">The code generation service</param>
         /// <param name="compilationService">The service compilation service</param>
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         public RulesController(
             IRepository repositoryService,
-            ICodeGeneration codeGenerationService,
             ICompilation compilationService,
             IOptions<ServiceRepositorySettings> repositorySettings,
             IHttpContextAccessor httpContextAccessor)
         {
             _repository = repositoryService;
-            _codeGeneration = codeGenerationService;
             _compilation = compilationService;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -73,50 +69,6 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Action for creating a new rule
-        /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <param name="rule">The rule to be created</param>
-        /// <returns>JSON representation of the created rule</returns>
-        [HttpPost]
-        public IActionResult Create(string org, string service, [FromBody]RuleContainer rule)
-        {
-            List<RuleContainer> existingRules = _repository.GetRules(org, service);
-
-            if (existingRules == null)
-            {
-                existingRules = new List<RuleContainer>();
-            }
-
-            int id = 1;
-            bool idFound = false;
-
-            while (!idFound)
-            {
-                if (existingRules.FirstOrDefault(r => r.Id == id) == null)
-                {
-                    idFound = true;
-                }
-                else
-                {
-                    id++;
-                }
-            }
-
-            rule.Id = id;
-            existingRules.Add(rule);
-
-            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
-            string rules = string.Empty;
-            _codeGeneration.CreateCalculationsAndValidationsClass(org, service, existingRules, serviceMetadata);
-
-            _repository.UpdateRules(org, service, existingRules);
-
-            return Json(rule);
-        }
-
-        /// <summary>
         /// Action returning a view for updating rules
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
@@ -130,36 +82,6 @@ namespace AltinnCore.Designer.Controllers
             RuleContainer rule = rules.FirstOrDefault(r => r.Id == id);
 
             return View(rule);
-        }
-
-        /// <summary>
-        /// Action for creating a new rule
-        /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <param name="id">The id of the rule to update</param>
-        /// <param name="rule">The rule to be created</param>
-        /// <returns>JSON representation of the created rule</returns>
-        [HttpPost]
-        public IActionResult Update(string org, string service, int id, [FromBody]RuleContainer rule)
-        {
-            List<RuleContainer> existingRules = _repository.GetRules(org, service);
-
-            if (existingRules == null)
-            {
-                existingRules = new List<RuleContainer>();
-            }
-
-            existingRules.RemoveAll(r => r.Id == rule.Id);
-            existingRules.Add(rule);
-
-            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
-
-            _codeGeneration.CreateCalculationsAndValidationsClass(org, service, existingRules, serviceMetadata);
-
-            _repository.UpdateRules(org, service, existingRules);
-
-            return Ok();
         }
 
         /// <summary>
@@ -203,30 +125,6 @@ namespace AltinnCore.Designer.Controllers
             {
                 return NotFound();
             }
-        }
-
-        /// <summary>
-        /// Gets all available rule types as JSON
-        /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <returns>All available rule types</returns>
-        [HttpGet]
-        public IActionResult GetRuleTypes(string org, string service)
-        {
-            return Json(_codeGeneration.GetRuleTypes());
-        }
-
-        /// <summary>
-        /// Gets all available condition types as JSON
-        /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <returns>All available condition types</returns>
-        [HttpGet]
-        public IActionResult GetConditionTypes(string org, string service)
-        {
-            return Json(_codeGeneration.GetConditionTypes());
         }
 
         /// <summary>

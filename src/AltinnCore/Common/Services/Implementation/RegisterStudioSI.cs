@@ -15,10 +15,8 @@ namespace AltinnCore.Common.Services.Implementation
     public class RegisterStudioSI : IRegister
     {
         private const string TESTDATA_PARTY_DIRECTORY = @"/Party/";
-
         private const string PARTY_FILENAME = "party.json";
-
-        private TestdataRepositorySettings _testdataRepositorySettings;
+        private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IDSF _dsfService;
         private readonly IER _erService;
 
@@ -39,14 +37,12 @@ namespace AltinnCore.Common.Services.Implementation
         public IDSF DSF
         {
             get { return _dsfService; }
-            protected set { }
         }
 
         /// <inheritdoc />
         public IER ER
         {
             get { return _erService; }
-            protected set { }
         }
 
         /// <inheritdoc />

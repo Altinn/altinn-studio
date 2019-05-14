@@ -90,14 +90,14 @@ namespace AltinnCore.Common.Services.Implementation
                     Task<HttpResponseMessage> response = client.PutAsync(apiUrl, streamContent);
                     if (!response.Result.IsSuccessStatusCode)
                     {
-                        throw new Exception("Unable to save form model");
+                        _logger.LogError($"Unable to save form model for instance {instanceId}");
                     }
                 }
             }
         }
 
         /// <inheritdoc />
-        public object GetFormData(Guid instanceId, Type type, string applicationOwner, string applicationId, int instanceOwnerId, Guid dataId)
+        public object GetFormData(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
@@ -167,7 +167,7 @@ namespace AltinnCore.Common.Services.Implementation
                         }
                     }
 
-                    if (attachments.Count > 0)
+                    if (attachments != null && attachments.Count > 0)
                     {
                         attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
                     }

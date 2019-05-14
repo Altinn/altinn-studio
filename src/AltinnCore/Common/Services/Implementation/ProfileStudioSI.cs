@@ -16,12 +16,9 @@ namespace AltinnCore.Common.Services.Implementation
     public class ProfileStudioSI : IProfile
     {
         private const string TESDATA_USER_DIRECTORY = @"/User/";
-
         private const string PROFILE_FILENAME = "userprofile.json";
-
-        private RegisterStudioSI _registerService;
-
-        private TestdataRepositorySettings _testdataRepositorySettings;
+        private readonly RegisterStudioSI _registerService;
+        private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IDSF _dsfService;
         private readonly IER _erService;
 

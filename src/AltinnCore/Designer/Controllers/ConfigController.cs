@@ -165,10 +165,7 @@ namespace AltinnCore.Designer.Controllers
                 };
             }
 
-            if (serviceConfigurationObject != null)
-            {
-                System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
-            }
+            System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
         }
     }
 }

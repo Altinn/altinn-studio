@@ -3,7 +3,6 @@ FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a
 WORKDIR Storage/
 
 COPY Storage ./Storage
-COPY Storage.Interface ./Storage
 WORKDIR Storage/
 
 RUN dotnet build Altinn.Platform.Storage.csproj -c Release -o /app_output

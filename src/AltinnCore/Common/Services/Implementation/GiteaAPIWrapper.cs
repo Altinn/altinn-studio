@@ -24,7 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private IMemoryCache _cache;
+        private readonly IMemoryCache _cache;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             User user = GetCurrentUser().Result;
 
-            SearchResults repository = null;
+            SearchResults repository = new SearchResults();
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(SearchResults));
 
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/search?");
@@ -217,16 +217,13 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            if (returnRepository != null)
+            if (returnRepository != null && returnRepository.Owner != null && !string.IsNullOrEmpty(returnRepository.Owner.Login))
             {
-                if (returnRepository.Owner != null && !string.IsNullOrEmpty(returnRepository.Owner.Login))
+                returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
+                Organization org = await GetCachedOrg(returnRepository.Owner.Login);
+                if (org != null)
                 {
-                    returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
-                    Organization org = await GetCachedOrg(returnRepository.Owner.Login);
-                    if (org != null)
-                    {
-                        returnRepository.Owner.UserType = UserType.Org;
-                    }
+                    returnRepository.Owner.UserType = UserType.Org;
                 }
             }
 
@@ -315,18 +312,12 @@ namespace AltinnCore.Common.Services.Implementation
             return branches;
         }
 
-        /// <summary>
-        /// Returns all branch information for a repository
-        /// </summary>
-        /// <param name="owner">The owner</param>
-        /// <param name="repo">The name of the repo</param>
-        /// <param name="branch">Name of branch</param>
-        /// <returns>The branches</returns>
-        public async Task<Branch> GetBranch(string owner, string repo, string branch)
+        /// <inheritdoc />
+        public async Task<Branch> GetBranch(string owner, string repository, string branch)
         {
             Branch branchinfo = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Branch));
-            Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repo + "/branches/" + branch);
+            Uri giteaUrl = new Uri($"{GetApiBaseUrl()}/repos/{owner}/{repository}/branches/{branch}");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -337,7 +328,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + owner + " / " + repo + " branch: " + branch);
+                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + owner + " / " + repository + " branch: " + branch);
                 }
             }
 
@@ -396,10 +387,10 @@ namespace AltinnCore.Common.Services.Implementation
                     string htmlContent = await response.Content.ReadAsStringAsync();
                     string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
                     List<string> keys = FindAllAppKeysId(htmlContent, keyName);
-                    _logger.LogInformation("The number of app keys matching keyname " + keyName + " is " + keys.Count());
+                    _logger.LogInformation($"The number of app keys matching keyname {keyName} is {keys.Count}");
                     foreach (string key in keys)
                     {
-                        _logger.LogInformation("Keyvalue is " + key);
+                        _logger.LogInformation($"Keyvalue is {key}");
                     }
 
                     KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
@@ -597,7 +588,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
             }
@@ -613,7 +604,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Uri giteaUrl;
 
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
                 giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + path);
             }

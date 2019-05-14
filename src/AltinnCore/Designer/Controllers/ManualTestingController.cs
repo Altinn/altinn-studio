@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
@@ -30,7 +33,6 @@ namespace AltinnCore.Designer.Controllers
     public class ManualTestingController : Controller
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IExecution _execution;
         private readonly IProfile _profile;
         private readonly IRegister _register;
         private readonly UserHelper _userHelper;
@@ -45,7 +47,6 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
         /// </summary>
         /// <param name="httpContextAccessor">the http context accessor service</param>
-        /// <param name="execution">the execution service</param>
         /// <param name="profile">the profile service</param>
         /// <param name="register">the register service</param>
         /// <param name="authorization">the authorization service</param>
@@ -54,10 +55,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaApi">the gitea api</param>
         /// <param name="workflow">the workflow</param>
-        public ManualTestingController(IHttpContextAccessor httpContextAccessor, IExecution execution, IProfile profile, IRegister register, IAuthorization authorization, ITestdata testdata, IOptions<ServiceRepositorySettings> serviceRepositorySettings, IOptions<GeneralSettings> generalSettings, IGitea giteaApi, IWorkflow workflow)
+        public ManualTestingController(IHttpContextAccessor httpContextAccessor, IProfile profile, IRegister register, IAuthorization authorization, ITestdata testdata, IOptions<ServiceRepositorySettings> serviceRepositorySettings, IOptions<GeneralSettings> generalSettings, IGitea giteaApi, IWorkflow workflow)
         {
             _httpContextAccessor = httpContextAccessor;
-            _execution = execution;
             _register = register;
             _profile = profile;
             _userHelper = new UserHelper(_profile, _register);
@@ -85,8 +85,7 @@ namespace AltinnCore.Designer.Controllers
                 return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
             }
 
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            _execution.CheckAndUpdateWorkflowFile(org, service, developer);
+            CheckAndUpdateWorkflowFile(org, service);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.CreateUserContextBasedOnReportee(HttpContext, reporteeId);
             requestContext.Reportee = requestContext.UserContext.Reportee;
@@ -172,7 +171,6 @@ namespace AltinnCore.Designer.Controllers
             {
                 return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
             }
-
         }
 
         /// <summary>
@@ -232,6 +230,67 @@ namespace AltinnCore.Designer.Controllers
             }
 
             return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?reporteeId={id}");
+        }
+
+        /// <summary>
+        /// Method that checks if there is a newer version of the workflow file and updates it if there are
+        /// </summary>
+        /// <param name="applicationOwnerId">The application owner id</param>
+        /// <param name="applicationId">The applicaiton id</param>
+        private void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId)
+        {
+            string workflowFullFilePath = _serviceRepositorySettings.GetWorkflowPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _serviceRepositorySettings.WorkflowFileName;
+            string templateWorkflowData = System.IO.File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+
+            if (!System.IO.File.Exists(workflowFullFilePath))
+            {
+                // Create the workflow folder
+                Directory.CreateDirectory(_serviceRepositorySettings.GetWorkflowPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+                System.IO.File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
+            }
+            else
+            {
+                if (ShouldUpdateFile(workflowFullFilePath, templateWorkflowData))
+                {
+                    // Overwrite existing file
+                    System.IO.File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Method that checks if the workflow file is the latest version
+        /// </summary>
+        /// <param name="fullPath">The path to the workflow file</param>
+        /// <param name="workflowData">The default workflow data</param>
+        /// <returns>Boolean that states if the workflow file in the repo is the latest version</returns>
+        private bool ShouldUpdateFile(string fullPath, string workflowData)
+        {
+            string currentworkflowData = System.IO.File.ReadAllText(fullPath, Encoding.UTF8);
+            Definitions templateWorkflowModel = null;
+            Definitions currentWorkflowModel = null;
+
+            // Getting template version
+            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
+            using (TextReader tr = new StringReader(workflowData))
+            {
+                templateWorkflowModel = (Definitions)serializer.Deserialize(tr);
+            }
+
+            // Getting current version
+            using (TextReader tr = new StringReader(currentworkflowData))
+            {
+                currentWorkflowModel = (Definitions)serializer.Deserialize(tr);
+            }
+
+            if (templateWorkflowModel != null && currentWorkflowModel != null && templateWorkflowModel.Id != currentWorkflowModel.Id)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

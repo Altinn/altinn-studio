@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private const string REPORTEELIST_FILENAME = "reporteelist.json";
 
-        private TestdataRepositorySettings _testdataRepositorySettings;
+        private readonly TestdataRepositorySettings _testdataRepositorySettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthorizationStudioSI"/> class.
@@ -32,7 +32,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the list of parties that a user can report for based on test data on disk
         /// </summary>
-        /// <param name="userId">The userID</param>
+        /// <param name="userId">The userId</param>
         /// <returns>List of parties user can report for</returns>
         public List<Reportee> GetReporteeList(int userId)
         {

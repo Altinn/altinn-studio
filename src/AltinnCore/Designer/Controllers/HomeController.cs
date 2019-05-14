@@ -28,24 +28,21 @@ namespace AltinnCore.Designer.Controllers
     /// </summary>
     public class HomeController : Controller
     {
-        private readonly IRepository _repository;
         private readonly IGitea _giteaApi;
-        private ILogger<HomeController> _logger;
+        private readonly ILogger<HomeController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
         /// </summary>
-        /// <param name="repositoryService">The repository service</param>
         /// <param name="logger">The logger</param>
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="httpContextAccessor">the httpcontext accessor</param>
         /// <param name="sourceControl">the source control</param>
-        public HomeController(IRepository repositoryService, ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
+        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
         {
-            _repository = repositoryService;
             _logger = logger;
             _settings = repositorySettings.Value;
             _giteaApi = giteaWrapper;
@@ -98,8 +95,6 @@ namespace AltinnCore.Designer.Controllers
             }
 
             model.RepositorySearch = repositorySearch;
-
-            // IList<OrgConfiguration> owners = _repository.GetOwners();
             return View(model);
         }
 
@@ -111,30 +106,6 @@ namespace AltinnCore.Designer.Controllers
         public ActionResult CreateOrg()
         {
             return View();
-        }
-
-        /// <summary>
-        /// Creates a new service owner org
-        /// </summary>
-        /// <param name="name">The service owner name</param>
-        /// <param name="code">The service owner code</param>
-        /// <returns>The front page</returns>
-        [HttpPost]
-        [Authorize]
-        public ActionResult CreateOrg(string name, string code)
-        {
-            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(code))
-            {
-                var config = new OrgConfiguration
-                {
-                    Name = name,
-                    Code = code.ToUpper(),
-                };
-
-                _repository.CreateOrg(config);
-            }
-
-            return this.RedirectToAction("Index", "Home");
         }
 
         /// <summary>
