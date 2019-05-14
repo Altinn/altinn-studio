@@ -41,6 +41,7 @@ namespace AltinnCore.Common.Attributes
         /// <param name="context">The context</param>
         public void OnResourceExecuted(ResourceExecutedContext context)
         {
+            // Not implemented
         }
     }
 }

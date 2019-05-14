@@ -117,7 +117,6 @@ namespace AltinnCore.Designer.Controllers
                 codeCompilationResult.CompilationInfo.Where(RelevantCompilationInfo)
                     .GroupBy(c => c.Severity + c.FileName + c.Info)
                     .Select(c => c.First())
-                    .ToList()
                     .OrderBy(c => c.Severity)
                     .ThenBy(c => c.FileName)
                     .ThenBy(c => c.Info);

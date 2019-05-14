@@ -14,8 +14,8 @@ namespace AltinnCore.Common.Helpers
     /// </summary>
     public class UserHelper
     {
-        private IProfile _profileService;
-        private IRegister _registerService;
+        private readonly IProfile _profileService;
+        private readonly IRegister _registerService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserHelper"/> class

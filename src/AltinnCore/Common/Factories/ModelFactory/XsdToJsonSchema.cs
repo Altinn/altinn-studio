@@ -558,43 +558,45 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             TagType(attributeSchema, "XmlAttribute");
-
-            if (attribute.Annotation != null)
+            if (attribute != null)
             {
-                AppendAnnotated(attribute, attributeSchema);
-            }
+                if (attribute.Annotation != null)
+                {
+                    AppendAnnotated(attribute, attributeSchema);
+                }
 
-            if (attribute.AttributeSchemaType != null)
-            {
-                throw new NotImplementedException();
-            }
+                if (attribute.AttributeSchemaType != null)
+                {
+                    throw new NotImplementedException();
+                }
 
-            if (attribute.AttributeSchemaType != null)
-            {
-                throw new NotImplementedException();
-            }
+                if (attribute.AttributeSchemaType != null)
+                {
+                    throw new NotImplementedException();
+                }
 
-            if (attribute.FixedValue != null)
-            {
-                SetConst(attributeSchema, new JsonValue(attribute.FixedValue));
-            }
+                if (attribute.FixedValue != null)
+                {
+                    SetConst(attributeSchema, new JsonValue(attribute.FixedValue));
+                }
 
-            if (!attribute.QualifiedName.IsEmpty)
-            {
-                throw new NotImplementedException();
-            }
+                if (!attribute.QualifiedName.IsEmpty)
+                {
+                    throw new NotImplementedException();
+                }
 
-            if (attribute.SchemaType != null)
-            {
-                AppendSimpleType(attribute.SchemaType, attributeSchema);
-            }
+                if (attribute.SchemaType != null)
+                {
+                    AppendSimpleType(attribute.SchemaType, attributeSchema);
+                }
 
-            if (!attribute.SchemaTypeName.IsEmpty)
-            {
-                AppendTypeFromNameInternal(attribute.SchemaTypeName, attributeSchema);
-            }
+                if (!attribute.SchemaTypeName.IsEmpty)
+                {
+                    AppendTypeFromNameInternal(attribute.SchemaTypeName, attributeSchema);
+                }
 
-            isRequired = attribute.Use == XmlSchemaUse.Required;
+                isRequired = attribute.Use == XmlSchemaUse.Required;
+            }
 
             return attributeSchema;
         }

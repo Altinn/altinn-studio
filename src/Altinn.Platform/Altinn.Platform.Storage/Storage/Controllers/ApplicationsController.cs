@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
@@ -75,7 +76,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{applicationId}")]
         public async Task<ActionResult> GetOne(string applicationId)
         {
-            string applicationOwnerId = GetApplicationOwner(applicationId);
+            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
 
             try
             {
@@ -117,7 +118,7 @@ namespace Altinn.Platform.Storage.Controllers
             string applicationOwnerId;
             try
             {
-                applicationOwnerId = GetApplicationOwner(applicationId);
+                applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
             }
             catch (Exception e)
             {
@@ -128,7 +129,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 ApplicationMetadata existingApplication = await repository.FindOne(applicationId, applicationOwnerId);
 
-                return BadRequest("Application already exists in repsitory! Try update application instead. ");
+                return BadRequest("Application already exists in repository! Try update application instead. ");
             }
             catch (DocumentClientException e)
             {
@@ -188,23 +189,6 @@ namespace Altinn.Platform.Storage.Controllers
             }
         }
 
-        private string GetApplicationOwner(string applicationId)
-        {
-            if (applicationId == null || applicationId.Contains("/"))
-            {
-                throw new ApplicationException("ApplicationId cannot be null or contain forward slash /");
-            }
-
-            string[] parts = applicationId.Split("-");
-
-            if (parts.Length > 1)
-            {
-                return parts[0];
-            }
-
-            throw new ApplicationException("Cannot get application Owner Id from applicationId: {applicationId}");
-        }
-
         /// <summary>
         /// Updates an application
         /// </summary>
@@ -212,22 +196,8 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPut("{applicationId}")]
         public async Task<ActionResult> Put(string applicationId, [FromBody] ApplicationMetadata application)
         {
-            string applicationOwnerId = GetApplicationOwner(applicationId);
+            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
             ApplicationMetadata existingApplication;
-
-            try
-            {
-                existingApplication = await repository.FindOne(applicationId, application.ApplicationOwnerId);
-            }
-            catch (Exception e) 
-            {
-                return NotFound($"Unable to find application with applicationId={applicationId} for applicationOwnerId={applicationOwnerId} for update: {e.Message}");
-            }
-
-            if (application == null)
-            {
-                return BadRequest("Missing application metadata object. Please attach one.");
-            }
 
             if (application.Id == null || !application.Id.Equals(applicationId))
             {
@@ -237,6 +207,15 @@ namespace Altinn.Platform.Storage.Controllers
             if (application.ApplicationOwnerId == null || !application.ApplicationOwnerId.Equals(applicationOwnerId))
             {
                 return BadRequest("ApplicationOwnerId from applicationId is not matching attached object");
+            }
+
+            try
+            {
+                existingApplication = await repository.FindOne(applicationId, application.ApplicationOwnerId);
+            }
+            catch (Exception e)
+            {
+                return NotFound($"Unable to find application with applicationId={applicationId} for applicationOwnerId={applicationOwnerId} for update: {e.Message}");
             }
 
             application.LastChangedBy = User.Identity.Name;
@@ -281,7 +260,7 @@ namespace Altinn.Platform.Storage.Controllers
             string applicationOwnerId;
             try
             {
-                applicationOwnerId = GetApplicationOwner(applicationId);
+                applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
             }
             catch (Exception e)
             {

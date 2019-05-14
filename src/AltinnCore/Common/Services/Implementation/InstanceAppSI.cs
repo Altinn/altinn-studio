@@ -15,6 +15,7 @@ using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -28,6 +29,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IData _data;
         private readonly PlatformStorageSettings _platformStorageSettings;
         private readonly IWorkflow _workflow;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceAppSI"/> class.
@@ -35,11 +37,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="data">form service</param>
         /// <param name="platformStorageSettings">the platform storage settings</param>
         /// <param name="workflowSI">the workflow service</param>
-        public InstanceAppSI(IData data, IOptions<PlatformStorageSettings> platformStorageSettings, IWorkflow workflowSI)
+        /// <param name="logger">the logger</param>
+        public InstanceAppSI(IData data, IOptions<PlatformStorageSettings> platformStorageSettings, IWorkflow workflowSI, ILogger<InstanceAppSI> logger)
         {
             _data = data;
             _platformStorageSettings = platformStorageSettings.Value;
             _workflow = workflowSI;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -47,8 +51,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Guid instanceId;
             Instance instance = null;
-            string applicationId = startServiceModel.Service;
             string applicationOwnerId = startServiceModel.Org;
+            string applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, startServiceModel.Service);
             int instanceOwnerId = startServiceModel.ReporteeID;
 
             using (HttpClient client = new HttpClient())
@@ -91,7 +95,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance;
+            Instance instance = new Instance();
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
@@ -106,7 +110,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    throw new Exception("Unable to fetch instance");
+                    _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
                 }
 
                 return instance;
@@ -118,7 +122,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<Instance> instances = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances?instanceOwnerId={instanceOwnerId}&applicationOwnerId={applicationOwnerId}&applicationId={applicationId}";
+            applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId);
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -135,7 +140,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    throw new Exception("Unable to fetch instance");
+                    _logger.LogError("Unable to fetch instances");
                 }
 
                 return instances;
@@ -145,7 +150,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance;
+            Instance instance = new Instance();
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
@@ -162,7 +167,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    throw new Exception("Unable to update instance");
+                    _logger.LogError($"Unable to update instance with instance id {instanceId}");
                 }
 
                 return instance;

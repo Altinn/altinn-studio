@@ -212,7 +212,8 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch (Exception ex)
             {
-                throw new Exception("Something went wrong when fetching service metadata ", ex);
+                _logger.LogError("Something went wrong when fetching service metadata ", ex);
+                return null;
             }
         }
 
@@ -909,31 +910,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a new service owner folder in the repository location and saves the given configuration
-        /// </summary>
-        /// <param name="ownerConfig">The service owner configuration</param>
-        /// <returns>Was the creation successful</returns>
-        public bool CreateOrg(OrgConfiguration ownerConfig)
-        {
-            string filename = _settings.GetOrgPath(ownerConfig.Code) + ownerConfig.Code + "/config.json";
-            bool created = false;
-
-            if (!File.Exists(filename))
-            {
-                new FileInfo(filename).Directory.Create();
-                using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
-                using (StreamWriter streamWriter = new StreamWriter(fileStream))
-                {
-                    streamWriter.WriteLine(JsonConvert.SerializeObject(ownerConfig));
-                }
-
-                created = true;
-            }
-
-            return created;
-        }
-
-        /// <summary>
         /// Creates a new service folder under the given <paramref name="owner">service owner</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
@@ -964,10 +940,22 @@ namespace AltinnCore.Common.Services.Implementation
                         new FileInfo(filename).Directory.Create();
                     }
 
-                    using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
-                    using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                    Stream fileStream = null;
+                    try
                     {
-                        streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
+                        fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite);
+                        using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                        {
+                            fileStream = null;
+                            streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
+                        }
+                    }
+                    finally
+                    {
+                        if (fileStream != null)
+                        {
+                            fileStream.Dispose();
+                        }
                     }
                 }
 
@@ -1107,27 +1095,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// The get zip archive.
-        /// </summary>
-        /// <param name="details">the service package details</param>
-        /// <returns>
-        /// The <see cref="ZipArchive"/>.
-        /// </returns>
-        public ZipArchive GetZipArchive(ServicePackageDetails details)
-        {
-            Guard.AssertArgumentNotNull(details, nameof(details));
-            string packageDirectory = _settings.GetServicePackagesPath(details.Organization, details.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string filename = packageDirectory + details.PackageName;
-
-            if (!File.Exists(filename))
-            {
-                throw new ArgumentException("Package detail file does not exist", nameof(details));
-            }
-
-            return ZipFile.OpenRead(filename);
-        }
-
-        /// <summary>
         /// Updates rules for a service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -1224,12 +1191,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        private string GetCodeListRepoForOrg(string org)
-        {
-            // TODO: FIND OUT WHAT SHOULD BE HERE
-            return $"http://altinn3.no/{org}/codelists.git";
-        }
-
         /// <summary>
         /// create a repository in gitea for the given organisation and options
         /// </summary>
@@ -1294,9 +1255,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="name">The name on config</param>
-        /// <param name="codeList">The content</param>
+        /// <param name="codelist">The content</param>
         /// <returns>A boolean indicating if the code list was successfully saved</returns>
-        public bool SaveCodeList(string org, string service, string name, string codeList)
+        public bool SaveCodeList(string org, string service, string name, string codelist)
         {
             try
             {
@@ -1318,7 +1279,7 @@ namespace AltinnCore.Common.Services.Implementation
                 filePath += $"/codelists/{name}.json";
 
                 new FileInfo(filePath).Directory.Create();
-                File.WriteAllText(filePath, codeList, Encoding.UTF8);
+                File.WriteAllText(filePath, codelist, Encoding.UTF8);
             }
             catch
             {
@@ -1672,24 +1633,6 @@ namespace AltinnCore.Common.Services.Implementation
             return fileContent;
         }
 
-        private void CheckAndCreateDeveloperFolder()
-        {
-            string path = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
-            }
-            else
-            {
-                path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
-            }
-
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-        }
-
         private static string ViewResourceKey(string viewName)
         {
             return $"view.{viewName}";
@@ -1824,26 +1767,6 @@ namespace AltinnCore.Common.Services.Implementation
             if (sourceFile != null && sourceFile.Exists)
             {
                 sourceFile.CopyTo(destFileName);
-            }
-        }
-
-        private void CreateInitialStyles(string org, DirectoryInfo targetDirectory)
-        {
-            string destFileName = Path.Combine(targetDirectory.FullName, _settings.RuntimeCssFileName);
-            if (!File.Exists(destFileName))
-            {
-                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.RuntimeCssFileName, org);
-                if (sourceFile != null && sourceFile.Exists)
-                {
-                    sourceFile.CopyTo(destFileName);
-                }
-            }
-
-            string output = _settings.GetStylesConfig();
-            string stylesConfigPath = Path.Combine(targetDirectory.FullName, _settings.ServiceStylesConfigFileName);
-            if (!File.Exists(stylesConfigPath))
-            {
-                File.WriteAllText(stylesConfigPath, output);
             }
         }
 

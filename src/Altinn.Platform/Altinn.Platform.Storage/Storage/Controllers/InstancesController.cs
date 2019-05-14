@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
@@ -227,7 +228,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private ApplicationMetadata GetApplicationInformation(string applicationId)
         {
-            string applicationOwnerId = applicationId.Split("-")[0];
+            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
             try
             {
                 ApplicationMetadata application = _applicationRepository.FindOne(applicationId, applicationOwnerId).Result;

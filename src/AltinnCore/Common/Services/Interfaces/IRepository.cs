@@ -202,13 +202,6 @@ namespace AltinnCore.Common.Services.Interfaces
         IList<ServiceConfiguration> GetServices(string org);
 
         /// <summary>
-        /// Creates a new service owner folder in the repository location and saves the given configuration
-        /// </summary>
-        /// <param name="ownerConfig">The service owner configuration</param>
-        /// <returns>Was the creation successful</returns>
-        bool CreateOrg(OrgConfiguration ownerConfig);
-
-        /// <summary>
         /// Creates a new service folder under the given <paramref name="owner">service owner</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>

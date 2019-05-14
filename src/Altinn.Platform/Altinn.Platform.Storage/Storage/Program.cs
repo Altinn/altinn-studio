@@ -16,7 +16,7 @@ namespace Altinn.Platform.Storage
     /// <summary>
     /// The program to start Altinn Platform Storage Service.
     /// </summary>
-    public class Program
+    public static class Program
     {
         private static Logger logger = new LoggerConfiguration()
             .WriteTo.Console()

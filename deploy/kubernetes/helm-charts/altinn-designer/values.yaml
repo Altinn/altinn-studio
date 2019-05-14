@@ -31,6 +31,8 @@ environmentVariables:
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
+    - name: PlatformStorage__ApiEndPoint
+      value: http://platform.altinn.cloud
   production:
     - name: GiteaEndpoint
       value: altinn.studio
@@ -54,6 +56,8 @@ environmentVariables:
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
+    - name: PlatformStorage__ApiEndPoint
+      value: http://platform.altinn.cloud
 
 volumeMounts:
   - name: altinn-repo-storage

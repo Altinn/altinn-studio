@@ -84,6 +84,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IER, RegisterERStudioSI>();
                 services.AddSingleton<IRegister, RegisterStudioSI>();
                 services.AddSingleton<IProfile, ProfileStudioSI>();
+                services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
             }
             else
             {
@@ -97,6 +98,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IData, DataAppSI>();
                 services.AddSingleton<IWorkflow, WorkflowAppSI>();
                 services.AddSingleton<ITestdata, TestdataAppSI>();
+                services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
@@ -104,7 +106,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
-            services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
@@ -140,52 +141,24 @@ namespace AltinnCore.Runtime
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
-            string authenticationMode = string.Empty;
-            if (Environment.GetEnvironmentVariable("GeneralSettings__AuthenticationMode") != null)
-            {
-                authenticationMode = Environment.GetEnvironmentVariable("GeneralSettings__AuthenticationMode");
-            }
-            else
-            {
-                authenticationMode = Configuration["GeneralSettings:AuthenticationMode"];
-            }
+            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            SecurityKey key = new X509SecurityKey(cert);
 
-            if (!string.IsNullOrEmpty(authenticationMode) && authenticationMode.Equals("JwtCookie"))
-            {
-                X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
-                SecurityKey key = new X509SecurityKey(cert);
-
-                services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
-                    .AddJwtCookie(options =>
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+                .AddJwtCookie(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        options.TokenValidationParameters = new TokenValidationParameters
-                        {
-                            ValidateIssuerSigningKey = true,
-                            IssuerSigningKey = key,
-                            ValidateIssuer = false,
-                            ValidateAudience = false,
-                            RequireExpirationTime = true,
-                            ValidateLifetime = true
-                        };
-                        options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                        options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
-                    });
-            }
-            else
-            {
-                services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                   .AddCookie(options =>
-                   {
-                       options.AccessDeniedPath = "/runtime/ManualTesting/NotAuthorized/";
-                       options.LoginPath = "/runtime/ManualTesting/Users/";
-                       options.Cookie.Name = AltinnCore.Common.Constants.General.RuntimeCookieName;
-                       options.Events = new CookieAuthenticationEvents
-                       {
-                       // Add Custom Event handler to be able to redirect users for authentication upgrade
-                       OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
-                       };
-                   });
-            }
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = key,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
+                });
 
             var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
@@ -403,7 +376,7 @@ namespace AltinnCore.Runtime
                     defaults: new { controller = "Service" },
                     constraints: new
                     {
-                        controller = @"(Codelist|Config|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
+                        controller = @"(Codelist|Config|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         id = "[a-zA-Z0-9_\\-]{1,30}",
                     });

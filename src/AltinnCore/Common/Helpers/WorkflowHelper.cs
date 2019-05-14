@@ -70,7 +70,8 @@ namespace AltinnCore.Common.Helpers
                 case WorkflowStep.Archived:
                     return $"/runtime/{applicationOwner}/{applicationId}/{instanceId}/#Preview";
                 default:
-                    return $"/runtime/{applicationOwner}/{applicationId}/ManualTesting";
+                    // TODO: figure out what should be here and update.
+                    return $"/designer/{applicationOwner}/{applicationId}/ManualTesting";
             }
         }
 

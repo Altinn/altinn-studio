@@ -15,7 +15,7 @@ namespace AltinnCore.Designer
     /// <summary>
     /// This is the main method for running this asp.net core application without IIS
     /// </summary>
-    public class Program
+    public static class Program
     {
         /// <summary>
         /// The main method

@@ -23,9 +23,6 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
-        private const string SaveFormAttachmentApiMethod = "SaveFormAttachment";
-        private const string DeleteFormAttachmentApiMethod = "DeleteFormAttachment";
-        private const string GetFormAttachmentsApiMethod = "GetFormAttachments";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FormStudioSI"/> class.
