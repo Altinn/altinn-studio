@@ -4,13 +4,15 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { put } from '../../../../../utils/networking';
-import * as Actions from '../../actions/singleFieldValidation';
+import { mapApiValidationsToRedux } from '../../../../../utils/validation';
+import Actions from '../../actions';
+import { IRunSingleFieldValidationAction } from '../../actions/singleFieldValidation';
 import * as ActionTypes from '../../actions/types';
 
 export function* runSingleFieldValidationSaga({
   url,
   dataModelBinding,
-}: Actions.IRunSingleFieldValidationAction): SagaIterator {
+}: IRunSingleFieldValidationAction): SagaIterator {
   const state: IRuntimeStore = yield select();
   try {
     const requestBody = convertDataBindingToModel(state.formData.formData, state.formDataModel.dataModel);
@@ -21,12 +23,11 @@ export function* runSingleFieldValidationSaga({
     };
     const response = yield call(put, url, 'Validate', requestBody, config, dataModelBinding);
     if (response && response.validationResult) {
-      // Update validationError state
-      const validationErrors: any = response.validationResult.errors;
-      yield call(Actions.runSingleFieldValidationActionFulfilled, validationErrors);
+      const validationErrors = mapApiValidationsToRedux(response.validationResult.messages, state.formLayout.layout);
+      yield call(Actions.runSingleFieldValidationFulfilled, validationErrors);
     }
   } catch (err) {
-    yield call(Actions.runSingleFieldValidationActionRejected, err);
+    yield call(Actions.runSingleFieldValidation, err);
   }
 }
 

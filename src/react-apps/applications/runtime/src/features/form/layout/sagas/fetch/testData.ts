@@ -12,6 +12,7 @@ export const testData: any = {
         },
         required: true,
         readOnly: false,
+        triggerValidation: true,
       },
       {
         type: 'Datepicker',
