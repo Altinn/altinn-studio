@@ -226,9 +226,17 @@ namespace AltinnCore.Designer
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
-                              controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment|Deploy)",
+                              controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
+                          });
+                routes.MapRoute(
+                          name: "appRoute",
+                          template: "designer/{applicationOwnerId}/{applicationCode}/{controller}/{action=Index}/{id?}",
+                          defaults: new { controller = "Deploy" },
+                          constraints: new
+                          {
+                              controller = @"(Deploy)",
                           });
 
                 // -------------------------- DEFAULT ------------------------- //
