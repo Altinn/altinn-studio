@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { IFormData } from '../features/form/data/reducer';
 import { IRuntimeState } from '../types';
 
 export interface IProvidedProps {
   id: string;
   handleDataUpdate: (data: any) => void;
-  dataModelBindings: string;
+  dataModelBindings: any;
   textResourceBindings: any;
   required: boolean;
   type: string;
@@ -69,7 +70,6 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
-
       return (
         <>
           {this.renderLabel()}
@@ -84,12 +84,16 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       );
     }
   }
+  const makeMapStateToProps = () => {
+    const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => {
+      return {
+        language: state.language.language,
+        textResources: state.formResources.languageResource.resources,
+        ...props,
+      };
+    };
+    return mapStateToProps;
+  };
 
-  const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
-    language: state.language.language,
-    textResources: state.formResources.languageResource.resources,
-    ...props,
-  });
-
-  return connect(mapStateToProps)(FormComponentWithHandlers);
+  return connect(makeMapStateToProps)(FormComponentWithHandlers);
 };

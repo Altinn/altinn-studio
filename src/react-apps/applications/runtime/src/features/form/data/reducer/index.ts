@@ -22,12 +22,14 @@ export interface IFormDataState {
   formData: IFormData;
   error: Error;
   unsavedChanges: boolean;
+  changed: boolean;
 }
 
 const initialState: IFormDataState = {
   formData: {},
   error: null,
   unsavedChanges: false,
+  changed: false,
 };
 
 Immutable.extend('$setField', (params: any, original: IFormData) => {
@@ -68,6 +70,9 @@ const FormDataReducer: Reducer<IFormDataState> = (
             field,
             data,
           },
+        },
+        changed: {
+          $set: true,
         },
         unsavedChanges: {
           $set: true,

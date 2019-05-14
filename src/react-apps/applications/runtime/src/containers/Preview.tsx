@@ -16,6 +16,7 @@ export class PreviewComponent extends React.Component<IPreviewProps, null> {
     return (
       <div className='col-12'>
         {layout && layout.map((component: any) => {
+          console.log(component);
           if (component.component === 'Container') {
             return (
               <Container
