@@ -10,6 +10,7 @@ import FormAttachments from '../features/form/fileUpload/sagas';
 import FormLayoutSagas from '../features/form/layout/sagas';
 import FormResourceSagas from '../features/form/resources/sagas';
 import FormRulesSagas from '../features/form/rules/sagas';
+import FormValidationSagas from '../features/form/validation/sagas';
 import FormWorkflowSagas from '../features/form/workflow/sagas';
 import LanguageSagas from '../features/languages/sagas';
 
@@ -24,6 +25,7 @@ function* root(): SagaIterator {
   yield fork(FormDataModelSagas);
   yield fork(LanguageSagas);
   yield fork(FormResourceSagas);
+  yield fork(FormValidationSagas);
 }
 
 export const initSagas: () => Task = () => sagaMiddleware.run(root);

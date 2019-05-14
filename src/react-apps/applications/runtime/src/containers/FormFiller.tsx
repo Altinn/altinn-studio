@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormDataActions from '../features/form/data/actions';
 import { WorkflowSteps } from '../features/form/workflow/typings';
-import Preview from './Preview';
+import Render from './Render';
 import { WorkflowStep } from './WorkflowStep';
 
 import { IAltinnWindow, IRuntimeState } from '../types';
@@ -81,7 +81,7 @@ const FormFiller = (props: IFormFillerProps) => {
       onStepChange={handleStepChange}
     >
       <div className='row'>
-        <Preview />
+        <Render />
       </div>
       <div className='row mt-3'>
         <div className='a-btn-group'>

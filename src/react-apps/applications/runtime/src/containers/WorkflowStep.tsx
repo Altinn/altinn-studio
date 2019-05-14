@@ -4,6 +4,7 @@ import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormFillerActions from '../features/form/data/actions';
 
 import { IAltinnWindow, IRuntimeState } from '../types';
+import { IValidations } from '../types/global';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
@@ -232,10 +233,21 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 }
 
+const getErrorList = (validations: IValidations) => {
+  const unmappedValidations = validations.unmapped;
+  if (!unmappedValidations) {
+    return null;
+  }
+
+  return Object.keys(unmappedValidations).map((validationKey) => {
+    return unmappedValidations[validationKey].errors.join(', ');
+  });
+};
+
 const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
     language: state.language ? state.language.language : {},
-    errorList: null,
+    errorList: getErrorList(state.formValidations ? state.formValidations.validations : {}),
     ...props,
   };
 };

@@ -1,6 +1,8 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
+import { IAltinnWindow } from '../..';
 import { getFileUploadComponentValidations } from '../../../../../components/base/FileUploadComponent';
+import { IRuntimeState } from '../../../../../types';
 import { get, post } from '../../../../../utils/networking';
 import FormFileUploadDispatcher from '../../actions';
 import * as deleteActions from '../../actions/delete';
@@ -12,8 +14,8 @@ export function* watchDeleteAttachmentSaga(): SagaIterator {
 
 export function* deleteAttachmentSaga(
   { attachment, attachmentType, componentId }: deleteActions.IDeleteAttachmentAction): SagaIterator {
-  const state: IAppState = yield select();
-  const language = state.appData.language.language;
+  const state: IRuntimeState = yield select();
+  const language = state.language.language;
   try {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;

@@ -1,6 +1,6 @@
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
-// import MessageComponent, { MessageType } from 'Shared/components/message/MessageComponent';
+import MessageComponent from '../components/message/MessageComponent';
 
 export const styles = {
   inputHelper: {
@@ -22,32 +22,6 @@ export function noOptionsMessage(language: any): string {
   return language.general.no_options;
 }
 
-/*export function renderSelectDataModelBinding(
-  dataModelBinding: IDataModelBindings = {},
-  onDataModelChange: any,
-  language: any,
-  label?: string,
-  returnValue?: any,
-  key: string = 'simpleBinding',
-): JSX.Element {
-  return (
-    <div>
-      {renderPropertyLabel(label ?
-        language.ux_editor.modal_properties_data_model_helper + ' ' + language.general.for + ' ' + label :
-        language.ux_editor.modal_properties_data_model_helper)
-      }
-      <SelectDataModelComponent
-        selectedElement={dataModelBinding[key]}
-        // tslint:disable-next-line:jsx-no-lambda
-        onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, returnValue)}
-        language={language}
-        // tslint:disable-next-line:jsx-no-lambda
-        noOptionsMessage={() => noOptionsMessage(language)}
-      />
-    </div>
-  );
-}*/
-
 export function renderValidationMessagesForComponent(
   validationMessages: any,
   id: string,
@@ -68,11 +42,6 @@ export function renderValidationMessagesForComponent(
 
 export function renderValidationMessages(messages: string[], id: string, messageType: any) {
   return (
-    <div>
-      Error here
-    </div>
-  );
-  /*return (
     <MessageComponent
       messageType={messageType}
       style={{ display: 'block', width: 'fit-content' }}
@@ -87,5 +56,5 @@ export function renderValidationMessages(messages: string[], id: string, message
         })}
       </ol>
     </MessageComponent>
-  );*/
+  );
 }
