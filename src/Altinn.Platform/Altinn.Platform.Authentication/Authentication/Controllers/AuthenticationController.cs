@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -31,13 +30,11 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [HttpPost]
-        public Task<ActionResult> Post()
+        public async Task<ActionResult> Post()
         {
-            Request.Cookies["d"];
-            Request.Cookies
-            Request.Cookies["cookiename"];
-            return Ok();
-            
+            string cookie = Request.Cookies["cookiename"];
+
+            return Ok("Everyting looks good");
         }
     }
 }
