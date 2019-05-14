@@ -192,19 +192,19 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets deployment status
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="applicationOwnerId">The Organization code for the application owner</param>
+        /// <param name="applicationCode">The application code for the current service</param>
         /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <returns>The build status of the deployment build</returns>
         [HttpGet]
-        public async Task<IActionResult> FetchDeploymentStatus(string org, string service, string buildId)
+        public async Task<IActionResult> FetchDeploymentStatus(string applicationOwnerId, string applicationCode, string buildId)
         {
-            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(service) || string.IsNullOrEmpty(buildId))
+            if (string.IsNullOrEmpty(applicationOwnerId) || string.IsNullOrEmpty(applicationCode) || string.IsNullOrEmpty(buildId))
             {
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "Org, service or buildId not supplied",
+                    Message = "applicationOwnerId, applicationCode or buildId not supplied",
                 });
             }
 
