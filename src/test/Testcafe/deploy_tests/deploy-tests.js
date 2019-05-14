@@ -19,13 +19,14 @@ fixture('GUI service designer tests')
   .beforeEach(async t => {
     t.ctx.klarForDeploy = "Tjenesten er klar til å legges ut i testmiljø";
     t.ctx.deployFailure = "Tjenesten ble ikke lagt ut i testmiljøet";
-    t.ctx.tilgjengelig = "";
+    t.ctx.localChanges = "Du har ikke delt dine endringer med din organisasjon";
+    t.ctx.noCompile = "Tjenesten din kompilerer ikke";
+    t.ctx.tilgjengelig = "Tjenesten din er klar for test";
     t.ctx.ikkeTilgjengelig = "Tjenesten din er ikke tilgjengelig i testmiljø";
     await common.login(testUser.userEmail, testUser.password, loginPage);
   })
 
-test.skip('Happy path; deploy a service to a test environment', async() => {
-   header = Selector(headerString).withText(containedText);
+test('Happy case; deploy a service to a test environment', async() => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deployment#/deploytotest')
     .click(designer.testeNavigationTab)
@@ -33,6 +34,39 @@ test.skip('Happy path; deploy a service to a test environment', async() => {
     .click(designer.testeLeftMenuItems[1])
     .expect(designer.deployButton.exists).ok()
     .click(designer.deployButton)
-  let header = await Selector(headerString).withText(containedText);
-  await t.expect(header.exists).ok();
+    .expect((Selector("h2").withText(t.ctx.tilgjengelig)).exists).ok()
+})
+
+
+test('Service cannot deploy due to compilation error', async() => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/deploytotest')
+    .click(designer.testeNavigationTab)
+    .hover(designer.leftDrawerMenu)
+    .click(designer.testeLeftMenuItems[1])
+    .expect(designer.deployButton.getAttribute("disabled")).notOk()
+    .expect((Selector("h2").withText(t.ctx.noCompile)).exists).ok()
+})
+
+test.only('Service cannot be deployed due to local changes', async() => {
+  await t
+  .navigateTo(app.baseUrl + 'designer/tdd/deployment#/deploytotest')
+  .click(designer.lageNavigationTab)
+  .click(designer.inputBtn)
+  .pressKey('enter')
+  .expect(designer.delEndringer.exists).ok()
+  .click(designer.testeNavigationTab)
+  .hover(designer.leftDrawerMenu)
+  .click(designer.testeLeftMenuItems[1])
+  .expect(designer.deployButton.getAttribute("disabled")).notOk()
+  .expect((Selector("h2").withText(t.ctx.localChanges)).exists).ok()
+  .click(designer.delEndringer)
+  .expect(designer.commitMessageBox.exists).ok()
+  .click(designer.commitMessageBox)
+  .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
+  .expect(designer.validerEndringer.exists).ok()
+  .click(designer.validerEndringer)
+  .pressKey("tab")
+  .pressKey("enter")
+  .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok()
 })
