@@ -1,38 +1,45 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { thirdPartyComponentWithElementHandler } from '../../srcOld/containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
-import { IDataModelBindings } from '../features/form/layout/types';
+import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/types';
 import ValidationActions from '../features/form/validation/actions';
-import { IRuntimeState } from '../types';
+import { IAltinnWindow, IRuntimeState } from '../types';
+import { IComponentValidations } from '../types/global';
 import components from './';
 
 export interface IProvidedProps {
   id: string;
   type: string;
-  textResourceBindings: any;
+  textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {
-  formData: string;
   isValid: boolean;
   textResources: any;
+  layoutElement: ILayoutContainer | ILayoutComponent;
 }
 
-class GenericComponent extends React.Component<any> {
+class GenericComponent extends React.Component<IGenericComponentProps, any> {
 
-  public handleDataUpdate = (value: any, key?: string) => {
-    key = key ? key : 'simpleBinding';
+  public handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!this.props.dataModelBindings || !this.props.dataModelBindings[key]) {
       return;
     }
-    FormDataActions.updateFormData(this.props.dataModelBindings[key], value);
+    const dataModelField = this.props.dataModelBindings[key];
+    FormDataActions.updateFormData(dataModelField, value, this.props.id);
+    const component = this.props.layoutElement as ILayoutComponent;
+    if (component && component.triggerValidation) {
+      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+      const { org, service, instanceId, reportee } = altinnWindow;
+      const url = `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`;
+      ValidationActions.runSingleFieldValidation(url, dataModelField);
+    }
   }
   public getTextResource = (resourceKey: string): string => {
-    const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
+    const textResource = this.props.textResources.find((resource: any) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
   }
 
@@ -46,14 +53,31 @@ class GenericComponent extends React.Component<any> {
         title={getLanguageFromKey(this.props.textResourceBindings.title, this.props.textResources)}
         handleDataChange={this.handleDataUpdate}
         getTextResource={this.getTextResource}
+        isValid={this.props.isValid}
       />
     );
   }
 }
+
+const isComponentValid = (validations: IComponentValidations): boolean => {
+  if (!validations) {
+    return true;
+  }
+  let isValid: boolean = true;
+
+  Object.keys(validations).forEach((key: string) => {
+    if (validations[key].errors.length > 0) {
+      isValid = false;
+      return;
+    }
+  });
+  return isValid;
+};
+
 const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => ({
-  formData: state.formData.formData[props.dataModelBindings],
-  isValid: true,
+  isValid: isComponentValid(state.formValidations.validations[props.id]),
   textResources: state.formResources.languageResource.resources,
+  layoutElement: state.formLayout.layout.find((element) => element.id === props.id),
   ...props,
 });
 

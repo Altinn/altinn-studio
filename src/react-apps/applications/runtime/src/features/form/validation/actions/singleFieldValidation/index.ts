@@ -11,7 +11,7 @@ export interface IRunSingleFieldValidationActionRejected extends Action {
 }
 
 export interface IRunSingleFieldValidationActionFulfilled extends Action {
-  validationErrors: any;
+  validations: any;
 }
 
 export function runSingleFieldValidationAction(
@@ -26,11 +26,11 @@ export function runSingleFieldValidationAction(
 }
 
 export function runSingleFieldValidationActionFulfilled(
-  validationErrors: any,
+  validations: any,
 ): IRunSingleFieldValidationActionFulfilled {
   return {
     type: ActionTypes.RUN_SINGLE_FIELD_VALIDATION_FULFILLED,
-    validationErrors,
+    validations,
   };
 }
 

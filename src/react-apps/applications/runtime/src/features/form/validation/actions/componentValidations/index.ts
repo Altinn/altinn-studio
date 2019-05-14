@@ -2,30 +2,33 @@ import { Action } from 'redux';
 import { IComponentValidations } from '../../../../../types/global';
 import * as ActionTypes from '../types';
 
-export interface IUpdateValidations extends Action {
+export interface IUpdateComponentValidations extends Action {
   validations: IComponentValidations;
+  componentId: string;
 }
 
-export interface IUpdateValidationsRejected extends Action {
+export interface IUpdateComponentValidationsRejected extends Action {
   error: Error;
 }
 
-export function updateValidations(validations: IComponentValidations): IUpdateValidations {
+export function updateComponentValidations(
+  validations: IComponentValidations, componentId: string): IUpdateComponentValidations {
   return {
-    type: ActionTypes.UPDATE_VALIDATIONS,
+    type: ActionTypes.UPDATE_COMPONENT_VALIDATIONS,
     validations,
+    componentId,
   };
 }
 
-export function updateValidationsFulfilled(): Action {
+export function updateComponentValidationsFulfilled(): Action {
   return {
-    type: ActionTypes.UPDATE_VALIDATIONS_FULFILLED,
+    type: ActionTypes.UPDATE_COMPONENT_VALIDATIONS_FULFILLED,
   };
 }
 
-export function updateValidationsRejected(error: Error): IUpdateValidationsRejected {
+export function updateComponentValidationsRejected(error: Error): IUpdateComponentValidationsRejected {
   return {
-    type: ActionTypes.UPDATE_VALIDATIONS_REJECTED,
+    type: ActionTypes.UPDATE_COMPONENT_VALIDATIONS_REJECTED,
     error,
   };
 }

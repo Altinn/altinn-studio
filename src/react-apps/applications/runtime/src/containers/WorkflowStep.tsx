@@ -247,7 +247,7 @@ const getErrorList = (validations: IValidations) => {
 const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
     language: state.language ? state.language.language : {},
-    errorList: getErrorList(state.formValidations.validations),
+    errorList: getErrorList(state.formValidations ? state.formValidations.validations : {}),
     ...props,
   };
 };

@@ -1,15 +1,20 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
 import { IRuntimeState } from '../types';
+import { IComponentValidations } from '../types/global';
+import { renderValidationMessagesForComponent } from '../utils/render';
 
 export interface IProvidedProps {
   id: string;
   handleDataUpdate: (data: any) => void;
   dataModelBindings: string;
+  componentValidations: IComponentValidations;
   textResourceBindings: any;
   required: boolean;
   type: string;
+  layout: [ILayoutComponent | ILayoutContainer];
 }
 
 export interface IProps extends IProvidedProps {
@@ -80,14 +85,52 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
             handleDataChange={this.handleDataUpdate}
             {...passThroughProps}
           />
+          {this.errorMessage()}
         </>
       );
     }
+
+    private hasValidationMessages = () => {
+      if (!this.props.componentValidations) {
+        return false;
+      }
+      let hasMessages = false;
+      Object.keys(this.props.componentValidations).forEach((key: string) => {
+        if (this.props.componentValidations[key].errors.length > 0
+          || this.props.componentValidations[key].warnings.length > 0) {
+          hasMessages = true;
+          return;
+        }
+      });
+
+      return hasMessages;
+    }
+
+    private isSimpleComponent(): boolean {
+      const component = this.props.layout.find((element) => element.id === this.props.id) as ILayoutComponent;
+      if (!component || !component.dataModelBindings) {
+        return false;
+      }
+      const simpleBinding = component.dataModelBindings.simpleBinding;
+      const type = component.type;
+      return simpleBinding && type !== 'Checkboxes' && type !== 'RadioButtons' && type !== 'FileUpload';
+    }
+
+    private errorMessage(): JSX.Element[] {
+      if (!this.isSimpleComponent() ||
+        !this.hasValidationMessages()) {
+        return null;
+      }
+      return renderValidationMessagesForComponent(this.props.componentValidations.simpleBinding, this.props.id);
+    }
+
   }
 
   const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
     language: state.language.language,
     textResources: state.formResources.languageResource.resources,
+    componentValidations: state.formValidations.validations ? state.formValidations.validations[props.id] : {},
+    layout: state.formLayout.layout,
     ...props,
   });
 

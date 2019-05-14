@@ -15,6 +15,7 @@ export interface ILayoutComponent extends ILayoutEntry {
   disabled: boolean;
   isValid: boolean;
   required: boolean;
+  triggerValidation?: boolean;
 }
 export interface IDataModelBindings {
   [id: string]: string;

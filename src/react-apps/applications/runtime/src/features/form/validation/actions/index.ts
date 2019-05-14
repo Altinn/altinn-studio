@@ -1,15 +1,16 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import * as ValidationActions from './componentValidations';
-import * as SingleFieldValidationActions from './singleFieldValidation';
-
 import { store } from '../../../../store';
-import { IComponentValidations } from '../../../../types/global';
+import { IComponentValidations, IValidations } from '../../../../types/global';
+import * as ComponentValidation from './componentValidations';
+import * as SingleFieldValidationActions from './singleFieldValidation';
+import * as Validations from './validations';
 
 export interface IFormValidationActions extends ActionCreatorsMapObject {
-  updateValidations: (validations: IComponentValidations) =>
-    ValidationActions.IUpdateValidations;
-  updateValidationsFulfilled: () => Action;
-  updateValidationsRejected: (error: Error) => ValidationActions.IUpdateValidationsRejected;
+  updateValidations: (validations: IValidations) => Validations.IUpdateValidations;
+  updateComponentValidations: (validations: IComponentValidations, componentId: string) =>
+    ComponentValidation.IUpdateComponentValidations;
+  updateComponentValidationsFulfilled: () => Action;
+  updateComponentValidationsRejected: (error: Error) => ComponentValidation.IUpdateComponentValidationsRejected;
   runSingleFieldValidation: (url: string, dataModelBinding?: string)
     => SingleFieldValidationActions.IRunSingleFieldValidationAction;
   runSingleFieldValidationFulfilled: (validationErrors: any)
@@ -19,12 +20,15 @@ export interface IFormValidationActions extends ActionCreatorsMapObject {
 }
 
 const actions: IFormValidationActions = {
-  updateValidations: ValidationActions.updateValidations,
-  updateValidationsFulfilled: ValidationActions.updateValidationsFulfilled,
-  updateValidationsRejected: ValidationActions.updateValidationsRejected,
+  updateValidations: Validations.updateValidations,
+  updateComponentValidations: ComponentValidation.updateComponentValidations,
+  updateComponentValidationsFulfilled: ComponentValidation.updateComponentValidationsFulfilled,
+  updateComponentValidationsRejected: ComponentValidation.updateComponentValidationsRejected,
   runSingleFieldValidation: SingleFieldValidationActions.runSingleFieldValidationAction,
   runSingleFieldValidationFulfilled: SingleFieldValidationActions.runSingleFieldValidationActionFulfilled,
   runSingleFieldValidationRejected: SingleFieldValidationActions.runSingleFieldValidationActionRejected,
 };
 
-export default bindActionCreators<any, IFormValidationActions>(actions, store.dispatch);
+const FormValidationActions: IFormValidationActions = bindActionCreators<any, any>(actions, store.dispatch);
+
+export default FormValidationActions;
