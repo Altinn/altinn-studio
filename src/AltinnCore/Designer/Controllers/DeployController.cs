@@ -219,7 +219,7 @@ namespace AltinnCore.Designer.Controllers
             using (HttpClient client = new HttpClient())
             {
                 string applicationId = $"{applicationOwnerId}-{applicationCode}";
-                string storageEndpoint = "http://platform.altinn.cloud/storage/api/v1/"; //_platformSettings.GetApiStorageEndpoint;
+                string storageEndpoint = _platformSettings.GetApiStorageEndpoint;
                 ApplicationMetadata application = null;
                 string message;
                 string getApplicationMetadataUrl = $"{storageEndpoint}applications/{applicationId}";
