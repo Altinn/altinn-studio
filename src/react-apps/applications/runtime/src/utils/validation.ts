@@ -1,5 +1,6 @@
 import { IFormData } from '../features/form/data/reducer';
 import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
 export function min(value: number, test: number): boolean {
@@ -42,14 +43,17 @@ const validationFunctions: any = {
   pattern,
 };
 
-export function validateDataModel(
-  formData: IFormData,
+/*
+  Validates formData for a single component, returns a IComponentValidations object
+*/
+export function validateComponentFormData(
+  formData: any,
   dataModelFieldElement: IDataModelFieldElement,
-  layoutModelElement: ILayoutComponent,
+  component: ILayoutComponent,
 ): IComponentValidations {
   const validationErrors: string[] = [];
-  const fieldKey = Object.keys(layoutModelElement.dataModelBindings).find((binding: string) =>
-    layoutModelElement.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
+  const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
+    component.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
   const componentValidations: IComponentValidations = {
     [fieldKey]: {
       errors: [],
@@ -72,7 +76,7 @@ export function validateDataModel(
   });
   if (
     (dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1) ||
-    (layoutModelElement.required && formData.length)
+    (component.required)
   ) {
     if (formData.length === 0) {
       validationErrors.push(
@@ -84,16 +88,16 @@ export function validateDataModel(
   return componentValidations;
 }
 
+/*
+  Validates the entire formData and returns an IValidations object with validations mapped for all components
+*/
 export function validateFormData(
   formData: IFormData,
   dataModelFieldElements: IDataModelFieldElement[],
   layout: [ILayoutComponent | ILayoutContainer],
-): IValidationResults {
-  const validationErrors: string[] = [];
-  const componentValidations: IComponentValidations = {};
-  const result: IValidationResults = {};
+): IValidations {
+  const result: IValidations = {};
   Object.keys(formData).forEach((formDataKey) => {
-    // Get data model element
     const dataBindingName = getKeyWithoutIndex(formDataKey);
     const dataModelFieldElement = dataModelFieldElements.find((e) => e.DataBindingName === dataBindingName);
     if (!dataModelFieldElement) {
@@ -101,13 +105,10 @@ export function validateFormData(
     }
     let dataModelFieldKey: string = null;
     let connectedComponent: ILayoutComponent = null;
-    for (const layoutElement in layout) {
-      if (!layoutElement) {
-        continue;
-      }
+    layout.forEach((layoutElement) => {
       const component = layoutElement as unknown as ILayoutComponent;
       if (!component.dataModelBindings) {
-        continue;
+        return;
       }
       // Get form component and field connected to data model element
       for (const dataModelBindingKey in component.dataModelBindings) {
@@ -120,49 +121,25 @@ export function validateFormData(
           return;
         }
       }
-    }
-    Object.keys(dataModelFieldElement.Restrictions).forEach((restrictionKey) => {
-      if (!runValidation(restrictionKey, dataModelFieldElement.Restrictions[restrictionKey], formData[formDataKey])) {
-        if (dataModelFieldElement.Restrictions[restrictionKey].ErrortText) {
-          validationErrors.push(dataModelFieldElement.Restrictions[restrictionKey].ErrortText);
-        } else {
-          validationErrors.push(
-            `${restrictionKey}: ${dataModelFieldElement.Restrictions[restrictionKey].Value}`);
-        }
-      }
     });
 
-    if (connectedComponent && connectedComponent.required) {
-      if (formData[formDataKey].length === 0) {
-        validationErrors.push('Field is required');
-      }
-    }
-
-    if (validationErrors.length > 0) {
-      if (!componentValidations[dataModelFieldKey]) {
-        componentValidations[dataModelFieldKey] = {
-          errors: [],
-          warnings: [],
-        };
-      }
-      componentValidations[dataModelFieldKey].errors = validationErrors;
+    if (dataModelFieldKey && connectedComponent) {
+      const componentValidations =
+        validateComponentFormData(formData[formDataKey], dataModelFieldElement, connectedComponent);
       result[connectedComponent.id] = componentValidations;
     }
+    dataModelFieldKey = null;
+    connectedComponent = null;
   });
   return result;
 }
 
-export function mapApiValidationResultToLayout(
-  apiValidationResult: any, layout: [ILayoutComponent | ILayoutContainer]): IValidationResults {
-  if (!apiValidationResult) {
-    return {};
-  }
-  return mapValidations(apiValidationResult.messages, layout);
-}
-
-export function mapValidations(
-  validations: any, layout: [ILayoutComponent | ILayoutContainer]): IValidationResults {
-  const validationResult: IValidationResults = {};
+/*
+  Maps the API validation response to our redux format
+*/
+export function mapApiValidationsToRedux(
+  validations: any, layout: [ILayoutComponent | ILayoutContainer]): IValidations {
+  const validationResult: IValidations = {};
   if (!validations) {
     return validationResult;
   }
@@ -170,10 +147,13 @@ export function mapValidations(
   Object.keys(validations).forEach((validationKey) => {
     const componentValidation: IComponentValidations = {};
     const component = layout.find((layoutElement) => {
-      if (layoutElement.type !== 'COMPONENT') {
+      if (layoutElement.type.toLowerCase() === 'container') {
         return false;
       }
       const componentCandidate = layoutElement as unknown as ILayoutComponent;
+      if (!componentCandidate.dataModelBindings) {
+        return false;
+      }
       Object.keys(componentCandidate.dataModelBindings).forEach((fieldKey) => {
         if (componentCandidate.dataModelBindings[fieldKey].toLowerCase() === validationKey.toLowerCase()) {
           match = true;
@@ -206,6 +186,7 @@ export function mapValidations(
         };
       }
     }
+    match = false;
   });
   return validationResult;
 }

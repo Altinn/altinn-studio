@@ -1,54 +1,55 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { thirdPartyComponentWithElementHandler } from '../../srcOld/containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
+import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/types';
 import RuleActions from '../features/form/rules/actions';
-import components from './';
-
-import { IRuntimeState } from '../types';
+import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
+import { IAltinnWindow, IRuntimeState } from '../types';
+import { IComponentValidations } from '../types/global';
+import components from './';
 
 export interface IProvidedProps {
   id: string;
   type: string;
-  textResourceBindings: any;
-  dataModelBindings: any;
+  textResourceBindings: ITextResourceBindings;
+  dataModelBindings: IDataModelBindings;
   formData: any;
   component: string;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {
   dataModel: any;
+  formData: any;
   isValid: boolean;
   textResources: any;
-}
-export interface IState {
-  changed: boolean;
+  layoutElement: ILayoutContainer | ILayoutComponent;
 }
 
-class GenericComponent extends React.Component<IGenericComponentProps, IState> {
-  constructor(_props: IGenericComponentProps) {
-    super(_props);
+class GenericComponent extends React.Component<IGenericComponentProps, any> {
 
-    this.state = {
-      changed: _props.formData.changed,
-    };
-  }
-  public handleDataUpdate = (value: any, key?: string) => {
-    key = key ? key : 'simpleBinding';
+  public handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!this.props.dataModelBindings || !this.props.dataModelBindings[key]) {
       return;
     }
-    FormDataActions.updateFormData(this.props.dataModelBindings[key], value);
+    const dataModelField = this.props.dataModelBindings[key];
+    FormDataActions.updateFormData(dataModelField, value, this.props.id);
+    const component = this.props.layoutElement as ILayoutComponent;
+    if (component && component.triggerValidation) {
+      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+      const { org, service, instanceId, reportee } = altinnWindow;
+      const url = `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`;
+      ValidationActions.runSingleFieldValidation(url, dataModelField);
+    }
     const dataModelElement = this.props.dataModel.find(
       (element) => element.DataBindingName === this.props.dataModelBindings[key],
     );
     RuleActions.checkIfRuleShouldRun(this.props.id, dataModelElement, value);
   }
   public getTextResource = (resourceKey: string): string => {
-    const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
+    const textResource = this.props.textResources.find((resource: any) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
   }
   public getFormData = (): string | {} => {
@@ -61,7 +62,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, IState> {
       if (!dataBindingKey) {
         continue;
       }
-      valueArr[dataBindingKey] = this.props.formData.formData[this.props.dataModelBindings[dataBindingKey]];
+      valueArr[dataBindingKey] = this.props.formData[this.props.dataModelBindings[dataBindingKey]];
     }
     if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
       // Simple component
@@ -71,6 +72,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, IState> {
       return valueArr;
     }
   }
+
   public render() {
     const Component = formComponentWithHandlers(components.find((c: any) =>
       c.name === this.props.component,
@@ -83,16 +85,34 @@ class GenericComponent extends React.Component<IGenericComponentProps, IState> {
         handleDataChange={this.handleDataUpdate}
         getTextResource={this.getTextResource}
         formData={this.getFormData()}
+        isValid={this.props.isValid}
       />
     );
   }
 }
+
+const isComponentValid = (validations: IComponentValidations): boolean => {
+  if (!validations) {
+    return true;
+  }
+  let isValid: boolean = true;
+
+  Object.keys(validations).forEach((key: string) => {
+    if (validations[key].errors.length > 0) {
+      isValid = false;
+      return;
+    }
+  });
+  return isValid;
+};
+
 const makeMapStateToProps = () => {
   const GetFormDataSelector = makeGetFormDataSelector();
   const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => {
     return {
       dataModel: state.formDataModel.dataModel,
-      isValid: true,
+      layoutElement: state.formLayout.layout.find((element) => element.id === props.id),
+      isValid: isComponentValid(state.formValidations.validations[props.id]),
       textResources: state.formResources.languageResource.resources,
       formData: GetFormDataSelector(state, props),
       ...props,

@@ -7,7 +7,22 @@ const formDataSelector = (state: IAppState) => {
 };
 
 const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: number) => {
-  return state.formData;
+  const filteredFormData: any = {};
+  for (const dataModelKey in state.formLayout.layout) {
+    if (!dataModelKey) {
+      continue;
+    }
+    const formDataKey = props.dataModelBindings[dataModelKey];
+    if (!formDataKey) {
+      continue;
+    }
+    const formData = state.formData;
+    if (formData[formDataKey]) {
+      filteredFormData[props.dataModelBindings[dataModelKey]] = formData[formDataKey];
+    }
+  }
+
+  return filteredFormData;
 };
 
 const createDeepEqualSelector = createSelectorCreator(

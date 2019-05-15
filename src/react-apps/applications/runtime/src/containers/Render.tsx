@@ -1,27 +1,24 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { GenericComponentWrapper } from '../components/GenericComponent';
-import { Container } from './Container';
-
 import { ILayout } from '../features/form/layout/types';
 import { IRuntimeState } from '../types';
-export interface IPreviewProps {
+import { makeGetFormDataSelector } from '../selectors/getFormData';
+export interface IRenderProps {
   layout: ILayout;
   textResources: any;
 }
 
-export class PreviewComponent extends React.Component<IPreviewProps, null> {
+export class RenderComponent extends React.Component<IRenderProps, null> {
   public render(): JSX.Element {
     const { layout } = this.props;
     return (
       <div className='col-12'>
         {layout && layout.map((component: any) => {
-          console.log(component);
           if (component.component === 'Container') {
             return (
-              <Container
-                {...component}
-              />
+              // TODO: Implement container features
+              <></>
             );
           } else {
             return (
@@ -41,12 +38,15 @@ export class PreviewComponent extends React.Component<IPreviewProps, null> {
     );
   }
 }
-
-const mapStateToProps = (state: IRuntimeState): IPreviewProps => {
-  return {
-    layout: state.formLayout.layout,
-    textResources: state.formResources.languageResource.resources,
+const makeMapStateToProps = () => {
+  const GetFormDataSelector = makeGetFormDataSelector();
+  const mapStateToProps = (state: IRuntimeState, props: IRenderProps): IRenderProps => {
+    return {
+      layout: state.formLayout.layout,
+      textResources: state.formResources.languageResource.resources,
+    };
   };
+  return mapStateToProps;
 };
 
-export default connect(mapStateToProps)(PreviewComponent);
+export default connect(makeMapStateToProps)(RenderComponent);

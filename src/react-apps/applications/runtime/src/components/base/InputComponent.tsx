@@ -37,6 +37,7 @@ export class InputComponent
   }
 
   public render() {
+    console.log('input component ', this.props.id, 'formdata: ', this.props.formData);
     return (
       <input
         id={this.props.id}

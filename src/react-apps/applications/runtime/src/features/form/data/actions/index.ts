@@ -6,7 +6,7 @@ import * as SubmitFormData from './submit';
 import * as UpdateFormData from './update';
 
 export interface IFormDataActions extends ActionCreatorsMapObject {
-  updateFormData: (field: string, data: any) => UpdateFormData.IUpdateFormData;
+  updateFormData: (field: string, data: any, componentId: string) => UpdateFormData.IUpdateFormData;
   updateFormDataFulfilled: (field: string, data: any) => UpdateFormData.IUpdateFormDataFulfilled;
   updateFormDataRejected: (error: Error) => UpdateFormData.IUpdateFormDataRejected;
   submitFormData: (url: string, apiMode?: string) => SubmitFormData.ISubmitDataAction;
@@ -35,6 +35,6 @@ const actions: IFormDataActions = {
   completeAndSendInFormRejected: CompleteForm.completeAndSendInFormRejected,
 };
 
-const FormDataActions: IFormDataActions = bindActionCreators<any, any>(actions, store.dispatch);
+const FormDataActions: IFormDataActions = bindActionCreators<any, IFormDataActions>(actions, store.dispatch);
 
 export default FormDataActions;

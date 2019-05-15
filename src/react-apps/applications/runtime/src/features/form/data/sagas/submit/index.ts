@@ -9,11 +9,13 @@ import {
 import * as FormDataActionTypes from '../../actions/types';
 import { IFormDataState } from '../../reducer';
 
+import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { put } from '../../../../../utils/networking';
-import { validateFormData } from '../../../../../utils/validation';
+import { mapApiValidationsToRedux, validateFormData } from '../../../../../utils/validation';
 import { IDataModelState } from '../../../datamodell/reducer';
 import { ILayoutState } from '../../../layout/reducer';
+import FormValidationActions from '../../../validation/actions';
 
 const FormDataSelector: (store: IRuntimeStore) => IFormDataState = (store: IRuntimeStore) => store.formData;
 const DataModelSelector: (store: IRuntimeStore) => IDataModelState = (store: IRuntimeStore) => store.formDataModel;
@@ -25,8 +27,8 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     const dataModelState: IDataModelState = yield select(DataModelSelector);
     const layoutState: ILayoutState = yield select(LayoutSelector);
     const model = convertDataBindingToModel(formDataState.formData, dataModelState.dataModel);
-    const validationErrors = validateFormData(formDataState.formData, dataModelState.dataModel, layoutState.layout);
-    if (Object.keys(validationErrors).length === 0) {
+    const validations = validateFormData(formDataState.formData, dataModelState.dataModel, layoutState.layout);
+    if (Object.keys(validations).length === 0) {
       const result = yield call(put, url, apiMode || 'Update', { body: model });
       yield call(FormDataActions.submitFormDataFulfilled);
       if (result.status === 0 && result.nextState) {
@@ -39,7 +41,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
         }
       }
     } else {
-      // TODO: update state with validation errors when issue #1441 is done
+      FormValidationActions.updateValidations(validations);
     }
   } catch (err) {
     console.error(err);
@@ -48,7 +50,13 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
       yield call(FormDataActions.fetchFormData, url);
     } else if (err.response && err.response.data &&
       (err.response.data.status === 1 || err.response.data.status === 2)) {
-      // TODO: update state with validation errors when issue #1441 is done
+      const validationResult = err.response.data.validationResult;
+      if (validationResult && validationResult.messages) {
+        // If api returns validation errors, map these to redux format and update state
+        const layoutState: ILayoutState = yield select(LayoutSelector);
+        const validations = mapApiValidationsToRedux(err.response.data.validationResult.messages, layoutState.layout);
+        FormValidationActions.updateValidations(validations);
+      }
     }
   }
 }

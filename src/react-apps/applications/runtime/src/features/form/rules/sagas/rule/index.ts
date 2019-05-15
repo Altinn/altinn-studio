@@ -3,7 +3,6 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import * as RuleActions from '../../actions/rule';
 import * as ActionTypes from '../../actions/types';
 
-import { IRuntimeState } from '../../../../../reducers';
 import { IFormDynamicState } from '../../../dynamics/reducer';
 import { IFormRuleState } from '../../reducer';
 import { IFormData } from '../../../data/reducer';
@@ -11,6 +10,7 @@ import FormDataActions from '../../../data/actions';
 import { IDataModelFieldElement } from '../../';
 import { ILayoutState } from '../../../layout/reducer';
 import { IDataModelState } from '../../../datamodell/reducer';
+import { IRuntimeState } from '../../../../../types';
 
 const selectRuleConnection = (state: IRuntimeState): IFormDynamicState => state.formDynamics.ruleConnection;
 const selectFormDataConnection = (state: IRuntimeState): IFormData => state.formData;
@@ -116,7 +116,9 @@ function* checkIfRuleShouldRunSaga({
                 updatedDataBinding.DataBindingName =
                   updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
               }
-              yield call(FormDataActions.updateFormData, updatedDataBinding.DataBindingName, result.toString());
+              const component = formLayoutState.layout.find((comp: any) => comp.id === lastUpdatedComponentId);
+              yield call(FormDataActions.updateFormData, updatedDataBinding.DataBindingName, result.toString(),
+                component.id);
             }
           }
         }

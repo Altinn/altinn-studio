@@ -7,9 +7,12 @@ export const testData: any = {
         textResourceBindings: {
           title: '30287.ForetakUtenlandskNavndatadef30287.Label',
         },
-        dataModelBindings: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
+        dataModelBindings: {
+          simpleBinding: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
+        },
         required: true,
         readOnly: false,
+        triggerValidation: true,
       },
       {
         type: 'Datepicker',

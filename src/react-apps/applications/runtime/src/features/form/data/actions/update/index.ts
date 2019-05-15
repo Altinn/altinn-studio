@@ -4,13 +4,15 @@ import * as actionTypes from '../types';
 export interface IUpdateFormData extends Action {
   field: string;
   data: any;
+  componentId: string;
 }
 
-export function updateFormData(field: string, data: any): IUpdateFormData {
+export function updateFormData(field: string, data: any, componentId: string): IUpdateFormData {
   return {
     type: actionTypes.UPDATE_FORM_DATA,
     field,
     data,
+    componentId,
   };
 }
 
