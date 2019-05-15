@@ -62,7 +62,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
       if (!dataBindingKey) {
         continue;
       }
-      valueArr[dataBindingKey] = this.props.formData.formData[this.props.dataModelBindings[dataBindingKey]];
+      valueArr[dataBindingKey] = this.props.formData[this.props.dataModelBindings[dataBindingKey]];
     }
     if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
       // Simple component
@@ -77,7 +77,6 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
     const Component = formComponentWithHandlers(components.find((c: any) =>
       c.name === this.props.component,
     ).Tag);
-    console.log(this.props.formData);
     return (
       <Component
         {...this.props}
@@ -114,7 +113,7 @@ const makeMapStateToProps = () => {
       layoutElement: state.formLayout.layout.find((element) => element.id === props.id),
       isValid: isComponentValid(state.formValidations.validations[props.id]),
       textResources: state.formResources.languageResource.resources,
-      formData: state.formData,
+      formData: GetFormDataSelector(state, props),
       ...props,
     };
   };

@@ -3,7 +3,6 @@ import { connect } from 'react-redux';
 import { GenericComponentWrapper } from '../components/GenericComponent';
 import { ILayout } from '../features/form/layout/types';
 import { IRuntimeState } from '../types';
-import { makeGetFormDataSelector } from '../selectors/getFormData';
 export interface IRenderProps {
   layout: ILayout;
   textResources: any;
@@ -38,15 +37,11 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
     );
   }
 }
-const makeMapStateToProps = () => {
-  const GetFormDataSelector = makeGetFormDataSelector();
-  const mapStateToProps = (state: IRuntimeState, props: IRenderProps): IRenderProps => {
-    return {
-      layout: state.formLayout.layout,
-      textResources: state.formResources.languageResource.resources,
-    };
+const mapStateToProps = (state: IRuntimeState, props: IRenderProps): IRenderProps => {
+  return {
+    layout: state.formLayout.layout,
+    textResources: state.formResources.languageResource.resources,
   };
-  return mapStateToProps;
 };
 
-export default connect(makeMapStateToProps)(RenderComponent);
+export default connect(mapStateToProps)(RenderComponent);

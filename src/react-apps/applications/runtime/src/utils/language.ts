@@ -72,7 +72,6 @@ export function truncate(s: string, size: number) {
 
 export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
   if (textResources) {
-    console.log(resourceKey, textResources);
     const textResource = textResources.find((resource) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
   }

@@ -75,7 +75,6 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
-      console.log('passThroughProps ', passThroughProps);
       return (
         <>
           {this.renderLabel()}
@@ -137,7 +136,6 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     };
 
   };
-
 
   return connect(mapStateToProps)(FormComponentWithHandlers);
 };
