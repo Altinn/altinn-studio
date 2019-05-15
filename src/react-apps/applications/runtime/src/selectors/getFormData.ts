@@ -16,7 +16,7 @@ const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: 
     if (!formDataKey) {
       continue;
     }
-    const formData = state.formData;
+    const formData = state.formData.formData;
     if (formData[formDataKey]) {
       filteredFormData[props.dataModelBindings[dataModelKey]] = formData[formDataKey];
     }
