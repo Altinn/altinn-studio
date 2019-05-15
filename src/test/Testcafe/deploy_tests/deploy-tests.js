@@ -48,7 +48,7 @@ test('Service cannot deploy due to compilation error', async() => {
     .expect((Selector("h2").withText(t.ctx.noCompile)).exists).ok()
 })
 
-test.only('Service cannot be deployed due to local changes', async() => {
+test('Service cannot be deployed due to local changes', async() => {
   await t
   .navigateTo(app.baseUrl + 'designer/tdd/deployment#/deploytotest')
   .click(designer.lageNavigationTab)
@@ -61,7 +61,6 @@ test.only('Service cannot be deployed due to local changes', async() => {
   .expect(designer.deployButton.getAttribute("disabled")).notOk()
   .expect((Selector("h2").withText(t.ctx.localChanges)).exists).ok()
   .click(designer.delEndringer)
-  .expect(designer.commitMessageBox.exists).ok()
   .click(designer.commitMessageBox)
   .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
   .expect(designer.validerEndringer.exists).ok()
