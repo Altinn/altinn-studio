@@ -37,7 +37,7 @@ environmentVariables:
       value: http://platform.altinn.cloud
     - name: PlatformSettings__ApiRegisterEndpoint
       value: http://platform.altinn.cloud/register/api/v1/
-    - name: PlatformSettings__ApiRegisterpointHost
+    - name: PlatformSettings__ApiRegisterEndpointHost
       value: http://platform.altinn.cloud
     - name: PlatformSettings__ApiProfileEndpoint
       value: http://platform.altinn.cloud/profile/api/v1/
@@ -74,7 +74,7 @@ environmentVariables:
       value: http://platform.altinn.cloud
     - name: PlatformSettings__ApiRegisterEndpoint
       value: http://platform.altinn.cloud/register/api/v1/
-    - name: PlatformSettings__ApiRegisterpointHost
+    - name: PlatformSettings__ApiRegisterEndpointHost
       value: http://platform.altinn.cloud
     - name: PlatformSettings__ApiProfileEndpoint
       value: http://platform.altinn.cloud/profile/api/v1/
