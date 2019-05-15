@@ -58,7 +58,7 @@ namespace AltinnCore.Common.Services.Implementation
             Party party = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
 
-            Uri endpointUrl = new Uri($"{_platformSettings.GetApiBaseEndpoint()}v1/party/{partyId}");
+            Uri endpointUrl = new Uri($"{_platformSettings.GetApiRegisterEndpoint}party/{partyId}");
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);

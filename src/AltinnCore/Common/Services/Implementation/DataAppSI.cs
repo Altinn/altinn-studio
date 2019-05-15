@@ -23,7 +23,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     public class DataAppSI : IData
     {
-        private readonly PlatformStorageSettings _platformStorageSettings;
+        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
 
         private const string FORM_ID = "default";
@@ -31,18 +31,18 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
         /// </summary>
-        /// <param name="platformStorageSettings">the storage settings</param>
+        /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
-        public DataAppSI(IOptions<PlatformStorageSettings> platformStorageSettings, ILogger<DataAppSI> logger)
+        public DataAppSI(IOptions<PlatformSettings> platformSettings, ILogger<DataAppSI> logger)
         {
-            _platformStorageSettings = platformStorageSettings.Value;
+            _platformSettings = platformSettings.Value;
             _logger = logger;
         }
 
         /// <inheritdoc />
         public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}";
             Instance instance;
             using (HttpClient client = new HttpClient())
             {
@@ -75,7 +75,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
 
             using (HttpClient client = new HttpClient())
             {
@@ -99,7 +99,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public object GetFormData(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -132,7 +132,7 @@ namespace AltinnCore.Common.Services.Implementation
             List<Data> dataList = null;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
             List<Attachment> attachments = null;
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -185,7 +185,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void DeleteFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
         {
             List<AttachmentList> attachmentList = new List<AttachmentList>();
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={attachmentId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={attachmentId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -198,7 +198,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
             Instance instance;
 
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
