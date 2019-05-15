@@ -221,24 +221,22 @@ namespace AltinnCore.Designer.Controllers
                 string applicationId = $"{applicationOwnerId}-{applicationCode}";
                 string storageEndpoint = _platformSettings.GetApiStorageEndpoint;
                 ApplicationMetadata application = null;
-                string message;
                 string getApplicationMetadataUrl = $"{storageEndpoint}applications/{applicationId}";
                 HttpResponseMessage getApplicationMetadataResponse = await client.GetAsync(getApplicationMetadataUrl);
                 if (getApplicationMetadataResponse.IsSuccessStatusCode)
                 {
                     string json = getApplicationMetadataResponse.Content.ReadAsStringAsync().Result;
                     application = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
-                    message = $"updated from versionId {application.VersionId}";
                     applicationInStorage = true;
                     application.VersionId = versionId;
                     HttpResponseMessage response = client.PutAsync(getApplicationMetadataUrl, application.AsJson()).Result;
                     if (response.IsSuccessStatusCode)
                     {
-                        _logger.LogInformation($"Application Metadata for {applicationId} is {message}. New versionId is {versionId}.");
+                        _logger.LogInformation($"Application Metadata for {applicationId} is created. New versionId is {versionId}.");
                     }
                     else
                     {
-                        _logger.LogInformation($"An error occured while trying to update application Metadata for {applicationId}, mesage is {message}.VersionId is {versionId}.");
+                        _logger.LogInformation($"An error occured while trying to update application Metadata for {applicationId}. VersionId is {versionId}.");
                     }
                 }
                 else if (getApplicationMetadataResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -248,15 +246,11 @@ namespace AltinnCore.Designer.Controllers
                     HttpResponseMessage createApplicationMetadataResponse = await client.PostAsync(createApplicationMetadataUrl, appMetadata.AsJson());
                     if (createApplicationMetadataResponse.IsSuccessStatusCode)
                     {
-                        string json = createApplicationMetadataResponse.Content.ReadAsStringAsync().Result;
-                        application = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
-                        message = "created";
                         applicationInStorage = true;
                     }
                     else
                     {
                         applicationInStorage = false;
-                        message = "error creating metadata";
                         _logger.LogError("Something went wrong when trying to create metadata, response code is: ", createApplicationMetadataResponse.StatusCode);
                     }
                 }
@@ -264,7 +258,6 @@ namespace AltinnCore.Designer.Controllers
                 {
                     applicationInStorage = false;
                     _logger.LogError("Something went wrong when trying to get metadata, response code is: ", getApplicationMetadataResponse.StatusCode);
-                    message = "error getting metadata";
                 }
 
                 return applicationInStorage;
