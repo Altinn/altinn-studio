@@ -1,17 +1,11 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as actionTypes from '../actions/types';
+import { IFormDynamicState } from '../';
 import {
   IFetchServiceConfigFulfilled,
   IFetchServiceConfigRejected,
 } from '../actions/fetch';
-
-export interface IFormDynamicState {
-  apis: any;
-  ruleConnection: any;
-  conditionalRendering: any;
-  error: Error;
-}
+import * as actionTypes from '../actions/types';
 
 const initialState: IFormDynamicState = {
   apis: null,

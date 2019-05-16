@@ -6,7 +6,8 @@ import {
 import FormConfigState, { IFormConfigState } from '../features/form/config/reducer';
 import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
-import FormDynamics, { IFormDynamicState } from '../features/form/dynamics/reducer';
+import { IFormDynamicState } from '../features/form/dynamics';
+import FormDynamics from '../features/form/dynamics/reducer';
 import FormFileUploadReducer, { IFormFileUploadState } from '../features/form/fileUpload/reducer';
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
 import FormResourceReducer, { IResourceState } from '../features/form/resources/reducer';

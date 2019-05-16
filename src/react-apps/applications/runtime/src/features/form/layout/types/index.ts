@@ -1,6 +1,5 @@
 export interface ILayoutEntry {
   id: string;
-  type: string;
 }
 
 export interface ILayoutContainer extends ILayoutEntry {
@@ -8,13 +7,13 @@ export interface ILayoutContainer extends ILayoutEntry {
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
+  component: string;
   dataModelBindings: IDataModelBindings;
-  textResourceBindings: ITextResourceBindings;
-  hidden: boolean;
+  isValid?: boolean;
+  itemType: string;
   readOnly: boolean;
-  disabled: boolean;
-  isValid: boolean;
   required: boolean;
+  textResourceBindings: ITextResourceBindings;
   triggerValidation?: boolean;
 }
 export interface IDataModelBindings {

@@ -11,7 +11,7 @@ import {
 } from '../types';
 
 export interface ILayoutState {
-  layout: [ILayoutComponent | ILayoutContainer];
+  layout: ILayoutComponent[];
   error: Error;
 }
 

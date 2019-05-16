@@ -25,7 +25,6 @@ const ruleModelReducer: Reducer<IFormRuleState> = (
   if (!action) {
     return state;
   }
-  console.log(action.type);
 
   switch (action.type) {
     case ActionTypes.FETCH_RULE_MODEL: {
