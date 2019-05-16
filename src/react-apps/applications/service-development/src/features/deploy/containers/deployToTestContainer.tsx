@@ -143,14 +143,13 @@ export class DeployToTestContainer extends
   }
 
   public getRepoPermissions = async () => {
-    const { service } = window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/Search`;
+    const { org, service } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`;
 
     try {
-      const getRepoResult = await get(url, { cancelToken: this.source.token });
-      const currentRepo = getRepoResult.filter((e: any) => e.name === service);
+      const currentRepo = await get(url, { cancelToken: this.source.token });
       this.setState({
-        hasPushPermissionToRepo: currentRepo.length > 0 ? currentRepo[0].permissions.push : false,
+        hasPushPermissionToRepo: currentRepo.permissions.push,
       });
 
     } catch (err) {

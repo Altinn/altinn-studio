@@ -20,7 +20,7 @@ describe('Deploy To Test container', () => {
   let mockMasterRepoStatus: any;
   let mockRepoStatus: any;
 
-  let mockData: any;
+  let mockCurrentRepo: any;
 
   let getStub: any;
   let spyOnGetWritePermissiononRepoCall: any;
@@ -32,20 +32,18 @@ describe('Deploy To Test container', () => {
   });
 
   beforeEach(async () => {
-    mockData = [
-      {
-        'name': 'testerdeploy2',
-        'permissions': {
-          'admin': true,
-          'pull': true,
-          'push': true,
-        },
+    mockCurrentRepo = {
+      'name': 'testerdeploy2',
+      'permissions': {
+        'admin': true,
+        'pull': true,
+        'push': true,
       },
-    ];
+    };
 
     getStub = jest.fn();
     spyOnGetWritePermissiononRepoCall = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.resolve(mockData));
+    getStub.mockReturnValue(Promise.resolve(mockCurrentRepo));
 
     mockClasses = {};
     mockLanguage = {};
@@ -884,18 +882,16 @@ describe('Deploy To Test container', () => {
   it('should render correct when Push Permission are TRUE', async () => {
     mockImageVersions = null;
 
-    mockData = [
-      {
-        'name': 'testerdeploy2',
-        'permissions': {
-          'admin': true,
-          'pull': true,
-          'push': true,
-        },
+    mockCurrentRepo = {
+      'name': 'testerdeploy2',
+      'permissions': {
+        'admin': true,
+        'pull': true,
+        'push': true,
       },
-    ];
+    };
 
-    getStub.mockReturnValue(Promise.resolve(mockData));
+    getStub.mockReturnValue(Promise.resolve(mockCurrentRepo));
 
     const wrapper = mount(
       <DeployToTestContainer
@@ -935,20 +931,18 @@ describe('Deploy To Test container', () => {
   it('should render correct when Push Permission are FALSE', async () => {
     mockImageVersions = null;
 
-    mockData = [
-      {
-        'name': 'testerdeploy2',
-        'permissions': {
-          'admin': true,
-          'pull': true,
-          'push': false,
-        },
+    mockCurrentRepo = {
+      'name': 'testerdeploy2',
+      'permissions': {
+        'admin': true,
+        'pull': true,
+        'push': false,
       },
-    ];
+    };
 
     getStub = jest.fn();
     spyOnGetWritePermissiononRepoCall = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.resolve(mockData));
+    getStub.mockReturnValue(Promise.resolve(mockCurrentRepo));
 
     const wrapper = mount(
       <DeployToTestContainer
