@@ -125,16 +125,13 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
 
   }
 
-  const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => {
-    return {
-      language: state.language.language,
-      textResources: state.formResources.languageResource.resources,
-      componentValidations: state.formValidations.validations ? state.formValidations.validations[props.id] : {},
-      layout: state.formLayout.layout,
-      ...props,
-    };
-
-  };
+  const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
+    language: state.language.language,
+    textResources: state.formResources.languageResource.resources,
+    componentValidations: state.formValidations.validations ? state.formValidations.validations[props.id] : {},
+    layout: state.formLayout.layout,
+    ...props,
+  });
 
   return connect(mapStateToProps)(FormComponentWithHandlers);
 };
