@@ -87,6 +87,17 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
+            Repository repository = _giteaAPI.GetRepository(applicationOwnerId, applicationCode).Result;
+            if (repository != null && repository.Permissions != null && repository.Permissions.Push != true)
+            {
+                ViewBag.ServiceUnavailable = true;
+                return BadRequest(new DeploymentStatus
+                {
+                    Success = false,
+                    Message = "Deployment failed: not authorized",
+                });
+            }
+
             string credentials = _configuration["AccessTokenDevOps"];
 
             string result = string.Empty;
