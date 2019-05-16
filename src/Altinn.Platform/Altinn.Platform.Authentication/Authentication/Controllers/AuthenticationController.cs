@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Platform.Authentication.Configuration;
@@ -45,8 +46,8 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <param name="goToUrl">The url to redirect to if everything validates ok</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
-        [HttpPost]
-        public async Task<ActionResult> Post(string goToUrl)
+        [HttpGet]
+        public async Task<ActionResult> Get(string goToUrl)
         {
             string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goToUrl}");
             if (Request.Cookies[_generalSettings.GetSBLCookieName] == null)
@@ -60,7 +61,8 @@ namespace Altinn.Platform.Authentication.Controllers
                 Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}");
                 using (HttpClient client = new HttpClient())
                 {
-                    HttpResponseMessage response = await client.GetAsync(endpointUrl);
+                    UserAuthenticationModel postUserValue = new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] };
+                    HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(postUserValue.ToString(), Encoding.UTF8, "application/json"));
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         Stream stream = await response.Content.ReadAsStreamAsync();
@@ -92,22 +94,23 @@ namespace Altinn.Platform.Authentication.Controllers
                                     AllowRefresh = false,
                                 });
 
+                            if (userAuthentication.TicketUpdated)
+                            {
+                                Response.Cookies.Append(_generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
+                            }
+
                             return Redirect(goToUrl);
                         }
                         else
                         {
-                            // If user is not authenticated redirect to login
-                            return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                            _logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
+                            return Forbid();
                         }
-                    }
-                    else if (response.StatusCode == HttpStatusCode.Redirect)
-                    {
-                        return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goto={encodedGoToUrl}");
                     }
                     else
                     {
-                        _logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
-                        return Forbid();
+                        // If user is not authenticated redirect to login
+                        return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
                     }
                 }
             }

@@ -44,8 +44,13 @@ namespace Altinn.Platform.Authentication.Model
         public bool IsAuthenticated { get; set; }
 
         /// <summary>
-        /// Gets or sets the locked out date
+        /// Gets or sets the encrypted ticket
         /// </summary>
-        public DateTime LockedOutDate { get; set; }
+        public string EncryptedTicket { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag stating if the ticket is updated or not
+        /// </summary>
+        public bool TicketUpdated { get; set; }
     }
 }
