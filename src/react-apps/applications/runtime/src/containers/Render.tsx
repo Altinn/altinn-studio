@@ -37,7 +37,7 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
     );
   }
 }
-const mapStateToProps = (state: IRuntimeState, props: IRenderProps): IRenderProps => {
+const mapStateToProps = (state: IRuntimeState): IRenderProps => {
   return {
     layout: state.formLayout.layout,
     textResources: state.formResources.languageResource.resources,
