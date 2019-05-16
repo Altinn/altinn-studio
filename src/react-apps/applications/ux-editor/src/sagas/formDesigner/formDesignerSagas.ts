@@ -10,7 +10,8 @@ import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { IServiceConfigurationState } from '../../reducers/serviceConfigurationReducer';
 import { getParentContainerId } from '../../utils/formLayout';
 import { get, post } from '../../utils/networking';
-import { getSaveFormLayoutUrl } from '../../utils/urlHelper';
+import * as SharedNetwork from '../../../../shared/src/utils/networking';
+import { getSaveFormLayoutUrl, getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getUpdateApplicationMetadataUrl } from '../../utils/urlHelper';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
@@ -68,6 +69,11 @@ function* addFormComponentSaga({
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
     );
+    if (component.component === 'FileUpload') {
+      const { maxNumberOfAttachments, maxFileSizeInMB, validFileEndings } = component as IFormFileUploaderComponent;
+      yield call(FormDesignerActionDispatchers.addApplicationMetadata,
+        id, maxNumberOfAttachments, maxFileSizeInMB, validFileEndings);
+    }
     return id; // returns created id
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
@@ -142,6 +148,12 @@ function* deleteFormComponentSaga({
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
     );
+    const component = formDesignerState.layout.components[id];
+
+    if (component.component === 'FileUpload') {
+      yield call(FormDesignerActionDispatchers.deleteApplicationMetadata,
+        id);
+    }
   } catch (err) {
     yield call(FormDesignerActionDispatchers.deleteFormComponentRejected, err);
   }
@@ -353,6 +365,11 @@ function* updateFormComponentSaga({
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
     );
+    if (updatedComponent.component === 'FileUpload') {
+      const { maxNumberOfAttachments, maxFileSizeInMB, validFileEndings } = updatedComponent as IFormFileUploaderComponent;
+      yield call(FormDesignerActionDispatchers.updateApplicationMetadata,
+        id, maxNumberOfAttachments, maxFileSizeInMB, validFileEndings);
+    }
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormComponentRejected, err);
   }
@@ -540,4 +557,91 @@ export function* watchUpdateFormComponentOrderSaga(): SagaIterator {
     FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ORDER,
     updateFormComponentOrderSaga,
   );
+}
+
+export function* addApplicationMetadata({
+  id,
+  maxFiles,
+  maxSize,
+  fileType,
+  callback,
+}: FormDesignerActions.IAddApplicationMetadataAction): SagaIterator {
+  try {
+    const addApplicationMetadataUrl: string = yield call(getAddApplicationMetadataUrl);
+    yield call(SharedNetwork.post, addApplicationMetadataUrl,
+      {
+        id,
+        maxCount: maxFiles,
+        maxSize,
+        fileType,
+      },
+    );
+    yield call(
+      FormDesignerActionDispatchers.addApplicationMetadataFulfilled,
+    );
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.addApplicationMetadataRejected,
+      error,
+    );
+  }
+}
+
+export function* watchAddApplicationMetadataSaga(): SagaIterator {
+  yield takeLatest(FormDesignerActionTypes.ADD_APPLICATION_METADATA, addApplicationMetadata);
+}
+
+export function* deleteApplicationMetadata({
+  id,
+}: FormDesignerActions.IDeleteApplicationMetadataAction): SagaIterator {
+  try {
+    const deleteApplicationMetadataUrl: string = yield call(getDeleteApplicationMetadataUrl);
+    yield call(SharedNetwork.post, deleteApplicationMetadataUrl + id,
+      {
+        id,
+      },
+    );
+    yield call(
+      FormDesignerActionDispatchers.deleteApplicationMetadataFulfilled,
+    );
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.deleteApplicationMetadataRejected,
+      error,
+    );
+  }
+}
+
+export function* watchDeleteApplicationMetadataSaga(): SagaIterator {
+  yield takeLatest(FormDesignerActionTypes.DELETE_APPLICATION_METADATA, deleteApplicationMetadata);
+}
+
+export function* updateApplicationMetadata({
+  id,
+  maxFiles,
+  maxSize,
+  fileType,
+  callback,
+}: FormDesignerActions.IAddApplicationMetadataAction): SagaIterator {
+  try {
+    const updateApplicationMetadataUrl: string = yield call(getUpdateApplicationMetadataUrl);
+    yield call(SharedNetwork.post, updateApplicationMetadataUrl,
+      {
+        id,
+        maxCount: maxFiles,
+        maxSize,
+        fileType,
+      },
+    );
+    yield call(
+      FormDesignerActionDispatchers.updateApplicationMetadataFulfilled,
+    );
+
+  } catch (error) {
+    yield call(FormDesignerActionDispatchers.updateApplicationMetadataRejected,
+      error,
+    );
+  }
+}
+
+export function* watchUpdateApplicationMetadataSaga(): SagaIterator {
+  yield takeLatest(FormDesignerActionTypes.UPDATE_APPLICATION_METADATA, updateApplicationMetadata);
 }

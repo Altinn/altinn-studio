@@ -32,6 +32,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly ILogger<DeployController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly PlatformStorageSettings _storage_settings;
+        private readonly IRepository _repository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeployController"/> class
@@ -42,13 +43,15 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="logger">The logger</param>
         /// <param name="settings">The settings service</param>
         /// <param name="storage_settings">The storage settings</param>
+        /// <param name="repositoryService">the repository service</param>
         public DeployController(
             ISourceControl sourceControl,
             IConfiguration configuration,
             IGitea giteaAPI,
             ILogger<DeployController> logger,
             IOptions<ServiceRepositorySettings> settings,
-            IOptions<PlatformStorageSettings> storage_settings)
+            IOptions<PlatformStorageSettings> storage_settings,
+            IRepository repositoryService)
         {
             _sourceControl = sourceControl;
             _configuration = configuration;
@@ -56,6 +59,7 @@ namespace AltinnCore.Designer.Controllers
             _logger = logger;
             _settings = settings.Value;
             _storage_settings = storage_settings.Value;
+            _repository = repositoryService;
         }
 
         /// <summary>
@@ -108,6 +112,8 @@ namespace AltinnCore.Designer.Controllers
                     string applicationId = $"{applicationOwnerId}-{applicationCode}";
                     string versionId = $"{masterBranch.Commit.Id}";
 
+                    ApplicationMetadata applicationMetadataFromRepository = JsonConvert.DeserializeObject<ApplicationMetadata>(_repository.GetJsonFile(applicationOwnerId, applicationCode, "metadata/applicationmetadata.json"));
+
                     string storageEndpoint = Environment.GetEnvironmentVariable("PlatformStorage__ApiEndPoint") ?? _storage_settings.ApiEndPoint;
                     ApplicationMetadataClient applicationMetadataClient = new ApplicationMetadataClient(client, storageEndpoint);
 
@@ -128,6 +134,7 @@ namespace AltinnCore.Designer.Controllers
                     if (application != null)
                     { 
                         application.VersionId = versionId;
+                        application.Forms = applicationMetadataFromRepository.Forms;
 
                         ApplicationMetadata updated = applicationMetadataClient.UpdateApplicationMetadata(application);
 

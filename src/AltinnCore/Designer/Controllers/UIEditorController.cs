@@ -163,5 +163,59 @@ namespace AltinnCore.Designer.Controllers
         {
             return Content(_repository.GetJsonFile(org, service, fileName), "application/javascript", Encoding.UTF8);
         }
+
+        /// <summary>
+        /// Adds the metadata for attachment
+        /// </summary>
+        /// <param name="applicationMetadata">the application meta data to be updated</param>
+        /// <param name="org">the organisation that owns the application</param>
+        /// <param name="service">the application id</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult AddMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string service)
+        {
+            _repository.AddMetadataForAttachment(org, service, applicationMetadata.ToString());
+            return Json(new
+            {
+                Success = true,
+                Message = " Metadata saved",
+            });
+        }
+
+        /// <summary>
+        /// Updates the metadata for attachment
+        /// </summary>
+        /// <param name="applicationMetadata">the application meta data to be updated</param>
+        /// <param name="org">the organisation that owns the application</param>
+        /// <param name="service">the application id</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult UpdateMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string service)
+        {
+            _repository.UpdateMetadataForAttachment(org, service, applicationMetadata.ToString());
+            return Json(new
+            {
+                Success = true,
+                Message = " Metadata saved",
+            });
+        }
+
+        /// <summary>
+        /// Deletes the metadata for attachment
+        /// </summary>
+        /// <param name="org">the organisation that owns the application</param>
+        /// <param name="service">the application id</param>
+        /// <param name="id">the id of the component</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult DeleteMetadataForAttachment(string org, string service, string id)
+        {
+            _repository.DeleteMetadataForAttachment(org, service, id);
+            return Json(new
+            {
+                Success = true,
+                Message = " Metadata saved",
+            });
+        }
     }
 }
