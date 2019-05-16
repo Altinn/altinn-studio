@@ -9,10 +9,6 @@ export interface IUpdateApplicationMetadaAction extends Action {
 }
 
 export interface IUpdateApplicationMetadaActionFulfilled extends Action {
-  id: string;
-  maxFiles: number;
-  maxSize: number;
-  fileType: string;
 }
 
 export interface IUpdateApplicationMetadaActionRejected extends Action {
@@ -34,14 +30,10 @@ export function updateApplicationMetadaAction(
   };
 }
 
-export function updateApplicationMetadaActionFulfilled(id: string, maxFiles: number, maxSize: number, fileType: string):
+export function updateApplicationMetadaActionFulfilled():
   IUpdateApplicationMetadaActionFulfilled {
   return {
     type: ActionTypes.UPDATE_APPLICATION_METADATA_FULFILLED,
-    id,
-    maxFiles,
-    maxSize,
-    fileType,
   };
 }
 

@@ -6,7 +6,6 @@ export interface IDeleteApplicationMetadataAction extends Action {
 }
 
 export interface IDeleteApplicationMetadataActionFulfilled extends Action {
-  id: string;
 }
 
 export interface IDeleteApplicationMetadataActionRejected extends Action {
@@ -21,10 +20,9 @@ export function deleteApplicationMetadataAction(id: string): IDeleteApplicationM
 }
 
 export function
-  deleteApplicationMetadataActionFulfilled(id: string): IDeleteApplicationMetadataActionFulfilled {
+  deleteApplicationMetadataActionFulfilled(): IDeleteApplicationMetadataActionFulfilled {
   return {
     type: ActionTypes.DELETE_APPLICATION_METADATA_FULFILLED,
-    id,
   };
 }
 

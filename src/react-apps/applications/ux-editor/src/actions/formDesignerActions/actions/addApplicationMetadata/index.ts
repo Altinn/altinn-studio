@@ -2,7 +2,7 @@ import { Action } from 'redux';
 import * as ActionTypes from '../../formDesignerActionTypes';
 
 export interface IAddApplicationMetadataAction extends Action {
-  id: string,
+  id: string;
   maxFiles: number;
   maxSize: number;
   fileType: string;
@@ -10,11 +10,6 @@ export interface IAddApplicationMetadataAction extends Action {
 }
 
 export interface IAddApplicationMetadataActionFulfilled extends Action {
-  id: string;
-  maxFiles: number;
-  maxSize: number;
-  fileType: string;
-  callback?: (...args: any[]) => any;
 }
 
 export interface IAddApplicationMetadataActionRejected extends Action {
@@ -38,19 +33,9 @@ export function addApplicationMetadataAction(
 }
 
 export function addApplicationMetadataActionFulfilled(
-  id: string,
-  maxFiles: number,
-  maxSize: number,
-  fileType: string,
-  callback?: (...args: any[]) => any,
 ): IAddApplicationMetadataActionFulfilled {
   return {
     type: ActionTypes.ADD_APPLICATION_METADATA_FULFILLED,
-    id,
-    maxFiles,
-    maxSize,
-    fileType,
-    callback,
   };
 }
 

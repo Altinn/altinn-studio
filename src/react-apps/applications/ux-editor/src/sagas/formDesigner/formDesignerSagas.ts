@@ -1,5 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
+import * as SharedNetwork from '../../../../shared/src/utils/networking';
 import postMessages from '../../../../shared/src/utils/postMessages';
 import conditionalRenderingActionDispatcher from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
@@ -10,8 +11,7 @@ import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { IServiceConfigurationState } from '../../reducers/serviceConfigurationReducer';
 import { getParentContainerId } from '../../utils/formLayout';
 import { get, post } from '../../utils/networking';
-import * as SharedNetwork from '../../../../shared/src/utils/networking';
-import { getSaveFormLayoutUrl, getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getUpdateApplicationMetadataUrl } from '../../utils/urlHelper';
+import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getSaveFormLayoutUrl, getUpdateApplicationMetadataUrl } from '../../utils/urlHelper';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
@@ -366,7 +366,11 @@ function* updateFormComponentSaga({
       saveFormLayoutUrl,
     );
     if (updatedComponent.component === 'FileUpload') {
-      const { maxNumberOfAttachments, maxFileSizeInMB, validFileEndings } = updatedComponent as IFormFileUploaderComponent;
+      const {
+        maxNumberOfAttachments,
+        maxFileSizeInMB,
+        validFileEndings,
+      } = updatedComponent as IFormFileUploaderComponent;
       yield call(FormDesignerActionDispatchers.updateApplicationMetadata,
         id, maxNumberOfAttachments, maxFileSizeInMB, validFileEndings);
     }
