@@ -18,21 +18,21 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     public class InstanceEventAppSI : IInstanceEvent
     {
-        private readonly PlatformStorageSettings _platformStorageSettings;
+        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventAppSI"/> class.
         /// </summary>
-        /// <param name="platformStorageSettings">the platform storage settings</param>
-        public InstanceEventAppSI(IOptions<PlatformStorageSettings> platformStorageSettings)
+        /// <param name="platformSettings">the platform settings</param>
+        public InstanceEventAppSI(IOptions<PlatformSettings> platformSettings)
         {
-            _platformStorageSettings = platformStorageSettings.Value;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc/>
         public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiEndPoint}/instances/{instanceId}/events";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/events";
 
             using (HttpClient client = new HttpClient())
             {
@@ -54,7 +54,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
         {
-            string apiUri = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/events?";
+            string apiUri = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/events?";
 
             if (!(eventTypes == null))
             {
@@ -92,7 +92,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.CreatedDateTime = DateTime.UtcNow;
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceEvent.InstanceId}/events";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceEvent.InstanceId}/events";
 
             using (HttpClient client = new HttpClient())
             {

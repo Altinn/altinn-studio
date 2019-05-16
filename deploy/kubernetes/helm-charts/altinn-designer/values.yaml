@@ -31,7 +31,17 @@ environmentVariables:
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
-    - name: PlatformStorage__ApiEndPoint
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: http://platform.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: http://platform.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: http://platform.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: http://platform.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: http://platform.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
       value: http://platform.altinn.cloud
   production:
     - name: GiteaEndpoint
@@ -56,7 +66,17 @@ environmentVariables:
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
-    - name: PlatformStorage__ApiEndPoint
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: http://platform.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: http://platform.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: http://platform.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: http://platform.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: http://platform.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
       value: http://platform.altinn.cloud
 
 volumeMounts:
