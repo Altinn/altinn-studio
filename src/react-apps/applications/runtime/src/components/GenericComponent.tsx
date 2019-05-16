@@ -3,6 +3,8 @@ import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
+import { IFormData } from '../features/form/data/reducer';
+import { IDataModelState } from '../features/form/datamodell/reducer';
 import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/types';
 import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
@@ -16,13 +18,13 @@ export interface IProvidedProps {
   type: string;
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
-  formData: any;
+  formData: IFormData;
   component: string;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {
-  dataModel: any;
-  formData: any;
+  dataModel: IDataModelState;
+  formData: IFormData;
   isValid: boolean;
   textResources: any;
   layoutElement: ILayoutContainer | ILayoutComponent;
@@ -43,7 +45,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
       const url = `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`;
       ValidationActions.runSingleFieldValidation(url, dataModelField);
     }
-    const dataModelElement = this.props.dataModel.find(
+    const dataModelElement = this.props.dataModel.dataModel.find(
       (element) => element.DataBindingName === this.props.dataModelBindings[key],
     );
     RuleActions.checkIfRuleShouldRun(this.props.id, dataModelElement, value);
@@ -109,7 +111,7 @@ const makeMapStateToProps = () => {
   const GetFormDataSelector = makeGetFormDataSelector();
   const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => {
     return {
-      dataModel: state.formDataModel.dataModel,
+      dataModel: state.formDataModel,
       layoutElement: state.formLayout.layout.find((element) => element.id === props.id),
       isValid: isComponentValid(state.formValidations.validations[props.id]),
       textResources: state.formResources.languageResource.resources,
