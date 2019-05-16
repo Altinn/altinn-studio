@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Storage.Interface.Clients;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -31,7 +32,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly IGitea _giteaAPI;
         private readonly ILogger<DeployController> _logger;
         private readonly ServiceRepositorySettings _settings;
-        private readonly PlatformStorageSettings _storage_settings;
+        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeployController"/> class
@@ -41,21 +42,21 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="giteaAPI">The gitea api service</param>
         /// <param name="logger">The logger</param>
         /// <param name="settings">The settings service</param>
-        /// <param name="storage_settings">The storage settings</param>
+        /// <param name="platformSettings">The platform settings</param>
         public DeployController(
             ISourceControl sourceControl,
             IConfiguration configuration,
             IGitea giteaAPI,
             ILogger<DeployController> logger,
             IOptions<ServiceRepositorySettings> settings,
-            IOptions<PlatformStorageSettings> storage_settings)
+            IOptions<PlatformSettings> platformSettings)
         {
             _sourceControl = sourceControl;
             _configuration = configuration;
             _giteaAPI = giteaAPI;
             _logger = logger;
             _settings = settings.Value;
-            _storage_settings = storage_settings.Value;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <summary>
@@ -101,47 +102,14 @@ namespace AltinnCore.Designer.Controllers
             }
 
             // register application in platform storage
-            try
+            bool applicationInStorage = await RegisterApplicationInStorage(applicationOwnerId, applicationCode, masterBranch.Commit.Id);
+            if (!applicationInStorage)
             {
-                using (HttpClient client = new HttpClient())
-                {
-                    string applicationId = $"{applicationOwnerId}-{applicationCode}";
-                    string versionId = $"{masterBranch.Commit.Id}";
-
-                    string storageEndpoint = Environment.GetEnvironmentVariable("PlatformStorage__ApiEndPoint") ?? _storage_settings.ApiEndPoint;
-                    ApplicationMetadataClient applicationMetadataClient = new ApplicationMetadataClient(client, storageEndpoint);
-
-                    ApplicationMetadata application = null;
-                    string message;
-
-                    try
-                    {                         
-                        application = applicationMetadataClient.GetApplicationMetadata(applicationId);
-                        message = $"updated from versionId {application.VersionId}";
-                    }
-                    catch (Exception)
-                    {
-                        application = applicationMetadataClient.CreateApplication(applicationId);
-                        message = "created";
-                    }                    
-
-                    if (application != null)
-                    { 
-                        application.VersionId = versionId;
-
-                        ApplicationMetadata updated = applicationMetadataClient.UpdateApplicationMetadata(application);
-
-                        _logger.LogInformation($"Application Metadata for {applicationId} is {message}. New versionId is {versionId}.");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning($"Unable to deploy app {applicationCode} for {applicationOwnerId} to Platform Storage: {ex}");
+                _logger.LogWarning($"Unable to deploy app {applicationCode} for {applicationOwnerId} to Platform Storage");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
-                    Message = $"Deployment of Application Metadata to Platform Storage failed {ex}",
+                    Message = $"Deployment of Application Metadata to Platform Storage failed",
                 });
             }
 
@@ -243,6 +211,83 @@ namespace AltinnCore.Designer.Controllers
                 BuildId = buildId,
                 Status = buildModel.Status,
             });
+        }
+
+        private async Task<bool> RegisterApplicationInStorage(string applicationOwnerId, string applicationCode, string versionId)
+        {
+            bool applicationInStorage = false;
+            using (HttpClient client = new HttpClient())
+            {
+                string applicationId = $"{applicationOwnerId}-{applicationCode}";
+                string storageEndpoint = _platformSettings.GetApiStorageEndpoint;
+                ApplicationMetadata application = null;
+                string getApplicationMetadataUrl = $"{storageEndpoint}applications/{applicationId}";
+                HttpResponseMessage getApplicationMetadataResponse = await client.GetAsync(getApplicationMetadataUrl);
+                if (getApplicationMetadataResponse.IsSuccessStatusCode)
+                {
+                    string json = getApplicationMetadataResponse.Content.ReadAsStringAsync().Result;
+                    application = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+                    applicationInStorage = true;
+                    application.VersionId = versionId;
+                    HttpResponseMessage response = client.PutAsync(getApplicationMetadataUrl, application.AsJson()).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogInformation($"Application Metadata for {applicationId} is created. New versionId is {versionId}.");
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"An error occured while trying to update application Metadata for {applicationId}. VersionId is {versionId}.");
+                    }
+                }
+                else if (getApplicationMetadataResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    ApplicationMetadata appMetadata = GetApplicationMetadata(applicationId, versionId);
+                    string createApplicationMetadataUrl = $"{storageEndpoint}applications?applicationId={applicationId}";
+                    HttpResponseMessage createApplicationMetadataResponse = await client.PostAsync(createApplicationMetadataUrl, appMetadata.AsJson());
+                    if (createApplicationMetadataResponse.IsSuccessStatusCode)
+                    {
+                        applicationInStorage = true;
+                    }
+                    else
+                    {
+                        applicationInStorage = false;
+                        _logger.LogError("Something went wrong when trying to create metadata, response code is: ", createApplicationMetadataResponse.StatusCode);
+                    }
+                }
+                else
+                {
+                    applicationInStorage = false;
+                    _logger.LogError("Something went wrong when trying to get metadata, response code is: ", getApplicationMetadataResponse.StatusCode);
+                }
+
+                return applicationInStorage;
+            }
+        }
+
+        private ApplicationMetadata GetApplicationMetadata(string applicationId, string versionId)
+        {
+            Dictionary<string, string> title = new Dictionary<string, string>
+                        {
+                            { "nb", "Tittel" }
+                        };
+
+            ApplicationMetadata appMetadata = new ApplicationMetadata
+            {
+                Id = applicationId,
+                Title = title,
+                Forms = new List<ApplicationForm>(),
+                VersionId = versionId
+            };
+
+            ApplicationForm defaultAppForm = new ApplicationForm
+            {
+                Id = "default",
+                AllowedContentType = new List<string>() { "application/xml" }
+            };
+
+            appMetadata.Forms.Add(defaultAppForm);
+
+            return appMetadata;
         }
     }
 }

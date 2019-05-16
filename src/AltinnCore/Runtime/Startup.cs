@@ -136,7 +136,6 @@ namespace AltinnCore.Runtime
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.Configure<PlatformStorageSettings>(Configuration.GetSection("PlatformStorageSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             // Configure Authentication

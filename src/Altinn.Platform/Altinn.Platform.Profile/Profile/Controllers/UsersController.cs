@@ -8,7 +8,7 @@ namespace Altinn.Platform.Profile.Controllers
     /// <summary>
     /// The users controller
     /// </summary>
-    [Route("api/v1/[controller]")]
+    [Route("profile/api/v1/[controller]")]
     public class UsersController : Controller
     {
         private readonly IUserProfiles _userProfilesWrapper;
