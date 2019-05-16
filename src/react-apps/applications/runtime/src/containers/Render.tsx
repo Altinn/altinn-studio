@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { GenericComponentWrapper } from '../components/GenericComponent';
-import { ILayout } from '../features/form/layout/types';
+import { ILayout, ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
 import { IRuntimeState } from '../types';
 export interface IRenderProps {
   layout: ILayout;
@@ -13,7 +13,10 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
     const { layout } = this.props;
     return (
       <div className='col-12'>
-        {layout && layout.map((component: any) => {
+        {layout && layout.map((component: ILayoutComponent | ILayoutContainer) => {
+          if (component.hidden) {
+            return null;
+          }
           if (component.type === 'Container') {
             return (
               // TODO: Implement container features
@@ -25,7 +28,7 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
                 <div className='col'>
                   <div className='a-form-group'>
                     <GenericComponentWrapper
-                      {...component}
+                      {...component as ILayoutComponent}
                     />
                   </div>
                 </div>

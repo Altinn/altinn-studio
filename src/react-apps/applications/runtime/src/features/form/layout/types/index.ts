@@ -1,6 +1,7 @@
 export interface ILayoutEntry {
   id: string;
   type: string;
+  hidden: boolean;
 }
 
 export interface ILayoutContainer extends ILayoutEntry {

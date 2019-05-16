@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
+import FormDynamicsActions from '../features/form/dynamics/actions';
 import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/types';
 import ValidationActions from '../features/form/validation/actions';
 import { IAltinnWindow, IRuntimeState } from '../types';
@@ -30,6 +31,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
     }
     const dataModelField = this.props.dataModelBindings[key];
     FormDataActions.updateFormData(dataModelField, value, this.props.id);
+    FormDynamicsActions.checkIfConditionalRulesShouldRun();
     const component = this.props.layoutElement as ILayoutComponent;
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;

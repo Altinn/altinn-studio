@@ -1,21 +1,28 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../../store';
-
+import { IDataModelFieldElement } from '../../../../types/global';
+import * as FetchRuleModel from './fetch';
 import * as RuleActions from './rule';
 
 export interface IFormRulesActions extends ActionCreatorsMapObject {
   checkIfRuleShouldRun: (
     lastUpdatedComponentId: string,
-    lastUpdatedDataField: string,
-    lastUpdatedData: string,
+    lastUpdatedDataBinding: IDataModelFieldElement,
+    lastUpdatedDataValue: string,
     repeatingContainerId?: string,
   ) => RuleActions.ICheckIfRuleShouldRun;
+  fetchRuleModel: (url: string) => FetchRuleModel.IFetchRuleModel;
+  fetchRuleModelFulfilled: (formData: any) => FetchRuleModel.IFetchRuleModelFulfilled;
+  fetchRuleModelRejected: (error: Error) => FetchRuleModel.IFetchRuleModelRejected;
 }
 
 const actions: IFormRulesActions = {
   checkIfRuleShouldRun: RuleActions.checkIfRuleShouldRun,
+  fetchRuleModel: FetchRuleModel.fetchRuleModelAction,
+  fetchRuleModelFulfilled: FetchRuleModel.fetchRuleModelFulfilledAction,
+  fetchRuleModelRejected: FetchRuleModel.fetchRuleModelRejectedAction,
 };
 
-const FormRulesActions: IFormRulesActions = bindActionCreators<any, any>(actions, store.dispatch);
+const FormRulesActions: IFormRulesActions = bindActionCreators<any, IFormRulesActions>(actions, store.dispatch);
 
 export default FormRulesActions;

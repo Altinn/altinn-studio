@@ -1,15 +1,13 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { IFetchServiceConfigFulfilled, IFetchServiceConfigRejected } from '../actions/fetch';
 import * as actionTypes from '../actions/types';
-import {
-  IFetchServiceConfigFulfilled,
-  IFetchServiceConfigRejected,
-} from '../actions/fetch';
+import { IConditionalRenderingRules } from '../types';
 
 export interface IFormDynamicState {
   apis: any;
   ruleConnection: any;
-  conditionalRendering: any;
+  conditionalRendering: IConditionalRenderingRules;
   error: Error;
 }
 
@@ -58,6 +56,6 @@ const DynamicsReducer: Reducer<IFormDynamicState> = (
       return state;
     }
   }
-}
+};
 
 export default DynamicsReducer;
