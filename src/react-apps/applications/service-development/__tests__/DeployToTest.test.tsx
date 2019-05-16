@@ -1,7 +1,7 @@
 /* tslint:disable:object-literal-key-quotes */
 /* tslint:disable:no-string-literal */
 /* tslint:disable:max-line-length */
-/* tslint:jsx-wrap-multiline */
+/* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
