@@ -83,8 +83,8 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
                     claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
                     claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
 
-                    // TODO: what about authenticateResult and authenticateMethod?
                     if (userAuthentication.SSN != null)
                     {
                         claims.Add(new Claim(AltinnCoreClaimTypes.SSN, userAuthentication.SSN, ClaimValueTypes.String, issuer));
@@ -111,6 +111,5 @@ namespace Altinn.Platform.Authentication.Controllers
                 }
             }
         }
-
     }
 }
