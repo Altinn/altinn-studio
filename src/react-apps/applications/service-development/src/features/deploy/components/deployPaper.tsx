@@ -289,9 +289,11 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   };
 
   const returnReadyForDeployStatus = () => {
-    if (props.deploySuccess !== true &&
-      props.cSharpCompileStatusSuccess === true &&
-      props.masterRepoAndDeployInSync === false) {
+    if (
+      props.deploySuccess !== true &&
+      (props.cSharpCompileStatusSuccess === true || props.localRepoInSyncWithMaster !== inSyncStatus.ready) &&
+      props.masterRepoAndDeployInSync === false
+    ) {
       return true;
     } else {
       return false;

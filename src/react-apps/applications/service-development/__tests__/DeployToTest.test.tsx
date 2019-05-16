@@ -259,13 +259,29 @@ describe('Deploy To Test container', () => {
     expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
   });
 
-  it('should render "Local repo is behind master"', async () => {
+  it('should render "Local repo is behind master", showing deploy button when compile fails', async () => {
     mockRepoStatus = {
       behindBy: 1,
       aheadBy: 0,
       contentStatus: [],
       repositoryStatus: 'Ok',
       hasMergeConflict: false,
+    };
+
+    mockCompileStatus = {
+      fetchStatus: {
+        error: null,
+        success: true,
+      },
+      result: {
+        assemblyName: null,
+        compilationInfo: [],
+        succeeded: false,
+        warnings: 0,
+        errors: 0,
+        timeUsed: '00:00:01.7493568',
+        compileStarted: '2019-04-26T15:26:53.8553131+02:00',
+      },
     };
 
     const wrapper = mount(
@@ -296,7 +312,7 @@ describe('Deploy To Test container', () => {
     // Assert rendercSharpCompiles part
     expect(wrapper.exists('#rendercSharpCompiles')).toEqual(false);
 
-    // Assert the deploy button
+    // Assert the deploy button, should not be disabled even if compile fails
     expect(wrapper.exists('#deployButton')).toEqual(true);
     expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
   });
@@ -519,7 +535,7 @@ describe('Deploy To Test container', () => {
     const spyOnFetchDeploymentStatusInterval = jest.spyOn(instance, 'fetchDeploymentStatusInterval');
 
     // Mock getRepoPermissions to disable the networked subscription cancel when unmounting
-    spyOnGetWritePermissiononRepoCall = jest.spyOn(instance, 'getRepoPermissions').mockImplementation(jest.fn());
+    spyOnGetWritePermissiononRepoCall = jest.spyOn(instance, 'getRepoPermissions').mockReturnValue(Promise.resolve());
 
     // Call the componentdDidMount() and assert that fetchDeploymentStatusInterval has not been called
     instance.componentDidMount();
@@ -564,6 +580,8 @@ describe('Deploy To Test container', () => {
     // Assert the altinnspinner, should be shown
     expect(wrapper.exists('#DeploySpinner')).toEqual(true);
 
+    spyOnGetWritePermissiononRepoCall.mockRestore();
+    spyOnFetchDeploymentStatusInterval.mockRestore();
   });
 
   it('should successfully render "compile success"', async () => {
