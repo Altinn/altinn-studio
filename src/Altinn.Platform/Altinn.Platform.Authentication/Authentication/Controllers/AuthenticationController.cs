@@ -103,13 +103,13 @@ namespace Altinn.Platform.Authentication.Controllers
                         }
                         else
                         {
+                            // If user is not authenticated redirect to login
                             _logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
-                            return Forbid();
+                            return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
                         }
                     }
                     else
                     {
-                        // If user is not authenticated redirect to login
                         return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
                     }
                 }
