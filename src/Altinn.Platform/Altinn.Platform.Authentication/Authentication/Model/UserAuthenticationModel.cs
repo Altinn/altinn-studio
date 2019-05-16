@@ -34,6 +34,11 @@ namespace Altinn.Platform.Authentication.Model
         public AuthenticationMethod AuthenticationMethod { get; set; }
 
         /// <summary>
+        /// Gets or sets the authentication level
+        /// </summary>
+        public SecurityLevel AuthenticationLevel { get; set; }
+
+        /// <summary>
         /// Gets or sets a flag stating if the user is authenticated
         /// </summary>
         public bool IsAuthenticated { get; set; }

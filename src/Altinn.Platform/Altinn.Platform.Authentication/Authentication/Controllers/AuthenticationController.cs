@@ -65,6 +65,40 @@ namespace Altinn.Platform.Authentication.Controllers
                     {
                         Stream stream = await response.Content.ReadAsStreamAsync();
                         userAuthentication = serializer.ReadObject(stream) as UserAuthenticationModel;
+                        if (userAuthentication.IsAuthenticated)
+                        {
+                            List<Claim> claims = new List<Claim>();
+                            string issuer = _generalSettings.GetPlatformEndpoint;
+                            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, userAuthentication.AuthenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
+                            if (userAuthentication.SSN != null)
+                            {
+                                claims.Add(new Claim(AltinnCoreClaimTypes.SSN, userAuthentication.SSN, ClaimValueTypes.String, issuer));
+                            }
+
+                            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+                            identity.AddClaims(claims);
+                            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+                            await HttpContext.SignInAsync(
+                                JwtCookieDefaults.AuthenticationScheme,
+                                principal,
+                                new AuthenticationProperties
+                                {
+                                    ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
+                                    IsPersistent = false,
+                                    AllowRefresh = false,
+                                });
+
+                            return Redirect(goToUrl);
+                        }
+                        else
+                        {
+                            // If user is not authenticated redirect to login
+                            return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                        }
                     }
                     else if (response.StatusCode == HttpStatusCode.Redirect)
                     {
@@ -73,41 +107,8 @@ namespace Altinn.Platform.Authentication.Controllers
                     else
                     {
                         _logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
+                        return Forbid();
                     }
-                }
-
-                if (userAuthentication != null)
-                {
-                    List<Claim> claims = new List<Claim>();
-                    string issuer = _generalSettings.GetPlatformEndpoint;
-                    claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
-                    claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
-                    claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
-                    claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
-
-                    if (userAuthentication.SSN != null)
-                    {
-                        claims.Add(new Claim(AltinnCoreClaimTypes.SSN, userAuthentication.SSN, ClaimValueTypes.String, issuer));
-                    }
-
-                    ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-                    identity.AddClaims(claims);
-                    ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-                    await HttpContext.SignInAsync(
-                        JwtCookieDefaults.AuthenticationScheme,
-                        principal,
-                        new AuthenticationProperties
-                        {
-                            ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
-                            IsPersistent = false,
-                            AllowRefresh = false,
-                        });
-
-                    return Redirect(goToUrl);
-                }
-                else
-                {
-                    return Forbid();
                 }
             }
         }
