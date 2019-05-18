@@ -442,5 +442,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="id">the id of the attachment component</param>
         /// <returns></returns>
         bool DeleteMetadataForAttachment(string org, string applicationId, string id);
+
+        /// <summary>
+        /// Updates the application information in Application meta data 
+        /// </summary>
+        /// <param name="org">the organisation</param>
+        /// <param name="applicationId">the application id</param>
+        /// <param name="applicationInformation">the application information to be updated</param>
+        /// <returns>true if the information is updated successfully</returns>
+        bool UpdateServiceInformationInApplicationMetadata(string org, string applicationId, ServiceConfiguration applicationInformation);
     }
 }

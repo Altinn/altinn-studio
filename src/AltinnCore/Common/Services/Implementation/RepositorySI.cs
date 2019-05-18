@@ -1794,6 +1794,40 @@ namespace AltinnCore.Common.Services.Implementation
             return fileContent;
         }
 
+        /// <inheritdoc/>
+        public bool UpdateServiceInformationInApplicationMetadata(string org, string applicationId, ServiceConfiguration applicationInformation)
+        {
+            try
+            {
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetaData(org, applicationId);
+
+                if (existingApplicationMetadata.Title == null)
+                {
+                    existingApplicationMetadata.Title = new Dictionary<string, string>();
+                }
+
+                if (existingApplicationMetadata.Title.ContainsKey("nb-no"))
+                {
+                    existingApplicationMetadata.Title["nb-no"] = applicationInformation.ServiceName;
+                }
+                else
+                {
+                    existingApplicationMetadata.Title.Add("nb-no", applicationInformation.ServiceName);
+                }                   
+
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetaDataFileName;
+
+                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private static string ViewResourceKey(string viewName)
         {
             return $"view.{viewName}";
