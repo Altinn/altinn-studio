@@ -5,11 +5,11 @@ import {
   IFetchFormLayoutRejected,
 } from '../actions/fetch';
 import * as ActionTypes from '../actions/types';
+import { IUpdateFormLayout } from '../actions/update';
 import {
   ILayoutComponent,
   ILayoutContainer,
 } from '../types';
-import { IUpdateFormLayout } from '../actions/update';
 
 export interface ILayoutState {
   layout: [ILayoutComponent | ILayoutContainer];
@@ -53,7 +53,9 @@ const LayoutReducer: Reducer<ILayoutState> = (
       const { layoutElement, index } = action as IUpdateFormLayout;
       return update<ILayoutState>(state, {
         layout: {
-          [index]: { $set: layoutElement },
+          [index]: {
+            $set: layoutElement,
+          },
         },
       });
     }

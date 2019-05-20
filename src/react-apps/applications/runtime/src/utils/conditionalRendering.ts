@@ -37,7 +37,7 @@ export function runConditionalRenderingRules(
       if (!elementToPerformActionOn) continue;
 
       const elementId = connection.selectedFields[elementToPerformActionOn];
-      const layoutElement = getLayoutElementById(elementId, formLayout);
+      const layoutElement = JSON.parse(JSON.stringify(getLayoutElementById(elementId, formLayout)));
       const index = getLayoutElementIndexById(elementId, formLayout);
       if (!layoutElement || index < 0) {
         continue;

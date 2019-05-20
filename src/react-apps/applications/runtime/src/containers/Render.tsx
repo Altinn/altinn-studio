@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { GenericComponentWrapper } from '../components/GenericComponent';
 import { ILayout, ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { makeGetLayout } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 export interface IRenderProps {
   layout: ILayout;
@@ -14,9 +15,6 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
     return (
       <div className='col-12'>
         {layout && layout.map((component: ILayoutComponent | ILayoutContainer) => {
-          if (component.hidden) {
-            return null;
-          }
           if (component.type === 'Container') {
             return (
               // TODO: Implement container features
@@ -40,12 +38,15 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
     );
   }
 }
-
-const mapStateToProps = (state: IRuntimeState): IRenderProps => {
-  return {
-    layout: state.formLayout.layout,
-    textResources: state.formResources.languageResource.resources,
+const makeMapStateToProps = () => {
+  const getLayout = makeGetLayout();
+  const mapStateToProps = (state: IRuntimeState): IRenderProps => {
+    return {
+      layout: getLayout(state),
+      textResources: state.formResources.languageResource.resources,
+    };
   };
+  return mapStateToProps;
 };
 
-export default connect(mapStateToProps)(RenderComponent);
+export default connect(makeMapStateToProps)(RenderComponent);

@@ -58,8 +58,8 @@ describe('>>> utils/conditionalRendering.ts', () => {
         },
         selectedAction: 'Hide',
         selectedFields: {
-          selectedField_1: 'layoutElement_1',
-          selectedField_2: 'layoutElement_2',
+          selectedField_1: 'layoutElement_2',
+          selectedField_2: 'layoutElement_3',
         },
       },
     };
@@ -117,11 +117,14 @@ describe('>>> utils/conditionalRendering.ts', () => {
   it('+++ conditional rendering rules should only be applied to connected elements', () => {
     const result = runConditionalRenderingRules(mockShowRules, mockValidFormData, mockLayout);
     expect(result.length).toBe(1);
+    expect(result[0].id).toBe('layoutElement_1');
   });
 
-  it('+++ conditional rendering rules with several targets should affect connected elements', () => {
+  it('+++ conditional rendering rules with several targets should be applied to all connected elements', () => {
     const result = runConditionalRenderingRules(mockHideRules, mockValidFormData, mockLayout);
     expect(result.length).toBe(2);
+    expect(result[0].id).toBe('layoutElement_2');
+    expect(result[1].id).toBe('layoutElement_3');
   });
 
   it('+++ should run and return empty result array on null values', () => {

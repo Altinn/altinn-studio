@@ -6,8 +6,8 @@ import { ICheckIfRuleShouldRun } from '../../actions/rule';
 
 function* checkIfRuleShouldRunSaga({
   lastUpdatedComponentId,
-  lastUpdatedDataField,
-  lastUpdatedData,
+  lastUpdatedDataBinding,
+  lastUpdatedDataValue,
   repeatingContainerId,
 }: ICheckIfRuleShouldRun): SagaIterator {
   try {
@@ -15,8 +15,8 @@ function* checkIfRuleShouldRunSaga({
       console.log,
       'Check if Rule should run',
       lastUpdatedComponentId,
-      lastUpdatedDataField,
-      lastUpdatedData,
+      lastUpdatedDataBinding,
+      lastUpdatedDataValue,
       repeatingContainerId,
     )
   } catch (err) {

@@ -6,6 +6,7 @@ import FormDataActions from '../features/form/data/actions';
 import FormDynamicsActions from '../features/form/dynamics/actions';
 import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/types';
 import ValidationActions from '../features/form/validation/actions';
+import { makeGetLayoutElement } from '../selectors/getLayoutData';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IComponentValidations } from '../types/global';
 import components from './';
@@ -49,6 +50,9 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
     const Component = formComponentWithHandlers(components.find((c: any) =>
       c.name === this.props.type,
     ).Tag);
+    if (this.props.layoutElement.hidden) {
+      return null;
+    }
     return (
       <Component
         {...this.props}
@@ -76,11 +80,17 @@ const isComponentValid = (validations: IComponentValidations): boolean => {
   return isValid;
 };
 
-const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => ({
-  isValid: isComponentValid(state.formValidations.validations[props.id]),
-  textResources: state.formResources.languageResource.resources,
-  layoutElement: state.formLayout.layout.find((element) => element.id === props.id),
-  ...props,
-});
+const makeMapStateToProps = () => {
+  const getLayoutElement = makeGetLayoutElement();
+  const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => {
+    return {
+      layoutElement: getLayoutElement(state, props),
+      isValid: isComponentValid(state.formValidations.validations[props.id]),
+      textResources: state.formResources.languageResource.resources,
+      ...props,
+    };
+  };
+  return mapStateToProps;
+};
 
-export const GenericComponentWrapper = connect(mapStateToProps)(GenericComponent);
+export const GenericComponentWrapper = connect(makeMapStateToProps)(GenericComponent);
