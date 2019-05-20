@@ -2,7 +2,7 @@ import { Action } from 'redux';
 import {
   ILayoutComponent,
   ILayoutContainer,
-} from '../../types';
+} from '../../';
 import * as actionTypes from '../types';
 
 export interface IFetchFormLayout extends Action {

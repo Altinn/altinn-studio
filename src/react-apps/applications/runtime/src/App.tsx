@@ -11,9 +11,6 @@ import LanguageActions from './features/languages/actions';
 
 import { IAltinnWindow } from './types';
 
-export interface IAppProps { }
-export interface IAppState { }
-
 export default () => {
   React.useEffect(() => {
     const { org, service, instanceId, reportee } = window as IAltinnWindow;

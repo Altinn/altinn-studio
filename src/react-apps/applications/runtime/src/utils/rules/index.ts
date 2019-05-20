@@ -1,8 +1,9 @@
 import { IFormData } from '../../features/form/data/reducer';
 import { IDataModelState } from '../../features/form/datamodell/reducer';
 import { IRuleConnection } from '../../features/form/dynamics/';
+import { ILayoutComponent } from '../../features/form/layout';
 import { ILayoutState } from '../../features/form/layout/reducer';
-import { IDataModelFieldElement } from '../../features/form/rules';
+import { IDataModelFieldElement, IRuleModelFieldElement } from '../../features/form/rules';
 
 export function checkIfRuleShouldRun(
   ruleConnectionState: IRuleConnection,
@@ -75,11 +76,16 @@ export function checkIfRuleShouldRun(
               continue;
             }
           } */
-          for (const dataBindingKey in formLayoutState.layout[component].dataModelBindings) {
+          const layoutElement = formLayoutState.layout[component];
+          if (layoutElement.type === 'container') {
+            continue;
+          }
+          const layoutComponent = layoutElement as ILayoutComponent;
+          for (const dataBindingKey in layoutComponent.dataModelBindings) {
             if (!dataBindingKey) {
               continue;
             }
-            if (formLayoutState.layout[component].dataModelBindings[dataBindingKey] ===
+            if (layoutComponent.dataModelBindings[dataBindingKey] ===
               connectionDef.outParams.outParam0) {
               updatedComponent = component;
               break;
@@ -117,4 +123,25 @@ export function checkIfRuleShouldRun(
     dataBindingName: null,
     result: null,
   };
+}
+
+export function getRuleModelFields() {
+  const ruleModelFields: IRuleModelFieldElement[] = [];
+  for (const functionName of Object.keys((window as any).ruleHandlerObject)) {
+    const innerFuncObj = {
+      name: functionName,
+      inputs: (window as any).ruleHandlerHelper[functionName](),
+      type: 'rule',
+    };
+    ruleModelFields.push(innerFuncObj);
+  }
+  for (const functionName of Object.keys((window as any).conditionalRuleHandlerObject)) {
+    const innerFuncObj = {
+      name: functionName,
+      inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
+      type: 'condition',
+    };
+    ruleModelFields.push(innerFuncObj);
+  }
+  return ruleModelFields;
 }

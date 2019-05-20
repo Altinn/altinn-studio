@@ -1,19 +1,23 @@
 import 'jest';
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import App from '../../src/App';
 import { IFormData } from '../../src/features/form/data/reducer';
 import { IDataModelState } from '../../src/features/form/datamodell/reducer';
-import { ILayoutState } from '../../src/features/form/layout/reducer';
+import { ILayoutComponent } from '../../src/features/form/layout';
 import { IDataModelFieldElement } from '../../src/features/form/rules';
-import { checkIfRuleShouldRun } from '../../src/utils/rules';
+import { checkIfRuleShouldRun, getRuleModelFields } from '../../src/utils/rules';
 
-describe('>>> features/rules', () => {
+describe('>>> features/rules checkIfRuleShouldRun', () => {
   let mockRuleConnectionState: any;
   let mockFormDataState: IFormData;
   let mockFormDataModelState: IDataModelState;
-  let mockFormLayoutState: ILayoutState;
+  let mockFormLayoutState: any;
   let mockRepeatingContainerId: string;
   let mockLastUpdatedDataBinding: IDataModelFieldElement;
   let mockRuleHandlerHelper;
   let mockRuleHandlerObject;
+  let mockLayout: ILayoutComponent[];
 
   beforeEach(() => {
     mockRuleHandlerHelper = {
@@ -31,6 +35,48 @@ describe('>>> features/rules', () => {
         return obj.a + obj.b + obj.c;
       },
     };
+    mockLayout = [
+      {
+        component: 'Input',
+        dataModelBindings: { simpleBinding: 'mockDataModelBinding1' },
+        disabled: false,
+        id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
+        itemType: 'COMPONENT',
+        readOnly: false,
+        required: false,
+        textResourceBindings: { title: 'ServiceName' },
+      },
+      {
+        component: 'Input',
+        dataModelBindings: { simpleBinding: 'mockDataModelBinding2' },
+        disabled: false,
+        id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
+        itemType: 'COMPONENT',
+        readOnly: false,
+        required: false,
+        textResourceBindings: { title: 'ServiceName' },
+      },
+      {
+        component: 'Input',
+        dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
+        disabled: false,
+        id: '1d61265e-66a4-48c6-800a-a77c50a8ca41',
+        itemType: 'COMPONENT',
+        readOnly: false,
+        required: false,
+        textResourceBindings: { title: 'ServiceName' },
+      },
+      {
+        component: 'Input',
+        dataModelBindings: { simpleBinding: 'mockDataModelBinding4' },
+        disabled: false,
+        id: '69fa4c53-6c04-490c-aadb-98a47b145a82',
+        itemType: 'COMPONENT',
+        readOnly: false,
+        required: false,
+        textResourceBindings: { title: 'ServiceName' },
+      },
+    ];
     mockRuleConnectionState = {
       'fc4136a0-73c3-11e9-acee-8f5155710498':
       {
@@ -73,44 +119,7 @@ describe('>>> features/rules', () => {
     };
     mockFormLayoutState = {
       error: null,
-      layout: [
-        {
-          component: 'Input',
-          dataModelBindings: { simpleBinding: 'mockDataModelBinding1' },
-          id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
-          itemType: 'COMPONENT',
-          readOnly: false,
-          required: false,
-          textResourceBindings: { title: 'ServiceName' },
-        },
-        {
-          component: 'Input',
-          dataModelBindings: { simpleBinding: 'mockDataModelBinding2' },
-          id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
-          itemType: 'COMPONENT',
-          readOnly: false,
-          required: false,
-          textResourceBindings: { title: 'ServiceName' },
-        },
-        {
-          component: 'Input',
-          dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
-          id: '1d61265e-66a4-48c6-800a-a77c50a8ca41',
-          itemType: 'COMPONENT',
-          readOnly: false,
-          required: false,
-          textResourceBindings: { title: 'ServiceName' },
-        },
-        {
-          component: 'Input',
-          dataModelBindings: { simpleBinding: 'mockDataModelBinding4' },
-          id: '69fa4c53-6c04-490c-aadb-98a47b145a82',
-          itemType: 'COMPONENT',
-          readOnly: false,
-          required: false,
-          textResourceBindings: { title: 'ServiceName' },
-        },
-      ],
+      layout: mockLayout,
     };
     mockRepeatingContainerId = null; // Should be tests on repeating groups when it's implemented
     mockLastUpdatedDataBinding = {
@@ -201,6 +210,7 @@ describe('>>> features/rules', () => {
         {
           component: 'Input',
           dataModelBindings: {},
+          disabled: false,
           id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
           itemType: 'COMPONENT',
           readOnly: false,
@@ -227,5 +237,89 @@ describe('>>> features/rules', () => {
       mockLastUpdatedDataBinding,
     );
     expect(ruleShouldRun).toBe(false);
+  });
+});
+describe('>>> features/rules getRuleModelFields', () => {
+  beforeEach(() => {
+    let mockRuleHandlerHelper;
+    let mockConditionalRuleHandlerHelper;
+    let mockConditionalRuleHandlerObject;
+    let mockRuleHandlerObject;
+    mockRuleHandlerHelper = {
+      sum: () => {
+        return {
+          number: 'number',
+        };
+      },
+    };
+    mockConditionalRuleHandlerHelper = {
+      biggerThan10: () => {
+        return {
+          number: 'number',
+        };
+      },
+      lengthBiggerThan4: () => {
+        return {
+          value: 'value',
+        };
+      },
+    };
+    mockConditionalRuleHandlerObject = {
+      biggerThan10: (obj) => {
+        obj.number = +obj.number;
+        return obj.number > 10;
+      },
+      lengthBiggerThan4: (obj) => {
+        if (obj.value == null) {
+          return false;
+        }
+        return obj.value.length >= 4;
+      },
+    };
+    mockRuleHandlerObject = {
+      sum: (obj) => {
+        obj.a = +obj.a;
+        obj.b = +obj.b;
+        obj.c = +obj.c;
+        return obj.a + obj.b + obj.c;
+      },
+    };
+    const mockRuleScript =
+      'var ruleHandlerObject = { sum: (obj) => { obj.a = +obj.a; obj.b = +obj.b; obj.c = +obj.c; return' +
+      'obj.a + obj.b + obj.c; }, fullName: (obj) => { return obj.first + " " + obj.last; } } var ruleHandlerHelper' +
+      ' = { fullName: () => { return { first: "first name", last: "last name" }; }, sum: () => { return { a: "a", b: ' +
+      '"b", c: "c" } } } var conditionalRuleHandlerObject = { biggerThan10: (obj) => { obj.number = +obj.number;' +
+      'return obj.number > 10; }, smallerThan10: (obj) => { obj.number = +obj.number; return obj.number > 10; }, ' +
+      'lengthBiggerThan4: (obj) => { if (obj.value == null) return false; return obj.value.length >= 4; } } ' +
+      'var conditionalRuleHandlerHelper = { biggerThan10: () => { return { number: "number" }; }, smallerThan10:' +
+      ' () => { return { number: "number" } }, lengthBiggerThan4: () => { return { value: "value" } } }';
+
+    const scriptEle = (window as any).document.createElement('script');
+    scriptEle.innerHTML = mockRuleScript;
+    (window as any).ruleHandlerHelper = mockRuleHandlerHelper;
+    (window as any).conditionalRuleHandlerHelper = mockConditionalRuleHandlerHelper;
+    (window as any).conditionalRuleHandlerObject = mockConditionalRuleHandlerObject;
+    (window as any).ruleHandlerObject = mockRuleHandlerObject;
+  });
+  it('+++ should return an array ', () => {
+    const ruleModelFields = getRuleModelFields();
+    const expectedResult = [{
+      inputs: { number: 'number' },
+      name: 'sum',
+      type: 'rule',
+    },
+    {
+      inputs: { number: 'number' },
+      name: 'biggerThan10',
+      type: 'condition',
+    },
+    {
+      inputs: { value: 'value' },
+      name: 'lengthBiggerThan4',
+      type: 'condition',
+    },
+    ];
+    expect(Array.isArray(ruleModelFields)).toBe(true);
+    expect(ruleModelFields).toEqual(expectedResult);
   });
 });

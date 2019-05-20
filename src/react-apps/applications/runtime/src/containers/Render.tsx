@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { GenericComponentWrapper } from '../components/GenericComponent';
-import { ILayout } from '../features/form/layout/types';
+import { ILayout } from '../features/form/layout/';
 import { IRuntimeState } from '../types';
 export interface IRenderProps {
   layout: ILayout;
