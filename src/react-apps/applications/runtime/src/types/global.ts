@@ -115,8 +115,6 @@ export type FormComponentType =
   | IFormFileUploaderComponent
   | IFormAddressComponent;
 
-
-
 // Texts
 export interface ITextResourceBindings {
   [id: string]: string;
@@ -196,4 +194,3 @@ export interface IAttachmentApiResponse {
   size: number;
   id: string;
 }
-
