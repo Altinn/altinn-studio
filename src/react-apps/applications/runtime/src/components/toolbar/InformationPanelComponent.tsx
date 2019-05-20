@@ -127,7 +127,7 @@ const styles = (theme: Theme) => createStyles({
   },
   informationPanelLink: {
     fontSize: '14px',
-  }
+  },
 });
 
 const mapStateToProps: (

@@ -1,10 +1,10 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as ActionTypes from '../actions/types';
 import {
   IFetchFormConfigFulfilled,
   IFetchFormConfigRejected,
 } from '../actions/fetch';
+import * as ActionTypes from '../actions/types';
 
 export interface IFormConfigState {
   org: string;
@@ -60,6 +60,6 @@ const FormConfigReducer: Reducer<IFormConfigState> = (
       return state;
     }
   }
-}
+};
 
 export default FormConfigReducer;

@@ -5,6 +5,6 @@ import {
   watchGetCurrentStateSaga,
 } from './workflow';
 
-export default function* (): SagaIterator {
+export default function*(): SagaIterator {
   yield fork(watchGetCurrentStateSaga);
 }

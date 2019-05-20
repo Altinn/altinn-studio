@@ -4,7 +4,7 @@ import { store } from '../../../../store';
 import * as fetchActions from './fetch';
 
 interface IFormDataModelActions extends ActionCreatorsMapObject {
-  fetchDataModel: (url: string) => fetchActions.IFetchDataModel,
+  fetchDataModel: (url: string) => fetchActions.IFetchDataModel;
   fetchDataModelFulfilled: (dataModel: any) => fetchActions.IFetchDataModelFulfilled;
   fetchDataModelRejected: (error: Error) => fetchActions.IFetchDataModelRejected;
 }

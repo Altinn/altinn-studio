@@ -4,7 +4,7 @@ import {
   takeLatest,
 } from 'redux-saga/effects';
 
-import Actions from '../../actions'
+import Actions from '../../actions';
 import * as ActionTypes from '../../actions/types';
 import {
   IGetCurrentState,

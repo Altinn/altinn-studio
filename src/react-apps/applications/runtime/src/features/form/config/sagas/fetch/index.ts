@@ -24,5 +24,5 @@ function* fetchFormConfigSaga({ url }: IFetchFormConfig): SagaIterator {
 }
 
 export function* watchFetchFormConfigSaga(): SagaIterator {
-  yield takeLatest(FormConfigActionTypes.FETCH_FORM_CONFIG, fetchFormConfigSaga)
+  yield takeLatest(FormConfigActionTypes.FETCH_FORM_CONFIG, fetchFormConfigSaga);
 }

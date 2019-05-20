@@ -52,7 +52,7 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx', () => {
     const props = {
       id: mockId, formData: null, handleDataChange: mockHandleDataChange,
       getTextResource: mockGetTextResource, isValid: mockIsValid, options: mockOptions,
-      preselectedOptionIndex: mockPreselectedOptionIndex, readOnly: mockReadOnly, validationMessages: {}
+      preselectedOptionIndex: mockPreselectedOptionIndex, readOnly: mockReadOnly, validationMessages: {},
     };
     const state = { selected: [] };
     const checkbox = new CheckboxContainerComponent(props, state);

@@ -5,6 +5,6 @@ import {
   watchRunSingleFieldValidationSaga,
 } from './singleFieldValidation';
 
-export default function* (): SagaIterator {
+export default function*(): SagaIterator {
   yield fork(watchRunSingleFieldValidationSaga);
 }

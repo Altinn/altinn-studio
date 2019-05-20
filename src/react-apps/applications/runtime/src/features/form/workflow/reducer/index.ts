@@ -13,7 +13,7 @@ import {
 export interface IWorkflowState {
   state: WorkflowSteps;
   error: Error;
-};
+}
 
 const initialState: IWorkflowState = {
   state: null,

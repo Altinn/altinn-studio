@@ -1,10 +1,10 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as ActionTypes from '../actions/types';
 import {
   IFetchDataModelFulfilled,
   IFetchDataModelRejected,
 } from '../actions/fetch';
+import * as ActionTypes from '../actions/types';
 
 export interface IDataModelState {
   dataModel: any;
@@ -47,6 +47,6 @@ const DataModelReducer: Reducer<IDataModelState> = (
       return state;
     }
   }
-}
+};
 
 export default DataModelReducer;
