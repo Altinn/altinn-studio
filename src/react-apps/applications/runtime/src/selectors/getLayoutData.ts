@@ -1,5 +1,5 @@
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
 import { IRuntimeState } from '../types';
 
 const layoutSelector = (state: IRuntimeState) => {

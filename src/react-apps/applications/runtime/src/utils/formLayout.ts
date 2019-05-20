@@ -1,5 +1,5 @@
 // import { IFormDesignerState } from '../reducers/formDesignerReducer';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
 
 /*
 export function getParentContainerId(containerId: string, formDesignerState: IFormDesignerState): string {
