@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { GenericComponentWrapper } from '../components/GenericComponent';
-import { ILayout, ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { ILayout, ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
 import { makeGetLayout } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 export interface IRenderProps {
@@ -38,6 +38,7 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
     );
   }
 }
+
 const makeMapStateToProps = () => {
   const getLayout = makeGetLayout();
   const mapStateToProps = (state: IRuntimeState): IRenderProps => {

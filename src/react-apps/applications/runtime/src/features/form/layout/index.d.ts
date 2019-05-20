@@ -9,13 +9,14 @@ export interface ILayoutContainer extends ILayoutEntry {
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
+  component: string;
   dataModelBindings: IDataModelBindings;
-  textResourceBindings: ITextResourceBindings;
-  hidden: boolean;
+  isValid?: boolean;
+  itemType: string;
   readOnly: boolean;
   disabled: boolean;
-  isValid: boolean;
   required: boolean;
+  textResourceBindings: ITextResourceBindings;
   triggerValidation?: boolean;
 }
 export interface IDataModelBindings {
@@ -52,7 +53,7 @@ export interface IFileuploadProps extends ILayoutComponent {
   validFileEndings: any;
 }
 
-enum HeaderSize {
+declare enum HeaderSize {
   S,
   M,
   L,
@@ -62,7 +63,7 @@ export interface IHeaderProps extends ILayoutComponent {
   size: HeaderSize;
 }
 
-enum InputFieldType {
+declare enum InputFieldType {
   text,
   email,
   password,

@@ -1,6 +1,10 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IFetchServiceConfigFulfilled, IFetchServiceConfigRejected } from '../actions/fetch';
+import { IFormDynamicState } from '../';
+import {
+  IFetchServiceConfigFulfilled,
+  IFetchServiceConfigRejected,
+} from '../actions/fetch';
 import * as actionTypes from '../actions/types';
 import { IConditionalRenderingRules } from '../types';
 

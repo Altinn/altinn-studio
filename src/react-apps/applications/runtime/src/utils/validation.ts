@@ -1,5 +1,5 @@
 import { IFormData } from '../features/form/data/reducer';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
 import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 

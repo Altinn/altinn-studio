@@ -1,6 +1,6 @@
 import { Action } from 'redux';
-import { IRuleModelFieldElement } from '../../types';
 import * as ActionTypes from '../types';
+import { IRuleModelFieldElement } from './../../';
 
 export interface IFetchRuleModel extends Action {
   url: string;

@@ -1,6 +1,6 @@
 import { IFormData } from '../features/form/data/reducer';
 import { IConditionalRenderingRule, IConditionalRenderingRules } from '../features/form/dynamics/types';
-import { ILayout } from '../features/form/layout/types';
+import { ILayout } from '../features/form/layout/';
 import { IAltinnWindow } from '../types/global';
 import { getLayoutElementById, getLayoutElementIndexById } from './formLayout';
 

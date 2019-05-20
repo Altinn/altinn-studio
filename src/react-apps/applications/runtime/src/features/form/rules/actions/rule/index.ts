@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { IDataModelFieldElement } from '../../../../../types/global';
+import { IDataModelFieldElement } from '../../';
 import * as ActionTypes from '../types';
 
 export interface ICheckIfRuleShouldRun extends Action {

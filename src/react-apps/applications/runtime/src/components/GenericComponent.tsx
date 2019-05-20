@@ -3,9 +3,13 @@ import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
+import { IFormData } from '../features/form/data/reducer';
+import { IDataModelState } from '../features/form/datamodell/reducer';
 import FormDynamicsActions from '../features/form/dynamics/actions';
-import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/types';
+import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/';
+import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
+import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetLayoutElement } from '../selectors/getLayoutData';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IComponentValidations } from '../types/global';
@@ -16,9 +20,12 @@ export interface IProvidedProps {
   type: string;
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
+  component: string;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {
+  dataModel: IDataModelState;
+  formData: IFormData;
   isValid: boolean;
   textResources: any;
   layoutElement: ILayoutContainer | ILayoutComponent;
@@ -40,15 +47,39 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
       const url = `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`;
       ValidationActions.runSingleFieldValidation(url, dataModelField);
     }
+    const dataModelElement = this.props.dataModel.dataModel.find(
+      (element) => element.DataBindingName === this.props.dataModelBindings[key],
+    );
+    RuleActions.checkIfRuleShouldRun(this.props.id, dataModelElement, value);
   }
   public getTextResource = (resourceKey: string): string => {
     const textResource = this.props.textResources.find((resource: any) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
   }
+  public getFormData = (): string | {} => {
+    if (!this.props.dataModelBindings ||
+      Object.keys(this.props.dataModelBindings).length === 0) {
+      return '';
+    }
+    const valueArr: { [id: string]: string } = {};
+    for (const dataBindingKey in this.props.dataModelBindings) {
+      if (!dataBindingKey) {
+        continue;
+      }
+      valueArr[dataBindingKey] = this.props.formData[this.props.dataModelBindings[dataBindingKey]];
+    }
+    if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
+      // Simple component
+      return valueArr.simpleBinding;
+    } else {
+      // Advanced component
+      return valueArr;
+    }
+  }
 
   public render() {
     const Component = formComponentWithHandlers(components.find((c: any) =>
-      c.name === this.props.type,
+      c.name === this.props.component,
     ).Tag);
     if (this.props.layoutElement.hidden) {
       return null;
@@ -59,6 +90,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
         title={getLanguageFromKey(this.props.textResourceBindings.title, this.props.textResources)}
         handleDataChange={this.handleDataUpdate}
         getTextResource={this.getTextResource}
+        formData={this.getFormData()}
         isValid={this.props.isValid}
       />
     );
@@ -81,12 +113,15 @@ const isComponentValid = (validations: IComponentValidations): boolean => {
 };
 
 const makeMapStateToProps = () => {
-  const getLayoutElement = makeGetLayoutElement();
+  const GetFormDataSelector = makeGetFormDataSelector();
+  const GetLayoutElement = makeGetLayoutElement();
   const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => {
     return {
-      layoutElement: getLayoutElement(state, props),
+      dataModel: state.formDataModel,
+      layoutElement: GetLayoutElement(state, props),
       isValid: isComponentValid(state.formValidations.validations[props.id]),
       textResources: state.formResources.languageResource.resources,
+      formData: GetFormDataSelector(state, props),
       ...props,
     };
   };

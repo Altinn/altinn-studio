@@ -1,6 +1,6 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { IDataModelFieldElement } from '../';
 import { store } from '../../../../store';
-import { IDataModelFieldElement } from '../../../../types/global';
 import * as FetchRuleModel from './fetch';
 import * as RuleActions from './rule';
 

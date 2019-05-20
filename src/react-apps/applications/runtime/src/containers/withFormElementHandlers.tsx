@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/';
 import { IRuntimeState } from '../types';
 import { IComponentValidations } from '../types/global';
 import { renderValidationMessagesForComponent } from '../utils/render';
@@ -9,9 +9,9 @@ import { renderValidationMessagesForComponent } from '../utils/render';
 export interface IProvidedProps {
   id: string;
   handleDataUpdate: (data: any) => void;
-  dataModelBindings: string;
+  dataModelBindings: IDataModelBindings;
   componentValidations: IComponentValidations;
-  textResourceBindings: any;
+  textResourceBindings: ITextResourceBindings;
   required: boolean;
   type: string;
   layout: [ILayoutComponent | ILayoutContainer];
@@ -24,7 +24,6 @@ export interface IProps extends IProvidedProps {
 
 export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
   class FormComponentWithHandlers extends React.Component<IProps> {
-
     public renderLabel = (): JSX.Element => {
       if (this.props.type === 'Header' ||
         this.props.type === 'Paragraph' ||
