@@ -9,7 +9,7 @@ import * as ActionTypes from '../actions/types';
 export interface IResourceState {
   languageResource: any;
   error: Error;
-};
+}
 
 const initialState: IResourceState = {
   languageResource: null,
@@ -45,6 +45,6 @@ const ResourceReducer: Reducer<IResourceState> = (
       return state;
     }
   }
-}
+};
 
 export default ResourceReducer;

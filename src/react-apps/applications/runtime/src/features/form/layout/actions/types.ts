@@ -12,3 +12,5 @@ export const DELETE_ATTACHMENT_REJECTED: string = `${moduleName}.DELETE_ATTACHME
 export const FETCH_ATTACHMENTS: string = `${moduleName}.FETCH_ATTACHMENTS`;
 export const FETCH_ATTACHMENTS_FULFILLED: string = `${moduleName}.FETCH_ATTACHMENTS_FULFILLED`;
 export const FETCH_ATTACHMENTS_REJECTED: string = `${moduleName}.FETCH_ATTACHMENTS_REJECTED`;
+
+export const UPDATE_FORM_LAYOUT: string = `${moduleName}.UPDATE_FORM_LAYOUT`;

@@ -8,15 +8,14 @@ export const testData: any = {
           title: '30287.ForetakUtenlandskNavndatadef30287.Label',
         },
         dataModelBindings: {
-          simpleBinding: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
+          simpleBinding: 'etatid',
         },
         required: true,
         readOnly: false,
-        triggerValidation: true,
       },
       {
         type: 'Datepicker',
-        id: '914b114a-6c7b-49eb-a614-bb58001db0bd',
+        id: '0a100514-7df0-4c05-a453-0132dfc1ac5c',
         textResourceBindings: {
           title: 'Datepicker',
         },
@@ -171,6 +170,21 @@ export const testData: any = {
     ],
   },
 };
+
+/*
+    conditionalRendering: {
+      '4766d3f0-551b-11e9-8381-8b007ea64cac': {
+        selectedFunction: 'biggerThan10',
+        inputParams: {
+          number: 'etatid'
+        },
+        selectedAction: 'Show',
+        selectedFields: {
+          '476685d0-551b-11e9-8381-8b007ea64cac': '0a100514-7df0-4c05-a453-0132dfc1ac5c'
+        }
+      }
+    }
+*/
 
 // export const testDataOld: any = {
 //   "data": {

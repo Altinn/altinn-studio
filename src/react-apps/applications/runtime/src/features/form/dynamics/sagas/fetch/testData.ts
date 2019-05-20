@@ -69,7 +69,7 @@ export const serviceConfig: any = {
       "4766d3f0-551b-11e9-8381-8b007ea64cac": {
         "selectedFunction": "biggerThan10",
         "inputParams": {
-          "number": "soknadgrp5823.forundersokelsegrp5828.varemerkeForundersokelseNummerdatadef25364.value"
+          "number": "etatid"
         },
         "selectedAction": "Show",
         "selectedFields": {

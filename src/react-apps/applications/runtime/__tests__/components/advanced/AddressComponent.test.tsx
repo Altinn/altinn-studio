@@ -5,7 +5,6 @@ import * as renderer from 'react-test-renderer';
 
 import { AddressComponent } from '../../../src/components/advanced/AddressComponent';
 
-
 export interface ITextResourceBindings {
   [id: string]: string;
 }
