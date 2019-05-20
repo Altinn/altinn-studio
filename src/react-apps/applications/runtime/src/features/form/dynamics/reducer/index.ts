@@ -15,7 +15,6 @@ export interface IFormDynamicState {
   error: Error;
 }
 
-
 const initialState: IFormDynamicState = {
   apis: null,
   ruleConnection: null,
