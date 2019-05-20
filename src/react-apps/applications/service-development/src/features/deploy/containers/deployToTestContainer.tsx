@@ -1,9 +1,11 @@
 import { Grid, Hidden, Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
+import axios from 'axios';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { get } from '../../../../../shared/src/utils/networking';
 import postMessages from '../../../../../shared/src/utils/postMessages';
 import { makeGetRepoStatusSelector } from '../../handleMergeConflict/handleMergeConflictSelectors';
 import CurrentVersionPaper from '../components/currentVersionPaper';
@@ -68,19 +70,29 @@ export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
   repoStatus: any;
 }
 
+export interface IDeployToTestContainerState {
+  hasPushPermissionToRepo: boolean;
+}
+
 export class DeployToTestContainer extends
-  React.Component<IDeployToTestContainerProps> {
+  React.Component<IDeployToTestContainerProps, IDeployToTestContainerState> {
+  public cancelToken = axios.CancelToken;
+  public source = this.cancelToken.source();
 
   public interval: any = null;
 
   constructor(_props: IDeployToTestContainerProps) {
     super(_props);
+    this.state = {
+      hasPushPermissionToRepo: null,
+    };
   }
 
   public componentDidMount() {
     this.fetchDeployments(environment);
     this.fetchMasterRepoStatus();
     this.fetchCompileStatus();
+    this.getRepoPermissions();
     window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
 
     // If deployment has started but not finished, start the fetchDeploymentStatusInterval
@@ -98,6 +110,7 @@ export class DeployToTestContainer extends
 
   public componentWillUnmount() {
     clearInterval(this.interval);
+    this.source.cancel('ComponentWillUnmount'); // Cancel the getRepoPermissions() get request
   }
 
   public componentDidUpdate(prevProps: any) {
@@ -127,6 +140,26 @@ export class DeployToTestContainer extends
   public fetchMasterRepoStatus = () => {
     const { org, service } = window as IAltinnWindow;
     DeployActionDispatcher.fetchMasterRepoStatus(org, service);
+  }
+
+  public getRepoPermissions = async () => {
+    const { org, service } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`;
+
+    try {
+      const currentRepo = await get(url, { cancelToken: this.source.token });
+      this.setState({
+        hasPushPermissionToRepo: currentRepo.permissions.push,
+      });
+
+    } catch (err) {
+      if (axios.isCancel(err)) {
+        // console.error('Component did unmount. Get canceled.');
+      } else {
+        // TODO: Handle error
+        console.error('getRepoPermissions failed', err);
+      }
+    }
   }
 
   public isDeployFinished = (letEnv: string): boolean => {
@@ -234,6 +267,7 @@ export class DeployToTestContainer extends
                 deployStatus={this.props.deployStatus[environment]}
                 deploySuccess={this.isDeploySuccessful(this.props.deployStatus[environment])}
                 env={environment}
+                hasPushPermissionToRepo={this.state.hasPushPermissionToRepo}
                 language={language}
                 localRepoInSyncWithMaster={this.returnInSyncStatus(this.props.repoStatus)}
                 masterRepoAndDeployInSync={this.isMasterRepoAndDeployInSync(

@@ -1,13 +1,13 @@
 /* tslint:disable:object-literal-key-quotes */
 /* tslint:disable:no-string-literal */
 /* tslint:disable:max-line-length */
-/* tslint:jsx-wrap-multiline */
+/* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-
-jest.mock('../../shared/src/version-control/versionControlHeader');
+import * as networking from '../../shared/src/utils/networking';
 import { DeployToTestContainer } from '../src/features/deploy/containers/deployToTestContainer';
+jest.mock('../../shared/src/version-control/versionControlHeader');
 
 describe('Deploy To Test container', () => {
   let mockClasses: any;
@@ -20,7 +20,31 @@ describe('Deploy To Test container', () => {
   let mockMasterRepoStatus: any;
   let mockRepoStatus: any;
 
-  beforeEach(() => {
+  let mockCurrentRepo: any;
+
+  let getStub: any;
+  let spyOnGetWritePermissiononRepoCall: any;
+
+  beforeAll(() => {
+    Object.defineProperty(window, 'service', {
+      value: 'testerdeploy2',
+    });
+  });
+
+  beforeEach(async () => {
+    mockCurrentRepo = {
+      'name': 'testerdeploy2',
+      'permissions': {
+        'admin': true,
+        'pull': true,
+        'push': true,
+      },
+    };
+
+    getStub = jest.fn();
+    spyOnGetWritePermissiononRepoCall = jest.spyOn(networking, 'get').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.resolve(mockCurrentRepo));
+
     mockClasses = {};
     mockLanguage = {};
     mockRepoStatus = {
@@ -100,6 +124,10 @@ describe('Deploy To Test container', () => {
 
   });
 
+  afterEach(() => {
+    spyOnGetWritePermissiononRepoCall.mockReset();
+  });
+
   it('should render "Ready for deploy and all checks passed"', async () => {
     mockImageVersions = null;
 
@@ -116,6 +144,8 @@ describe('Deploy To Test container', () => {
         repoStatus={mockRepoStatus}
       />,
     );
+
+    wrapper.setState({ hasPushPermissionToRepo: true });
 
     // Assert Language shared with org
     expect(wrapper.text()).toMatch('shared_with_org_true');
@@ -162,6 +192,8 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    wrapper.setState({ hasPushPermissionToRepo: true });
+
     // Test language
     expect(wrapper.text()).toMatch('master_and_deploy_in_sync_title');
 
@@ -206,6 +238,8 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    wrapper.setState({ hasPushPermissionToRepo: true });
+
     // Test language
     expect(wrapper.text()).toMatch('shared_with_org_false');
 
@@ -223,13 +257,29 @@ describe('Deploy To Test container', () => {
     expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
   });
 
-  it('should render "Local repo is behind master"', async () => {
+  it('should render "Local repo is behind master", showing deploy button when compile fails', async () => {
     mockRepoStatus = {
       behindBy: 1,
       aheadBy: 0,
       contentStatus: [],
       repositoryStatus: 'Ok',
       hasMergeConflict: false,
+    };
+
+    mockCompileStatus = {
+      fetchStatus: {
+        error: null,
+        success: true,
+      },
+      result: {
+        assemblyName: null,
+        compilationInfo: [],
+        succeeded: false,
+        warnings: 0,
+        errors: 0,
+        timeUsed: '00:00:01.7493568',
+        compileStarted: '2019-04-26T15:26:53.8553131+02:00',
+      },
     };
 
     const wrapper = mount(
@@ -246,6 +296,8 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    wrapper.setState({ hasPushPermissionToRepo: true });
+
     // Test language
     expect(wrapper.text()).toMatch('changes_made_by_others_in_your_organisation_title');
 
@@ -258,7 +310,7 @@ describe('Deploy To Test container', () => {
     // Assert rendercSharpCompiles part
     expect(wrapper.exists('#rendercSharpCompiles')).toEqual(false);
 
-    // Assert the deploy button
+    // Assert the deploy button, should not be disabled even if compile fails
     expect(wrapper.exists('#deployButton')).toEqual(true);
     expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
   });
@@ -277,6 +329,8 @@ describe('Deploy To Test container', () => {
         repoStatus={mockRepoStatus}
       />,
     );
+
+    wrapper.setState({ hasPushPermissionToRepo: true });
 
     const instance = wrapper.instance() as DeployToTestContainer;
     const spyOnFetchDeployments = jest.spyOn(instance, 'fetchDeployments');
@@ -392,6 +446,8 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    wrapper.setState({ hasPushPermissionToRepo: true });
+
     // Assert the deploy button
     expect(wrapper.exists('button#deployButton')).toEqual(true);
     expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
@@ -455,6 +511,8 @@ describe('Deploy To Test container', () => {
   });
 
   it('should unmount and mount during deployment successfully', async () => {
+    spyOnGetWritePermissiononRepoCall.mockRestore();
+
     const wrapper = mount(
       <DeployToTestContainer
         compileStatus={mockCompileStatus}
@@ -469,8 +527,13 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    wrapper.setState({ hasPushPermissionToRepo: true });
+
     const instance = wrapper.instance() as DeployToTestContainer;
     const spyOnFetchDeploymentStatusInterval = jest.spyOn(instance, 'fetchDeploymentStatusInterval');
+
+    // Mock getRepoPermissions to disable the networked subscription cancel when unmounting
+    spyOnGetWritePermissiononRepoCall = jest.spyOn(instance, 'getRepoPermissions').mockReturnValue(Promise.resolve());
 
     // Call the componentdDidMount() and assert that fetchDeploymentStatusInterval has not been called
     instance.componentDidMount();
@@ -507,6 +570,7 @@ describe('Deploy To Test container', () => {
     // Mock the mount
     wrapper.mount();
     instance.componentDidMount();
+    wrapper.setState({ hasPushPermissionToRepo: true });
 
     // Assert that the fetchDeploymentStatusInterval has been called
     expect(spyOnFetchDeploymentStatusInterval).toHaveBeenCalledTimes(1);
@@ -514,6 +578,8 @@ describe('Deploy To Test container', () => {
     // Assert the altinnspinner, should be shown
     expect(wrapper.exists('#DeploySpinner')).toEqual(true);
 
+    spyOnGetWritePermissiononRepoCall.mockRestore();
+    spyOnFetchDeploymentStatusInterval.mockRestore();
   });
 
   it('should successfully render "compile success"', async () => {
@@ -530,6 +596,8 @@ describe('Deploy To Test container', () => {
         repoStatus={mockRepoStatus}
       />,
     );
+
+    wrapper.setState({ hasPushPermissionToRepo: true });
 
     // Assert language
     expect(wrapper.text()).toMatch('check_csharp_compiles_true_title');
@@ -591,6 +659,8 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    wrapper.setState({ hasPushPermissionToRepo: true });
+
     // Assert language
     expect(wrapper.text()).toMatch('check_csharp_compiles_false_title');
 
@@ -606,6 +676,8 @@ describe('Deploy To Test container', () => {
   });
 
   it('should run stop fetchDeploymentStatusInterval() successfully', async () => {
+    spyOnGetWritePermissiononRepoCall.mockRestore();
+
     const wrapper = mount(
       <DeployToTestContainer
         compileStatus={mockCompileStatus}
@@ -620,8 +692,13 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    wrapper.setState({ hasPushPermissionToRepo: true });
+
     const instance = wrapper.instance() as DeployToTestContainer;
     const spyOnFetchDeploymentStatusInterval = jest.spyOn(instance, 'fetchDeploymentStatusInterval');
+
+    // Mock getRepoPermissions to disable the networked subscription cancel when unmounting
+    jest.spyOn(instance, 'getRepoPermissions').mockImplementation(jest.fn());
 
     // Call the componentdDidMount() and assert that fetchDeploymentStatusInterval has not been called
     instance.componentDidMount();
@@ -658,6 +735,7 @@ describe('Deploy To Test container', () => {
     // Mock the mount
     wrapper.mount();
     instance.componentDidMount();
+    wrapper.setState({ hasPushPermissionToRepo: true });
 
     // Assert that the fetchDeploymentStatusInterval has been called
     expect(spyOnFetchDeploymentStatusInterval).toHaveBeenCalledTimes(1);
@@ -689,6 +767,8 @@ describe('Deploy To Test container', () => {
         repoStatus={mockRepoStatus}
       />,
     );
+
+    wrapper.setState({ hasPushPermissionToRepo: true });
 
     const instance = wrapper.instance() as DeployToTestContainer;
     const spyOnFetchCompileStatus = jest.spyOn(instance, 'fetchCompileStatus');
@@ -754,6 +834,8 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    wrapper.setState({ hasPushPermissionToRepo: true });
+
     const instance = wrapper.instance() as DeployToTestContainer;
     const spyOnFetchMasterRepoStatus = jest.spyOn(instance, 'fetchMasterRepoStatus');
 
@@ -795,6 +877,101 @@ describe('Deploy To Test container', () => {
     expect(wrapper.exists('button#deployButton')).toEqual(true);
     expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
 
+  });
+
+  it('should render correct when Push Permission are TRUE', async () => {
+    mockImageVersions = null;
+
+    mockCurrentRepo = {
+      'name': 'testerdeploy2',
+      'permissions': {
+        'admin': true,
+        'pull': true,
+        'push': true,
+      },
+    };
+
+    getStub.mockReturnValue(Promise.resolve(mockCurrentRepo));
+
+    const wrapper = mount(
+      <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
+        classes={mockClasses}
+        deploymentList={mockDeploymentList}
+        deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
+        language={mockLanguage}
+        masterRepoStatus={mockMasterRepoStatus}
+        repoStatus={mockRepoStatus}
+      />,
+    );
+
+    // Assert the writePermission
+    expect(wrapper.state('hasPushPermissionToRepo')).toBeNull();
+    // Assert network call
+    expect(spyOnGetWritePermissiononRepoCall).toHaveBeenCalledTimes(1);
+
+    // Assert the Checking for permission spinner and text
+    expect(wrapper.exists('#checkingForWritePermissionSpinner')).toEqual(true);
+    expect(wrapper.text()).toMatch('write_permission_checking');
+
+    // Resolve network call
+    await Promise.resolve();
+    expect(wrapper.state('hasPushPermissionToRepo')).toBeTruthy();
+
+    // Remount with new state
+    wrapper.mount();
+
+    // Assert the deploy button
+    expect(wrapper.exists('#deployButton')).toEqual(true);
+    expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
+  });
+
+  it('should render correct when Push Permission are FALSE', async () => {
+    mockImageVersions = null;
+
+    mockCurrentRepo = {
+      'name': 'testerdeploy2',
+      'permissions': {
+        'admin': true,
+        'pull': true,
+        'push': false,
+      },
+    };
+
+    getStub = jest.fn();
+    spyOnGetWritePermissiononRepoCall = jest.spyOn(networking, 'get').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.resolve(mockCurrentRepo));
+
+    const wrapper = mount(
+      <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
+        classes={mockClasses}
+        deploymentList={mockDeploymentList}
+        deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
+        language={mockLanguage}
+        masterRepoStatus={mockMasterRepoStatus}
+        repoStatus={mockRepoStatus}
+      />,
+    );
+
+    // Assert the writePermission
+    expect(wrapper.state('hasPushPermissionToRepo')).toBeNull();
+    // Assert network call
+    expect(spyOnGetWritePermissiononRepoCall).toHaveBeenCalledTimes(1);
+    // Resolve network call
+    await Promise.resolve();
+    expect(wrapper.state('hasPushPermissionToRepo')).toBeFalsy();
+
+    // Remount with new state
+    wrapper.mount();
+
+    // Assert the No Deploy Permission
+    expect(wrapper.exists('#renderNoDeployPermission')).toEqual(true);
+    expect(wrapper.text()).toMatch('write_permission_false');
   });
 
 });
