@@ -568,7 +568,6 @@ export function* addApplicationMetadata({
   maxFiles,
   maxSize,
   fileType,
-  callback,
 }: FormDesignerActions.IAddApplicationMetadataAction): SagaIterator {
   try {
     const addApplicationMetadataUrl: string = yield call(getAddApplicationMetadataUrl);
@@ -623,7 +622,6 @@ export function* updateApplicationMetadata({
   maxFiles,
   maxSize,
   fileType,
-  callback,
 }: FormDesignerActions.IAddApplicationMetadataAction): SagaIterator {
   try {
     const updateApplicationMetadataUrl: string = yield call(getUpdateApplicationMetadataUrl);

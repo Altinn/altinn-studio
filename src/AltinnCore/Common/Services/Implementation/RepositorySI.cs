@@ -220,7 +220,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             string metadata = JsonConvert.SerializeObject(appMetadata);
-            string filePath = metaDataDir + _settings.ApplicationMetaDataFileName;
+            string filePath = metaDataDir + _settings.ApplicationMetadataFileName;
             File.WriteAllText(filePath, metadata, Encoding.UTF8);
         }
 
@@ -258,7 +258,7 @@ namespace AltinnCore.Common.Services.Implementation
                 existingApplicationMetadata.Forms.Add(formMetadata);
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
-                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetaDataFileName;
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
@@ -279,7 +279,6 @@ namespace AltinnCore.Common.Services.Implementation
                 string attachmentId = attachmentMetadata.GetValue("id").Value;
                 string fileTypes = attachmentMetadata.GetValue("fileType") == null ? "all" : attachmentMetadata.GetValue("fileType").Value;
                 string[] fileType = fileTypes.Split(",");
-                List<string> allowedContentType = new List<string>();
                 ApplicationForm applicationForm = new ApplicationForm();
                 if (applicationForm.AllowedContentType == null)
                 {
@@ -299,7 +298,7 @@ namespace AltinnCore.Common.Services.Implementation
                 string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
                 AddMetadataForAttachment(org, applicationId, metadataAsJson);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return false;
             }
@@ -314,14 +313,14 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
 
-                if(existingApplicationMetadata.Forms != null)
+                if (existingApplicationMetadata.Forms != null)
                 {
                     ApplicationForm removeForm = existingApplicationMetadata.Forms.Find(m => m.Id == id);
                     existingApplicationMetadata.Forms.Remove(removeForm);
                 }
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
-                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetaDataFileName;
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
@@ -364,7 +363,7 @@ namespace AltinnCore.Common.Services.Implementation
         public ApplicationMetadata GetApplicationMetadata(string applicationOwnerId, string applicationId)
         {
             string filedata = string.Empty;
-            string filename = _settings.GetMetadataPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetaDataFileName;
+            string filename = _settings.GetMetadataPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
             try
             {
                 filedata = File.ReadAllText(filename, Encoding.UTF8);
@@ -1816,7 +1815,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }                   
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
-                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetaDataFileName;
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }

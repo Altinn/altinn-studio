@@ -5,7 +5,6 @@ export interface IDeleteApplicationMetadataAction extends Action {
   id: string;
 }
 
-
 export interface IDeleteApplicationMetadataActionRejected extends Action {
   error: Error;
 }

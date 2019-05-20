@@ -6,7 +6,6 @@ export interface IAddApplicationMetadataAction extends Action {
   maxFiles: number;
   maxSize: number;
   fileType: string;
-  callback?: (...args: any[]) => any;
 }
 
 export interface IAddApplicationMetadataActionRejected extends Action {
@@ -18,14 +17,13 @@ export function addApplicationMetadataAction(
   maxFiles: number,
   maxSize: number,
   fileType: string,
-  callback?: (...args: any[]) => any): IAddApplicationMetadataAction {
+): IAddApplicationMetadataAction {
   return {
     type: ActionTypes.ADD_APPLICATION_METADATA,
     id,
     maxFiles,
     maxSize,
     fileType,
-    callback,
   };
 }
 

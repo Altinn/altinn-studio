@@ -178,7 +178,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets the filename for application meta data
         /// </summary>
-        public string ApplicationMetaDataFileName { get; set; } = "applicationmetadata.json";
+        public string ApplicationMetadataFileName { get; set; } = "applicationmetadata.json";
 
         /// <summary>
         /// Gets or sets the Workflow file name
