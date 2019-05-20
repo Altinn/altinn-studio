@@ -15,12 +15,12 @@ describe('>>> utils/conditionalRendering.ts', () => {
     mockRuleHandlerHelper = {
       biggerThan10: () => {
         return {
-          number: "number"
+          number: 'number',
         };
       },
       lengthBiggerThan4: () => {
         return {
-          value: "value"
+          value: 'value',
         };
       },
 
