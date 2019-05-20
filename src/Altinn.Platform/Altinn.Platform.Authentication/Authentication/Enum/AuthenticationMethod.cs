@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Altinn.Platform.Authentication.Enum
 {
     /// <summary>
-    /// This holds information about different types of Authentication methods available in Altinn.
+    /// This holds information about different types of authentication methods available in Altinn.
     /// </summary>
     public enum AuthenticationMethod
     {

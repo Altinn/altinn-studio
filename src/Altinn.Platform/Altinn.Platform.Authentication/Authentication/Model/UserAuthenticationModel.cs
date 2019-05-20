@@ -34,13 +34,23 @@ namespace Altinn.Platform.Authentication.Model
         public AuthenticationMethod AuthenticationMethod { get; set; }
 
         /// <summary>
+        /// Gets or sets the authentication level
+        /// </summary>
+        public SecurityLevel AuthenticationLevel { get; set; }
+
+        /// <summary>
         /// Gets or sets a flag stating if the user is authenticated
         /// </summary>
         public bool IsAuthenticated { get; set; }
 
         /// <summary>
-        /// Gets or sets the locked out date
+        /// Gets or sets the encrypted ticket
         /// </summary>
-        public DateTime LockedOutDate { get; set; }
+        public string EncryptedTicket { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag stating if the ticket is updated or not
+        /// </summary>
+        public bool TicketUpdated { get; set; }
     }
 }
