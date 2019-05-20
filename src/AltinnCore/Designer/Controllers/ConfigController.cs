@@ -153,6 +153,7 @@ namespace AltinnCore.Designer.Controllers
                 serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
                 serviceConfigurationObject.ServiceDescription = serviceConfig.serviceDescription.ToString();
                 serviceConfigurationObject.ServiceId = serviceConfig.serviceId.ToString();
+                serviceConfigurationObject.ServiceName = serviceConfig.serviceName.ToString();
             }
             else
             {
@@ -166,6 +167,7 @@ namespace AltinnCore.Designer.Controllers
             }
 
             System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
+            _repository.UpdateServiceInformationInApplicationMetadata(org, service, serviceConfigurationObject);
         }
     }
 }

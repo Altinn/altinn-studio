@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Factories.ModelFactory;
@@ -172,6 +173,58 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Creates the application metadata file
+        /// </summary>
+        /// <param name="applicationOwnerId">the application owner</param>
+        /// <param name="applicationId">the application id</param>
+        public void CreateApplicationMetadata(string applicationOwnerId, string applicationId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            ApplicationMetadata appMetadata = new ApplicationMetadata
+            {
+                Id = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId),
+                VersionId = null,
+                ApplicationOwnerId = applicationOwnerId,
+                CreatedDateTime = DateTime.UtcNow,
+                CreatedBy = developer,
+                LastChangedDateTime = DateTime.UtcNow,
+                LastChangedBy = developer
+            };
+
+            if (appMetadata.Title == null)
+            {
+                appMetadata.Title = new Dictionary<string, string>();
+            }
+            
+            appMetadata.Title.Add("nb-no", applicationId);
+            if (appMetadata.Forms == null)
+            {
+                appMetadata.Forms = new List<ApplicationForm>();
+            }
+
+            appMetadata.Forms.Add(new ApplicationForm
+            {
+                Id = "default",
+                AllowedContentType = new List<string>() { "application/xml" },
+                ShouldEncrypt = true,
+            });
+
+            string metaDataDir = _settings.GetMetadataPath(
+                                    applicationOwnerId,
+                                    applicationId,
+                                    developer);
+            DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
+            if (!metaDirectoryInfo.Exists)
+            {
+                metaDirectoryInfo.Create();
+            }
+
+            string metadata = JsonConvert.SerializeObject(appMetadata);
+            string filePath = metaDataDir + _settings.ApplicationMetadataFileName;
+            File.WriteAllText(filePath, metadata, Encoding.UTF8);
+        }
+
+        /// <summary>
         /// Updates serviceMetadata
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -184,6 +237,90 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
                 string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceMetadataFileName;
+
+                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public bool AddMetadataForAttachment(string org, string applicationId, string applicationMetadata)
+        {
+            try
+            {
+                ApplicationForm formMetadata = JsonConvert.DeserializeObject<ApplicationForm>(applicationMetadata);
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
+                existingApplicationMetadata.Forms.Add(formMetadata);
+
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+
+                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public bool UpdateMetadataForAttachment(string org, string applicationId, string applicationMetadata)
+        {
+            try
+            {
+                dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
+                string attachmentId = attachmentMetadata.GetValue("id").Value;
+                string fileTypes = attachmentMetadata.GetValue("fileType") == null ? "all" : attachmentMetadata.GetValue("fileType").Value;
+                string[] fileType = fileTypes.Split(",");
+                ApplicationForm applicationForm = new ApplicationForm();
+                if (applicationForm.AllowedContentType == null)
+                {
+                    applicationForm.AllowedContentType = new List<string>();
+                }
+
+                foreach (string type in fileType)
+                {
+                    applicationForm.AllowedContentType.Add(MimeTypeMap.GetMimeType(type));
+                }
+
+                applicationForm.Id = attachmentMetadata.GetValue("id").Value;
+                applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
+                applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
+                               
+                DeleteMetadataForAttachment(org, applicationId, attachmentId);
+                string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
+                AddMetadataForAttachment(org, applicationId, metadataAsJson);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public bool DeleteMetadataForAttachment(string org, string applicationId, string id)
+        {
+            try
+            {
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
+
+                if (existingApplicationMetadata.Forms != null)
+                {
+                    ApplicationForm removeForm = existingApplicationMetadata.Forms.Find(m => m.Id == id);
+                    existingApplicationMetadata.Forms.Remove(removeForm);
+                }
+
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
@@ -213,6 +350,28 @@ namespace AltinnCore.Common.Services.Implementation
             catch (Exception ex)
             {
                 _logger.LogError("Something went wrong when fetching service metadata ", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Returns the service metadata for a service
+        /// </summary>
+        /// <param name="applicationOwnerId">the applicatio owner</param>
+        /// <param name="applicationId">the application owner</param>
+        /// <returns>The application  metadata for an application</returns>
+        public ApplicationMetadata GetApplicationMetadata(string applicationOwnerId, string applicationId)
+        {
+            string filedata = string.Empty;
+            string filename = _settings.GetMetadataPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+            try
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+                return JsonConvert.DeserializeObject<ApplicationMetadata>(filedata);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Something went wrong when fetching service metadata. {0}", ex);
                 return null;
             }
         }
@@ -967,6 +1126,7 @@ namespace AltinnCore.Common.Services.Implementation
                 };
 
                 CreateServiceMetadata(metadata);
+                CreateApplicationMetadata(owner, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
@@ -1631,6 +1791,40 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return fileContent;
+        }
+
+        /// <inheritdoc/>
+        public bool UpdateServiceInformationInApplicationMetadata(string org, string applicationId, ServiceConfiguration applicationInformation)
+        {
+            try
+            {
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
+
+                if (existingApplicationMetadata.Title == null)
+                {
+                    existingApplicationMetadata.Title = new Dictionary<string, string>();
+                }
+
+                if (existingApplicationMetadata.Title.ContainsKey("nb-no"))
+                {
+                    existingApplicationMetadata.Title["nb-no"] = applicationInformation.ServiceName;
+                }
+                else
+                {
+                    existingApplicationMetadata.Title.Add("nb-no", applicationInformation.ServiceName);
+                }                   
+
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+
+                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static string ViewResourceKey(string viewName)
