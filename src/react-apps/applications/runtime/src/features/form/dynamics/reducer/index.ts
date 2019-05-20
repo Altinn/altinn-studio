@@ -6,6 +6,15 @@ import {
   IFetchServiceConfigRejected,
 } from '../actions/fetch';
 import * as actionTypes from '../actions/types';
+import { IConditionalRenderingRules } from '../types';
+
+export interface IFormDynamicState {
+  apis: any;
+  ruleConnection: any;
+  conditionalRendering: IConditionalRenderingRules;
+  error: Error;
+}
+
 
 const initialState: IFormDynamicState = {
   apis: null,
@@ -52,6 +61,6 @@ const DynamicsReducer: Reducer<IFormDynamicState> = (
       return state;
     }
   }
-}
+};
 
 export default DynamicsReducer;

@@ -15,6 +15,7 @@ function* fetchRuleModelSaga({
     scriptEle.innerHTML = ruleModel;
     window.document.body.appendChild(scriptEle);
     const ruleModelFields = getRuleModelFields();
+
     yield call(
       Actions.fetchRuleModelFulfilled,
       ruleModelFields,

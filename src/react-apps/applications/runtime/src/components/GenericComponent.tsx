@@ -5,10 +5,12 @@ import { formComponentWithHandlers } from '../containers/withFormElementHandlers
 import FormDataActions from '../features/form/data/actions';
 import { IFormData } from '../features/form/data/reducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
+import FormDynamicsActions from '../features/form/dynamics/actions';
 import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/';
 import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
+import { makeGetLayoutElement } from '../selectors/getLayoutData';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IComponentValidations } from '../types/global';
 import components from './';
@@ -18,7 +20,6 @@ export interface IProvidedProps {
   type: string;
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
-  formData: IFormData;
   component: string;
 }
 
@@ -38,6 +39,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
     }
     const dataModelField = this.props.dataModelBindings[key];
     FormDataActions.updateFormData(dataModelField, value, this.props.id);
+    FormDynamicsActions.checkIfConditionalRulesShouldRun();
     const component = this.props.layoutElement as ILayoutComponent;
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
@@ -79,6 +81,9 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
     const Component = formComponentWithHandlers(components.find((c: any) =>
       c.name === this.props.component,
     ).Tag);
+    if (this.props.layoutElement.hidden) {
+      return null;
+    }
     return (
       <Component
         {...this.props}
@@ -109,10 +114,11 @@ const isComponentValid = (validations: IComponentValidations): boolean => {
 
 const makeMapStateToProps = () => {
   const GetFormDataSelector = makeGetFormDataSelector();
+  const GetLayoutElement = makeGetLayoutElement();
   const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => {
     return {
       dataModel: state.formDataModel,
-      layoutElement: state.formLayout.layout.find((element) => element.id === props.id),
+      layoutElement: GetLayoutElement(state, props),
       isValid: isComponentValid(state.formValidations.validations[props.id]),
       textResources: state.formResources.languageResource.resources,
       formData: GetFormDataSelector(state, props),

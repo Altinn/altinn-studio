@@ -23,6 +23,11 @@ export interface IAltinnWindow extends Window {
   service: string;
   instanceId: string;
   reportee: string;
+  conditionalRuleHandlerHelper: IRules; // TODO: make interface
+}
+
+export interface IRules {
+  [id: string]: any;
 }
 
 // Components Types
@@ -110,8 +115,6 @@ export type FormComponentType =
   | IFormFileUploaderComponent
   | IFormAddressComponent;
 
-
-
 // Texts
 export interface ITextResourceBindings {
   [id: string]: string;
@@ -194,4 +197,3 @@ export interface IAttachmentApiResponse {
 export interface ITextResourceBindings {
   [id: string]: string;
 }
-
