@@ -80,7 +80,6 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
-        validationMessages={mockInitialState.formFiller.validationResults.mockId}
       />,
     );
     expect(wrapper.find('#loader-upload')).toHaveLength(1);
