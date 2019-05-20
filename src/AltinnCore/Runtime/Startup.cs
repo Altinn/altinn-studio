@@ -9,6 +9,7 @@ using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.Authorization;
 using AltinnCore.Runtime.ModelBinding;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -74,17 +75,27 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
                 services.AddSingleton<IInstance, InstanceSILocalDev>();
                 services.AddSingleton<IWorkflowSI, WorkflowSI>();
+                services.AddSingleton<IDSF, RegisterDSFStudioSI>();
+                services.AddSingleton<IER, RegisterERStudioSI>();
+                services.AddSingleton<IRegister, RegisterStudioSI>();
+                services.AddSingleton<IProfile, ProfileStudioSI>();
             }
             else
             {
+                // Services added if code is running in app
                 services.AddSingleton<IExecution, ExecutionSIContainer>();
                 services.AddSingleton<IInstance, InstanceSI>();
                 services.AddSingleton<IData, DataSI>();
                 services.AddSingleton<IWorkflowSI, WorkflowSI>();
+                services.AddSingleton<IDSF, RegisterDSFAppSI>();
+                services.AddSingleton<IER, RegisterERAppSI>();
+                services.AddSingleton<IRegister, RegisterAppSI>();
+                services.AddSingleton<IProfile, ProfileAppSI>();
             }
 
+            services.AddSingleton<IPlatformServices, PlatformStudioSI>();
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
-            services.AddSingleton<IAuthorization, AuthorizationSILocalDev>();
+            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
@@ -93,8 +104,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormSILocalDev>();
-            services.AddSingleton<IProfile, ProfileSILocalDev>();
-            services.AddSingleton<IRegister, RegisterSILocalDev>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<ITestdata, TestdataSILocalDev>();
@@ -124,6 +133,7 @@ namespace AltinnCore.Runtime
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformStorageSettings>(Configuration.GetSection("PlatformStorageSettings"));
+            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions

@@ -271,6 +271,11 @@ namespace AltinnCore.Common.Configuration
         public string ProjectFileName { get; set; } = "AltinnService.csproj";
 
         /// <summary>
+        /// Gets or sets the filename for the git ignore file
+        /// </summary>
+        public string GitIgnoreFileName { get; set; } = ".gitignore";
+
+        /// <summary>
         /// Gets or sets the repo search page count used for searching repos
         /// </summary>
         public int RepoSearchPageCount { get; set; } = 1337;
@@ -381,7 +386,7 @@ namespace AltinnCore.Common.Configuration
 
         /// <summary>
         /// Get the path to rule handler file
-        /// </summary
+        /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="developer">the developer for the current service</param>

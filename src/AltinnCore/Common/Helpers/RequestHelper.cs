@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Common.Helpers

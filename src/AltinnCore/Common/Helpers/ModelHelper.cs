@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Api;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace AltinnCore.Common.Helpers

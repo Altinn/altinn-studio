@@ -1,15 +1,9 @@
-﻿@model AltinnCore.Common.Models.AltinnStudioViewModel
+@model AltinnCore.Common.Models.AltinnStudioViewModel
 @using AltinnCore.Common.Models;
 @{ ViewBag.Title = "Kodelister"; }
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
   string service = ViewContext.RouteData.Values["service"] as string;
-
-  string routeName = "orgRoute";
-  if (service != null)
-  {
-    routeName = "serviceRoute";
-  }
 }
 @section scripts {
   <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>

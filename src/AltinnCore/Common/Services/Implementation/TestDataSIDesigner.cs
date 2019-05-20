@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
-using Microsoft.AspNetCore.Http;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -31,8 +27,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">Service repository settings</param>
         public TestdataSIDesigner(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings)
         {
-            this._testdataRepositorySettings = testdataRepositorySettings.Value;
-            this._settings = repositorySettings.Value;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
+            _settings = repositorySettings.Value;
         }
 
         /// <summary>

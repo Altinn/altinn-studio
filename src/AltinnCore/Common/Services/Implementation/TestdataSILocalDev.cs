@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -35,8 +35,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">the http context accessor</param>
         public TestdataSILocalDev(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
-            this._testdataRepositorySettings = testdataRepositorySettings.Value;
-            this._settings = repositorySettings.Value;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
+            _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
         }
 

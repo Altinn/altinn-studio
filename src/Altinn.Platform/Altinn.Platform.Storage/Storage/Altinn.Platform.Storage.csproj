@@ -26,6 +26,10 @@
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.0.1" />    
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Storage.Interface\Storage.Interface.csproj" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>$(SolutionDir)Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>

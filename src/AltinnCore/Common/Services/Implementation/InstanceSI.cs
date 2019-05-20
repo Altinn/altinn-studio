@@ -8,7 +8,8 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -28,6 +29,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Initializes a new instance of the <see cref="InstanceSILocalDev"/> class.
         /// </summary>
         /// <param name="data">form service</param>
+        /// <param name="platformStorageSettings">platform storage settings</param>
         public InstanceSI(IData data, IOptions<PlatformStorageSettings> platformStorageSettings)
         {
             _data = data;

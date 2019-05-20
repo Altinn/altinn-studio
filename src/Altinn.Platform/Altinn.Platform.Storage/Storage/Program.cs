@@ -17,22 +17,37 @@ using Serilog.Extensions.Logging;
 
 namespace Altinn.Platform.Storage
 {
+    /// <summary>
+    /// The program to start Altinn Platform Storage Service.
+    /// </summary>
     public class Program
     {
         private static Logger logger = new LoggerConfiguration()
             .WriteTo.Console()
             .CreateLogger();
 
+        /// <summary>
+        /// The main class to start.
+        /// </summary>
+        /// <param name="args">program arguments</param>
         public static void Main(string[] args)
         {
             CreateWebHostBuilder(args).Build().Run();
         }
 
+        /// <summary>
+        /// Creates the WebHostBuilder.
+        /// </summary>
+        /// <param name="args">the arguments</param>
+        /// <returns></returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)           
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+                
+                string basePathCurrentDirectory = Directory.GetCurrentDirectory();
+                logger.Information($"Current directory is: {basePathCurrentDirectory}");
 
                 LoadConfigurationSettings(config, basePath, args);
             })
@@ -48,20 +63,30 @@ namespace Altinn.Platform.Storage
             .UseApplicationInsights()
             .UseStartup<Startup>();
 
+        /// <summary>
+        /// Load the configuration settings for the program.
+        /// </summary>
+        /// <param name="config">the config</param>
+        /// <param name="basePath">the base path to look for application settings files</param>
+        /// <param name="args">programs arguments</param>
         public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
+            logger.Information($"Loading Configuration from basePath={basePath}");
+            
             config.SetBasePath(basePath);
-
-            config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
-
+            string configJsonFile1 = $"{basePath}/altinn-appsettings/altinn-dbsettings-secret.json";
+            string configJsonFile2 = $"{basePath}/Storage/appsettings.json";
+            
             if (basePath == "/")
             {
-                config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
+                configJsonFile2 = "/app/appsettings.json";                
             }
-            else
-            {
-                config.AddJsonFile(basePath + "/appsettings.json", optional: false, reloadOnChange: true);
-            }
+
+            logger.Information($"Loading configuration file: '{configJsonFile1}'");
+            config.AddJsonFile(configJsonFile1, optional: true, reloadOnChange: true);
+
+            logger.Information($"Loading configuration file2: '{configJsonFile2}'");
+            config.AddJsonFile(configJsonFile2, optional: false, reloadOnChange: true);                        
 
             config.AddEnvironmentVariables();
             config.AddCommandLine(args);
@@ -82,7 +107,7 @@ namespace Altinn.Platform.Storage
             }
 
             string applicationInsights = stageOneConfig.GetValue<string>("ApplicationInsights:InstrumentationKey");
-            logger.Information("Setting application insights instrumentationKey " + applicationInsights);
+            logger.Information($"Setting application insights instrumentationKey='{applicationInsights}'");
             if (!string.IsNullOrEmpty(applicationInsights))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = applicationInsights;                
