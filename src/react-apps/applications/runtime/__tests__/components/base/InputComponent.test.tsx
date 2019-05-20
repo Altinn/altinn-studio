@@ -21,7 +21,7 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
     mockIsValid = true;
     mockReadOnly = false;
     mockRequired = false;
-    mockType = 'text';
+    mockType = 'Input';
   });
 
   it('+++ should match snapshot', () => {
