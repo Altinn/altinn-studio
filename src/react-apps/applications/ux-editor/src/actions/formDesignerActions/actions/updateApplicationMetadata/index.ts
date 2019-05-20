@@ -8,9 +8,6 @@ export interface IUpdateApplicationMetadaAction extends Action {
   fileType: string;
 }
 
-export interface IUpdateApplicationMetadaActionFulfilled extends Action {
-}
-
 export interface IUpdateApplicationMetadaActionRejected extends Action {
   error: Error;
 }
@@ -31,7 +28,7 @@ export function updateApplicationMetadaAction(
 }
 
 export function updateApplicationMetadaActionFulfilled():
-  IUpdateApplicationMetadaActionFulfilled {
+  Action {
   return {
     type: ActionTypes.UPDATE_APPLICATION_METADATA_FULFILLED,
   };

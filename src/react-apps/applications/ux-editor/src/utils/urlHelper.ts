@@ -11,18 +11,18 @@ export const getSaveServiceConfigurationUrl = (): string => {
 
 export const getAddApplicationMetadataUrl = (): string => {
   const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/
-          ${altinnWindow.org}/${altinnWindow.service}/UIEditor/AddMetadataForAttachment`;
+  /* tslint:disable-next-line:max-line-length */
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.service}/UIEditor/AddMetadataForAttachment`;
 };
 
 export const getDeleteApplicationMetadataUrl = (): string => {
   const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/
-          ${altinnWindow.org}/${altinnWindow.service}/UIEditor/DeleteMetadataForAttachment?id=`;
+  /* tslint:disable-next-line:max-line-length */
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.service}/UIEditor/DeleteMetadataForAttachment?id=`;
 };
 
 export const getUpdateApplicationMetadataUrl = (): string => {
   const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-  return `${altinnWindow.location.origin}/designer/
-          ${altinnWindow.org}/${altinnWindow.service}/UIEditor/UpdateMetadataForAttachment`;
+  /* tslint:disable-next-line:max-line-length */
+  return `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.service}/UIEditor/UpdateMetadataForAttachment`;
 };

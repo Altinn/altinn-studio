@@ -185,7 +185,7 @@ export interface IFormDesignerActionDispatchers
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddApplicationMetadataAction;
   addApplicationMetadataFulfilled: (
-  ) => FormDesignerActions.IAddApplicationMetadataActionFulfilled;
+  ) => Action;
   addApplicationMetadataRejected: (
     error: Error,
   ) => FormDesignerActions.IAddApplicationMetadataActionRejected;
@@ -193,7 +193,7 @@ export interface IFormDesignerActionDispatchers
     id: string,
   ) => FormDesignerActions.IDeleteApplicationMetadataAction;
   deleteApplicationMetadataFulfilled: (
-  ) => FormDesignerActions.IDeleteApplicationMetadataActionFulfilled;
+  ) => Action;
   deleteApplicationMetadataRejected: (
     error: Error,
   ) => FormDesignerActions.IDeleteApplicationMetadataActionRejected;
@@ -204,7 +204,7 @@ export interface IFormDesignerActionDispatchers
     fileType: string,
   ) => FormDesignerActions.IUpdateApplicationMetadaAction;
   updateApplicationMetadataFulfilled: (
-  ) => FormDesignerActions.IUpdateApplicationMetadaActionFulfilled;
+  ) => Action;
   updateApplicationMetadataRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateApplicationMetadaActionRejected;
@@ -288,5 +288,5 @@ const actions: IFormDesignerActionDispatchers = {
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<
   any,
   IFormDesignerActionDispatchers
-  >(actions, store.dispatch);
+>(actions, store.dispatch);
 export default FormDesignerActionDispatchers;

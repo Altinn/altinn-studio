@@ -173,11 +173,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates the application meta data file
+        /// Creates the application metadata file
         /// </summary>
         /// <param name="applicationOwnerId">the application owner</param>
         /// <param name="applicationId">the application id</param>
-        public void CreateApplicationMetaData(string applicationOwnerId, string applicationId)
+        public void CreateApplicationMetadata(string applicationOwnerId, string applicationId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             ApplicationMetadata appMetadata = new ApplicationMetadata
@@ -254,7 +254,7 @@ namespace AltinnCore.Common.Services.Implementation
             try
             {
                 ApplicationForm formMetadata = JsonConvert.DeserializeObject<ApplicationForm>(applicationMetadata);
-                ApplicationMetadata existingApplicationMetadata = GetApplicationMetaData(org, applicationId);
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
                 existingApplicationMetadata.Forms.Add(formMetadata);
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
@@ -312,7 +312,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             try
             {
-                ApplicationMetadata existingApplicationMetadata = GetApplicationMetaData(org, applicationId);
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
 
                 if(existingApplicationMetadata.Forms != null)
                 {
@@ -361,7 +361,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="applicationOwnerId">the applicatio owner</param>
         /// <param name="applicationId">the application owner</param>
         /// <returns>The application  metadata for an application</returns>
-        public ApplicationMetadata GetApplicationMetaData(string applicationOwnerId, string applicationId)
+        public ApplicationMetadata GetApplicationMetadata(string applicationOwnerId, string applicationId)
         {
             string filedata = string.Empty;
             string filename = _settings.GetMetadataPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetaDataFileName;
@@ -372,7 +372,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError("Something went wrong when fetching service metadata ", ex);
+                _logger.LogError("Something went wrong when fetching service metadata. {0}", ex);
                 return null;
             }
         }
@@ -1127,7 +1127,7 @@ namespace AltinnCore.Common.Services.Implementation
                 };
 
                 CreateServiceMetadata(metadata);
-                CreateApplicationMetaData(owner, serviceConfig.ServiceName);
+                CreateApplicationMetadata(owner, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
@@ -1799,7 +1799,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             try
             {
-                ApplicationMetadata existingApplicationMetadata = GetApplicationMetaData(org, applicationId);
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
 
                 if (existingApplicationMetadata.Title == null)
                 {

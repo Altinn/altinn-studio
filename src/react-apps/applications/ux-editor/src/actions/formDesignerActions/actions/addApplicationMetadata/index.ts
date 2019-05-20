@@ -9,9 +9,6 @@ export interface IAddApplicationMetadataAction extends Action {
   callback?: (...args: any[]) => any;
 }
 
-export interface IAddApplicationMetadataActionFulfilled extends Action {
-}
-
 export interface IAddApplicationMetadataActionRejected extends Action {
   error: Error;
 }
@@ -33,7 +30,7 @@ export function addApplicationMetadataAction(
 }
 
 export function addApplicationMetadataActionFulfilled(
-): IAddApplicationMetadataActionFulfilled {
+): Action {
   return {
     type: ActionTypes.ADD_APPLICATION_METADATA_FULFILLED,
   };
