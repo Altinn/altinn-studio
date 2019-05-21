@@ -1,3 +1,4 @@
+/* tslint:disable */
 export const testData: any = {
   data: {
     layout: [
