@@ -21,4 +21,11 @@ module.exports = {
   styleguideComponents: {
     Wrapper: path.join(__dirname, '/styleguide/wrapper.tsx'),
   },
+  sections: [{
+    name: 'Components',
+    content: 'styleguide/components.md',
+    components: 'src/components/*.tsx',
+    exampleMode: 'expand',
+    usageMode: 'expand'
+  }]
 }

@@ -28,10 +28,13 @@
 
 Altinn button supports onClickFunction via the onClickFunction prop.
 
-```jsx static
+```jsx
+const myFunc = () => {
+  console.log('My Function');
+}
 <AltinnButton
-  btnText='Secondary button'
-  onClickFunction={this.someFunctionPassedAsProp}
+  btnText='Button with onClickFunction'
+  onClickFunction={myFunc}
 />
 ```
 
