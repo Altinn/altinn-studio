@@ -103,11 +103,11 @@ const FormComponent = (props: IFormElementProps) => {
    * Render label
    */
   const renderLabel = (): JSX.Element => {
-    if (props.component.component === 'Header' ||
-      props.component.component === 'Paragraph' ||
-      props.component.component === 'Submit' ||
-      props.component.component === 'ThirdParty' ||
-      props.component.component === 'AddressComponent') {
+    if (props.component.type === 'Header' ||
+      props.component.type === 'Paragraph' ||
+      props.component.type === 'Submit' ||
+      props.component.type === 'ThirdParty' ||
+      props.component.type === 'AddressComponent') {
       return null;
     }
     if (!props.component.textResourceBindings) {
