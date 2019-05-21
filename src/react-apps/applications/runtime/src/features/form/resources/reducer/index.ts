@@ -12,7 +12,7 @@ export interface IResourceState {
 }
 
 const initialState: IResourceState = {
-  languageResource: null,
+  languageResource: {},
   error: null,
 };
 

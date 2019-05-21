@@ -160,4 +160,9 @@ describe('>>> utils/validations.ts', () => {
       validation.validateComponentFormData(mockFormData.dataModelField_2, mockDataModelFields[1], mockLayout[1]);
     expect(result).toEqual(mockFormValidationResult.componentId_2);
   });
+
+  it('+++ should count total number of errors correctly', () => {
+    const result = validation.getErrorCount(mockFormValidationResult);
+    expect(result).toEqual(3);
+  });
 });
