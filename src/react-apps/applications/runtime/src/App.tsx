@@ -31,7 +31,8 @@ export default () => {
       `${window.location.origin}/runtime/api/resource/${org}/${service}/RuleHandler.js`,
     );
     FormWorkflowActions.getCurrentState(
-      `${window.location.origin}/runtime/api/workflow/${org}/${service}/GetCurrentState?instanceId=${instanceId}`,
+      // tslint:disable-next-line:max-line-length
+      `${window.location.origin}/runtime/api/workflow/${reportee}/${org}/${service}/GetCurrentState?instanceId=${instanceId}`,
     );
 
     FormDynamicActions.fetchFormDynamics(
