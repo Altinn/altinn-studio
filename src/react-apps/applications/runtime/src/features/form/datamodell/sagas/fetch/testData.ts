@@ -1,3 +1,5 @@
+/* tslint:disable */
+
 export const testData: any = {
   Org: 'jesper',
   ServiceName: 'Test',
