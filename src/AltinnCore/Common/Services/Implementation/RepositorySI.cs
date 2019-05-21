@@ -354,12 +354,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Returns the service metadata for a service
-        /// </summary>
-        /// <param name="applicationOwnerId">the applicatio owner</param>
-        /// <param name="applicationId">the application owner</param>
-        /// <returns>The application  metadata for an application</returns>
+        /// <inheritdoc/>
         public ApplicationMetadata GetApplicationMetadata(string applicationOwnerId, string applicationId)
         {
             string filedata = string.Empty;

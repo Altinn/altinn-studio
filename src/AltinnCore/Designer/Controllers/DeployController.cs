@@ -33,6 +33,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly ILogger<DeployController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly PlatformSettings _platformSettings;
+        private readonly IRepository _repository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeployController"/> class
@@ -49,7 +50,8 @@ namespace AltinnCore.Designer.Controllers
             IGitea giteaAPI,
             ILogger<DeployController> logger,
             IOptions<ServiceRepositorySettings> settings,
-            IOptions<PlatformSettings> platformSettings)
+            IOptions<PlatformSettings> platformSettings,
+            IRepository repositoryService)
         {
             _sourceControl = sourceControl;
             _configuration = configuration;
@@ -57,6 +59,7 @@ namespace AltinnCore.Designer.Controllers
             _logger = logger;
             _settings = settings.Value;
             _platformSettings = platformSettings.Value;
+            _repository = repositoryService;
         }
 
         /// <summary>
@@ -227,6 +230,7 @@ namespace AltinnCore.Designer.Controllers
         private async Task<bool> RegisterApplicationInStorage(string applicationOwnerId, string applicationCode, string versionId)
         {
             bool applicationInStorage = false;
+            ApplicationMetadata applicationMetadataFromRepository = _repository.GetApplicationMetadata(applicationOwnerId, applicationCode);
             using (HttpClient client = new HttpClient())
             {
                 string applicationId = $"{applicationOwnerId}-{applicationCode}";
@@ -239,7 +243,21 @@ namespace AltinnCore.Designer.Controllers
                     string json = getApplicationMetadataResponse.Content.ReadAsStringAsync().Result;
                     application = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
                     applicationInStorage = true;
+
+                    if (application.Title == null)
+                    {
+                        application.Title = new Dictionary<string, string>();
+                    }
+
+                    application.Title = applicationMetadataFromRepository.Title;
                     application.VersionId = versionId;
+                    if (application.Forms == null)
+                    {
+                        application.Forms = new List<ApplicationForm>();
+                    }
+
+                    application.Forms = applicationMetadataFromRepository.Forms;
+
                     HttpResponseMessage response = client.PutAsync(getApplicationMetadataUrl, application.AsJson()).Result;
                     if (response.IsSuccessStatusCode)
                     {
@@ -253,6 +271,23 @@ namespace AltinnCore.Designer.Controllers
                 else if (getApplicationMetadataResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     ApplicationMetadata appMetadata = GetApplicationMetadata(applicationId, versionId);
+                    appMetadata.ApplicationOwnerId = applicationMetadataFromRepository.ApplicationOwnerId;
+                    appMetadata.CreatedBy = applicationMetadataFromRepository.CreatedBy;
+                    appMetadata.CreatedDateTime = applicationMetadataFromRepository.CreatedDateTime;
+                    appMetadata.Forms = new List<ApplicationForm>();
+                    if (application.Forms == null)
+                    {
+                        application.Forms = new List<ApplicationForm>();
+                    }
+
+                    appMetadata.Forms = applicationMetadataFromRepository.Forms;
+                    if (application.Title == null)
+                    {
+                        application.Title = new Dictionary<string, string>();
+                    }
+
+                    appMetadata.Title = applicationMetadataFromRepository.Title;
+
                     string createApplicationMetadataUrl = $"{storageEndpoint}applications?applicationId={applicationId}";
                     HttpResponseMessage createApplicationMetadataResponse = await client.PostAsync(createApplicationMetadataUrl, appMetadata.AsJson());
                     if (createApplicationMetadataResponse.IsSuccessStatusCode)

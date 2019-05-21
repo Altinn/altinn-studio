@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
-
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Models;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.Models;
@@ -451,5 +451,13 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="applicationInformation">the application information to be updated</param>
         /// <returns>true if the information is updated successfully</returns>
         bool UpdateServiceInformationInApplicationMetadata(string org, string applicationId, ServiceConfiguration applicationInformation);
+
+        /// <summary>
+        /// Returns the applicaiton metadata for an application
+        /// </summary>
+        /// <param name="applicationOwnerId">the applicatio owner</param>
+        /// <param name="applicationId">the application owner</param>
+        /// <returns>The application  metadata for an application</returns>
+        ApplicationMetadata GetApplicationMetadata(string applicationOwnerId, string applicationId);
     }
 }
