@@ -69,7 +69,8 @@ describe('>>> components/message/MessageComponent.tsx', () => {
             );
           })}
         </ol>
-      </MessageComponent>);
+      </MessageComponent>,
+    );
     expect(shallowMessageComponent.find('div').hasClass('a-message-error')).toBe(true);
   });
   it('+++ should have class a-message-success when success type', () => {
@@ -88,7 +89,8 @@ describe('>>> components/message/MessageComponent.tsx', () => {
             );
           })}
         </ol>
-      </MessageComponent>);
+      </MessageComponent>,
+    );
     expect(shallowMessageComponent.find('div').hasClass('a-message-success')).toBe(true);
   });
 });
