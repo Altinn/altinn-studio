@@ -80,8 +80,8 @@ const FormFiller = (props: IFormFillerProps) => {
       </div>
       <div className='row mt-3'>
         <div className='a-btn-group'>
-          {props.textResources && renderSaveButton()}
-          {props.textResources && renderSubmitButton()}
+          {renderSaveButton()}
+          {renderSubmitButton()}
         </div>
       </div>
     </WorkflowStep>
@@ -91,7 +91,7 @@ const FormFiller = (props: IFormFillerProps) => {
 const mapStateToProps = (state: IRuntimeState): IFormFillerProps => {
   return {
     formConfig: state.formConfig,
-    textResources: state.language.language.resource,
+    textResources: state.language.language,
     unsavedChanges: state.formData.unsavedChanges,
     validationResults: state.formValidations.validations,
     workflowStep: state.formWorkflow.state,
