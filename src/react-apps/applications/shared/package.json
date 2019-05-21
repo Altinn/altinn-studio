@@ -7,7 +7,7 @@
   "scripts": {
     "test": "jest",
     "lint": "tslint -c ./../tslint.json src/**/*.{ts,tsx} __tests__/**/*.{ts,tsx}",
-    "styleguide": "npx styleguidist server"
+    "styleguide": "styleguidist server"
   },
   "dependencies": {
     "@material-ui/core": "3.9.3",
