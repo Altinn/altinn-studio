@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import { get, post } from '../../../../shared/src/utils/networking';
+import postMessages from '../../../../shared/src/utils/postMessages';
 import * as HandleServiceInformationActions from './handleServiceInformationActions';
 import * as HandleServiceInformationActionTypes from './handleServiceInformationActionTypes';
 import HandleServiceInformationDispatcher from './handleServiceInformationDispatcher';
@@ -100,12 +101,14 @@ export function* watchHandleFetchServiceConfigSaga(): SagaIterator {
 }
 
 export function* handleSaveServiceConfigSaga({
-  url, newServiceDescription, newServiceId,
+  url, newServiceDescription, newServiceId, newServiceName,
 }: HandleServiceInformationActions.ISaveServiceConfigAction): SagaIterator {
   try {
-    yield call(post, url, { serviceDescription: newServiceDescription, serviceId: newServiceId });
-    yield call(HandleServiceInformationDispatcher.saveServiceConfigFulfilled, newServiceDescription, newServiceId);
-    window.postMessage('SAVED', window.location.href);
+    yield call(post, url,
+      { serviceDescription: newServiceDescription, serviceId: newServiceId, serviceName: newServiceName });
+    yield call(HandleServiceInformationDispatcher.saveServiceConfigFulfilled,
+      newServiceDescription, newServiceId, newServiceName);
+    window.postMessage(postMessages.filesAreSaved, window.location.href);
   } catch (err) {
     yield call(HandleServiceInformationDispatcher.saveServiceConfigRejected, err);
   }

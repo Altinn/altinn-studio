@@ -19,6 +19,5 @@ namespace Common.Models
         /// The build id for the deployment build
         /// </summary>
         public string BuildId { get; set; }
-
     }
 }

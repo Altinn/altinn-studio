@@ -9,7 +9,6 @@ import { IValidations } from '../types/global';
 export interface IWorkflowStepProvidedProps {
   header: string;
   step: WorkflowSteps;
-  onStepChange: any;
 }
 
 /*

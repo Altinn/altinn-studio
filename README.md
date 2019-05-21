@@ -13,7 +13,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-1. [.NET Core 2.1 SDK](https://www.microsoft.com/net/download/dotnet-core/sdk-2.1.300)
+1. [.NET Core 2.2 SDK](https://dotnet.microsoft.com/download/dotnet-core/2.2#sdk-2.2.105)
 2. [Node.js](https://nodejs.org) (Version 10.*)
 3. Newest [Git](https://git-scm.com/downloads)
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
@@ -124,7 +124,7 @@ Coding style tests are available for the React front end application, using _tsl
 Navigate to the React front end application and run linting.
 
 ```cmd
-cd src/react-apps/ux-editor
+cd src/react-apps/applications/ux-editor
 npm run lint
 ```
 

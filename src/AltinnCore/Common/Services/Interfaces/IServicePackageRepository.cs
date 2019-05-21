@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO.Compression;
 
 using AltinnCore.ServiceLibrary.ServiceMetadata;
@@ -17,16 +17,5 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">The service code for the current service</param>
         /// <returns>A list of all the service package details for the given service</returns>
         IList<ServicePackageDetails> GetServicePackages(string org, string service);
-
-        /// <summary>
-        /// The get zip archive.
-        /// </summary>
-        /// <param name="servicePackageDetails">
-        /// The service package details. Expect PackageName to be the file name.
-        /// </param>
-        /// <returns>
-        /// The <see cref="ZipArchive"/>.
-        /// </returns>
-        ZipArchive GetZipArchive(ServicePackageDetails servicePackageDetails);
     }
 }

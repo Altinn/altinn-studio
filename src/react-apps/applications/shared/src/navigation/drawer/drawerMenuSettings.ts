@@ -145,8 +145,8 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
     },
     {
       displayText: 'Test i testmiljø',
-      navLink: '/testintestenvironment',
-      activeLeftMenuSelection: 'Test',
+      navLink: '/deploytotest',
+      activeLeftMenuSelection: 'Test i testmiljø',
       iconClass: 'fa fa-integration-test',
     },
   ],

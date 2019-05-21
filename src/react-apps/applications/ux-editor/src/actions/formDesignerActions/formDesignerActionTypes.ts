@@ -85,3 +85,18 @@ export const UPDATE_ACTIVE_LIST_ORDER_REJECTED: string = `${moduleName}.UPDATE_A
 export const DELETE_ACTIVE_LIST: string = `${moduleName}.DELETE_ACTIVE_LIST`;
 export const DELETE_ACTIVE_LIST_FULFILLED: string = `${moduleName}.DELETE_ACTIVE_LIST_FULFILLED`;
 export const DELETE_ACTIVE_LIST_REJECTED: string = `${moduleName}.DELETE_ACTIVE_LIST_REJECTED`;
+
+// Add application metadata actions
+export const ADD_APPLICATION_METADATA: string = `${moduleName}.ADD_APPLICATION_METADATA`;
+export const ADD_APPLICATION_METADATA_FULFILLED: string = `${moduleName}.ADD_APPLICATION_METADATA_FULFILLED`;
+export const ADD_APPLICATION_METADATA_REJECTED: string = `${moduleName}.ADD_APPLICATION_METADATA_REJECTED`;
+
+// Delete application metadata actions
+export const DELETE_APPLICATION_METADATA: string = `${moduleName}.DELETE_APPLICATION_METADATA`;
+export const DELETE_APPLICATION_METADATA_FULFILLED: string = `${moduleName}.DELETE_APPLICATION_METADATA_FULFILLED`;
+export const DELETE_APPLICATION_METADATA_REJECTED: string = `${moduleName}.DELETE_APPLICATION_METADATA_REJECTED`;
+
+// Update application metadata actions
+export const UPDATE_APPLICATION_METADATA: string = `${moduleName}.UPDATE_APPLICATION_METADATA`;
+export const UPDATE_APPLICATION_METADATA_FULFILLED: string = `${moduleName}.UPDATE_APPLICATION_METADATAT_FULFILLED`;
+export const UPDATE_APPLICATION_METADATA_REJECTED: string = `${moduleName}.UPDATE_APPLICATION_METADATA_REJECTED`;

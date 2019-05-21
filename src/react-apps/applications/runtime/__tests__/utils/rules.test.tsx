@@ -1,9 +1,5 @@
 import 'jest';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import App from '../../src/App';
 import { IFormData } from '../../src/features/form/data/reducer';
-import { IDataModelState } from '../../src/features/form/datamodell/reducer';
 import { ILayoutComponent } from '../../src/features/form/layout';
 import { IDataModelFieldElement } from '../../src/features/form/rules';
 import { checkIfRuleShouldRun, getRuleModelFields } from '../../src/utils/rules';
@@ -11,7 +7,7 @@ import { checkIfRuleShouldRun, getRuleModelFields } from '../../src/utils/rules'
 describe('>>> features/rules checkIfRuleShouldRun', () => {
   let mockRuleConnectionState: any;
   let mockFormDataState: IFormData;
-  let mockFormDataModelState: IDataModelState;
+  let mockFormDataModelState: any;
   let mockFormLayoutState: any;
   let mockRepeatingContainerId: string;
   let mockLastUpdatedDataBinding: IDataModelFieldElement;

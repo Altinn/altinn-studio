@@ -1,5 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
+import postMessages from '../../../../shared/src/utils/postMessages';
 import * as ManageJsonFileActions from '../../actions/manageServiceConfigurationActions/actions/index';
 import ManageJsonFileActionDispatcher from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import * as ManageJsonFileActionTypes from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionTypes';
@@ -50,7 +51,7 @@ export function* saveJsonFileSaga({ url }: ManageJsonFileActions.ISaveJsonFileAc
       ManageJsonFileActionDispatcher.saveJsonFileFulfilled,
       'data',
     );
-    window.postMessage('SAVED', window.location.href);
+    window.postMessage(postMessages.filesAreSaved, window.location.href);
   } catch (err) {
     yield call(ManageJsonFileActionDispatcher.saveJsonFileRejected, err);
   }

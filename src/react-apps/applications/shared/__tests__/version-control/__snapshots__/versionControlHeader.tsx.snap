@@ -2,16 +2,22 @@
 
 exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should match snapshot 1`] = `
 <div
-  className="MuiGrid-container-2 VersionControlHeader-headerStyling-1"
+  className="MuiGrid-container-2 MuiGrid-justify-xs-center-19 VersionControlHeader-headerStyling-1"
 >
   <div
-    className="MuiGrid-item-3 MuiGrid-grid-xs-5-35"
+    className="MuiGrid-item-3"
+    style={
+      Object {
+        "marginRight": "24px",
+      }
+    }
   >
     <button
-      className="MuiButtonBase-root-130 MuiButton-root-104 MuiButton-text-106 MuiButton-flat-109 FetchChangesComponenet-clickable-102 FetchChangesComponenet-btn-103"
+      className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 FetchChangesComponenet-clickable-101 FetchChangesComponenet-btn-100"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
+      onContextMenu={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -25,31 +31,52 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       type="button"
     >
       <span
-        className="MuiButton-label-105"
+        className="MuiButton-label-104"
       >
-        <p
-          className="FetchChangesComponenet-color_blueDark-100"
+        <div
+          className="MuiGrid-container-2 MuiGrid-align-items-xs-center-10"
         >
-          <i
-            className="fa fa-download FetchChangesComponenet-color_blueDark-100"
-          />
-           
-          sync_header.fetch_changes
-        </p>
+          <div
+            className="MuiGrid-item-3"
+          >
+            <i
+              className="fa fa-download"
+              style={
+                Object {
+                  "color": "#0062BA",
+                  "fontSize": 36,
+                  "fontWeight": null,
+                  "margin": "0px -5px 0px -5px",
+                  "padding": null,
+                }
+              }
+            />
+          </div>
+          <div
+            className="MuiGrid-item-3"
+          >
+            <p
+              className="MuiTypography-root-133 MuiTypography-body1-142 FetchChangesComponenet-color_blueDark-102"
+            >
+              sync_header.fetch_changes
+            </p>
+          </div>
+        </div>
       </span>
       <span
-        className="MuiTouchRipple-root-150"
+        className="MuiTouchRipple-root-184"
       />
     </button>
   </div>
   <div
-    className="MuiGrid-item-3 MuiGrid-grid-xs-7-37"
+    className="MuiGrid-item-3"
   >
     <button
-      className="MuiButtonBase-root-130 MuiButton-root-104 MuiButton-text-106 MuiButton-flat-109 ShareChangesCompoenent-color_blueDark-134 ShareChangesCompoenent-clickable-138 ShareChangesCompoenent-btn-139"
+      className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 ShareChangesCompoenent-color_blueDark-173 ShareChangesCompoenent-btn-170 ShareChangesCompoenent-clickable-172"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
+      onContextMenu={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -63,17 +90,44 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       type="button"
     >
       <span
-        className="MuiButton-label-105"
+        className="MuiButton-label-104"
       >
-        <p>
-          <i
-            className="fa fa-check ShareChangesCompoenent-color_blueDarker-133"
-          />
-          sync_header.no_changes_to_share
-        </p>
+        <div
+          className="MuiGrid-container-2 MuiGrid-align-items-xs-center-10"
+        >
+          <div
+            className="MuiGrid-item-3"
+          >
+            <div
+              className="ShareChangesCompoenent-checkIconPositionFix-171"
+            >
+              <i
+                className="ai ai-check"
+                style={
+                  Object {
+                    "color": "#0062BA",
+                    "fontSize": 36,
+                    "fontWeight": null,
+                    "margin": null,
+                    "padding": null,
+                  }
+                }
+              />
+            </div>
+          </div>
+          <div
+            className="MuiGrid-item-3"
+          >
+            <p
+              className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-173"
+            >
+              sync_header.no_changes_to_share
+            </p>
+          </div>
+        </div>
       </span>
       <span
-        className="MuiTouchRipple-root-150"
+        className="MuiTouchRipple-root-184"
       />
     </button>
   </div>

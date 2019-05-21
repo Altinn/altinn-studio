@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using AltinnCore.Common.Constants;
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Common.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Filters;

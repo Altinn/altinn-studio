@@ -17,6 +17,7 @@ import { compose } from 'redux';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
+import postMessages from '../../shared/src/utils/postMessages';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
 import { redirects } from './config/redirects';
@@ -90,7 +91,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public windowEventReceived = (event: any) => {
-    if (event.data === 'forceRepoStatusCheck') {
+    if (event.data === postMessages.forceRepoStatusCheck) {
       this.checkForMergeConflict();
     }
   }

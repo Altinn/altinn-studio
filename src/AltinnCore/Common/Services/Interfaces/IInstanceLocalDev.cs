@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Models;
 
 namespace AltinnCore.Common.Services.Interfaces

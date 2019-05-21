@@ -48,6 +48,9 @@ exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with al
                     Object {
                       "color": undefined,
                       "fontSize": null,
+                      "fontWeight": null,
+                      "margin": null,
+                      "padding": null,
                     }
                   }
                 />

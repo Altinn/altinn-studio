@@ -64,15 +64,10 @@ namespace AltinnCore.Common.Services.Implementation
             return Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
         }
 
-        /// <summary>
-        /// Verifies if developer has a local repo
-        /// </summary>
-        /// <param name="org">the organisation</param>
-        /// <param name="service">the service</param>
-        /// <returns>A bool indicating if the repository is a local one or not</returns>
-        public bool IsLocalRepo(string org, string service)
+        /// <inheritdoc />
+        public bool IsLocalRepo(string org, string repository)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (Directory.Exists(localServiceRepoFolder))
             {
                 try
@@ -91,17 +86,12 @@ namespace AltinnCore.Common.Services.Implementation
             return false;
         }
 
-        /// <summary>
-        /// Pulls remote changes
-        /// </summary>
-        /// <param name="owner">Owner of the repository</param>
-        /// <param name="repository">The repository</param>
-        /// <returns>The repo status</returns>
-        public RepoStatus PullRemoteChanges(string owner, string repository)
+        /// <inheritdoc />
+        public RepoStatus PullRemoteChanges(string org, string repository)
         {
             RepoStatus status = new RepoStatus();
 
-            using (var repo = new Repository(FindLocalRepoLocation(owner, repository)))
+            using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
             {
                 PullOptions pullOptions = new PullOptions()
                 {

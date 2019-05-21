@@ -2,10 +2,22 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{a6ba108e-5155-4aa7-a441-4a1852b46191}</ProjectGuid>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>1.0.1-alpha</Version>
+    <Description>Altinn.Platform.Storage.Interface is a package for models, httpclient methods for altinn platform storage</Description>
+    <PackageTags>altinn studio, altinn.platform, Altinn.Platform.Storage.Interface</PackageTags>
+    <PackageId>Altinn.Platform.Storage.Interface</PackageId>
+    <Company>Altinn</Company>
+    <Product>StorageInterface</Product>
+    <Authors>Altinn Platform</Authors>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
 
 </Project>
