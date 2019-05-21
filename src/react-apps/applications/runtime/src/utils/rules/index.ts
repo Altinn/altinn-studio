@@ -70,12 +70,6 @@ export function checkIfRuleShouldRun(
           if (!component) {
             continue;
           }
-          /* there is no order??
-           if (isPartOfRepeatingGroup) {
-            if (Object.keys(order[repeatingContainerId]).indexOf(component) !== -1) {
-              continue;
-            }
-          } */
           const layoutElement = formLayoutState.layout[component];
           if (layoutElement.type === 'container') {
             continue;
