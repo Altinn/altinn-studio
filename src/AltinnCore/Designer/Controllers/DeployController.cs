@@ -44,6 +44,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="logger">The logger</param>
         /// <param name="settings">The settings service</param>
         /// <param name="platformSettings">The platform settings</param>
+        /// <param name="repositoryService">the repository service</param>
         public DeployController(
             ISourceControl sourceControl,
             IConfiguration configuration,
@@ -275,17 +276,7 @@ namespace AltinnCore.Designer.Controllers
                     appMetadata.CreatedBy = applicationMetadataFromRepository.CreatedBy;
                     appMetadata.CreatedDateTime = applicationMetadataFromRepository.CreatedDateTime;
                     appMetadata.Forms = new List<ApplicationForm>();
-                    if (application.Forms == null)
-                    {
-                        application.Forms = new List<ApplicationForm>();
-                    }
-
                     appMetadata.Forms = applicationMetadataFromRepository.Forms;
-                    if (application.Title == null)
-                    {
-                        application.Title = new Dictionary<string, string>();
-                    }
-
                     appMetadata.Title = applicationMetadataFromRepository.Title;
 
                     string createApplicationMetadataUrl = $"{storageEndpoint}applications?applicationId={applicationId}";
