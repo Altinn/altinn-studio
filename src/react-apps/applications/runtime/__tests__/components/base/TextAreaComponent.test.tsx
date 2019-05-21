@@ -1,3 +1,4 @@
+/* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';

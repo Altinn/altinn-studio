@@ -1,13 +1,15 @@
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect';
 import { IRuntimeState } from '../types';
+import { IValidations } from '../types/global';
+// tslint:disable-next-line:no-var-requires
 const isEqual = require('lodash.isequal');
 
-const formDataSelector = (state: IAppState) => {
-  return state.formFiller.formData;
+const formDataSelector = (state: IRuntimeState) => {
+  return state.formData.formData;
 };
 
 const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: number) => {
-  const selectors = {};
+  const selectors: any = {};
   const simpleBinding = 'simpleBinding';
   if (Object.keys(state.formData.formData).length > 0) {
     Object.keys(state.formData.formData).forEach(
@@ -37,12 +39,12 @@ const createDeepEqualSelector = createSelectorCreator(
   isEqual,
 );
 
-const unsavedChangesSelector = (state: IAppState) => {
-  return state.formFiller.unsavedChanges;
+const unsavedChangesSelector = (state: IRuntimeState) => {
+  return state.formData.unsavedChanges;
 };
 
-const validationErrorsSelector = (state: IAppState) => {
-  return state.formFiller.validationResults;
+const validationErrorsSelector = (state: IRuntimeState) => {
+  return state.formValidations.validations;
 };
 
 const getFormData = () => {
@@ -78,7 +80,7 @@ const getUnsavedChanges = () => {
 const getValidationErrors = () => {
   return createSelector(
     [validationErrorsSelector],
-    (validationResults: IValidationResults) => {
+    (validationResults: IValidations) => {
       return validationResults;
     },
   );

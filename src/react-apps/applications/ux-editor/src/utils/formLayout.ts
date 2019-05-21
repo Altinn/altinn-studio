@@ -31,8 +31,8 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
   const baseContainerId: string = uuid();
 
   function extractChildrenFromContainer(container: any) {
-    const { id, children, ...rest } = container;
-    convertedLayout.containers[id] = rest;
+    const { id, children, ...restOfContainer } = container;
+    convertedLayout.containers[id] = restOfContainer;
     for (const child of children) {
       if (child.children) {
         extractChildrenFromContainer(child);
@@ -42,8 +42,8 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
         } else {
           convertedLayout.order[id].push(child.id);
         }
-        const { id: componentId, ...rest } = child;
-        convertedLayout.components[componentId] = rest;
+        const { id: componentId, ...restOfChild } = child;
+        convertedLayout.components[componentId] = restOfChild;
       }
     }
   }

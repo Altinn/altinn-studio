@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { ILayoutComponent, ILayoutContainer } from '../../types';
+import { ILayoutComponent, ILayoutContainer } from '../..';
 import { UPDATE_FORM_LAYOUT } from '../types';
 
 export interface IUpdateFormLayout extends Action {
