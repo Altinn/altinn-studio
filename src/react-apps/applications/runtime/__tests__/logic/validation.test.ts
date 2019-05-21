@@ -1,7 +1,6 @@
 import 'jest';
 import { IFormData } from '../../src/features/form/data/reducer';
 import * as validation from '../../src/utils/validation';
-import { isMainThread } from 'worker_threads';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
