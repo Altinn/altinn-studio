@@ -246,6 +246,41 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     );
     expect(ruleShouldRun).toBe(false);
   });
+  it('+++ if no components, no rules ', () => {
+    mockFormLayoutState = {
+      error: null,
+      layout: [],
+    };
+    const { ruleShouldRun } = checkIfRuleShouldRun(
+      mockRuleConnectionState,
+      mockFormDataState,
+      mockFormDataModelState,
+      mockFormLayoutState,
+      mockRepeatingContainerId,
+      mockLastUpdatedDataBinding,
+    );
+    expect(ruleShouldRun).toBe(false);
+  });
+  it('+++ if container the function should continue ', () => {
+    mockFormLayoutState = {
+      error: null,
+      layout: [{
+        id: 'mockId',
+        type: 'container',
+        hidden: false,
+        children: {},
+      }],
+    };
+    const { ruleShouldRun } = checkIfRuleShouldRun(
+      mockRuleConnectionState,
+      mockFormDataState,
+      mockFormDataModelState,
+      mockFormLayoutState,
+      mockRepeatingContainerId,
+      mockLastUpdatedDataBinding,
+    );
+    expect(ruleShouldRun).toBe(false);
+  });
 });
 describe('>>> features/rules getRuleModelFields', () => {
   beforeEach(() => {
