@@ -135,6 +135,23 @@ export function validateFormData(
 }
 
 /*
+* Gets the total number of validation errors
+*/
+export function getErrorCount(validations: IValidations) {
+  let count = 0;
+  Object.keys(validations).forEach((componentId: string) => {
+    const componentValidations: IComponentValidations = validations[componentId];
+    Object.keys(componentValidations).forEach((bindingKey: string) => {
+      const componentErrors = componentValidations[bindingKey].errors;
+      if (componentErrors) {
+        count += componentErrors.length;
+      }
+    });
+  });
+  return count;
+}
+
+/*
   Maps the API validation response to our redux format
 */
 export function mapApiValidationsToRedux(

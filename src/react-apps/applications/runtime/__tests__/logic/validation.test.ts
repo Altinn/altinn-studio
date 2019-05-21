@@ -1,6 +1,7 @@
 import 'jest';
 import { IFormData } from '../../src/features/form/data/reducer';
 import * as validation from '../../src/utils/validation';
+import { isMainThread } from 'worker_threads';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -159,5 +160,10 @@ describe('>>> utils/validations.ts', () => {
     const result =
       validation.validateComponentFormData(mockFormData.dataModelField_2, mockDataModelFields[1], mockLayout[1]);
     expect(result).toEqual(mockFormValidationResult.componentId_2);
+  });
+
+  it('+++ should count total number of errors correctly', () => {
+    const result = validation.getErrorCount(mockFormValidationResult);
+    expect(result).toEqual(3);
   });
 });
