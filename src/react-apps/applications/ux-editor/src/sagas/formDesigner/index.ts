@@ -2,15 +2,18 @@ import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import {
   watchAddActiveFormContainerSaga,
+  watchAddApplicationMetadataSaga,
   watchAddFormComponentSaga,
   watchAddFormContainerSaga,
   watchCreateRepeatingGroupSaga,
+  watchDeleteApplicationMetadataSaga,
   watchDeleteFormComponentSaga,
   watchDeleteFormContainerSaga,
   watchFetchFormLayoutSaga,
   watchGenerateRepeatingGroupsSaga,
   watchSaveFormLayoutSaga,
   watchToggleFormContainerRepeatingSaga,
+  watchUpdateApplicationMetadataSaga,
   watchUpdateDataModelBindingSaga,
   watchUpdateFormComponentOrderSaga,
   watchUpdateFormComponentSaga,
@@ -31,4 +34,7 @@ export default function* (): SagaIterator {
   yield fork(watchToggleFormContainerRepeatingSaga);
   yield fork(watchCreateRepeatingGroupSaga);
   yield fork(watchUpdateFormComponentOrderSaga);
+  yield fork(watchAddApplicationMetadataSaga);
+  yield fork(watchDeleteApplicationMetadataSaga);
+  yield fork(watchUpdateApplicationMetadataSaga);
 }

@@ -29,8 +29,6 @@ namespace AltinnCore.UnitTest.Designer
         public void Index_GetSevenReposFromOrgWhereFourIsClonedLocallyAllListed()
         {
             // Arrange
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
-
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
@@ -42,7 +40,6 @@ namespace AltinnCore.UnitTest.Designer
             RepositorySearch repositorySearch = new RepositorySearch();
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
-                moqRepository.Object,
                 moqLogger.Object,
                 moqServiceRepositorySettings.Object,
                 moqGiteaWrapper.Object,
@@ -65,8 +62,6 @@ namespace AltinnCore.UnitTest.Designer
         public void Index_GetSevenReposFromOrgWhereFourIsClonedLocallyOnlyLocallyClonedListed()
         {
             // Arrange
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
-
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
@@ -79,7 +74,6 @@ namespace AltinnCore.UnitTest.Designer
             repositorySearch.OnlyLocalRepositories = true;
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
-                moqRepository.Object,
                 moqLogger.Object,
                 moqServiceRepositorySettings.Object,
                 moqGiteaWrappeer.Object,
@@ -102,7 +96,6 @@ namespace AltinnCore.UnitTest.Designer
         public void StartPage_NotLoggedInUser()
         {
             // Arrange
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
@@ -112,7 +105,7 @@ namespace AltinnCore.UnitTest.Designer
 
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
-            AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(moqRepository.Object, moqLogger.Object, moqServiceRepositorySettings.Object, moqGiteaWrappeer.Object, moqHttpContextAccessor.Object, moqSourceControl.Object)
+            AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(moqLogger.Object, moqServiceRepositorySettings.Object, moqGiteaWrappeer.Object, moqHttpContextAccessor.Object, moqSourceControl.Object)
             { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556") };
 
             // Act
@@ -130,7 +123,6 @@ namespace AltinnCore.UnitTest.Designer
         public void StartPage_LoggedInUser()
         {
             // Arrange
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
@@ -143,7 +135,6 @@ namespace AltinnCore.UnitTest.Designer
             moqGiteaWrappeer.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("Test");
        
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
-            moqRepository.Object,
             moqLogger.Object,
             moqServiceRepositorySettings.Object,
             moqGiteaWrappeer.Object,
@@ -167,7 +158,6 @@ namespace AltinnCore.UnitTest.Designer
         public void Login_LogInUser()
         {
             // Arrange
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
@@ -182,7 +172,6 @@ namespace AltinnCore.UnitTest.Designer
             moqGiteaWrappeer.Setup(g => g.GetSessionAppKey(null)).ReturnsAsync(new System.Collections.Generic.KeyValuePair<string, string>("123", "Test"));
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
-            moqRepository.Object,
             moqLogger.Object,
             moqServiceRepositorySettings.Object,
             moqGiteaWrappeer.Object,
@@ -205,7 +194,6 @@ namespace AltinnCore.UnitTest.Designer
         public void Login_LogOutUser()
         {
             // Arrange
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
@@ -220,7 +208,6 @@ namespace AltinnCore.UnitTest.Designer
             moqGiteaWrapper.Setup(g => g.GetCurrentUser()).ReturnsAsync(user);
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
-                moqRepository.Object,
                 moqLogger.Object,
                 moqServiceRepositorySettings.Object,
                 moqGiteaWrapper.Object,

@@ -1,8 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using AltinnCore.Common.Backend;
+using Altinn.Platform.Storage.Models;
+using AltinnCore.Common.Attributes;
+using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
@@ -11,13 +16,14 @@ using AltinnCore.ServiceLibrary.Api;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -38,9 +44,14 @@ namespace AltinnCore.Runtime.Controllers
         private readonly ITestdata _testdata;
         private readonly UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
         private readonly IInstance _instance;
+        private readonly IInstanceEvent _event;
         private readonly IPlatformServices _platformSI;
+        private readonly IData _data;
+        private readonly ServiceRepositorySettings _settings;
+
+        private const string FORM_ID = "default";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -58,7 +69,10 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="testDataService">the test data service handler</param>
         /// <param name="workflowSI">the workflow service handler</param>
         /// <param name="instanceSI">the instance service handler</param>
+        /// <param name="eventSI">the instance event service handler</param>
         /// <param name="platformSI">the platform service handler</param>
+        /// <param name="dataSI">the data service handler</param>
+        /// <param name="repositorySettings">the repository settings</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -71,9 +85,12 @@ namespace AltinnCore.Runtime.Controllers
             IArchive archiveService,
             ITestdata testDataService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI,
+            IWorkflow workflowSI,
             IInstance instanceSI,
-            IPlatformServices platformSI)
+            IInstanceEvent eventSI,
+            IPlatformServices platformSI,
+            IData dataSI,
+            IOptions<ServiceRepositorySettings> repositorySettings)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -89,7 +106,10 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
+            _event = eventSI;
             _platformSI = platformSI;
+            _data = dataSI;
+            _settings = repositorySettings.Value;
         }
 
         /// <summary>
@@ -108,49 +128,9 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
 
             // TODO Add info for REACT app.
-            return View();
-        }
-
-        /// <summary>
-        /// Action where user can send in reporting service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="instanceId">The instanceId.</param>
-        /// <returns>Returns the Complete and send in View.</returns>
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> CompleteAndSendIn(string org, string service, Guid instanceId)
-        {
-            // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
-            // Will compile code and load DLL in to memory for AltinnCore
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
-
-            // Create and populate the RequestContext object and make it available for the service implementation so
-            // service developer can implement logic based on information about the request and the user performing
-            // the request
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
-            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
-
-            // Get the serviceContext containing all metadata about current service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
-
-            serviceImplementation.SetPlatformServices(_platformSI);
-
-            // Identify the correct view
-            // Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            serviceImplementation.SetServiceModel(serviceModel);
-            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
-
-            ViewBag.FormID = instanceId;
-            ViewBag.ServiceContext = serviceContext;
-
-            await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
             return View();
         }
 
@@ -184,8 +164,10 @@ namespace AltinnCore.Runtime.Controllers
             // Assign data to the ViewBag so it is available to the service views or service implementation
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, _platformSI);
 
-            // Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            // Getting the Form Data
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
+            object serviceModel = _data.GetFormData(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, dataId);
             serviceImplementation.SetServiceModel(serviceModel);
 
             ViewBag.FormID = instanceId;
@@ -198,11 +180,25 @@ namespace AltinnCore.Runtime.Controllers
             if (ModelState.IsValid)
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+
                 if (currentState.State == WorkflowStep.Archived)
                 {
-                    _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+                    await _instance.ArchiveInstance(serviceModel, serviceImplementation.GetServiceModelType(), service, org, requestContext.UserContext.ReporteeId, instanceId);
                     apiResult.NextState = currentState.State;
                 }
+
+                // Create and store the instance submitted event
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
+                    EventType = InstanceEventType.Submited.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
+                    UserId = requestContext.UserContext.UserId,
+                    WorkflowStep = instance.CurrentWorkflowStep
+                };
+
+                await _event.SaveInstanceEvent(instanceEvent, org, service);               
             }
 
             ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);
@@ -248,7 +244,7 @@ namespace AltinnCore.Runtime.Controllers
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, _platformSI);
 
             object serviceModel = _archive.GetArchivedServiceModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.Reportee.PartyId);
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
             ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == instanceId);
 
             return View();
@@ -349,14 +345,27 @@ namespace AltinnCore.Runtime.Controllers
                     return RedirectToAction("Lookup", new { org = startServiceModel.Org, service = startServiceModel.Service });
                 }
 
-                Guid instanceId;
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
 
-                // Create a new instance document
-                instanceId = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
-                ServiceState currentState = _workflowSI.InitializeService(instanceId, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
+                // Create a new instance document                
+                Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
-                string redirectUrl = _workflowSI.GetUrlForCurrentState(instanceId, startServiceModel.Org, startServiceModel.Service, currentState.State);
+                // Create and store the instance created event
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
+                    EventType = InstanceEventType.Created.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instanceOwnerId.ToString(),
+                    UserId = requestContext.UserContext.UserId,
+                    WorkflowStep = instance.CurrentWorkflowStep
+                };
+
+                await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
+
+                Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentStep);
+
+                string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
                 return Redirect(redirectUrl);
             }
 
@@ -417,15 +426,17 @@ namespace AltinnCore.Runtime.Controllers
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
             serviceImplementation.SetPlatformServices(_platformSI);
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
 
             // Getting the populated form data from disk
-            dynamic serviceModel = _form.GetFormModel(
+            dynamic serviceModel = _data.GetFormData(
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                dataId);
 
             serviceImplementation.SetServiceModel(serviceModel);
 
@@ -449,6 +460,62 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             return new ObjectResult(apiResult);
+        }
+
+        /// <summary>
+        /// Method that receives the form attachment from runtime and saves it to designer disk.
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="attachmentName">The name of the attachment</param>
+        /// <returns>The status of the upload and guid of attachment</returns>
+        [HttpPost]
+        [Authorize]
+        [DisableFormValueModelBinding]
+        public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, int partyId, Guid instanceId, string attachmentType, string attachmentName)
+        {
+            Guid guid = await _data.SaveFormAttachment(org, service, partyId, instanceId, attachmentType, attachmentName, Request);
+
+            return Ok(new { id = guid });
+        }
+
+        /// <summary>
+        /// Method that removes a form attachment from designer disk
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="attachmentId">The attachment id</param>
+        /// <returns>The status of the deletion</returns>
+        [HttpPost]
+        [Authorize]
+        [DisableFormValueModelBinding]
+        public IActionResult DeleteFormAttachment(string org, string service, int partyId, Guid instanceId, string attachmentType, string attachmentId)
+        {
+            _data.DeleteFormAttachment(org, service, partyId, instanceId, attachmentType, attachmentId);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Method that gets metadata on form attachments form designer disk
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <returns>A list with attachments metadata ordered by attachmentType</returns>
+        [HttpGet]
+        [Authorize]
+        [DisableFormValueModelBinding]
+        public async Task<IActionResult> GetFormAttachments(string org, string service, int partyId, Guid instanceId)
+        {
+            List<AttachmentList> allAttachments = await _data.GetFormAttachments(org, service, partyId, instanceId);
+            return Ok(allAttachments);
         }
 
         private async Task<RequestContext> PopulateRequestContext(Guid instanceId)

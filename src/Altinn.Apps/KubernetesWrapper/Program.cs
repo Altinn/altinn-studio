@@ -15,7 +15,7 @@ namespace KubernetesWrapper
     /// <summary>
     /// This is the main entry point
     /// </summary>
-    public class Program
+    public static class Program
     {
         /// <summary>
         /// The main method

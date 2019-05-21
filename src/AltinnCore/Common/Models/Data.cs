@@ -18,6 +18,12 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// users filename
         /// </summary>
+        [JsonProperty(PropertyName = "formId")]
+        public string FormId { get; set; }
+
+        /// <summary>
+        /// users filename
+        /// </summary>
         [JsonProperty(PropertyName = "fileName")]
         public string FileName { get; set; }
 
@@ -37,7 +43,7 @@ namespace AltinnCore.Common.Models
         /// Size of file in bytes
         /// </summary>
         [JsonProperty(PropertyName = "fileSize")]
-        public int FileSize { get; set; }
+        public long FileSize { get; set; }
 
         /// <summary>
         /// Signature

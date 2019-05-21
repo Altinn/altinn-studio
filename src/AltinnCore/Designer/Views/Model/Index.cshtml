@@ -15,7 +15,7 @@
     </style>
 }
 
-<form method="POST" asp-action="Upload" enctype="multipart/form-data">
+<form method="POST" asp-action="Upload" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" enctype="multipart/form-data">
     <div class="">
         <label id="filelabel" class="btn btn-primary form-control-label" for="thefile">
             <span id="filebtn">Velg XSD</span>
@@ -83,7 +83,7 @@
     </div>
 
     <div class="tab-pane fade in" id="json" role="tabpanel"> 
-        <a title="Last ned JSON-modell" asp-action="GetJson" download="@service-model.json">
+        <a title="Last ned JSON-modell" asp-action="GetJson" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" download="@service-model.json">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned JSON-modell</span>
         </a>
         <div id="json-container" class="editor-frame">
@@ -93,7 +93,7 @@
     </div>
 
     <div class="tab-pane fade" id="csharp" role="tabpanel">
-        <a title="Last ned C# modell" asp-action="GetModel" download="@service-model.cs">
+        <a title="Last ned C# modell" asp-action="GetModel" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" download="@service-model.cs">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned C# modell</span>
         </a>
         <div id="csharp-container" class="editor-frame">
@@ -103,7 +103,7 @@
     </div>
 
     <div class="tab-pane fade" id="xml" role="tabpanel">
-        <a title="Last ned XSD" asp-action="GetXsd" download="@service-model.xsd">
+        <a title="Last ned XSD" asp-action="GetXsd" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" download="@service-model.xsd">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned XSD</span>
         </a>
         <div id="xml-container" class="editor-frame">  
@@ -113,7 +113,7 @@
     </div>
 
     <div class="tab-pane fade" id="jsonschema" role="tabpanel">
-        <a title="Last ned Json Schema" asp-action="GetJsonSchema" download="@service-model.schema.json">
+        <a title="Last ned Json Schema" asp-action="GetJsonSchema" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" download="@service-model.schema.json">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned Json Schema</span>
         </a>
         <div id="jsonschema-container" class="editor-frame">
@@ -155,8 +155,8 @@
             root.updateModelValue();
             $.ajax({
                 type: "POST",
-                url: "@Url.Action("UpdateServiceMetadata")",
-                data: {   
+                url: "/designer/@org/@service/Model/UpdateServiceMetadata",
+                data: {
                     serviceMetadata: JSON.stringify(root.serviceModel)
                 },
                 success: function (data) {
@@ -167,7 +167,7 @@
         });
 
         $.getJSON(
-            "@Url.Action("GetJson")",
+            "/designer/@org/@service/Model/GetJson",
             function (data) {
                 serviceModel = data;
 
@@ -224,17 +224,17 @@
                 $('#json-model').text(JSON.stringify(data, null, 3));
             });
 
-        $.get("@Url.Action("GetModel")",
+      $.get("/designer/@org/@service/Model/GetModel",
             function (data) {
                 $("#csharp-model").text(data);
             });
 
-        $.get("@Url.Action("GetXsd")",
+        $.get("/designer/@org/@service/Model/GetXsd",
             function (data) {
                 $("#xml-model").text(data);
              });
 
-             $.get("@Url.Action("GetJsonSchema")",
+             $.get("/designer/@org/@service/Model/GetJsonSchema",
             function (data) {
               $("#jsonschema-model").text(data);
             });
@@ -296,7 +296,7 @@
                 removeEmptyNodes(data[y]);
             }
             return data;
-        } 
+        }
 
         function typeElement(element) {
           var name = element.DisplayString;

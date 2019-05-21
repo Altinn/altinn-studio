@@ -6,6 +6,7 @@ import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { get } from '../../../../../shared/src/utils/networking';
 const theme = createMuiTheme(altinnTheme);
+import postMessages from '../../../../../shared/src/utils/postMessages';
 
 const styles = () => createStyles({
   textDisabled: {
@@ -97,7 +98,7 @@ export class HandleMergeConflictDiscardChanges extends
           },
         });
 
-        window.postMessage('forceRepoStatusCheck', window.location.href);
+        window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
 
       } else {
         this.setState({

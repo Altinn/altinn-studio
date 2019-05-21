@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Models;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
@@ -17,13 +19,23 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId);
 
         /// <summary>
+        /// Gets the instance list
+        /// </summary>
+        Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId);
+
+        /// <summary>
         /// Stores the form data
         /// </summary>
-        Task<Guid> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation);
+        Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation);
 
         /// <summary>
         /// update instance metadata
         /// </summary>
-        Task<Instance> UpdateInstance<T>(T dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId);
+        Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId);
+
+        /// <summary>
+        /// update instance metadata
+        /// </summary>
+        Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId);
     }
 }
