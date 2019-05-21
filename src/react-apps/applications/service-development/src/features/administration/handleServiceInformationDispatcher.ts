@@ -23,9 +23,9 @@ export interface IHandleServiceInformationDispatchers extends ActionCreatorsMapO
   fetchServiceConfigFulfilled: (description: string) => FetchServiceInformationActions.IFetchServiceConfigFulfilled;
   fetchServiceConfigRejected: (error: Error) => FetchServiceInformationActions.IFetchServiceConfigRejected;
   // tslint:disable-next-line:max-line-length
-  saveServiceConfig: (url: string, newServiceDescription: string, newServiceId: string) => FetchServiceInformationActions.ISaveServiceConfigAction;
+  saveServiceConfig: (url: string, newServiceDescription: string, newServiceId: string, newServiceName: string) => FetchServiceInformationActions.ISaveServiceConfigAction;
   // tslint:disable-next-line:max-line-length
-  saveServiceConfigFulfilled: (newServiceDescription: string, newServiceId: string) => FetchServiceInformationActions.ISaveServiceConfigFulfilled;
+  saveServiceConfigFulfilled: (newServiceDescription: string, newServiceId: string, newServiceName: string) => FetchServiceInformationActions.ISaveServiceConfigFulfilled;
   saveServiceConfigRejected: (error: Error) => FetchServiceInformationActions.ISaveServiceConfigRejected;
 }
 
@@ -60,7 +60,7 @@ const actions: IHandleServiceInformationDispatchers = {
 const HandleServiceInformationActionDispatchers: IHandleServiceInformationDispatchers = bindActionCreators<
   any,
   IHandleServiceInformationDispatchers
->(actions, store.dispatch);
+  >(actions, store.dispatch);
 
 /**
  * Export the dispatcher to be used from REACT components

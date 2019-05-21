@@ -40,6 +40,9 @@ const styles = () => createStyles({
     fontSize: theme.overrides.MuiTypography.body1.fontSize,
     fontWeight: 500,
   },
+  marginTop30: {
+    marginTop: 30,
+  },
   paperStyleDeployFailed: {
     backgroundColor: theme.altinnPalette.primary.redLight,
   },
@@ -59,6 +62,7 @@ interface IDeployPaperProps {
   deployStatus: any;
   deploySuccess?: boolean;
   env: string;
+  hasPushPermissionToRepo: boolean;
   language: any;
   localRepoInSyncWithMaster: inSyncStatus.ahead | inSyncStatus.behind | inSyncStatus.ready;
   masterRepoAndDeployInSync: boolean;
@@ -84,7 +88,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                 ['fa fa-info-circle']: localRepoInSyncWithMaster !== inSyncStatus.ready,
               })}
               iconColor={localRepoInSyncWithMaster === inSyncStatus.ready ?
-                theme.altinnPalette.primary.green : '#008FD6'}
+                theme.altinnPalette.primary.green : theme.altinnPalette.primary.blueMedium}
               padding='0px 0px 7px 0px'
             />
           </div>
@@ -285,9 +289,11 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   };
 
   const returnReadyForDeployStatus = () => {
-    if (props.deploySuccess !== true &&
-      props.cSharpCompileStatusSuccess === true &&
-      props.masterRepoAndDeployInSync === false) {
+    if (
+      props.deploySuccess !== true &&
+      (props.cSharpCompileStatusSuccess === true || props.localRepoInSyncWithMaster !== inSyncStatus.ready) &&
+      props.masterRepoAndDeployInSync === false
+    ) {
       return true;
     } else {
       return false;
@@ -335,6 +341,25 @@ export const DeployPaper = (props: IDeployPaperProps) => {
 
   const onClickStartDeployment = () => {
     props.onClickStartDeployment(props.env);
+  };
+
+  const renderNoDeployPermission = () => {
+    return (
+      <React.Fragment>
+        <Grid item={true} xs={1} id='renderNoDeployPermission' className={classes.marginTop30}>
+          <AltinnIcon
+            iconClass={'fa fa-info-circle'}
+            iconColor={theme.altinnPalette.primary.blueMedium}
+            padding='0px 0px 7px 0px'
+          />
+        </Grid>
+        <Grid item={true} xs={11}>
+          <Typography variant='h2' className={classNames(classes.listItemTitle, classes.marginTop30)}>
+            {getLanguageFromKey('deploy_to_test.write_permission_false', props.language)}
+          </Typography>
+        </Grid>
+      </React.Fragment>
+    );
   };
 
   return (
@@ -412,12 +437,37 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                       </React.Fragment>
                     }
 
+                    {/* Render the "no deploy permission */}
+                    {props.hasPushPermissionToRepo === false ? renderNoDeployPermission() : null}
+
                   </Grid>
                 </React.Fragment>
               )}
 
+        {/* Render the "checking for write permission to deploy" */}
+        {props.hasPushPermissionToRepo === null &&
+          <div style={{ marginTop: 20 }}>
+
+            <Grid container={true} alignItems='center'>
+              <Grid item={true} style={{ marginRight: 10 }}>
+                <AltinnSpinner
+                  id='checkingForWritePermissionSpinner'
+                />
+              </Grid>
+              <Grid item={true}>
+                <Typography variant='body1'>
+                  {getLanguageFromKey('deploy_to_test.write_permission_checking', props.language)}
+                </Typography>
+              </Grid>
+            </Grid>
+
+          </div>
+        }
+
         {/* Render the deploy button and help text */}
-        {props.deploySuccess !== true && props.deploymentListFetchStatus.success !== false &&
+        {props.deploySuccess !== true &&
+          props.deploymentListFetchStatus.success !== false &&
+          props.hasPushPermissionToRepo === true &&
           <div style={{ marginTop: 20 }}>
 
             {props.deployStatus.deployStartedSuccess === true && !props.deployStatus.result.finishTime ? (

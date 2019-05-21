@@ -176,6 +176,11 @@ namespace AltinnCore.Common.Configuration
         public string ServiceMetadataFileName { get; set; } = METADATA_FILENAME;
 
         /// <summary>
+        /// Gets or sets the filename for application meta data
+        /// </summary>
+        public string ApplicationMetadataFileName { get; set; } = "applicationmetadata.json";
+
+        /// <summary>
         /// Gets or sets the Workflow file name
         /// </summary>
         public string WorkFlowFileName { get; set; } = "workflow.json";

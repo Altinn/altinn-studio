@@ -171,6 +171,9 @@ export class AdministrationComponent extends
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceName(`${altinnWindow.location.origin}/designer/${org}/${service}/Text/SetServiceName`, this.state.serviceName);
+      handleServiceInformationActionDispatchers.saveServiceConfig(
+        `${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`,
+        this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
       this.setState({ editServiceName: false });
     }
   }
@@ -184,7 +187,9 @@ export class AdministrationComponent extends
       const altinnWindow: any = window;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
-      handleServiceInformationActionDispatchers.saveServiceConfig(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`, this.state.serviceDescription, this.state.serviceId);
+      handleServiceInformationActionDispatchers.saveServiceConfig(
+        `${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`,
+        this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
       this.setState({ editServiceDescription: false });
     }
   }
@@ -198,7 +203,9 @@ export class AdministrationComponent extends
       const altinnWindow: any = window;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
-      handleServiceInformationActionDispatchers.saveServiceConfig(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`, this.state.serviceDescription, this.state.serviceId);
+      handleServiceInformationActionDispatchers.saveServiceConfig(
+        `${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`,
+        this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
       this.setState({ editServiceId: false });
     }
   }

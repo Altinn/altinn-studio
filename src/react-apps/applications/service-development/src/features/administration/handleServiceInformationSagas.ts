@@ -101,11 +101,13 @@ export function* watchHandleFetchServiceConfigSaga(): SagaIterator {
 }
 
 export function* handleSaveServiceConfigSaga({
-  url, newServiceDescription, newServiceId,
+  url, newServiceDescription, newServiceId, newServiceName,
 }: HandleServiceInformationActions.ISaveServiceConfigAction): SagaIterator {
   try {
-    yield call(post, url, { serviceDescription: newServiceDescription, serviceId: newServiceId });
-    yield call(HandleServiceInformationDispatcher.saveServiceConfigFulfilled, newServiceDescription, newServiceId);
+    yield call(post, url,
+      { serviceDescription: newServiceDescription, serviceId: newServiceId, serviceName: newServiceName });
+    yield call(HandleServiceInformationDispatcher.saveServiceConfigFulfilled,
+      newServiceDescription, newServiceId, newServiceName);
     window.postMessage(postMessages.filesAreSaved, window.location.href);
   } catch (err) {
     yield call(HandleServiceInformationDispatcher.saveServiceConfigRejected, err);

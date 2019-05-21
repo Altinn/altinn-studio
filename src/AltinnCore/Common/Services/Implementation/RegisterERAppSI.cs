@@ -34,7 +34,7 @@ namespace AltinnCore.Common.Services.Implementation
             Organization organization = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));
 
-            Uri endpointUrl = new Uri($"{_platformSettings.GetApiBaseEndpoint()}v1/organizations/{OrgNr}");
+            Uri endpointUrl = new Uri($"{_platformSettings.GetApiRegisterEndpoint}organizations/{OrgNr}");
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);

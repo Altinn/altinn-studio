@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;

@@ -173,11 +173,13 @@ export interface ISaveServiceConfigAction extends Action {
   url: string;
   newServiceDescription: string;
   newServiceId: string;
+  newServiceName: string;
 }
 
 export interface ISaveServiceConfigFulfilled extends Action {
   newServiceDescription: string;
   newServiceId: string;
+  newServiceName: string;
 }
 
 export interface ISaveServiceConfigRejected extends Action {
@@ -185,21 +187,23 @@ export interface ISaveServiceConfigRejected extends Action {
 }
 
 // tslint:disable-next-line:max-line-length
-export function saveServiceConfigAction(url: string, newServiceDescription: string, newServiceId: string): ISaveServiceConfigAction {
+export function saveServiceConfigAction(url: string, newServiceDescription: string, newServiceId: string, newServiceName: string): ISaveServiceConfigAction {
   return {
     type: ActionTypes.SAVE_SERVICE_CONFIG,
     url,
     newServiceDescription,
     newServiceId,
+    newServiceName,
   };
 }
 
 // tslint:disable-next-line:max-line-length
-export function saveServiceConfigFulfilledAction(newServiceDescription: string, newServiceId: string): ISaveServiceConfigFulfilled {
+export function saveServiceConfigFulfilledAction(newServiceDescription: string, newServiceId: string, newServiceName: string): ISaveServiceConfigFulfilled {
   return {
     type: ActionTypes.SAVE_SERVICE_CONFIG_FULFILLED,
     newServiceDescription,
     newServiceId,
+    newServiceName,
   };
 }
 

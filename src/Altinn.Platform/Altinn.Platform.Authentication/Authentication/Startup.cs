@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Authentication.Configuration;
+using AltinnCore.Authentication.Constants;
+using AltinnCore.Authentication.JwtCookie;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -39,7 +43,17 @@ namespace Altinn.Platform.Authentication
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
-            services.AddSingleton(Configuration);     
+            services.AddSingleton(Configuration);
+            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
+            services.Configure<CertificateSettings>(Configuration);
+            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                    {
+                        options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                        options.Cookie.Name = "AltinnRuntimeCookie";
+                    });
         }
 
         /// <summary>

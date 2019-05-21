@@ -8,7 +8,7 @@ namespace Altinn.Platform.Register.Controllers
     /// <summary>
     /// The persons controller
     /// </summary>
-    [Route("api/v1/[controller]")]
+    [Route("register/api/v1/[controller]")]
     public class PersonsController : Controller
     {
         private readonly IPersons _personsWrapper;

@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Common.Constants;
 using Microsoft.AspNetCore.Http;
 

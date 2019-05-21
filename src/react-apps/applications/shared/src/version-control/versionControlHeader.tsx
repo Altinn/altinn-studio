@@ -1,4 +1,5 @@
 import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
+import axios from 'axios';
 import * as React from 'react';
 import { get, post } from '../../../shared/src/utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -44,6 +45,9 @@ const initialModalState = {
 };
 
 class VersionControlHeader extends React.Component<IVersionControlHeaderProps, IVersionControlHeaderState> {
+  public cancelToken = axios.CancelToken;
+  public source = this.cancelToken.source();
+
   public interval: any;
   public _isMounted = false;
   public timeout: any;
@@ -53,7 +57,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       changesInMaster: false,
       changesInLocalRepo: false,
       moreThanAnHourSinceLastPush: false,
-      hasPushRight: false,
+      hasPushRight: null,
       anchorEl: null,
       mergeConflict: false,
       modalState: initialModalState,
@@ -112,7 +116,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     // check status every 5 min
     this.interval = setInterval(() => this.updateStateOnIntervals(), 300000);
     this.getStatus();
-    this.getRepoRights();
+    this.getRepoPermissions();
     this.getLastPush();
     window.addEventListener('message', this.changeToRepoOccured);
   }
@@ -133,23 +137,29 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public componentWillUnmount() {
     clearInterval(this.interval);
-    this._isMounted = false;
+    this.source.cancel('ComponentWillUnmount'); // Cancel the getRepoPermissions() get request
     clearTimeout(this.timeout);
     window.removeEventListener('message', this.changeToRepoOccured);
   }
 
-  public getRepoRights() {
-    const altinnWindow: any = window as any;
-    const { service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Search`;
-    get(url).then((result: any) => {
-      if (this._isMounted && result) {
-        const currentRepo = result.filter((e: any) => e.name === service);
-        this.setState({
-          hasPushRight: currentRepo.length > 0 ? currentRepo[0].permissions.push : false,
-        });
+  public getRepoPermissions = async () => {
+    const { org, service } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`;
+
+    try {
+      const currentRepo = await get(url, { cancelToken: this.source.token });
+      this.setState({
+        hasPushRight: currentRepo.permissions.push,
+      });
+
+    } catch (err) {
+      if (axios.isCancel(err)) {
+        // console.error('Component did unmount. Get canceled.');
+      } else {
+        // TODO: Handle error
+        console.error('getRepoPermissions failed', err);
       }
-    });
+    }
   }
 
   public handleClose = () => {
@@ -208,7 +218,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public shareChanges = (currentTarget: any) => {
-    if (this.state.hasPushRight) {
+    if (this.state.hasPushRight === true) {
       this.setState({
         anchorEl: currentTarget,
         modalState: {
@@ -249,7 +259,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
         }
       });
-    } else {
+    } else if (this.state.hasPushRight === false) {
       // if user don't have push rights, show modal stating no access to share changes
       this.setState({
         anchorEl: currentTarget,

@@ -44,5 +44,10 @@ namespace AltinnCore.Authentication.Constants
         /// The app token id
         /// </summary>
         public const string DeveloperTokenId = "DeveloperTokenId";
+
+        /// <summary>
+        /// The authenticate method
+        /// </summary>
+        public const string AuthenticateMethod = "AuthenticateMethod";
     }
 }

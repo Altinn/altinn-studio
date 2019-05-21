@@ -37,6 +37,9 @@ cross/rootfs/
 *.sln.ide
 *.ide/
 
+#Visual Studio Code
+.vscode/
+
 # MSTest test Results
 [Tt]est[Rr]esult*/
 [Bb]uild[Ll]og.*
@@ -336,3 +339,4 @@ src/AltinnCore/Designer/wwwroot/designer/css/bootstrap*.css
 coverage
 /deploy/kubernetes/helm-charts/altinn-dataservice-0.1.0.tgz
 /deploy/kubernetes/altinn-dbsettings-secret.json
+

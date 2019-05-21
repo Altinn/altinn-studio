@@ -25,7 +25,7 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
-        private readonly PlatformStorageSettings _platformStorageSettings;
+        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
 
@@ -35,19 +35,19 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="testdataRepositorySettings">The test data repository settings</param>
-        /// <param name="platformStorageSettings">the platform storage settings</param>
+        /// <param name="platformSettings">the platform settings</param>
         /// <param name="generalSettings">the general settings</param>
         public WorkflowAppSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<PlatformStorageSettings> platformStorageSettings,
+            IOptions<PlatformSettings> platformSettings,
             IOptions<GeneralSettings> generalSettings)
         {
             _settings = repositorySettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
-            _platformStorageSettings = platformStorageSettings.Value;
+            _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
         }
 
@@ -70,7 +70,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
