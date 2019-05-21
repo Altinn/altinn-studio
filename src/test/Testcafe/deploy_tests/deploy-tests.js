@@ -23,18 +23,37 @@ fixture('GUI service designer tests')
     t.ctx.noCompile = "Tjenesten din kompilerer ikke";
     t.ctx.tilgjengelig = "Tjenesten din er klar for test";
     t.ctx.ikkeTilgjengelig = "Tjenesten din er ikke tilgjengelig i testmiljø";
+    t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
     await common.login(testUser.userEmail, testUser.password, loginPage);
   })
 
-test('Happy case; deploy a service to a test environment', async() => {
+test('Happy case; deploy a service to a test environment after a change', async() => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/deploytotest')
+    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
+    .click(designer.lageNavigationTab)
+    .maximizeWindow()
+    .dragToElement(designer.radioButtons, designer.dragToArea)
+    .click(designer.omNavigationTab)
+    .click(designer.lageNavigationTab)
+    .expect(designer.delEndringer.exists).ok()
+    .click(designer.delEndringer)
+    .expect(designer.commitMessageBox.exists).ok()
+    .click(designer.commitMessageBox)
+    .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
+    .expect(designer.validerEndringer.exists).ok()
+    .hover(designer.validerEndringer)
+    .click(designer.validerEndringer)
+    .expect(designer.delEndringer.exists).ok()
+    .pressKey("tab")
+    .pressKey("enter")
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])
     .expect(designer.deployButton.exists).ok()
     .click(designer.deployButton)
+    .expect((Selector("p").withText(t.ctx.leggerUtTjenesten)).exists).ok()
     .expect((Selector("h2").withText(t.ctx.tilgjengelig)).exists).ok()
+
 })
 
 
