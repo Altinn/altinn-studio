@@ -139,6 +139,9 @@ export function validateFormData(
 */
 export function getErrorCount(validations: IValidations) {
   let count = 0;
+  if (!validations) {
+    return count;
+  }
   Object.keys(validations).forEach((componentId: string) => {
     const componentValidations: IComponentValidations = validations[componentId];
     Object.keys(componentValidations).forEach((bindingKey: string) => {

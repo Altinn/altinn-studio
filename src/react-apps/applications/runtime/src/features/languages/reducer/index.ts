@@ -5,7 +5,7 @@ import { IFetchLanguageFulfilled, IFetchLanguageRejected } from '../actions/fetc
 import * as LanguageActionTypes from '../actions/types';
 
 export interface ILanguageState {
-  language: any;
+  language: ILanguageResource;
   error: Error;
 }
 
