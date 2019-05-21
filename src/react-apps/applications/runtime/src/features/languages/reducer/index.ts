@@ -1,17 +1,11 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { ITextResource } from '../../../types/global';
 import { IFetchLanguageFulfilled, IFetchLanguageRejected } from '../actions/fetch';
 import * as LanguageActionTypes from '../actions/types';
 
 export interface ILanguageState {
-  language: ILanguageResource;
+  language: any;
   error: Error;
-}
-
-export interface ILanguageResource {
-  language: string;
-  resource: ITextResource[];
 }
 
 const initialState: ILanguageState = {

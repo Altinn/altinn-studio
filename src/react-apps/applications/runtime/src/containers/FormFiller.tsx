@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { IFormConfigState } from '../features/form/config/reducer';
 import FormDataActions from '../features/form/data/actions';
 import { WorkflowSteps } from '../features/form/workflow/typings';
 import { IAltinnWindow, IRuntimeState } from '../types';
@@ -10,7 +11,7 @@ import Render from './Render';
 import { WorkflowStep } from './WorkflowStep';
 
 export interface IFormFillerProps {
-  formConfig: any;
+  formConfig: IFormConfigState;
   textResources: ITextResource[];
   unsavedChanges: boolean;
   validationResults: IValidations;
@@ -23,10 +24,6 @@ const FormFiller = (props: IFormFillerProps) => {
   React.useEffect(() => {
     setWorkflowStep(props.workflowStep);
   }, [props]);
-
-  const handleStepChange = (step: WorkflowSteps) => {
-    setWorkflowStep(step);
-  };
 
   const saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
@@ -77,7 +74,6 @@ const FormFiller = (props: IFormFillerProps) => {
       header={props.formConfig.serviceName ? props.formConfig.serviceName :
         getLanguageFromKey('general.ServiceName', props.textResources)}
       step={workflowStep}
-      onStepChange={handleStepChange}
     >
       <div className='row'>
         <Render />
