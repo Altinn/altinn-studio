@@ -6,9 +6,9 @@ import { getLayoutElementIndexById } from '../../../../../utils/formLayout';
 import * as FormConfigActionTypes from '../../../config/actions/types';
 import * as FormDataActionTypes from '../../../data/actions/types';
 import { IFormData } from '../../../data/reducer';
+import { ILayout } from '../../../layout';
 import FormLayoutActions from '../../../layout/actions';
 import * as FormLayoutActionTypes from '../../../layout/actions/types';
-import { ILayout } from '../../../layout/types';
 import * as FormDynamicsActionTypes from '../../actions/types';
 import { IConditionalRenderingRules } from '../../types';
 

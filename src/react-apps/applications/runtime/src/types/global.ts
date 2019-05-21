@@ -194,6 +194,3 @@ export interface IAttachmentApiResponse {
   size: number;
   id: string;
 }
-export interface ITextResourceBindings {
-  [id: string]: string;
-}

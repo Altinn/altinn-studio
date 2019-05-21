@@ -1,6 +1,6 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { ILayoutComponent, ILayoutContainer } from '..';
 import { store } from '../../../../store';
-import { ILayoutComponent, ILayoutContainer } from '../types';
 import * as FetchForm from './fetch';
 import * as UpdateFormLayout from './update';
 

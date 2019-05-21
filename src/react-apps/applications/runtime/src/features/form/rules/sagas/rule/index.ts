@@ -5,12 +5,12 @@ import { checkIfRuleShouldRun } from '../../../../../utils/rules';
 import FormDataActions from '../../../data/actions';
 import { IFormData } from '../../../data/reducer';
 import { IDataModelState } from '../../../datamodell/reducer';
-import { IFormDynamicState, IRuleConnection } from '../../../dynamics/';
+import { IRuleConnection, IRuleConnections } from '../../../dynamics/';
 import { ILayoutState } from '../../../layout/reducer';
 import * as RuleActions from '../../actions/rule';
 import * as ActionTypes from '../../actions/types';
 
-const selectRuleConnection = (state: IRuntimeState): IFormDynamicState => state.formDynamics.ruleConnection;
+const selectRuleConnection = (state: IRuntimeState): IRuleConnections => state.formDynamics.ruleConnection;
 const selectFormDataConnection = (state: IRuntimeState): IFormData => state.formData;
 const selectFormLayoutConnection = (state: IRuntimeState): ILayoutState => state.formLayout;
 const selectFormdataModelConnection = (state: IRuntimeState): IDataModelState => state.formDataModel;
