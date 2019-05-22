@@ -6,6 +6,7 @@ exports[`>>> AltinnIconButton--- Snapshot +++ Should match snapshot with all par
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -37,6 +38,7 @@ exports[`>>> AltinnIconButton--- Snapshot +++ Should match snapshot with the lea
   className="MuiButtonBase-root-29 MuiButton-root-3 MuiButton-contained-14 MuiButton-raised-17 AltinnIconButton-dottedBtn-1"
   disabled={false}
   onBlur={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}

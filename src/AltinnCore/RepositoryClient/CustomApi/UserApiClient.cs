@@ -13,7 +13,7 @@ namespace AltinnCore.RepositoryClient.CustomApi
     /// </summary>
     public class UserApiClient
     {
-        private string giteaCoookieId = "i_like_gitea";
+        private readonly string giteaCoookieId = "i_like_gitea";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserApiClient"/> class

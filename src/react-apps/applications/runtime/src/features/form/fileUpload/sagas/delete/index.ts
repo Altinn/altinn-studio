@@ -4,6 +4,7 @@ import { IAltinnWindow } from '../..';
 import { getFileUploadComponentValidations } from '../../../../../components/base/FileUploadComponent';
 import { IRuntimeState } from '../../../../../types';
 import { get, post } from '../../../../../utils/networking';
+import FormValidationsDispatcher from '../../../validation/actions';
 import FormFileUploadDispatcher from '../../actions';
 import * as deleteActions from '../../actions/delete';
 import * as FileUploadActionsTypes from '../../actions/types';
@@ -17,6 +18,9 @@ export function* deleteAttachmentSaga(
   const state: IRuntimeState = yield select();
   const language = state.language.language;
   try {
+    // Sets validations to empty.
+    const newValidations = getFileUploadComponentValidations(null, null);
+    yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
@@ -27,15 +31,17 @@ export function* deleteAttachmentSaga(
     if (response.status === 200) {
       yield call(FormFileUploadDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
     } else {
-      const validationMessages = getFileUploadComponentValidations('delete', language);
+      const validations = getFileUploadComponentValidations('delete', language);
+      yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
       yield call(FormFileUploadDispatcher.deleteAttachmentRejected,
-        attachment, attachmentType, componentId, validationMessages);
+        attachment, attachmentType, componentId);
 
     }
   } catch (err) {
-    const validationMessages = getFileUploadComponentValidations('delete', language);
+    const validations = getFileUploadComponentValidations('delete', language);
+    yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
     yield call(FormFileUploadDispatcher.deleteAttachmentRejected,
-      attachment, attachmentType, componentId, validationMessages);
+      attachment, attachmentType, componentId);
     console.error(err);
   }
 }

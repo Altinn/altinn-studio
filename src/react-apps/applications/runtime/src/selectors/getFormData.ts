@@ -43,10 +43,6 @@ const unsavedChangesSelector = (state: IRuntimeState) => {
   return state.formData.unsavedChanges;
 };
 
-const validationErrorsSelector = (state: IRuntimeState) => {
-  return state.formValidations.validations;
-};
-
 const getFormData = () => {
   return createDeepEqualSelector(
     [formDataForContainerSelector],
@@ -77,16 +73,6 @@ const getUnsavedChanges = () => {
   );
 };
 
-const getValidationErrors = () => {
-  return createSelector(
-    [validationErrorsSelector],
-    (validationResults: IValidations) => {
-      return validationResults;
-    },
-  );
-};
-
 export const makeGetFormDataSelector = getFormData;
 export const makeGetFormDataCountSelector = getFormDataCount;
 export const makeGetUnsavedChangesSelector = getUnsavedChanges;
-export const makeGetValidationErrorsSelector = getValidationErrors;

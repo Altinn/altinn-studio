@@ -5,6 +5,9 @@ using Altinn.Platform.Storage.Models;
 
 namespace Altinn.Platform.Storage.Repository
 {
+    /// <summary>
+    /// The repository to handle applicaiton instances
+    /// </summary>
     public interface IInstanceRepository
     {
         /// <summary>

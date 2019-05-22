@@ -177,6 +177,37 @@ export interface IFormDesignerActionDispatchers
   updateFormComponentOrderActionRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateFormComponentOrderActionRejected;
+  addApplicationMetadata: (
+    id: string,
+    maxFiles: number,
+    maxSize: number,
+    fileType: string,
+    callback?: (...args: any[]) => any,
+  ) => FormDesignerActions.IAddApplicationMetadataAction;
+  addApplicationMetadataFulfilled: (
+  ) => Action;
+  addApplicationMetadataRejected: (
+    error: Error,
+  ) => FormDesignerActions.IAddApplicationMetadataActionRejected;
+  deleteApplicationMetadata: (
+    id: string,
+  ) => FormDesignerActions.IDeleteApplicationMetadataAction;
+  deleteApplicationMetadataFulfilled: (
+  ) => Action;
+  deleteApplicationMetadataRejected: (
+    error: Error,
+  ) => FormDesignerActions.IDeleteApplicationMetadataActionRejected;
+  updateApplicationMetadata: (
+    id: string,
+    maxFiles: number,
+    maxSize: number,
+    fileType: string,
+  ) => FormDesignerActions.IUpdateApplicationMetadaAction;
+  updateApplicationMetadataFulfilled: (
+  ) => Action;
+  updateApplicationMetadataRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateApplicationMetadaActionRejected;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -240,6 +271,18 @@ const actions: IFormDesignerActionDispatchers = {
   updateFormComponentOrderAction: FormDesignerActions.updateFormComponentOrderAction,
   updateFormComponentOrderActionFulfilled: FormDesignerActions.updateFormComponentOrderActionFulfilled,
   updateFormComponentOrderActionRejected: FormDesignerActions.updateFormComponentOrderActionRejected,
+  addApplicationMetadata: FormDesignerActions.addApplicationMetadataAction,
+  addApplicationMetadataFulfilled:
+    FormDesignerActions.addApplicationMetadataActionFulfilled,
+  addApplicationMetadataRejected: FormDesignerActions.addApplicationMetadataActionRejected,
+  deleteApplicationMetadata: FormDesignerActions.deleteApplicationMetadataAction,
+  deleteApplicationMetadataFulfilled:
+    FormDesignerActions.deleteApplicationMetadataActionFulfilled,
+  deleteApplicationMetadataRejected: FormDesignerActions.deleteApplicationMetadataActionRejected,
+  updateApplicationMetadata: FormDesignerActions.updateApplicationMetadaAction,
+  updateApplicationMetadataFulfilled:
+    FormDesignerActions.updateApplicationMetadaActionFulfilled,
+  updateApplicationMetadataRejected: FormDesignerActions.updateApplicationMetadaActionRejected,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<

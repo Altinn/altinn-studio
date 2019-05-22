@@ -1,6 +1,7 @@
 import 'jest';
 import { IFormData } from '../../src/features/form/data/reducer';
 import * as validation from '../../src/utils/validation';
+import { length, max, maxLength, min, minLength, pattern } from '../../src/utils/validation';
 
 describe('>>> utils/validations.ts', () => {
   let mockApiResponse: any;
@@ -164,5 +165,47 @@ describe('>>> utils/validations.ts', () => {
   it('+++ should count total number of errors correctly', () => {
     const result = validation.getErrorCount(mockFormValidationResult);
     expect(result).toEqual(3);
+  });
+
+  it('+++ validation function min should validate correctly', () => {
+    const falseResult = min(10, 12);
+    const trueResult = min(12, 10);
+    expect(falseResult).toBeFalsy();
+    expect(trueResult).toBeTruthy();
+  });
+
+  it('+++ validation function max should validate correctly', () => {
+    const falseResult = max(12, 10);
+    const trueResult = max(10, 12);
+    expect(falseResult).toBeFalsy();
+    expect(trueResult).toBeTruthy();
+  });
+
+  it('+++ validation function minLength should validate correctly', () => {
+    const falseResult = minLength('hello', 12);
+    const trueResult = minLength('hello', 3);
+    expect(falseResult).toBeFalsy();
+    expect(trueResult).toBeTruthy();
+  });
+
+  it('+++ validation function maxLength should validate correctly', () => {
+    const falseResult = maxLength('hello', 3);
+    const trueResult = maxLength('hello', 12);
+    expect(falseResult).toBeFalsy();
+    expect(trueResult).toBeTruthy();
+  });
+
+  it('+++ validation function length should validate correctly', () => {
+    const falseResult = length('hello', 3);
+    const trueResult = length('hello', 5);
+    expect(falseResult).toBeFalsy();
+    expect(trueResult).toBeTruthy();
+  });
+
+  it('+++ validation function pattern should validate correctly', () => {
+    const falseResult = pattern('123', '^[a-zA-Z]+$');
+    const trueResult = pattern('hello', '^[a-zA-Z]+$');
+    expect(falseResult).toBeFalsy();
+    expect(trueResult).toBeTruthy();
   });
 });

@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{1eba5dd5-58eb-4f50-be1d-f30fd9fd326d}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +24,7 @@
     </PackageReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>$(SolutionDir)Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.2\KubernetesWrapper.xml</DocumentationFile>

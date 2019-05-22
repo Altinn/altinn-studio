@@ -8,12 +8,10 @@ import * as uploadActions from '../actions/upload';
 
 export interface IFormFileUploadState {
   attachments: IAttachments;
-  validationResults: any;
 }
 
 const initialState: IFormFileUploadState = {
   attachments: {},
-  validationResults: {},
 };
 
 const formFileUploadReducer: Reducer<IFormFileUploadState> = (
@@ -40,26 +38,16 @@ const formFileUploadReducer: Reducer<IFormFileUploadState> = (
             $push: [{ name: file.name, size: file.size, uploaded: false, id: tmpAttachmentId, deleting: false }],
           },
         },
-        validationResults: {
-          [componentId]: {
-            $set: {},
-          },
-        },
       });
     }
 
     case (FileUploadActionsTypes.UPLOAD_ATTACHMENT_REJECTED): {
-      const { attachmentType, attachmentId, componentId, validationMessages } =
+      const { attachmentType, attachmentId, componentId } =
         action as uploadActions.IUploadAttachmentActionRejected;
       return update<IFormFileUploadState>(state, {
         attachments: {
           [attachmentType]: {
             $set: state.attachments[attachmentType].filter((attachment) => attachment.id !== attachmentId),
-          },
-        },
-        validationResults: {
-          [componentId]: {
-            $set: validationMessages,
           },
         },
       });
@@ -93,7 +81,7 @@ const formFileUploadReducer: Reducer<IFormFileUploadState> = (
     }
 
     case (FileUploadActionsTypes.DELETE_ATTACHMENT_REJECTED): {
-      const { attachment, attachmentType, componentId, validationMessages } =
+      const { attachment, attachmentType, componentId } =
         action as deleteActions.IDeleteAttachmentActionRejected;
       const newAttachment = { ...attachment, deleting: false };
       const index = state.attachments[attachmentType].findIndex((element) => element.id === attachment.id);
@@ -104,11 +92,6 @@ const formFileUploadReducer: Reducer<IFormFileUploadState> = (
         attachments: {
           [attachmentType]: {
             [index]: { $set: newAttachment },
-          },
-        },
-        validationResults: {
-          [componentId]: {
-            $set: validationMessages,
           },
         },
       });

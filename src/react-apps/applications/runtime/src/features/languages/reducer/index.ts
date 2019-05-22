@@ -9,7 +9,10 @@ export interface ILanguageState {
 }
 
 const initialState: ILanguageState = {
-  language: {},
+  language: {
+    language: null,
+    resource: [],
+  },
   error: null,
 };
 

@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -20,7 +16,7 @@ namespace Altinn.Platform.Storage
     /// <summary>
     /// The program to start Altinn Platform Storage Service.
     /// </summary>
-    public class Program
+    public static class Program
     {
         private static Logger logger = new LoggerConfiguration()
             .WriteTo.Console()

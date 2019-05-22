@@ -419,11 +419,11 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
                             this.props.textResources), 80)
-                        : this.props.component.component}
+                        : this.props.component.type}
                     </div>
                   }
                   <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
-                    {this.props.component.component}
+                    {this.props.component.type}
                   </span>
                 </ListItem>
               </div>

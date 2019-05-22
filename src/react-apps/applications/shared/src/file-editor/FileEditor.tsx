@@ -7,6 +7,7 @@ import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorC
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
 import { get, post } from '../utils/networking';
+import postMessages from '../utils/postMessages';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -221,7 +222,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     }
 
     if (this.props.checkRepoStatusAfterSaveFile === true) {
-      window.postMessage('forceRepoStatusCheck', window.location.href);
+      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
     }
 
     if (this.state.mounted && this.props.closeFileEditor) {

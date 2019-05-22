@@ -10,13 +10,14 @@ import '../../styles/FileUploadComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 import { IRuntimeState } from '../../types';
+import { IComponentValidations } from '../../types/global';
 
 export interface IFileUploadProvidedProps {
   displayMode: string;
   hasCustomFileEndings?: boolean;
   id: string;
   isValid?: boolean;
-  validationMessages?: any;
+  validationMessages?: IComponentValidations;
   language: any;
   maxFileSizeInMB: number;
   maxNumberOfAttachments: number;
@@ -129,6 +130,8 @@ export class FileUploadComponentClass
   }
 
   public getComponentValidations = (): any => {
+    console.log('getComponentValidations');
+    console.log('validationMessages', this.props.validationMessages);
     const { validations } = this.state;
     let { validationMessages } = this.props;
     if (!validationMessages || !validationMessages.simpleBinding) {
@@ -326,7 +329,7 @@ const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps):
   };
 };
 
-export function getFileUploadComponentValidations(validationError: string, language: any): any {
+export function getFileUploadComponentValidations(validationError: string, language: any): IComponentValidations {
   const componentValidations: any = {
     ['simpleBinding']: {
       errors: [],

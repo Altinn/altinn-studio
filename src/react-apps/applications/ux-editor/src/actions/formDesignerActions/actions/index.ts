@@ -13,3 +13,6 @@ export * from './updateDataModelBinding';
 export * from './updateFormComponent';
 export * from './updateFormContainer';
 export * from './updateFormComponentOrder';
+export * from './addApplicationMetadata';
+export * from './deleteApplicationMetadata';
+export * from './updateApplicationMetadata';
