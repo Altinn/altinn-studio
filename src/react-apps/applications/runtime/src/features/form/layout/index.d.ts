@@ -9,7 +9,7 @@ export interface ILayoutContainer extends ILayoutEntry {
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
-  component: string;
+  type: string;
   dataModelBindings: IDataModelBindings;
   isValid?: boolean;
   itemType: string;

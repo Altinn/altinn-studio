@@ -2,6 +2,7 @@ import 'jest';
 import {
   convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
+  getParentContainerId,
 } from '../../src/utils/formLayout';
 
 describe('>>> utils/formLayout', () => {
@@ -67,7 +68,7 @@ describe('>>> utils/formLayout', () => {
       },
     ];
   });
-  it(' convertFromLayoutToInternalFormat should return the correct format', () => {
+  it('+++ convertFromLayoutToInternalFormat should convert to correct format', () => {
     const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
     const mockResult = {
       components: {
@@ -96,7 +97,7 @@ describe('>>> utils/formLayout', () => {
 
     expect(convertedLayout.components).toEqual(mockResult.components);
   });
-  it('convertInternalToLayoutFormat should return an array', () => {
+  it('convertInternalToLayoutFormat should convert to correct format', () => {
     const convertedLayout = convertInternalToLayoutFormat(mockInternal);
     const mockResult = [{
       id: '46882e2b-8097-4170-ad4c-32cdc156634e',
@@ -115,5 +116,10 @@ describe('>>> utils/formLayout', () => {
     }];
     expect(Array.isArray(convertedLayout)).toBe(true);
     expect(convertedLayout).toEqual(mockResult);
+  });
+
+  it('+++ getParentContainerId should return correct parent container id', () => {
+    const result = getParentContainerId('46882e2b-8097-4170-ad4c-32cdc156634e', { layout: mockInternal });
+    expect(result).toBe('f35e6f67-7d3a-4e20-a538-90d94e6c29a1');
   });
 });
