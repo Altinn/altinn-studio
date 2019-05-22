@@ -4,6 +4,7 @@ import { IAltinnWindow, IAttachment } from '../../';
 import { getFileUploadComponentValidations } from '../../../../../components/base/FileUploadComponent';
 import { IRuntimeState } from '../../../../../types';
 import { get, post } from '../../../../../utils/networking';
+import FormValidationsDispatcher from '../../../validation/actions';
 import FormFileUploadDispatcher from '../../actions';
 import * as FileUploadActionsTypes from '../../actions/types';
 import * as uploadActions from '../../actions/upload';
@@ -13,6 +14,9 @@ export function* uploadAttachmentSaga(
   const state: IRuntimeState = yield select();
   const language = state.language.language;
   try {
+    // Sets validations to empty.
+    const newValidations = getFileUploadComponentValidations(null, null);
+    yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
@@ -29,14 +33,16 @@ export function* uploadAttachmentSaga(
       yield call(FormFileUploadDispatcher.uploadAttachmentFulfilled,
         attachment, attachmentType, tmpAttachmentId, componentId);
     } else {
-      const validationMessages = getFileUploadComponentValidations('upload', language);
+      const validations = getFileUploadComponentValidations('upload', language);
+      yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
       yield call(FormFileUploadDispatcher.uploadAttachmentRejected,
-        tmpAttachmentId, attachmentType, componentId, validationMessages);
+        tmpAttachmentId, attachmentType, componentId);
     }
   } catch (err) {
-    const validationMessages = getFileUploadComponentValidations('upload', language);
+    const validations = getFileUploadComponentValidations('upload', language);
+    yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
     yield call(FormFileUploadDispatcher.uploadAttachmentRejected,
-      tmpAttachmentId, attachmentType, componentId, validationMessages);
+      tmpAttachmentId, attachmentType, componentId);
   }
 }
 

@@ -18,7 +18,6 @@ export interface IDeleteAttachmentActionRejected extends Action {
   attachment: IAttachment;
   attachmentType: string;
   componentId: string;
-  validationMessages: any;
 }
 
 export function deleteAttachment(
@@ -51,13 +50,11 @@ export function deleteAttachmentRejected(
   attachment: IAttachment,
   attachmentType: string,
   componentId: string,
-  validationMessages: any,
 ): IDeleteAttachmentActionRejected {
   return {
     type: ActionTypes.DELETE_ATTACHMENT_REJECTED,
     attachment,
     attachmentType,
     componentId,
-    validationMessages,
   };
 }

@@ -10,6 +10,7 @@ import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetLayoutElement } from '../selectors/getLayoutData';
+import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
@@ -29,6 +30,7 @@ export interface IGenericComponentProps extends IProvidedProps {
   isValid: boolean;
   textResources: ITextResource[];
   layoutElement: ILayoutContainer | ILayoutComponent;
+  componentValidations: IComponentValidations;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps, any> {
@@ -92,6 +94,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
         getTextResource={this.getTextResource}
         formData={this.getFormData()}
         isValid={this.props.isValid}
+        validationMessages={this.props.componentValidations}
       />
     );
   }
@@ -115,6 +118,7 @@ const isComponentValid = (validations: IComponentValidations): boolean => {
 const makeMapStateToProps = () => {
   const GetFormDataSelector = makeGetFormDataSelector();
   const GetLayoutElement = makeGetLayoutElement();
+  const GetComponentValidations = makeGetComponentValidationsSelector();
   const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => {
     return {
       dataModel: state.formDataModel.dataModel,
@@ -122,6 +126,7 @@ const makeMapStateToProps = () => {
       isValid: isComponentValid(state.formValidations.validations[props.id]),
       textResources: state.formResources.languageResource.resources,
       formData: GetFormDataSelector(state, props),
+      componentValidations: GetComponentValidations(state, props),
       ...props,
     };
   };
