@@ -9,7 +9,9 @@ export interface IFormDynamicState {
 
 export interface IRuleConnection {
   inputParams: Object;
-  outParams: Object;
+  outParams: {
+    outParam0?: string
+  };
   selectedFunction: string;
 }
 

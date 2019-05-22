@@ -1,7 +1,4 @@
 import 'jest';
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
-import App from '../../src/App';
 import { IFormData } from '../../src/features/form/data/reducer';
 import { IDataModelState } from '../../src/features/form/datamodell/reducer';
 import { ILayoutComponent } from '../../src/features/form/layout';
@@ -253,6 +250,46 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     };
     const { ruleShouldRun } = checkIfRuleShouldRun(
       mockRuleConnectionState,
+      mockFormDataState,
+      mockFormDataModelState,
+      mockFormLayoutState,
+      mockRepeatingContainerId,
+      mockLastUpdatedDataBinding,
+    );
+    expect(ruleShouldRun).toBe(false);
+  });
+  it('+++ if no input params, no rules ', () => {
+    const { ruleShouldRun } = checkIfRuleShouldRun(
+      {
+        'fc4136a0-73c3-11e9-acee-8f5155710498':
+        {
+          inputParams: {},
+          selectedFunction: 'sum',
+          outParams: { outParam0: 'mockDataModelBinding4' },
+        },
+      },
+      mockFormDataState,
+      mockFormDataModelState,
+      mockFormLayoutState,
+      mockRepeatingContainerId,
+      mockLastUpdatedDataBinding,
+    );
+    expect(ruleShouldRun).toBe(false);
+  });
+  it('+++ if no output params, no rules ', () => {
+    const { ruleShouldRun } = checkIfRuleShouldRun(
+      {
+        'fc4136a0-73c3-11e9-acee-8f5155710498':
+        {
+          inputParams: {
+            a: 'mockDataModelBinding1',
+            b: 'mockDataModelBinding2',
+            c: 'mockDataModelBinding3',
+          },
+          selectedFunction: 'sum',
+          outParams: {},
+        },
+      },
       mockFormDataState,
       mockFormDataModelState,
       mockFormLayoutState,

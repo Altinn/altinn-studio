@@ -1,12 +1,12 @@
 import { IFormData } from '../../features/form/data/reducer';
 import { IDataModelState } from '../../features/form/datamodell/reducer';
-import { IRuleConnection } from '../../features/form/dynamics/';
+import { IRuleConnections } from '../../features/form/dynamics/';
 import { ILayoutComponent } from '../../features/form/layout';
 import { ILayoutState } from '../../features/form/layout/reducer';
 import { IDataModelFieldElement, IRuleModelFieldElement } from '../../features/form/rules';
 
 export function checkIfRuleShouldRun(
-  ruleConnectionState: IRuleConnection,
+  ruleConnectionState: IRuleConnections,
   formDataState: IFormData,
   formDataModelState: IDataModelState,
   formLayoutState: ILayoutState,
@@ -23,8 +23,8 @@ export function checkIfRuleShouldRun(
     index = repContainer.index;
   }
 
-  const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
-  const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`;
+  /* const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
+  const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`; */
   for (const connection in ruleConnectionState) {
     if (!connection) {
       continue;
@@ -37,10 +37,10 @@ export function checkIfRuleShouldRun(
       if (!inputParam) {
         continue;
       }
-      let inputParamBinding: string = connectionDef.inputParams[inputParam];
-      if (isPartOfRepeatingGroup) {
+      const inputParamBinding: string = connectionDef.inputParams[inputParam];
+      /* if (isPartOfRepeatingGroup) {
         inputParamBinding = inputParamBinding.replace(dataModelGroup, dataModelGroupWithIndex);
-      }
+      } */
       if (formDataState.formData[inputParamBinding]) {
         numberOfInputFieldsFilledIn++;
       }
@@ -63,7 +63,7 @@ export function checkIfRuleShouldRun(
           return acc;
         }, {});
         const result = (window as any).ruleHandlerObject[functionToRun](newObj);
-        let updatedDataBinding: IDataModelFieldElement = formDataModelState.dataModel.find(
+        const updatedDataBinding: IDataModelFieldElement = formDataModelState.dataModel.find(
           (element: IDataModelFieldElement) => element.DataBindingName === connectionDef.outParams.outParam0);
         let updatedComponent: string;
         for (const component in formLayoutState.layout) {
@@ -92,11 +92,11 @@ export function checkIfRuleShouldRun(
           if (!updatedComponent) {
             // Validation error on field that triggered the check?
           } else {
-            if (isPartOfRepeatingGroup) {
+            /* if (isPartOfRepeatingGroup) {
               updatedDataBinding = { ...updatedDataBinding };
               updatedDataBinding.DataBindingName =
                 updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
-            }
+            } */
             return {
               ruleShouldRun: true,
               dataBindingName: updatedDataBinding.DataBindingName,
