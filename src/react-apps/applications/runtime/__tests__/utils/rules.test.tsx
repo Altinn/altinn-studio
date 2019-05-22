@@ -33,7 +33,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
     };
     mockLayout = [
       {
-        component: 'Input',
+        type: 'Input',
         dataModelBindings: { simpleBinding: 'mockDataModelBinding1' },
         disabled: false,
         hidden: false,
@@ -42,10 +42,8 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         readOnly: false,
         required: false,
         textResourceBindings: { title: 'ServiceName' },
-        type: 'Input',
       },
       {
-        component: 'Input',
         dataModelBindings: { simpleBinding: 'mockDataModelBinding2' },
         disabled: false,
         hidden: false,
@@ -57,7 +55,6 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         type: 'Input',
       },
       {
-        component: 'Input',
         dataModelBindings: { simpleBinding: 'mockDataModelBinding3' },
         disabled: false,
         hidden: false,
@@ -69,7 +66,6 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         type: 'Input',
       },
       {
-        component: 'Input',
         dataModelBindings: { simpleBinding: 'mockDataModelBinding4' },
         disabled: false,
         hidden: false,
