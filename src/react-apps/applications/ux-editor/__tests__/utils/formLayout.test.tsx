@@ -11,7 +11,7 @@ describe('>>> utils/formLayout', () => {
     mockInternal = {
       components: {
         '46882e2b-8097-4170-ad4c-32cdc156634e': {
-          component: 'Header',
+          type: 'Header',
           itemType: 'COMPONENT',
           textResourceBindings: {
             title: 'ServiceName',
@@ -20,7 +20,7 @@ describe('>>> utils/formLayout', () => {
           size: 'L',
         },
         'ede0b05d-2c53-4feb-bdd4-4c61b89bd729': {
-          component: 'Paragraph',
+          type: 'Paragraph',
           itemType: 'COMPONENT',
           textResourceBindings: {
             title: 'ServiceName',
@@ -100,7 +100,7 @@ describe('>>> utils/formLayout', () => {
     const convertedLayout = convertInternalToLayoutFormat(mockInternal);
     const mockResult = [{
       id: '46882e2b-8097-4170-ad4c-32cdc156634e',
-      component: 'Header',
+      type: 'Header',
       itemType: 'COMPONENT',
       textResourceBindings: { title: 'ServiceName' },
       dataModelBindings: {},
@@ -108,7 +108,7 @@ describe('>>> utils/formLayout', () => {
     },
     {
       id: 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
-      component: 'Paragraph',
+      type: 'Paragraph',
       itemType: 'COMPONENT',
       textResourceBindings: { title: 'ServiceName' },
       dataModelBindings: {},
