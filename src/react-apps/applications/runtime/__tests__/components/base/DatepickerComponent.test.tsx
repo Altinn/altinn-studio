@@ -2,14 +2,14 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-
 import { DatepickerComponent } from '../../../src/components/base/DatepickerComponent';
 
 jest.useFakeTimers();
 
 describe('DatepickerComponent', () => {
   let mockId: string;
-  let mockComponent: any;
+  let mockReadOnly: boolean;
+  let mockRequired: boolean;
   let mockHandleDataChange: any;
 
   beforeAll(() => {
@@ -22,13 +22,8 @@ describe('DatepickerComponent', () => {
 
   beforeEach(() => {
     mockId = 'mockId';
-    mockComponent = {
-      id: mockId,
-      component: 'Input',
-      type: 'text',
-      readOnly: false,
-      required: false,
-    };
+    mockReadOnly = false;
+    mockRequired = false;
   });
 
   it('+++ should call handleDataChange on blur, if "isChanged: true"', () => {
@@ -38,7 +33,8 @@ describe('DatepickerComponent', () => {
     const wrapper = mount(
       <DatepickerComponent
         id={mockId}
-        component={mockComponent}
+        readOnly={mockReadOnly}
+        required={mockRequired}
         formData={{}}
         handleDataChange={mockHandleDataChange}
       />,
@@ -69,7 +65,8 @@ describe('DatepickerComponent', () => {
     const wrapper = mount(
       <DatepickerComponent
         id={mockId}
-        component={mockComponent}
+        readOnly={mockReadOnly}
+        required={mockRequired}
         formData={{ value: '31.01.2019' }}
         handleDataChange={mockHandleDataChange}
       />,
