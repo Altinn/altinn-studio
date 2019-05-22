@@ -42,7 +42,8 @@ const FormFiller = (props: IFormFillerProps) => {
   };
 
   const renderSaveButton = () => {
-    const disabled = !props.unsavedChanges;
+    const validationErrors = getErrorCount(props.validationResults);
+    const disabled = (validationErrors > 0) || !props.unsavedChanges;
     return (
       <button
         type='submit'

@@ -45,7 +45,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.FormFilling}
-          onStepChange={null}
         />
       </Provider>,
     );
@@ -58,7 +57,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.FormFilling}
-          onStepChange={null}
           children={<div id='mockFormFiller' />}
         />
       </Provider>,
@@ -72,7 +70,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.FormFilling}
-          onStepChange={null}
         />
       </Provider>,
     );
@@ -85,7 +82,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.Archived}
-          onStepChange={null}
         />
       </Provider>,
     );
@@ -98,7 +94,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.Archived}
-          onStepChange={null}
         />
       </Provider>,
     );
@@ -111,7 +106,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.Submit}
-          onStepChange={null}
         />
       </Provider>,
     );
