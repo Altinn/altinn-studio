@@ -355,10 +355,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ApplicationMetadata GetApplicationMetadata(string applicationOwnerId, string applicationId)
+        public ApplicationMetadata GetApplicationMetadata(string org, string applicationId)
         {
             string filedata = string.Empty;
-            string filename = _settings.GetMetadataPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+            string filename = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
             try
             {
                 filedata = File.ReadAllText(filename, Encoding.UTF8);

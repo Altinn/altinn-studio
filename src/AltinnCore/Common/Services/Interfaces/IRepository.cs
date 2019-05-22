@@ -446,7 +446,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Updates the application information in Application meta data 
         /// </summary>
-        /// <param name="org">the organisation</param>
+        /// <param name="org">the organisation that owns the application</param>
         /// <param name="applicationId">the application id</param>
         /// <param name="applicationInformation">the application information to be updated</param>
         /// <returns>true if the information is updated successfully</returns>
@@ -455,9 +455,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Returns the applicaiton metadata for an application
         /// </summary>
-        /// <param name="applicationOwnerId">the applicatio owner</param>
+        /// <param name="org">the organisation that owns the application</param>
         /// <param name="applicationId">the application owner</param>
         /// <returns>The application  metadata for an application</returns>
-        ApplicationMetadata GetApplicationMetadata(string applicationOwnerId, string applicationId);
+        ApplicationMetadata GetApplicationMetadata(string org, string applicationId);
     }
 }
