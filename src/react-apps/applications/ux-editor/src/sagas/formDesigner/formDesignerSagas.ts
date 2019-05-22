@@ -208,8 +208,13 @@ function* fetchFormLayoutSaga({
     const fetchedFormLayout = yield call(get, url);
 
     let convertedFormLayout;
-    if (!fetchedFormLayout || !fetchedFormLayout.data || !fetchedFormLayout.data.layout) {
-      const newLayout = convertInternalToLayoutFormat(fetchedFormLayout.data);
+    if (!fetchedFormLayout) {
+      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, {});
+    } else if (!fetchedFormLayout.data && !fetchedFormLayout.data.layout) {
+      // TODO: remove this else at some later point
+      // The service has the old internal format -> map from old to new, then back to fix component.component update
+      // This else can be removed at some point
+      const newLayout = yield call(convertInternalToLayoutFormat, fetchedFormLayout.data);
       convertedFormLayout = yield call(convertFromLayoutToInternalFormat, newLayout);
     } else {
       convertedFormLayout = yield call(convertFromLayoutToInternalFormat, fetchedFormLayout.data.layout);
@@ -229,6 +234,7 @@ function* fetchFormLayoutSaga({
       );
     }
   } catch (err) {
+    console.error(err);
     yield call(FormDesignerActionDispatchers.fetchFormLayoutRejected, err);
   }
 }
