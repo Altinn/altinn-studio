@@ -97,7 +97,7 @@ describe('>>> utils/formLayout', () => {
 
     expect(convertedLayout.components).toEqual(mockResult.components);
   });
-  it('convertInternalToLayoutFormat should convert to correct format', () => {
+  it('+++ convertInternalToLayoutFormat should convert to correct format', () => {
     const convertedLayout = convertInternalToLayoutFormat(mockInternal);
     const mockResult = [{
       id: '46882e2b-8097-4170-ad4c-32cdc156634e',
