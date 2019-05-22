@@ -1,5 +1,5 @@
 /* tslint:disable:jsx-wrap-multiline */
-import { mount } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { DatepickerComponent } from '../../../src/components/base/DatepickerComponent';
@@ -83,6 +83,18 @@ describe('DatepickerComponent', () => {
     jest.runAllTimers();
     expect(mockHandleDataChange).toHaveBeenCalledTimes(0);
 
+  });
+  it('+++ should have class disabled-date when readOnly', () => {
+    const shallowDataPicker = mount(
+      <DatepickerComponent
+        id={mockId}
+        readOnly={true}
+        required={mockRequired}
+        formData={{ value: '31.01.2019' }}
+        handleDataChange={mockHandleDataChange}
+      />,
+    );
+    expect(shallowDataPicker.find('input').hasClass('disabled-date')).toBe(true);
   });
 
 });

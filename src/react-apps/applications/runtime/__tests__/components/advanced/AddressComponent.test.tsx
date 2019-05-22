@@ -193,6 +193,28 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     expect(spyFetchPostPlace).toHaveBeenCalled();
     expect(instance.state.postPlace).toEqual('');
   });
+  it('+++ should trigger updateField onChange', () => {
+    const mountedAddressComponent = mount(
+      <AddressComponent
+        id={mockId}
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        getTextResource={mockGetTextResource}
+        isValid={mockIsValid}
+        simplified={mockSimplified}
+        dataModelBindings={mockDataBinding}
+        validationMessages={mockValidationMessages}
+        readOnly={mockReadOnly}
+      />,
+    );
+    const instance = mountedAddressComponent.instance() as AddressComponent;
+    const spyUpdateField = jest.spyOn(instance, 'updateField');
+    instance.forceUpdate();
+
+    const inputField = mountedAddressComponent.find('input').first();
+    inputField.simulate('change');
+    expect(spyUpdateField).toHaveBeenCalled();
+  });
   it('+++ getTextResourceByAddressKey should return the correct key', () => {
     let mockKey = AddressKeys.address;
     const mockLanguage = {
