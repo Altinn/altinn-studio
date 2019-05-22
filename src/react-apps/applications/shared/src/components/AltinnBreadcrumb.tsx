@@ -7,7 +7,6 @@ import altinnTheme from '../theme/altinnStudioTheme';
 export interface IAltinnBreadcrumbComponentProvidedProps extends WithStyles<typeof styles> {
   /** @ignore */
   classes: any;
-
   firstLink: string;
   secondLink?: any;
   firstLinkTxt?: any;
