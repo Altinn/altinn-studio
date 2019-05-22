@@ -79,7 +79,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
 
   public render() {
     const Component = formComponentWithHandlers(components.find((c: any) =>
-      c.name === this.props.component,
+      c.name === this.props.type,
     ).Tag);
     if (this.props.layoutElement.hidden) {
       return null;

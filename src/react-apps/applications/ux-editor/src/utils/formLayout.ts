@@ -66,6 +66,10 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
         };
       }
       const { id, ...rest } = element;
+      if (!rest.type) {
+        rest.type = rest.component;
+        delete rest.component;
+      }
       convertedLayout.components[id] = rest;
       if (!convertedLayout.order[baseContainerId]) {
         convertedLayout.order[baseContainerId] = [id];
@@ -86,6 +90,10 @@ export function convertInternalToLayoutFormat(internalFormat: IFormDesignerLayou
     const children: any[] = [];
     for (const id of order[containerId]) {
       if (components[id]) {
+        if (!components[id].type) {
+          components[id].type = components[id].component;
+          delete components[id].component;
+        }
         children.push({
           id,
           ...components[id],
