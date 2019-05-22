@@ -209,7 +209,8 @@ function* fetchFormLayoutSaga({
 
     let convertedFormLayout;
     if (!fetchedFormLayout || !fetchedFormLayout.data || !fetchedFormLayout.data.layout) {
-      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, null);
+      const newLayout = convertInternalToLayoutFormat(fetchedFormLayout.data);
+      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, newLayout);
     } else {
       convertedFormLayout = yield call(convertFromLayoutToInternalFormat, fetchedFormLayout.data.layout);
     }
