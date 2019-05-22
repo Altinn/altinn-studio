@@ -18,6 +18,9 @@ export function* deleteAttachmentSaga(
   const state: IRuntimeState = yield select();
   const language = state.language.language;
   try {
+    // Sets validations to empty.
+    const newValidations = getFileUploadComponentValidations(null, null);
+    yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
