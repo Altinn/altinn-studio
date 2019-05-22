@@ -140,7 +140,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       .replace(/[æÆ]+/g, 'ae')
       .replace(/[øØ]+/g, 'oe')
       .replace(/[åÅ]+/g, 'aa')
-      .replace(/[^0-9a-zA-Z_]+/g, '-')
+      .replace(/[^0-9a-zA-Z\-]+/g, '-')
       .toLowerCase()
       .substring(0, 100);
   }

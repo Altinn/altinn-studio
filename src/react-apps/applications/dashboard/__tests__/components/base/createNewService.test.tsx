@@ -113,21 +113,29 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
 
-    expect(instance.createRepoNameFromServiceName('1234RemovesNumbersAndUppercaseLetters'))
-      .toBe('removesnumbersanduppercaseletters');
-
-    expect(instance.createRepoNameFromServiceName('1234 Removes Numbers And Inserts Dashes'))
-      .toBe('removes-numbers-and-inserts-dashes');
-
-    expect(instance.createRepoNameFromServiceName('TjenesteMedVeldigLangtNavnSomOverstiger100TegnOmNoenFlereOrdHerNaaErViSnartIMaalMedNokOrd-JaErHundreDetteErOverHundre'))
-      .toBe('tjenestemedveldiglangtnavnsomoverstiger100tegnomnoenflereordhernaaervisnartimaalmednokord-jaerhundre');
-
-    expect(instance.createRepoNameFromServiceName('Tjeneste med æ ø og å 2019'))
-      .toBe('tjeneste-med-ae-oe-og-aa-2019');
-
+    // Assert removing non a-z in beginning of name
     expect(instance.createRepoNameFromServiceName('1234_-FjernerTallOgSpesialTegnIStartenAvNavn'))
       .toBe('fjernertallogspesialtegnistartenavnavn');
 
+    // Assert spaces
+    expect(instance.createRepoNameFromServiceName('1234 Removes Numbers And Inserts Dashes'))
+      .toBe('removes-numbers-and-inserts-dashes');
+
+    // Assert æøå replacement
+    expect(instance.createRepoNameFromServiceName('Tjeneste med æ ø og å 2019'))
+      .toBe('tjeneste-med-ae-oe-og-aa-2019');
+
+    // Assert replace illegal characters
+    expect(instance.createRepoNameFromServiceName('Replaces three illegal characters with one dash($_?2019'))
+      .toBe('replaces-three-illegal-characters-with-one-dash-2019');
+
+    // Assert lowercase
+    expect(instance.createRepoNameFromServiceName('1234RemovesNumbersAndUppercaseLetters'))
+      .toBe('removesnumbersanduppercaseletters');
+
+    // Assert substring
+    expect(instance.createRepoNameFromServiceName('TjenesteMedVeldigLangtNavnSomOverstiger100TegnOmNoenFlereOrdHerNaaErViSnartIMaalMedNokOrd-JaErHundreDetteErOverHundre'))
+      .toBe('tjenestemedveldiglangtnavnsomoverstiger100tegnomnoenflereordhernaaervisnartimaalmednokord-jaerhundre');
   });
 
   it('+++ should validate service names', () => {
