@@ -23,7 +23,7 @@ const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: 
             if (!dataModelKey) {
               continue;
             }
-            if (state.formData.formData[dataModelKey] !== props.formData
+            if (state.formData.formData[key]
               && props.dataModelBindings[dataModelKey] === key) {
               selectors[key] = state.formData.formData[key];
             }
