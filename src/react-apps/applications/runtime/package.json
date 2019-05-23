@@ -14,7 +14,6 @@
     "format": "prettier-tslint fix src/**/*.{ts,tsx}",
     "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress",
     "lintfix": "tslint -c tslint.json 'src/**/*.{ts,tsx} --fix",
-    "install-deps": "lerna bootstrap --hoist"
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
