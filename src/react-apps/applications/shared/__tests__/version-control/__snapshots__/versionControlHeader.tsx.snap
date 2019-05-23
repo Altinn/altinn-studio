@@ -17,7 +17,6 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
-      onContextMenu={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -57,6 +56,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
           >
             <p
               className="MuiTypography-root-133 MuiTypography-body1-142 FetchChangesComponenet-color_blueDark-102"
+              id="fetch_changes_btn"
             >
               sync_header.fetch_changes
             </p>
@@ -64,7 +64,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
         </div>
       </span>
       <span
-        className="MuiTouchRipple-root-184"
+        className="MuiTouchRipple-root-183"
       />
     </button>
   </div>
@@ -72,11 +72,10 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     className="MuiGrid-item-3"
   >
     <button
-      className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 ShareChangesCompoenent-color_blueDark-173 ShareChangesCompoenent-btn-170 ShareChangesCompoenent-clickable-172"
+      className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 ShareChangesCompoenent-color_blueDark-172 ShareChangesCompoenent-btn-169 ShareChangesCompoenent-clickable-171"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
-      onContextMenu={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -99,7 +98,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-item-3"
           >
             <div
-              className="ShareChangesCompoenent-checkIconPositionFix-171"
+              className="ShareChangesCompoenent-checkIconPositionFix-170"
             >
               <i
                 className="ai ai-check"
@@ -119,7 +118,8 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-item-3"
           >
             <p
-              className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-173"
+              className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-172"
+              id="no_changes_to_share_btn"
             >
               sync_header.no_changes_to_share
             </p>
@@ -127,7 +127,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
         </div>
       </span>
       <span
-        className="MuiTouchRipple-root-184"
+        className="MuiTouchRipple-root-183"
       />
     </button>
   </div>
