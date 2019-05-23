@@ -30,24 +30,6 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
 
   const baseContainerId: string = uuid();
 
-  function extractChildrenFromContainer(container: any) {
-    const { id, children, ...restOfContainer } = container;
-    convertedLayout.containers[id] = restOfContainer;
-    for (const child of children) {
-      if (child.children) {
-        extractChildrenFromContainer(child);
-      } else {
-        if (!convertedLayout.order[id]) {
-          convertedLayout.order[id] = [child.id];
-        } else {
-          convertedLayout.order[id].push(child.id);
-        }
-        const { id: componentId, ...restOfChild } = child;
-        convertedLayout.components[componentId] = restOfChild;
-      }
-    }
-  }
-
   for (const element of formLayout) {
     if (element.children) {
       // Container
@@ -56,7 +38,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
       } else {
         convertedLayout.order[baseContainerId].push(element.id);
       }
-      extractChildrenFromContainer(element);
+      extractChildrenFromContainer(element, convertedLayout);
     } else {
       if (!convertedLayout.containers[baseContainerId]) {
         convertedLayout.containers[baseContainerId] = {
@@ -120,4 +102,22 @@ export function convertInternalToLayoutFormat(internalFormat: IFormDesignerLayou
   }
 
   return converted;
+}
+
+export function extractChildrenFromContainer(container: any, convertedLayout: any) {
+  const { id, children, ...restOfContainer } = container;
+  convertedLayout.containers[id] = restOfContainer;
+  for (const child of children) {
+    if (child.children) {
+      extractChildrenFromContainer(child, convertedLayout);
+    } else {
+      if (!convertedLayout.order[id]) {
+        convertedLayout.order[id] = [child.id];
+      } else {
+        convertedLayout.order[id].push(child.id);
+      }
+      const { id: componentId, ...restOfChild } = child;
+      convertedLayout.components[componentId] = restOfChild;
+    }
+  }
 }

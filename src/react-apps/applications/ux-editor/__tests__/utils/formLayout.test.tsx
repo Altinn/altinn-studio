@@ -2,6 +2,7 @@ import 'jest';
 import {
   convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
+  extractChildrenFromContainer,
   getParentContainerId,
 } from '../../src/utils/formLayout';
 
@@ -237,4 +238,30 @@ describe('>>> utils/formLayout', () => {
     const result = getParentContainerId('46882e2b-8097-4170-ad4c-32cdc156634e', { layout: mockInternal });
     expect(result).toBe('f35e6f67-7d3a-4e20-a538-90d94e6c29a1');
   });
+
+  it('+++ extractChildrenFromContainer should return all children from a container', () => {
+    const mockContainer = {
+      id: 'mockContainerID',
+      children: [
+        { id: 'mockChildID_1', someProp: '1' },
+        { id: 'mockChildID_2', someProp: '2' },
+      ],
+    };
+    const mockConvertedLayout = {
+      containers: {},
+      components: {},
+      order: {},
+    };
+    const mockConvertedLayoutResult = {
+      containers: { mockContainerID: {} },
+      components: {
+        mockChildID_1: { someProp: '1' },
+        mockChildID_2: { someProp: '2' },
+      },
+      order: { mockContainerID: ['mockChildID_1', 'mockChildID_2'] },
+    };
+    extractChildrenFromContainer(mockContainer, mockConvertedLayout);
+    expect(mockConvertedLayout).toEqual(mockConvertedLayoutResult);
+  });
+
 });
