@@ -73,7 +73,7 @@ function* addFormComponentSaga({
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
     );
-    if (component.component === 'FileUpload') {
+    if (component.type === 'FileUpload') {
       const { maxNumberOfAttachments, maxFileSizeInMB, validFileEndings } = component as IFormFileUploaderComponent;
       yield call(FormDesignerActionDispatchers.addApplicationMetadata,
         id, maxNumberOfAttachments, maxFileSizeInMB, validFileEndings);
@@ -154,7 +154,7 @@ function* deleteFormComponentSaga({
     );
     const component = formDesignerState.layout.components[id];
 
-    if (component.component === 'FileUpload') {
+    if (component.type === 'FileUpload') {
       yield call(FormDesignerActionDispatchers.deleteApplicationMetadata,
         id);
     }
@@ -379,7 +379,7 @@ function* updateFormComponentSaga({
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
     );
-    if (updatedComponent.component === 'FileUpload') {
+    if (updatedComponent.type === 'FileUpload') {
       const {
         maxNumberOfAttachments,
         maxFileSizeInMB,
