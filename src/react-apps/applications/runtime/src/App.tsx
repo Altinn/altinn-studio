@@ -3,6 +3,7 @@ import FormFiller from './containers/FormFiller';
 import FormDataActions from './features/form/data/actions';
 import FormDataModelActions from './features/form/datamodell/actions';
 import FormDynamicActions from './features/form/dynamics/actions';
+import FormFileUploadActions from './features/form/fileUpload/actions';
 import FormLayoutActions from './features/form/layout/actions';
 import FormResourceActions from './features/form/resources/actions';
 import FormRuleActions from './features/form/rules/actions';
@@ -41,6 +42,9 @@ export default () => {
     FormResourceActions.fetchFormResource(
       `${window.location.origin}/runtime/api/textresources/${org}/${service}`,
     );
+
+    FormFileUploadActions.fetchAttachments();
+
   }, []);
   return (
     <FormFiller />
