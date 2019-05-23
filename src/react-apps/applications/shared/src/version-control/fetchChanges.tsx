@@ -60,6 +60,7 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
         className={classNames(classes.clickable, classes.btn)}
       >
         <p
+          id='fetch_changes_btn'
           className={classNames(
             classes.color_blueDark,
             { [classes.bold]: this.props.changesInMaster === true },

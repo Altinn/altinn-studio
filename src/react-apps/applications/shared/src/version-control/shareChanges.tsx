@@ -76,6 +76,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
     } else if (this.props.changesInLocalRepo) {
       return (
         <p
+          id='changes_to_share_btn'
           className={classNames(
             { [classes.bold]: this.props.moreThanAnHourSinceLastPush },
           )}
@@ -85,7 +86,9 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
         </p>);
     } else {
       return (
-        <p>
+        <p
+          id='no_changes_to_share_btn'
+        >
           <i
             className={classNames('fa fa-check', classes.color_blueDarker)}
           />{getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
