@@ -57,6 +57,7 @@ test('Sync a service with master', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
     .click(designer.lageNavigationTab)
+    .click(designer.hentEndringer)
     .click(designer.inputBtn)
     .pressKey("enter")
     .click(designer.omNavigationTab)
@@ -68,8 +69,8 @@ test('Sync a service with master', async () => {
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
     .expect(designer.validerEndringer.exists).ok()
     .click(designer.validerEndringer)
-    .pressKey("tab")
-    .pressKey("enter")
+    .click(designer.delEndringerBlueButton)
+    .expect(designer.ingenEndringer.exists).ok()
 });
 
 test('About page items and editing', async () => {

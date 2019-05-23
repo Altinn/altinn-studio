@@ -17,6 +17,7 @@ const testUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test1
 fixture('GUI service designer tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
+    t.ctx.endrnigerValidert = "Endringene er validert og kan deles med andre";
     t.ctx.klarForDeploy = "Tjenesten er klar til å legges ut i testmiljø";
     t.ctx.deployFailure = "Tjenesten ble ikke lagt ut i testmiljøet";
     t.ctx.localChanges = "Du har ikke delt dine endringer med din organisasjon";
@@ -32,7 +33,8 @@ test('Happy case; deploy a service to a test environment after a change', async(
     .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
     .click(designer.lageNavigationTab)
     .maximizeWindow()
-    .dragToElement(designer.radioButtons, designer.dragToArea)
+    .click(designer.inputBtn)
+    .pressKey("enter")
     .click(designer.omNavigationTab)
     .click(designer.lageNavigationTab)
     .expect(designer.delEndringer.exists).ok()
@@ -41,11 +43,9 @@ test('Happy case; deploy a service to a test environment after a change', async(
     .click(designer.commitMessageBox)
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
     .expect(designer.validerEndringer.exists).ok()
-    .hover(designer.validerEndringer)
     .click(designer.validerEndringer)
-    .expect(designer.delEndringer.exists).ok()
-    .pressKey("tab")
-    .pressKey("enter")
+    .click(designer.delEndringerBlueButton)
+    .click(designer.testeNavigationTab)
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])

@@ -99,9 +99,11 @@ export default class DesignerPage {
     this.addNewLanguage = Selector("#newtab > a");
 
     //syncing elements
-    this.hentEndringer = Selector("button").withText("Hent endringer");
+    this.hentEndringer = Selector("#fetch_changes_btn");
     this.validerEndringer = Selector("button > span").withExactText("Valider endringer");
-    this.delEndringer = Selector("button").withExactText("Del endringer");
+    this.delEndringer = Selector("#changes_to_share_btn");
+    this.ingenEndringer = Selector("#no_changes_to_share_btn");
+    this.delEndringerBlueButton = Selector("div").withText("Endringene er validert").child("button") //Selector("button > span").withText("Del endringer");
     this.commitMessageBox = Selector("#test");
   }
 
