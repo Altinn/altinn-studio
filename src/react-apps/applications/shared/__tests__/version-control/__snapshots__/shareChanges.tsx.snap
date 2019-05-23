@@ -6,6 +6,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -53,7 +54,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
     </div>
   </span>
   <span
-    className="MuiTouchRipple-root-168"
+    className="MuiTouchRipple-root-169"
   />
 </button>
 `;
@@ -64,6 +65,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -111,7 +113,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
     </div>
   </span>
   <span
-    className="MuiTouchRipple-root-168"
+    className="MuiTouchRipple-root-169"
   />
 </button>
 `;
@@ -122,6 +124,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -168,7 +171,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
     </div>
   </span>
   <span
-    className="MuiTouchRipple-root-168"
+    className="MuiTouchRipple-root-169"
   />
 </button>
 `;
@@ -179,6 +182,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -230,7 +234,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
     </div>
   </span>
   <span
-    className="MuiTouchRipple-root-168"
+    className="MuiTouchRipple-root-169"
   />
 </button>
 `;
@@ -241,6 +245,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -275,7 +280,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
     </div>
   </span>
   <span
-    className="MuiTouchRipple-root-168"
+    className="MuiTouchRipple-root-169"
   />
 </button>
 `;

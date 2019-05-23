@@ -57,6 +57,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[Function]}
+                onContextMenu={[Function]}
                 onFocus={[Function]}
                 onKeyDown={[Function]}
                 onKeyUp={[Function]}
@@ -221,6 +222,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[Function]}
+                onContextMenu={[Function]}
                 onFocus={[Function]}
                 onKeyDown={[Function]}
                 onKeyUp={[Function]}
@@ -322,6 +324,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[Function]}
+                onContextMenu={[Function]}
                 onFocus={[Function]}
                 onKeyDown={[Function]}
                 onKeyUp={[Function]}
@@ -423,6 +426,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[Function]}
+                onContextMenu={[Function]}
                 onFocus={[Function]}
                 onKeyDown={[Function]}
                 onKeyUp={[Function]}
@@ -524,6 +528,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[Function]}
+                onContextMenu={[Function]}
                 onFocus={[Function]}
                 onKeyDown={[Function]}
                 onKeyUp={[Function]}
@@ -688,6 +693,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
                 disabled={false}
                 onBlur={[Function]}
                 onClick={[Function]}
+                onContextMenu={[Function]}
                 onFocus={[Function]}
                 onKeyDown={[Function]}
                 onKeyUp={[Function]}

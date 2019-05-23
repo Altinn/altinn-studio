@@ -17,6 +17,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
+      onContextMenu={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -64,7 +65,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
         </div>
       </span>
       <span
-        className="MuiTouchRipple-root-183"
+        className="MuiTouchRipple-root-184"
       />
     </button>
   </div>
@@ -72,10 +73,11 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     className="MuiGrid-item-3"
   >
     <button
-      className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 ShareChangesCompoenent-color_blueDark-172 ShareChangesCompoenent-btn-169 ShareChangesCompoenent-clickable-171"
+      className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 ShareChangesCompoenent-color_blueDark-173 ShareChangesCompoenent-btn-170 ShareChangesCompoenent-clickable-172"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
+      onContextMenu={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -98,7 +100,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-item-3"
           >
             <div
-              className="ShareChangesCompoenent-checkIconPositionFix-170"
+              className="ShareChangesCompoenent-checkIconPositionFix-171"
             >
               <i
                 className="ai ai-check"
@@ -118,7 +120,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-item-3"
           >
             <p
-              className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-172"
+              className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-173"
               id="no_changes_to_share_btn"
             >
               sync_header.no_changes_to_share
@@ -127,7 +129,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
         </div>
       </span>
       <span
-        className="MuiTouchRipple-root-183"
+        className="MuiTouchRipple-root-184"
       />
     </button>
   </div>

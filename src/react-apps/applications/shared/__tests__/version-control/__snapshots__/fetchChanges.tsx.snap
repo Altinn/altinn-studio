@@ -6,6 +6,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -53,7 +54,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
     </div>
   </span>
   <span
-    className="MuiTouchRipple-root-167"
+    className="MuiTouchRipple-root-168"
   />
 </button>
 `;
@@ -64,6 +65,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -111,7 +113,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
     </div>
   </span>
   <span
-    className="MuiTouchRipple-root-167"
+    className="MuiTouchRipple-root-168"
   />
 </button>
 `;
