@@ -12,16 +12,18 @@ export function checkIfRuleShouldRun(
   formLayoutState: ILayoutState,
   repeatingContainerId: string,
   lastUpdatedDataBinding: IDataModelFieldElement) {
+  /*
   let repContainer;
   let repeating;
   let dataModelGroup: string;
   let index;
+
   if (repeatingContainerId) {
     repContainer = formLayoutState.layout[repeatingContainerId];
     repeating = repContainer.repeating;
     dataModelGroup = repContainer.dataModelGroup;
     index = repContainer.index;
-  }
+  } */
 
   /* const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
   const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`; */
