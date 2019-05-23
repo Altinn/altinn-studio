@@ -21,7 +21,6 @@ export interface IProvidedProps {
   type: string;
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
-  component: string;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {

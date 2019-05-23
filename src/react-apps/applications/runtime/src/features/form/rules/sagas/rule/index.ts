@@ -28,7 +28,7 @@ function* checkIfRuleShouldRunSaga({
   repeatingContainerId,
 }: RuleActions.ICheckIfRuleShouldRun): SagaIterator {
   try {
-    const ruleConnectionState: IRuleConnection = yield select(selectRuleConnection);
+    const ruleConnectionState: IRuleConnections = yield select(selectRuleConnection);
     const formDataState: IFormData = yield select(selectFormDataConnection);
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     const formDataModelState: IDataModelState = yield select(selectFormdataModelConnection);
