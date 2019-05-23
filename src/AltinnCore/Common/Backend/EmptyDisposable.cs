@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 //// For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 //// Inspired by this pattern https://github.com/aspnet/FileSystem/blob/32822deef3fd59b848842a500a3e989182687318/src/Microsoft.Extensions.FileProviders.Sources/EmptyDisposable.cs
@@ -20,6 +20,7 @@ namespace AltinnCore.Common.Backend
         /// </summary>
         public void Dispose()
         {
+            // Not implemented
         }
     }
 }

@@ -42,7 +42,6 @@ namespace AltinnCore.Common.Services.Implementation
         public IDSF DSF
         {
             get { return _dsf; }
-            protected set { }
         }
 
         /// <summary>
@@ -51,7 +50,6 @@ namespace AltinnCore.Common.Services.Implementation
         public IER ER
         {
             get { return _er; }
-            protected set { }
         }
 
         /// <inheritdoc/>
@@ -60,7 +58,7 @@ namespace AltinnCore.Common.Services.Implementation
             Party party = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
 
-            Uri endpointUrl = new Uri($"{_platformSettings.GetApiBaseEndpoint()}v1/party/{partyId}");
+            Uri endpointUrl = new Uri($"{_platformSettings.GetApiRegisterEndpoint}party/{partyId}");
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);

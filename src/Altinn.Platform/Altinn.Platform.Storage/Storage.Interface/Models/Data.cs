@@ -43,10 +43,16 @@ namespace Altinn.Platform.Storage.Models
         public string StorageUrl { get; set; }
 
         /// <summary>
+        /// path to storage
+        /// </summary>
+        [JsonProperty(PropertyName = "link")]
+        public string Link { get; set; }
+
+        /// <summary>
         /// Size of file in bytes
         /// </summary>
         [JsonProperty(PropertyName = "fileSize")]
-        public int FileSize { get; set; }
+        public long FileSize { get; set; }
 
         /// <summary>
         /// Signature

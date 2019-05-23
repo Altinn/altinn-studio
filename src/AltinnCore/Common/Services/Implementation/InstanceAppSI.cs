@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -14,6 +15,7 @@ using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -25,36 +27,37 @@ namespace AltinnCore.Common.Services.Implementation
     public class InstanceAppSI : IInstance
     {
         private readonly IData _data;
-        private readonly PlatformStorageSettings _platformStorageSettings;
+        private readonly PlatformSettings _platformSettings;
         private readonly IWorkflow _workflow;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceAppSI"/> class.
         /// </summary>
         /// <param name="data">form service</param>
-        /// <param name="platformStorageSettings">the platform storage settings</param>
+        /// <param name="platformSettings">the platform settings</param>
         /// <param name="workflowSI">the workflow service</param>
-        public InstanceAppSI(IData data, IOptions<PlatformStorageSettings> platformStorageSettings, IWorkflow workflowSI)
+        /// <param name="logger">the logger</param>
+        public InstanceAppSI(IData data, IOptions<PlatformSettings> platformSettings, IWorkflow workflowSI, ILogger<InstanceAppSI> logger)
         {
             _data = data;
-            _platformStorageSettings = platformStorageSettings.Value;
+            _platformSettings = platformSettings.Value;
             _workflow = workflowSI;
+            _logger = logger;
         }
 
-        /// <summary>
-        /// This method creates new instance in database
-        /// </summary>
+        /// <inheritdoc />
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
             Guid instanceId;
             Instance instance = null;
-            string applicationId = startServiceModel.Service;
             string applicationOwnerId = startServiceModel.Org;
+            string applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, startServiceModel.Service);
             int instanceOwnerId = startServiceModel.ReporteeID;
 
             using (HttpClient client = new HttpClient())
             {
-                string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
+                string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -79,7 +82,7 @@ namespace AltinnCore.Common.Services.Implementation
                 applicationId,
                 instanceOwnerId);
 
-            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId, instanceOwnerId);
+            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId);
 
             // set initial workflow state
             instance.CurrentWorkflowStep = currentState.State.ToString();
@@ -89,19 +92,12 @@ namespace AltinnCore.Common.Services.Implementation
             return instance;
         }
 
-        /// <summary>
-        /// Gets the instance
-        /// </summary>
-        /// <param name="applicationId">the application id</param>
-        /// <param name="applicationOwnerId">the application owner id</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <param name="instanceId">the instance id</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance;
+            Instance instance = new Instance();
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -114,25 +110,20 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    throw new Exception("Unable to fetch instance");
+                    _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
                 }
 
                 return instance;
             }
         }
 
-        /// <summary>
-        /// Gets the instance
-        /// </summary>
-        /// <param name="applicationId">the application id</param>
-        /// <param name="applicationOwnerId">the application owner id</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
         {
             List<Instance> instances = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/?instanceOwnerId={instanceOwnerId}&{applicationOwnerId}&{applicationId}";
+            applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId);
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -149,26 +140,18 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    throw new Exception("Unable to fetch instance");
+                    _logger.LogError("Unable to fetch instances");
                 }
 
                 return instances;
             }
         }
 
-        /// <summary>
-        /// Gets the instance
-        /// </summary>
-        /// <param name="dataToSerialize">instance meta data</param>
-        /// <param name="applicationId">the application id</param>
-        /// <param name="applicationOwnerId">the application owner id</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <param name="instanceId">the instance id</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance;
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            Instance instance = new Instance();
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -184,7 +167,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    throw new Exception("Unable to update instance");
+                    _logger.LogError($"Unable to update instance with instance id {instanceId}");
                 }
 
                 return instance;

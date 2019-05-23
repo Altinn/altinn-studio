@@ -202,10 +202,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       this.props.activeList.forEach((component: any) => {
         FormDesignerActionDispatchers.deleteFormComponent(component.id);
       });
-      FormDesignerActionDispatchers.deleteActiveListAction();
     } else {
       FormDesignerActionDispatchers.deleteFormComponent(this.props.id);
     }
+    FormDesignerActionDispatchers.deleteActiveListAction();
     if (this.props.components[this.props.id].codeListId) {
       const connectionId =
         getCodeListConnectionForDatamodelBinding(

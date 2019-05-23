@@ -68,34 +68,34 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// Returns true if objects are equal
         /// </summary>
-        /// <param name="input">Object to be compared</param>
+        /// <param name="obj">Object to be compared</param>
         /// <returns>Boolean</returns>
-        public override bool Equals(object input)
+        public override bool Equals(object obj)
         {
-            return this.Equals(input as SearchResults);
+            return this.Equals(obj as SearchResults);
         }
 
         /// <summary>
         /// Returns true if SearchResults instances are equal
         /// </summary>
-        /// <param name="input">Instance of SearchResults to be compared</param>
+        /// <param name="other">Instance of SearchResults to be compared</param>
         /// <returns>Boolean</returns>
-        public bool Equals(SearchResults input)
+        public bool Equals(SearchResults other)
         {
-            if (input == null)
+            if (other == null)
             {
                 return false;
             }
 
             return
                 (
-                    this.Data == input.Data ||
+                    this.Data == other.Data ||
                     (this.Data != null &&
-                    this.Data.SequenceEqual(input.Data))) &&
+                    this.Data.SequenceEqual(other.Data))) &&
                 (
-                    this.Ok == input.Ok ||
+                    this.Ok == other.Ok ||
                     (this.Ok != null &&
-                    this.Ok.Equals(input.Ok)));
+                    this.Ok.Equals(other.Ok)));
         }
 
         /// <summary>

@@ -100,22 +100,23 @@
     };
   }(jQuery));
 
-  function initDatePicker() {
-  $('.form-control.date').datepicker({
-    format: 'dd.mm.yyyy',
-    language: 'no',
-    todayHighlight: true,
-    orientation: 'bottom left',
-    autoclose: true,
-    maxViewMode: 0,
-    templates: {
-      leftArrow: '<i class="fa fa-back"></i>',
-      rightArrow: '<i class="fa fa-arrowright"></i>'
-    }
-  }).on('show', function(e) {
-    $('.datepicker').find('table').attr('cellpadding', '0');
-    $('.datepicker').find('table').attr('cellspacing', '0');
-  });
+  function initDatePicker(dateId, dateFormat, dateLanguage) {
+    $('#' + dateId).datepicker({
+      format: dateFormat,
+      language: dateLanguage,
+      todayHighlight: true,
+      orientation: 'bottom left',
+      updateViewDate: false,
+      autoclose: true,
+      maxViewMode: 0,
+      templates: {
+        leftArrow: '<i class="fa fa-back"></i>',
+        rightArrow: '<i class="fa fa-arrowright"></i>'
+      }
+    }).on('show', function(e) {
+      $('#' + dateId).find('table').attr('cellpadding', '0');
+      $('#' + dateId).find('table').attr('cellspacing', '0');
+    });
   }
   window.initDatePicker = initDatePicker;
 </script>

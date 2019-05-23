@@ -46,6 +46,7 @@ namespace AltinnCore.Common.Factories.ModelFactory.Manatee.Json
         /// <param name="baseUri">The current base URI</param>
         public void RegisterSubschemas(Uri baseUri)
         {
+            // Not yet implemented
         }
 
         /// <summary>

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
@@ -25,6 +27,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 
 namespace AltinnCore.Runtime
@@ -72,7 +75,7 @@ namespace AltinnCore.Runtime
             // Adding services to Dependency Injection TODO: Make this environment specific
             if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
             {
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IExecution, ExecutionStudioSI>();
                 services.AddSingleton<IInstance, InstanceStudioSI>();
                 services.AddSingleton<IData, DataStudioSI>();
                 services.AddSingleton<IWorkflow, WorkflowStudioSI>();
@@ -81,11 +84,12 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IER, RegisterERStudioSI>();
                 services.AddSingleton<IRegister, RegisterStudioSI>();
                 services.AddSingleton<IProfile, ProfileStudioSI>();
+                services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
             }
             else
             {
                 // Services added if code is running in app
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IExecution, ExecutionStudioSI>();
                 services.AddSingleton<IDSF, RegisterDSFAppSI>();
                 services.AddSingleton<IER, RegisterERAppSI>();
                 services.AddSingleton<IRegister, RegisterStudioSI>();
@@ -94,22 +98,20 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IData, DataAppSI>();
                 services.AddSingleton<IWorkflow, WorkflowAppSI>();
                 services.AddSingleton<ITestdata, TestdataAppSI>();
+                services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
-            services.AddSingleton<IArchive, ArchiveSILocalDev>();
+            services.AddSingleton<IArchive, ArchiveStudioSI>();
             services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
-            services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IForm, FormSILocalDev>();
+            services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ITestingRepository, TestingRepository>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton(Configuration);
@@ -134,25 +136,30 @@ namespace AltinnCore.Runtime
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.Configure<PlatformStorageSettings>(Configuration.GetSection("PlatformStorageSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
+            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            SecurityKey key = new X509SecurityKey(cert);
+
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+                .AddJwtCookie(options =>
                 {
-                    options.AccessDeniedPath = "/runtime/ManualTesting/NotAuthorized/";
-                    options.LoginPath = "/runtime/ManualTesting/Users/";
-                    options.Cookie.Name = AltinnCore.Common.Constants.General.RuntimeCookieName;
-                    options.Events = new CookieAuthenticationEvents
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = key,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
                     };
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
                 });
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
@@ -225,12 +232,25 @@ namespace AltinnCore.Runtime
             {
                 // ---------------------------- UI --------------------------- //
                 routes.MapRoute(
+                    name: "profileApiRoute",
+                    template: "runtime/api/v1/{controller}/user/",
+                    defaults: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile"
+                    },
+                    constraints: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile",
+                    });
+                routes.MapRoute(
                     name: "uiRoute",
                     template: "runtime/{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
-                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit|GetCurrentState",
+                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
@@ -299,48 +319,35 @@ namespace AltinnCore.Runtime
                     });
 
                 routes.MapRoute(
-                 name: "apiPutRoute",
-                 template: "runtime/api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
-                 defaults: new { action = "Index", controller = "ServiceAPI" },
-                 constraints: new
-                 {
-                     controller = "ServiceAPI",
-                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                 });
+                    name: "apiAttachemntRoute",
+                    template: "runtime/api/attachment/{partyId}/{org}/{service}/{instanceId}/{action}",
+                    defaults: new { controller = "Instance" },
+                    constraints: new
+                    {
+                        controller = "Instance",
+                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                    });
 
                 routes.MapRoute(
-                 name: "apiAttachmentRoute",
-                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentUploadUrl}/{instanceId}/{attachmentType}/{fileName}/",
-                 defaults: new { controller = "ServiceAPI" },
-                 constraints: new
-                 {
-                     controller = "ServiceAPI",
-                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                 });
-
+                    name: "apiPutRoute",
+                    template: "runtime/api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
+                    defaults: new { action = "Index", controller = "ServiceAPI" },
+                    constraints: new
+                    {
+                        controller = "ServiceAPI",
+                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                    });
                 routes.MapRoute(
-                 name: "apiAttachmentDeleteRoute",
-                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentDeleteUrl}/{instanceId}/{attachmentType}/{fileName}/{fileId}/",
-                 defaults: new { controller = "ServiceAPI" },
-                 constraints: new
-                 {
-                     controller = "ServiceAPI",
-                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                 });
-
-                routes.MapRoute(
-                 name: "apiAttachmentListRoute",
-                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentListUrl}/{instanceId}/",
-                 defaults: new { controller = "ServiceAPI" },
-                 constraints: new
-                 {
-                     controller = "ServiceAPI",
-                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                     instanceId = @"\d+",
-                 });
+                    name: "apiWorkflowRoute",
+                    template: "runtime/api/workflow/{partyId}/{org}/{service}/{action}/{instanceId?}",
+                    defaults: new { controller = "ServiceAPI" },
+                    constraints: new
+                    {
+                        controller = "ServiceAPI",
+                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
 
                 routes.MapRoute(
                     name: "codelistRoute",
@@ -368,7 +375,7 @@ namespace AltinnCore.Runtime
                     defaults: new { controller = "Service" },
                     constraints: new
                     {
-                        controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
+                        controller = @"(Codelist|Config|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         id = "[a-zA-Z0-9_\\-]{1,30}",
                     });
@@ -384,13 +391,11 @@ namespace AltinnCore.Runtime
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
                      name: "defaultRoute2",
-                     template: "runtime/{controller}/{action=Index}/{id?}",
-                     defaults: new { controller = "ServiceCatalogue" });
+                     template: "runtime/{controller}/{action=Index}/{id?}");
 
                 routes.MapRoute(
                     name: "defaultRoute",
-                    template: "runtime/{action=Index}/{id?}",
-                    defaults: new { controller = "ServiceCatalogue" });
+                    template: "runtime/{action=Index}/{id?}");
             });
         }
     }

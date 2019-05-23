@@ -18,7 +18,7 @@
   "license": "3-Clause BSD",
   "dependencies": {
     "babel-core": "6.26.3",
-    "react": "16.7.0",
+    "react": "16.8.6",
     "react-grid-layout": "0.16.6",
     "react-hot-loader": "4.3.1",
     "react-modal": "3.4.5",
@@ -35,7 +35,7 @@
   "devDependencies": {
     "@types/enzyme": "3.1.15",
     "@types/jest": "^23.3.9",
-    "@types/react": "16.8.3",
+    "@types/react": "16.8.10",
     "@types/react-modal": "3.8.1",
     "@types/react-redux": "7.0.1",
     "@types/react-router-dom": "4.3.1",

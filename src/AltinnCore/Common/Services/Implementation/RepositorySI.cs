@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Factories.ModelFactory;
@@ -38,6 +39,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IGitea _gitea;
         private readonly ISourceControl _sourceControl;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -49,6 +51,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="gitea">gitea</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="loggerFactory">the logger factory</param>
+        /// <param name="logger">The logger</param>
         public RepositorySI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
@@ -56,7 +59,8 @@ namespace AltinnCore.Common.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ISourceControl sourceControl,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            ILogger<RepositorySI> logger)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -65,6 +69,7 @@ namespace AltinnCore.Common.Services.Implementation
             _gitea = gitea;
             _sourceControl = sourceControl;
             _loggerFactory = loggerFactory;
+            _logger = logger;
         }
 
         /// <summary>
@@ -168,6 +173,58 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Creates the application metadata file
+        /// </summary>
+        /// <param name="applicationOwnerId">the application owner</param>
+        /// <param name="applicationId">the application id</param>
+        public void CreateApplicationMetadata(string applicationOwnerId, string applicationId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            ApplicationMetadata appMetadata = new ApplicationMetadata
+            {
+                Id = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId),
+                VersionId = null,
+                ApplicationOwnerId = applicationOwnerId,
+                CreatedDateTime = DateTime.UtcNow,
+                CreatedBy = developer,
+                LastChangedDateTime = DateTime.UtcNow,
+                LastChangedBy = developer
+            };
+
+            if (appMetadata.Title == null)
+            {
+                appMetadata.Title = new Dictionary<string, string>();
+            }
+            
+            appMetadata.Title.Add("nb-no", applicationId);
+            if (appMetadata.Forms == null)
+            {
+                appMetadata.Forms = new List<ApplicationForm>();
+            }
+
+            appMetadata.Forms.Add(new ApplicationForm
+            {
+                Id = "default",
+                AllowedContentType = new List<string>() { "application/xml" },
+                ShouldEncrypt = true,
+            });
+
+            string metaDataDir = _settings.GetMetadataPath(
+                                    applicationOwnerId,
+                                    applicationId,
+                                    developer);
+            DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
+            if (!metaDirectoryInfo.Exists)
+            {
+                metaDirectoryInfo.Create();
+            }
+
+            string metadata = JsonConvert.SerializeObject(appMetadata);
+            string filePath = metaDataDir + _settings.ApplicationMetadataFileName;
+            File.WriteAllText(filePath, metadata, Encoding.UTF8);
+        }
+
+        /// <summary>
         /// Updates serviceMetadata
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -180,6 +237,90 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
                 string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceMetadataFileName;
+
+                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public bool AddMetadataForAttachment(string org, string applicationId, string applicationMetadata)
+        {
+            try
+            {
+                ApplicationForm formMetadata = JsonConvert.DeserializeObject<ApplicationForm>(applicationMetadata);
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
+                existingApplicationMetadata.Forms.Add(formMetadata);
+
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+
+                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public bool UpdateMetadataForAttachment(string org, string applicationId, string applicationMetadata)
+        {
+            try
+            {
+                dynamic attachmentMetadata = JsonConvert.DeserializeObject(applicationMetadata);
+                string attachmentId = attachmentMetadata.GetValue("id").Value;
+                string fileTypes = attachmentMetadata.GetValue("fileType") == null ? "all" : attachmentMetadata.GetValue("fileType").Value;
+                string[] fileType = fileTypes.Split(",");
+                ApplicationForm applicationForm = new ApplicationForm();
+                if (applicationForm.AllowedContentType == null)
+                {
+                    applicationForm.AllowedContentType = new List<string>();
+                }
+
+                foreach (string type in fileType)
+                {
+                    applicationForm.AllowedContentType.Add(MimeTypeMap.GetMimeType(type));
+                }
+
+                applicationForm.Id = attachmentMetadata.GetValue("id").Value;
+                applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
+                applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
+                               
+                DeleteMetadataForAttachment(org, applicationId, attachmentId);
+                string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
+                AddMetadataForAttachment(org, applicationId, metadataAsJson);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public bool DeleteMetadataForAttachment(string org, string applicationId, string id)
+        {
+            try
+            {
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
+
+                if (existingApplicationMetadata.Forms != null)
+                {
+                    ApplicationForm removeForm = existingApplicationMetadata.Forms.Find(m => m.Id == id);
+                    existingApplicationMetadata.Forms.Remove(removeForm);
+                }
+
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
@@ -208,7 +349,25 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch (Exception ex)
             {
-                throw new Exception("Something went wrong when fetching service metadata ", ex);
+                _logger.LogError("Something went wrong when fetching service metadata ", ex);
+                return null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public ApplicationMetadata GetApplicationMetadata(string org, string applicationId)
+        {
+            string filedata = string.Empty;
+            string filename = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+            try
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+                return JsonConvert.DeserializeObject<ApplicationMetadata>(filedata);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Something went wrong when fetching service metadata. {0}", ex);
+                return null;
             }
         }
 
@@ -905,31 +1064,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a new service owner folder in the repository location and saves the given configuration
-        /// </summary>
-        /// <param name="ownerConfig">The service owner configuration</param>
-        /// <returns>Was the creation successful</returns>
-        public bool CreateOrg(OrgConfiguration ownerConfig)
-        {
-            string filename = _settings.GetOrgPath(ownerConfig.Code) + ownerConfig.Code + "/config.json";
-            bool created = false;
-
-            if (!File.Exists(filename))
-            {
-                new FileInfo(filename).Directory.Create();
-                using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
-                using (StreamWriter streamWriter = new StreamWriter(fileStream))
-                {
-                    streamWriter.WriteLine(JsonConvert.SerializeObject(ownerConfig));
-                }
-
-                created = true;
-            }
-
-            return created;
-        }
-
-        /// <summary>
         /// Creates a new service folder under the given <paramref name="owner">service owner</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
@@ -960,10 +1094,22 @@ namespace AltinnCore.Common.Services.Implementation
                         new FileInfo(filename).Directory.Create();
                     }
 
-                    using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
-                    using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                    Stream fileStream = null;
+                    try
                     {
-                        streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
+                        fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite);
+                        using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                        {
+                            fileStream = null;
+                            streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
+                        }
+                    }
+                    finally
+                    {
+                        if (fileStream != null)
+                        {
+                            fileStream.Dispose();
+                        }
                     }
                 }
 
@@ -975,6 +1121,7 @@ namespace AltinnCore.Common.Services.Implementation
                 };
 
                 CreateServiceMetadata(metadata);
+                CreateApplicationMetadata(owner, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
@@ -1103,27 +1250,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// The get zip archive.
-        /// </summary>
-        /// <param name="details">the service package details</param>
-        /// <returns>
-        /// The <see cref="ZipArchive"/>.
-        /// </returns>
-        public ZipArchive GetZipArchive(ServicePackageDetails details)
-        {
-            Guard.AssertArgumentNotNull(details, nameof(details));
-            string packageDirectory = _settings.GetServicePackagesPath(details.Organization, details.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string filename = packageDirectory + details.PackageName;
-
-            if (!File.Exists(filename))
-            {
-                throw new ArgumentException("Package detail file does not exist", nameof(details));
-            }
-
-            return ZipFile.OpenRead(filename);
-        }
-
-        /// <summary>
         /// Updates rules for a service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -1202,8 +1328,9 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError("Unable to verify if there exist a remote repo for codelist", ex);
             }
 
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: Constants.General.CodeListRepository, Readme: "Kodelister", Description: "Dette er repository for kodelister for " + org);
@@ -1213,15 +1340,10 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError("Unable to clone remote repo for codelist", ex);
             }
-        }
-
-        private string GetCodeListRepoForOrg(string org)
-        {
-            // TODO: FIND OUT WHAT SHOULD BE HERE
-            return $"http://altinn3.no/{org}/codelists.git";
         }
 
         /// <summary>
@@ -1288,9 +1410,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="name">The name on config</param>
-        /// <param name="codeList">The content</param>
+        /// <param name="codelist">The content</param>
         /// <returns>A boolean indicating if the code list was successfully saved</returns>
-        public bool SaveCodeList(string org, string service, string name, string codeList)
+        public bool SaveCodeList(string org, string service, string name, string codelist)
         {
             try
             {
@@ -1312,7 +1434,7 @@ namespace AltinnCore.Common.Services.Implementation
                 filePath += $"/codelists/{name}.json";
 
                 new FileInfo(filePath).Directory.Create();
-                File.WriteAllText(filePath, codeList, Encoding.UTF8);
+                File.WriteAllText(filePath, codelist, Encoding.UTF8);
             }
             catch
             {
@@ -1666,22 +1788,38 @@ namespace AltinnCore.Common.Services.Implementation
             return fileContent;
         }
 
-        private void CheckAndCreateDeveloperFolder()
+        /// <inheritdoc/>
+        public bool UpdateServiceInformationInApplicationMetadata(string org, string applicationId, ServiceConfiguration applicationInformation)
         {
-            string path = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+            try
             {
-                path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
+                ApplicationMetadata existingApplicationMetadata = GetApplicationMetadata(org, applicationId);
+
+                if (existingApplicationMetadata.Title == null)
+                {
+                    existingApplicationMetadata.Title = new Dictionary<string, string>();
+                }
+
+                if (existingApplicationMetadata.Title.ContainsKey("nb-no"))
+                {
+                    existingApplicationMetadata.Title["nb-no"] = applicationInformation.ServiceName;
+                }
+                else
+                {
+                    existingApplicationMetadata.Title.Add("nb-no", applicationInformation.ServiceName);
+                }                   
+
+                string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
+                string filePath = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+
+                File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
-            else
+            catch
             {
-                path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
+                return false;
             }
 
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
+            return true;
         }
 
         private static string ViewResourceKey(string viewName)
@@ -1818,26 +1956,6 @@ namespace AltinnCore.Common.Services.Implementation
             if (sourceFile != null && sourceFile.Exists)
             {
                 sourceFile.CopyTo(destFileName);
-            }
-        }
-
-        private void CreateInitialStyles(string org, DirectoryInfo targetDirectory)
-        {
-            string destFileName = Path.Combine(targetDirectory.FullName, _settings.RuntimeCssFileName);
-            if (!File.Exists(destFileName))
-            {
-                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.RuntimeCssFileName, org);
-                if (sourceFile != null && sourceFile.Exists)
-                {
-                    sourceFile.CopyTo(destFileName);
-                }
-            }
-
-            string output = _settings.GetStylesConfig();
-            string stylesConfigPath = Path.Combine(targetDirectory.FullName, _settings.ServiceStylesConfigFileName);
-            if (!File.Exists(stylesConfigPath))
-            {
-                File.WriteAllText(stylesConfigPath, output);
             }
         }
 

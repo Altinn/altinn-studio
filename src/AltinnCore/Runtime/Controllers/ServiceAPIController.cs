@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
@@ -44,11 +47,12 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IInstance _instance;
         private readonly IExecution _execution;
         private readonly IProfile _profile;
-        private UserHelper _userHelper;
+        private readonly UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflow _workflowSI;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
+        private readonly IInstanceEvent _event;
 
         private const string FORM_ID = "default";
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
@@ -71,6 +75,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="instanceSI">The instance si</param>
         /// <param name="platformSI">The platform si</param>
         /// <param name="data">the data service</param>
+        /// <param name="eventSI">the instance event service handler</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             IOptions<GeneralSettings> generalSettings,
@@ -86,7 +91,8 @@ namespace AltinnCore.Runtime.Controllers
             IWorkflow workflowSI,
             IInstance instanceSI,
             IPlatformServices platformSI,
-            IData data)
+            IData data,
+            IInstanceEvent eventSI)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -104,6 +110,7 @@ namespace AltinnCore.Runtime.Controllers
             _instance = instanceSI;
             _platformSI = platformSI;
             _data = data;
+            _event = eventSI;
         }
 
         /// <summary>
@@ -414,7 +421,7 @@ namespace AltinnCore.Runtime.Controllers
 
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
             Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
-            
+
             // Save Formdata to database
             this._data.UpdateData(
                 serviceModel,
@@ -424,6 +431,22 @@ namespace AltinnCore.Runtime.Controllers
                 service,
                 requestContext.UserContext.ReporteeId,
                 dataId);
+
+            // Create and store instance saved event
+            if (apiMode.Equals(ApiMode.Update))
+            {
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
+                    EventType = InstanceEventType.Saved.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
+                    UserId = requestContext.UserContext.UserId,
+                    WorkflowStep = instance.CurrentWorkflowStep
+                };
+
+                await _event.SaveInstanceEvent(instanceEvent, org, service);
+            }
 
             if (apiMode.Equals(ApiMode.Complete))
             {
@@ -548,53 +571,6 @@ namespace AltinnCore.Runtime.Controllers
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
 
             return Ok(serviceModel);
-        }
-
-        /// <summary>
-        /// Gets url for uploading attachment
-        /// </summary>
-        /// <param name="reportee">The reportee</param>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="instanceId">The instance ID</param>
-        /// <param name="attachmentType">The attachment type id</param>
-        /// <param name="fileName">The name of the file to be uploaded</param>
-        [Authorize]
-        [HttpGet]
-        public IActionResult GetAttachmentUploadUrl(int reportee, string org, string service, Guid instanceId, string attachmentType, string fileName)
-        {
-            return Content(_form.GetAttachmentUploadUrl(org, service, reportee, instanceId, attachmentType, fileName), "text/plain", Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Gets url for deleting attachment
-        /// </summary>
-        /// <param name="reportee">The reportee</param>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="instanceId">The instance ID</param>
-        /// <param name="attachmentType">The attachment type id</param>
-        /// <param name="fileName">The name of the file to be deleted</param>
-        /// <param name="fileId">The id of the file to be deleted</param>
-        [Authorize]
-        [HttpGet]
-        public IActionResult GetAttachmentDeleteUrl(int reportee, string org, string service, Guid instanceId, string attachmentType, string fileName, string fileId)
-        {
-            return Content(_form.GetAttachmentDeleteUrl(org, service, reportee, instanceId, attachmentType, fileName, fileId), "text/plain", Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Gets url for attachment list
-        /// </summary>
-        /// <param name="reportee">The reportee</param>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="instanceId">The instance ID</param>
-        [Authorize]
-        [HttpGet]
-        public IActionResult GetAttachmentListUrl(int reportee, string org, string service, Guid instanceId)
-        {
-            return Content(_form.GetAttachmentListUrl(org, service, reportee, instanceId), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
@@ -752,6 +728,21 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             return serviceModel;
+        }
+
+        /// <summary>
+        /// Method that gets the current service state
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The form id</param>
+        /// <returns>The current state object</returns>
+        [HttpGet]
+        [Authorize]
+        public ServiceState GetCurrentState(string org, string service, int partyId, Guid instanceId)
+        {
+            return _workflowSI.GetCurrentState(instanceId, org, service, partyId);
         }
     }
 }

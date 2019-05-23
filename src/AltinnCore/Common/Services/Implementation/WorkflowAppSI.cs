@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -24,7 +25,7 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
-        private readonly PlatformStorageSettings _platformStorageSettings;
+        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
 
@@ -34,24 +35,24 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="testdataRepositorySettings">The test data repository settings</param>
-        /// <param name="platformStorageSettings">the platform storage settings</param>
+        /// <param name="platformSettings">the platform settings</param>
         /// <param name="generalSettings">the general settings</param>
         public WorkflowAppSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<PlatformStorageSettings> platformStorageSettings,
+            IOptions<PlatformSettings> platformSettings,
             IOptions<GeneralSettings> generalSettings)
         {
             _settings = repositorySettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
-            _platformStorageSettings = platformStorageSettings.Value;
+            _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
         }
 
         /// <inheritdoc/>
-        public ServiceState GetInitialServiceState(string owner, string service, int reporteeId)
+        public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId)
         {            
             // Read the workflow template
             string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
@@ -59,24 +60,17 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState InitializeServiceState(Guid id, string owner, string service, int reporteeId)
+        public string GetUrlForCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, WorkflowStep currentState)
         {
-            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
-            return WorkflowHelper.GetInitialWorkflowState(workflowData);
+            return WorkflowHelper.GetUrlForCurrentState(instanceId, applicationOwnerId, applicationId, currentState);
         }
 
         /// <inheritdoc/>
-        public string GetUrlForCurrentState(Guid instanceId, string owner, string service, WorkflowStep currentState)
-        {
-            return WorkflowHelper.GetUrlForCurrentState(instanceId, owner, service, currentState);
-        }
-
-        /// <inheritdoc/>
-        public ServiceState GetCurrentState(Guid instanceId, string owner, string service, int instanceOwnerId)
+        public ServiceState GetCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -102,9 +96,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string owner, string service, int instanceOwnerId)
+        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
-            ServiceState currentState = GetCurrentState(instanceId, owner, service, instanceOwnerId);
+            ServiceState currentState = GetCurrentState(instanceId, applicationOwnerId, applicationId, instanceOwnerId);
             string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
             return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }

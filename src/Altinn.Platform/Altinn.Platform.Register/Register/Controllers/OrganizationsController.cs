@@ -8,7 +8,7 @@ namespace Altinn.Platform.Register.Controllers
     /// <summary>
     /// The organizations controller
     /// </summary>
-    [Route("api/v1/[controller]")]
+    [Route("register/api/v1/[controller]")]
     public class OrganizationsController : Controller
     {
         private readonly IOrganizations _organizationsWrapper;

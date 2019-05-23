@@ -1,7 +1,8 @@
-#dotnet:2.1.300-sdk
-FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS build
+#dotnet:2.2-sdk
+FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a7633d0b374470 AS build
 WORKDIR /src/AltinnCore/
 COPY src/AltinnCore/Common ./Common
+COPY src/AltinnCore/Authentication ./Authentication
 COPY src/AltinnCore/ServiceLibrary ./ServiceLibrary
 COPY src/AltinnCore/Templates ./Templates
 COPY src/AltinnCore/Testdata ./Testdata
@@ -14,11 +15,12 @@ RUN dotnet publish AltinnCore.Runtime.csproj -c Release -o /app_output
 # Altinn-Studio runtime app
 FROM altinn-runtime-app:latest AS generate-runtime-app
 
-#dotnet:2.1.300-sdk
-FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS final
+#dotnet:2.2-sdk
+FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a7633d0b374470 AS final
 EXPOSE 80
 WORKDIR /AltinnService
 COPY src/AltinnCore/Testdata /Testdata
+COPY src/AltinnCore/Templates /Templates
 WORKDIR /app
 COPY --from=build /app_output .
 COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot/runtime/js/react/runtime.js

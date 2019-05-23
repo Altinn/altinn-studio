@@ -1,66 +1,70 @@
-﻿@model IList<string>
+@model IList<string>
 @{ViewBag.Title = "Tekster"; }
 @section scripts {
-    <script src="~/designer/js/lib/jsoneditor.js" asp-append-version="true"></script>
+  <script src="~/designer/js/lib/jsoneditor.js" asp-append-version="true"></script>
+}
+@{
+  string org = ViewContext.RouteData.Values["org"] as string;
+  string service = ViewContext.RouteData.Values["service"] as string;
 }
 @section styles {
-    <style>
-        #editor_holder > div > h3 {
-            display: none;
-        }
-    </style>
+  <style>
+    #editor_holder > div > h3 {
+      display: none;
+    }
+  </style>
 }
 <div class="alert alert-success" role="alert" id="saveConfirmation" style="display:none">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-    <div id="message"></div>
-    <pre id="json"></pre>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+  <div id="message"></div>
+  <pre id="json"></pre>
 </div>
 
 <div class="mx-auto" style="width: 12em;">
-    <input id="search" type="search" class="form-control" placeholder="Søk tekster..." autocomplete="on" /> 
-    <span class="fa fa-search" aria-hidden="true"></span>
+  <input id="search" type="search" class="form-control" placeholder="Søk tekster..." autocomplete="on" />
+  <span class="fa fa-search" aria-hidden="true"></span>
 </div>
 
 <ul id="tabs" class="nav nav-tabs my-2">
-    <li class="nav-item">
-        <a class="nav-link active" data-toggle="tab" id="nb-NO" href="#nb-NO" role="tab">Bokmål</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" id="nn-NO" href="#nn-NO" role="tab">Nynorsk</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" id="en" href="#en" role="tab">Engelsk</a>
-    </li>
-    @foreach (string language in Model)
+  <li class="nav-item">
+    <a class="nav-link active" data-toggle="tab" id="nb-NO" href="#nb-NO" role="tab">Bokmål</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-toggle="tab" id="nn-NO" href="#nn-NO" role="tab">Nynorsk</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-toggle="tab" id="en" href="#en" role="tab">Engelsk</a>
+  </li>
+  @foreach (string language in Model)
+  {
+    if (language != "nb-NO" && language != "nn-NO" && language != "en")
     {
-        if (language != "nb-NO" && language != "nn-NO" && language != "en") 
-        {
-            <li class="nav-item">
-                <a class="nav-link" data-toggle="tab" id="@language" href="#@language" role="tab"></a>
-            </li>
-        }
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" id="@language" href="#@language" role="tab"></a>
+      </li>
     }
-    <li id="newtab" class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#new" role="tab"><i class="fas fa-fw fa-plus" style="color:green;" aria-hidden="true"></i>Legg til språk</a>
-    </li>
+  }
+  <li id="newtab" class="nav-item">
+    <a class="nav-link" data-toggle="tab" href="#new" role="tab"><i class="fas fa-fw fa-plus" style="color:green;" aria-hidden="true"></i>Legg til språk</a>
+  </li>
 </ul>
 
 <div id="editor_holder"></div>
 
 <div role="tabpanel" class="tab-pane" id="new" style="display:none;">
-    <form>
-        <div class="input-group" style="width: 20em;">
-            <select id="language-list" class="form-control"></select>
-        </div>
-        <br />
-        <input type="button" class="btn btn-primary" value="Legg til språk" onclick="addLanguage(document.getElementById('language-list').selectedIndex)" />
-    </form>
+  <form>
+    <div class="input-group" style="width: 20em;">
+      <select id="language-list" class="form-control"></select>
+    </div>
+    <br />
+    <input type="button" class="btn btn-primary" value="Legg til språk" onclick="addLanguage(document.getElementById('language-list').selectedIndex)" />
+  </form>
 </div>
 <br />
 <div class="alert alert-success" role="alert" id="deleteConfirmation" style="display:none">
-    <span id="deleteConfirmation"></span>
+  <span id="deleteConfirmation"></span>
 </div>
 
 <input id="saveTextsBtn" type="button" class="btn btn-primary" value="Lagre tekster" onclick="submitForm()" />
@@ -105,12 +109,12 @@ $(document).ready(function () {
                 }
             });
 
-            show ? tableRowsClass.eq(i).show() :  tableRowsClass.eq(i).hide();   
+            show ? tableRowsClass.eq(i).show() :  tableRowsClass.eq(i).hide();
         });
-        
+
         //all tr elements are hidden
         if(tableRowsClass.children(':visible').length == 0)
-        {   
+        {
             $(".table th").hide();
             $(".table").before('<div class="search-no-result alert" role="alert">Fant ingen tekster...</div>');
         } else {
@@ -132,8 +136,8 @@ $(document).ready(function () {
 
         var dataCache;
         $.when(
-            $.ajax("@Url.Action("GetResourceSchema")"),
-            $.ajax("@Url.Action("GetResource")/" + t))
+            $.ajax("/designer/@org/@service/Text/GetResourceSchema"),
+            $.ajax("/designer/@org/@service/Text/GetResource/" + t))
             .done(function (a1, a2) {
                 var defaultJson = { language: t, resources: [] };
                 _schema = a1[0];
@@ -152,7 +156,7 @@ $(document).ready(function () {
             //e.relatedTarget // previous active tab
             if (t != "new") {
                 $.ajax({
-                    url: "@Url.Action("GetResource")/" + t,
+                    url: "/designer/@org/@service/Text/GetResource/" + t,
                     contentType: "application/json; charset=UTF-8",
                     success: function (data) {
                         if (_editor) _editor.destroy();
@@ -200,7 +204,7 @@ $(document).ready(function () {
             var jsonString = JSON.stringify(jsonData, null, 3);
 
             jQuery.post({
-                url: "@Url.Action("SaveResource")/" + t,
+                url: "/designer/@org/@service/Text/SaveResource/" + t,
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
                 success: function (data) {
@@ -244,7 +248,7 @@ $(document).ready(function () {
         $("#" + code).tab("show");
 
         jQuery.post({
-            url: "@Url.Action("SaveResource")/" + code,
+            url: "/designer/@org/@service/Text/SaveResource/" + code,
             contentType: "application/json; charset=UTF-8",
             data: jsonString,
             success: function (data) {
@@ -268,7 +272,7 @@ $(document).ready(function () {
         }
 
         $("#deleteConfirmation").text("Språk '" + currentTab.text() + "' er nå slettet.");
-        var deleteUrl = "@Url.Action("DeleteLanguage")/" + t;
+        var deleteUrl = "/designer/@org/@service/Text/DeleteLanguage/" + t;
 
         newTab.click();
         currentTab.parent().hide();
