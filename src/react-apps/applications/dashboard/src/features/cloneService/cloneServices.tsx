@@ -1,7 +1,6 @@
 import { Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as moment from 'moment';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
@@ -9,6 +8,7 @@ import AltinnBreadcrumb from '../../../../shared/src/components/AltinnBreadcrumb
 import AltinnButton from '../../../../shared/src/components/AltinnButton';
 import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import { formatNameAndDate } from '../../../../shared/src/utils/formatDate';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
 
@@ -104,11 +104,6 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     this._isMounted = false;
   }
 
-  public formatNameAndDate(name: string, date: string) {
-    const returnDate = date ? moment.utc(new Date(date)).format('DD.MM.YYYY HH:mm') : date;
-    return name ? `${name} ${returnDate}` : returnDate;
-  }
-
   public redirectToCode = () => {
     const repoInfo = this.getCurrentRepositoryInfo();
     window.location.assign(`/${repoInfo.full_name}`);
@@ -177,11 +172,11 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
             <div className={classes.metadataStyle}>
               <Typography className={classes.fontSize_16}>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.created_time', this.props.language)} {this.formatNameAndDate('', repoInfo.created_at)}
+                {getLanguageFromKey('dashboard.created_time', this.props.language)} {formatNameAndDate('', repoInfo.created_at)}
               </Typography>
               <Typography className={classes.fontSize_16}>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {this.formatNameAndDate(this.state.lastChangedBy, repoInfo.updated_at)}
+                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {formatNameAndDate(this.state.lastChangedBy, repoInfo.updated_at)}
               </Typography>
             </div>
             <div className={classes.descriptionStyle}>
