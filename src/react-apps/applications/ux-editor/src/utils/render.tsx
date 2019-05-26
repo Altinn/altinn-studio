@@ -77,13 +77,14 @@ export function renderSelectTextFromResources(
         <CreatableSelect
           styles={customInput}
           options={resources}
-          defaultValue={''}
+          defaultValue={placeholder ?
+            { value: placeholder, label: truncate(getTextResource(placeholder, textResources), 40) } : ''}
           // tslint:disable-next-line:jsx-no-lambda
           onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
           placeholder={placeholder ?
             truncate(getTextResource(placeholder, textResources), 40)
-            : language.general.search}
+            : language.ux_editor[labelText]}
           // tslint:disable-next-line:jsx-no-lambda
           formatCreateLabel={(inputValue: string) => formatCreateTextLabel(inputValue, language)}
           // tslint:disable-next-line:jsx-no-lambda
@@ -93,13 +94,14 @@ export function renderSelectTextFromResources(
         <Select
           styles={customInput}
           options={resources}
-          defaultValue={''}
+          defaultValue={placeholder ?
+            { value: placeholder, label: truncate(getTextResource(placeholder, textResources), 40) } : ''}
           // tslint:disable-next-line:jsx-no-lambda
           onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
           placeholder={placeholder ?
             truncate(getTextResource(placeholder, textResources), 40)
-            : language.general.search}
+            : language.ux_editor[labelText]}
           // tslint:disable-next-line:jsx-no-lambda
           noOptionsMessage={() => noOptionsMessage(language)}
         />
