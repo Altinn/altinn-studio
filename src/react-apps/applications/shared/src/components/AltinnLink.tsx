@@ -29,7 +29,7 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnLink extends React.Component<IAltinnLinkCompontentProvidedProps, IAltinnLinkComponentState> {
+export class AltinnLink extends React.Component<IAltinnLinkCompontentProvidedProps, IAltinnLinkComponentState> {
   public render() {
     const { classes } = this.props;
     return (
