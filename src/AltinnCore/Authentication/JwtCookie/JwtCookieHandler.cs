@@ -43,7 +43,7 @@ namespace AltinnCore.Authentication.JwtCookie
             _keyVaultSettings = keyVaultSettings.Value;
             _certificateSettings = certSettings.Value;
         }
-        
+
         /// <summary>
         /// The handler calls methods on the events which give the application control at certain points where processing is occurring. 
         /// If it is not provided a default instance is supplied which does nothing when the methods are called.
@@ -241,6 +241,36 @@ namespace AltinnCore.Authentication.JwtCookie
         protected override Task HandleSignOutAsync(AuthenticationProperties properties)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Retrieves JWT token value from HTTP context.
+        /// </summary>
+        /// <param name="context">The HTTP context that contains the token</param>
+        /// <returns>The JWT token string.</returns>
+        protected string GetTokenFromContext(HttpContext context)
+        {
+            // Get the cookie from request 
+            string token = context.Request.Cookies[Options.Cookie.Name];
+
+            // If no cookie present 
+            if (string.IsNullOrEmpty(token))
+            {
+                string authorization = Request.Headers["Authorization"];
+
+                // If no authorization header found, nothing to process further
+                if (string.IsNullOrEmpty(authorization))
+                {
+                    return string.Empty;
+                }
+
+                if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    token = authorization.Substring("Bearer ".Length).Trim();
+                }
+            }
+
+            return token;
         }
 
         private string GetToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
