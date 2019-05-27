@@ -2,11 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/';
+import { makeGetLayout } from '../selectors/getLayoutData';
+import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
 import { IRuntimeState } from '../types';
 import { IComponentValidations } from '../types/global';
 import { renderValidationMessagesForComponent } from '../utils/render';
-import { makeGetLayout } from '../selectors/getLayoutData';
-import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
 
 export interface IProvidedProps {
   id: string;
@@ -137,7 +137,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       ...props,
     });
     return mapStateToProps;
-  }
+  };
 
   return connect(makeMapStateToProps)(FormComponentWithHandlers);
 };
