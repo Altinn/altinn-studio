@@ -1,8 +1,5 @@
-// import React, { Component } from 'react';
-
-import * as React from 'react';
-
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import * as React from 'react';
 
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 const theme = createMuiTheme(altinnTheme);
@@ -18,6 +15,6 @@ export default class Wrapper extends React.Component {
           {this.props.children}
         </div>
       </MuiThemeProvider>
-    )
+    );
   }
 }
