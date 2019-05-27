@@ -130,8 +130,6 @@ export class FileUploadComponentClass
   }
 
   public getComponentValidations = (): any => {
-    console.log('getComponentValidations');
-    console.log('validationMessages', this.props.validationMessages);
     const { validations } = this.state;
     let { validationMessages } = this.props;
     if (!validationMessages || !validationMessages.simpleBinding) {

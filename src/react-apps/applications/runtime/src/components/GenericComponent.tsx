@@ -29,7 +29,7 @@ export interface IGenericComponentProps extends IProvidedProps {
   isValid: boolean;
   textResources: ITextResource[];
   layoutElement: ILayoutContainer | ILayoutComponent;
-  componentValidations: IComponentValidations;
+  validationMessages: IComponentValidations;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps, any> {
@@ -93,7 +93,6 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
         getTextResource={this.getTextResource}
         formData={this.getFormData()}
         isValid={this.props.isValid}
-        validationMessages={this.props.componentValidations}
       />
     );
   }
@@ -125,7 +124,7 @@ const makeMapStateToProps = () => {
       isValid: isComponentValid(state.formValidations.validations[props.id]),
       textResources: state.formResources.languageResource.resources,
       formData: GetFormDataSelector(state, props),
-      componentValidations: GetComponentValidations(state, props),
+      validationMessages: GetComponentValidations(state, props),
       ...props,
     };
   };

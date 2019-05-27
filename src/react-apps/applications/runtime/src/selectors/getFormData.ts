@@ -1,6 +1,5 @@
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect';
 import { IRuntimeState } from '../types';
-import { IValidations } from '../types/global';
 // tslint:disable-next-line:no-var-requires
 const isEqual = require('lodash.isequal');
 

@@ -5,6 +5,8 @@ import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBi
 import { IRuntimeState } from '../types';
 import { IComponentValidations } from '../types/global';
 import { renderValidationMessagesForComponent } from '../utils/render';
+import { makeGetLayout } from '../selectors/getLayoutData';
+import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
 
 export interface IProvidedProps {
   id: string;
@@ -124,14 +126,18 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     }
 
   }
+  const makeMapStateToProps = () => {
+    const getLayout = makeGetLayout();
+    const getComponentValidations = makeGetComponentValidationsSelector();
+    const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
+      language: state.language.language,
+      textResources: state.formResources.languageResource.resources,
+      componentValidations: getComponentValidations(state, props),
+      layout: getLayout(state),
+      ...props,
+    });
+    return mapStateToProps;
+  }
 
-  const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
-    language: state.language.language,
-    textResources: state.formResources.languageResource.resources,
-    componentValidations: state.formValidations.validations ? state.formValidations.validations[props.id] : {},
-    layout: state.formLayout.layout,
-    ...props,
-  });
-
-  return connect(mapStateToProps)(FormComponentWithHandlers);
+  return connect(makeMapStateToProps)(FormComponentWithHandlers);
 };
