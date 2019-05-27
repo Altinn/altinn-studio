@@ -16,7 +16,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="item">the application metadata object</param>
         /// <returns></returns>
-        Task<ApplicationMetadata> Create(ApplicationMetadata item);
+        Task<Application> Create(Application item);
 
         /// <summary>
         /// Delets an instance.
@@ -31,21 +31,21 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="applicationOwnerId">application owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        Task<List<ApplicationMetadata>> ListApplications(string applicationOwnerId);
+        Task<List<Application>> ListApplications(string applicationOwnerId);
 
         /// <summary>
         /// Get the instance based on the input parameters
         /// </summary>
-        /// <param name="applicationId">application id</param>
+        /// <param name="appId">application id</param>
         /// <param name="applicationOwnerId">applicaiton owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        Task<ApplicationMetadata> FindOne(string applicationId, string applicationOwnerId);
+        Task<Application> FindOne(string appId, string applicationOwnerId);
 
         /// <summary>
         /// Update instance for a given form id
         /// </summary>
         /// <param name="item">the instance</param>
         /// <returns>The instance</returns>
-        Task<ApplicationMetadata> Update(ApplicationMetadata item);
+        Task<Application> Update(Application item);
     }
 }

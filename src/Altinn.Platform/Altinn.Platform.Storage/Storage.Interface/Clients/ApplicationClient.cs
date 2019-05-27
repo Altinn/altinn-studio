@@ -10,7 +10,7 @@ using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Client
 {
-    public class ApplicationMetadataClient
+    public class ApplicationClient
     {
         private readonly HttpClient client;
         private readonly string endpointUri;
@@ -18,7 +18,7 @@ namespace Altinn.Platform.Storage.Client
 
         public readonly string AppId = "{org}/{app}";
         
-        public ApplicationMetadataClient(HttpClient client, string enpointUri = "")
+        public ApplicationClient(HttpClient client, string enpointUri = "")
         {
             this.client = client;
             this.endpointUri = enpointUri;

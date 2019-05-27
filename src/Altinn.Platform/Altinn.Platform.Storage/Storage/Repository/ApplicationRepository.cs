@@ -13,7 +13,8 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Repository
 {
     /// <summary>
-    /// Handles applicationMetadata repository
+    /// Handles applicationMetadata repository. Notice that the all methods should modify the Id attribute of the
+    /// Application, since cosmosDb fails if Id contains slashes '/'. 
     /// </summary>
     public class ApplicationRepository : IApplicationRepository
     {
@@ -58,21 +59,55 @@ namespace Altinn.Platform.Storage.Repository
             _client.OpenAsync();
         }
 
-        /// <inheritdoc/>
-        public async Task<ApplicationMetadata> Create(ApplicationMetadata item)
-        {            
-            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
-            Document document = createDocumentResponse.Resource;
+        private string AppIdToCosmosId(string appId)
+        {
+            string[] parts = appId.Split("/");
 
-            ApplicationMetadata instance = JsonConvert.DeserializeObject<ApplicationMetadata>(document.ToString());
+            return $"{parts[0]}-{parts[1]}";
+        }
 
-            return instance;         
+        private string CosmosIdToAppId(string cosmosId)
+        {
+            int firstDash = cosmosId.IndexOf("-");
+            string app = cosmosId.Substring(firstDash + 1);
+            string org = cosmosId.Split("-")[0];
+
+            return $"{org}/{app}";
+        }
+
+        private ApplicationMetadata PostProcess(ApplicationMetadata application)
+        {
+            application.Id = CosmosIdToAppId(application.Id);
+
+            return application;
+        }
+
+        private List<ApplicationMetadata> PostProcess(List<ApplicationMetadata> applications)
+        {
+            applications.ForEach(a => a.Id = CosmosIdToAppId(a.Id));
+
+            return applications;
         }
 
         /// <inheritdoc/>
-        public async Task<bool> Delete(string applicationId, string applicationOwnerId)
+        public async Task<ApplicationMetadata> Create(ApplicationMetadata item)
         {
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, applicationId);
+            item.Id = AppIdToCosmosId(item.Id);
+
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
+            Document document = createDocumentResponse.Resource;
+
+            ApplicationMetadata instance = JsonConvert.DeserializeObject<ApplicationMetadata>(document.ToString());            
+
+            return PostProcess(instance);         
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> Delete(string appId, string applicationOwnerId)
+        {
+            string cosmosAppId = AppIdToCosmosId(appId);
+
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
 
             ResourceResponse<Document> instance = await _client
                 .DeleteDocumentAsync(
@@ -91,22 +126,24 @@ namespace Altinn.Platform.Storage.Repository
                 .AsDocumentQuery();
 
             FeedResponse<ApplicationMetadata> result = await query.ExecuteNextAsync<ApplicationMetadata>();
-            List<ApplicationMetadata> instances = result.ToList<ApplicationMetadata>();
+            List<ApplicationMetadata> applications = result.ToList<ApplicationMetadata>();
 
-            return instances;          
+            return PostProcess(applications);          
         }
 
         /// <inheritdoc/>
-        public async Task<ApplicationMetadata> FindOne(string applicationId, string applicationOwnerId)
+        public async Task<ApplicationMetadata> FindOne(string appId, string applicationOwnerId)
         {
-            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, applicationId);
+            string cosmosAppId = AppIdToCosmosId(appId);
+
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
 
             ApplicationMetadata application = await _client
                 .ReadDocumentAsync<ApplicationMetadata>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(applicationOwnerId) });
                      
-            return application;
+            return PostProcess(application);
         }
 
         /// <inheritdoc/>
@@ -124,7 +161,7 @@ namespace Altinn.Platform.Storage.Repository
 
             ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(storedApplication);
 
-            return application;
+            return PostProcess(application);
         }
     }
 }

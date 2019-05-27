@@ -122,7 +122,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // check if metadata exists
-            ApplicationMetadata appInfo = GetApplicationInformation(applicationId);
+            Application appInfo = GetApplicationInformation(applicationId);
             if (appInfo == null)
             {
                 return Forbid($"Application Metadata is not registered for this applicationId: {applicationId}");
@@ -130,7 +130,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             DateTime creationTime = DateTime.UtcNow;
 
-            string applicationOwnerId = appInfo.ApplicationOwnerId;
+            string applicationOwnerId = appInfo.Org;
 
             Instance instance = new Instance()
             {
@@ -139,8 +139,8 @@ namespace Altinn.Platform.Storage.Controllers
                 CreatedDateTime = creationTime,
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
-                ApplicationId = applicationId,
-                ApplicationOwnerId = applicationOwnerId,
+                AppId = applicationId,
+                Org = applicationOwnerId,
                 VisibleDateTime = creationTime,
             };
             
@@ -211,7 +211,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
                 else
                 {
-                    instance.IsDeleted = true;
+                    instance.InstanceState.IsDeleted = true;
                     instance.LastChangedBy = User.Identity.Name;
                     instance.LastChangedDateTime = DateTime.UtcNow;
 
@@ -226,18 +226,18 @@ namespace Altinn.Platform.Storage.Controllers
             }
         }
 
-        private ApplicationMetadata GetApplicationInformation(string applicationId)
+        private Application GetApplicationInformation(string appId)
         {
-            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
+            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(appId);
             try
             {
-                ApplicationMetadata application = _applicationRepository.FindOne(applicationId, applicationOwnerId).Result;
+                Application application = _applicationRepository.FindOne(appId, applicationOwnerId).Result;
 
                 return application;
             }
             catch (Exception e)
             {
-                logger.LogError($"Get application {applicationId} failed: {e.Message}");
+                logger.LogError($"Get application {appId} failed: {e}");
             }
 
             return null;

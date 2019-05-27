@@ -16,11 +16,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     /// test application controller.
     /// </summary>
-    public class ApplicationMetadataTests : IClassFixture<PlatformStorageFixture>, IDisposable
+    public class ApplicationTests : IClassFixture<PlatformStorageFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private readonly ApplicationMetadataClient applicationClient;
+        private readonly ApplicationClient applicationClient;
         private readonly string versionPrefix = "/storage/api/v1";
         private readonly string applicationOwnerId = "TEST";
 
@@ -29,14 +29,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
             .CreateLogger();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ApplicationMetadataTests"/> class.
+        /// Initializes a new instance of the <see cref="ApplicationTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
-        public ApplicationMetadataTests(PlatformStorageFixture fixture)
+        public ApplicationTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
-            this.applicationClient = new ApplicationMetadataClient(this.client);
+            this.applicationClient = new ApplicationClient(this.client);
         }
 
         /// <summary>
@@ -52,13 +52,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 string json = listResponse.Content.ReadAsStringAsync().Result;
            
-                List<ApplicationMetadata> applications = JsonConvert.DeserializeObject<List<ApplicationMetadata>>(json);
+                List<Application> applications = JsonConvert.DeserializeObject<List<Application>>(json);
 
-                foreach (ApplicationMetadata app in applications)
+                foreach (Application app in applications)
                 {
-                    string applicationId = app.Id;
+                    string appId = app.Id;
 
-                    string deleteUri = $"{versionPrefix}/applications/{applicationId}?hard=true";
+                    string deleteUri = $"{versionPrefix}/applications/{appId}?hard=true";
 
                     client.DeleteAsync(deleteUri);
                 }
@@ -71,9 +71,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             }
         }
 
-        private ApplicationMetadata CreateApplicationMetadata(string applicationId)
+        private Application CreateApplication(string applicationId)
         {
-            ApplicationMetadata appInfo = new ApplicationMetadata()
+            Application appInfo = new Application()
             {
                 Id = applicationId,
                 VersionId = "r33",
@@ -90,12 +90,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Create an application metadata object.
         /// </summary>
         [Fact]
-        public async void CreateApplicationMetadataHappyDays()
+        public async void CreateApplicationHappyDays()
         {
             string applicationId = "TEST-app20";
             string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
 
-            ApplicationMetadata appInfo = CreateApplicationMetadata(applicationId);
+            Application appInfo = CreateApplication(applicationId);
 
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
 
@@ -116,7 +116,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
 
-            ApplicationMetadata appInfo = CreateApplicationMetadata(applicationId);
+            Application appInfo = CreateApplication(applicationId);
 
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
 
@@ -132,14 +132,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string applicationId = "TEST-app21";
             string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
 
-            ApplicationMetadata appInfo = CreateApplicationMetadata(applicationId);
+            Application appInfo = CreateApplication(applicationId);
 
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
             
             postResponse.EnsureSuccessStatusCode();
 
             string json = await postResponse.Content.ReadAsStringAsync();
-            ApplicationMetadata existingApplication = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+            Application existingApplication = JsonConvert.DeserializeObject<Application>(json);
 
             // do the delete
             requestUri = $"{versionPrefix}/applications/{applicationId}";            
@@ -148,7 +148,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             deleteResponse.EnsureSuccessStatusCode();
 
             string content = await deleteResponse.Content.ReadAsStringAsync();
-            ApplicationMetadata softDeletedApplication = JsonConvert.DeserializeObject<ApplicationMetadata>(content);
+            Application softDeletedApplication = JsonConvert.DeserializeObject<Application>(content);
 
             Assert.NotEqual(softDeletedApplication.ValidTo, existingApplication.ValidTo);
 
@@ -165,7 +165,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
            
-            ApplicationMetadata appInfo = CreateApplicationMetadata(applicationId);
+            Application appInfo = CreateApplication(applicationId);
 
             // create one
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
@@ -180,7 +180,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             getResponse.EnsureSuccessStatusCode();
 
             string json = await getResponse.Content.ReadAsStringAsync();
-            ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(json);                
+            Application application = JsonConvert.DeserializeObject<Application>(json);                
 
             application.MaxSize = 2000;
 
@@ -195,7 +195,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             getResponse2.EnsureSuccessStatusCode();
 
             string json2 = await getResponse2.Content.ReadAsStringAsync();
-            ApplicationMetadata application2 = JsonConvert.DeserializeObject<ApplicationMetadata>(json2);
+            Application application2 = JsonConvert.DeserializeObject<Application>(json2);
 
             Assert.Equal(application.MaxSize, application2.MaxSize);
         }       
