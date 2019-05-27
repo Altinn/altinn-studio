@@ -1,13 +1,13 @@
 import * as React from 'react';
 
-export interface ISubmitProps {
+export interface IButtonProps {
   id: string;
   component: IFormComponent;
   text: string;
 }
 
-export class SubmitComponent
-  extends React.Component<ISubmitProps> {
+export class ButtonComponent
+  extends React.Component<IButtonProps> {
 
   public render() {
     return (
@@ -17,7 +17,7 @@ export class SubmitComponent
         className='a-btn a-btn-success'
         disabled={this.props.component.disabled}
       >
-        {this.props.text}
+        {this.props.text} - button
       </button>
     );
   }

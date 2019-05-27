@@ -8,7 +8,7 @@ import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
-import { SubmitComponent } from './widget/SubmitComponent';
+import { ButtonComponent } from './widget/ButtonComponent';
 
 export interface IComponentIcon {
   [key: string]: string;
@@ -34,7 +34,7 @@ export enum ComponentTypes {
   RadioButton,
   TextArea,
   FileUpload,
-  Submit,
+  Button,
   Container,
   AddressComponent,
 }
@@ -49,7 +49,7 @@ export const componentIcons: IComponentIcon = {
   RadioButtons: 'fa fa-radio-button',
   TextArea: 'fa fa-long-answer',
   FileUpload: 'fa fa-attachment',
-  Submit: 'fa fa-button',
+  Button: 'fa fa-button',
   AddressComponent: 'fa fa-address',
 };
 
@@ -141,12 +141,12 @@ export const schemaComponents: IComponent[] = [
     },
   },
   {
-    name: 'Submit',
-    Tag: SubmitComponent,
-    Type: ComponentTypes.Submit,
-    Icon: componentIcons.Submit,
+    name: 'Button',
+    Tag: ButtonComponent,
+    Type: ComponentTypes.Button,
+    Icon: componentIcons.Button,
     customProperties: {
-      textResourceId: 'Standard.Button.Submit',
+      textResourceId: 'Standard.Button.Button',
       customType: 'Standard',
     },
   },

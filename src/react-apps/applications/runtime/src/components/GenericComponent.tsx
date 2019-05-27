@@ -14,6 +14,7 @@ export interface IProvidedProps {
   type: string;
   textResourceBindings: ITextResourceBindings;
   dataModelBindings: IDataModelBindings;
+  unsavedChanges: boolean;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {
@@ -78,6 +79,7 @@ const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericC
   isValid: isComponentValid(state.formValidations.validations[props.id]),
   textResources: state.formResources.languageResource.resources,
   layoutElement: state.formLayout.layout.find((element) => element.id === props.id),
+  unsavedChanges: state.formData.unsavedChanges,
   ...props,
 });
 
