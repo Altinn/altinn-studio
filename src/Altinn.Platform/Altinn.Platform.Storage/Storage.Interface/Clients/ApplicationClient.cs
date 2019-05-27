@@ -15,9 +15,7 @@ namespace Altinn.Platform.Storage.Client
         private readonly HttpClient client;
         private readonly string endpointUri;
         private readonly string resourcePrefix = "storage/api/v1/applications";
-
-        public readonly string AppId = "{org}/{app}";
-        
+   
         public ApplicationClient(HttpClient client, string enpointUri = "")
         {
             this.client = client;
@@ -26,7 +24,7 @@ namespace Altinn.Platform.Storage.Client
 
         public Application CreateApplication(string appId, LanguageString title)
         {
-            Application appMetadata = new Application
+            Application application = new Application
             {
                 Id = appId,
                 Title = title,
@@ -39,21 +37,9 @@ namespace Altinn.Platform.Storage.Client
                 AllowedContentType = new List<string>() { "application/xml" }
             };
 
-            appMetadata.ElementTypes.Add(defaultElementType);
+            application.ElementTypes.Add(defaultElementType);
 
-            string url = endpointUri + resourcePrefix + "?appId=" + appId;
- 
-            HttpResponseMessage response = client.PostAsync(url, appMetadata.AsJson()).Result;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new ApplicationException($"Create failed: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-            
-            string json = response.Content.ReadAsStringAsync().Result;
-            Application application = JsonConvert.DeserializeObject<Application>(json);
-
-            return application;                     
+            return CreateApplication(application) ;                     
         }
 
         public Application CreateApplication(Application application)
@@ -64,7 +50,7 @@ namespace Altinn.Platform.Storage.Client
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new ApplicationException($"Create failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new ApplicationException($"POST failed: {response.StatusCode} - {response.ReasonPhrase}");
             }
             
             string json = response.Content.ReadAsStringAsync().Result;
@@ -73,7 +59,7 @@ namespace Altinn.Platform.Storage.Client
             return result;
         }
 
-        public Application UpdateApplicationMetadata(Application application)
+        public Application UpdateApplication(Application application)
         {
             string applicationId = application.Id;
 
@@ -83,7 +69,7 @@ namespace Altinn.Platform.Storage.Client
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new ApplicationException($"Update failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new ApplicationException($"PUT failed: {response.StatusCode} - {response.ReasonPhrase}");
             }
             
             string json = response.Content.ReadAsStringAsync().Result;        
@@ -92,7 +78,7 @@ namespace Altinn.Platform.Storage.Client
             return result;
         }
 
-        public Application GetApplicationMetadata(string appId) 
+        public Application GetApplication(string appId) 
         {
             string url = $"{endpointUri}/{resourcePrefix}/{appId}";
 
@@ -110,7 +96,7 @@ namespace Altinn.Platform.Storage.Client
         }
 
 
-        public Application DeleteApplicationMetadata(string appId)
+        public Application DeleteApplication(string appId)
         {
             string url = $"{endpointUri}/{resourcePrefix}/{appId}?hard=true";
 

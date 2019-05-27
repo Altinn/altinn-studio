@@ -22,10 +22,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly HttpClient client;
         private InstanceClient storageClient;
         private string instanceId;
-        private readonly string testApplicationOwnerId = "TESTS";
-        private string testAppId = "TESTS-sailor";
+        private readonly string testApplicationOwnerId = "tests";
+        private string testAppId = "tests/sailor";
         private readonly int testInstanceOwnerId = 500;
-        private readonly string formId = "default";
+        private readonly string elementType = "default";
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -147,7 +147,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string newId = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
             Instance instance = await storageClient.GetInstances(newId, testInstanceOwnerId);
 
-            string requestUri = $"{versionPrefix}/instances/{newId}/data?formId={formId}&instanceOwnerId={testInstanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{newId}/data?elementType={elementType}&instanceOwnerId={testInstanceOwnerId}";
 
             // post the file
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
@@ -165,7 +165,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int instanceOwnerId = testInstanceOwnerId;
 
             string instanceId = await storageClient.PostInstances(applicationId, instanceOwnerId);
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?elementType={elementType}&instanceOwnerId={instanceOwnerId}";
             
             using (Stream input = File.OpenRead("data/binary_file.pdf"))
             {
@@ -173,7 +173,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                 using (MultipartFormDataContent formData = new MultipartFormDataContent())
                 {
-                    formData.Add(fileStreamContent, formId, "binary_file.pdf");
+                    formData.Add(fileStreamContent, elementType, "binary_file.pdf");
                     HttpResponseMessage response = await client.PostAsync(requestUri, formData);
 
                     response.EnsureSuccessStatusCode();
@@ -273,7 +273,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                 using (MultipartFormDataContent formData = new MultipartFormDataContent())
                 {
-                    formData.Add(fileStreamContent, formId, dataFile);
+                    formData.Add(fileStreamContent, elementType, dataFile);
                     HttpResponseMessage response = client.PutAsync(requestUri, formData).Result;
 
                     response.EnsureSuccessStatusCode();

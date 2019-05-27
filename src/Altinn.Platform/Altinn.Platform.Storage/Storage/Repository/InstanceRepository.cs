@@ -113,9 +113,9 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Get the instance based on the input parameters
         /// </summary>
-        /// <param name="applicationOwnerId">application owner id</param>
+        /// <param name="org">application owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string applicationOwnerId)
+        public async Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string org)
         {
             try
             {
@@ -126,7 +126,7 @@ namespace Altinn.Platform.Storage.Repository
                 };
 
                 IDocumentQuery<Instance> query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                                .Where(i => i.ApplicationOwnerId == applicationOwnerId)
+                                .Where(i => i.Org == org)
                                 .AsDocumentQuery();
                 while (query.HasMoreResults)
                 {
@@ -174,7 +174,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 IDocumentQuery<Instance> query = _client
                     .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                    .Where(i => i.ApplicationId == applicationId)           
+                    .Where(i => i.AppId == applicationId)           
                     .AsDocumentQuery();
 
                 FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();

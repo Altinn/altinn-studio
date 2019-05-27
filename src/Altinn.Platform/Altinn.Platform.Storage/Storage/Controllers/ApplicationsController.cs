@@ -123,7 +123,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPost]        
         public async Task<ActionResult> Post(string appId, [FromBody] Application application)
         {
-            if (IsValidAppId(appId))
+            if (!IsValidAppId(appId))
             {
                 return BadRequest("AppId is not valid.");
             }
@@ -183,7 +183,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 Application result = await repository.Create(application);
 
-                logger.LogInformation($"Application {appId} sucessfully stored", application);
+                logger.LogInformation($"Application {appId} sucessfully stored", result);
 
                 return Ok(result);
             }

@@ -4,39 +4,68 @@ using System.Net.Http;
 using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
+using Newtonsoft.Json;
+using Storage.Interface.Models;
 using Xunit;
 
 #pragma warning disable SA1600 // ElementsMustBeDocumented
 #pragma warning disable CS1591
 namespace Altinn.Platform.Storage.IntegrationTest
 {
-    public class ApplicationMetadataClientTests : IClassFixture<PlatformStorageFixture>
+    public class ApplicationClientTests : IClassFixture<PlatformStorageFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
         private readonly ApplicationMetadataClient applicationClient;
         private readonly HttpClient httpClient;
 
-        public ApplicationMetadataClientTests(PlatformStorageFixture fixture)
+        public ApplicationClientTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
             this.httpClient = fixture.Client;
             this.applicationClient = new ApplicationMetadataClient(httpClient);
         }
 
+        /// <summary>
+        /// Make sure repository is cleaned after the tests is run.
+        /// </summary>
+        public void Dispose()
+        {
+            string org = "test";
+            string listUri = $"storage/api/v1/applications/{org}";
+
+            HttpResponseMessage listResponse = httpClient.GetAsync(listUri).Result;
+
+            if (listResponse.IsSuccessStatusCode)
+            {
+                string json = listResponse.Content.ReadAsStringAsync().Result;
+
+                List<Application> applications = JsonConvert.DeserializeObject<List<Application>>(json);
+
+                foreach (Application app in applications)
+                {
+                    string appId = app.Id;
+
+                    string deleteUri = $"storage/api/v1/applications/{appId}?hard=true";
+
+                    HttpResponseMessage deleteResponse = httpClient.DeleteAsync(deleteUri).Result;
+                }
+            }
+        }
+
         [Fact]
         public void TestApplicationClient()
         {
-            Dictionary<string, string> title = new Dictionary<string, string>
+            LanguageString title = new LanguageString
             {
                 { "nb", "testapplikasjon" },
                 { "en", "Test application" }
             };
 
-            ApplicationMetadata appMetadata = applicationClient.CreateApplication("TEST-sailor", title);
+            Application appMetadata = applicationClient.CreateApplication("test/sailor", title);
 
-            Assert.Equal("TEST-sailor", appMetadata.Id);
+            Assert.Equal("test/sailor", appMetadata.Id);
 
-            ApplicationMetadata appMetadata2 = applicationClient.GetApplicationMetadata("TEST-sailor");
+            Application appMetadata2 = applicationClient.GetApplicationMetadata("test/sailor");
 
             Assert.Equal(appMetadata.Id, appMetadata2.Id);
         }
@@ -44,12 +73,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public void TestApplicationClientCreate()
         {
-            ApplicationMetadata appMetadata = new ApplicationMetadata()
+            Application application = new Application()
             {
-                Id = "TEST-xml",
+                Id = "test/xml",
                 VersionId = "1.2.0",
-                ApplicationOwnerId = "TEST",
-                Title = new Dictionary<string, string>
+                Org = "test",
+                Title = new LanguageString
                 {
                     { "nb", "XML test application" },
                 },
@@ -57,20 +86,15 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 ValidTo = new DateTime(2020, 06, 30),
                 MaxSize = 200000,
             };
-            ApplicationMetadata result;
-            try
-            {
-                result = applicationClient.CreateApplication(appMetadata);
-            }
-            catch (HttpRequestException e)
-            {
-                string statusText = e.ToString();
 
-                result = applicationClient.UpdateApplicationMetadata(appMetadata);
-            }
+            Application result = applicationClient.CreateApplication(application);
 
-            Assert.Equal("TEST-xml", result.Id);
-            Assert.Equal(200000, result.MaxSize);
+            result.ValidTo = null;
+
+            result = applicationClient.UpdateApplicationMetadata(result);
+
+            Assert.Equal("test/xml", result.Id);
+            Assert.Null(result.ValidTo);
         }
     }
 }

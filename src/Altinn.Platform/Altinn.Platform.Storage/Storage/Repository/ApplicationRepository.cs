@@ -22,7 +22,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly Uri _collectionUri;
         private readonly string databaseId;
         private readonly string collectionId = "applications";
-        private readonly string partitionKey = "/applicationOwnerId";
+        private readonly string partitionKey = "/org";
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
 
@@ -75,14 +75,21 @@ namespace Altinn.Platform.Storage.Repository
             return $"{org}/{app}";
         }
 
-        private ApplicationMetadata PostProcess(ApplicationMetadata application)
+        private Application PreProcess(Application application)
+        {
+            application.Id = AppIdToCosmosId(application.Id);
+
+            return application;
+        }
+
+        private Application PostProcess(Application application)
         {
             application.Id = CosmosIdToAppId(application.Id);
 
             return application;
         }
 
-        private List<ApplicationMetadata> PostProcess(List<ApplicationMetadata> applications)
+        private List<Application> PostProcess(List<Application> applications)
         {
             applications.ForEach(a => a.Id = CosmosIdToAppId(a.Id));
 
@@ -90,14 +97,14 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<ApplicationMetadata> Create(ApplicationMetadata item)
+        public async Task<Application> Create(Application item)
         {
             item.Id = AppIdToCosmosId(item.Id);
 
             ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
             Document document = createDocumentResponse.Resource;
 
-            ApplicationMetadata instance = JsonConvert.DeserializeObject<ApplicationMetadata>(document.ToString());            
+            Application instance = JsonConvert.DeserializeObject<Application>(document.ToString());            
 
             return PostProcess(instance);         
         }
@@ -118,28 +125,28 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<ApplicationMetadata>> ListApplications(string applicationOwnerId)
+        public async Task<List<Application>> ListApplications(string applicationOwnerId)
         {         
-            IDocumentQuery<ApplicationMetadata> query = _client
-                .CreateDocumentQuery<ApplicationMetadata>(_collectionUri,  new FeedOptions { EnableCrossPartitionQuery = true })
-                .Where(i => i.ApplicationOwnerId == applicationOwnerId)
+            IDocumentQuery<Application> query = _client
+                .CreateDocumentQuery<Application>(_collectionUri,  new FeedOptions { EnableCrossPartitionQuery = true })
+                .Where(i => i.Org == applicationOwnerId)
                 .AsDocumentQuery();
 
-            FeedResponse<ApplicationMetadata> result = await query.ExecuteNextAsync<ApplicationMetadata>();
-            List<ApplicationMetadata> applications = result.ToList<ApplicationMetadata>();
+            FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
+            List<Application> applications = result.ToList<Application>();
 
             return PostProcess(applications);          
         }
 
         /// <inheritdoc/>
-        public async Task<ApplicationMetadata> FindOne(string appId, string applicationOwnerId)
+        public async Task<Application> FindOne(string appId, string applicationOwnerId)
         {
             string cosmosAppId = AppIdToCosmosId(appId);
 
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
 
-            ApplicationMetadata application = await _client
-                .ReadDocumentAsync<ApplicationMetadata>(
+            Application application = await _client
+                .ReadDocumentAsync<Application>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(applicationOwnerId) });
                      
@@ -147,19 +154,21 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<ApplicationMetadata> Update(ApplicationMetadata item)
+        public async Task<Application> Update(Application item)
         {
+            PreProcess(item);
+
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
 
             ResourceResponse<Document> document = await _client
                 .ReplaceDocumentAsync(
                     uri,
                     item,
-                    new RequestOptions { PartitionKey = new PartitionKey(item.ApplicationOwnerId) });
+                    new RequestOptions { PartitionKey = new PartitionKey(item.Org) });
 
             string storedApplication = document.Resource.ToString();
 
-            ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(storedApplication);
+            Application application = JsonConvert.DeserializeObject<Application>(storedApplication);
 
             return PostProcess(application);
         }

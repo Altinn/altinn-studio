@@ -20,9 +20,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private readonly ApplicationClient applicationClient;
+        private readonly ApplicationMetadataClient applicationClient;
         private readonly string versionPrefix = "/storage/api/v1";
-        private readonly string applicationOwnerId = "TEST";
+        private readonly string org = "test";
 
         private Logger logger = new LoggerConfiguration()
             .WriteTo.Console()
@@ -36,7 +36,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
-            this.applicationClient = new ApplicationClient(this.client);
+            this.applicationClient = new ApplicationMetadataClient(this.client);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         public void Dispose()
         {
-            string listUri = $"{versionPrefix}/applications?applicationOwnerId={applicationOwnerId}";
+            string listUri = $"{versionPrefix}/applications/{org}";
 
             HttpResponseMessage listResponse = client.GetAsync(listUri).Result;
 
@@ -60,7 +60,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                     string deleteUri = $"{versionPrefix}/applications/{appId}?hard=true";
 
-                    client.DeleteAsync(deleteUri);
+                    HttpResponseMessage deleteResponse = client.DeleteAsync(deleteUri).Result;                    
                 }
             }
             else
@@ -78,7 +78,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 Id = applicationId,
                 VersionId = "r33",
                 Title = new Dictionary<string, string>(),
-                ApplicationOwnerId = applicationOwnerId,
+                Org = org,
             };
 
             appInfo.Title.Add("nb", "Tittel");
@@ -92,10 +92,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void CreateApplicationHappyDays()
         {
-            string applicationId = "TEST-app20";
-            string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
+            string appId = "test/app20";
+            string requestUri = $"{versionPrefix}/applications?appId={appId}";
 
-            Application appInfo = CreateApplication(applicationId);
+            Application appInfo = CreateApplication(appId);
 
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
 
@@ -112,11 +112,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void CreateApplicationWrongFormatApplicationId()
         {
-            string applicationId = "TEST/app";
+            string appId = "TEST/app";
 
-            string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
+            string requestUri = $"{versionPrefix}/applications?appId={appId}";
 
-            Application appInfo = CreateApplication(applicationId);
+            Application appInfo = CreateApplication(appId);
 
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
 
@@ -129,10 +129,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void SoftdeleteApplication()
         {
-            string applicationId = "TEST-app21";
-            string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
+            string appId = "test/app21";
+            string requestUri = $"{versionPrefix}/applications?appId={appId}";
 
-            Application appInfo = CreateApplication(applicationId);
+            Application appInfo = CreateApplication(appId);
 
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
             
@@ -142,7 +142,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Application existingApplication = JsonConvert.DeserializeObject<Application>(json);
 
             // do the delete
-            requestUri = $"{versionPrefix}/applications/{applicationId}";            
+            requestUri = $"{versionPrefix}/applications/{appId}";            
             HttpResponseMessage deleteResponse = await client.DeleteAsync(requestUri);
 
             deleteResponse.EnsureSuccessStatusCode();
@@ -161,18 +161,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetAndUpdateApplication()
         {
-            string applicationId = "TEST-app22";
+            string appId = "test/app22";
 
-            string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
+            string requestUri = $"{versionPrefix}/applications?appId={appId}";
            
-            Application appInfo = CreateApplication(applicationId);
+            Application appInfo = CreateApplication(appId);
 
             // create one
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
 
-            requestUri = $"{versionPrefix}/applications/{applicationId}";
+            requestUri = $"{versionPrefix}/applications/{appId}";
 
             // read one
             HttpResponseMessage getResponse = await client.GetAsync(requestUri);
