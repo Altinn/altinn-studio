@@ -29,7 +29,7 @@ const styles = createStyles({
   },
 });
 
-class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps, IAltinnPopperComponentState> {
+export class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps, IAltinnPopperComponentState> {
   public render() {
     const { classes } = this.props;
     const open = Boolean(this.props.anchorEl);

@@ -32,7 +32,7 @@ const styles = () => createStyles({
   },
 });
 
-class AltinnRadio extends
+export class AltinnRadio extends
   React.Component<IAltinnRadioComponentProvidedProps, IAltinnRadioComponentState> {
 
   public render() {

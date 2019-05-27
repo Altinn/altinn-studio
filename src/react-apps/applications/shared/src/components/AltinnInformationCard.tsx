@@ -92,7 +92,7 @@ const styles = () => createStyles({
   },
 });
 
-class AltinnInformationCard extends
+export class AltinnInformationCard extends
   React.Component<IAltinnInformationCardComponentProvidedProps, IAltinnInformationCardComponentState> {
 
   public render() {

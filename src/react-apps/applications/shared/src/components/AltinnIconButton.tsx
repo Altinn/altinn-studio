@@ -49,7 +49,7 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnIconButton extends React.Component<IAltinnIconButtonComponentProvidedProps, IAltinnIconButtonComponentState> {
+export class AltinnIconButton extends React.Component<IAltinnIconButtonComponentProvidedProps, IAltinnIconButtonComponentState> {
   public render() {
     const { classes } = this.props;
     return (
