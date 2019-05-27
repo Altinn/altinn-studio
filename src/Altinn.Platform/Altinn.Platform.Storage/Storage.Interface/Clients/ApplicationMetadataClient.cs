@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
 using Storage.Interface.Clients;
+using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Client
 {
@@ -15,112 +16,113 @@ namespace Altinn.Platform.Storage.Client
         private readonly string endpointUri;
         private readonly string resourcePrefix = "storage/api/v1/applications";
 
+        public readonly string AppId = "{org}/{app}";
+        
         public ApplicationMetadataClient(HttpClient client, string enpointUri = "")
         {
             this.client = client;
             this.endpointUri = enpointUri;
         }
 
-        public ApplicationMetadata GetOrCreateApplication(string applicationId)
+        public Application CreateApplication(string appId, LanguageString title)
         {
-            ApplicationMetadata appMeta = GetApplicationMetadata(applicationId);
-            if (appMeta == null)
+            Application appMetadata = new Application
             {
-                appMeta = CreateApplication(applicationId);
-            }
-
-            return appMeta;
-        }
-
-        public ApplicationMetadata CreateApplication(string applicationId)
-        {
-            Dictionary<string, string> title = new Dictionary<string, string>
-            {
-                { "nb", "Tittel" }
-            };
-
-            return CreateApplication(applicationId, title);
-        }
-
-            public ApplicationMetadata CreateApplication(string applicationId, Dictionary<string, string> title)
-        {
-            ApplicationMetadata appMetadata = new ApplicationMetadata
-            {
-                Id = applicationId,
+                Id = appId,
                 Title = title,
-                Forms = new List<ApplicationForm>()
+                ElementTypes = new List<ElementType>()
             };
 
-            ApplicationForm defaultAppForm = new ApplicationForm
+            ElementType defaultElementType = new ElementType
             {
                 Id = "default",
                 AllowedContentType = new List<string>() { "application/xml" }
             };
 
-            appMetadata.Forms.Add(defaultAppForm);
+            appMetadata.ElementTypes.Add(defaultElementType);
 
-            string url = endpointUri + resourcePrefix + "?applicationId=" + applicationId;
+            string url = endpointUri + resourcePrefix + "?appId=" + appId;
  
             HttpResponseMessage response = client.PostAsync(url, appMetadata.AsJson()).Result;
-            response.EnsureSuccessStatusCode();
 
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException($"Create failed: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            
             string json = response.Content.ReadAsStringAsync().Result;
-            ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+            Application application = JsonConvert.DeserializeObject<Application>(json);
 
             return application;                     
         }
 
-        public ApplicationMetadata CreateApplication(ApplicationMetadata application)
+        public Application CreateApplication(Application application)
         {
-            string url = $"{endpointUri}/{resourcePrefix}?applicationId={application.Id}";
+            string url = $"{endpointUri}/{resourcePrefix}?appId={application.Id}";
 
             HttpResponseMessage response = client.PostAsync(url, application.AsJson()).Result;
-            response.EnsureSuccessStatusCode();
 
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException($"Create failed: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            
             string json = response.Content.ReadAsStringAsync().Result;
-            ApplicationMetadata result = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+            Application result = JsonConvert.DeserializeObject<Application>(json);
 
             return result;
         }
 
-        public ApplicationMetadata UpdateApplicationMetadata(ApplicationMetadata application)
+        public Application UpdateApplicationMetadata(Application application)
         {
             string applicationId = application.Id;
 
             string url = $"{endpointUri}/{resourcePrefix}/{applicationId}";
 
             HttpResponseMessage response = client.PutAsync(url, application.AsJson()).Result;
-            response.EnsureSuccessStatusCode();
 
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException($"Update failed: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            
             string json = response.Content.ReadAsStringAsync().Result;        
-            ApplicationMetadata result = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+            Application result = JsonConvert.DeserializeObject<Application>(json);
 
             return result;
         }
 
-        public ApplicationMetadata GetApplicationMetadata(string applicationId) 
+        public Application GetApplicationMetadata(string appId) 
         {
-            string url = $"{endpointUri}/{resourcePrefix}/{applicationId}";
+            string url = $"{endpointUri}/{resourcePrefix}/{appId}";
 
             HttpResponseMessage response = client.GetAsync(url).Result;
-            response.EnsureSuccessStatusCode();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException($"GET failed: {response.StatusCode} - {response.ReasonPhrase}");
+            }
 
             string json = response.Content.ReadAsStringAsync().Result;
-            ApplicationMetadata result = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+            Application result = JsonConvert.DeserializeObject<Application>(json);
 
             return result;
         }
 
 
-        public ApplicationMetadata DeleteApplicationMetadata(string applicationId)
+        public Application DeleteApplicationMetadata(string appId)
         {
-            string url = $"{endpointUri}/{resourcePrefix}/{applicationId}?hard=true";
+            string url = $"{endpointUri}/{resourcePrefix}/{appId}?hard=true";
 
             HttpResponseMessage response = client.DeleteAsync(url).Result;
-            response.EnsureSuccessStatusCode();
 
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new ApplicationException($"DELETE failed: {response.StatusCode} - {response.ReasonPhrase}");
+            }
+            
             string json = response.Content.ReadAsStringAsync().Result;
-            ApplicationMetadata result = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+            Application result = JsonConvert.DeserializeObject<Application>(json);
 
             return result;
         }

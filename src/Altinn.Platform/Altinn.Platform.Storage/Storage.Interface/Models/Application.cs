@@ -11,10 +11,10 @@ namespace Altinn.Platform.Storage.Models
     /// Model for application metadata.
     /// </summary>
     [Serializable]
-    public class ApplicationMetadata
+    public class Application
     {
         /// <summary>
-        /// Unique id of the application, e.g. TEST-sailor.
+        /// Unique id of the application, e.g. test/app-34
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
@@ -28,8 +28,8 @@ namespace Altinn.Platform.Storage.Models
         /// <summary>
         /// Service owner code for the service, e.g. NAV.
         /// </summary>
-        [JsonProperty(PropertyName = "applicationOwnerId")]
-        public string ApplicationOwnerId { get; set; }
+        [JsonProperty(PropertyName = "org")]
+        public string Org { get; set; }
 
         /// <summary>
         /// Creation date and time for the instance, first time application is deployed and registered in storage.
@@ -88,10 +88,10 @@ namespace Altinn.Platform.Storage.Models
         public int MaxSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the forms data elements associated with the application
+        /// Gets or sets the data element types associated with the application
         /// </summary>
-        [JsonProperty(PropertyName = "forms")]
-        public List<ApplicationForm> Forms { get; set; }
+        [JsonProperty(PropertyName = "elementTypes")]
+        public List<ElementType> ElementTypes { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()

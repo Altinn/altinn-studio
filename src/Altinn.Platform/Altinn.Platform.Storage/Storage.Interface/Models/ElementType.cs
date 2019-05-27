@@ -6,21 +6,21 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
-    /// Model for application form definition
+    /// Model for application element type 
     /// </summary>
     [Serializable]
-    public class ApplicationForm
+    public class ElementType
     {
         /// <summary>
-        /// The form id. It must be unique within an application.
-        /// Logical name of the schema of which form data should be validated against.
-        /// Examples are: main, subform-x, cv, attachement
+        /// The element type id. It must be unique within an application.
+        /// Logical name of the schema of which data elements should be validated against.
+        /// Examples are: main, subschema-x, cv, attachement
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// Description of the form with language description.
+        /// Description of the element type with language description.
         /// </summary>
         [JsonProperty(PropertyName = "description")]
         public Dictionary<string, string> Description { get; set; }
@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.Models
         public int MaxSize { get; set; }
 
         /// <summary>
-        /// Maximum number of instances of same form. Default is 1.
+        /// Maximum number of instances of same element. Default is 1.
         /// If negative no limit on number of data elements.
         /// </summary>
         [JsonProperty(PropertyName = "maxCount")]

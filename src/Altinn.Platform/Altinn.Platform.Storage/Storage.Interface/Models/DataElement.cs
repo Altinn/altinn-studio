@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
-    /// Model for form data
+    /// Model to hold a data element
     /// </summary>
     [Serializable]
-    public class Data
+    public class DataElement
     {
         /// <summary>
         /// data id
@@ -19,10 +20,10 @@ namespace Altinn.Platform.Storage.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// the form identifier, tells us what data element this is 
+        /// the element type, must be defined in application
         /// </summary>
-        [JsonProperty(PropertyName = "formId")]
-        public string FormId { get; set; }
+        [JsonProperty(PropertyName = "elementType")]
+        public string ElementType { get; set; }
 
         /// <summary>
         /// users filename
@@ -43,10 +44,10 @@ namespace Altinn.Platform.Storage.Models
         public string StorageUrl { get; set; }
 
         /// <summary>
-        /// path to storage
+        /// Links to access the instance resource
         /// </summary>
-        [JsonProperty(PropertyName = "link")]
-        public string Link { get; set; }
+        [JsonProperty(PropertyName = "dataLinks")]
+        public ResourceLinks SelfLinks { get; set; }
 
         /// <summary>
         /// Size of file in bytes
@@ -82,7 +83,7 @@ namespace Altinn.Platform.Storage.Models
         /// last changed date time for the instance
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedDateTime")]
-        public DateTime LastChangedDateTime { get; set; }
+        public DateTime? LastChangedDateTime { get; set; }
 
         /// <summary>
         /// reportee id of the user who last changed the instance
