@@ -5,7 +5,7 @@ import { checkIfRuleShouldRun } from '../../../../../utils/rules';
 import FormDataActions from '../../../data/actions';
 import { IFormData } from '../../../data/reducer';
 import { IDataModelState } from '../../../datamodell/reducer';
-import { IRuleConnection, IRuleConnections } from '../../../dynamics/';
+import { IRuleConnections } from '../../../dynamics/';
 import { ILayoutState } from '../../../layout/reducer';
 import * as RuleActions from '../../actions/rule';
 import * as ActionTypes from '../../actions/types';

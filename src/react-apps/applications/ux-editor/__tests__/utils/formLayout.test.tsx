@@ -263,5 +263,51 @@ describe('>>> utils/formLayout', () => {
     extractChildrenFromContainer(mockContainer, mockConvertedLayout);
     expect(mockConvertedLayout).toEqual(mockConvertedLayoutResult);
   });
-
+  it('+++ if children of children, run same function over again', () => {
+    const mockContainer = {
+      id: 'mockContainerID',
+      children: [
+        { id: 'mockChildID_1', children: [{ id: 'mockChildID_3', someProp: '3' }] },
+        { id: 'mockChildID_2', someProp: '2' },
+      ],
+    };
+    const mockConvertedLayout = {
+      containers: {},
+      components: {},
+      order: {},
+    };
+    const mockConvertedLayoutResult = {
+      containers: {
+        mockChildID_1: {},
+        mockContainerID: {},
+      },
+      components: {
+        mockChildID_2: { someProp: '2' },
+        mockChildID_3: { someProp: '3' },
+      },
+      order: { mockChildID_1: ['mockChildID_3'], mockContainerID: ['mockChildID_2'] },
+    };
+    extractChildrenFromContainer(mockContainer, mockConvertedLayout);
+    expect(mockConvertedLayout).toEqual(mockConvertedLayoutResult);
+  });
+  it('+++ if the element contains children in convertFromLayoutToInternalFormat ' +
+    'extractChildrenFromContainer should run', () => {
+      mockLayout = [
+        { id: 'mockChildID_1', children: [{ id: 'mockChildID_2', someProp: '2' }] },
+        { id: 'mockChildID_3', children: [{ id: 'mockChildID_4', someProp: '4' }] },
+        { id: 'mockChildID_5', someProp: '5' },
+      ];
+      const mockResult = {
+        containers: {
+          mockChildID_1: {},
+        },
+        components: {
+          mockChildID_2: { someProp: '2' },
+          mockChildID_4: { someProp: '4' },
+          mockChildID_5: { someProp: '5' },
+        },
+      };
+      const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
+      expect(convertedLayout.components).toEqual(mockResult.components);
+    });
 });
