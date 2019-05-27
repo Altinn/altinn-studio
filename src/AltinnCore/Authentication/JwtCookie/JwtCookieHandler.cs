@@ -243,36 +243,6 @@ namespace AltinnCore.Authentication.JwtCookie
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Retrieves JWT token value from HTTP context.
-        /// </summary>
-        /// <param name="context">The HTTP context that contains the token</param>
-        /// <returns>The JWT token string.</returns>
-        protected string GetTokenFromContext(HttpContext context)
-        {
-            // Get the cookie from request 
-            string token = context.Request.Cookies[Options.Cookie.Name];
-
-            // If no cookie present 
-            if (string.IsNullOrEmpty(token))
-            {
-                string authorization = Request.Headers["Authorization"];
-
-                // If no authorization header found, nothing to process further
-                if (string.IsNullOrEmpty(authorization))
-                {
-                    return string.Empty;
-                }
-
-                if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                {
-                    token = authorization.Substring("Bearer ".Length).Trim();
-                }
-            }
-
-            return token;
-        }
-
         private string GetToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
         {
             // authentication successful so generate jwt token
