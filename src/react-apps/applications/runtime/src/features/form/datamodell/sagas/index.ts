@@ -3,6 +3,6 @@ import { fork } from 'redux-saga/effects';
 
 import { watchFetchFormDataModelSaga } from './fetch';
 
-export default function* (): SagaIterator {
+export default function*(): SagaIterator {
   yield fork(watchFetchFormDataModelSaga);
 }

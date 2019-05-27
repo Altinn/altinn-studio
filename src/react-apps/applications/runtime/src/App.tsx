@@ -3,15 +3,14 @@ import FormFiller from './containers/FormFiller';
 import FormDataActions from './features/form/data/actions';
 import FormDataModelActions from './features/form/datamodell/actions';
 import FormDynamicActions from './features/form/dynamics/actions';
+import FormFileUploadActions from './features/form/fileUpload/actions';
 import FormLayoutActions from './features/form/layout/actions';
 import FormResourceActions from './features/form/resources/actions';
+import FormRuleActions from './features/form/rules/actions';
 import FormWorkflowActions from './features/form/workflow/actions';
 import LanguageActions from './features/languages/actions';
 
 import { IAltinnWindow } from './types';
-
-export interface IAppProps { }
-export interface IAppState { }
 
 export default () => {
   React.useEffect(() => {
@@ -29,19 +28,23 @@ export default () => {
     FormDataActions.fetchFormData(
       `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/Index/${instanceId}`,
     );
-    // TODO: This link should point to
-    // tslint:disable-next-line:max-line-length
-    // `${altinnWindow.location.origin}/runtime/api/workflow/${reportee}/${servicePath}/GetCurrentState?instanceId=${instanceId}`);
-    // WHEN WE MERGE WITH MASTER
-    FormWorkflowActions.getCurrentState(
-      `${window.location.origin}/runtime/${org}/${service}/${instanceId}/GetCurrentState?reporteeId=${reportee}`,
+    FormRuleActions.fetchRuleModel(
+      `${window.location.origin}/runtime/api/resource/${org}/${service}/RuleHandler.js`,
     );
+    FormWorkflowActions.getCurrentState(
+      // tslint:disable-next-line:max-line-length
+      `${window.location.origin}/runtime/api/workflow/${reportee}/${org}/${service}/GetCurrentState?instanceId=${instanceId}`,
+    );
+
     FormDynamicActions.fetchFormDynamics(
       `${window.location.origin}/runtime/api/resource/${org}/${service}/ServiceConfigurations.json`,
     );
     FormResourceActions.fetchFormResource(
       `${window.location.origin}/runtime/api/textresources/${org}/${service}`,
     );
+
+    FormFileUploadActions.fetchAttachments();
+
   }, []);
   return (
     <FormFiller />

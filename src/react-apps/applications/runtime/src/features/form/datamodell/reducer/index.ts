@@ -1,18 +1,19 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as ActionTypes from '../actions/types';
+import { IDataModelFieldElement } from '../../../../types/global';
 import {
   IFetchDataModelFulfilled,
   IFetchDataModelRejected,
 } from '../actions/fetch';
+import * as ActionTypes from '../actions/types';
 
 export interface IDataModelState {
-  dataModel: any;
+  dataModel: IDataModelFieldElement[];
   error: Error;
 }
 
 const initialState: IDataModelState = {
-  dataModel: {},
+  dataModel: [],
   error: null,
 };
 
@@ -47,6 +48,6 @@ const DataModelReducer: Reducer<IDataModelState> = (
       return state;
     }
   }
-}
+};
 
 export default DataModelReducer;

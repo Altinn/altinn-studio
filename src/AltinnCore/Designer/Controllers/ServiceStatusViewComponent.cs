@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Extensions;
+using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,7 +46,7 @@ namespace AltinnCore.Designer.Controllers
             CodeCompilationResult codeCompilationResult = null)
         {
             var serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
-            var compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
+            var compilation = codeCompilationResult ?? await CompileHelper.CompileService(_compilation, serviceIdentifier);
             var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
 
             var model = CreateModel(serviceIdentifier, compilation, metadata);
@@ -116,7 +117,6 @@ namespace AltinnCore.Designer.Controllers
                 codeCompilationResult.CompilationInfo.Where(RelevantCompilationInfo)
                     .GroupBy(c => c.Severity + c.FileName + c.Info)
                     .Select(c => c.First())
-                    .ToList()
                     .OrderBy(c => c.Severity)
                     .ThenBy(c => c.FileName)
                     .ThenBy(c => c.Info);
@@ -166,17 +166,6 @@ namespace AltinnCore.Designer.Controllers
                                              "Til Datamodell");
                 yield return dataModellMissing;
             }
-        }
-
-        private Task<CodeCompilationResult> Compile(ServiceIdentifier service)
-        {
-            Func<CodeCompilationResult> compile =
-                () =>
-                    _compilation.CreateServiceAssembly(
-                        service.Org,
-                        service.Service,
-                        false);
-            return Task<CodeCompilationResult>.Factory.StartNew(compile);
         }
 
         private Task<ServiceMetadata> GetServiceMetadata(ServiceIdentifier service)

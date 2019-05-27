@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -27,7 +27,7 @@ namespace AltinnCore.Common.Helpers.Extensions
         /// </param>
         /// <typeparam name="T">Any object that should be deserialized. </typeparam>
         /// <returns>
-        /// The <see cref="T"/>.
+        /// The object of type T.
         /// </returns>
         /// <exception cref="ArgumentException"> File not found in archive.
         /// </exception>

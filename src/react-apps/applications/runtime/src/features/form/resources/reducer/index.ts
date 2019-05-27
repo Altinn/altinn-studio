@@ -1,5 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { ITextResource } from '../../../../types/global';
 import {
   IFetchFormResourceFulfilled,
   IFetchFormResourceRejected,
@@ -7,12 +8,20 @@ import {
 import * as ActionTypes from '../actions/types';
 
 export interface IResourceState {
-  languageResource: any;
+  languageResource: ILanguageResource;
   error: Error;
-};
+}
+
+export interface ILanguageResource {
+  language: string;
+  resources: ITextResource[];
+}
 
 const initialState: IResourceState = {
-  languageResource: null,
+  languageResource: {
+    language: null,
+    resources: [],
+  },
   error: null,
 };
 
@@ -45,6 +54,6 @@ const ResourceReducer: Reducer<IResourceState> = (
       return state;
     }
   }
-}
+};
 
 export default ResourceReducer;

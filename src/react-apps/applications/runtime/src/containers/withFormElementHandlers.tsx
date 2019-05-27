@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/';
+import { makeGetLayout } from '../selectors/getLayoutData';
+import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
 import { IRuntimeState } from '../types';
 import { IComponentValidations } from '../types/global';
 import { renderValidationMessagesForComponent } from '../utils/render';
@@ -9,9 +11,9 @@ import { renderValidationMessagesForComponent } from '../utils/render';
 export interface IProvidedProps {
   id: string;
   handleDataUpdate: (data: any) => void;
-  dataModelBindings: string;
+  dataModelBindings: IDataModelBindings;
   componentValidations: IComponentValidations;
-  textResourceBindings: any;
+  textResourceBindings: ITextResourceBindings;
   required: boolean;
   type: string;
   layout: [ILayoutComponent | ILayoutContainer];
@@ -24,7 +26,6 @@ export interface IProps extends IProvidedProps {
 
 export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
   class FormComponentWithHandlers extends React.Component<IProps> {
-
     public renderLabel = (): JSX.Element => {
       if (this.props.type === 'Header' ||
         this.props.type === 'Paragraph' ||
@@ -126,14 +127,18 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     }
 
   }
+  const makeMapStateToProps = () => {
+    const getLayout = makeGetLayout();
+    const getComponentValidations = makeGetComponentValidationsSelector();
+    const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
+      language: state.language.language,
+      textResources: state.formResources.languageResource.resources,
+      componentValidations: getComponentValidations(state, props),
+      layout: getLayout(state),
+      ...props,
+    });
+    return mapStateToProps;
+  };
 
-  const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
-    language: state.language.language,
-    textResources: state.formResources.languageResource.resources,
-    componentValidations: state.formValidations.validations ? state.formValidations.validations[props.id] : {},
-    layout: state.formLayout.layout,
-    ...props,
-  });
-
-  return connect(mapStateToProps)(FormComponentWithHandlers);
+  return connect(makeMapStateToProps)(FormComponentWithHandlers);
 };

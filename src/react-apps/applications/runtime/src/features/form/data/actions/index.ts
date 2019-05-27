@@ -1,6 +1,5 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../../store';
-
 import * as CompleteForm from './complete';
 import * as FetchFormData from './fetch';
 import * as SubmitFormData from './submit';
@@ -36,6 +35,6 @@ const actions: IFormDataActions = {
   completeAndSendInFormRejected: CompleteForm.completeAndSendInFormRejected,
 };
 
-const FormDataActions: IFormDataActions = bindActionCreators<any, any>(actions, store.dispatch);
+const FormDataActions: IFormDataActions = bindActionCreators<any, IFormDataActions>(actions, store.dispatch);
 
 export default FormDataActions;

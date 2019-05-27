@@ -53,7 +53,7 @@ services:
     networks:
       - altinncore_network
     volumes:
-      - "/Users/jezpoz/AltinnCore/Repos:/AltinnCore/Repos"
+      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
@@ -85,12 +85,11 @@ services:
     networks:
       - altinncore_network
     volumes:
-      - "/Users/jezpoz/AltinnCore/Repos:/AltinnCore/Repos"
+      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5005
-      - ServiceRepositorySettings:RepositoryLocation=/AltinnRuntime/Repos/
-      - ServiceRepositorySettings:RuntimeAPIEndPoint=http://altinn-designer:5000/
+      - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - ServiceRepositorySettings:EnableGiteaIntegration=true
       - ServiceRepositorySettings:ForceGiteaAuthentication=true
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1

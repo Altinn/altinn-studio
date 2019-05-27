@@ -1,7 +1,7 @@
 import { IFormConfigState } from '../features/form/config/reducer';
 import { IFormDataState } from '../features/form/data/reducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
-import { IFormDynamicState } from '../features/form/dynamics/reducer';
+import { IFormDynamicState } from '../features/form/dynamics';
 import { IFormFileUploadState } from '../features/form/fileUpload/reducer';
 import { ILayoutState } from '../features/form/layout/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
@@ -23,6 +23,11 @@ export interface IAltinnWindow extends Window {
   service: string;
   instanceId: string;
   reportee: string;
+  conditionalRuleHandlerHelper: IRules; // TODO: make interface
+}
+
+export interface IRules {
+  [id: string]: any;
 }
 
 // Components Types
@@ -110,8 +115,6 @@ export type FormComponentType =
   | IFormFileUploaderComponent
   | IFormAddressComponent;
 
-
-
 // Texts
 export interface ITextResourceBindings {
   [id: string]: string;
@@ -191,4 +194,3 @@ export interface IAttachmentApiResponse {
   size: number;
   id: string;
 }
-

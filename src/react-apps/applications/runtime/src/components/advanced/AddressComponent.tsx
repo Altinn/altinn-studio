@@ -231,7 +231,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <div className={'address-component-postplace'}>
               <label className={'address-component-label'}>Poststed</label>
               <input
-                className={classNames('form-control', { 'disabled': this.props.readOnly })}
+                className={classNames('form-control', { disabled: this.props.readOnly })}
                 value={postPlace}
                 onChange={this.updateField.bind(null, AddressKeys.postPlace)}
                 onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
@@ -254,7 +254,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             this.props.getTextResource(this.props.dataModelBindings.address)
         }</label>
         <input
-          className={classNames('form-control', { 'disabled': this.props.readOnly })}
+          className={classNames('form-control', { disabled: this.props.readOnly })}
           value={address}
           onChange={this.updateField.bind(null, AddressKeys.address)}
           onBlur={this.onBlurField.bind(null, AddressKeys.address)}
@@ -265,7 +265,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           : null}
         <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
-          className={classNames('form-control', { 'disabled': this.props.readOnly })}
+          className={classNames('form-control', { disabled: this.props.readOnly })}
           value={careOf}
           onChange={this.updateField.bind(null, AddressKeys.careOf)}
           onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
@@ -297,7 +297,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <label className={'address-component-label'}>Poststed</label>
             <br />
             <input
-              className={classNames('form-control', { 'disabled': this.props.readOnly })}
+              className={classNames('form-control', { disabled: this.props.readOnly })}
               value={postPlace}
               onChange={this.updateField.bind(null, AddressKeys.postPlace)}
               onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}

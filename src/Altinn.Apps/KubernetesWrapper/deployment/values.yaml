@@ -1,0 +1,31 @@
+replicaCount: 1
+
+image:
+  # Set "repository" name of your image for manual Helm install and upgrade.
+  repository: tddregistry.azurecr.io/kuberneteswrapper
+  tag: latest
+  pullPolicy: Always
+  pullSecrets:
+    # Change this to the name of your pull secret
+    - name: acr-secret
+  serviceAccount: kuberneteswrappersa
+
+service:
+  name: kuberneteswrapper
+  type: ClusterIP
+  externalPort: 80
+  # If your application is running on another port, change only the internal port.
+  internalPort: 80
+
+ingress:
+  enabled: true
+  annotations:
+    traefik.ingress.kubernetes.io/rewrite-target: /
+  paths:
+    # The first path will automatically be overwritten during deploy
+    # Additional paths needs to be configured manually
+    - path: /kuberneteswrapper
+  hosts:
+  # The first hosts entry host is configured automatically during deployment in Altinn Studio
+  # For manual deploy, or more hosts, configure hosts
+    - tdd.apps.at21.altinn.cloud

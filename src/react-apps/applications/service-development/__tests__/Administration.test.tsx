@@ -100,8 +100,7 @@ describe('HandleMergeConflictAbort', () => {
         initialCommit={mockInitialCommit}
         serviceId={mockServiceId}
         serviceIdIsSaving={mockServiceIdIsSaving}
-      />,
-    );
+      />);
 
     const instance = wrapper.instance() as AdministrationComponent;
 

@@ -31,7 +31,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <summary>
         ///  Initializes a new instance of the <see cref="JsonSchemaToInstanceModelGenerator"/> class.
         ///  Creates an initial JSON Instance Model. Assumes top object has properties and that there are multiple definitions.
-        ///  <see cref="cref="getInstanceModel"> to get the model </see>"/>
+        ///  <see cref="GetInstanceModel"> to get the model </see>"/>
         /// </summary>
         /// <param name="organizationName">The organisation name</param>
         /// <param name="serviceName">Service name</param>
@@ -77,7 +77,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         ///  Returns the texts found when parsing the Schema
         /// </summary>
         /// <returns></returns>
-        public Dictionary<string, Dictionary<string,string>> GetTexts()
+        public Dictionary<string, Dictionary<string, string>> GetTexts()
         {
             return allTexts;
         }

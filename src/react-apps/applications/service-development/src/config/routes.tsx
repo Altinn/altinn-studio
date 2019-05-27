@@ -1,10 +1,9 @@
 import AltinnInformationCard from '../../../shared/src/components/AltinnInformationCard';
 import uieditorApp from '../../../ux-editor/src/SubApp';
 import { Administration } from '../features/administration/components/Administration';
+import DeployToTestEnvironment from '../features/deploy/containers/deployToTestContainer';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
-import RedirectComponent from '../features/iFrame/RedirectComponent';
-import TestingInTestenvironmentContainer from '../features/testing-in-testenvironment/testing-in-testenvironment';
 
 export const routes = [
   {
@@ -46,7 +45,7 @@ export const routes = [
     activeSubHeaderSelection: 'Teste',
     activeLeftMenuSelection: 'Test',
     menu: 'test',
-    subapp: RedirectComponent,
+    subapp: IFrame,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',
@@ -55,16 +54,16 @@ export const routes = [
       urlKey: 'shared.wip_link_github_url',
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
-      redirectUrl: 'runtime/ManualTesting/Users/',
+      iframeEndingUrl: 'ManualTesting/Users/',
     },
   },
   {
-    path: '/testingintestenvironment',
+    path: '/deploytotest',
     exact: true,
     activeSubHeaderSelection: 'Teste',
     activeLeftMenuSelection: 'Test i testmiljø',
     menu: 'test',
-    subapp: TestingInTestenvironmentContainer,
+    subapp: DeployToTestEnvironment,
   },
   {
     path: '/aboutservice',
@@ -235,7 +234,7 @@ export const routes = [
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Produksjonsette',
     menu: 'publish',
-    subapp: IFrame,
+    subapp: AltinnInformationCard,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',

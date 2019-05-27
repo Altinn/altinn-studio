@@ -1,3 +1,4 @@
+/* tslint:disable:jsx-wrap-multiline */
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -21,7 +22,7 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
     mockIsValid = true;
     mockReadOnly = false;
     mockRequired = false;
-    mockType = 'text';
+    mockType = 'Input';
   });
 
   it('+++ should match snapshot', () => {

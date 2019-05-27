@@ -32,6 +32,7 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="ModelController"/> class
         /// </summary>
         /// <param name="repositoryService">The service Repository Service</param>
+        /// <param name="loggerFactory"> the logger factory</param>
         public ModelController(IRepository repositoryService, ILoggerFactory loggerFactory)
         {
             _repository = repositoryService;
@@ -76,25 +77,16 @@ namespace AltinnCore.Designer.Controllers
 
             ServiceMetadata serviceMetadata = null;
 
-            bool useOldParser = false;
-            if (useOldParser)
-            {
-                var seresParser = new SeresXsdParser(_repository);
-                serviceMetadata = seresParser.ParseXsdToServiceMetadata(org, service, mainXsd, null);
-            }
-            else
-            {
-                xsdMemoryStream.Position = 0;
-                reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
+            xsdMemoryStream.Position = 0;
+            reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
 
-                XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
-                JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+            JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-                JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, service, schemaJsonSchema);
-                serviceMetadata = converter.GetServiceMetadata();
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, service, schemaJsonSchema);
+            serviceMetadata = converter.GetServiceMetadata();
 
-                HandleTexts(org, service, converter.GetTexts());
-            }
+            HandleTexts(org, service, converter.GetTexts());
 
             if (_repository.CreateModel(org, service, serviceMetadata, mainXsd))
             {

@@ -2,12 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using AltinnCore.Authentication.Constants;
+using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Authorization;
 using AltinnCore.Designer.ModelBinding;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -55,32 +58,27 @@ namespace AltinnCore.Designer
         public void ConfigureServices(IServiceCollection services)
         {
             // Adding services to Dependency Injection TODO: Make this environment specific
-            bool loadFromPackage = false;
-            if (loadFromPackage)
-            {
-                services.AddSingleton<IExecution, ExecutionSIIntegrationTest>();
-            }
-            else
-            {
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
-            }
+            services.AddSingleton<IExecution, ExecutionStudioSI>();
+            services.AddSingleton<IInstance, InstanceStudioSI>();
+            services.AddSingleton<IData, DataStudioSI>();
+            services.AddSingleton<IWorkflow, WorkflowStudioSI>();
+            services.AddSingleton<ITestdata, TestdataStudioSI>();
+            services.AddSingleton<IDSF, RegisterDSFStudioSI>();
+            services.AddSingleton<IER, RegisterERStudioSI>();
+            services.AddSingleton<IRegister, RegisterStudioSI>();
+            services.AddSingleton<IProfile, ProfileStudioSI>();
 
-            services.AddSingleton<IArchive, ArchiveSILocalDev>();
-            services.AddSingleton<IAuthorization, AuthorizationSILocalDev>();
-            services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
+            services.AddSingleton<IArchive, ArchiveStudioSI>();
+            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IForm, FormSILocalDev>();
-            services.AddSingleton<IProfile, ProfileSILocalDev>();
-            services.AddSingleton<IRegister, RegisterSILocalDev>();
+            services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ITestingRepository, TestingRepository>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
-            services.AddSingleton<ITestdata, TestdataSIDesigner>();
+            services.AddSingleton<ITestdata, TestdataStudioSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -108,16 +106,24 @@ namespace AltinnCore.Designer
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
+            services.Configure<CertificateSettings>(Configuration);
+            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                {
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
+                })
                 .AddCookie(options =>
                 {
                     options.AccessDeniedPath = "/Home/NotAuthorized/";
                     options.LoginPath = "/Home/Login/";
                     options.LogoutPath = "/Home/Logout/";
-                    options.Cookie.Name = AltinnCore.Common.Constants.General.DesignerCookieName;
+                    options.Cookie.Name = Common.Constants.General.DesignerCookieName;
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade
@@ -125,7 +131,7 @@ namespace AltinnCore.Designer
                     };
                 });
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
@@ -150,6 +156,7 @@ namespace AltinnCore.Designer
                     options.SupportedCultures = supportedCultures;
                     options.SupportedUICultures = supportedCultures;
                 });
+            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
         }
 
         /// <summary>
@@ -194,10 +201,10 @@ namespace AltinnCore.Designer
                 routes.MapRoute(
                     name: "orgRoute",
                     template: "designer/{org}/{controller}/{action=Index}/",
-                    defaults: new { controller = "Owner" },
+                    defaults: new { controller = "Config" },
                     constraints: new
                     {
-                        controller = "Codelist|Owner|Config",
+                        controller = "Codelist|Config",
                     });
 
                 routes.MapRoute(
@@ -219,11 +226,18 @@ namespace AltinnCore.Designer
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
-                              controller = @"(Codelist|Config|DataSource|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|UIEditor|ServiceDevelopment|Deploy)",
-
+                              controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
-                          });        
+                          });
+                routes.MapRoute(
+                          name: "appRoute",
+                          template: "designer/{applicationOwnerId}/{applicationCode}/{controller}/{action=Index}/{id?}",
+                          defaults: new { controller = "Deploy" },
+                          constraints: new
+                          {
+                              controller = @"(Deploy)",
+                          });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(

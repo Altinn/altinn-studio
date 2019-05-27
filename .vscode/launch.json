@@ -1,67 +1,66 @@
 {
-    "version": "0.2.0",
-    "configurations": [
-      {
-        "name": ".NET Core Attach",
-        "type": "coreclr",
-        "request": "attach",
-        "processId": "${command:pickProcess}"
+  "version": "0.2.0",
+  "configurations": [{
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickProcess}"
+    },
+    {
+      "name": "Google Chrome",
+      "type": "coreclr",
+      "request": "launch",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
       },
-         {
-            "name": "Google Chrome",
-            "type": "coreclr",
-            "request": "launch",
-            "env": {
-              "ASPNETCORE_ENVIRONMENT": "Development"
-            },
-            "preLaunchTask": "build",
-            "internalConsoleOptions": "openOnSessionStart",
-            "program": "${workspaceRoot}/src/AltinnCore/Designer/bin/Debug/netcoreapp2.1/AltinnCore.Designer.dll",
-            "args": [],
-            "cwd": "${workspaceRoot}/src/AltinnCore/Designer",
-            "stopAtEntry": false,
-            "launchBrowser": {
-                "enabled": true,
-                "args": "${auto-detect-url}",
-                "windows": {
-                    "command": "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
-                },
-                "osx": {
-                    "command": "open",
-                    "args": "-b com.google.Chrome ${auto-detect-url}"
-                },
-                "linux": {
-                    "command": "/usr/bin/google-chrome"
-                }
-            }
+      "preLaunchTask": "build",
+      "internalConsoleOptions": "openOnSessionStart",
+      "program": "${workspaceRoot}/src/AltinnCore/Designer/bin/Debug/netcoreapp2.2/AltinnCore.Designer.dll",
+      "args": [],
+      "cwd": "${workspaceRoot}/src/AltinnCore/Designer",
+      "stopAtEntry": false,
+      "launchBrowser": {
+        "enabled": true,
+        "args": "${auto-detect-url}",
+        "windows": {
+          "command": "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"
         },
-        {
-            "name": ".NET Core Launch (web)",
-            "type": "coreclr",
-            "request": "launch",
-            "env": {
-              "ASPNETCORE_ENVIRONMENT": "Development"
-            },
-            "preLaunchTask": "build",
-            "internalConsoleOptions": "openOnSessionStart",
-            "program": "${workspaceRoot}/src/AltinnCore/Designer/bin/Debug/netcoreapp2.1/AltinnCore.Designer.dll",
-            "args": [],
-            "cwd": "${workspaceRoot}/src/AltinnCore/Designer",
-            "stopAtEntry": false,
-            "launchBrowser": {
-                "enabled": true,
-                "args": "${auto-detect-url}",
-                "windows": {
-                    "command": "cmd.exe",
-                    "args": "/C start ${auto-detect-url}"
-                },
-                "osx": {
-                    "command": "open"
-                },
-                "linux": {
-                    "command": "xdg-open"
-                }
-            }
+        "osx": {
+          "command": "open",
+          "args": "-b com.google.Chrome ${auto-detect-url}"
+        },
+        "linux": {
+          "command": "/usr/bin/google-chrome"
         }
-    ]
+      }
+    },
+    {
+      "name": ".NET Core Launch (web)",
+      "type": "coreclr",
+      "request": "launch",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "preLaunchTask": "build",
+      "internalConsoleOptions": "openOnSessionStart",
+      "program": "${workspaceRoot}/src/AltinnCore/Designer/bin/Debug/netcoreapp2.2/AltinnCore.Designer.dll",
+      "args": [],
+      "cwd": "${workspaceRoot}/src/AltinnCore/Designer",
+      "stopAtEntry": false,
+      "launchBrowser": {
+        "enabled": true,
+        "args": "${auto-detect-url}",
+        "windows": {
+          "command": "cmd.exe",
+          "args": "/C start ${auto-detect-url}"
+        },
+        "osx": {
+          "command": "open"
+        },
+        "linux": {
+          "command": "xdg-open"
+        }
+      }
+    }
+  ]
 }

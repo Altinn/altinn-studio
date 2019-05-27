@@ -7,7 +7,7 @@ export interface IFormResourceActions extends ActionCreatorsMapObject {
   fetchFormResource: (url: string) => Actions.IFetchFormResource;
   fetchFormResourceFulfilled: (resource: any) => Actions.IFetchFormResourceFulfilled;
   fetchFormResourceRejected: (error: Error) => Actions.IFetchFormResourceRejected;
-};
+}
 
 const actions: IFormResourceActions = {
   fetchFormResource: Actions.fetchFormResource,

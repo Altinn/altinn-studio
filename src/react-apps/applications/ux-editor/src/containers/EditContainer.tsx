@@ -426,14 +426,14 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         className={
                           this.props.classes.icon +
                           ' ' +
-                          componentIcons[this.state.component.component]
+                          componentIcons[this.state.component.type]
                         }
                       />
                       {this.state.component.textResourceBindings.title ?
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
                             this.props.textResources), 80)
-                        : this.props.component.component}
+                        : this.props.component.type}
                     </div>
                   }
                 </ListItem>

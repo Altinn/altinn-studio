@@ -4,6 +4,7 @@ import { IAltinnWindow, IAttachment } from '../../';
 import { getFileUploadComponentValidations } from '../../../../../components/base/FileUploadComponent';
 import { IRuntimeState } from '../../../../../types';
 import { get, post } from '../../../../../utils/networking';
+import FormValidationsDispatcher from '../../../validation/actions';
 import FormFileUploadDispatcher from '../../actions';
 import * as FileUploadActionsTypes from '../../actions/types';
 import * as uploadActions from '../../actions/upload';
@@ -13,15 +14,16 @@ export function* uploadAttachmentSaga(
   const state: IRuntimeState = yield select();
   const language = state.language.language;
   try {
+    // Sets validations to empty.
+    const newValidations = getFileUploadComponentValidations(null, null);
+    yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
     const data = new FormData();
     data.append('file', file);
-    const url = `${altinnWindow.location.origin}/runtime/api/${reportee}/` +
-      `${servicePath}/GetAttachmentUploadUrl/${instanceId}/${attachmentType}/${file.name}`;
-
-    const fileUploadLink = yield call(get, url);
+    const fileUploadLink = `${altinnWindow.location.origin}/runtime/api/attachment/${reportee}/${servicePath}/` +
+      `${instanceId}/SaveFormAttachment?attachmentType=${attachmentType}&attachmentName=${file.name}`;
     const response = yield call(post, fileUploadLink, null, data);
     if (response.status === 200) {
       const attachment: IAttachment
@@ -29,14 +31,16 @@ export function* uploadAttachmentSaga(
       yield call(FormFileUploadDispatcher.uploadAttachmentFulfilled,
         attachment, attachmentType, tmpAttachmentId, componentId);
     } else {
-      const validationMessages = getFileUploadComponentValidations('upload', language);
+      const validations = getFileUploadComponentValidations('upload', language);
+      yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
       yield call(FormFileUploadDispatcher.uploadAttachmentRejected,
-        tmpAttachmentId, attachmentType, componentId, validationMessages);
+        tmpAttachmentId, attachmentType, componentId);
     }
   } catch (err) {
-    const validationMessages = getFileUploadComponentValidations('upload', language);
+    const validations = getFileUploadComponentValidations('upload', language);
+    yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
     yield call(FormFileUploadDispatcher.uploadAttachmentRejected,
-      tmpAttachmentId, attachmentType, componentId, validationMessages);
+      tmpAttachmentId, attachmentType, componentId);
   }
 }
 

@@ -1,6 +1,6 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import * as FetchFormConfigActions from './fetch';
 import { store } from '../../../../store';
+import * as FetchFormConfigActions from './fetch';
 
 export interface IFormConfigActions extends ActionCreatorsMapObject {
   fetchFormConfig: (url: string) => FetchFormConfigActions.IFetchFormConfig;

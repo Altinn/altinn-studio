@@ -1,44 +1,36 @@
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect';
+import { IRuntimeState } from '../types';
+// tslint:disable-next-line:no-var-requires
 const isEqual = require('lodash.isequal');
 
-const formDataSelector = (state: IAppState) => {
-  return state.formFiller.formData;
+const formDataSelector = (state: IRuntimeState) => {
+  return state.formData.formData;
 };
 
-const formDataForContainerSelector = (state: IAppState, props: any, index?: number) => {
-  const layout = state.formDesigner.layout;
-  const componentsInContainer = Object.keys(layout.components).filter(
-    (componentId: string) => {
-      return layout.order[props.id].indexOf(componentId) > -1;
-    },
-  );
-
-  const container = layout.containers[props.id];
-  const filteredFormData: any = {};
-
-  for (const componentId of componentsInContainer) {
-    const component = layout.components[componentId];
-    if (!component.dataModelBindings) {
-      continue;
-    }
-    for (const dataModelKey in component.dataModelBindings) {
-      if (!dataModelKey) {
-        continue;
-      }
-      let formDataKey = component.dataModelBindings[dataModelKey];
-      if (!formDataKey) {
-        continue;
-      }
-      if (container.repeating && container.dataModelGroup && index != null) {
-        formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${index}]`);
-      }
-      const formData = state.formFiller.formData;
-      if (formData[formDataKey]) {
-        filteredFormData[component.dataModelBindings[dataModelKey]] = formData[formDataKey];
-      }
-    }
+const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: number) => {
+  const selectors: any = {};
+  const simpleBinding = 'simpleBinding';
+  if (Object.keys(state.formData.formData).length > 0) {
+    Object.keys(state.formData.formData).forEach(
+      (key) => {
+        if (Object.keys(props.dataModelBindings).indexOf(simpleBinding) > -1) {
+          if (state.formData.formData[key] !== props.formData && props.dataModelBindings[simpleBinding] === key) {
+            selectors[key] = state.formData.formData[key];
+          }
+        } else {
+          for (const dataModelKey in props.dataModelBindings) {
+            if (!dataModelKey) {
+              continue;
+            }
+            if (state.formData.formData[key]
+              && props.dataModelBindings[dataModelKey] === key) {
+              selectors[key] = state.formData.formData[key];
+            }
+          }
+        }
+      });
   }
-  return filteredFormData;
+  return selectors;
 };
 
 const createDeepEqualSelector = createSelectorCreator(
@@ -46,12 +38,8 @@ const createDeepEqualSelector = createSelectorCreator(
   isEqual,
 );
 
-const unsavedChangesSelector = (state: IAppState) => {
-  return state.formFiller.unsavedChanges;
-};
-
-const validationErrorsSelector = (state: IAppState) => {
-  return state.formFiller.validationResults;
+const unsavedChangesSelector = (state: IRuntimeState) => {
+  return state.formData.unsavedChanges;
 };
 
 const getFormData = () => {
@@ -84,16 +72,6 @@ const getUnsavedChanges = () => {
   );
 };
 
-const getValidationErrors = () => {
-  return createSelector(
-    [validationErrorsSelector],
-    (validationResults: IValidationResults) => {
-      return validationResults;
-    },
-  );
-};
-
 export const makeGetFormDataSelector = getFormData;
 export const makeGetFormDataCountSelector = getFormDataCount;
 export const makeGetUnsavedChangesSelector = getUnsavedChanges;
-export const makeGetValidationErrorsSelector = getValidationErrors;

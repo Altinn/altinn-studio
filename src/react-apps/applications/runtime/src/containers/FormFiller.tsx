@@ -2,10 +2,9 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { WorkflowSteps } from '../features/form/workflow/typings';
+import { IRuntimeState } from '../types';
 import Render from './Render';
 import { WorkflowStep } from './WorkflowStep';
-
-import { IRuntimeState } from '../types';
 
 export interface IFormFillerProps {
   formConfig: any;
@@ -29,7 +28,6 @@ const FormFiller = (props: IFormFillerProps) => {
       header={props.formConfig.serviceName ? props.formConfig.serviceName :
         getLanguageFromKey('general.ServiceName', props.textResources)}
       step={workflowStep}
-      onStepChange={handleStepChange}
     >
       <div className='row'>
         <Render />

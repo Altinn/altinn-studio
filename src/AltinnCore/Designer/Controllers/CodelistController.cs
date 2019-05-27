@@ -115,7 +115,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Saves the given <paramref name="jsondata">code list</paramref>
+        /// Saves the given <paramref name="jsonData">code list</paramref>
         /// </summary>
         /// <param name="jsonData">The code list data to save</param>
         /// <param name="name">The name of the code list</param>

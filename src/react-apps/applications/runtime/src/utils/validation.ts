@@ -1,5 +1,5 @@
 import { IFormData } from '../features/form/data/reducer';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
+import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
 import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
@@ -132,6 +132,26 @@ export function validateFormData(
     connectedComponent = null;
   });
   return result;
+}
+
+/*
+* Gets the total number of validation errors
+*/
+export function getErrorCount(validations: IValidations) {
+  let count = 0;
+  if (!validations) {
+    return count;
+  }
+  Object.keys(validations).forEach((componentId: string) => {
+    const componentValidations: IComponentValidations = validations[componentId];
+    Object.keys(componentValidations).forEach((bindingKey: string) => {
+      const componentErrors = componentValidations[bindingKey].errors;
+      if (componentErrors) {
+        count += componentErrors.length;
+      }
+    });
+  });
+  return count;
 }
 
 /*

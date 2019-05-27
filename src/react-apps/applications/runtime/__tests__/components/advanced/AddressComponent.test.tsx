@@ -1,10 +1,9 @@
+/* tslint:disable:jsx-wrap-multiline */
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-
-import { AddressComponent } from '../../../src/components/advanced/AddressComponent';
-
+import { AddressComponent, getTextResourceByAddressKey } from '../../../src/components/advanced/AddressComponent';
 
 export interface ITextResourceBindings {
   [id: string]: string;
@@ -193,5 +192,57 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     mountedAddressComponent.find('.address-component-zipCode').find('input').simulate('blur');
     expect(spyFetchPostPlace).toHaveBeenCalled();
     expect(instance.state.postPlace).toEqual('');
+  });
+  it('+++ should trigger updateField onChange', () => {
+    const mountedAddressComponent = mount(
+      <AddressComponent
+        id={mockId}
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        getTextResource={mockGetTextResource}
+        isValid={mockIsValid}
+        simplified={mockSimplified}
+        dataModelBindings={mockDataBinding}
+        validationMessages={mockValidationMessages}
+        readOnly={mockReadOnly}
+      />,
+    );
+    const instance = mountedAddressComponent.instance() as AddressComponent;
+    const spyUpdateField = jest.spyOn(instance, 'updateField');
+    instance.forceUpdate();
+
+    const inputField = mountedAddressComponent.find('input').first();
+    inputField.simulate('change');
+    expect(spyUpdateField).toHaveBeenCalled();
+  });
+  it('+++ getTextResourceByAddressKey should return the correct key', () => {
+    let mockKey = AddressKeys.address;
+    const mockLanguage = {
+      ux_editor: {
+        modal_configure_address_component_address: 'Adresse',
+        modal_configure_address_component_zip_code: 'Postnr',
+        modal_configure_address_component_house_number: 'Bolignummer',
+        modal_configure_address_component_care_of: 'C/O eller annen tilleggsadresse',
+        modal_configure_address_component_post_place: 'Poststed',
+      },
+    };
+    const result1 = getTextResourceByAddressKey(mockKey, mockLanguage);
+    expect(result1).toEqual('Adresse');
+
+    mockKey = AddressKeys.zipCode;
+    const result2 = getTextResourceByAddressKey(mockKey, mockLanguage);
+    expect(result2).toEqual('Postnr');
+
+    mockKey = AddressKeys.houseNumber;
+    const result3 = getTextResourceByAddressKey(mockKey, mockLanguage);
+    expect(result3).toEqual('Bolignummer');
+
+    mockKey = AddressKeys.careOf;
+    const result4 = getTextResourceByAddressKey(mockKey, mockLanguage);
+    expect(result4).toEqual('C/O eller annen tilleggsadresse');
+
+    mockKey = AddressKeys.postPlace;
+    const result5 = getTextResourceByAddressKey(mockKey, mockLanguage);
+    expect(result5).toEqual('Poststed');
   });
 });

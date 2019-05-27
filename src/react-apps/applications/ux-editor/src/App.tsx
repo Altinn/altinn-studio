@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { hot } from 'react-hot-loader';
+import postMessages from '../../shared/src/utils/postMessages';
 import appDataActionDispatcher from './actions/appDataActions/appDataActionDispatcher';
 import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
 import formFillerActionDispatchers from './actions/formFillerActions/formFillerActionDispatcher';
@@ -35,7 +36,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
   }
 
   public shouldRefetchFiles = (event: any) => {
-    if (event.data === 'NEWDATA') {
+    if (event.data === postMessages.refetchFiles) {
       this.fetchFiles();
     }
   }

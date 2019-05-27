@@ -6,15 +6,17 @@ import {
 import FormConfigState, { IFormConfigState } from '../features/form/config/reducer';
 import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
-import FormDynamics, { IFormDynamicState } from '../features/form/dynamics/reducer';
+import { IFormDynamicState } from '../features/form/dynamics';
+import FormDynamics from '../features/form/dynamics/reducer';
 import FormFileUploadReducer, { IFormFileUploadState } from '../features/form/fileUpload/reducer';
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
 import FormResourceReducer, { IResourceState } from '../features/form/resources/reducer';
+import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import LanguageReducer, { ILanguageState } from '../features/languages/reducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -22,9 +24,10 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
   formDataModel: T5;
   formAttachments: T6;
   formDynamics: T7;
-  language: T8;
-  formResources: T9;
-  formValidations: T10;
+  formRules?: T8;
+  language: T9;
+  formResources: T10;
+  formValidations: T11;
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -35,6 +38,7 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IDataModelState>,
   Reducer<IFormFileUploadState>,
   Reducer<IFormDynamicState>,
+  Reducer<IFormRuleState>,
   Reducer<ILanguageState>,
   Reducer<IResourceState>,
   Reducer<IValidationState>
@@ -50,6 +54,7 @@ const reducers: IRuntimeReducers = {
   formDataModel: FormDataModel,
   formAttachments: FormFileUploadReducer,
   formDynamics: FormDynamics,
+  formRules: FormRuleReducer,
   language: LanguageReducer,
   formResources: FormResourceReducer,
   formValidations: ValidationReducer,

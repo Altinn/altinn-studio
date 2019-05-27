@@ -43,6 +43,5 @@ namespace AltinnCore.ServiceLibrary.Api
         /// Gets or sets the next state of the workflow
         /// </summary>
         public Enums.WorkflowStep NextState { get; set; }
-
     }
 }

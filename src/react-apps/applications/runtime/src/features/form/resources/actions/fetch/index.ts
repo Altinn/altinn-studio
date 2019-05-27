@@ -32,4 +32,4 @@ export function fetchFormResourceRejected(error: Error): IFetchFormResourceRejec
     type: ActionTypes.FETCH_FORM_RESOURCES_REJECTED,
     error,
   };
-};
+}

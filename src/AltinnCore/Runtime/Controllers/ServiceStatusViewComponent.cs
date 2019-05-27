@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Extensions;
+using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -129,7 +129,6 @@ namespace AltinnCore.Runtime.Controllers
                 codeCompilationResult.CompilationInfo.Where(RelevantCompilationInfo)
                     .GroupBy(c => c.Severity + c.FileName + c.Info)
                     .Select(c => c.First())
-                    .ToList()
                     .OrderBy(c => c.Severity)
                     .ThenBy(c => c.FileName)
                     .ThenBy(c => c.Info);

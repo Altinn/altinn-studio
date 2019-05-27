@@ -1,14 +1,15 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import {
+  ILayoutComponent,
+  ILayoutContainer,
+} from '../';
+import {
   IFetchFormLayoutFulfilled,
   IFetchFormLayoutRejected,
 } from '../actions/fetch';
 import * as ActionTypes from '../actions/types';
-import {
-  ILayoutComponent,
-  ILayoutContainer,
-} from '../types';
+import { IUpdateFormLayout } from '../actions/update';
 
 export interface ILayoutState {
   layout: [ILayoutComponent | ILayoutContainer];
@@ -48,10 +49,20 @@ const LayoutReducer: Reducer<ILayoutState> = (
         },
       });
     }
+    case ActionTypes.UPDATE_FORM_LAYOUT: {
+      const { layoutElement, index } = action as IUpdateFormLayout;
+      return update<ILayoutState>(state, {
+        layout: {
+          [index]: {
+            $set: layoutElement,
+          },
+        },
+      });
+    }
     default: {
       return state;
-    };
+    }
   }
-}
+};
 
 export default LayoutReducer;

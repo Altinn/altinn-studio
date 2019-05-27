@@ -8,7 +8,7 @@ namespace Altinn.Platform.Register.Controllers
     /// <summary>
     /// The parties controller
     /// </summary>
-    [Route("api/v1/[controller]")]
+    [Route("register/api/v1/[controller]")]
     public class PartiesController : Controller
     {
         private readonly IParties _partiesWrapper;

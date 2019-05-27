@@ -1,14 +1,17 @@
 import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
+import axios from 'axios';
 import * as React from 'react';
 import { get, post } from '../../../shared/src/utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
+import postMessages from '../utils/postMessages';
 import FetchChangesComponent from '../version-control/fetchChanges';
 import ShareChangesComponent from '../version-control/shareChanges';
 import SyncModalComponent from './syncModal';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
+  type?: 'fetchButton' | 'shareButton' | 'header';
 }
 
 export interface IVersionControlHeaderState {
@@ -42,6 +45,9 @@ const initialModalState = {
 };
 
 class VersionControlHeader extends React.Component<IVersionControlHeaderProps, IVersionControlHeaderState> {
+  public cancelToken = axios.CancelToken;
+  public source = this.cancelToken.source();
+
   public interval: any;
   public _isMounted = false;
   public timeout: any;
@@ -51,7 +57,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       changesInMaster: false,
       changesInLocalRepo: false,
       moreThanAnHourSinceLastPush: false,
-      hasPushRight: false,
+      hasPushRight: null,
       anchorEl: null,
       mergeConflict: false,
       modalState: initialModalState,
@@ -110,13 +116,13 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     // check status every 5 min
     this.interval = setInterval(() => this.updateStateOnIntervals(), 300000);
     this.getStatus();
-    this.getRepoRights();
+    this.getRepoPermissions();
     this.getLastPush();
     window.addEventListener('message', this.changeToRepoOccured);
   }
 
   public changeToRepoOccured = (event: any) => {
-    if (event.data === 'SAVED' && this._isMounted && !this.state.timeoutIsRunning) {
+    if (event.data === postMessages.filesAreSaved && this._isMounted && !this.state.timeoutIsRunning) {
       this.setState({
         timeoutIsRunning: true,
       });
@@ -131,23 +137,29 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public componentWillUnmount() {
     clearInterval(this.interval);
-    this._isMounted = false;
+    this.source.cancel('ComponentWillUnmount'); // Cancel the getRepoPermissions() get request
     clearTimeout(this.timeout);
     window.removeEventListener('message', this.changeToRepoOccured);
   }
 
-  public getRepoRights() {
-    const altinnWindow: any = window as any;
-    const { service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Search`;
-    get(url).then((result: any) => {
-      if (this._isMounted && result) {
-        const currentRepo = result.filter((e: any) => e.name === service);
-        this.setState({
-          hasPushRight: currentRepo.length > 0 ? currentRepo[0].permissions.push : false,
-        });
+  public getRepoPermissions = async () => {
+    const { org, service } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`;
+
+    try {
+      const currentRepo = await get(url, { cancelToken: this.source.token });
+      this.setState({
+        hasPushRight: currentRepo.permissions.push,
+      });
+
+    } catch (err) {
+      if (axios.isCancel(err)) {
+        // console.error('Component did unmount. Get canceled.');
+      } else {
+        // TODO: Handle error
+        console.error('getRepoPermissions failed', err);
       }
-    });
+    }
   }
 
   public handleClose = () => {
@@ -185,7 +197,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             },
           });
           // force refetch  files
-          window.postMessage('NEWDATA', window.location.href);
+          window.postMessage(postMessages.refetchFiles, window.location.href);
+          this.forceRepoStatusCheck();
         } else if (result.repositoryStatus === 'CheckoutConflict') {
           // if pull gives merge conflict, show user needs to commit message
           this.setState({
@@ -205,7 +218,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public shareChanges = (currentTarget: any) => {
-    if (this.state.hasPushRight) {
+    if (this.state.hasPushRight === true) {
       this.setState({
         anchorEl: currentTarget,
         modalState: {
@@ -246,7 +259,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
         }
       });
-    } else {
+    } else if (this.state.hasPushRight === false) {
       // if user don't have push rights, show modal stating no access to share changes
       this.setState({
         anchorEl: currentTarget,
@@ -286,6 +299,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         });
       }
     });
+    this.forceRepoStatusCheck();
   }
 
   public commitChanges = (commitMessage: string) => {
@@ -332,7 +346,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
                 // tslint:disable-next-line:max-line-length
                 descriptionText: [getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language)],
                 btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
-                btnMethod: this.redirectToMergeConflictPage,
+                btnMethod: this.forceRepoStatusCheck,
               },
             });
           }
@@ -341,47 +355,81 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
   }
 
-  public redirectToMergeConflictPage = () => {
+  public forceRepoStatusCheck = () => {
     window.postMessage('forceRepoStatusCheck', window.location.href);
+  }
+
+  public renderSyncModalComponent = () => {
+    return (
+      <SyncModalComponent
+        anchorEl={this.state.anchorEl}
+        header={this.state.modalState.header}
+        descriptionText={this.state.modalState.descriptionText}
+        isLoading={this.state.modalState.isLoading}
+        shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
+        btnText={this.state.modalState.btnText}
+        shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
+        handleClose={this.handleClose}
+        btnClick={this.state.modalState.btnMethod}
+      />
+    );
   }
 
   public render() {
     const { classes } = this.props;
+    const type = this.props.type || 'header';
+
     return (
       <React.Fragment>
-        <Grid container={true} direction='row' className={classes.headerStyling}>
-          <Grid item={true} xs={5}>
+        {type === 'header' ? (
+          <Grid container={true} direction='row' className={classes.headerStyling} justify='center'>
+            <Grid item={true} style={{ marginRight: '24px' }}>
+              <FetchChangesComponent
+                changesInMaster={this.state.changesInMaster}
+                fetchChanges={this.fetchChanges}
+                language={this.props.language}
+              />
+            </Grid>
+            <Grid item={true}>
+              <ShareChangesComponent
+                changesInLocalRepo={this.state.changesInLocalRepo}
+                hasMergeConflict={this.state.mergeConflict}
+                hasPushRight={this.state.hasPushRight}
+                language={this.props.language}
+                moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
+                shareChanges={this.shareChanges}
+              />
+            </Grid>
+            {this.renderSyncModalComponent()}
+          </Grid>
+        ) : type === 'fetchButton' ? (
+          <React.Fragment>
             <FetchChangesComponent
-              language={this.props.language}
-              fetchChanges={this.fetchChanges}
               changesInMaster={this.state.changesInMaster}
-            />
-          </Grid>
-          <Grid item={true} xs={7}>
-            <ShareChangesComponent
+              fetchChanges={this.fetchChanges}
               language={this.props.language}
-              shareChanges={this.shareChanges}
-              changesInLocalRepo={this.state.changesInLocalRepo}
-              moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
-              hasPushRight={this.state.hasPushRight}
-              hasMergeConflict={this.state.mergeConflict}
             />
-          </Grid>
-          <SyncModalComponent
-            anchorEl={this.state.anchorEl}
-            header={this.state.modalState.header}
-            descriptionText={this.state.modalState.descriptionText}
-            isLoading={this.state.modalState.isLoading}
-            shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
-            btnText={this.state.modalState.btnText}
-            shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
-            handleClose={this.handleClose}
-            btnClick={this.state.modalState.btnMethod}
-          />
-        </Grid>
+            {this.renderSyncModalComponent()}
+          </React.Fragment>
+        ) : type === 'shareButton' ? (
+          <React.Fragment>
+            <ShareChangesComponent
+              buttonOnly={true}
+              changesInLocalRepo={this.state.changesInLocalRepo}
+              hasMergeConflict={this.state.mergeConflict}
+              hasPushRight={this.state.hasPushRight}
+              language={this.props.language}
+              moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
+              shareChanges={this.shareChanges}
+            />
+            {this.renderSyncModalComponent()}
+          </React.Fragment>
+        ) : null}
       </React.Fragment>
     );
   }
 }
 
 export default withStyles(styles)(VersionControlHeader);
+
+export const VersionControlContainer = withStyles(styles)(VersionControlHeader);
