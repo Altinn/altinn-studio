@@ -3,7 +3,6 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { EditModalContent } from '../../../src/components/config/EditModalContent';
 
@@ -65,18 +64,7 @@ describe('>>> containers/EditModalContent', () => {
     };
     mockStore = createStore(initialState);
   });
-  it('>>> Capture snapshot of EditModalContent', () => {
-    const rendered = renderer.create(
-      <Provider store={mockStore}>
-        <EditModalContent
-          component={mockComponent}
-          language={mockLanguage}
-          handleComponentUpdate={mockHandleComponentUpdate}
-        />
-      </Provider>,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
+
   it('+++ should return input spesific content when type input', () => {
     const mountedEditModalContent = mount(
       <Provider store={mockStore}>
