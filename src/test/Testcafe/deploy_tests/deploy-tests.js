@@ -31,7 +31,7 @@ fixture('GUI service designer tests')
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
   })
 
-test.only('Happy case; deploy a service to a test environment after a change', async() => {
+test('Happy case; deploy a service to a test environment after a change', async() => {
   await common.login(testUser.userEmail, testUser.password, loginPage);
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
