@@ -62,234 +62,157 @@ namespace Altinn.Platform.Storage.Repository
             _client.OpenAsync();
         }
 
-        /// <summary>
-        /// To insert new instance into instance collection
-        /// </summary>
-        /// <param name="item">the form data</param>
-        /// <returns>The deserialized formdata saved to file</returns>
-        public async Task<string> InsertInstanceIntoCollectionAsync(Instance item)
+        private Instance PreProcess(Instance instance)
         {
-            try
-            {
-                ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
-                Document document = createDocumentResponse.Resource;
+            instance.Id = InstanceIdToCosmosId(instance.Id);
 
-                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
-
-                return instance.Id;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Exception {ex}");
-                throw ex;
-            }
+            return instance;
         }
 
-        /// <summary>
-        /// Delets an instance.
-        /// </summary>
-        /// <param name="item">The instance to delete</param>
-        /// <returns>if the item is deleted or not</returns>
-        public async Task<bool> DeleteInstance(Instance item)
+        private Instance PostProcess(Instance instance)
         {
-            try
-            {
-                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id.ToString());
+            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
 
-                ResourceResponse<Document> instance = await _client
-                    .DeleteDocumentAsync(
-                        uri.ToString(),
-                        new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Exception {e}");
-                return false;
-            }
+            return instance;
         }
 
-        /// <summary>
-        /// Get the instance based on the input parameters
-        /// </summary>
-        /// <param name="org">application owner id</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string org)
+        private List<Instance> PostProcess(List<Instance> instances)
         {
-            try
-            {
-                List<Instance> instances = new List<Instance>();
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    EnableCrossPartitionQuery = true,
-                };
+            instances.ForEach(i => PostProcess(i));
+            
+            return instances;
+        }
 
-                IDocumentQuery<Instance> query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                                .Where(i => i.Org == org)
-                                .AsDocumentQuery();
-                while (query.HasMoreResults)
-                {
-                    foreach (Instance instance in await query.ExecuteNextAsync().ConfigureAwait(false))
-                    {
-                        instances.Add(instance);
-                    }
-                }
-
-                return instances;
-            }
-            catch (DocumentClientException e)
+        private string InstanceIdToCosmosId(string id)
+        {
+            if (id == null)
             {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Exception {e}");
                 return null;
             }
+
+            return id.Split("/")[1];       
         }
 
-        /// <summary>
-        /// Get the instance based on the input parameters
-        /// </summary>
-        /// <param name="applicationId">application owner id</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<List<Instance>> GetInstancesOfApplicationAsync(string applicationId)
+        /// <inheritdoc/>
+        public async Task<Instance> Create(Instance item)
         {
-            try
+            PreProcess(item);
+
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
+            Document document = createDocumentResponse.Resource;
+
+            Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+
+            return PostProcess(instance);            
+        }
+
+        /// <inheritdoc/>
+        public async Task<bool> Delete(Instance item)
+        {
+            PreProcess(item);
+
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
+
+            ResourceResponse<Document> instance = await _client
+                .DeleteDocumentAsync(
+                    uri.ToString(),
+                    new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
+
+            return true;            
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Instance>> GetInstancesOfOrg(string org)
+        {
+            List<Instance> instances = new List<Instance>();
+            FeedOptions feedOptions = new FeedOptions
             {
-                // string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationId = '{applicationId}'";
-                FeedOptions feedOptions = new FeedOptions
+                EnableCrossPartitionQuery = true,
+            };
+
+            IDocumentQuery<Instance> query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                            .Where(i => i.Org == org)
+                            .AsDocumentQuery();
+            while (query.HasMoreResults)
+            {
+                foreach (Instance instance in await query.ExecuteNextAsync().ConfigureAwait(false))
                 {
-                    EnableCrossPartitionQuery = true,
-                    MaxItemCount = 100,          
-                };
+                    instances.Add(PostProcess(instance));
+                }
+            }
 
-                IDocumentQuery<Instance> query = _client
-                    .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                    .Where(i => i.AppId == applicationId)           
-                    .AsDocumentQuery();
+            return instances;           
+        }
 
-                FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
+        /// <inheritdoc/>
+        public async Task<List<Instance>> GetInstancesOfApplication(string appId)
+        {            
+            // string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationId = '{applicationId}'";
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true,
+                MaxItemCount = 100,          
+            };
+
+            IDocumentQuery<Instance> query = _client
+                .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                .Where(i => i.AppId == appId)           
+                .AsDocumentQuery();
+
+            FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
              
-                List<Instance> instances = result.ToList<Instance>();
-                return instances;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Exception {e}");
-                return null;
-            }
+            List<Instance> instances = result.ToList<Instance>();
+
+            return PostProcess(instances);
         }
 
-        /// <summary>
-        /// Get the instance based on the input parameters
-        /// </summary>
-        /// <param name="instanceId">the id of the Instance</param>
-        /// <param name="instanceOwnerId">the partition key</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<Instance> GetOneAsync(Guid instanceId, int instanceOwnerId)
+        /// <inheritdoc/>
+        public async Task<Instance> GetOne(string instanceId, int instanceOwnerId)
         {
-            try
-            {
-                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
+            string cosmosId = InstanceIdToCosmosId(instanceId);
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosId);
               
-                Instance instance = await _client
-                    .ReadDocumentAsync<Instance>(
-                        uri,
-                        new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
+            Instance instance = await _client
+                .ReadDocumentAsync<Instance>(
+                    uri,
+                    new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
 
-                return instance;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Exception {e}");
-                return null;
-            }
+            return PostProcess(instance);           
         }
 
-        /// <summary>
-        /// Get all the instances for an instanceOwner
-        /// </summary>
-        /// <param name="instanceOwnerId">the id of the instanceOwner</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<List<Instance>> GetInstancesOfInstanceOwnerAsync(int instanceOwnerId)
+        /// <inheritdoc/>
+        public async Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerId)
         {
-            try
+            string instanceOwnerIdString = instanceOwnerId.ToString();
+
+            FeedOptions feedOptions = new FeedOptions
             {
-                string instanceOwnerIdString = instanceOwnerId.ToString();
+                PartitionKey = new PartitionKey(instanceOwnerIdString),
+                MaxItemCount = 100,
+            };
 
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    PartitionKey = new PartitionKey(instanceOwnerIdString),
-                    MaxItemCount = 100,
-                };
+            IQueryable<Instance> filter = _client
+                .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                .Where(i => i.InstanceOwnerId == instanceOwnerIdString);
 
-                IQueryable<Instance> filter = _client
-                    .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                    .Where(i => i.InstanceOwnerId == instanceOwnerIdString);
+            IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
 
-                IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
+            FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
 
-                FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
-
-                return feedResponse.ToList<Instance>();
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            return PostProcess(feedResponse.ToList<Instance>());           
         }
 
-        /// <summary>
-        /// Update instance for a given form id
-        /// </summary>
-        /// <param name="instanceId">the instance id</param>
-        /// <param name="item">the instance</param>
-        /// <returns>The instance</returns>
-        public async Task<Instance> UpdateInstanceInCollectionAsync(Guid instanceId, Instance item)
+        /// <inheritdoc/>
+        public async Task<Instance> Update(Instance item)
         {
-            ResourceResponse<Document> createDocumentResponse = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
+            PreProcess(item);
+
+            ResourceResponse<Document> createDocumentResponse = await _client
+                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id), item);
             Document document = createDocumentResponse.Resource;
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            return instance;
+            return PostProcess(instance);
         }
     }
 }

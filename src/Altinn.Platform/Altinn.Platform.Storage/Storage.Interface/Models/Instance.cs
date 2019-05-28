@@ -19,16 +19,22 @@ namespace Altinn.Platform.Storage.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// Links to access the instance resource
-        /// </summary>
-        [JsonProperty(PropertyName = "selfLinks")]
-        public ResourceLinks SelfLinks { get; set; }
-
-        /// <summary>
         /// owner of the instance
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwnerId")]
         public string InstanceOwnerId { get; set; }
+
+        /// <summary>
+        /// instance owner lookup. Only to be used when instantiating an application instance. Will be set to null by storage.
+        /// </summary>
+        [JsonProperty(PropertyName = "instanceOwnerLookup")]
+        public InstanceOwnerLookup InstanceOwnerLookup { get; set; }
+
+        /// <summary>
+        /// Links to access the instance resource
+        /// </summary>
+        [JsonProperty(PropertyName = "selfLinks")]
+        public ResourceLinks SelfLinks { get; set; }
 
         /// <summary>
         /// id of the service

@@ -6,7 +6,9 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Logging;
+using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -50,7 +52,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             if (instanceOwnerId != 0)
             {
-                List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwnerAsync(instanceOwnerId);
+                List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerId);
                 if (result == null || result.Count == 0)
                 {
                     return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
@@ -60,7 +62,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (!string.IsNullOrEmpty(applicationOwnerId))
             {
-                List<Instance> result = await _instanceRepository.GetInstancesOfApplicationOwnerAsync(applicationOwnerId);
+                List<Instance> result = await _instanceRepository.GetInstancesOfOrg(applicationOwnerId);
                 if (result == null || result.Count == 0)
                 {
                     return NotFound($"Did not find any instances for applicationOwnerId={applicationOwnerId}");
@@ -70,7 +72,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (!string.IsNullOrEmpty(applicationId))
             {                
-                List<Instance> result = await _instanceRepository.GetInstancesOfApplicationAsync(applicationId);
+                List<Instance> result = await _instanceRepository.GetInstancesOfApplication(applicationId);
                 if (result == null || result.Count == 0)
                 {
                     return NotFound($"Did not find any instances for applicationId={applicationId}");
@@ -80,100 +82,147 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return BadRequest("Unable to perform query");
-        }        
+        }
 
         /// <summary>
         /// Gets an instance for a given instanceid
         /// </summary>
-        /// <param name="instanceId">instance id</param>
-        /// <param name="instanceOwnerId">instance owner</param>
-        /// <returns></returns>
-        /// GET /instances/{instanceId}
-        [HttpGet("{instanceId:guid}")]
-        public async Task<ActionResult> Get(Guid instanceId, int instanceOwnerId)
+        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="guid">the guid of the instance</param>
+        /// <returns></returns>        
+        [HttpGet("{instanceOwnerId:int}/{guid:guid}")]
+        public async Task<ActionResult> Get(int instanceOwnerId, Guid guid)
         {
-            Stopwatch watch = Stopwatch.StartNew();
+            string instanceId = $"{instanceOwnerId}/{guid}";
 
-            Instance result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
-            if (result == null)
+            Instance result;
+            try
             {
-                return NotFound("Did not find an instance with instanceId=" + instanceId);
+                result = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+
+                return Ok(result);
             }
-
-            watch.Stop();
-            logger.LogInformation("get {instanceid} for {instanceOwner} took {time}ms.", instanceId, instanceOwnerId, watch.ElapsedMilliseconds);
-
-            return Ok(result);
+            catch (Exception e)
+            {
+                return NotFound($"Unable to find instance {instanceId}: {e}");
+            }            
         }
 
         /// <summary>
         /// Inserts new instance into the instance collection
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner</param>
-        /// <param name="applicationId">the applicationid</param>
+        /// <param name="appId">the applicationid</param>
+        /// <param name="instanceOwnerId">the instance owner</param>
+        /// <param name="instanceTemplate">The template to base the instance on</param>
         /// <returns>instance object</returns>
-        /// <!-- POST /instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId} -->
+        /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]        
-        public async Task<ActionResult> Post(int instanceOwnerId, string applicationId)
+        public async Task<ActionResult> Post(string appId, int instanceOwnerId, [FromBody] Instance instanceTemplate)
         {
-            if (string.IsNullOrEmpty(applicationId) || instanceOwnerId == 0)
+            // also check instanceOwnerLookup!!
+            if ((instanceOwnerId == 0 && instanceTemplate == null) || string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId) ) 
             {
-                return BadRequest("Missing parameter values: applicationId and instanceOwnerId must be set");
+                return BadRequest("Missing parameter values: instanceOwnerId must be set");
+            }
+
+            if (instanceOwnerId == 0)
+            {
+                instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
             }
 
             // check if metadata exists
-            Application appInfo = GetApplicationInformation(applicationId);
-            if (appInfo == null)
+            Application appInfo;
+            try
             {
-                return Forbid($"Application Metadata is not registered for this applicationId: {applicationId}");
+                appInfo = GetApplicationInformation(appId);                
             }
-
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    return NotFound($"Did not find application with appId={appId}");
+                }
+                else
+                {
+                    return StatusCode(500, $"Document database error: {dce}");
+                }
+            }
+            catch (Exception e) 
+            {
+                return StatusCode(500, $"Unable to perform request: {e}");
+            }
+             
             DateTime creationTime = DateTime.UtcNow;
 
             string applicationOwnerId = appInfo.Org;
 
-            Instance instance = new Instance()
+            Instance createdInstance = new Instance()
             {
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
-                AppId = applicationId,
+                AppId = appId,
                 Org = applicationOwnerId,
                 VisibleDateTime = creationTime,
-            };
-            
-            string result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
-            if (result == null)
-            {
-                logger.LogError("Unable to write new instance to database");
-                return BadRequest("Unable to write new instance to database");
-            }
 
-            return Ok(result);
+                Labels = instanceTemplate.Labels,
+                PresentationField = instanceTemplate.PresentationField,
+                Workflow = new WorkflowState { CurrentStep = "FormFilling", IsComplete = false },
+            };
+
+            try
+            {
+                Instance result = await _instanceRepository.Create(createdInstance);
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Unable to create {appId} instance for {instanceOwnerId} due to {e}");
+                return StatusCode(500, $"Unable to create {appId} instance for {instanceOwnerId} due to {e}");
+            }
         }
 
         /// <summary>
         /// Updates an instance
         /// </summary>
-        /// <param name="instanceId">instance id</param>
+        /// <param name="guid">instance id</param>
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="instance">instance</param>
         /// <returns></returns>        
-        [HttpPut("{instanceId}")]
-        public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody] Instance instance)
+        [HttpPut("{instanceOwnerId:int}/{guid:guid}")]
+        public async Task<ActionResult> Put(Guid guid, int instanceOwnerId, [FromBody] Instance instance)
         {
-            Instance result = null;
+            string instanceId = $"{instanceOwnerId}/{guid}";
 
-            instance.LastChangedBy = User.Identity.Name;
-            instance.LastChangedDateTime = DateTime.UtcNow;
-
-            /* TODO: make sure put doesn't update storage controlled fields */
-
+            Instance existingInstance;
             try
             {
-                result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            }
+            catch (Exception e)
+            {
+                string message = $"Unable to find instance {instanceId} to update: {e}";
+                logger.LogError(message);
+
+                return NotFound(message);
+            }
+
+            existingInstance.AppOwnerState = instance.AppOwnerState;
+            existingInstance.Workflow = instance.Workflow;
+            existingInstance.PresentationField = instance.PresentationField;
+            existingInstance.DueDateTime = instance.DueDateTime;
+            existingInstance.VisibleDateTime = instance.VisibleDateTime;
+            existingInstance.Labels = instance.Labels;
+
+            existingInstance.LastChangedBy = User.Identity.Name;
+            existingInstance.LastChangedDateTime = DateTime.UtcNow;
+
+            Instance result;
+            try
+            {
+                result = await _instanceRepository.Update(existingInstance);
             }
             catch (Exception e) 
             {
@@ -186,61 +235,74 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Delete an instance
         /// </summary>
-        /// <param name="instanceId">instance id</param>
+        /// <param name="guid">instance id</param>
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="hard">if true hard delete will take place</param>
         /// <returns>updated instance object</returns>
         /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}
-        [HttpDelete("{instanceId}")]
-        public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId, bool? hard)
+        [HttpDelete("{instanceOwnerId:int}/{guid:guid}")]
+        public async Task<ActionResult> Delete(Guid guid, int instanceOwnerId, bool? hard)
         {
-            Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
-            if (instance == null)
+            string instanceId = $"{instanceOwnerId}/{guid}";
+
+            Instance instance;
+            try
             {
-                return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
+                }
+
+                return StatusCode(500, $"Unknown database exception in delete: {dce}");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Unknown exception in delete: {e}");
+            }
+
+            if (hard.HasValue && hard == true)
+            {
+                try
+                {
+                    await _instanceRepository.Delete(instance);
+
+                    return Ok(true);                    
+                }
+                catch (Exception e)
+                {
+                    return StatusCode(500, $"Unknown exception in delete: {e}");
+                }
             }
             else
             {
-                if (hard.HasValue && hard == true)
-                {
-                    bool deletedOK = await _instanceRepository.DeleteInstance(instance);
-                    if (deletedOK)
-                    {
-                        return Ok(true);
-                    }                    
-                }
-                else
-                {
-                    instance.InstanceState.IsDeleted = true;
-                    instance.LastChangedBy = User.Identity.Name;
-                    instance.LastChangedDateTime = DateTime.UtcNow;
+                instance.InstanceState.IsDeleted = true;
+                instance.LastChangedBy = User.Identity.Name;
+                instance.LastChangedDateTime = DateTime.UtcNow;
 
-                    Instance result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
-                    if (result == null)
-                    {
-                        return Ok(result);
-                    }                            
+                try
+                {
+                    Instance softDeletedInstance = await _instanceRepository.Update(instance);
+                    
+                    return Ok(softDeletedInstance);                    
                 }
-
-                return BadRequest();
+                catch (Exception e)
+                {
+                    return StatusCode(500, $"Unknown exception in delete: {e}");
+                }
             }
         }
 
         private Application GetApplicationInformation(string appId)
         {
-            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(appId);
-            try
-            {
-                Application application = _applicationRepository.FindOne(appId, applicationOwnerId).Result;
+            string org = appId.Split("/")[0];
 
-                return application;
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"Get application {appId} failed: {e}");
-            }
+            Application application = _applicationRepository.FindOne(appId, org).Result;
 
-            return null;
+            return application;
         }
     }
 }
