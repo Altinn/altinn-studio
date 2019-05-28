@@ -96,7 +96,6 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance = new Instance();
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
@@ -121,7 +120,6 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
         {
             List<Instance> instances = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId);
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
             using (HttpClient client = new HttpClient())

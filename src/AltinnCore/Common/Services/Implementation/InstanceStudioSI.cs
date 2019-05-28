@@ -123,7 +123,6 @@ namespace AltinnCore.Common.Services.Implementation
         public Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
             string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";

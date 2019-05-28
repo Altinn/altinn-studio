@@ -8,6 +8,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -19,14 +20,17 @@ namespace AltinnCore.Common.Services.Implementation
     public class InstanceEventAppSI : IInstanceEvent
     {
         private readonly PlatformSettings _platformSettings;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventAppSI"/> class.
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
-        public InstanceEventAppSI(IOptions<PlatformSettings> platformSettings)
+        /// <param name="logger">The logger</param>
+        public InstanceEventAppSI(IOptions<PlatformSettings> platformSettings, ILogger<InstanceEventAppSI> logger)
         {
             _platformSettings = platformSettings.Value;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -46,7 +50,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 catch
                 {
-                    throw new Exception("Unable to delete instance events");
+                    _logger.LogError($"Unable to delete instance events");
+                    return false;
                 }
             }
         }
@@ -56,12 +61,15 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUri = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/events?";
 
-            if (!(eventTypes == null))
+            if (eventTypes != null)
             {
+                StringBuilder bld = new StringBuilder();
                 foreach (string type in eventTypes)
                 {
-                    apiUri += $"&eventTypes={type}";
+                    bld.Append($"&eventTypes={type}");
                 }
+
+                apiUri += bld.ToString();
             }
 
             if (!(string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)))
@@ -81,7 +89,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 catch (Exception)
                 {
-                    throw new Exception("Unable to retrieve instance event");
+                    _logger.LogError($"Unable to retrieve instance event");
+                    return null;
                 }
             }
         }
@@ -108,7 +117,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 catch
                 {
-                    throw new Exception("Unable to store instance event");
+                    _logger.LogError($"Unable to store instance event");
+                    return null;
                 }
             }
         }
