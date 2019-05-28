@@ -29,7 +29,7 @@ const styles = createStyles({
   },
 });
 
-class AltinnSpinner extends React.Component<IAltinnSpinnerComponentProvidedProps, any> {
+export class AltinnSpinner extends React.Component<IAltinnSpinnerComponentProvidedProps, any> {
   public render() {
     const { classes } = this.props;
     return (

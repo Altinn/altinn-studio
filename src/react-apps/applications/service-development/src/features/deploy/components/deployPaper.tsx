@@ -203,7 +203,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   const renderDeploySuccess = (env: string, host: string) => {
     const { org, service } = window as IAltinnWindow;
 
-    const url = `http://${org}.apps.${env}.${host}/${service}`;
+    const url = `https://${org}.apps.${env}.${host}/${org}/${service}`;
     return (
       <React.Fragment>
         <Grid container={true}>

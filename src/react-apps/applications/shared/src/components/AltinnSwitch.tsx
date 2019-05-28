@@ -39,12 +39,12 @@ const styles = createStyles({
 });
 
 // tslint:disable-next-line:max-line-length
-class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps, IAltinnSwitchComponentState> {
+export class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps, IAltinnSwitchComponentState> {
   public render() {
     const { classes } = this.props;
     return (
       <div>
-        <FormGroup row={true} classes={{root: classNames(classes.switch)}}>
+        <FormGroup row={true} classes={{ root: classNames(classes.switch) }}>
           <FormControlLabel
             control={
               <Switch
@@ -55,7 +55,7 @@ class AltinnSwitch extends React.Component<IAltinnSwitchComponentProvidedProps, 
             }
             label={this.props.switchHeader}
             labelPlacement='start'
-            classes={{label: classNames(classes.switchLabel), root: classNames(classes.switchLabelRoot)}}
+            classes={{ label: classNames(classes.switchLabel), root: classNames(classes.switchLabelRoot) }}
           />
         </FormGroup>
       </div>

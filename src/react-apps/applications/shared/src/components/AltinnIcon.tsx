@@ -5,6 +5,7 @@ import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnIconCompontentProvidedProps {
+  /** @ignore */
   classes: any;
   iconClass: string;
   isActive?: boolean;
@@ -26,7 +27,7 @@ const styles = {
   },
 };
 
-class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAltinnIconComponentState> {
+export class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAltinnIconComponentState> {
   public render() {
     return (
       <i

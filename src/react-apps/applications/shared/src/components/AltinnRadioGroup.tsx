@@ -28,7 +28,7 @@ const styles = () => createStyles({
   },
 });
 
-class AltinnRadioGroup extends
+export class AltinnRadioGroup extends
   React.Component<IAltinnRadioGroupComponentProvidedProps, IAltinnRadioGroupComponentState> {
 
   public render() {
