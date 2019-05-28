@@ -31,16 +31,16 @@ fixture('GUI service designer tests')
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
   })
 
-test('Happy case; deploy a service to a test environment after a change', async() => {
+test.only('Happy case; deploy a service to a test environment after a change', async() => {
   await common.login(testUser.userEmail, testUser.password, loginPage);
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
     .click(designer.lageNavigationTab)
     .maximizeWindow()
     .click(designer.hentEndringer)
-    .expect(designer.ingenEndringer.exists).ok()
-    .click(designer.inputBtn)
-    .pressKey("enter")
+    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
+    .click(designer.omNavigationTab) //remove pop up
+    .dragToElement(designer.inputBtn, designer.dragToArea)
     .click(designer.omNavigationTab)
     .click(designer.lageNavigationTab)
     .expect(designer.delEndringer.exists).ok()
@@ -62,17 +62,20 @@ test('Happy case; deploy a service to a test environment after a change', async(
 
 })
 
-
 test('Service cannot deploy due to compilation error', async() => {
   await common.login(testUser.userEmail, testUser.password, loginPage);
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/aboutservice')
     .maximizeWindow()
+    .click(designer.lageNavigationTab)
+    .click(designer.hentEndringer)
+    .expect(designer.ingenEndringer.exists).ok()
+    .click(designer.testeNavigationTab) //click twice to remove pop up from "del"
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])
     .expect(designer.deployButton.getAttribute("disabled")).notOk()
-    .expect((Selector("h2").withText(t.ctx.noCompile)).exists).ok()
+    .expect(Selector("h2").withText(t.ctx.noCompile).exists).ok()
 })
 
 test('Service cannot be deployed due to local changes', async() => {
@@ -82,8 +85,9 @@ test('Service cannot be deployed due to local changes', async() => {
   .maximizeWindow()
   .click(designer.lageNavigationTab)
   .click(designer.hentEndringer)
-  .expect(designer.ingenEndringer.exists).ok()
-  .click(designer.inputBtn)
+  .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
+  .click(designer.omNavigationTab) //remove pop up
+  .click(designer.radioButtons)
   .pressKey('enter')
   .expect(designer.delEndringer.exists).ok()
   .click(designer.testeNavigationTab)
