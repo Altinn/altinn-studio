@@ -6,6 +6,8 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
+using AltinnCore.Authentication.JwtCookie;
+using AltinnCore.Authentication.Utils;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -28,6 +30,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
+        private readonly JwtCookieOptions _cookieOptions;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowAppSI"/> class.
@@ -37,23 +40,26 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="testdataRepositorySettings">The test data repository settings</param>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="generalSettings">the general settings</param>
+        /// <param name="cookieOptions">The cookie options </param>
         public WorkflowAppSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<PlatformSettings> platformSettings,
-            IOptions<GeneralSettings> generalSettings)
+            IOptions<GeneralSettings> generalSettings,
+            IOptions<JwtCookieOptions> cookieOptions)
         {
             _settings = repositorySettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
+            _cookieOptions = cookieOptions.Value;
         }
 
         /// <inheritdoc/>
         public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId)
-        {            
+        {
             // Read the workflow template
             string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
             return WorkflowHelper.GetInitialWorkflowState(workflowData);
@@ -71,9 +77,12 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
                 Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
                 if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)

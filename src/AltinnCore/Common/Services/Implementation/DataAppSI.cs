@@ -7,6 +7,8 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
+using AltinnCore.Authentication.JwtCookie;
+using AltinnCore.Authentication.Utils;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -25,6 +27,8 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
+        private readonly HttpContext _httpContext;
+        private readonly JwtCookieOptions _cookieOptions;
 
         private const string FORM_ID = "default";
 
@@ -33,22 +37,33 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">the logger</param>
-        public DataAppSI(IOptions<PlatformSettings> platformSettings, ILogger<DataAppSI> logger)
+        /// <param name="httpContex">The http context </param>
+        /// <param name="cookieOptions">The cookie options </param>
+        public DataAppSI(
+            IOptions<PlatformSettings> platformSettings,
+            ILogger<DataAppSI> logger,
+            HttpContext httpContex,
+            IOptions<JwtCookieOptions> cookieOptions)
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
+            _httpContext = httpContex;
+            _cookieOptions = cookieOptions.Value;
         }
 
         /// <inheritdoc />
         public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}";
-            Instance instance;
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+            Instance instance;           
+
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
                 XmlSerializer serializer = new XmlSerializer(type);
                 using (MemoryStream stream = new MemoryStream())
@@ -76,10 +91,13 @@ namespace AltinnCore.Common.Services.Implementation
         public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
 
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
                 XmlSerializer serializer = new XmlSerializer(type);
                 using (MemoryStream stream = new MemoryStream())
                 {
@@ -87,6 +105,7 @@ namespace AltinnCore.Common.Services.Implementation
                     stream.Position = 0;
                     StreamContent streamContent = new StreamContent(stream);
                     streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+                    streamContent.Headers.Add("Authorization", "Bearer " + token);
                     Task<HttpResponseMessage> response = client.PutAsync(apiUrl, streamContent);
                     if (!response.Result.IsSuccessStatusCode)
                     {
@@ -100,9 +119,13 @@ namespace AltinnCore.Common.Services.Implementation
         public object GetFormData(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
                 Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
                 if (response.Result.IsSuccessStatusCode)
                 {
@@ -133,9 +156,12 @@ namespace AltinnCore.Common.Services.Implementation
             List<AttachmentList> attachmentList = new List<AttachmentList>();
             List<Attachment> attachments = null;
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
                 HttpResponseMessage response = await client.GetAsync(apiUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -174,7 +200,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.Log(LogLevel.Error, "Unable to fetch attachment list{0}", response.StatusCode);                    
+                    _logger.Log(LogLevel.Error, "Unable to fetch attachment list{0}", response.StatusCode);
                 }
 
                 return attachmentList;
@@ -186,9 +212,12 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<AttachmentList> attachmentList = new List<AttachmentList>();
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{attachmentId}?instanceOwnerId={instanceOwnerId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
                 Task<HttpResponseMessage> response = client.DeleteAsync(apiUrl);
                 response.Result.EnsureSuccessStatusCode();
@@ -199,6 +228,7 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
             Instance instance;
 
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
@@ -209,7 +239,8 @@ namespace AltinnCore.Common.Services.Implementation
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
-                
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
                 using (Stream input = attachment.Body)
                 {
                     HttpContent fileStreamContent = new StreamContent(input);
@@ -221,6 +252,7 @@ namespace AltinnCore.Common.Services.Implementation
                         header.FileName = attachmentName;
                         header.Size = attachment.ContentLength;
                         formData.Headers.ContentDisposition = header;
+                        formData.Headers.Add("Authorization", "Bearer " + token);
                         formData.Add(fileStreamContent, attachmentType, attachmentName);
                         HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
 
