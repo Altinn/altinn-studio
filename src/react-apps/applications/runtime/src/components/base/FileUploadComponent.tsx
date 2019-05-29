@@ -129,7 +129,7 @@ export class FileUploadComponentClass
     FormFileUploadDispatcher.deleteAttachment(attachmentToDelete, fileType, this.props.id);
   }
 
-  public getComponentValidations = (): any => {
+  public getComponentValidations = (): IComponentValidations => {
     const { validations } = this.state;
     let { validationMessages } = this.props;
     if (!validationMessages || !validationMessages.simpleBinding) {
