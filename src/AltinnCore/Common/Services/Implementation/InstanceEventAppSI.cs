@@ -83,7 +83,6 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     throw new Exception("Unable to retrieve instance event");
                 }
-
             }
         }
 

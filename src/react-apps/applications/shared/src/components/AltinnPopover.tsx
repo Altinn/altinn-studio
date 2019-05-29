@@ -110,7 +110,7 @@ const styles = createStyles({
   },
 });
 
-class AltinnPopover extends React.Component<IAltinnPopoverProps, IAltinnPopoverState> {
+export class AltinnPopover extends React.Component<IAltinnPopoverProps, IAltinnPopoverState> {
   constructor(_props: IAltinnPopoverProps) {
     super(_props);
     this.state = {

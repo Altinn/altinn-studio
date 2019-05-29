@@ -59,7 +59,7 @@ const styles = createStyles({
   },
 });
 
-class AltinnModal extends React.Component<IAltinnModalComponentProvidedProps, IAltinnModalComponentState> {
+export class AltinnModal extends React.Component<IAltinnModalComponentProvidedProps, IAltinnModalComponentState> {
   public render() {
     const { classes } = this.props;
     return (
