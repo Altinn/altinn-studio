@@ -167,6 +167,10 @@ export const testData: any = {
         id: 'Skjema.Label',
         value: 'RA-0638 Investeringer i utlandet',
       },
+      {
+        "id": "2.buttonButton.Label",
+        "value": "Kontroller og send inn"
+      },
     ],
   },
 };

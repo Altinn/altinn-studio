@@ -168,6 +168,13 @@ export const testData: any = {
           description: '2.KontaktpersonNavndatadef2.Label',
         },
       },
+      {
+        type: 'Button',
+        id: '3fb932ef-3795-3157-bd57-704608ce946g',
+        textResourceBindings: {
+          title: '2.buttonButton.Label',
+        },
+      },
     ],
   },
 };

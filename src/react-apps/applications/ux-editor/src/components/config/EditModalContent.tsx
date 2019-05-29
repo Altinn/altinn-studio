@@ -355,19 +355,15 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         );
       }
 
-      case 'Submit': {
+      case 'Button': {
         return (
-          <div className='form-group a-form-group'>
-            <label className='a-form-label'>
-              {this.props.language.ux_editor.modal_text_key}
-            </label>
-            <input
-              type='text'
-              disabled={true}
-              value={this.props.component.textResourceBindings.title}
-              className='form-control'
-            />
-          </div>
+          <Grid item={true} xs={12}>
+            {renderSelectTextFromResources('modal_properties_label_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title)}
+          </Grid>
         );
       }
 

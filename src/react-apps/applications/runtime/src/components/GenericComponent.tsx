@@ -30,6 +30,7 @@ export interface IGenericComponentProps extends IProvidedProps {
   textResources: ITextResource[];
   layoutElement: ILayoutContainer | ILayoutComponent;
   validationMessages: IComponentValidations;
+  unsavedChanges: boolean;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps, any> {
@@ -124,6 +125,7 @@ const makeMapStateToProps = () => {
       isValid: isComponentValid(state.formValidations.validations[props.id]),
       textResources: state.formResources.languageResource.resources,
       formData: GetFormDataSelector(state, props),
+      unsavedChanges: state.formData.unsavedChanges,
       validationMessages: GetComponentValidations(state, props),
       ...props,
     };

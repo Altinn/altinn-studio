@@ -1,20 +1,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { IFormConfigState } from '../features/form/config/reducer';
-import FormDataActions from '../features/form/data/actions';
 import { WorkflowSteps } from '../features/form/workflow/typings';
-import { IAltinnWindow, IRuntimeState } from '../types';
-import { ITextResource, IValidations } from '../types/global';
-import { getErrorCount } from '../utils/validation';
+import { IRuntimeState } from '../types';
 import Render from './Render';
 import { WorkflowStep } from './WorkflowStep';
 
 export interface IFormFillerProps {
-  formConfig: IFormConfigState;
-  textResources: ITextResource[];
-  unsavedChanges: boolean;
-  validationResults: IValidations;
+  formConfig: any;
+  textResources: any[];
   workflowStep: WorkflowSteps;
 }
 
@@ -25,51 +19,10 @@ const FormFiller = (props: IFormFillerProps) => {
     setWorkflowStep(props.workflowStep);
   }, [props]);
 
-  const saveFormData = () => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { reportee, org, service, instanceId } = altinnWindow;
-    FormDataActions.submitFormData(
-      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
-    );
+  const handleStepChange = (step: WorkflowSteps) => {
+    setWorkflowStep(step);
   };
 
-  const submitForm = () => {
-    const { reportee, org, service, instanceId } = window as IAltinnWindow;
-    FormDataActions.submitFormData(
-      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
-      'Complete',
-    );
-  };
-
-  const renderSaveButton = () => {
-    const validationErrors = getErrorCount(props.validationResults);
-    const disabled = (validationErrors > 0) || !props.unsavedChanges;
-    return (
-      <button
-        type='submit'
-        className={disabled ?
-          'a-btn a-btn-success disabled' : 'a-btn a-btn-success'}
-        onClick={saveFormData}
-        disabled={disabled}
-      >
-        {getLanguageFromKey('general.save', props.textResources)}
-      </button>
-    );
-  };
-  const renderSubmitButton = () => {
-    const validationErrors = getErrorCount(props.validationResults);
-    const disabled = (validationErrors > 0) || props.unsavedChanges;
-    return (
-      <button
-        type='submit'
-        className={disabled ? 'a-btn a-btn-success disabled' : 'a-btn a-btn-success'}
-        onClick={submitForm}
-        disabled={disabled}
-      >
-        {getLanguageFromKey('general.control_submit', props.textResources)}
-      </button>
-    );
-  };
   return (
     <WorkflowStep
       header={props.formConfig.serviceName ? props.formConfig.serviceName :
@@ -79,12 +32,6 @@ const FormFiller = (props: IFormFillerProps) => {
       <div className='row'>
         <Render />
       </div>
-      <div className='row mt-3'>
-        <div className='a-btn-group'>
-          {renderSaveButton()}
-          {renderSubmitButton()}
-        </div>
-      </div>
     </WorkflowStep>
   );
 };
@@ -93,8 +40,6 @@ const mapStateToProps = (state: IRuntimeState): IFormFillerProps => {
   return {
     formConfig: state.formConfig,
     textResources: state.language.language,
-    unsavedChanges: state.formData.unsavedChanges,
-    validationResults: state.formValidations.validations,
     workflowStep: state.formWorkflow.state,
   };
 };
