@@ -1,3 +1,4 @@
+import { LayoutItemType } from '../containers/FormDesigner';
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
@@ -27,7 +28,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
   if (!formLayout) {
     return convertedLayout;
   }
-
+  formLayout = JSON.parse(JSON.stringify(formLayout));
   const baseContainerId: string = uuid();
 
   for (const element of formLayout) {
@@ -52,6 +53,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
         rest.type = rest.component;
         delete rest.component;
       }
+      rest.itemType = LayoutItemType.Component;
       convertedLayout.components[id] = rest;
       if (!convertedLayout.order[baseContainerId]) {
         convertedLayout.order[baseContainerId] = [id];
@@ -65,7 +67,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
 }
 
 export function convertInternalToLayoutFormat(internalFormat: IFormDesignerLayout): any[] {
-  const { components, containers, order } = internalFormat;
+  const { components, containers, order } = JSON.parse(JSON.stringify(internalFormat));
   let converted: any[] = [];
 
   function getChildrenFromContainer(containerId: string): any[] {
@@ -76,13 +78,16 @@ export function convertInternalToLayoutFormat(internalFormat: IFormDesignerLayou
           components[id].type = components[id].component;
           delete components[id].component;
         }
+        delete (components[id] as any).itemType;
         children.push({
           id,
           ...components[id],
         });
       } else {
+        delete (containers[id] as any).itemType;
         children.push({
           id,
+          type: 'Group',
           children: getChildrenFromContainer(id),
           ...containers[id],
         });
@@ -106,6 +111,7 @@ export function convertInternalToLayoutFormat(internalFormat: IFormDesignerLayou
 
 export function extractChildrenFromContainer(container: any, convertedLayout: any) {
   const { id, children, ...restOfContainer } = container;
+  restOfContainer.itemType = LayoutItemType.Container;
   convertedLayout.containers[id] = restOfContainer;
   for (const child of children) {
     if (child.children) {
@@ -117,6 +123,7 @@ export function extractChildrenFromContainer(container: any, convertedLayout: an
         convertedLayout.order[id].push(child.id);
       }
       const { id: componentId, ...restOfChild } = child;
+      restOfChild.itemType = LayoutItemType.Component;
       convertedLayout.components[componentId] = restOfChild;
     }
   }
