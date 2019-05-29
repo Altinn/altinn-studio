@@ -208,7 +208,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       error: null,
       layout: [
         {
-          component: 'Input',
+          type: 'Input',
           dataModelBindings: {},
           disabled: false,
           id: '78e3616e-44cb-4a94-a1bd-83768539d31c',
@@ -218,7 +218,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
           textResourceBindings: { title: 'ServiceName' },
         },
         {
-          component: 'Input',
+          type: 'Input',
           dataModelBindings: {},
           id: 'd48096d4-7365-4392-b745-b7e4c8c933e6',
           itemType: 'COMPONENT',
