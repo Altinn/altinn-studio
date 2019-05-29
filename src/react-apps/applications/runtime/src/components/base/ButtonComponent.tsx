@@ -31,6 +31,7 @@ export class ButtonComponent extends React.Component<IButtonProps, IButtonState>
     );
   }
 
+  // TODO: Remove saveButton and functions (and sagas) when we have implemented automatic save.
   public renderSaveButton = () => {
     const disabled = !this.props.unsavedChanges;
     return (

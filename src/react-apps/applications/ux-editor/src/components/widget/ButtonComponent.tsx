@@ -17,7 +17,7 @@ export class ButtonComponent
         className='a-btn a-btn-success'
         disabled={this.props.component.disabled}
       >
-        {this.props.text} - button
+        {this.props.text}
       </button>
     );
   }
