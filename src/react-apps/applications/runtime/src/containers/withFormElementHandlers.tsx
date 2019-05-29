@@ -31,7 +31,8 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
         this.props.type === 'Paragraph' ||
         this.props.type === 'Submit' ||
         this.props.type === 'ThirdParty' ||
-        this.props.type === 'AddressComponent') {
+        this.props.type === 'AddressComponent' ||
+        this.props.type === 'Button') {
         return null;
       }
       if (!this.props.textResourceBindings.title) {
