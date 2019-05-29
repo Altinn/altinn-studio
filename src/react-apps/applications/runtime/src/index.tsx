@@ -7,16 +7,16 @@ import { initSagas } from './sagas';
 import { store } from './store';
 import './styles/index.css';
 
-import ErrorBoundry from './components/ErrorBoundry';
+import ErrorBoundary from './components/ErrorBoundary';
 
 initSagas();
 
 render(
   <Provider store={store}>
     <HashRouter>
-      <ErrorBoundry>
+      <ErrorBoundary>
         <App />
-      </ErrorBoundry>
+      </ErrorBoundary>
     </HashRouter>
   </Provider>,
   document.getElementById('root'),

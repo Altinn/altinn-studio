@@ -1,10 +1,10 @@
 import * as React from 'react';
 
-interface IErrorBoundry {
+interface IErrorBoundary {
   hasError: boolean;
 }
 
-class ErrorBoundry extends React.Component<any, IErrorBoundry> {
+class ErrorBoundary extends React.Component<any, IErrorBoundary> {
   private static getDerivedStateFromError(error: Error) {
     return {
       hasError: true,
@@ -15,7 +15,7 @@ class ErrorBoundry extends React.Component<any, IErrorBoundry> {
     hasError: false,
   };
 
-  public componentDidCatch(error: Error, info: any) {
+  public componentDidCatch(error: Error, info: object) {
     console.error(error, info);
   }
 
@@ -31,4 +31,4 @@ class ErrorBoundry extends React.Component<any, IErrorBoundry> {
   }
 }
 
-export default ErrorBoundry;
+export default ErrorBoundary;
