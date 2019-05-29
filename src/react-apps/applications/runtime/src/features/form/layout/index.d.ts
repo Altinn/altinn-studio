@@ -4,8 +4,8 @@ export interface ILayoutEntry {
   hidden: boolean;
 }
 
-export interface ILayoutContainer extends ILayoutEntry {
-  children: [ILayoutContainer | ILayoutComponent];
+export interface ILayoutGroup extends ILayoutEntry {
+  children: [ILayoutGroup | ILayoutComponent];
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
@@ -27,7 +27,7 @@ export interface ITextResourceBindings {
   [id: string]: string;
 }
 
-export type ILayout = [ILayoutComponent | ILayoutContainer];
+export type ILayout = [ILayoutComponent | ILayoutGroup];
 
 export interface IComponentOptions {
   label: string;

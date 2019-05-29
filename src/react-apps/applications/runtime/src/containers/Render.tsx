@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { GenericComponentWrapper } from '../components/GenericComponent';
-import { ILayout, ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
+import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout/';
 import { makeGetLayout } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
 export interface IRenderProps {
@@ -14,10 +14,10 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
     const { layout } = this.props;
     return (
       <div className='col-12'>
-        {layout && layout.map((component: ILayoutComponent | ILayoutContainer) => {
-          if (component.type === 'Container') {
+        {layout && layout.map((component: ILayoutComponent | ILayoutGroup) => {
+          if (component.type.toLowerCase() === 'group') {
             return (
-              // TODO: Implement container features
+              // TODO: Implement group features
               <></>
             );
           } else {

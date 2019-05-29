@@ -1,13 +1,13 @@
 import { Action } from 'redux';
-import { ILayoutComponent, ILayoutContainer } from '../..';
+import { ILayoutComponent, ILayoutGroup } from '../..';
 import { UPDATE_FORM_LAYOUT } from '../types';
 
 export interface IUpdateFormLayout extends Action {
-  layoutElement: ILayoutContainer | ILayoutComponent;
+  layoutElement: ILayoutGroup | ILayoutComponent;
   index: number;
 }
 
-export function updateFormLayout(layoutElement: ILayoutComponent | ILayoutContainer, index: number): IUpdateFormLayout {
+export function updateFormLayout(layoutElement: ILayoutComponent | ILayoutGroup, index: number): IUpdateFormLayout {
   return ({
     type: UPDATE_FORM_LAYOUT,
     layoutElement,

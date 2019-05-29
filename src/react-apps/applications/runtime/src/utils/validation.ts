@@ -1,5 +1,5 @@
 import { IFormData } from '../features/form/data/reducer';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
+import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
@@ -94,7 +94,7 @@ export function validateComponentFormData(
 export function validateFormData(
   formData: IFormData,
   dataModelFieldElements: IDataModelFieldElement[],
-  layout: [ILayoutComponent | ILayoutContainer],
+  layout: ILayout,
 ): IValidations {
   const result: IValidations = {};
   Object.keys(formData).forEach((formDataKey) => {
@@ -158,7 +158,7 @@ export function getErrorCount(validations: IValidations) {
   Maps the API validation response to our redux format
 */
 export function mapApiValidationsToRedux(
-  validations: any, layout: [ILayoutComponent | ILayoutContainer]): IValidations {
+  validations: any, layout: ILayout): IValidations {
   const validationResult: IValidations = {};
   if (!validations) {
     return validationResult;
@@ -167,7 +167,7 @@ export function mapApiValidationsToRedux(
   Object.keys(validations).forEach((validationKey) => {
     const componentValidation: IComponentValidations = {};
     const component = layout.find((layoutElement) => {
-      if (layoutElement.type.toLowerCase() === 'container') {
+      if (layoutElement.type.toLowerCase() === 'group') {
         return false;
       }
       const componentCandidate = layoutElement as unknown as ILayoutComponent;

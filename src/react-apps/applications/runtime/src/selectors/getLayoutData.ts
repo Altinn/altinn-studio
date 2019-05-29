@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
+import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout/';
 import { IRuntimeState } from '../types';
 
 const layoutSelector = (state: IRuntimeState) => {
@@ -14,14 +14,14 @@ const layoutElementSelector = (state: IRuntimeState, props: any) => {
 const getLayout = () => {
   return createSelector(
     [layoutSelector],
-    (layout: [ILayoutComponent | ILayoutContainer]) => layout,
+    (layout: ILayout) => layout,
   );
 };
 
 const getLayoutElement = () => {
   return createSelector(
     [layoutElementSelector],
-    (layoutElement: ILayoutComponent | ILayoutContainer) => {
+    (layoutElement: ILayoutComponent | ILayoutGroup) => {
       return layoutElement;
     },
   );

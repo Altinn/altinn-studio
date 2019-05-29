@@ -5,7 +5,7 @@ import { formComponentWithHandlers } from '../containers/withFormElementHandlers
 import FormDataActions from '../features/form/data/actions';
 import { IFormData } from '../features/form/data/reducer';
 import FormDynamicsActions from '../features/form/dynamics/actions';
-import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/';
+import { IDataModelBindings, ILayoutComponent, ILayoutGroup, ITextResourceBindings } from '../features/form/layout/';
 import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
@@ -28,7 +28,7 @@ export interface IGenericComponentProps extends IProvidedProps {
   formData: IFormData;
   isValid: boolean;
   textResources: ITextResource[];
-  layoutElement: ILayoutContainer | ILayoutComponent;
+  layoutElement: ILayoutGroup | ILayoutComponent;
   validationMessages: IComponentValidations;
   unsavedChanges: boolean;
 }

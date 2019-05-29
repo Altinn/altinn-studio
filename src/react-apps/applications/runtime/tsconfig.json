@@ -26,7 +26,7 @@
     "rootDir": "../"
   },
   "include": [
-    "./runtime/src/**/*",
+    "./src/**/*",
   ],
   "exclude": [
     "node_modules",

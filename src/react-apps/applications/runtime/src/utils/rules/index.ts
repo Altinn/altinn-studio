@@ -73,7 +73,7 @@ export function checkIfRuleShouldRun(
             continue;
           }
           const layoutElement = formLayoutState.layout[component];
-          if (layoutElement.type === 'container') {
+          if (layoutElement.type.toLowerCase() === 'group') {
             continue;
           }
           const layoutComponent = layoutElement as ILayoutComponent;
