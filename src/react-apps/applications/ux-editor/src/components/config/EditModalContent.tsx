@@ -358,7 +358,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       case 'Button': {
         return (
           <Grid item={true} xs={12}>
-            {renderSelectTextFromResources('modal_properties_label_helper',
+            {renderSelectTextFromResources('modal_properties_button_helper',
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
