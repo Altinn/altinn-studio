@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+/* tslint:disable:jsx-wrap-multiline */
+>>>>>>> feature/1654-merge-epic-branch-with-master
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';

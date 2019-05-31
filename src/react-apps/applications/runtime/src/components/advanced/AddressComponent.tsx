@@ -1,9 +1,12 @@
-import axios, { AxiosResponse } from 'axios';
+import axios from 'axios';
 import classNames = require('classnames');
 import update from 'immutability-helper';
 import * as React from 'react';
+import { get } from '../../../../shared/src/utils/networking';
+import { IDataModelBindings } from '../../features/form/layout';
 import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
+import { IComponentValidations } from '../../types/global';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IAddressComponentProps {
@@ -13,8 +16,8 @@ export interface IAddressComponentProps {
   getTextResource: (key: string) => string;
   isValid?: boolean;
   simplified: boolean;
-  validationMessages?: any;
-  dataModelBindings: any;
+  validationMessages?: IComponentValidations;
+  dataModelBindings: IDataModelBindings;
   readOnly: boolean;
 }
 
@@ -30,7 +33,6 @@ export interface IAddressComponentState {
   careOf: string;
   houseNumber: string;
   validations: IAddressValidationErrors;
-  mounted: boolean;
 }
 
 export enum AddressKeys {
@@ -42,6 +44,10 @@ export enum AddressKeys {
 }
 
 export class AddressComponent extends React.Component<IAddressComponentProps, IAddressComponentState> {
+
+  public cancelToken = axios.CancelToken;
+  public source = this.cancelToken.source();
+
   constructor(_props: IAddressComponentProps) {
     super(_props);
     const formData = this.props.formData ? this.props.formData : {};
@@ -55,56 +61,51 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         zipCode: null,
         houseNumber: null,
       },
-      mounted: false,
     };
-    if (this.state.zipCode) {
-      this.fetchPostPlace(this.state.zipCode);
-    }
   }
 
   public componentWillUnmount: () => void = () => {
-    this.setState({
-      mounted: false,
-    });
+    this.source.cancel('ComponentWillUnmount');
   }
 
-  public componentDidMount: () => void = () => {
-    this.setState({
-      mounted: true,
-    });
-  }
-
-  public fetchPostPlace: (zipCode: string) => void = (zipCode: string) => {
-    if (zipCode.match(new RegExp('^[0-9]{4}$'))) {
-      axios.get('https://api.bring.com/shippingguide/api/postalCode.json', {
-        params: {
-          clientUrl: window.location.href,
-          pnr: zipCode,
-        },
-      }).then((response: AxiosResponse) => {
-        if (response.data.valid && this.state.mounted) {
+  public fetchPostPlace: (zipCode: string) => void = async (zipCode: string) => {
+    try {
+      if (zipCode.match(new RegExp('^[0-9]{4}$'))) {
+        const response = await get('https://api.bring.com/shippingguide/api/postalCode.json',
+          {
+            params: {
+              clientUrl: window.location.href,
+              pnr: zipCode,
+            },
+            cancelToken: this.source.token,
+          });
+        if (response.valid) {
           this.setState({
-            postPlace: response.data.result,
+            postPlace: response.result,
             validations: {
               zipCode: null,
             },
           }, () => {
             this.onBlurField(AddressKeys.postPlace);
           });
-        } else if (this.state.mounted) {
+        } else {
           this.setState({
             postPlace: '',
             validations: {
               zipCode: 'Postnummer er ikke gyldig',
             },
-          }, () => {
-            this.onBlurField(AddressKeys.postPlace);
           });
         }
-      });
-      this.setState({
-        postPlace: 'Laster...',
-      });
+        this.setState({
+          postPlace: 'Laster...',
+        });
+      }
+    } catch (err) {
+      if (axios.isCancel(err)) {
+        // Intentionally ignored
+      } else {
+        console.error(err);
+      }
     }
   }
 
@@ -114,7 +115,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
       zipCode: null,
       houseNumber: null,
     };
-    if (!zipCode.match(new RegExp('^[0-9]{4}$')) && zipCode !== '') {
+    if (zipCode !== null && zipCode !== '' && !zipCode.match(new RegExp('^[0-9]{4}$'))) {
       validationErrors.zipCode = 'Postnummer er ikke gyldig';
     } else {
       validationErrors.zipCode = null;
@@ -140,36 +141,43 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
   public onBlurField: (key: AddressKeys) => void = (key: AddressKeys) => {
     const validationErrors: IAddressValidationErrors = this.validate();
     if (!validationErrors.zipCode && !validationErrors.houseNumber) {
-      this.props.handleDataChange(this.state[key], key);
-      if (AddressKeys[key] === 'zipCode') {
+      if (key === AddressKeys.zipCode) {
         this.fetchPostPlace(this.state[key]);
+        return;
       }
+      if (key === AddressKeys.postPlace) {
+        this.props.handleDataChange(this.state[AddressKeys.zipCode], AddressKeys.zipCode);
+      }
+      this.props.handleDataChange(this.state[key], key);
     }
     this.setState({
       validations: validationErrors,
     });
   }
 
-  public joinValidationMessages = (): any => {
+  public joinValidationMessages = (): IComponentValidations => {
     const { validations } = this.state as any;
     let { validationMessages } = this.props;
-
+    if (!validationMessages) {
+      validationMessages = {};
+    }
+    for (const fieldKey in AddressKeys) {
+      if (!validationMessages[fieldKey]) {
+        validationMessages[fieldKey] = {
+          errors: [],
+          warnings: [],
+        };
+      }
+    }
     for (const fieldKey in validations) {
       if (!validations[fieldKey]) {
         continue;
       }
-
-      if (!validationMessages) {
-        validationMessages = {
-          [fieldKey]: {
-            errors: [],
-            warnings: [],
-          },
-        };
-      }
-
       if (validationMessages[fieldKey]) {
-        validationMessages[fieldKey].errors.push(validations[fieldKey]);
+        const validationMessage = validations[fieldKey];
+        if (!validationMessages[fieldKey].errors.includes(validationMessage)) {
+          validationMessages[fieldKey].errors.push(validations[fieldKey]);
+        }
       } else {
         validationMessages[fieldKey] = {
           errors: [],
@@ -198,7 +206,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             }
           </label>
           <input
-            className={'form-control' + (this.props.readOnly ? ' disabled' : '')}
+            className={classNames('form-control',
+              {
+                'validation-error': (validations.address.errors.length ? true : false),
+                'disabled': this.props.readOnly,
+              })}
             value={address}
             onChange={this.updateField.bind(null, AddressKeys.address)}
             onBlur={this.onBlurField.bind(null, AddressKeys.address)}
@@ -214,7 +226,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               <input
                 className={classNames('address-component-small-inputs', 'form-control',
                   {
-                    'validation-error': (validations ? validations.zipCode : false),
+                    'validation-error': (validations.zipCode.errors.length ? true : false),
                     'disabled': this.props.readOnly,
                   })}
                 value={zipCode}
@@ -231,7 +243,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <div className={'address-component-postplace'}>
               <label className={'address-component-label'}>Poststed</label>
               <input
-                className={classNames('form-control', { disabled: this.props.readOnly })}
+                className={classNames('form-control',
+                  {
+                    'validation-error': (validations.postPlace.errors.length ? true : false),
+                    'disabled': this.props.readOnly,
+                  })}
                 value={postPlace}
                 onChange={this.updateField.bind(null, AddressKeys.postPlace)}
                 onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
@@ -254,7 +270,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             this.props.getTextResource(this.props.dataModelBindings.address)
         }</label>
         <input
-          className={classNames('form-control', { disabled: this.props.readOnly })}
+          className={classNames('form-control',
+            {
+              'validation-error': (validations.address.errors.length ? true : false),
+              'disabled': this.props.readOnly,
+            })}
           value={address}
           onChange={this.updateField.bind(null, AddressKeys.address)}
           onBlur={this.onBlurField.bind(null, AddressKeys.address)}
@@ -265,7 +285,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           : null}
         <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
-          className={classNames('form-control', { disabled: this.props.readOnly })}
+          className={classNames('form-control',
+            {
+              'validation-error': (validations.careOf.errors.length ? true : false),
+              'disabled': this.props.readOnly,
+            })}
           value={careOf}
           onChange={this.updateField.bind(null, AddressKeys.careOf)}
           onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
@@ -281,7 +305,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <input
               className={classNames('address-component-small-inputs', 'form-control',
                 {
-                  'validation-error': (validations ? validations.zipCode : false),
+                  'validation-error': (validations.zipCode.errors.length ? true : false),
                   'disabled': this.props.readOnly,
                 })}
               value={zipCode}
@@ -297,7 +321,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <label className={'address-component-label'}>Poststed</label>
             <br />
             <input
-              className={classNames('form-control', { disabled: this.props.readOnly })}
+              className={classNames('form-control',
+                {
+                  'validation-error': (validations.postPlace.errors.length ? true : false),
+                  'disabled': this.props.readOnly,
+                })}
               value={postPlace}
               onChange={this.updateField.bind(null, AddressKeys.postPlace)}
               onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
@@ -321,7 +349,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         <input
           className={classNames('address-component-small-inputs', 'form-control',
             {
-              'validation-error': (validations ? validations.houseNumber : false),
+              'validation-error': (validations.houseNumber.errors.length ? true : false),
               'disabled': this.props.readOnly,
             })}
           value={houseNumber}

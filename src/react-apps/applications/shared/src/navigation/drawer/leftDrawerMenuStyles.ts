@@ -47,7 +47,7 @@ export const styles = (theme: Theme) => createStyles({
     overflowX: 'hidden',
     width: theme.spacing.unit * 7 + 1,
     [theme.breakpoints.up('sm')]: {
-      width: theme.spacing.unit * 9 + 1,
+      width: theme.spacing.unit * 8 + 1,
     },
   },
   toolbar: {

@@ -57,6 +57,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
           >
             <p
               className="MuiTypography-root-133 MuiTypography-body1-142 FetchChangesComponenet-color_blueDark-102"
+              id="fetch_changes_btn"
             >
               sync_header.fetch_changes
             </p>
@@ -120,6 +121,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
           >
             <p
               className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-173"
+              id="no_changes_to_share_btn"
             >
               sync_header.no_changes_to_share
             </p>

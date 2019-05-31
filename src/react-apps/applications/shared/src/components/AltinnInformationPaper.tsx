@@ -23,7 +23,7 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnInformationPaper extends React.Component<IAltinnInformationPaperCompontentProvidedProps, IAltinnInformationPaperComponentState> {
+export class AltinnInformationPaper extends React.Component<IAltinnInformationPaperCompontentProvidedProps, IAltinnInformationPaperComponentState> {
   public render() {
     const { classes } = this.props;
     return (

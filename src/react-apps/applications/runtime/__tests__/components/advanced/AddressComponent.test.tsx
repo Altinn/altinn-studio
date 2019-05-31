@@ -245,4 +245,51 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     const result5 = getTextResourceByAddressKey(mockKey, mockLanguage);
     expect(result5).toEqual('Poststed');
   });
+
+  it('+++ joinValidationMessages should return all validations in correct format', () => {
+    const mockResult = {
+      address: {
+        errors: [],
+        warnings: [],
+      },
+      careOf: {
+        errors: [],
+        warnings: [],
+      },
+      houseNumber: {
+        errors: ['some other error'],
+        warnings: [],
+      },
+      postPlace: {
+        errors: [],
+        warnings: [],
+      },
+      zipCode: {
+        errors: ['some error'],
+        warnings: [],
+      },
+    };
+    const mountedAddressComponent = mount(
+      <AddressComponent
+        id={mockId}
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        getTextResource={mockGetTextResource}
+        isValid={mockIsValid}
+        simplified={mockSimplified}
+        dataModelBindings={mockDataBinding}
+        readOnly={mockReadOnly}
+      />,
+    );
+    const instance = mountedAddressComponent.instance() as AddressComponent;
+    instance.setState({
+      validations: {
+        zipCode: 'some error',
+        houseNumber: 'some other error',
+      },
+    });
+    const result = instance.joinValidationMessages();
+    expect(result).toEqual(mockResult);
+  });
+
 });

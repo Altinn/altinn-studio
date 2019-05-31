@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { IDataModelBindings, ILayoutComponent, ILayoutContainer, ITextResourceBindings } from '../features/form/layout/';
+import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } from '../features/form/layout/';
 import { makeGetLayout } from '../selectors/getLayoutData';
 import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
 import { IRuntimeState } from '../types';
@@ -16,7 +16,7 @@ export interface IProvidedProps {
   textResourceBindings: ITextResourceBindings;
   required: boolean;
   type: string;
-  layout: [ILayoutComponent | ILayoutContainer];
+  layout: ILayout;
 }
 
 export interface IProps extends IProvidedProps {

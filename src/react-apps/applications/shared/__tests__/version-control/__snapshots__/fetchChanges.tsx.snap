@@ -46,6 +46,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
       >
         <p
           className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponenet-color_blueDark-4"
+          id="fetch_changes_btn"
         >
           sync_header.fetch_changes
         </p>
@@ -104,6 +105,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
       >
         <p
           className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponenet-color_blueDark-4 FetchChangesComponenet-bold-1"
+          id="fetch_changes_btn"
         >
           sync_header.fetch_changes
         </p>

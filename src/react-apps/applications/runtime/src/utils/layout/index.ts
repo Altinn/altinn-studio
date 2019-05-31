@@ -1,6 +1,6 @@
-import { ILayoutComponent, ILayoutContainer } from '../../features/form/layout/';
+import { ILayout, ILayoutComponent } from '../../features/form/layout/';
 
-export function getLayoutComponentById(id: string, layout: [ILayoutComponent | ILayoutContainer]): ILayoutComponent {
+export function getLayoutComponentById(id: string, layout: ILayout): ILayoutComponent {
   const component: ILayoutComponent = layout.find((element) => element.id === id) as ILayoutComponent;
   return component;
 }

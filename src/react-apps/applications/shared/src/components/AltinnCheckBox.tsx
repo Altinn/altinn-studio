@@ -26,7 +26,7 @@ const styles = () => createStyles({
   },
 });
 
-const AltinnCheckBox = (props: IAltinnCheckBoxComponentProvidedProps) => {
+export const AltinnCheckBox = (props: IAltinnCheckBoxComponentProvidedProps) => {
   const { classes } = props;
   return (
     <Checkbox

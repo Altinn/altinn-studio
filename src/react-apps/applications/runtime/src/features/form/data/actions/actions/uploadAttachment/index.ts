@@ -1,5 +1,7 @@
 import { Action } from 'redux';
-import * as ActionTypes from '../../formFillerActionTypes';
+import { IAttachment } from 'src/features/form/fileUpload';
+import { IComponentValidations } from 'src/types/global';
+import * as ActionTypes from '../../types';
 
 export interface IUploadAttachmentAction extends Action {
   file: File;
