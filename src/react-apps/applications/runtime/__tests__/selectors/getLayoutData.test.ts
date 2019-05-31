@@ -12,7 +12,7 @@ describe('>>> selectors/getLayoutData.test.tsx', () => {
       formLayout: {
         layout: [
           { type: 'Input', id: 'mockId', hidden: false },
-          { type: 'FileUpload', id: 'mockId_2', hidden: false }
+          { type: 'FileUpload', id: 'mockId_2', hidden: false },
         ],
       },
       formDataModel: {},
