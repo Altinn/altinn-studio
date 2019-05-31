@@ -1,9 +1,9 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
-import dashboardReducer, {IDashboardState} from '../reducers/dashboardReducer';
+import dashboardReducer, { ITemplateState } from './templateReducer';
 
 export interface IDashboardReducers
-  extends IDashboardNameSpace<
-  Reducer<IDashboardState>
+  extends ITemplateNameSpace<
+  Reducer<ITemplateState>
   >,
   ReducersMapObject { }
 

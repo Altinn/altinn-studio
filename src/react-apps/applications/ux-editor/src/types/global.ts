@@ -120,6 +120,7 @@ declare global {
     maxFileSizeInMB: number;
     displayMode: string;
     maxNumberOfAttachments: number;
+    minNumberOfAttachments: number;
     validFileEndings?: string;
   }
 

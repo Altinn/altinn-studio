@@ -6,6 +6,7 @@ import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
 import AltinnInputField from '../../../../shared/src/components/AltinnInputField';
 import AltinnRadio from '../../../../shared/src/components/AltinnRadio';
 import AltinnRadioGroup from '../../../../shared/src/components/AltinnRadioGroup';
+import theme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
@@ -174,7 +175,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   }
 
   public renderComponentSpecificContent(): JSX.Element {
-    switch (this.props.component.component) {
+    switch (this.props.component.type) {
       case 'Header': {
         const sizes = [
           { value: 'S', label: this.props.language.ux_editor.modal_header_type_h4 },
@@ -494,7 +495,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <Grid item={true} xs={12}>
               <AltinnInputField
                 id={'modal-properties-maximum-files'}
-                onChangeFunction={this.handleMaxNumberOfAttachmentsChange}
+                onChangeFunction={this.handleNumberOfAttachmentsChange('max')}
                 inputValue={component.maxNumberOfAttachments || 1}
                 inputDescription={getLanguageFromKey('ux_editor.modal_properties_maximum_files', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
@@ -504,20 +505,50 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             </Grid>
             <Grid item={true} xs={12}>
               <AltinnInputField
+                id={'modal-properties-minimum-files'}
+                onChangeFunction={this.handleNumberOfAttachmentsChange('min')}
+                inputValue={component.minNumberOfAttachments || 1}
+                inputDescription={getLanguageFromKey('ux_editor.modal_properties_minimum_files', this.props.language)}
+                inputFieldStyling={{ width: '60px' }}
+                inputDescriptionStyling={{ marginTop: '24px' }}
+                type={'number'}
+              />
+            </Grid>
+            {component.minNumberOfAttachments > component.maxNumberOfAttachments &&
+              <Grid>
+                <Typography
+                  style={{
+                    fontSize: '1.6rem', marginTop: '6px', color: theme.altinnPalette.primary.red, marginLeft: 0,
+                  }}
+                >
+                  <i className='fa fa-circle-exclamation' style={{ fontSize: '2rem' }} />
+                  {getLanguageFromKey(
+                    'ux_editor.modal_properties_minimum_files_error', this.props.language)}
+                </Typography>
+              </Grid>
+            }
+            <Grid item={true} xs={12}>
+              <AltinnInputField
                 id={'modal-properties-file-size'}
                 onChangeFunction={this.handleMaxFileSizeInMBChange}
-                inputValue={component.maxFileSizeInMB || 0}
+                inputValue={component.maxFileSizeInMB || 25}
                 inputDescription={getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
                 inputDescriptionStyling={{ marginTop: '24px' }}
                 type={'number'}
               />
-              <Typography style={{ fontSize: '1.6rem', display: 'inline-block', marginTop: '23px' }}>
+              <Typography style={{ fontSize: '1.6rem', display: 'inline-block', marginTop: '23px', marginLeft: '6px' }}>
                 {getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size_helper', this.props.language)}
               </Typography>
             </Grid>
+            {component.maxFileSizeInMB <= 0 &&
+              <div className={'field-validation-error a-message a-message-error'}>
+                {getLanguageFromKey(
+                  'ux_editor.modal_properties_maximum_file_size_zero_error', this.props.language)}
+              </div>
+            }
           </Grid>
         );
       }
@@ -572,9 +603,13 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.props.handleComponentUpdate(component);
   }
 
-  public handleMaxNumberOfAttachmentsChange = (event: any) => {
+  public handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
-    component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+    if (type === 'max') {
+      component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+    } else {
+      component.minNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+    }
     this.setState({
       component,
     });

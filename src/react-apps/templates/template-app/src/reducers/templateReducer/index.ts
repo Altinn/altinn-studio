@@ -1,12 +1,12 @@
 // import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 
-export interface IDashboardState {}
+export interface ITemplateState { }
 
-const initialState: IDashboardState = {};
+const initialState: ITemplateState = {};
 
-const dashboardReducer: Reducer<IDashboardState> = (
-  state: IDashboardState = initialState,
+const dashboardReducer: Reducer<ITemplateState> = (
+  state: ITemplateState = initialState,
   action?: Action,
 ): any => {
   if (!action) {

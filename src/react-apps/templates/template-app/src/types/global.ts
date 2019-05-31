@@ -1,11 +1,11 @@
-import {IDashboardState} from '../reducers/dashboardReducer';
+import { ITemplateState } from '../reducers/templateReducer';
 
 declare global {
-  export interface IDashboardNameSpace<T1> {
+  export interface ITemplateNameSpace<T1> {
     dashboard: T1;
   }
 
-  export interface IServiceDevelopmentAppState
-    extends IDashboardNameSpace
-    <IDashboardState> { }
+  export interface ITemplateAppState
+    extends ITemplateNameSpace
+    <ITemplateState> { }
 }
