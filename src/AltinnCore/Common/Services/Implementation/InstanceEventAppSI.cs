@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
+using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
 using AltinnCore.Common.Models;
@@ -24,58 +25,57 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventAppSI"/> class.
         /// </summary>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="logger">The logger</param>
-        /// <param name="httpContex">The http context </param>
+        /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
+        /// <param name="client">The Http client </param>
         public InstanceEventAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<InstanceEventAppSI> logger,
-            HttpContext httpContex,
-            IOptions<JwtCookieOptions> cookieOptions)
+            IHttpContextAccessor httpContextAccessor,
+            IOptions<JwtCookieOptions> cookieOptions,
+            StorageClient client)
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
-            _httpContext = httpContex;
+            _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
+            _client = client.Client;
         }
-        
+
         /// <inheritdoc/>
         public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId)
         {
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/events";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+            string apiUrl = $"instances/{instanceId}/events";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
-            using (HttpClient client = new HttpClient())
+            try
             {
-                client.BaseAddress = new Uri(apiUrl);
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-
-                try
-                {
-                    HttpResponseMessage response = await client.DeleteAsync(apiUrl);
-                    response.EnsureSuccessStatusCode();
-                    return true;
-                }
-                catch
-                {
-                    _logger.LogError($"Unable to delete instance events");
-                    return false;
-                }
+                HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
+                response.EnsureSuccessStatusCode();
+                return true;
+            }
+            catch
+            {
+                _logger.LogError($"Unable to delete instance events");
+                return false;
             }
         }
 
         /// <inheritdoc/>
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
         {
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/events?";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+            string apiUrl = $"instances/{instanceId}/events?";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             if (eventTypes != null)
             {
@@ -93,23 +93,20 @@ namespace AltinnCore.Common.Services.Implementation
                 apiUrl += $"&from={from}&to={to}";
             }
 
-            using (HttpClient client = new HttpClient())
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+            try
             {
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                HttpResponseMessage response = await _client.GetAsync(apiUrl);
+                string eventData = await response.Content.ReadAsStringAsync();
+                List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
 
-                try
-                {
-                    HttpResponseMessage response = await client.GetAsync(apiUrl);
-                    string eventData = await response.Content.ReadAsStringAsync();
-                    List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
-
-                    return instanceEvents;
-                }
-                catch (Exception)
-                {
-                    _logger.LogError($"Unable to retrieve instance event");
-                    return null;
-                }
+                return instanceEvents;
+            }
+            catch (Exception)
+            {
+                _logger.LogError($"Unable to retrieve instance event");
+                return null;
             }
         }
 
@@ -118,28 +115,24 @@ namespace AltinnCore.Common.Services.Implementation
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.CreatedDateTime = DateTime.UtcNow;
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceEvent.InstanceId}/events";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+            string apiUrl = $"instances/{instanceEvent.InstanceId}/events";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
-            using (HttpClient client = new HttpClient())
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+            try
             {
-                client.BaseAddress = new Uri(apiUrl);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-
-                try
-                {
-                    HttpResponseMessage response = await client.PostAsync(apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
-                    string eventData = await response.Content.ReadAsStringAsync();
-                    InstanceEvent result = JsonConvert.DeserializeObject<InstanceEvent>(eventData);
-                    return result.Id.ToString();
-                }
-                catch
-                {
-                    _logger.LogError($"Unable to store instance event");
-                    return null;
-                }
+                HttpResponseMessage response = await _client.PostAsync(apiUrl, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
+                string eventData = await response.Content.ReadAsStringAsync();
+                InstanceEvent result = JsonConvert.DeserializeObject<InstanceEvent>(eventData);
+                return result.Id.ToString();
+            }
+            catch
+            {
+                _logger.LogError($"Unable to store instance event");
+                return null;
             }
         }
     }

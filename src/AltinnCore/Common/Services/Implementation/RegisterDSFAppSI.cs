@@ -32,7 +32,7 @@ namespace AltinnCore.Common.Services.Implementation
         public RegisterDSFAppSI(
             ILogger<RegisterDSFAppSI> logger,
             IOptions<PlatformSettings> platformSettings,
-            HttpContextAccessor httpContextAccessor,
+            IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions)
         {
             _logger = logger;

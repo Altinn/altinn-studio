@@ -19,7 +19,7 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly ILogger _logger;
         private readonly PlatformSettings _platformSettings;
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
 
         /// <summary>
@@ -27,17 +27,17 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="logger">the logger</param>
         /// <param name="platformSettings">the platform settings</param>
-        /// <param name="httpContex">The http context </param>
+        /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
         public RegisterERAppSI(
             ILogger<RegisterERAppSI> logger,
             IOptions<PlatformSettings> platformSettings,
-            HttpContext httpContex,
+            IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions)
         {
             _logger = logger;
             _platformSettings = platformSettings.Value;
-            _httpContext = httpContex;
+            _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
         }
 
@@ -48,7 +48,7 @@ namespace AltinnCore.Common.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));
 
             Uri endpointUrl = new Uri($"{_platformSettings.GetApiRegisterEndpoint}organizations/{OrgNr}");
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             using (HttpClient client = new HttpClient())
             {

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
+using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -31,6 +32,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
         private readonly JwtCookieOptions _cookieOptions;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowAppSI"/> class.
@@ -41,13 +43,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="cookieOptions">The cookie options </param>
+        /// <param name="client">The Http client </param>
         public WorkflowAppSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<PlatformSettings> platformSettings,
             IOptions<GeneralSettings> generalSettings,
-            IOptions<JwtCookieOptions> cookieOptions)
+            IOptions<JwtCookieOptions> cookieOptions,
+            StorageClient client)
         {
             _settings = repositorySettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
@@ -55,6 +59,7 @@ namespace AltinnCore.Common.Services.Implementation
             _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
             _cookieOptions = cookieOptions.Value;
+            _client = client.Client;
         }
 
         /// <inheritdoc/>
@@ -76,32 +81,28 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
-            using (HttpClient client = new HttpClient())
+            Task<HttpResponseMessage> response = _client.GetAsync(apiUrl);
+            if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                client.BaseAddress = new Uri(apiUrl);
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string instanceData = response.Result.Content.ReadAsStringAsync().Result;
-                    instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                }
-                else
-                {
-                    throw new Exception("Unable to fetch workflow state");
-                }
-
-                Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentWorkflowState);
-
-                return new ServiceState
-                {
-                    State = currentWorkflowState
-                };
+                string instanceData = response.Result.Content.ReadAsStringAsync().Result;
+                instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             }
+            else
+            {
+                throw new Exception("Unable to fetch workflow state");
+            }
+
+            Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentWorkflowState);
+
+            return new ServiceState
+            {
+                State = currentWorkflowState
+            };
+
         }
 
         /// <inheritdoc/>

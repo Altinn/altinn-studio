@@ -34,9 +34,9 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly IWorkflow _workflow;
         private readonly ILogger _logger;
-        private readonly HttpContext _httpContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
-        private readonly StorageClient _client;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceAppSI"/> class.
@@ -45,7 +45,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="workflowSI">the workflow service</param>
         /// <param name="logger">the logger</param>
-        /// <param name="httpContex">The http context </param>
+        /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
         /// <param name="client">The Http client </param>
         public InstanceAppSI(
@@ -53,7 +53,7 @@ namespace AltinnCore.Common.Services.Implementation
             IOptions<PlatformSettings> platformSettings,
             IWorkflow workflowSI,
             ILogger<InstanceAppSI> logger,
-            HttpContext httpContex,
+            IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions,
             StorageClient client)
         {
@@ -61,9 +61,9 @@ namespace AltinnCore.Common.Services.Implementation
             _platformSettings = platformSettings.Value;
             _workflow = workflowSI;
             _logger = logger;
-            _httpContext = httpContex;
+            _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
-            _client = client;
+            _client = client.Client;
         }
 
         /// <inheritdoc />
@@ -76,8 +76,7 @@ namespace AltinnCore.Common.Services.Implementation
             int instanceOwnerId = startServiceModel.ReporteeID;
 
             string apiUrl = $"instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
-
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
@@ -117,7 +116,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance = new Instance();
             string apiUrl = $"instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
@@ -142,7 +141,7 @@ namespace AltinnCore.Common.Services.Implementation
             List<Instance> instances = null;
             applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId);
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
@@ -163,7 +162,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return instances;
-
         }
 
         /// <inheritdoc />
@@ -171,7 +169,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance = new Instance();
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
