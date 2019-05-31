@@ -12,7 +12,6 @@ export interface ILayoutComponent extends ILayoutEntry {
   type: string;
   dataModelBindings: IDataModelBindings;
   isValid?: boolean;
-  itemType: string;
   readOnly: boolean;
   disabled: boolean;
   required: boolean;
