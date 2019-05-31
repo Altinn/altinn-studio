@@ -208,7 +208,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           <input
             className={classNames('form-control',
               {
-                'validation-error': (validations.address.errors.length ? true : false),
+                'validation-error': (validations.address.errors.length),
                 'disabled': this.props.readOnly,
               })}
             value={address}
