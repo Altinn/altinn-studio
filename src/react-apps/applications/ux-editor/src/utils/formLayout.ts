@@ -1,4 +1,3 @@
-import { LayoutItemType } from '../containers/FormDesigner';
 import { IFormDesignerState } from '../reducers/formDesignerReducer';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
@@ -53,7 +52,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormDesig
         rest.type = rest.component;
         delete rest.component;
       }
-      rest.itemType = LayoutItemType.Component;
+      rest.itemType = 'COMPONENT';
       convertedLayout.components[id] = rest;
       if (!convertedLayout.order[baseContainerId]) {
         convertedLayout.order[baseContainerId] = [id];
@@ -111,7 +110,7 @@ export function convertInternalToLayoutFormat(internalFormat: IFormDesignerLayou
 
 export function extractChildrenFromContainer(container: any, convertedLayout: any) {
   const { id, children, ...restOfContainer } = container;
-  restOfContainer.itemType = LayoutItemType.Container;
+  restOfContainer.itemType = 'CONTAINER';
   convertedLayout.containers[id] = restOfContainer;
   for (const child of children) {
     if (child.children) {
@@ -123,7 +122,7 @@ export function extractChildrenFromContainer(container: any, convertedLayout: an
         convertedLayout.order[id].push(child.id);
       }
       const { id: componentId, ...restOfChild } = child;
-      restOfChild.itemType = LayoutItemType.Component;
+      restOfChild.itemType = 'COMPONENT';
       convertedLayout.components[componentId] = restOfChild;
     }
   }
