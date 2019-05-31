@@ -206,14 +206,15 @@ function* fetchFormLayoutSaga({
 }: FormDesignerActions.IFetchFormLayoutAction): SagaIterator {
   try {
     const fetchedFormLayout = yield call(get, url);
-
     let convertedFormLayout;
-    if (!fetchedFormLayout) {
+    let hasOldFormat = false;
+    if (!fetchedFormLayout || !fetchedFormLayout.data) {
       convertedFormLayout = yield call(convertFromLayoutToInternalFormat, {});
-    } else if (!fetchedFormLayout.data && !fetchedFormLayout.data.layout) {
+    } else if (!fetchedFormLayout.data.layout) {
       // TODO: remove this else at some later point
       // The service has the old internal format -> map from old to new, then back to fix component.component update
       // This else can be removed at some point
+      hasOldFormat = true;
       const newLayout = yield call(convertInternalToLayoutFormat, fetchedFormLayout.data);
       convertedFormLayout = yield call(convertFromLayoutToInternalFormat, newLayout);
     } else {
@@ -223,6 +224,10 @@ function* fetchFormLayoutSaga({
       FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
       convertedFormLayout,
     );
+
+    if (hasOldFormat) {
+      yield call(FormDesignerActionDispatchers.saveFormLayout, getSaveFormLayoutUrl());
+    }
 
     if (!convertedFormLayout || !Object.keys(convertedFormLayout.order).length) {
       yield call(FormDesignerActionDispatchers.addFormContainer,
