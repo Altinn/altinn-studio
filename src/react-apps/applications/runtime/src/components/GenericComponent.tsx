@@ -33,7 +33,7 @@ export interface IGenericComponentProps extends IProvidedProps {
   unsavedChanges: boolean;
 }
 
-class GenericComponent extends React.Component<IGenericComponentProps, any> {
+export class GenericComponentClass extends React.Component<IGenericComponentProps, any> {
 
   public handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!this.props.dataModelBindings || !this.props.dataModelBindings[key]) {
@@ -99,7 +99,7 @@ class GenericComponent extends React.Component<IGenericComponentProps, any> {
   }
 }
 
-const isComponentValid = (validations: IComponentValidations): boolean => {
+export const isComponentValid = (validations: IComponentValidations): boolean => {
   if (!validations) {
     return true;
   }
@@ -133,4 +133,4 @@ const makeMapStateToProps = () => {
   return mapStateToProps;
 };
 
-export const GenericComponentWrapper = connect(makeMapStateToProps)(GenericComponent);
+export const GenericComponent = connect(makeMapStateToProps)(GenericComponentClass);

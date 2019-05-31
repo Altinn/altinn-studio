@@ -3,10 +3,6 @@ import { IRuntimeState } from '../types';
 // tslint:disable-next-line:no-var-requires
 const isEqual = require('lodash.isequal');
 
-const formDataSelector = (state: IRuntimeState) => {
-  return state.formData.formData;
-};
-
 const formDataForContainerSelector = (state: IRuntimeState, props: any, index?: number) => {
   const selectors: any = {};
   const simpleBinding = 'simpleBinding';
@@ -38,10 +34,6 @@ const createDeepEqualSelector = createSelectorCreator(
   isEqual,
 );
 
-const unsavedChangesSelector = (state: IRuntimeState) => {
-  return state.formData.unsavedChanges;
-};
-
 const getFormData = () => {
   return createDeepEqualSelector(
     [formDataForContainerSelector],
@@ -54,24 +46,4 @@ const getFormData = () => {
   );
 };
 
-const getFormDataCount = () => {
-  return createSelector(
-    [formDataSelector],
-    (formData: any) => {
-      return Object.keys(formData).length;
-    },
-  );
-};
-
-const getUnsavedChanges = () => {
-  return createSelector(
-    [unsavedChangesSelector],
-    (unsavedChanges: boolean) => {
-      return unsavedChanges;
-    },
-  );
-};
-
 export const makeGetFormDataSelector = getFormData;
-export const makeGetFormDataCountSelector = getFormDataCount;
-export const makeGetUnsavedChangesSelector = getUnsavedChanges;

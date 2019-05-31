@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { GenericComponentWrapper } from '../components/GenericComponent';
+import { GenericComponent } from '../components/GenericComponent';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout/';
 import { makeGetLayout } from '../selectors/getLayoutData';
 import { IRuntimeState } from '../types';
@@ -25,7 +25,7 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
               <div className='row mt-2' key={component.id}>
                 <div className='col'>
                   <div className='a-form-group'>
-                    <GenericComponentWrapper
+                    <GenericComponent
                       {...component as ILayoutComponent}
                     />
                   </div>
