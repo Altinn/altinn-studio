@@ -199,7 +199,6 @@ export const testData: any = {
 //     "components": {
 //       "0a100514-7df0-4c05-a453-0132dfc1ac5c": {
 //         "component": "Input",
-//         "itemType": "COMPONENT",
 //         "textResourceBindings": {
 //           "title": "2.KontaktpersonNavndatadef2.Label",
 //           "description": "2.KontaktpersonNavndatadef2.Label"
@@ -210,7 +209,6 @@ export const testData: any = {
 //       },
 //       "418af1ce-6e12-4493-99c0-f4aa7ca083d5": {
 //         "component": "Header",
-//         "itemType": "COMPONENT",
 //         "textResourceBindings": {
 //           "title": "25350.UtfyllerFullmaktshaverdatadef25350.Label"
 //         },

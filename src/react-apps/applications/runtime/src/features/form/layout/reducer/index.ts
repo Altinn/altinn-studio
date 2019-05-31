@@ -1,8 +1,7 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import {
-  ILayoutComponent,
-  ILayoutContainer,
+  ILayout,
 } from '../';
 import {
   IFetchFormLayoutFulfilled,
@@ -12,7 +11,7 @@ import * as ActionTypes from '../actions/types';
 import { IUpdateFormLayout } from '../actions/update';
 
 export interface ILayoutState {
-  layout: [ILayoutComponent | ILayoutContainer];
+  layout: ILayout;
   error: Error;
 }
 

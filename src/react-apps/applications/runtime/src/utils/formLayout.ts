@@ -1,28 +1,10 @@
-// import { IFormDesignerState } from '../reducers/formDesignerReducer';
-import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/';
-
-/*
-export function getParentContainerId(containerId: string, formDesignerState: IFormDesignerState): string {
-  const order = formDesignerState.layout.order;
-  const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
-  for (const containerKey in order) {
-    if (containerKey) {
-      for (const elementId of order[containerKey]) {
-        if (elementId === containerId) {
-          return containerKey;
-        }
-      }
-    }
-  }
-  return baseContainerId;
-}
-*/
+import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout/';
 
 /*
 * Returns the layout element with the given id, or undefined if no such element exists
 */
-export function getLayoutElementById(elementId: string, formLayout: [ILayoutComponent | ILayoutContainer]):
-  ILayoutComponent | ILayoutContainer {
+export function getLayoutElementById(elementId: string, formLayout: ILayout):
+  ILayoutComponent | ILayoutGroup {
   if (!formLayout || !elementId) {
     return undefined;
   }
@@ -32,7 +14,7 @@ export function getLayoutElementById(elementId: string, formLayout: [ILayoutComp
 /*
 * Returns the index of the layout element with the given id, or -1 if no such element exists
 */
-export function getLayoutElementIndexById(elementId: string, formLayout: [ILayoutComponent | ILayoutContainer]):
+export function getLayoutElementIndexById(elementId: string, formLayout: [ILayoutComponent | ILayoutGroup]):
   number {
   if (!elementId || !formLayout) {
     return -1;

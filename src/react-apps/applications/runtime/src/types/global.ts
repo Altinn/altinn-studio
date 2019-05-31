@@ -23,7 +23,7 @@ export interface IAltinnWindow extends Window {
   service: string;
   instanceId: string;
   reportee: string;
-  conditionalRuleHandlerHelper: IRules; // TODO: make interface
+  conditionalRuleHandlerHelper: IRules;
 }
 
 export interface IRules {
