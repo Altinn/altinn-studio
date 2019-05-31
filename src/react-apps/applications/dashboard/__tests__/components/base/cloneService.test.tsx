@@ -1,7 +1,9 @@
 import { mount } from 'enzyme';
 import { Action } from 'history';
 import 'jest';
+import * as moment from 'moment';
 import * as React from 'react';
+import { formatNameAndDate } from '../../../../shared/src/utils/formatDate';
 import * as networking from '../../../../shared/src/utils/networking';
 import { CloneServiceComponent } from '../../../src/features/cloneService/cloneServices';
 
@@ -13,6 +15,7 @@ describe('>>> components/base/cloneService.tsx', () => {
   let mockMatch: any;
   let mockLanguage: any;
   let mockResult: any;
+  let mockDate: any;
 
   beforeEach(() => {
     mockServices = [
@@ -66,6 +69,7 @@ describe('>>> components/base/cloneService.tsx', () => {
         },
       },
     };
+    mockDate = moment.utc(new Date('2019-01-10T11:22:42Z')).local();
   });
 
   it('+++ should return first service in list', () => {
@@ -265,22 +269,10 @@ describe('>>> components/base/cloneService.tsx', () => {
   });
 
   it('+++ Should show correct date', () => {
-    const mountedComponent = mount(
-      <CloneServiceComponent
-        language={mockLanguage}
-        services={mockServices}
-        classes={mockClasses}
-        location={mockLocation}
-        history={mockHistory}
-        match={mockMatch}
-      />,
-    );
-
-    const instance = mountedComponent.instance() as CloneServiceComponent;
-    expect(instance.formatNameAndDate('', mockServices[0].created_at)).toBe('10.01.2019 11:22');
-    expect(instance.formatNameAndDate('', mockServices[0].created_at) === `${mockServices[0].created_at}`).toBe(false);
-    expect(instance.formatNameAndDate('Kari', mockServices[0].created_at)).toBe('Kari 10.01.2019 11:22');
+    expect(formatNameAndDate('', mockServices[0].created_at)).toBe(mockDate.format('DD.MM.YYYY HH:mm'));
+    expect(formatNameAndDate('', mockServices[0].created_at) === `${mockDate}`).toBe(false);
+    expect(formatNameAndDate('Kari', mockServices[0].created_at)).toBe(`Kari ${mockDate.format('DD.MM.YYYY HH:mm')}`);
     // tslint:disable-next-line:max-line-length
-    expect(instance.formatNameAndDate('Kari', mockServices[0].created_at) === `Kari ${mockServices[0].created_at}`).toBe(false);
+    expect(formatNameAndDate('Kari', mockServices[0].created_at) === `Kari ${mockDate}`).toBe(false);
   });
 });

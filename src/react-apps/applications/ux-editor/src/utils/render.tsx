@@ -1,10 +1,10 @@
 import { Typography } from '@material-ui/core';
 import React = require('react');
 import Select from 'react-select';
-import CreatableSelect from 'react-select/lib/Creatable';
+// import CreatableSelect from 'react-select/lib/Creatable';
 import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
-import { formatCreateTextLabel, getTextResource, truncate } from './language';
+import { getTextResource, truncate } from './language';
 
 export const styles = {
   inputHelper: {
@@ -73,33 +73,35 @@ export function renderSelectTextFromResources(
   return (
     <div>
       {renderPropertyLabel(language.ux_editor[labelText])}
-      {createNewTextAllowed ?
-        <CreatableSelect
-          styles={customInput}
-          options={resources}
-          defaultValue={''}
-          // tslint:disable-next-line:jsx-no-lambda
-          onChange={(value) => onChangeFunction(value, returnValue)}
-          isClearable={true}
-          placeholder={placeholder ?
-            truncate(getTextResource(placeholder, textResources), 40)
-            : language.general.search}
-          // tslint:disable-next-line:jsx-no-lambda
-          formatCreateLabel={(inputValue: string) => formatCreateTextLabel(inputValue, language)}
-          // tslint:disable-next-line:jsx-no-lambda
-          noOptionsMessage={() => noOptionsMessage(language)}
-        />
-        :
+      {!createNewTextAllowed &&
+        /* TODO: add back in when creating new texts is allowed
+          <CreatableSelect
+            styles={customInput}
+            options={resources}
+            defaultValue={placeholder ?
+              { value: placeholder, label: truncate(getTextResource(placeholder, textResources), 40) } : ''}
+            // tslint:disable-next-line:jsx-no-lambda
+            onChange={(value) => onChangeFunction(value, returnValue)}
+            isClearable={true}
+            placeholder={placeholder ?
+              truncate(getTextResource(placeholder, textResources), 40)
+              : language.ux_editor[labelText]}
+            // tslint:disable-next-line:jsx-no-lambda
+            formatCreateLabel={(inputValue: string) => formatCreateTextLabel(inputValue, language)}
+            // tslint:disable-next-line:jsx-no-lambda
+            noOptionsMessage={() => noOptionsMessage(language)}
+          /> */
         <Select
           styles={customInput}
           options={resources}
-          defaultValue={''}
+          defaultValue={placeholder ?
+            { value: placeholder, label: truncate(getTextResource(placeholder, textResources), 40) } : ''}
           // tslint:disable-next-line:jsx-no-lambda
           onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
           placeholder={placeholder ?
             truncate(getTextResource(placeholder, textResources), 40)
-            : language.general.search}
+            : language.ux_editor[labelText]}
           // tslint:disable-next-line:jsx-no-lambda
           noOptionsMessage={() => noOptionsMessage(language)}
         />

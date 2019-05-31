@@ -2,7 +2,7 @@
 
 exports[`>>> AltinnCheckBox +++ Should match snapshot 1`] = `
 <span
-  className="MuiButtonBase-root-18 MuiIconButton-root-12 MuiPrivateSwitchBase-root-8 MuiCheckbox-root-2 MuiCheckbox-colorSecondary-7 MuiPrivateSwitchBase-checked-9 MuiCheckbox-checked-3 AltinnCheckBox-altinnCheckBox-1"
+  className="MuiButtonBase-root-18 MuiIconButton-root-12 MuiPrivateSwitchBase-root-8 MuiCheckbox-root-2 MuiCheckbox-colorSecondary-7 MuiPrivateSwitchBase-checked-9 MuiCheckbox-checked-3 Component-altinnCheckBox-1"
   onBlur={[Function]}
   onContextMenu={[Function]}
   onFocus={[Function]}

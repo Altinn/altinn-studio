@@ -46,6 +46,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       >
         <p
           className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5"
+          id="changes_to_share_btn"
         >
           sync_header.changes_to_share
         </p>
@@ -104,6 +105,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       >
         <p
           className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-bold-1"
+          id="changes_to_share_btn"
         >
           sync_header.changes_to_share
         </p>
@@ -224,6 +226,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       >
         <p
           className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5"
+          id="no_changes_to_share_btn"
         >
           sync_header.no_changes_to_share
         </p>
@@ -269,6 +272,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       >
         <p
           className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-bold-1"
+          id="changes_to_share_btn"
         >
           sync_header.changes_to_share
         </p>

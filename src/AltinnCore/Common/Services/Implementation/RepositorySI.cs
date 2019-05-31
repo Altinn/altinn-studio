@@ -354,16 +354,11 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Returns the service metadata for a service
-        /// </summary>
-        /// <param name="applicationOwnerId">the applicatio owner</param>
-        /// <param name="applicationId">the application owner</param>
-        /// <returns>The application  metadata for an application</returns>
-        public ApplicationMetadata GetApplicationMetadata(string applicationOwnerId, string applicationId)
+        /// <inheritdoc/>
+        public ApplicationMetadata GetApplicationMetadata(string org, string applicationId)
         {
             string filedata = string.Empty;
-            string filename = _settings.GetMetadataPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+            string filename = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
             try
             {
                 filedata = File.ReadAllText(filename, Encoding.UTF8);

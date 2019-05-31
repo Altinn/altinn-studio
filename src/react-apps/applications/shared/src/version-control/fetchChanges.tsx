@@ -69,6 +69,7 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
           </Grid>
           <Grid item={true}>
             <Typography
+              id='fetch_changes_btn'
               variant='body1'
               className={classNames(classes.color_blueDark,
                 { [classes.bold]: this.props.changesInMaster === true },

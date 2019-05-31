@@ -73,7 +73,7 @@ export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
                 {getLanguageFromKey('deploy_to_test.service_url', props.language)}
               </span><br />
               <a
-                href={`https://${org}.apps.${props.env}.${urls.hostname.apps.test}/${service}`}
+                href={`https://${org}.apps.${props.env}.${urls.hostname.apps.test}/${org}/${service}`}
                 target='_blank'
                 className={classes.link}
               >

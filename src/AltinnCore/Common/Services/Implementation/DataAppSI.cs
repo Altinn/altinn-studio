@@ -185,7 +185,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void DeleteFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
         {
             List<AttachmentList> attachmentList = new List<AttachmentList>();
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={attachmentId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{attachmentId}?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);

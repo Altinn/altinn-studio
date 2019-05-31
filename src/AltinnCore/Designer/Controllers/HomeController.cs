@@ -74,29 +74,8 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The front page</returns>
         [Authorize]
         public ActionResult Index(RepositorySearch repositorySearch)
-        {
-            AltinnStudioViewModel model = new AltinnStudioViewModel();
-            SearchResults repositorys = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
-            if (repositorys != null)
-            {
-                model.Repositories = repositorys.Data;
-
-                if (model.Repositories != null)
-                {
-                    foreach (Repository repo in model.Repositories)
-                    {
-                        repo.IsClonedToLocal = _sourceControl.IsLocalRepo(repo.Owner.Login, repo.Name);
-                    }
-                }
-            }
-
-            if (repositorySearch.OnlyLocalRepositories)
-            {
-                model.Repositories = model.Repositories.FindAll(r => r.IsClonedToLocal);
-            }
-
-            model.RepositorySearch = repositorySearch;
-            return View(model);
+        {            
+            return View();
         }
 
         /// <summary>

@@ -95,6 +95,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
           </Grid>
           <Grid item={true}>
             <Typography
+              id='changes_to_share_btn'
               variant='body1'
               className={classNames(classes.color_blueDark,
                 { [classes.bold]: this.props.moreThanAnHourSinceLastPush },
@@ -120,6 +121,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
           </Grid>
           <Grid item={true}>
             <Typography
+              id='no_changes_to_share_btn'
               variant='body1'
               className={classNames(classes.color_blueDark)}
             >
