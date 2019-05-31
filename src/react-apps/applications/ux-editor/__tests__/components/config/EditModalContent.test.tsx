@@ -59,7 +59,7 @@ describe('>>> containers/EditModalContent', () => {
       textResourceBindings: {
         title: 'Input',
       },
-      type: 'Input',
+      component: 'Input',
     };
     mockHandleComponentUpdate = () => {
       // something
@@ -79,7 +79,7 @@ describe('>>> containers/EditModalContent', () => {
     );
     expect(mountedEditModalContent.find('input').length).toBe(3);
   });
-  it('+++ should return header spesific content when type header', () => {
+  it('+++ should return header spesific content when component header', () => {
     mockComponent = {
       dataModelBindings: {},
       readOnly: false,
@@ -87,7 +87,7 @@ describe('>>> containers/EditModalContent', () => {
       textResourceBindings: {
         title: 'Header',
       },
-      type: 'Header',
+      component: 'Header',
     };
     const mountedEditModalContent = mount(
       <Provider store={mockStore}>
@@ -109,7 +109,7 @@ describe('>>> containers/EditModalContent', () => {
       textResourceBindings: {
         title: 'Header',
       },
-      type: 'FileUpload',
+      component: 'FileUpload',
     };
     const mountedEditModalContent = mount(
       <Provider store={mockStore}>
@@ -131,7 +131,7 @@ describe('>>> containers/EditModalContent', () => {
       textResourceBindings: {
         title: 'Header',
       },
-      type: 'FileUpload',
+      component: 'FileUpload',
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 2,
       maxFileSizeInMB: 0,

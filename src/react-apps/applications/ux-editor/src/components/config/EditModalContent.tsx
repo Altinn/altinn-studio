@@ -175,7 +175,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   }
 
   public renderComponentSpecificContent(): JSX.Element {
-    switch (this.props.component.type) {
+    switch (this.props.component.component) {
       case 'Header': {
         const sizes = [
           { value: 'S', label: this.props.language.ux_editor.modal_header_type_h4 },
@@ -431,6 +431,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
       case 'FileUpload': {
         const component = (this.props.component as IFormFileUploaderComponent);
+        const maxSize = component.maxFileSizeInMB || 25;
         return (
           <Grid>
             <Grid item={true} xs={12}>
@@ -521,7 +522,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                     fontSize: '1.6rem', marginTop: '6px', color: theme.altinnPalette.primary.red, marginLeft: 0,
                   }}
                 >
-                  <i className='fa fa-circle-exclamation' style={{ fontSize: '2rem' }} />
+                  <i className='fa fa-circle-exclamation' style={{ fontSize: '2rem', marginLeft: '-2px' }} />
                   {getLanguageFromKey(
                     'ux_editor.modal_properties_minimum_files_error', this.props.language)}
                 </Typography>
@@ -531,7 +532,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <AltinnInputField
                 id={'modal-properties-file-size'}
                 onChangeFunction={this.handleMaxFileSizeInMBChange}
-                inputValue={component.maxFileSizeInMB || 25}
+                inputValue={maxSize}
                 inputDescription={getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
@@ -543,7 +544,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                   'ux_editor.modal_properties_maximum_file_size_helper', this.props.language)}
               </Typography>
             </Grid>
-            {component.maxFileSizeInMB <= 0 &&
+            {maxSize <= 0 &&
               <div className={'field-validation-error a-message a-message-error'}>
                 {getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size_zero_error', this.props.language)}
