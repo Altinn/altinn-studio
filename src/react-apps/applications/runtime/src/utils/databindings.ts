@@ -6,7 +6,7 @@ import { object } from 'dot-object';
  * XSD. This is needed for the API to understand
  * @param formData the complete datamodel in store
  */
-export function convertDataBindingToModel(formData: any, dataModelElements: IDataModelFieldElement[]): any {
+export function convertDataBindingToModel(formData: any, dataModelElements: any[]): any {
   return object(Object.assign({}, formData));
 }
 
@@ -18,12 +18,12 @@ export interface IData {
  * Convertes JSON to the flat datamodel used in Redux data store
  * @param data The formdata as JSON
  */
-export function convertModelToDataBinding(data: any, model: IDataModelFieldElement[]): any {
+export function convertModelToDataBinding(data: any, model: any[]): any {
   const result = flattenObject(data);
   return filterFormData(result, model);
 }
 
-const filterFormData = (data: any, model: IDataModelFieldElement[]): any => {
+const filterFormData = (data: any, model: any[]): any => {
   const filteredResult: any = {};
   Object.keys(data).forEach((key: string) => {
     const formDataKey = getKeyWithoutIndex(key);

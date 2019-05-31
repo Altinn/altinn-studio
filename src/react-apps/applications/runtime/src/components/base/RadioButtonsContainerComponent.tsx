@@ -5,13 +5,14 @@ import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IRadioButtonsContainerProps {
   id: string;
-  component: IFormRadioButtonComponent;
   formData: any;
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid?: boolean;
-  validationMessages?: IComponentValidations;
-  designMode: boolean;
+  validationMessages?: any;
+  options: any[];
+  preselectedOptionIndex: number;
+  readOnly: boolean;
 }
 
 export interface IRadioButtonsContainerState {
@@ -20,9 +21,7 @@ export interface IRadioButtonsContainerState {
 
 export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps) => {
   const [selected, setSelected] = React.useState('');
-  const { options } = props.component;
-  const optionsLength = (options) ? options.length : 0;
-  const isStacked: boolean = (optionsLength > 2);
+  const isStacked: boolean = (props.options.length > 2);
 
   React.useEffect(() => {
     returnSelected();
@@ -31,11 +30,11 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
   const returnSelected = () => {
     if (
       !props.formData &&
-      props.component.preselectedOptionIndex &&
-      props.component.options &&
-      props.component.preselectedOptionIndex < props.component.options.length
+      props.preselectedOptionIndex &&
+      props.options &&
+      props.preselectedOptionIndex < props.options.length
     ) {
-      const preselectedValue = props.component.options[props.component.preselectedOptionIndex].value;
+      const preselectedValue = props.options[props.preselectedOptionIndex].value;
       setSelected(preselectedValue);
     } else {
       setSelected(props.formData ? props.formData : '');
@@ -64,12 +63,12 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
       id={props.id}
       style={isStacked ? {} : { alignItems: 'start' }}
     >
-      {options.map((option, index) => (
+      {props.options.map((option: any, index: number) => (
         <div
           className={'custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio'
-            + (props.component.readOnly ? ' no-cursor' : '')}
+            + (props.readOnly ? ' no-cursor' : '')}
           key={index}
-          onClick={props.component.readOnly ?
+          onClick={props.readOnly ?
             null : () => onDataChange(option.value)}
         >
           <input
@@ -81,13 +80,13 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
           />
           <label
             className={classNames('custom-control-label', 'pl-3',
-              { 'disabled-radio-button': props.component.readOnly })}
+              { 'disabled-radio-button': props.readOnly })}
           >
-            {props.designMode ? option.label : props.getTextResource(option.label)}
+            {option.label}
           </label>
           {props.validationMessages && (selected === option.value) &&
             renderValidationMessagesForComponent(props.validationMessages.simpleBinding,
-              props.component.id)}
+              props.id)}
         </div>
       ))}
     </div>

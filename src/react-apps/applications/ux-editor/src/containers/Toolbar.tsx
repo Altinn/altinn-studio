@@ -96,7 +96,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       icon: c.Icon,
       actionMethod: (containerId: string, position: number) => {
         FormDesignerActionDispatchers.addFormComponent({
-          component: c.name,
+          type: c.name,
           itemType: LayoutItemType.Component,
           textResourceBindings: {
             title: c.name,
@@ -150,7 +150,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               componentType: null,
               actionMethod: (containerId: string, position: number) =>
                 FormDesignerActionDispatchers.addFormComponent({
-                  component: THIRD_PARTY_COMPONENT,
+                  type: THIRD_PARTY_COMPONENT,
                   itemType: LayoutItemType.Component,
                   textResourceBindings: {
                     title: `${packageName} - ${componentName}`,

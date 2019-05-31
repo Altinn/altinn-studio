@@ -1,4 +1,5 @@
 import { AddressComponent } from './advanced/AddressComponent';
+import { ButtonComponent } from './base/ButtonComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
 import { DatepickerComponent } from './base/DatepickerComponent';
 import { DropdownComponent } from './base/DropdownComponent';
@@ -8,7 +9,6 @@ import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
-import { SubmitComponent } from './widget/SubmitComponent';
 
 export interface IComponent {
   name: string;
@@ -29,7 +29,7 @@ export enum ComponentTypes {
   RadioButton,
   TextArea,
   FileUpload,
-  Submit,
+  Button,
   Container,
   AddressComponent,
 }
@@ -108,13 +108,9 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.FileUpload,
   },
   {
-    name: 'Submit',
-    Tag: SubmitComponent,
-    Type: ComponentTypes.Submit,
-    customProperties: {
-      textResourceId: 'Standard.Button.Submit',
-      customType: 'Standard',
-    },
+    name: 'Button',
+    Tag: ButtonComponent,
+    Type: ComponentTypes.Button,
   },
 ];
 

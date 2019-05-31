@@ -1,12 +1,14 @@
 import * as moment from 'moment';
 import * as React from 'react';
 import { createRef } from 'react';
+import '../../styles/DatepickerComponent.css';
 import '../../styles/shared.css';
 import { returnDatestringFromDate } from './../../../../shared/src/utils/formatDate';
 
 export interface IDatePickerProps {
   id: string;
-  component: IFormComponent;
+  readOnly: boolean;
+  required: boolean;
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
@@ -58,22 +60,22 @@ export class DatepickerComponent extends React.Component<IDatePickerProps, IDate
   public render() {
     return (
       <div className='form-group a-form-group a-form-group-datepicker'>
-        <div className={'input-group' + (this.props.component.readOnly ? ' disabled' : '')}>
+        <div className={'input-group' + (this.props.readOnly ? ' disabled' : '')}>
           <input
             type='text'
             id={this.props.id}
-            className={(this.props.component.readOnly ? 'disabled-date ' : '') +
+            className={(this.props.readOnly ? 'disabled-date ' : '') +
               (this.props.isValid ?
                 'form-control a-hasButton date' :
                 'form-control a-hasButton date validation-error')}
             onBlur={this.onDateBlur}
             onChange={this.onDateChange}
-            disabled={this.props.component.readOnly}
-            required={this.props.component.required}
+            disabled={this.props.readOnly}
+            required={this.props.required}
             value={this.state.value}
             ref={this.datePickerRef}
           />
-          <div className={'input-group-prepend a-icon-right' + (this.props.component.readOnly ? ' disabled-date' : '')}>
+          <div className={'input-group-prepend a-icon-right' + (this.props.readOnly ? ' disabled-date' : '')}>
             <i className='ai ai-date' />
           </div>
         </div>

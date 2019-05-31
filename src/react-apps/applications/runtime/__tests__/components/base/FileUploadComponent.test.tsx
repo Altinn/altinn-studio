@@ -8,13 +8,17 @@ import { FileUploadComponent, FileUploadComponentClass } from '../../../src/comp
 import { mapAttachmentListApiResponseToAttachments } from '../../../src/utils/attachment';
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
+  let mockDisplayMode: string;
+  let mockHasCustomFileEndings: boolean;
   let mockId: string;
-  let mockComponent: any;
   let mockIsValid: boolean;
-  let mockStore: any;
-  let mockInitialState: any;
+  let mockMaxFileSizeInMB: number;
+  let mockMaxNumberOfAttachments: number;
+  let mockReadOnly: boolean;
   let mockAttachments: any[];
   let mockFileList: File[];
+  let mockInitialState: any;
+  let mockStore: any;
 
   beforeEach(() => {
     const createStore = configureStore();
@@ -25,7 +29,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       { name: 'attachment-name-3', id: 'attachment-id-3', size: '400', uploaded: true, deleting: true },
     ];
     mockInitialState = {
-      formFiller: {
+      formAttachments: {
         attachments: {
           mockId: mockAttachments,
         },
@@ -38,18 +42,12 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         },
       },
     };
-    mockComponent = {
-      id: mockId,
-      component: 'FileUpload',
-      maxNumberOfAttachments: 4,
-      maxFileSizeInMB: 2,
-      hasCustomFileEndings: false,
-      displayMode: 'simple',
-      textResourceBindings: {
-        title: 'test-fileuploader',
-      },
-    };
+    mockMaxNumberOfAttachments = 4;
+    mockMaxFileSizeInMB = 2;
+    mockHasCustomFileEndings = false;
+    mockDisplayMode = 'simple';
     mockIsValid = true;
+    mockReadOnly = false;
     mockFileList = [{ name: 'mock-name.txt', lastModified: null, size: 100, slice: null, type: null }];
     mockStore = createStore(mockInitialState);
   });
@@ -58,10 +56,13 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
         <FileUploadComponent
+          displayMode={mockDisplayMode}
           id={mockId}
-          component={mockComponent}
           isValid={mockIsValid}
           language={{}}
+          maxFileSizeInMB={mockMaxFileSizeInMB}
+          maxNumberOfAttachments={mockMaxNumberOfAttachments}
+          readOnly={mockReadOnly}
         />
       </Provider>,
     );
@@ -71,12 +72,14 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
   it('+++ should show spinner when file is uploading or deleting', () => {
     const wrapper = mount(
       <FileUploadComponentClass
+        displayMode={mockDisplayMode}
         id={mockId}
-        component={mockComponent}
         isValid={mockIsValid}
         language={{}}
+        maxFileSizeInMB={mockMaxFileSizeInMB}
+        maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        readOnly={mockReadOnly}
         attachments={mockAttachments}
-        validationMessages={mockInitialState.formFiller.validationResults.mockId}
       />,
     );
     expect(wrapper.find('#loader-upload')).toHaveLength(1);
@@ -86,10 +89,13 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
   it('+++ should add validation error on onDrop rejection', () => {
     const wrapper = mount(
       <FileUploadComponentClass
+        displayMode={mockDisplayMode}
         id={mockId}
-        component={mockComponent}
         isValid={mockIsValid}
         language={{}}
+        maxFileSizeInMB={mockMaxFileSizeInMB}
+        maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
     );
@@ -102,10 +108,13 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
   it('+++ should trigger onDelete on when delete is clicked and update state to deleting for that attachment', () => {
     const wrapper = mount(
       <FileUploadComponentClass
+        displayMode={mockDisplayMode}
         id={mockId}
-        component={mockComponent}
         isValid={mockIsValid}
         language={{}}
+        maxFileSizeInMB={mockMaxFileSizeInMB}
+        maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
     );
@@ -121,10 +130,13 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
   it('+++ should not display drop area when in simple mode and attachments exists', () => {
     const wrapper = mount(
       <FileUploadComponentClass
+        displayMode={mockDisplayMode}
         id={mockId}
-        component={mockComponent}
         isValid={mockIsValid}
         language={{}}
+        maxFileSizeInMB={mockMaxFileSizeInMB}
+        maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
     );

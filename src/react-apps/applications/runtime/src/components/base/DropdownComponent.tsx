@@ -1,18 +1,17 @@
 import * as React from 'react';
 
 export interface IDropdownProps {
-  id: string;
-  component: IFormComponent;
   formData: any;
-  handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
+  handleDataChange: (value: any) => void;
+  id: string;
   isValid?: boolean;
-  designMode: boolean;
+  options: any[];
 }
 
 export interface IDropdownState {
   title: string;
-  options: IOptions[];
+  options: any[];
   name: string;
 }
 
@@ -24,7 +23,6 @@ export class DropdownComponent
   }
 
   public render() {
-    const { options } = this.props.component;
     return (
       <select
         id={this.props.id}
@@ -33,9 +31,9 @@ export class DropdownComponent
           : 'custom-select a-custom-select validation-error'}
         onChange={this.onDataChanged}
       >
-        {options.map((option, index) => (
+        {this.props.options.map((option, index) => (
           <option key={index} value={option.value}>
-            {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
+            {option.label}
           </option>
         ))}
       </select>
