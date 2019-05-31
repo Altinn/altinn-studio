@@ -48,7 +48,6 @@ describe('>>> utils/formLayout', () => {
       {
         id: '17314adc-f75d-4a49-b726-242e2ae32ad2',
         type: 'Input',
-        itemType: 'COMPONENT',
         textResourceBindings: {
           title: 'Input',
         },
@@ -59,7 +58,6 @@ describe('>>> utils/formLayout', () => {
       {
         id: '68a15abf-3a55-4cc6-b9cc-9bfa5fe9b51a',
         type: 'Input',
-        itemType: 'COMPONENT',
         textResourceBindings: {
           title: 'Input',
         },
@@ -159,7 +157,6 @@ describe('>>> utils/formLayout', () => {
     const mockResult = [{
       id: '46882e2b-8097-4170-ad4c-32cdc156634e',
       type: 'Header',
-      itemType: 'COMPONENT',
       textResourceBindings: { title: 'ServiceName' },
       dataModelBindings: {},
       size: 'L',
@@ -167,7 +164,6 @@ describe('>>> utils/formLayout', () => {
     {
       id: 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
       type: 'Paragraph',
-      itemType: 'COMPONENT',
       textResourceBindings: { title: 'ServiceName' },
       dataModelBindings: {},
     }];
@@ -179,7 +175,6 @@ describe('>>> utils/formLayout', () => {
       components: {
         '46882e2b-8097-4170-ad4c-32cdc156634e': {
           component: 'Header',
-          itemType: 'COMPONENT',
           textResourceBindings: {
             title: 'ServiceName',
           },
@@ -188,7 +183,6 @@ describe('>>> utils/formLayout', () => {
         },
         'ede0b05d-2c53-4feb-bdd4-4c61b89bd729': {
           component: 'Paragraph',
-          itemType: 'COMPONENT',
           textResourceBindings: {
             title: 'ServiceName',
           },
@@ -213,7 +207,6 @@ describe('>>> utils/formLayout', () => {
       {
         id: '46882e2b-8097-4170-ad4c-32cdc156634e',
         type: 'Header',
-        itemType: 'COMPONENT',
         textResourceBindings: {
           title: 'ServiceName',
         },
@@ -223,7 +216,6 @@ describe('>>> utils/formLayout', () => {
       {
         id: 'ede0b05d-2c53-4feb-bdd4-4c61b89bd729',
         type: 'Paragraph',
-        itemType: 'COMPONENT',
         textResourceBindings: {
           title: 'ServiceName',
         },
@@ -253,10 +245,10 @@ describe('>>> utils/formLayout', () => {
       order: {},
     };
     const mockConvertedLayoutResult = {
-      containers: { mockContainerID: {} },
+      containers: { mockContainerID: { itemType: 'CONTAINER' } },
       components: {
-        mockChildID_1: { someProp: '1' },
-        mockChildID_2: { someProp: '2' },
+        mockChildID_1: { someProp: '1', itemType: 'COMPONENT' },
+        mockChildID_2: { someProp: '2', itemType: 'COMPONENT' },
       },
       order: { mockContainerID: ['mockChildID_1', 'mockChildID_2'] },
     };
@@ -278,12 +270,12 @@ describe('>>> utils/formLayout', () => {
     };
     const mockConvertedLayoutResult = {
       containers: {
-        mockChildID_1: {},
-        mockContainerID: {},
+        mockChildID_1: { itemType: 'CONTAINER' },
+        mockContainerID: { itemType: 'CONTAINER' },
       },
       components: {
-        mockChildID_2: { someProp: '2' },
-        mockChildID_3: { someProp: '3' },
+        mockChildID_2: { someProp: '2', itemType: 'COMPONENT' },
+        mockChildID_3: { someProp: '3', itemType: 'COMPONENT' },
       },
       order: { mockChildID_1: ['mockChildID_3'], mockContainerID: ['mockChildID_2'] },
     };
@@ -299,12 +291,12 @@ describe('>>> utils/formLayout', () => {
       ];
       const mockResult = {
         containers: {
-          mockChildID_1: {},
+          mockChildID_1: { itemType: 'CONTAINER' },
         },
         components: {
-          mockChildID_2: { someProp: '2' },
-          mockChildID_4: { someProp: '4' },
-          mockChildID_5: { someProp: '5' },
+          mockChildID_2: { someProp: '2', itemType: 'COMPONENT' },
+          mockChildID_4: { someProp: '4', itemType: 'COMPONENT' },
+          mockChildID_5: { someProp: '5', itemType: 'COMPONENT' },
         },
       };
       const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
