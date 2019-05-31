@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
+using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -35,6 +36,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ILogger _logger;
         private readonly HttpContext _httpContext;
         private readonly JwtCookieOptions _cookieOptions;
+        private readonly StorageClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceAppSI"/> class.
@@ -45,13 +47,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="logger">the logger</param>
         /// <param name="httpContex">The http context </param>
         /// <param name="cookieOptions">The cookie options </param>
+        /// <param name="client">The Http client </param>
         public InstanceAppSI(
             IData data,
             IOptions<PlatformSettings> platformSettings,
             IWorkflow workflowSI,
             ILogger<InstanceAppSI> logger,
             HttpContext httpContex,
-            IOptions<JwtCookieOptions> cookieOptions)
+            IOptions<JwtCookieOptions> cookieOptions,
+            StorageClient client)
         {
             _data = data;
             _platformSettings = platformSettings.Value;
@@ -59,6 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             _logger = logger;
             _httpContext = httpContex;
             _cookieOptions = cookieOptions.Value;
+            _client = client;
         }
 
         /// <inheritdoc />
@@ -70,26 +75,22 @@ namespace AltinnCore.Common.Services.Implementation
             string applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, startServiceModel.Service);
             int instanceOwnerId = startServiceModel.ReporteeID;
 
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
 
-            using (HttpClient client = new HttpClient())
-            {
-                client.BaseAddress = new Uri(apiUrl);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
-                try
-                {
-                    HttpResponseMessage response = await client.PostAsync(apiUrl, null);
-                    string id = await response.Content.ReadAsAsync<string>();
-                    instanceId = Guid.Parse(id);
-                }
-                catch
-                {
-                    return instance;
-                }
+            try
+            {
+                HttpResponseMessage response = await _client.PostAsync(apiUrl, null);
+                string id = await response.Content.ReadAsAsync<string>();
+                instanceId = Guid.Parse(id);
+            }
+            catch
+            {
+                return instance;
             }
 
             // Save instantiated form model
@@ -115,27 +116,24 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance = new Instance();
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
 
-            using (HttpClient client = new HttpClient())
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                client.BaseAddress = new Uri(apiUrl);
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-
-                HttpResponseMessage response = await client.GetAsync(apiUrl);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string instanceData = await response.Content.ReadAsStringAsync();
-                    instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                }
-                else
-                {
-                    _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
-                }
-
-                return instance;
+                string instanceData = await response.Content.ReadAsStringAsync();
+                instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             }
+            else
+            {
+                _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
+            }
+
+            return instance;
         }
 
         /// <inheritdoc />
@@ -146,28 +144,26 @@ namespace AltinnCore.Common.Services.Implementation
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
 
-            using (HttpClient client = new HttpClient())
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                client.BaseAddress = new Uri(apiUrl);
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-
-                HttpResponseMessage response = await client.GetAsync(apiUrl);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string instanceData = await response.Content.ReadAsStringAsync();
-                    instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
-                }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return instances;
-                }
-                else
-                {
-                    _logger.LogError("Unable to fetch instances");
-                }
-
+                string instanceData = await response.Content.ReadAsStringAsync();
+                instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
                 return instances;
             }
+            else
+            {
+                _logger.LogError("Unable to fetch instances");
+            }
+
+            return instances;
+
         }
 
         /// <inheritdoc />
@@ -177,28 +173,24 @@ namespace AltinnCore.Common.Services.Implementation
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContext, _cookieOptions.Cookie.Name);
 
-            using (HttpClient client = new HttpClient())
+            _client.DefaultRequestHeaders.Accept.Clear();
+            _client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+            string jsonData = JsonConvert.SerializeObject(dataToSerialize);
+            StringContent httpContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await _client.PutAsync(apiUrl, httpContent);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                client.BaseAddress = new Uri(apiUrl);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-
-                string jsonData = JsonConvert.SerializeObject(dataToSerialize);
-                StringContent httpContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
-                HttpResponseMessage response = await client.PutAsync(apiUrl, httpContent);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string instanceData = await response.Content.ReadAsStringAsync();
-                    instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                }
-                else
-                {
-                    _logger.LogError($"Unable to update instance with instance id {instanceId}");
-                }
-
-                return instance;
+                string instanceData = await response.Content.ReadAsStringAsync();
+                instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             }
+            else
+            {
+                _logger.LogError($"Unable to update instance with instance id {instanceId}");
+            }
+
+            return instance;
         }
 
         /// <inheritdoc/>
