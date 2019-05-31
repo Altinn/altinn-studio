@@ -19,10 +19,6 @@ const FormFiller = (props: IFormFillerProps) => {
     setWorkflowStep(props.workflowStep);
   }, [props]);
 
-  const handleStepChange = (step: WorkflowSteps) => {
-    setWorkflowStep(step);
-  };
-
   return (
     <WorkflowStep
       header={props.formConfig.serviceName ? props.formConfig.serviceName :

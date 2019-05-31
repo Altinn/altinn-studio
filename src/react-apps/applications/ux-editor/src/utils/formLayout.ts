@@ -77,13 +77,13 @@ export function convertInternalToLayoutFormat(internalFormat: IFormDesignerLayou
           components[id].type = components[id].component;
           delete components[id].component;
         }
-        delete (components[id] as any).itemType;
+        delete components[id].itemType;
         children.push({
           id,
           ...components[id],
         });
       } else {
-        delete (containers[id] as any).itemType;
+        delete containers[id].itemType;
         children.push({
           id,
           type: 'Group',

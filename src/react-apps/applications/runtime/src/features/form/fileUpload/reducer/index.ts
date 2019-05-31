@@ -23,7 +23,7 @@ const formFileUploadReducer: Reducer<IFormFileUploadState> = (
   }
   switch (action.type) {
     case (FileUploadActionsTypes.UPLOAD_ATTACHMENT): {
-      const { file, attachmentType, tmpAttachmentId, componentId }
+      const { file, attachmentType, tmpAttachmentId }
         = action as uploadActions.IUploadAttachmentAction;
       if (!state.attachments[attachmentType]) {
         state = update<IFormFileUploadState>(state, {
@@ -42,7 +42,7 @@ const formFileUploadReducer: Reducer<IFormFileUploadState> = (
     }
 
     case (FileUploadActionsTypes.UPLOAD_ATTACHMENT_REJECTED): {
-      const { attachmentType, attachmentId, componentId } =
+      const { attachmentType, attachmentId } =
         action as uploadActions.IUploadAttachmentActionRejected;
       return update<IFormFileUploadState>(state, {
         attachments: {
@@ -81,7 +81,7 @@ const formFileUploadReducer: Reducer<IFormFileUploadState> = (
     }
 
     case (FileUploadActionsTypes.DELETE_ATTACHMENT_REJECTED): {
-      const { attachment, attachmentType, componentId } =
+      const { attachment, attachmentType } =
         action as deleteActions.IDeleteAttachmentActionRejected;
       const newAttachment = { ...attachment, deleting: false };
       const index = state.attachments[attachmentType].findIndex((element) => element.id === attachment.id);
