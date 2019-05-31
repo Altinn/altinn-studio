@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -217,16 +218,25 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             if (returnRepository != null && returnRepository.Owner != null && !string.IsNullOrEmpty(returnRepository.Owner.Login))
             {
+                watch = System.Diagnostics.Stopwatch.StartNew();
                 returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
+                watch = System.Diagnostics.Stopwatch.StartNew();
                 Organization org = await GetCachedOrg(returnRepository.Owner.Login);
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
                 if (org.Id != -1)
                 {
                     returnRepository.Owner.UserType = UserType.Org;
                 }
             }
 
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Org/Owner - {0} ", watch.ElapsedMilliseconds);
             return returnRepository;
         }
 
