@@ -4,10 +4,12 @@ import '../../styles/shared.css';
 
 export interface IInputProps {
   id: string;
-  component: IFormComponent;
+  readOnly: boolean;
+  required: boolean;
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
+  type?: string;
 }
 
 export interface IInputState {
@@ -38,13 +40,13 @@ export class InputComponent
     return (
       <input
         id={this.props.id}
-        type={this.props.component.type}
+        type={this.props.type}
         onBlur={this.onDataChangeSubmit}
         onChange={this.onDataChanged}
-        disabled={this.props.component.readOnly}
-        required={this.props.component.required}
+        disabled={this.props.readOnly}
+        required={this.props.required}
         className={classNames('form-control',
-          { 'validation-error': !this.props.isValid, 'disabled': this.props.component.readOnly },
+          { 'validation-error': !this.props.isValid, 'disabled': this.props.readOnly },
         )}
         value={this.state.value}
       />

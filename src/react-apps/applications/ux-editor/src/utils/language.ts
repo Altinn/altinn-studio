@@ -45,8 +45,8 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     case ComponentTypes.Datepicker: {
       return language.ux_editor.component_datepicker;
     }
-    case ComponentTypes.Submit: {
-      return language.ux_editor.component_submit;
+    case ComponentTypes.Button: {
+      return language.ux_editor.component_button;
     }
     case ComponentTypes.TextArea: {
       return language.ux_editor.component_text_area;

@@ -17,3 +17,6 @@
     #fff 5px
   );
 }
+input:hover {
+  border-color: #0062ba !important;
+}

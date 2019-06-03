@@ -61,7 +61,7 @@ declare global {
   }
 
   export interface ICreateFormComponent {
-    component: string;
+    component?: string;
     type?: string;
     name?: string;
     size?: string;

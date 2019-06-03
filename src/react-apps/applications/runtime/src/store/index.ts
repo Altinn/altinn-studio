@@ -10,9 +10,9 @@ import createSagaMiddleware, { SagaMiddleware } from 'redux-saga';
 import reducers from '../reducers';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
-export const store: Store<IAppState> = configureStore();
+export const store: Store<any> = configureStore();
 
-function configureStore(initialState?: any): Store<IAppState> {
+function configureStore(initialState?: any): Store<any> {
   const middlewares: Middleware[] = [sagaMiddleware];
 
   let enhancer: any;
@@ -25,7 +25,7 @@ function configureStore(initialState?: any): Store<IAppState> {
     enhancer = compose(applyMiddleware(...middlewares));
   }
 
-  const createdStore: Store<IAppState> = createStore(
+  const createdStore: Store<any> = createStore(
     reducers,
     initialState,
     enhancer,

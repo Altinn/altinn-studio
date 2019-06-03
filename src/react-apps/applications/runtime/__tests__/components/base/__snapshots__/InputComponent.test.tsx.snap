@@ -8,7 +8,7 @@ exports[`>>> components/base/InputComponent.tsx --- Snapshot +++ should match sn
   onBlur={[Function]}
   onChange={[Function]}
   required={false}
-  type="text"
+  type="Input"
   value=""
 />
 `;

@@ -1,4 +1,6 @@
-import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutReducer';
+import { IFormData } from '../features/form/data/reducer';
+import { ILayout, ILayoutComponent } from '../features/form/layout/';
+import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
 export function min(value: number, test: number): boolean {
@@ -41,26 +43,26 @@ const validationFunctions: any = {
   pattern,
 };
 
-export function validateDataModel(
+/*
+  Validates formData for a single component, returns a IComponentValidations object
+*/
+export function validateComponentFormData(
   formData: any,
   dataModelFieldElement: IDataModelFieldElement,
-  layoutModelElement?: IFormComponent,
+  component: ILayoutComponent,
 ): IComponentValidations {
   const validationErrors: string[] = [];
-  const fieldKey = Object.keys(layoutModelElement.dataModelBindings).find((binding: string) =>
-    layoutModelElement.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
+  const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
+    component.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
   const componentValidations: IComponentValidations = {
     [fieldKey]: {
       errors: [],
       warnings: [],
     },
   };
-
-  // Loop through all restrictions for the data model element and validate
   Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
-    if (
-      !runValidation(key, dataModelFieldElement.Restrictions[key], formData)
-    ) {
+    const validationSuccess = runValidation(key, dataModelFieldElement.Restrictions[key], formData);
+    if (!validationSuccess) {
       if (dataModelFieldElement.Restrictions[key].ErrortText) {
         validationErrors.push(
           dataModelFieldElement.Restrictions[key].ErrortText,
@@ -72,114 +74,108 @@ export function validateDataModel(
       }
     }
   });
-  if ((dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1)
-    || (layoutModelElement.required && formData.length)) {
+  if (
+    (dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1) ||
+    (component.required)
+  ) {
     if (formData.length === 0) {
       validationErrors.push(
         `Field is required`,
       );
     }
   }
-
   componentValidations[fieldKey].errors = validationErrors;
   return componentValidations;
 }
 
+/*
+  Validates the entire formData and returns an IValidations object with validations mapped for all components
+*/
 export function validateFormData(
-  formData: any,
+  formData: IFormData,
   dataModelFieldElements: IDataModelFieldElement[],
-  layoutModelElements?: IFormDesignerComponent,
-): any {
-  const validationErrors: string[] = [];
-  const componentValidations: IComponentValidations = {};
-  const result: IValidationResults = {};
-  Object.keys(formData).forEach((formDataKey, index) => {
-    // Get data model element
+  layout: ILayout,
+): IValidations {
+  const result: IValidations = {};
+  Object.keys(formData).forEach((formDataKey) => {
     const dataBindingName = getKeyWithoutIndex(formDataKey);
     const dataModelFieldElement = dataModelFieldElements.find((e) => e.DataBindingName === dataBindingName);
     if (!dataModelFieldElement) {
       return;
     }
-
-    // Get form component and field connected to data model element
-    let fieldKey: string = null;
-    const layoutModelKey = Object.keys(layoutModelElements).find(
-      (e) => {
-        if (!layoutModelElements[e].dataModelBindings) {
-          return false;
+    let dataModelFieldKey: string = null;
+    let connectedComponent: ILayoutComponent = null;
+    layout.forEach((layoutElement) => {
+      const component = layoutElement as unknown as ILayoutComponent;
+      if (!component.dataModelBindings) {
+        return;
+      }
+      // Get form component and field connected to data model element
+      for (const dataModelBindingKey in component.dataModelBindings) {
+        if (!dataModelBindingKey) {
+          continue;
         }
-        for (const key in layoutModelElements[e].dataModelBindings) {
-          if (!key) {
-            continue;
-          }
-          if (layoutModelElements[e].dataModelBindings[key] === dataBindingName) {
-            fieldKey = key;
-            return true;
-          }
-        }
-        return false;
-      });
-
-    const layoutModelElement: IFormComponent = layoutModelElements[layoutModelKey];
-
-    Object.keys(dataModelFieldElement.Restrictions).forEach((restrictionKey) => {
-      if (!runValidation(restrictionKey, dataModelFieldElement.Restrictions[restrictionKey], formData[formDataKey])) {
-        if (dataModelFieldElement.Restrictions[restrictionKey].ErrortText) {
-          validationErrors.push(dataModelFieldElement.Restrictions[restrictionKey].ErrortText);
-        } else {
-          validationErrors.push(
-            `${restrictionKey}: ${dataModelFieldElement.Restrictions[restrictionKey].Value}`);
+        if (component.dataModelBindings[dataModelBindingKey] === dataBindingName) {
+          dataModelFieldKey = dataModelBindingKey;
+          connectedComponent = component;
+          return;
         }
       }
     });
 
-    if (layoutModelElement && layoutModelElement.required) {
-      if (formData[formDataKey].length === 0) {
-        validationErrors.push('Field is required');
-      }
+    if (dataModelFieldKey && connectedComponent) {
+      const componentValidations =
+        validateComponentFormData(formData[formDataKey], dataModelFieldElement, connectedComponent);
+      result[connectedComponent.id] = componentValidations;
     }
-
-    if (validationErrors.length > 0) {
-      if (!componentValidations[fieldKey]) {
-        componentValidations[fieldKey] = {
-          errors: [],
-          warnings: [],
-        };
-      }
-      componentValidations[fieldKey].errors = validationErrors;
-      result[layoutModelKey] = componentValidations;
-    }
+    dataModelFieldKey = null;
+    connectedComponent = null;
   });
-
   return result;
 }
 
-export function mapApiValidationResultToLayout(
-  apiValidationResult: any, layoutModel: IFormLayoutState): IValidationResults {
-  if (!apiValidationResult) {
-    return {};
+/*
+* Gets the total number of validation errors
+*/
+export function getErrorCount(validations: IValidations) {
+  let count = 0;
+  if (!validations) {
+    return count;
   }
-  const components = layoutModel.components;
-  return mapValidations(apiValidationResult.messages, components);
+  Object.keys(validations).forEach((componentId: string) => {
+    const componentValidations: IComponentValidations = validations[componentId];
+    Object.keys(componentValidations).forEach((bindingKey: string) => {
+      const componentErrors = componentValidations[bindingKey].errors;
+      if (componentErrors) {
+        count += componentErrors.length;
+      }
+    });
+  });
+  return count;
 }
 
-function mapValidations(validations: any, layoutComponents: IFormDesignerComponent): IValidationResults {
-  const validationResult: IValidationResults = {};
+/*
+  Maps the API validation response to our redux format
+*/
+export function mapApiValidationsToRedux(
+  validations: any, layout: ILayout): IValidations {
+  const validationResult: IValidations = {};
   if (!validations) {
     return validationResult;
   }
-
-  // Loop through all validation keys
+  let match = false;
   Object.keys(validations).forEach((validationKey) => {
     const componentValidation: IComponentValidations = {};
-
-    // Get component ID corresponding to validation key
-    // if validation key represents a field in the data model
-    const componentId: string = Object.keys(layoutComponents).find((layoutComponentId) => {
-      const component = layoutComponents[layoutComponentId];
-      let match = false;
-      Object.keys(component.dataModelBindings).forEach((fieldKey) => {
-        if (component.dataModelBindings[fieldKey].toLowerCase() === validationKey.toLowerCase()) {
+    const component = layout.find((layoutElement) => {
+      if (layoutElement.type.toLowerCase() === 'group') {
+        return false;
+      }
+      const componentCandidate = layoutElement as unknown as ILayoutComponent;
+      if (!componentCandidate.dataModelBindings) {
+        return false;
+      }
+      Object.keys(componentCandidate.dataModelBindings).forEach((fieldKey) => {
+        if (componentCandidate.dataModelBindings[fieldKey].toLowerCase() === validationKey.toLowerCase()) {
           match = true;
           componentValidation[fieldKey] = validations[validationKey];
           return;
@@ -187,15 +183,14 @@ function mapValidations(validations: any, layoutComponents: IFormDesignerCompone
       });
       return match;
     });
-
-    if (componentId) {
-      if (validationResult[componentId]) {
-        validationResult[componentId] = {
-          ...validationResult[componentId],
+    if (component) {
+      if (validationResult[component.id]) {
+        validationResult[component.id] = {
+          ...validationResult[component.id],
           ...componentValidation,
         };
       } else {
-        validationResult[componentId] = componentValidation;
+        validationResult[component.id] = componentValidation;
       }
     } else {
       // If no component corresponds to validation key, add validation messages
@@ -211,8 +206,8 @@ function mapValidations(validations: any, layoutComponents: IFormDesignerCompone
         };
       }
     }
+    match = false;
   });
-
   return validationResult;
 }
 
