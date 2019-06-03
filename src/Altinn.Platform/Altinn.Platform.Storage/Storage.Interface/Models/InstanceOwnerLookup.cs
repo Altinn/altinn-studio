@@ -14,10 +14,10 @@ namespace Altinn.Platform.Storage.Models
     public class InstanceOwnerLookup
     {
         /// <summary>
-        /// Social security number
+        /// Person number (Social security number)
         /// </summary>
-        [JsonProperty(PropertyName = "ssn")]
-        public string Ssn { get; set; }
+        [JsonProperty(PropertyName = "personNumber")]
+        public string PersonNumber { get; set; }
 
         /// <summary>
         /// organization number

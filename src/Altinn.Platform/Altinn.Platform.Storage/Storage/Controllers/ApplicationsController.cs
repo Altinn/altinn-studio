@@ -41,12 +41,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>list of all applications for a given owner</returns>        
         [HttpGet("{org}")]
         public async Task<ActionResult> GetMany(string org)
-        {            
-            if (!IsValidOrgName(org))
+        {
+            if (string.IsNullOrEmpty(org) || org.Contains("-") || org.Contains(" "))
             {
                 return BadRequest($"Application owner id '{org}' is not valid");
             }
-
+           
             try
             {
                 List<Application> result = await repository.ListApplications(org);
@@ -68,16 +68,6 @@ namespace Altinn.Platform.Storage.Controllers
                 logger.LogError($"Unable to perform query request {e}");
                 return StatusCode(500, $"Unable to perform query request {e}");
             }
-        }
-
-        private bool IsValidOrgName(string org)
-        {
-            if (string.IsNullOrEmpty(org) || org.Contains("-") || org.Contains(" "))
-            {
-                return false;
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -199,6 +189,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="appId">the id to check</param>
         /// <returns>true if it is valid, false otherwise</returns>
+        [ApiExplorerSettings(IgnoreApi = true)]
         public bool IsValidAppId(string appId)
         {
             if (string.IsNullOrEmpty(appId))
@@ -249,7 +240,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (application.Org == null || !application.Org.Equals(org))
             {
-                return BadRequest("ApplicationOwnerId from path is not matching attached object");
+                return BadRequest("Org (application owner id) from path is not matching attached object");
             }
 
             Application existingApplication;

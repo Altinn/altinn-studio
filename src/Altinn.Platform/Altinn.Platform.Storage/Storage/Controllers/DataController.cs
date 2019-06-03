@@ -267,7 +267,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             string dataId = Guid.NewGuid().ToString();
 
-            string dataLink = $"{prefix}/instances/{instanceGuid}/data/{dataId}";
+            string dataLink = $"{prefix}/instances/{instance.Id}/data/{dataId}";
 
             // create new data element, store data in blob
             DataElement newData = new DataElement
@@ -356,7 +356,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound("Dataid is not registered in instance");
                 }
 
-                string storageFileName = DataFileName(instance.AppId.ToString(), instanceId.ToString(), dataIdString);
+                string storageFileName = DataFileName(instance.AppId.ToString(), instanceGuid.ToString(), dataIdString);
 
                 if (string.Equals(data.StorageUrl, storageFileName))
                 {
@@ -408,7 +408,7 @@ namespace Altinn.Platform.Storage.Controllers
                     instance.LastChangedBy = User.Identity.Name;
 
                     // store file as blob                      
-                    bool success = await _dataRepository.UpdateDataInStorage(theStream, storageFileName);
+                    bool success = _dataRepository.UpdateDataInStorage(theStream, storageFileName).Result;
 
                     if (success)
                     {
@@ -418,21 +418,22 @@ namespace Altinn.Platform.Storage.Controllers
                         return Ok(result);
                     }
 
-                    return UnprocessableEntity();                
+                    return UnprocessableEntity($"Could not process attached file");                
                 }
+
+                return StatusCode(500, $"Storage url does not match with instance metadata");
             }
 
-            return UnprocessableEntity();
+            return BadRequest("Cannot update data element that is not registered");
         }        
 
         private Application GetApplication(string appId, string org, out ActionResult errorMessage)
         {
-            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(appId);
             errorMessage = null;
 
             try
             {
-                Application application = _applicationRepository.FindOne(appId, applicationOwnerId).Result;
+                Application application = _applicationRepository.FindOne(appId, org).Result;
                 
                 return application;
             }

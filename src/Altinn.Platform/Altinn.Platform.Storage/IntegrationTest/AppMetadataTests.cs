@@ -7,8 +7,14 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
 {
+    /// <summary>
+    /// Testing valid names
+    /// </summary>
     public class AppMetadataTests
     {
+        /// <summary>
+        /// Testing valid names.
+        /// </summary>
         [Fact]
         public void HasValidName()
         {

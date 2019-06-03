@@ -38,12 +38,11 @@ namespace Altinn.Platform.Storage.Client
         /// Creates data from file.
         /// </summary>
         /// <param name="instanceId">a</param>
-        /// <param name="instanceOwnerId">b</param>
         /// <param name="fileName">c</param>
         /// <param name="contentType">d</param>
-        public async Task<bool> PostDataReadFromFile(string instanceId, int instanceOwnerId, string fileName, string contentType)
+        public async Task<Instance> PostDataReadFromFile(string instanceId, string fileName, string contentType)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?elementType={elementType}&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?elementType={elementType}";
 
             using (Stream input = File.OpenRead($"data/{fileName}"))
             {
@@ -56,9 +55,13 @@ namespace Altinn.Platform.Storage.Client
 
                     HttpResponseMessage response = await client.PostAsync(hostName + requestUri, formData);
 
-                    response.EnsureSuccessStatusCode();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string json = response.Content.ReadAsStringAsync().Result;
+                        return JsonConvert.DeserializeObject<Instance>(json);
+                    }
 
-                    return true;
+                    throw new StorageClientException($"Http error: {response.ReasonPhrase}");                    
                 }
             }
 
@@ -68,17 +71,22 @@ namespace Altinn.Platform.Storage.Client
         /// Creates data.
         /// </summary>
         /// <param name="instanceId">a</param>
-        /// <param name="instanceOwnerId">b</param>
         /// <param name="fileName">c</param>
         /// <param name="contentType">d</param>
         /// <param name="content">f</param>
-        public async void PostData(string instanceId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, object> content)
+        public async Task<Instance> PostData(string instanceId,string fileName, string contentType, Dictionary<string, object> content)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?elementType={elementType}&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?elementType={elementType}";
 
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, content.AsJson());
 
-            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                string json = response.Content.ReadAsStringAsync().Result;
+                return JsonConvert.DeserializeObject<Instance>(json);
+            }
+
+            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
         }
 
         /// <summary>
@@ -86,17 +94,22 @@ namespace Altinn.Platform.Storage.Client
         /// </summary>
         /// <param name="instanceId">a</param>
         /// <param name="dataId">xx</param>
-        /// <param name="instanceOwnerId">b</param>
         /// <param name="fileName">c</param>
         /// <param name="contentType">d</param>
         /// <param name="content">content as json</param>
-        public async void PutData(string instanceId, string dataId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, string> content)
+        public async Task<Instance> PutData(string instanceId, string dataId,  string fileName, string contentType, Dictionary<string, string> content)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?elementType={elementType}&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?elementType={elementType}";
 
             HttpResponseMessage response = await client.PutAsync(requestUri, content.AsJson());
 
-            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                string json = response.Content.ReadAsStringAsync().Result;
+                return JsonConvert.DeserializeObject<Instance>(json);            
+            }
+
+            throw new StorageClientException($"PUT error: {response.ReasonPhrase}");
         }
 
         /// <summary>
@@ -106,15 +119,20 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="dataId">aa</param>
         /// <param name="instanceOwnerId">b</param>
         /// <returns>Content as byte array</returns>
-        public async Task<byte[]> GetData(string instanceId, string dataId, int instanceOwnerId)
+        public async Task<byte[]> GetData(string instanceId, string dataId)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}";
 
             HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
 
-            response.EnsureSuccessStatusCode();
+            if (response.IsSuccessStatusCode)
+            {
+                response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadAsByteArrayAsync();            
+                return await response.Content.ReadAsByteArrayAsync();
+            }
+
+            throw new StorageClientException($"GET error: {response.ReasonPhrase}");
         }
 
         /// <summary>
@@ -123,14 +141,20 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="instanceId">a</param>
         /// <param name="instanceOwnerId">b</param>
         /// <returns></returns>
-        public async Task<Instance> GetInstances(string instanceId, int instanceOwnerId)
+        public async Task<Instance> GetInstances(string instanceId)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}";
 
-            HttpResponseMessage getInstanceResponse = await client.GetAsync(hostName + requestUri);
-            string instanceData = await getInstanceResponse.Content.ReadAsStringAsync();
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-            return instance;
+            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string instanceData = await response.Content.ReadAsStringAsync();
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                return instance;
+            }
+
+            throw new StorageClientException($"GET error: {response.ReasonPhrase}");
         }
 
         /// <summary>
@@ -139,14 +163,20 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="appId">a</param>
         /// <param name="instanceOwnerId">b</param>
         /// <returns></returns>
-        public async Task<string> PostInstances(string appId, int instanceOwnerId)
+        public async Task<Instance> PostInstances(string appId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances?appId={appId}&instanceOwnerId={instanceOwnerId}";
 
-            HttpResponseMessage createInstanceResponse = await client.PostAsync(hostName + requestUri, string.Empty.AsJson());
-            string newId = await createInstanceResponse.Content.ReadAsStringAsync();
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new Instance().AsJson());
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
 
-            return newId;
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                return instance;
+            }
+
+            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
         }
 
         /// <summary>
@@ -174,9 +204,15 @@ namespace Altinn.Platform.Storage.Client
             }
 
             HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
-            string eventData = await response.Content.ReadAsStringAsync();
-            List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
-            return instanceEvents;
+
+            if (response.IsSuccessStatusCode)
+            {
+                string eventData = await response.Content.ReadAsStringAsync();
+                List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+                return instanceEvents;
+            }
+
+            throw new StorageClientException($"GET error:  {response.ReasonPhrase}");
         }
 
         /// <summary>
@@ -188,8 +224,15 @@ namespace Altinn.Platform.Storage.Client
         {
             string requestUri = $"{versionPrefix}/instances/{instanceEvent.InstanceId}/events";
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
-            string newId = await response.Content.ReadAsStringAsync();
-            return newId;
+
+            if (response.IsSuccessStatusCode)
+            {
+                string newId = await response.Content.ReadAsStringAsync();
+                return newId;
+            }
+
+            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
+        
         }
 
         /// <summary>
@@ -201,8 +244,13 @@ namespace Altinn.Platform.Storage.Client
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/events";
             HttpResponseMessage response = await client.DeleteAsync(requestUri);
-            response.EnsureSuccessStatusCode();
-            return true;
+
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            throw new StorageClientException($"DELETE error: {response.ReasonPhrase}");
         }
     }
 }

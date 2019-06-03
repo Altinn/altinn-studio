@@ -15,14 +15,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
     public class ApplicationClientTests : IClassFixture<PlatformStorageFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
-        private readonly ApplicationMetadataClient applicationClient;
+        private readonly ApplicationClient applicationClient;
         private readonly HttpClient httpClient;
 
         public ApplicationClientTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
             this.httpClient = fixture.Client;
-            this.applicationClient = new ApplicationMetadataClient(httpClient);
+            this.applicationClient = new ApplicationClient(httpClient);
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.Equal("test/sailor", appMetadata.Id);
 
-            Application appMetadata2 = applicationClient.GetApplicationMetadata("test/sailor");
+            Application appMetadata2 = applicationClient.GetApplication("test/sailor");
 
             Assert.Equal(appMetadata.Id, appMetadata2.Id);
         }
@@ -91,7 +91,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             result.ValidTo = null;
 
-            result = applicationClient.UpdateApplicationMetadata(result);
+            result = applicationClient.UpdateApplication(result);
 
             Assert.Equal("test/xml", result.Id);
             Assert.Null(result.ValidTo);

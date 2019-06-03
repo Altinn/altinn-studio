@@ -43,12 +43,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// Get all instances for a given instanceowner
         /// </summary>
         /// <param name="instanceOwnerId">owner of the instances</param>
-        /// <param name="applicationOwnerId">application owner</param>
-        /// <param name="applicationId">application id</param>
+        /// <param name="org">application owner</param>
+        /// <param name="appId">application id</param>
         /// <returns>list of all instances for given instanceowner</returns>
         /// GET /instances
         [HttpGet]
-        public async Task<ActionResult> GetMany(int instanceOwnerId, string applicationOwnerId, string applicationId)
+        public async Task<ActionResult> GetMany(int instanceOwnerId, string org, string appId)
         {
             if (instanceOwnerId != 0)
             {
@@ -60,22 +60,22 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return Ok(result);
             }
-            else if (!string.IsNullOrEmpty(applicationOwnerId))
+            else if (!string.IsNullOrEmpty(org))
             {
-                List<Instance> result = await _instanceRepository.GetInstancesOfOrg(applicationOwnerId);
+                List<Instance> result = await _instanceRepository.GetInstancesOfOrg(org);
                 if (result == null || result.Count == 0)
                 {
-                    return NotFound($"Did not find any instances for applicationOwnerId={applicationOwnerId}");
+                    return NotFound($"Did not find any instances for applicationOwnerId={org}");
                 }
 
                 return Ok(result);
             }
-            else if (!string.IsNullOrEmpty(applicationId))
+            else if (!string.IsNullOrEmpty(appId))
             {                
-                List<Instance> result = await _instanceRepository.GetInstancesOfApplication(applicationId);
+                List<Instance> result = await _instanceRepository.GetInstancesOfApplication(appId);
                 if (result == null || result.Count == 0)
                 {
-                    return NotFound($"Did not find any instances for applicationId={applicationId}");
+                    return NotFound($"Did not find any instances for applicationId={appId}");
                 }
 
                 return Ok(result);
@@ -88,12 +88,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// Gets an instance for a given instanceid
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
-        /// <param name="guid">the guid of the instance</param>
+        /// <param name="instanceGuid">the guid of the instance</param>
         /// <returns></returns>        
-        [HttpGet("{instanceOwnerId:int}/{guid:guid}")]
-        public async Task<ActionResult> Get(int instanceOwnerId, Guid guid)
+        [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerId}/{guid}";
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
             Instance result;
             try
@@ -109,26 +109,35 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Create with empty payload
+        /// </summary>
+
+        /// <summary>
         /// Inserts new instance into the instance collection
         /// </summary>
         /// <param name="appId">the applicationid</param>
-        /// <param name="instanceOwnerId">the instance owner</param>
+        /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceTemplate">The template to base the instance on</param>
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]        
         public async Task<ActionResult> Post(string appId, int instanceOwnerId, [FromBody] Instance instanceTemplate)
         {
-            // also check instanceOwnerLookup!!
-            if ((instanceOwnerId == 0 && instanceTemplate == null) || string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId) ) 
+            if (instanceTemplate == null && instanceOwnerId == 0)
+            {
+                return BadRequest("Missing parameter values: instanceOwnerId must be set");
+            }
+            else if (instanceOwnerId == 0 && (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))) 
             {
                 return BadRequest("Missing parameter values: instanceOwnerId must be set");
             }
 
-            if (instanceOwnerId == 0)
+            if (instanceOwnerId == 0 && instanceTemplate != null)
             {
                 instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
             }
+
+            // also check instanceOwnerLookup!!
 
             // check if metadata exists
             Application appInfo;

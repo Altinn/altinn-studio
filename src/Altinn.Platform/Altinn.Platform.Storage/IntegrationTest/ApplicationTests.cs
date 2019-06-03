@@ -20,7 +20,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private readonly ApplicationMetadataClient applicationClient;
+        private readonly ApplicationClient applicationClient;
         private readonly string versionPrefix = "/storage/api/v1";
         private readonly string org = "test";
 
@@ -36,7 +36,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
-            this.applicationClient = new ApplicationMetadataClient(this.client);
+            this.applicationClient = new ApplicationClient(this.client);
         }
 
         /// <summary>

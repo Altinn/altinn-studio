@@ -5,8 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
-using Serilog.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -17,17 +16,17 @@ namespace Altinn.Platform.Storage.Controllers
     public class InstanceEventsController : Controller
     {
         private readonly IInstanceEventRepository _repository;
-        private Logger logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
+        private readonly ILogger logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventsController"/> class
         /// </summary>
         /// <param name="instanceEventRepository">the instance repository handler</param>
-        public InstanceEventsController(IInstanceEventRepository instanceEventRepository)
+        /// <param name="logger"> the logger </param>
+        public InstanceEventsController(IInstanceEventRepository instanceEventRepository, ILogger<InstanceEventsController> logger)
         {
             _repository = instanceEventRepository;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -59,14 +58,16 @@ namespace Altinn.Platform.Storage.Controllers
         /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
         /// <param name="instanceId"> Id of instance to retrieve events for. </param>
-        /// <param name="eventTypes">Array of event types to filter the events by./param>
-        /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
-        /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
+        /// <param name="eventTypes">Array of event types to filter the events by.</param>
+        /// <param name="from"> Lower bound for DateTime span to filter events by.</param>
+        /// <param name="to"> Upper bound for DateTime span to filter events by.</param>
         /// <returns>List of instance events.</returns>
+        /// <!--
         /// GET  storage/api/v1/instances/{instanceId}/events
         /// GET  storage/api/v1/instances/{instanceId}/events?eventTypes=deleted,submited
         /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23
         /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23&eventTypes=deleted&eventTypes=submited
+        /// -->
         [HttpGet]
         public async Task<ActionResult> Get(string instanceId, string[] eventTypes, string from, string to)
         {

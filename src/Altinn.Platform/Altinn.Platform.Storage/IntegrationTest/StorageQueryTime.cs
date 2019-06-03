@@ -32,17 +32,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int instanceOwnerId = 42;
 
             // Create application instance
-            string instanceId = await storage.PostInstances("TEST-sailor", instanceOwnerId);
-
-            Instance instance = await storage.GetInstances(instanceId, instanceOwnerId);
+            Instance instance = await storage.PostInstances("TEST-sailor", instanceOwnerId);
 
             Dictionary<string, string> data = new Dictionary<string, string>
             {
                 { "dataFor", instanceOwnerId.ToString() }
             };
 
-            await storage.PostDataReadFromFile(instanceId, instanceOwnerId, "test.json", "application/json");
-            Instance instanceUpdated = await storage.GetInstances(instanceId, instanceOwnerId);
+            Instance instanceUpdated = await storage.PostDataReadFromFile(instance.Id, "test.json", "application/json");
             string dataId = instance.Data.Find(m => m.ElementType.Equals("default")).Id;
 
             for (int i = 0; i < 100; i++)
