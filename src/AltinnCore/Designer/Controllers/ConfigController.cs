@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -24,20 +25,23 @@ namespace AltinnCore.Designer.Controllers
         private readonly IRepository _repository;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ConfigController"/> class
+        /// Initializes a new instance of the <see cref="ConfigController"/> class.
         /// </summary>
-        /// <param name="hostingEnvironment">The hosting environment service</param>
-        /// <param name="serviceRepositoryService">The serviceRepository service</param>
-        /// <param name="repositorySettings">The repository settings</param>
-        /// <param name="httpContextAccessor">The http context accessor</param>
-        public ConfigController(IHostingEnvironment hostingEnvironment, IRepository serviceRepositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
+        /// <param name="hostingEnvironment">The hosting environment service.</param>
+        /// <param name="serviceRepositoryService">The serviceRepository service.</param>
+        /// <param name="repositorySettings">The repository settings.</param>
+        /// <param name="httpContextAccessor">The http context accessor.</param>
+        /// <param name="logger">the log handler.</param>
+        public ConfigController(IHostingEnvironment hostingEnvironment, IRepository serviceRepositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = serviceRepositoryService;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         /// <summary>
@@ -125,13 +129,15 @@ namespace AltinnCore.Designer.Controllers
         {
             string serviceConfigPath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;
-
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             if (System.IO.File.Exists(serviceConfigPath))
             {
                 string serviceConfiguration = System.IO.File.ReadAllText(serviceConfigPath, Encoding.UTF8);
                 serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
             }
 
+            watch.Stop();
+            _logger.Log(LogLevel.Information, "Getserviceconfig - {0} ", watch.ElapsedMilliseconds);
             return serviceConfigurationObject;
         }
 
