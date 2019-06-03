@@ -1,3 +1,4 @@
+/* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -15,18 +16,16 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     mockHeader = 'mock-service-name';
     const createStore = configureStore();
     const initialState = {
-      appData: {
+      language: {
         language: {
-          language: {
-            form_filler: {
-              error_report_header: 'Mock error report',
-              placeholder_user: 'OLA PRIVATPERSON',
-            },
+          form_filler: {
+            error_report_header: 'Mock error report',
+            placeholder_user: 'OLA PRIVATPERSON',
           },
         },
       },
-      formFiller: {
-        validationResults: {
+      formValidations: {
+        validations: {
           'mock-component-id': {
             simpleBinding: {
               errors: ['mock-error-message'],
@@ -45,7 +44,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.FormFilling}
-          onStepChange={null}
         />
       </Provider>,
     );
@@ -58,7 +56,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.FormFilling}
-          onStepChange={null}
           children={<div id='mockFormFiller' />}
         />
       </Provider>,
@@ -72,7 +69,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.FormFilling}
-          onStepChange={null}
         />
       </Provider>,
     );
@@ -85,7 +81,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.Archived}
-          onStepChange={null}
         />
       </Provider>,
     );
@@ -98,7 +93,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.Archived}
-          onStepChange={null}
         />
       </Provider>,
     );
@@ -111,11 +105,42 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <WorkflowStep
           header={mockHeader}
           step={WorkflowSteps.Submit}
-          onStepChange={null}
         />
       </Provider>,
     );
     expect(wrapper.exists('#workflowSubmitStepButton')).toEqual(true);
+  });
+  it('+++ should map unmappedValidations if there are any and create error report', () => {
+    const createStore = configureStore();
+    const newState = {
+      language: {
+        language: {
+          form_filler: {
+            error_report_header: 'Mock error report',
+            placeholder_user: 'OLA PRIVATPERSON',
+          },
+        },
+      },
+      formValidations: {
+        validations: {
+          unmapped: {
+            'mock-component-id': {
+              errors: ['mock-error-message', 'another-mock-error-message'],
+            },
+          },
+        },
+      },
+    };
+    mockStore = createStore(newState);
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <WorkflowStep
+          header={mockHeader}
+          step={WorkflowSteps.Submit}
+        />
+      </Provider>,
+    );
+    expect(wrapper.find('.a-modal-header').first().prop('style')).toHaveProperty('backgroundColor', '#F9CAD3');
   });
 
 });

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot >>> Capture snapshot of CheckboxesContainerComponent 1`] = `
+exports[`>>> components/base/CheckboxesContainerComponent.tsx >>> Capture snapshot of CheckboxesContainerComponent 1`] = `
 <div
   className="form-check a-form-checkboxes pl-0 form-check-inline"
   id="mock-id"

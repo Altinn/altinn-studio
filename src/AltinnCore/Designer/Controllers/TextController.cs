@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -25,20 +26,23 @@ namespace AltinnCore.Designer.Controllers
         private readonly IRepository _repository;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TextController"/> class
+        /// Initializes a new instance of the <see cref="TextController"/> class.
         /// </summary>
-        /// <param name="hostingEnvironment">The hosting environment service</param>
-        /// <param name="repositoryService">The serviceRepository service</param>
-        /// <param name="repositorySettings">The repository settings</param>
-        /// <param name="httpContextAccessor">The http context accessor</param>
-        public TextController(IHostingEnvironment hostingEnvironment, IRepository repositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
+        /// <param name="hostingEnvironment">The hosting environment service.</param>
+        /// <param name="repositoryService">The serviceRepository service.</param>
+        /// <param name="repositorySettings">The repository settings.</param>
+        /// <param name="httpContextAccessor">The http context accessor.</param>
+        /// <param name="logger">the log handler.</param>
+        public TextController(IHostingEnvironment hostingEnvironment, IRepository repositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repositoryService;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         /// <summary>
@@ -157,6 +161,7 @@ namespace AltinnCore.Designer.Controllers
             string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             string serviceName = string.Empty;
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
             {
                 string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
@@ -167,6 +172,8 @@ namespace AltinnCore.Designer.Controllers
                 }
             }
 
+            watch.Stop();
+            _logger.Log(LogLevel.Information, "Getservicename - {0} ", watch.ElapsedMilliseconds);
             return serviceName;
         }
 
