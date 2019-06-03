@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +38,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Get all instances for a given instanceowner
+        /// Get all instances for a given instanceowner, org or appId. Only one parameter at the time.
         /// </summary>
         /// <param name="instanceOwnerId">owner of the instances</param>
         /// <param name="org">application owner</param>
@@ -109,15 +107,11 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Create with empty payload
-        /// </summary>
-
-        /// <summary>
-        /// Inserts new instance into the instance collection
+        /// Inserts new instance into the instance collection. 
         /// </summary>
         /// <param name="appId">the applicationid</param>
         /// <param name="instanceOwnerId">instance owner id</param>
-        /// <param name="instanceTemplate">The template to base the instance on</param>
+        /// <param name="instanceTemplate">The instance template to base the new instance on</param>
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]        
@@ -137,7 +131,7 @@ namespace Altinn.Platform.Storage.Controllers
                 instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
             }
 
-            // also check instanceOwnerLookup!!
+            // TODO - also check instanceOwnerLookup!!
 
             // check if metadata exists
             Application appInfo;
@@ -196,14 +190,14 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Updates an instance
         /// </summary>
-        /// <param name="guid">instance id</param>
         /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceGuid">instance id</param>
         /// <param name="instance">instance</param>
         /// <returns></returns>        
         [HttpPut("{instanceOwnerId:int}/{guid:guid}")]
-        public async Task<ActionResult> Put(Guid guid, int instanceOwnerId, [FromBody] Instance instance)
+        public async Task<ActionResult> Put(int instanceOwnerId, Guid instanceGuid, [FromBody] Instance instance)
         {
-            string instanceId = $"{instanceOwnerId}/{guid}";
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
             Instance existingInstance;
             try

@@ -19,7 +19,7 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
-    /// api for managing the form data element
+    /// api for managing the an instance's data elements
     /// </summary>
     [Route("storage/api/v1/instances/{instanceOwnerId:int}/{instanceGuid:guid}/data")]
     [ApiController]
@@ -35,17 +35,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
         /// </summary>
-        /// <param name="formRepository">the form data repository handler</param>
+        /// <param name="dataRepository">the data repository handler</param>
         /// <param name="instanceRepository">the repository</param>
         /// <param name="applicationRepository">the application repository</param>
         /// <param name="logger">the logger</param>
         public DataController(
-            IDataRepository formRepository,
+            IDataRepository dataRepository,
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
             ILogger<DataController> logger)
         {
-            _dataRepository = formRepository;
+            _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
             this.logger = logger;
@@ -93,7 +93,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Save the form data
+        /// Save the data element
         /// </summary>
         /// <param name="instanceOwnerId">the instance owner id (an integer)</param>
         /// <param name="instanceGuid">the instanceId</param>
@@ -185,21 +185,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Formats a filename for blob storage.
         /// </summary>
-        /// <param name="applicationId">the application id</param>
-        /// <param name="instanceId">the instance id</param>
-        /// <param name="dataId">the data id</param>
-        /// <returns></returns>
-        public static string DataFileName(string applicationId, string instanceId, string dataId)
+        private static string DataFileName(string appId, string instanceGuid, string dataId)
         {
-            return $"{applicationId}/{instanceId}/data/{dataId}";
+            return $"{appId}/{instanceGuid}/data/{dataId}";
         }
 
         /// <summary>
-        /// Create and save the form data
+        /// Create and save the data element
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
-        /// <param name="elementType">the formId to upload data for</param>
+        /// <param name="elementType">the element type to upload data for</param>
         /// <returns>If the request was successful or not</returns>
         // POST /instances/{instanceOwnerId}/{instanceGuid}/data?elementType={elementType}      
         [HttpPost]
@@ -319,7 +315,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Update and save data
+        /// Update and save data element
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
