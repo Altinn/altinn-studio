@@ -218,10 +218,10 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            var watchOwnerType = System.Diagnostics.Stopwatch.StartNew();
             if (returnRepository != null && returnRepository.Owner != null && !string.IsNullOrEmpty(returnRepository.Owner.Login))
             {
-                watch = System.Diagnostics.Stopwatch.StartNew();
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
                 watch.Stop();
                 _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
@@ -235,8 +235,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            watch.Stop();
-            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Org/Owner - {0} ", watch.ElapsedMilliseconds);
+            watchOwnerType.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "To find if local repo and owner type - {0} ", watchOwnerType.ElapsedMilliseconds);
             return returnRepository;
         }
 
