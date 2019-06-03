@@ -17,7 +17,7 @@ let designer = new DesignerPage();
 let runtimeUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test123', 'basic');
 
 
-fixture.only('Regression tests of services in runtime')
+fixture('Regression tests of services in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
