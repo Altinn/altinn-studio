@@ -13,6 +13,15 @@
   <link rel="manifest" href="manifest.json">
   <link rel="shortcut icon" href="/favicon.ico">
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css"
+    integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  <script src="https://use.fortawesome.com/ed31cded.js"></script>
+  <script src="https://use.fortawesome.com/df832575.js"></script>
+  <script src="https://use.fortawesome.com/bdabc5c1.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js">
+  </script>
   <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.
@@ -23,9 +32,65 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
   <title>React App</title>
+
 </head>
 
 <body>
+  <script>
+    (function ($) {
+      $.fn.datepicker.dates['no'] = {
+        days: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'],
+        daysShort: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
+        daysMin: ['sø', 'ma', 'ti', 'on', 'to', 'fr', 'lø'],
+        months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober',
+          'november', 'desember'
+        ],
+        monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
+        today: 'i dag',
+        monthsTitle: 'Måneder',
+        clear: 'Nullstill',
+        weekStart: 1,
+        format: 'dd.mm.yyyy'
+      };
+    }(jQuery));
+
+    (function ($) {
+      $.fn.datepicker.dates['nn'] = {
+        days: ['sundag', 'måndag', 'tysdag', 'onsdag', 'torsdag', 'fredag', 'laurdag'],
+        daysShort: ['sun', 'mån', 'tys', 'ons', 'tor', 'fre', 'lau'],
+        daysMin: ['su', 'må', 'ty', 'on', 'to', 'fr', 'la'],
+        months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober',
+          'november', 'desember'
+        ],
+        monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
+        today: 'i dag',
+        monthsTitle: 'Månadar',
+        clear: 'Nullstill',
+        weekStart: 1,
+        format: 'dd.mm.yyyy'
+      };
+    }(jQuery));
+
+    function initDatePicker() {
+      $('.form-control.date').datepicker({
+        format: 'dd.mm.yyyy',
+        language: 'no',
+        todayHighlight: true,
+        orientation: 'bottom left',
+        autoclose: true,
+        maxViewMode: 0,
+        templates: {
+          leftArrow: '<i class="fa fa-back"></i>',
+          rightArrow: '<i class="fa fa-arrowright"></i>'
+        }
+      }).on('show', function (e) {
+        $('.datepicker').find('table').attr('cellpadding', '0');
+        $('.datepicker').find('table').attr('cellspacing', '0');
+      });
+    }
+    window.initDatePicker = initDatePicker;
+
+  </script>
   <noscript>
     You need to enable JavaScript to run this app.
   </noscript>

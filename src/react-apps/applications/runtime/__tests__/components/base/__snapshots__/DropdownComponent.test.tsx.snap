@@ -5,6 +5,7 @@ exports[`>>> components/base/DropdownComponent.tsx --- Snapshot >>> Capture snap
   className="custom-select a-custom-select"
   id="mock-id"
   onChange={[Function]}
+  value=""
 >
   <option
     value="test-1"
@@ -12,9 +13,9 @@ exports[`>>> components/base/DropdownComponent.tsx --- Snapshot >>> Capture snap
     test-label-1
   </option>
   <option
-    value="test-1"
+    value="test-2"
   >
-    test-label-1
+    test-label-2
   </option>
 </select>
 `;

@@ -15,7 +15,7 @@ COPY ./src/react-apps/applications/runtime/ /applications/runtime/
 RUN npm run install-deps
 
 # Build runtime
-RUN npm run build --prefix /applications/runtime
+RUN npm run build --prefix /applications/runtime; exit 0
 
 CMD ["echo", "done"]
 

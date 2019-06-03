@@ -1,3 +1,4 @@
+/* tslint:disable:jsx-wrap-multiline */
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -7,60 +8,73 @@ import { RadioButtonContainerComponent } from '../../../src/components/base/Radi
 
 describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', () => {
   let mockId: string;
-  let mockComponent: any;
+  let mockOptions: any[];
   // tslint:disable-next-line:prefer-const
   let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockGetTextResource: (resourceKey: string) => string;
   let mockIsValid: boolean;
-  let mockDesignMode: boolean;
+  let mockPreselectedOptionIndex: number;
   let mockReadOnly: boolean;
 
   beforeEach(() => {
     mockId = 'mock-id';
-    mockComponent = {
-      id: 'mock-component-id',
-      component: 'RadioButtons',
-      readOnly: mockReadOnly,
-      options: [{
-        label: 'test-label-1',
-        value: 'test-1',
-      }, {
-        label: 'test-label-2',
-        value: 'test-2',
-      }],
-    };
+    mockOptions = [{
+      label: 'test-label-1',
+      value: 'test-1',
+    }, {
+      label: 'test-label-2',
+      value: 'test-2',
+    }];
     mockHandleDataChange = (data: any) => null;
     mockGetTextResource = (resourceKey: string) => 'test';
     mockIsValid = true;
-    mockDesignMode = true;
+    mockPreselectedOptionIndex = null;
     mockReadOnly = false;
   });
 
   it('>>> Capture snapshot of RadioButtonsContainerComponent', () => {
     const rendered = renderer.create(
       <RadioButtonContainerComponent
-        id={mockId}
-        component={mockComponent}
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
+        id={mockId}
         isValid={mockIsValid}
-        designMode={mockDesignMode}
+        getTextResource={mockGetTextResource}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={mockReadOnly}
       />,
     );
     expect(rendered).toMatchSnapshot();
   });
+  it('+++ should have correct state', () => {
+    const shallowRadioButton = shallow(
+      <RadioButtonContainerComponent
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        id={mockId}
+        isValid={mockIsValid}
+        getTextResource={mockGetTextResource}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={true}
+      />,
+    );
+    expect(shallowRadioButton.find('input').first().props().checked).toBe(false);
+
+  });
   it('+++ should render editable component when readOnly is false', () => {
     const shallowRadioButton = shallow(
       <RadioButtonContainerComponent
-        id={mockId}
-        component={mockComponent}
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
+        id={mockId}
         isValid={mockIsValid}
-        designMode={mockDesignMode}
+        getTextResource={mockGetTextResource}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={mockReadOnly}
       />,
     );
     expect(shallowRadioButton.find('.custom-control-label')).toHaveLength(2);
@@ -69,24 +83,14 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
   it('+++ should render un-editable component when readOnly is true', () => {
     const shallowRadioButton = shallow(
       <RadioButtonContainerComponent
-        id={mockId}
-        component={{
-          id: 'mock-component-id',
-          component: 'RadioButtons',
-          readOnly: true,
-          options: [{
-            label: 'test-label-1',
-            value: 'test-1',
-          }, {
-            label: 'test-label-1',
-            value: 'test-1',
-          }],
-        }}
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
+        id={mockId}
         isValid={mockIsValid}
-        designMode={mockDesignMode}
+        getTextResource={mockGetTextResource}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={true}
       />,
     );
     expect(shallowRadioButton.find('.custom-control-label').first().hasClass('disabled-radio-button')).toBe(true);
@@ -94,13 +98,14 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
   it('+++ checked prop should change onClick', () => {
     const mountedRadioButton = mount(
       <RadioButtonContainerComponent
-        id={mockId}
-        component={mockComponent}
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
+        id={mockId}
         isValid={mockIsValid}
-        designMode={mockDesignMode}
+        getTextResource={mockGetTextResource}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={mockReadOnly}
       />,
     );
     const radio = mountedRadioButton.find({ type: 'radio' }).first();

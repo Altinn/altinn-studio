@@ -3,26 +3,20 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
 import App from './App';
-import { run } from './sagas';
+import { initSagas } from './sagas';
 import { store } from './store';
 import './styles/index.css';
 
-/**
- * This is the Script that starts the React application
- */
+import ErrorBoundary from './components/ErrorBoundary';
 
-/**
- * Setup all Sagas to listen to the defined events
- */
-run();
+initSagas();
 
-/**
- *
- */
 render(
   <Provider store={store}>
     <HashRouter>
-      <App />
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
     </HashRouter>
   </Provider>,
   document.getElementById('root'),
