@@ -42,10 +42,8 @@ namespace Altinn.Platform.Register.Services.Implementation
             Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/persons");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
-                var json = JsonConvert.SerializeObject(ssn);
-                StringContent ssnContent = new StringContent(json, Encoding.UTF8);
-                ssnContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                HttpResponseMessage response = await client.PostAsync(endpointUrl, ssnContent);
+                string ssnData = JsonConvert.SerializeObject(ssn);
+                HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(ssnData, Encoding.UTF8, "application/json"));
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
