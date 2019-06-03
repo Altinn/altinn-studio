@@ -149,6 +149,7 @@ namespace AltinnCore.Designer.Controllers
                     using (HttpResponseMessage response = await client.PostAsync("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds?api-version=5.0-preview.4", httpContent))
                     {
                         response.EnsureSuccessStatusCode();
+                        _logger.LogInformation("response from devops api", await response.Content.ReadAsStringAsync());
                         BuildModel responseBody = await response.Content.ReadAsAsync<BuildModel>();
                         result = responseBody.Id;
                     }
