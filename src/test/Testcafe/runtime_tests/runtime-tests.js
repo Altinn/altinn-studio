@@ -17,18 +17,24 @@ let designer = new DesignerPage();
 let runtimeUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test123', 'basic');
 
 
-fixture('Regression tests of services in runtime')
+fixture.only('Regression tests of services in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
     t.ctx.serviceName = "runtime";
+    t.ctx.tjenesteOppdatert = "Tjenesten din er oppdatert til siste versjon";
     await common.login(runtimeUser.userEmail, runtimeUser.password, loginPage);
   })
 
 
 test('Instantiate a service in runtime', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/uieditor')
+    .maximizeWindow()
+    .expect(designer.hentEndringer.exists).ok()
+    .click(designer.hentEndringer)
+    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
+    .click(designer.testeNavigationTab)
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].visible).ok()
@@ -55,7 +61,8 @@ test('Upload files using file component in SBL', async () => {
 
 test('Validations when uploading file', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/uieditor')
+    .maximizeWindow()
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
