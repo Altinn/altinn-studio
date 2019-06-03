@@ -91,7 +91,7 @@ npm run gulp
 dotnet run
 ```
 
-Which will build the Designer .net backend and the designer react ap, but not listen to changes to the react app.
+Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 **Runtime**
 
 Stop the container running Runtime.
