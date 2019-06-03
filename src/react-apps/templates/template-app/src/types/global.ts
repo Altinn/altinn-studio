@@ -5,7 +5,7 @@ declare global {
     dashboard: T1;
   }
 
-  export interface ITemplateAppState
+  export interface ITemplateAppStore
     extends ITemplateNameSpace
     <ITemplateState> { }
 }
