@@ -340,3 +340,4 @@ coverage
 /deploy/kubernetes/helm-charts/altinn-dataservice-0.1.0.tgz
 /deploy/kubernetes/altinn-dbsettings-secret.json
 
+/src/Altinn.Platform/Altinn.Platform.Storage/Storage/values.dev.yaml
