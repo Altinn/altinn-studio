@@ -5,7 +5,7 @@ namespace Altinn.Platform.Register.Helpers
     /// <summary>
     /// Implementation for Http api helper
     /// </summary>
-    public class HttpApiHelper
+    public static class HttpApiHelper
     {
         /// <summary>
         /// Method that build up the api client to be used to communicate with the sbl bridge
