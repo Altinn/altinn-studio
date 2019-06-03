@@ -146,12 +146,12 @@ namespace AltinnCore.Designer.Controllers
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
                     StringContent httpContent = new StringContent(buildjson, Encoding.UTF8, "application/json");
-                    _logger.LogInformation("response httpcontent - ", httpContent);
+                    _logger.LogInformation("response httpcontent - {0}", httpContent);
                     using (HttpResponseMessage response = await client.PostAsync("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds?api-version=5.0-preview.4", httpContent))
                     {
                         response.EnsureSuccessStatusCode();
-                        _logger.LogInformation("response content type - ", response.Content.Headers.ContentType);
-                        _logger.LogInformation("response content - ", response.Content.ReadAsStringAsync().Result);
+                        _logger.LogInformation("response content type - {0}", response.Content.Headers.ContentType);
+                        _logger.LogInformation("response content - {0}", response.Content.ReadAsStringAsync().Result);
                         BuildModel responseBody = await response.Content.ReadAsAsync<BuildModel>();
                         result = responseBody.Id;
                     }
