@@ -124,7 +124,7 @@ namespace AltinnCore.Common.Services.Implementation
         public CodeCompilationResult CreateServiceAssembly(string org, string service, bool startServiceFlag, string outputLocation = null, bool loadAssemblyContext = true)
         {
             CodeCompilationResult compilationResult = new CodeCompilationResult() { CompileStarted = DateTime.Now };
-            string assemblykey = org + "_" + service;
+            string assemblykey = org + "_" + CompileHelper.GetCSharpValidAppId(service);
 
             List<AltinnCoreFile> implementationFiles = _repository.GetImplementationFiles(org, service);
 
