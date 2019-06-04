@@ -91,7 +91,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 if (dce.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return NotFound($"Could not find an application to update with appId={appId}. You first have to create one");
+                    return NotFound($"Could not find an application with appId={appId}");
                 }
 
                 logger.LogError($"Unable to access document database: {dce}");

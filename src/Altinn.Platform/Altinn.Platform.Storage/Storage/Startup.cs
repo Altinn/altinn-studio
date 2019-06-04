@@ -56,7 +56,8 @@ namespace Altinn.Platform.Storage
                 });
 
                 c.IncludeXmlComments(GetXmlCommentsPathForControllers());
-                c.IncludeXmlComments("..\\Storage.Interface\\Storage.Interface.xml");
+                /* add path to nuget package. xml file is not copied does not work:
+                 * c.IncludeXmlComments("..\\Storage.Interface\\Storage.Interface.xml");*/
             });
         }
 

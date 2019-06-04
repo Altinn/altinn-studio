@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.1.0-alpha</Version>
+    <Version>1.1.1-alpha</Version>
     <Description>Altinn.Platform.Storage.Interface is a package for models, httpclient methods for altinn platform storage</Description>
     <PackageTags>altinn studio, altinn.platform, Altinn.Platform.Storage.Interface</PackageTags>
     <PackageId>Altinn.Platform.Storage.Interface</PackageId>
@@ -17,11 +17,23 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>D:\git\altinn-studio\src\Altinn.Platform\Altinn.Platform.Storage\Storage.Interface\Storage.Interface.xml</DocumentationFile>
+    <DocumentationFile>.\Storage.Interface.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>Storage.Interface.xml</DocumentationFile>
+    <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Storage.Interface.xml">
+      <Pack>true</Pack>
+      <PackagePath>\</PackagePath>
+    </Content>   
   </ItemGroup>
 
 </Project>

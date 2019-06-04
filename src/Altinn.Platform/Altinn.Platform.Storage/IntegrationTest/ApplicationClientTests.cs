@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LanguageString title = new LanguageString
             {
                 { "nb", "testapplikasjon" },
-                { "en", "Test application" }
+                { "en", "Test application" },
             };
 
             Application appMetadata = applicationClient.CreateApplication("test/sailor", title);
