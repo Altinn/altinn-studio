@@ -11,7 +11,7 @@ namespace Storage.Interface.Models
     public class ApplicationOwnerState
     {
         /// <summary>
-        /// List of messages that may be shown to user
+        /// List of messages that may be shown to user.
         /// </summary>
         [JsonProperty(PropertyName = "messages")]
         public List<LanguageString> Messages { get; set; }

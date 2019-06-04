@@ -5,6 +5,9 @@ using System.Text;
 
 namespace Storage.Interface.Models
 {
+    /// <summary>
+    /// represent actual links to resources in various enpoints
+    /// </summary>
     public class ResourceLinks
     {
         /// <summary>

@@ -113,12 +113,11 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        ///  Gets data
+        ///  Gets a data element.
         /// </summary>
-        /// <param name="instanceId">a</param>
-        /// <param name="dataId">aa</param>
-        /// <param name="instanceOwnerId">b</param>
-        /// <returns>Content as byte array</returns>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="dataId">the data id</param>
+        /// <returns>the data content as byte array</returns>
         public async Task<byte[]> GetData(string instanceId, string dataId)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}";
@@ -138,9 +137,8 @@ namespace Altinn.Platform.Storage.Client
         /// <summary>
         /// Get an instance.
         /// </summary>
-        /// <param name="instanceId">a</param>
-        /// <param name="instanceOwnerId">b</param>
-        /// <returns></returns>
+        /// <param name="instanceId">the instance id</param>
+        /// <returns>the instance object</returns>
         public async Task<Instance> GetInstances(string instanceId)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}";
@@ -158,11 +156,11 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Create an instance
+        /// Creates an instance
         /// </summary>
-        /// <param name="appId">a</param>
-        /// <param name="instanceOwnerId">b</param>
-        /// <returns></returns>
+        /// <param name="appId">application id of the instance (must be registered in platform storage)</param>
+        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <returns>the instance just created</returns>
         public async Task<Instance> PostInstances(string appId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances?appId={appId}&instanceOwnerId={instanceOwnerId}";
@@ -180,10 +178,10 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Retrieves all instance events related to given instance id, listed event types and given time frame from instanceEvent collection.
+        /// Retrieves all instance events related to given instance, listed event types and given time frame from instanceEvent collection.
         /// </summary>
         /// <param name="instanceId"> Id of instance to retrieve events for. </param>
-        /// <param name="eventTypes">List of event types to filter the events by./param>
+        /// <param name="eventTypes">List of event types to filter the events by.</param>
         /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
         /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
         /// <returns>List of intance events.</returns>

@@ -26,31 +26,31 @@ namespace Altinn.Platform.Storage.Models
         public string VersionId { get; set; }
 
         /// <summary>
-        /// Service owner code for the service, e.g. NAV.
+        /// Service owner code for the service, e.g. nav.
         /// </summary>
         [JsonProperty(PropertyName = "org")]
         public string Org { get; set; }
 
         /// <summary>
-        /// Creation date and time for the instance, first time application is deployed and registered in storage.
+        /// Creation date-time for the instance, first time application is deployed and registered in storage.
         /// </summary>
         [JsonProperty(PropertyName = "createdDateTime")]
         public DateTime CreatedDateTime { get; set; }
 
         /// <summary>
-        /// User id of the user who deployed.
+        /// User id of the user who created (deployed) the application first time.
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
         public string CreatedBy { get; set; }
 
         /// <summary>
-        /// Last changed date time for the application.
+        /// Last changed date-time for the application.
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedDateTime")]
         public DateTime LastChangedDateTime { get; set; }
 
         /// <summary>
-        /// User id of the user who last redeployed the application
+        /// User id of the user who last redeployed the application.
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
@@ -62,30 +62,29 @@ namespace Altinn.Platform.Storage.Models
         public Dictionary<string, string> Title { get; set; }
 
         /// <summary>
-        /// valid from
+        /// application is valid from this date-time
         /// </summary>
         [JsonProperty(PropertyName = "validFrom")]
         public DateTime? ValidFrom { get; set; }
 
         /// <summary>
-        /// valid to
+        /// application is valid to this date-time
         /// </summary>
         [JsonProperty(PropertyName = "validTo")]
         public DateTime? ValidTo { get; set; }
 
         /// <summary>
-        /// name workflow
+        /// Identifier of the workflow that is used by the application
         /// </summary>
         [JsonProperty(PropertyName = "WorkflowId")]
         public string WorkflowId { get; set; }
 
         /// <summary>
         /// Maximum allowed size of all the data element files of an application instance in bytes.
-        /// If negative no limit on file size.
+        /// If not set there is no limit on file size.
         /// </summary>
         [JsonProperty(PropertyName = "maxSize")]
-        [DefaultValue(-1)]
-        public int MaxSize { get; set; }
+        public int? MaxSize { get; set; }
 
         /// <summary>
         /// Gets or sets the data element types associated with the application

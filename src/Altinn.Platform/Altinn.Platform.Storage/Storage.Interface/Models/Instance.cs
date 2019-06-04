@@ -8,7 +8,7 @@ using Storage.Interface.Models;
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
-    /// Holds metadata of an application instance for a particular instance owner
+    /// Holds metadata of an application instance for a particular instance owner.
     /// </summary>
     public class Instance
     {
@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// owner of the instance
+        /// owner of the instance.
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwnerId")]
         public string InstanceOwnerId { get; set; }
@@ -37,13 +37,13 @@ namespace Altinn.Platform.Storage.Models
         public ResourceLinks SelfLinks { get; set; }
 
         /// <summary>
-        /// id of the service
+        /// id of the application, e.g. org/app22
         /// </summary>
         [JsonProperty(PropertyName = "appId")]
         public string AppId { get; set; }
 
         /// <summary>
-        /// service owner code for the service
+        /// application owner for the service, should be lower case.
         /// </summary>
         [JsonProperty(PropertyName = "org")]
         public string Org { get; set; }
@@ -61,7 +61,7 @@ namespace Altinn.Platform.Storage.Models
         public DateTime CreatedDateTime { get; set; }
 
         /// <summary>
-        /// reportee id of the user who created the instance
+        /// user id of the user who created the instance
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
         public string CreatedBy { get; set; }
@@ -73,13 +73,13 @@ namespace Altinn.Platform.Storage.Models
         public DateTime? LastChangedDateTime { get; set; }
 
         /// <summary>
-        /// the id of the user who last changed the instance
+        /// user id of the user who last changed the instance
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
 
         /// <summary>
-        /// Due date to submit the form(instance)
+        /// due date to submit the instance to application owner.
         /// </summary>
         [JsonProperty(PropertyName = "dueDateTime")]
         public DateTime? DueDateTime { get; set; }
@@ -103,19 +103,19 @@ namespace Altinn.Platform.Storage.Models
         public WorkflowState Workflow { get; set; }
 
         /// <summary>
-        /// Section for instance state
+        /// Section for instance state properties
         /// </summary>
         [JsonProperty(PropertyName = "instanceState")]
         public InstanceState InstanceState { get; set; }
 
         /// <summary>
-        /// Section for app owner state
+        /// Section for app owner state properties
         /// </summary>
         [JsonProperty(PropertyName = "appOwnerState")]
         public ApplicationOwnerState AppOwnerState { get; set; }
 
         /// <summary>
-        /// Gets or sets the data elements associated with the instance
+        /// the data elements associated with the instance
         /// </summary>
         [JsonProperty(PropertyName = "data")]
         public List<DataElement> Data { get; set; }

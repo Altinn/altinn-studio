@@ -2,18 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using Newtonsoft.Json;
+using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
-    /// Model for application element type 
+    /// Model for application element type.
     /// </summary>
     [Serializable]
     public class ElementType
     {
         /// <summary>
-        /// The element type id. It must be unique within an application.
+        /// The element type id. It must be unique within the scope of an application.
         /// Logical name of the schema of which data elements should be validated against.
+        /// Should be in lower case and can only contain letters, dash and numbers. No space or slashes are allowed.
         /// Examples are: main, subschema-x, cv, attachement
         /// </summary>
         [JsonProperty(PropertyName = "id")]
@@ -23,7 +25,7 @@ namespace Altinn.Platform.Storage.Models
         /// Description of the element type with language description.
         /// </summary>
         [JsonProperty(PropertyName = "description")]
-        public Dictionary<string, string> Description { get; set; }
+        public LanguageString Description { get; set; }
         
         /// <summary>
         /// List of allowed content types (Mime types).
@@ -33,11 +35,10 @@ namespace Altinn.Platform.Storage.Models
         public List<string> AllowedContentType { get; set; }
 
         /// <summary>
-        /// Maximum allowed size of the file in bytes. If missing or negative, no limit on file size.
+        /// Maximum allowed size of the file in bytes. If missing there is no limit on file size.
         /// </summary>
         [JsonProperty(PropertyName = "maxSize")]
-        [DefaultValue(-1)]
-        public int MaxSize { get; set; }
+        public int? MaxSize { get; set; }
 
         /// <summary>
         /// Maximum number of instances of same element. Default is 1.

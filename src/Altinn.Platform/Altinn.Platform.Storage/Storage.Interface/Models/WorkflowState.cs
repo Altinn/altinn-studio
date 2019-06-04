@@ -11,7 +11,7 @@ namespace Storage.Interface.Models
     public class WorkflowState
     {
         /// <summary>
-        /// Current workflow step
+        /// the current workflow step
         /// </summary>
         [JsonProperty(PropertyName = "currentStep")]
         public string CurrentStep { get; set; }

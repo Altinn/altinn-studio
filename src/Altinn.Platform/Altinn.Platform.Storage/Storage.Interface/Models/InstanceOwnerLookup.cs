@@ -8,13 +8,13 @@ using Storage.Interface.Models;
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
-    /// Model to hold a data element
+    /// Model to hold a instance owner lookup element
     /// </summary>
     [Serializable]
     public class InstanceOwnerLookup
     {
         /// <summary>
-        /// Person number (Social security number)
+        /// Person number (national identification number)
         /// </summary>
         [JsonProperty(PropertyName = "personNumber")]
         public string PersonNumber { get; set; }

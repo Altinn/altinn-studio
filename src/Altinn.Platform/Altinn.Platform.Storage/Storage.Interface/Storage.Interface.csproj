@@ -16,6 +16,10 @@
     <Authors>Altinn Platform</Authors>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>D:\git\altinn-studio\src\Altinn.Platform\Altinn.Platform.Storage\Storage.Interface\Storage.Interface.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>

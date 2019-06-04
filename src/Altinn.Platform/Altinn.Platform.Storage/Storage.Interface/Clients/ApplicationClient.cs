@@ -10,18 +10,32 @@ using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Client
 {
+    /// <summary>
+    /// Client for managing application metadata.
+    /// </summary>
     public class ApplicationClient
     {
         private readonly HttpClient client;
         private readonly string endpointUri;
         private readonly string resourcePrefix = "storage/api/v1/applications";
-   
-        public ApplicationClient(HttpClient client, string enpointUri = "")
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="client">the http client to use</param>
+        /// <param name="enpointUrl">the url of the endpoint</param>
+        public ApplicationClient(HttpClient client, string enpointUrl = "")
         {
             this.client = client;
-            this.endpointUri = enpointUri;
+            this.endpointUri = enpointUrl;
         }
 
+        /// <summary>
+        /// Creates and stores an application with an appId and a title.
+        /// </summary>
+        /// <param name="appId">the application id, e.g. test/app42</param>
+        /// <param name="title">the title of the application</param>
+        /// <returns></returns>
         public Application CreateApplication(string appId, LanguageString title)
         {
             Application application = new Application
@@ -42,6 +56,11 @@ namespace Altinn.Platform.Storage.Client
             return CreateApplication(application) ;                     
         }
 
+        /// <summary>
+        /// Stores application from an application instance.
+        /// </summary>
+        /// <param name="application">the application to store</param>
+        /// <returns></returns>
         public Application CreateApplication(Application application)
         {
             string url = $"{endpointUri}/{resourcePrefix}?appId={application.Id}";
@@ -59,6 +78,11 @@ namespace Altinn.Platform.Storage.Client
             return result;
         }
 
+        /// <summary>
+        /// Updates and application
+        /// </summary>
+        /// <param name="application">the application that should be updated</param>
+        /// <returns>the updated application</returns>
         public Application UpdateApplication(Application application)
         {
             string applicationId = application.Id;
@@ -78,6 +102,11 @@ namespace Altinn.Platform.Storage.Client
             return result;
         }
 
+        /// <summary>
+        /// Fetches the application with a given id.
+        /// </summary>
+        /// <param name="appId">the application id</param>
+        /// <returns>the application object</returns>
         public Application GetApplication(string appId) 
         {
             string url = $"{endpointUri}/{resourcePrefix}/{appId}";
@@ -95,7 +124,11 @@ namespace Altinn.Platform.Storage.Client
             return result;
         }
 
-
+        /// <summary>
+        /// Deletes an application in storage.
+        /// </summary>
+        /// <param name="appId">the application ied</param>
+        /// <returns>the application object that was deleted</returns>
         public Application DeleteApplication(string appId)
         {
             string url = $"{endpointUri}/{resourcePrefix}/{appId}?hard=true";

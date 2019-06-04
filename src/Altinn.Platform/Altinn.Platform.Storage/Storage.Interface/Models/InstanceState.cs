@@ -6,7 +6,7 @@ using System.Text;
 namespace Storage.Interface.Models
 {
     /// <summary>
-    /// Holds the state of the instance. 
+    /// Holds the state of an instance
     /// </summary>
     public class InstanceState
     {
