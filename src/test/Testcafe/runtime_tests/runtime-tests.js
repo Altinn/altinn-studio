@@ -84,7 +84,7 @@ test('Read-only components test in runtime', async () => {
     .switchToMainWindow()
 })
 
-test.skip('axe UI accessibility test for runtime', async t => {
+test('axe UI accessibility test for runtime', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)
