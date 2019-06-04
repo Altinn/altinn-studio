@@ -1,18 +1,10 @@
 import { t, Selector } from 'testcafe';
-import { waitForReact } from 'testcafe-react-selectors';
-import DesignerPage from '../page-objects/designerPage';
-import CommonPage from '../page-objects/common';
-import TestData from '../TestData';
+import { AutoTestUser } from '../TestData';
 import App from '../app';
-import LoginPage from '../page-objects/loginPage';
 import DashBoard from '../page-objects/DashboardPage';
 
 let app = new App();
-let common = new CommonPage();
 let dash = new DashBoard();
-let loginPage = new LoginPage();
-let designerPage = new DesignerPage();
-const testUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test123', 'basic');
 
 fixture('Creating/Reading/Updating/Deleting services')
   .page(app.baseUrl)
@@ -23,7 +15,7 @@ fixture('Creating/Reading/Updating/Deleting services')
     t.ctx.newServiceName = "testcafe04";
     t.ctx.deltMessage = "Du har delt dine endringer";
     t.ctx.syncMessage = "Endringene er validert";
-    await common.login(testUser.userEmail, testUser.password, loginPage);
+    await t.useRole(AutoTestUser)
     //app.before()
   })
   .after(async (t) => {

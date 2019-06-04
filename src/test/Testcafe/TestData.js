@@ -1,3 +1,10 @@
+import { Role } from 'testcafe'
+import App from './app';
+import LoginPage from './page-objects/loginPage';
+
+let app = new App();
+let loginPage = new LoginPage();
+
 export default class TestData {
   constructor(userName, userEmail, password, role) {
     this.userName = userName;
@@ -6,3 +13,19 @@ export default class TestData {
     this.role = role;
   }
 }
+
+export const AutoTestUser = Role(app.baseUrl, async t => {
+  await t
+      .click(loginPage.welcomeLoginButton)
+      .typeText(loginPage.userInput, "AutoTest")
+      .typeText(loginPage.passwordInput, "test123")
+      .click(loginPage.loginButton)
+})
+
+export const NoDeployUser = Role(app.baseUrl, async t => {
+  await t
+      .click(loginPage.welcomeLoginButton)
+      .typeText(loginPage.userInput, "automatedtest@email.com")
+      .typeText(loginPage.passwordInput, "test123")
+      .click(loginPage.loginButton)
+})

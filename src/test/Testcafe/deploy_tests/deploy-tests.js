@@ -4,7 +4,7 @@ import App from '../app';
 import DashBoard from '../page-objects/DashboardPage';
 import LoginPage from '../page-objects/loginPage';
 import CommonPage from '../page-objects/common';
-import TestData from '../TestData';
+import { AutoTestUser,NoDeployUser } from '../TestData';
 import DesignerPage from '../page-objects/designerPage';
 
 let app = new App();
@@ -12,8 +12,6 @@ let dash = new DashBoard();
 let loginPage = new LoginPage();
 let common = new CommonPage();
 let designer = new DesignerPage();
-const testUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test123', 'basic');
-const noAccessUser = new TestData('AutoTest2', 'automatedtest@email.com', 'test123', 'basic');
 
 fixture('GUI service designer tests')
   .page(app.baseUrl)
@@ -29,10 +27,10 @@ fixture('GUI service designer tests')
     t.ctx.ikkeTilgjengelig = "Tjenesten din er ikke tilgjengelig i testmiljø";
     t.ctx.ikkeTilgang = "Du har ikke tilgang til å legge ut tjenesten";
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
+    await t.useRole(AutoTestUser)
   })
 
 test('Happy case; deploy a service to a test environment after a change', async() => {
-  await common.login(testUser.userEmail, testUser.password, loginPage);
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
     .click(designer.lageNavigationTab)
@@ -63,7 +61,6 @@ test('Happy case; deploy a service to a test environment after a change', async(
 })
 
 test('Service cannot deploy due to compilation error', async() => {
-  await common.login(testUser.userEmail, testUser.password, loginPage);
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/aboutservice')
     .maximizeWindow()
@@ -79,7 +76,6 @@ test('Service cannot deploy due to compilation error', async() => {
 })
 
 test('Service cannot be deployed due to local changes', async() => {
-  await common.login(testUser.userEmail, testUser.password, loginPage);
   await t
   .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
   .maximizeWindow()
@@ -106,9 +102,9 @@ test('Service cannot be deployed due to local changes', async() => {
 })
 
 test('User does not have write access to service, and cannot deploy', async() => {
-  await common.login(noAccessUser.userEmail, noAccessUser.password, loginPage);
   await t
     .maximizeWindow()
+    .useRole(NoDeployUser)
     .click(dash.serviceSearch)
     .typeText(dash.serviceSearch, "manualDeployTest") // the noAccessUser login does not have access to manualDeployTest
     .click(Selector('div > button > div').withText('manualDeployTest')) //click to open the service
@@ -124,12 +120,10 @@ test('User does not have write access to service, and cannot deploy', async() =>
 })
 
 test('Accessibility testing for deployment to test environment page', async t => {
-  await common.login(testUser.userEmail, testUser.password, loginPage); 
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])
-  const { error, violations } = await axeCheck(t);
-  await t.expect(violations.length === 0).ok(createReport(violations));
+  axeCheck(t);
 });

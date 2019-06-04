@@ -1,21 +1,14 @@
 import App from '../app';
 import { Selector, t } from 'testcafe';
 import axeCheck from 'axe-testcafe';
-import CommonPage from '../page-objects/common';
-import DashBoard from '../page-objects/DashboardPage';
-import LoginPage from '../page-objects/loginPage';
 import RunTimePage from '../page-objects/runTimePage';
 import DesignerPage from '../page-objects/designerPage';
-import TestData from '../TestData';
+import { AutoTestUser } from '../TestData';
+
 
 let app = new App();
-let dash = new DashBoard();
-let loginPage = new LoginPage();
-let common = new CommonPage();
 let runtime = new RunTimePage();
 let designer = new DesignerPage();
-let runtimeUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test123', 'basic');
-
 
 fixture('Regression tests of services in runtime')
   .page(app.baseUrl)
@@ -23,7 +16,7 @@ fixture('Regression tests of services in runtime')
     //Testdata and other testing context
     t.ctx.serviceName = "runtime";
     t.ctx.tjenesteOppdatert = "Tjenesten din er oppdatert til siste versjon";
-    await common.login(runtimeUser.userEmail, runtimeUser.password, loginPage);
+    await t.useRole(AutoTestUser);
   })
 
 
@@ -40,6 +33,7 @@ test('Instantiate a service in runtime', async () => {
     .expect(runtime.testUsers[0].visible).ok()
     .hover(runtime.testUsers[0])
     .click(runtime.testUsers[0])
+    .expect(runtime.startNewButton.visible).ok()
     .click(runtime.startNewButton)
 })
 
@@ -49,6 +43,7 @@ test('Upload files using file component in SBL', async () => {
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
+    .expect(runtime.startNewButton.visible).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
@@ -66,6 +61,7 @@ test('Validations when uploading file', async () => {
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
+    .expect(runtime.startNewButton.visible).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
@@ -83,16 +79,19 @@ test('Read-only components test in runtime', async () => {
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[1])
+    .expect(runtime.startNewButton.visible).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
 })
 
-test('axe UI accessibility test for runtime', async t => {
+test.skip('axe UI accessibility test for runtime', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
-    .click(runtime.testUsers[0])
+    .click(runtime.testUsers[1])
+    .expect(runtime.startNewButton.visible).ok()
     .click(runtime.startNewButton)
+    .switchToMainWindow()
   axeCheck(t);
 });

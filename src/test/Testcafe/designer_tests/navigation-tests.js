@@ -2,19 +2,12 @@ import { t, ClientFunction } from 'testcafe';
 import axeCheck from 'axe-testcafe';
 import { waitForReact } from 'testcafe-react-selectors';
 import DesignerPage from '../page-objects/designerPage';
-import CommonPage from '../page-objects/common';
-import TestData from '../TestData';
+import { AutoTestUser } from '../TestData';
 import App from '../app';
-import LoginPage from '../page-objects/loginPage';
-import DashBoard from '../page-objects/DashboardPage';
 
 let app = new App();
-let dash = new DashBoard();
-let common = new CommonPage();
-let loginPage = new LoginPage();
 let designerPage = new DesignerPage();
 
-const testUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test123', 'basic');
 const getLocation = ClientFunction(() => document.location.href);
 
 fixture('Navigating the Service designer')
@@ -22,13 +15,11 @@ fixture('Navigating the Service designer')
   .before(async () => {
   })
   .beforeEach(async t => {
-    await common.login(testUser.userEmail, testUser.password, loginPage);
+    await t.useRole(AutoTestUser)
     await waitForReact();
     await t.navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
-    //app.before();
   })
   .after(async () => {
-    //await dash.logout();
   })
 
 test('Om tab navigation', async () => {
