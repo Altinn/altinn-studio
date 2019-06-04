@@ -146,7 +146,9 @@ namespace AltinnCore.Designer.Controllers
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
                     StringContent httpContent = new StringContent(buildjson, Encoding.UTF8, "application/json");
-                    _logger.LogInformation("response httpcontent - {0}", httpContent);
+
+                    _logger.LogInformation("buildjson {0}", buildjson);
+
                     using (HttpResponseMessage response = await client.PostAsync("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds?api-version=5.0-preview.4", httpContent))
                     {
                         response.EnsureSuccessStatusCode();
