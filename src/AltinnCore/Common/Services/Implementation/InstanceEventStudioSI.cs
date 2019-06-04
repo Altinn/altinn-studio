@@ -38,10 +38,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string applicationOwnerId, string applicationId)
+        public Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string folderForEvents = $"{testDataForParty}{instanceOwnerId}/{instanceId}/events";
 
             if (Directory.Exists(folderForEvents))
@@ -53,10 +53,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
+        public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName, string[] eventTypes, string from, string to)
         {  
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string folderForEvents = $"{testDataForParty}{instanceOwnerId}/{instanceId}/events";
             DateTime? fromDateTime = null, toDateTime = null;
             List<InstanceEvent> events = new List<InstanceEvent>();
@@ -100,14 +100,14 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<string> SaveInstanceEvent(object dataToSerialize, string applicationOwnerId, string applicationId)
+        public Task<string> SaveInstanceEvent(object dataToSerialize, string org, string appName)
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.Id = Guid.NewGuid();
             instanceEvent.CreatedDateTime = DateTime.UtcNow;
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string folderForEvents = $"{testDataForParty}{instanceEvent.InstanceOwnerId}/{instanceEvent.InstanceId}/events";
             Directory.CreateDirectory(folderForEvents);
             string eventFilePath = $"{folderForEvents}/{instanceEvent.Id}.json";

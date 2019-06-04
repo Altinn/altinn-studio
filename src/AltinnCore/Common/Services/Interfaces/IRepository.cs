@@ -420,44 +420,44 @@ namespace AltinnCore.Common.Services.Interfaces
         /// update  metadata for attachment
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="appName">the application id</param>
         /// <param name="applicationMetadata">the application metadata to be updated</param>
         /// <returns></returns>
-        bool AddMetadataForAttachment(string org, string applicationId, string applicationMetadata);
+        bool AddMetadataForAttachment(string org, string appName, string applicationMetadata);
 
         /// <summary>
         /// update  metadata for attachment
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="appName">the application id</param>
         /// <param name="applicationMetadata">the application metadata to be updated</param>
         /// <returns></returns>
-        bool UpdateMetadataForAttachment(string org, string applicationId, string applicationMetadata);
+        bool UpdateMetadataForAttachment(string org, string appName, string applicationMetadata);
 
         /// <summary>
         /// Delete metadata for attachment component
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="appName">the application id</param>
         /// <param name="id">the id of the attachment component</param>
         /// <returns></returns>
-        bool DeleteMetadataForAttachment(string org, string applicationId, string id);
+        bool DeleteMetadataForAttachment(string org, string appName, string id);
 
         /// <summary>
         /// Updates the application information in Application metadata 
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="appName">the application id</param>
         /// <param name="applicationInformation">the application information to be updated</param>
         /// <returns>true if the information is updated successfully</returns>
-        bool UpdateServiceInformationInApplication(string org, string applicationId, ServiceConfiguration applicationInformation);
+        bool UpdateServiceInformationInApplication(string org, string appName, ServiceConfiguration applicationInformation);
 
         /// <summary>
         /// Returns the application metadata for an application
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application owner</param>
+        /// <param name="appName">the application id</param>
         /// <returns>The application  metadata for an application</returns>
-        Application GetApplication(string org, string applicationId);
+        Application GetApplication(string org, string appName);
     }
 }

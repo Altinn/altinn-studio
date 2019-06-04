@@ -5,12 +5,12 @@ using System.Text;
 namespace AltinnCore.Common.Helpers
 {
     /// <summary>
-    /// helper class for functionalities realted to application or application meta data
+    /// helper class for functionalities related to application or application meta data
     /// </summary>
     public static class ApplicationHelper
     {
         /// <summary>
-        /// Gets the application id formatted as "applicationId-applicationOwnerID"
+        /// Gets the application id formatted as "org/appName"
         /// </summary>
         /// <param name="org">the application owner</param>
         /// <param name="appName">the application id</param>

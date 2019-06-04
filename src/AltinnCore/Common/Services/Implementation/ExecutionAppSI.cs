@@ -58,15 +58,15 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IServiceImplementation GetServiceImplementation(string applicationOwnerId, string applicationId, bool startServiceFlag)
+        public IServiceImplementation GetServiceImplementation(string org, string appName, bool startServiceFlag)
         {
-            string assemblykey = $"{applicationOwnerId}_{applicationId}";
+            string assemblykey = $"{org}_{appName}";
             string implementationTypeName = null;
             Type type = null;
 
             if (_assemblyNames.ContainsKey(assemblykey))
             {
-                implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, applicationOwnerId, CompileHelper.GetCSharpValidAppId(applicationId)) + ".ServiceImplementation," + _assemblyNames[assemblykey];
+                implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(appName)) + ".ServiceImplementation," + _assemblyNames[assemblykey];
 
                 type = Type.GetType(implementationTypeName);
 
@@ -76,7 +76,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, applicationOwnerId, CompileHelper.GetCSharpValidAppId(applicationId)) + ".ServiceImplementation";
+            implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(appName)) + ".ServiceImplementation";
 
             Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(_settings.BaseResourceFolderContainer + _settings.GetBinaryFolder() + "AltinnService.dll");
 
@@ -92,14 +92,14 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceContext GetServiceContext(string applicationOwnerId, string applicationId, bool startServiceFlag)
+        public ServiceContext GetServiceContext(string org, string appName, bool startServiceFlag)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(applicationOwnerId, applicationId, startServiceFlag).GetServiceModelType(),
-                ServiceMetaData = _repository.GetServiceMetaData(applicationOwnerId, applicationId),
+                ServiceModelType = GetServiceImplementation(org, appName, startServiceFlag).GetServiceModelType(),
+                ServiceMetaData = _repository.GetServiceMetaData(org, appName),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = _repository.GetWorkFlow(applicationOwnerId, applicationId),
+                WorkFlow = _repository.GetWorkFlow(org, appName),
             };
 
             if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)
@@ -117,22 +117,22 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetCodelist(string applicationOwnerId, string applicationId, string name)
+        public string GetCodelist(string org, string appName, string name)
         {
             // Not relevant in a app scenario.
             return null;
         }
 
         /// <inheritdoc/>
-        public byte[] GetServiceResource(string applicationOwnerId, string applicationId, string resource)
+        public byte[] GetServiceResource(string org, string appName, string resource)
         {
             byte[] fileContent = null;
 
             if (resource == _settings.RuleHandlerFileName)
             {
-                if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
+                if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
                 {
-                    fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
+                    fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
                 }
             }
             else
@@ -147,7 +147,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceMetadata GetServiceMetaData(string applicationOwnerId, string applicationId)
+        public ServiceMetadata GetServiceMetaData(string org, string appName)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);

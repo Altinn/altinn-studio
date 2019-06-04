@@ -51,13 +51,13 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Guid instanceId;
             Instance instance = null;
-            string applicationOwnerId = startServiceModel.Org;
-            string applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, startServiceModel.Service);
+            string org = startServiceModel.Org;
+            string appId = ApplicationHelper.GetFormattedApplicationId(org, startServiceModel.Service);
             int instanceOwnerId = startServiceModel.ReporteeID;
 
             using (HttpClient client = new HttpClient())
             {
-                string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/?appId={applicationId}&instanceOwnerId={instanceOwnerId}";
+                string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/?appId={appId}&instanceOwnerId={instanceOwnerId}";
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -78,11 +78,11 @@ namespace AltinnCore.Common.Services.Implementation
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
-                applicationOwnerId,
-                applicationId,
+                org,
+                appId,
                 instanceOwnerId);
 
-            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId);
+            ServiceState currentState = _workflow.GetInitialServiceState(org, appId);
 
             // set initial workflow state
             instance.Workflow = new Storage.Interface.Models.WorkflowState()
@@ -91,7 +91,7 @@ namespace AltinnCore.Common.Services.Implementation
                 IsComplete = false,
             };
 
-            instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, appId, org, instanceOwnerId, instanceId);
 
             return instance;
         }

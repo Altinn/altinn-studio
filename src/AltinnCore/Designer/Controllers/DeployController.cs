@@ -192,7 +192,7 @@ namespace AltinnCore.Designer.Controllers
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "applicationOwnerId, applicationCode or buildId not supplied",
+                    Message = "application owner (org), appName or buildId not supplied",
                 });
             }
 
@@ -283,7 +283,7 @@ namespace AltinnCore.Designer.Controllers
                     appMetadata.ElementTypes = applicationMetadataFromRepository.ElementTypes;
                     appMetadata.Title = applicationMetadataFromRepository.Title;
 
-                    string createApplicationMetadataUrl = $"{storageEndpoint}applications?applicationId={appId}";
+                    string createApplicationMetadataUrl = $"{storageEndpoint}applications?appId={appId}";
                     HttpResponseMessage createApplicationMetadataResponse = await client.PostAsync(createApplicationMetadataUrl, appMetadata.AsJson());
                     if (createApplicationMetadataResponse.IsSuccessStatusCode)
                     {
@@ -305,7 +305,7 @@ namespace AltinnCore.Designer.Controllers
             }
         }
 
-        private Application GetApplicationMetadata(string applicationId, string versionId)
+        private Application GetApplicationMetadata(string appId, string versionId)
         {
             Dictionary<string, string> title = new Dictionary<string, string>
                         {
@@ -314,7 +314,7 @@ namespace AltinnCore.Designer.Controllers
 
             Application appMetadata = new Application
             {
-                Id = applicationId,
+                Id = appId,
                 Title = title,
                 ElementTypes = new List<ElementType>(),
                 VersionId = versionId

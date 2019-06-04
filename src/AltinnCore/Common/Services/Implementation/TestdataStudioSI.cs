@@ -79,7 +79,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string applicationOwnerId, string applicationId)
+        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string appName)
         {
             _logger.LogInformation("GetServicePrefill method is not implemented yet");
             return new List<ServicePrefill>();
