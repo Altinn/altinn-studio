@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/HeaderComponent.tsx --- Snapshot +++ should match snapshot 1`] = `
 <h4
-  id="test-id"
+  id="mock-id"
 >
   test
 </h4>

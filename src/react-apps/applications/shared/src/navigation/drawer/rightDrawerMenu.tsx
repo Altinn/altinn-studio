@@ -18,6 +18,7 @@ const styles = createStyles({
     background: altinnTheme.altinnPalette.primary.greyLight,
     position: 'relative',
     top: 0,
+    height: '100vh',
   },
   scrollable: {
     overflowY: 'scroll',

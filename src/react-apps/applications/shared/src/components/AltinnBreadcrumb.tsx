@@ -5,11 +5,13 @@ import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnBreadcrumbComponentProvidedProps extends WithStyles<typeof styles> {
+  /** @ignore */
   classes: any;
   firstLink: string;
   secondLink?: any;
   firstLinkTxt?: any;
   secondLinkTxt?: boolean;
+  /** ClassName prop is used to pass in optional Material-UI createStyles classes object */
   className?: any;
 }
 
@@ -42,7 +44,7 @@ const styles = () => createStyles({
   },
 });
 
-class AltinnBreadcrumb extends
+export class AltinnBreadcrumb extends
   React.Component<IAltinnBreadcrumbComponentProvidedProps, IAltinnBreadcrumbComponentState> {
 
   public render() {

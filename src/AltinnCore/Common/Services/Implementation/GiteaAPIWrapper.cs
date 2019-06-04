@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -182,10 +183,10 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         repo.IsClonedToLocal = IsLocalRepo(repo.Owner.Login, repo.Name);
                         Organization org = await GetCachedOrg(repo.Owner.Login);
-                        if (org != null)
-                        {
-                            repo.Owner.UserType = UserType.Org;
-                        }
+                        if (org.Id != -1)
+                         {
+                             repo.Owner.UserType = UserType.Org;
+                         }
                     }
                 }
             }
@@ -217,16 +218,25 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            var watchOwnerType = System.Diagnostics.Stopwatch.StartNew();
             if (returnRepository != null && returnRepository.Owner != null && !string.IsNullOrEmpty(returnRepository.Owner.Login))
             {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
+                watch = System.Diagnostics.Stopwatch.StartNew();
                 Organization org = await GetCachedOrg(returnRepository.Owner.Login);
-                if (org != null)
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
+                if (org.Id != -1)
                 {
                     returnRepository.Owner.UserType = UserType.Org;
                 }
             }
 
+            watchOwnerType.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "To find if local repo and owner type - {0} ", watchOwnerType.ElapsedMilliseconds);
             return returnRepository;
         }
 
@@ -533,6 +543,14 @@ namespace AltinnCore.Common.Services.Implementation
             if (!_cache.TryGetValue(cachekey, out org))
             {
                 org = await GetOrganization(orgName);
+
+                // Null value is not cached. so set id property to -1
+                if (org == null)
+                {
+                    org = new Organization();
+                    org.Id = -1;
+                }
+
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
 
                 // Keep in cache for this time, reset time if accessed.

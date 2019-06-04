@@ -3,10 +3,10 @@ import '../../styles/shared.css';
 
 export interface ITextAreaComponentProps {
   id: string;
-  component: IFormTextAreaComponent;
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
+  readOnly: boolean;
 }
 
 export interface ITextAreaComponentState {
@@ -37,13 +37,13 @@ export class TextAreaComponent
     return (
       <div className={'a-form-group-items input-group p-0'} >
         <textarea
-          id={this.props.component.id}
+          id={this.props.id}
           onBlur={this.onBlur}
           onChange={this.onDataChanged}
-          disabled={this.props.component.readOnly}
+          disabled={this.props.readOnly}
           style={{ resize: 'none' }} // This is prone to change soon, implemented inline until then. See issue #1116
           className={(this.props.isValid ? 'form-control a-textarea ' : 'form-control validation-error')
-            + (this.props.component.readOnly ? ' disabled' : '')}
+            + (this.props.readOnly ? ' disabled' : '')}
           value={this.state.formData}
         />
       </div>

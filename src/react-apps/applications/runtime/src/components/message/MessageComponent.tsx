@@ -9,7 +9,7 @@ export interface IMessageComponentProps {
   style?: any;
 }
 
-export interface IMessageComponentState {}
+export interface IMessageComponentState { }
 
 class MessageComponent extends React.Component<IMessageComponentProps, IMessageComponentState> {
 

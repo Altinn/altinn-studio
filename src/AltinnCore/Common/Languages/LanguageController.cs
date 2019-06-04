@@ -6,6 +6,7 @@ using AltinnCore.Common.Configuration;
 using IniParser;
 using IniParser.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Controllers
@@ -16,15 +17,18 @@ namespace AltinnCore.Designer.Controllers
     public class LanguageController : Controller
     {
         private readonly GeneralSettings _generalSettings;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LanguageController"/> class.
         /// </summary>
-        /// <param name="generalSettings">The general settings</param>
+        /// <param name="generalSettings">The general settings.</param>
+        /// <param name="logger">the log handler.</param>
         public LanguageController(
-            IOptions<GeneralSettings> generalSettings)
+            IOptions<GeneralSettings> generalSettings, ILogger<LanguageController> logger)
         {
             _generalSettings = generalSettings.Value;
+            _logger = logger;
         }
 
         /// <summary>
@@ -50,7 +54,12 @@ namespace AltinnCore.Designer.Controllers
                 filePath = Path.Combine(currentDirectory, $"{_generalSettings.LanguageFilesLocation}{languageCode}.ini");
             }
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             IniData parsedData = parser.ReadFile(filePath, Encoding.UTF8);
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "read inifile - {0} ", watch.ElapsedMilliseconds);
+
+            watch = System.Diagnostics.Stopwatch.StartNew();
 
             // Iterate through all the sections
             foreach (SectionData section in parsedData.Sections)
@@ -65,6 +74,8 @@ namespace AltinnCore.Designer.Controllers
                 outerDict.Add(section.SectionName, objDict);
             }
 
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "parse inifile - {0} ", watch.ElapsedMilliseconds);
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(outerDict);
 
             return Content(json, "application/json", Encoding.UTF8);
