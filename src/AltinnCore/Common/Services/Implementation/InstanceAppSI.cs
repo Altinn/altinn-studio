@@ -47,7 +47,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
-        /// <param name="client">The Http client </param>
+        /// <param name="httpClientAccessor">The Http client accessor </param>
         public InstanceAppSI(
             IData data,
             IOptions<PlatformSettings> platformSettings,
@@ -55,7 +55,7 @@ namespace AltinnCore.Common.Services.Implementation
             ILogger<InstanceAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions,
-            StorageClient client)
+            IHttpClientAccessor httpClientAccessor)
         {
             _data = data;
             _platformSettings = platformSettings.Value;
@@ -63,7 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
-            _client = client.Client;
+            _client = httpClientAccessor.Client;
         }
 
         /// <inheritdoc />
@@ -79,6 +79,12 @@ namespace AltinnCore.Common.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             try
@@ -119,6 +125,12 @@ namespace AltinnCore.Common.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             _client.DefaultRequestHeaders.Accept.Clear();
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
@@ -144,6 +156,12 @@ namespace AltinnCore.Common.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             _client.DefaultRequestHeaders.Accept.Clear();
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
@@ -173,6 +191,12 @@ namespace AltinnCore.Common.Services.Implementation
 
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             string jsonData = JsonConvert.SerializeObject(dataToSerialize);

@@ -10,27 +10,22 @@ namespace AltinnCore.Common.Clients
     /// <summary>
     /// Storage client for handling... 
     /// </summary>
-    public class StorageClient : HttpClient
+    public class StorageClient : IHttpClientAccessor
     {
         private readonly PlatformSettings _platformSettings;
 
-        /// <summary>
-        /// Shared public client to be used by the service implentations
-        /// </summary>
+        /// <inheritdoc />
         public HttpClient Client { get; }
 
         /// <summary>
         /// <param name="platformSettings">the platform settings</param>
-        /// <param name="client">the platform settings</param>
         /// </summary>
-        public StorageClient(
-            IOptions<PlatformSettings> platformSettings,
-            HttpClient client)
+        public StorageClient(IOptions<PlatformSettings> platformSettings)
         {
             _platformSettings = platformSettings.Value;
 
-            client.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
-            Client = client;
+            Client = new HttpClient();
+            Client.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
         }
     }
 }

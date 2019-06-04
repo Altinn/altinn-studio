@@ -52,7 +52,13 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {

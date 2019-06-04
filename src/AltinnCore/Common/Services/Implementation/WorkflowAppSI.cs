@@ -43,7 +43,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="cookieOptions">The cookie options </param>
-        /// <param name="client">The Http client </param>
+        /// <param name="httpClientAccessor">The Http client accessor </param>
         public WorkflowAppSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
@@ -51,7 +51,7 @@ namespace AltinnCore.Common.Services.Implementation
             IOptions<PlatformSettings> platformSettings,
             IOptions<GeneralSettings> generalSettings,
             IOptions<JwtCookieOptions> cookieOptions,
-            StorageClient client)
+            IHttpClientAccessor httpClientAccessor)
         {
             _settings = repositorySettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
@@ -59,7 +59,7 @@ namespace AltinnCore.Common.Services.Implementation
             _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
             _cookieOptions = cookieOptions.Value;
-            _client = client.Client;
+            _client = httpClientAccessor.Client;
         }
 
         /// <inheritdoc/>
@@ -83,6 +83,12 @@ namespace AltinnCore.Common.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string apiUrl = $"instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             Task<HttpResponseMessage> response = _client.GetAsync(apiUrl);

@@ -41,19 +41,19 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
-        /// <param name="client">The Http client </param>
+        /// <param name="httpClientAccessor">The Http client accessor </param>
         public DataAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<DataAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions,
-            StorageClient client)
+            IHttpClientAccessor httpClientAccessor)
         {
             _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
-            _client = client.Client;
+            _client = httpClientAccessor.Client;
         }
 
         /// <inheritdoc />
@@ -65,6 +65,12 @@ namespace AltinnCore.Common.Services.Implementation
 
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             XmlSerializer serializer = new XmlSerializer(type);
@@ -94,6 +100,12 @@ namespace AltinnCore.Common.Services.Implementation
             string apiUrl = $"instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             _client.DefaultRequestHeaders.Accept.Clear();
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             XmlSerializer serializer = new XmlSerializer(type);
@@ -103,7 +115,13 @@ namespace AltinnCore.Common.Services.Implementation
                 stream.Position = 0;
                 StreamContent streamContent = new StreamContent(stream);
                 streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
-                streamContent.Headers.Add("Authorization", "Bearer " + token);
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                 Task<HttpResponseMessage> response = _client.PutAsync(apiUrl, streamContent);
                 if (!response.Result.IsSuccessStatusCode)
                 {
@@ -117,6 +135,12 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUrl = $"instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             Task<HttpResponseMessage> response = _client.GetAsync(apiUrl);
@@ -149,6 +173,12 @@ namespace AltinnCore.Common.Services.Implementation
             List<Attachment> attachments = null;
             string apiUrl = $"instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
 
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
@@ -201,6 +231,12 @@ namespace AltinnCore.Common.Services.Implementation
             List<AttachmentList> attachmentList = new List<AttachmentList>();
             string apiUrl = $"instances/{instanceId}/data/{attachmentId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             Task<HttpResponseMessage> response = _client.DeleteAsync(apiUrl);
@@ -220,6 +256,12 @@ namespace AltinnCore.Common.Services.Implementation
 
             _client.DefaultRequestHeaders.Accept.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
+
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             using (Stream input = attachment.Body)
