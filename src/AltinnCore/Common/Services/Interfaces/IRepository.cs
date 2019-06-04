@@ -444,20 +444,20 @@ namespace AltinnCore.Common.Services.Interfaces
         bool DeleteMetadataForAttachment(string org, string applicationId, string id);
 
         /// <summary>
-        /// Updates the application information in Application meta data 
+        /// Updates the application information in Application metadata 
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
         /// <param name="applicationId">the application id</param>
         /// <param name="applicationInformation">the application information to be updated</param>
         /// <returns>true if the information is updated successfully</returns>
-        bool UpdateServiceInformationInApplicationMetadata(string org, string applicationId, ServiceConfiguration applicationInformation);
+        bool UpdateServiceInformationInApplication(string org, string applicationId, ServiceConfiguration applicationInformation);
 
         /// <summary>
-        /// Returns the applicaiton metadata for an application
+        /// Returns the application metadata for an application
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
         /// <param name="applicationId">the application owner</param>
         /// <returns>The application  metadata for an application</returns>
-        ApplicationMetadata GetApplicationMetadata(string org, string applicationId);
+        Application GetApplication(string org, string applicationId);
     }
 }

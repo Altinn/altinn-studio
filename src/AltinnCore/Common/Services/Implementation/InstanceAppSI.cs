@@ -57,7 +57,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = new HttpClient())
             {
-                string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
+                string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/?appId={applicationId}&instanceOwnerId={instanceOwnerId}";
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -85,7 +85,11 @@ namespace AltinnCore.Common.Services.Implementation
             ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId);
 
             // set initial workflow state
-            instance.CurrentWorkflowStep = currentState.State.ToString();
+            instance.Workflow = new Storage.Interface.Models.WorkflowState()
+            {
+                CurrentStep = currentState.State.ToString(),
+                IsComplete = false,
+            };
 
             instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
 
@@ -93,11 +97,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string appName, string org, int instanceOwnerId, Guid instanceId)
         {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
             Instance instance = new Instance();
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -118,12 +124,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
+        /// TODO - fix logic, what are you using this for? It will only get instances for a instance owners the way storage is implemented now
+        public async Task<List<Instance>> GetInstances(string appName, string org, int instanceOwnerId)
         {
             List<Instance> instances = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId);
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
+            appName = ApplicationHelper.GetFormattedApplicationId(org, appName);
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances?instanceOwnerId={instanceOwnerId}&appId={appName}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -148,10 +155,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> UpdateInstance(object dataToSerialize, string appName, string org, int instanceOwnerId, Guid instanceId)
         {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
             Instance instance = new Instance();
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -175,14 +184,14 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string appName, string org, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance = GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId).Result;
+            Instance instance = GetInstance(appName, org, instanceOwnerId, instanceId).Result;
 
-            instance.IsCompleted = true;
-            instance.CurrentWorkflowStep = WorkflowStep.Archived.ToString();
+            instance.Workflow.IsComplete = true;
+            instance.Workflow.CurrentStep = WorkflowStep.Archived.ToString();
 
-            instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
             return instance;
         }
     }

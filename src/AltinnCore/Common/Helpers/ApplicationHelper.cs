@@ -12,12 +12,12 @@ namespace AltinnCore.Common.Helpers
         /// <summary>
         /// Gets the application id formatted as "applicationId-applicationOwnerID"
         /// </summary>
-        /// <param name="applicationOwnerId">the application owner</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="org">the application owner</param>
+        /// <param name="appName">the application id</param>
         /// <returns></returns>
-        public static string GetFormattedApplicationId(string applicationOwnerId, string applicationId)
+        public static string GetFormattedApplicationId(string org, string appName)
         {
-            return $"{applicationOwnerId}-{applicationId}";
+            return $"{org}/{appName}";
         }
     }
 }

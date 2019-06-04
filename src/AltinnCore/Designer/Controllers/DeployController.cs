@@ -66,13 +66,13 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Start a new deployment
         /// </summary>
-        /// <param name="applicationOwnerId">The Organization code for the application owner</param>
-        /// <param name="applicationCode">The application code for the current service</param>
+        /// <param name="org">The Organization code for the application owner</param>
+        /// <param name="appName">The application code for the current service</param>
         /// <returns>The result of trying to start a new deployment</returns>
         [HttpPost]
-        public async Task<IActionResult> StartDeployment(string applicationOwnerId, string applicationCode)
+        public async Task<IActionResult> StartDeployment(string org, string appName)
         {
-            if (applicationOwnerId == null || applicationCode == null)
+            if (org == null || appName == null)
             {
                 return BadRequest(new DeploymentStatus
                 {
@@ -91,7 +91,7 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
-            Repository repository = _giteaAPI.GetRepository(applicationOwnerId, applicationCode).Result;
+            Repository repository = _giteaAPI.GetRepository(org, appName).Result;
             if (repository != null && repository.Permissions != null && repository.Permissions.Push != true)
             {
                 ViewBag.ServiceUnavailable = true;
@@ -105,10 +105,10 @@ namespace AltinnCore.Designer.Controllers
             string credentials = _configuration["AccessTokenDevOps"];
 
             string result = string.Empty;
-            Branch masterBranch = _giteaAPI.GetBranch(applicationOwnerId, applicationCode, "master").Result;
+            Branch masterBranch = _giteaAPI.GetBranch(org, appName, "master").Result;
             if (masterBranch == null)
             {
-                _logger.LogWarning($"Unable to fetch branch information for app owner {applicationOwnerId} and app {applicationCode}");
+                _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {appName}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
@@ -117,10 +117,10 @@ namespace AltinnCore.Designer.Controllers
             }
 
             // register application in platform storage
-            bool applicationInStorage = await RegisterApplicationInStorage(applicationOwnerId, applicationCode, masterBranch.Commit.Id);
+            bool applicationInStorage = await RegisterApplicationInStorage(org, appName, masterBranch.Commit.Id);
             if (!applicationInStorage)
             {
-                _logger.LogWarning($"Unable to deploy app {applicationCode} for {applicationOwnerId} to Platform Storage");
+                _logger.LogWarning($"Unable to deploy app {appName} for {org} to Platform Storage");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
@@ -141,7 +141,7 @@ namespace AltinnCore.Designer.Controllers
                         {
                             id = 5,
                         },
-                        parameters = $"{{\"APP_OWNER\":\"{applicationOwnerId}\",\"APP_REPO\":\"{applicationCode}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
+                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{appName}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
@@ -161,7 +161,7 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Unable deploy app {applicationCode} for {applicationOwnerId} because {ex}");
+                _logger.LogWarning($"Unable deploy app {appName} for {org} because {ex}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
@@ -180,14 +180,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets deployment status
         /// </summary>
-        /// <param name="applicationOwnerId">The Organization code for the application owner</param>
-        /// <param name="applicationCode">The application code for the current service</param>
+        /// <param name="org">The Organization code for the application owner</param>
+        /// <param name="appName">The application code for the current service</param>
         /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <returns>The build status of the deployment build</returns>
         [HttpGet]
-        public async Task<IActionResult> FetchDeploymentStatus(string applicationOwnerId, string applicationCode, string buildId)
+        public async Task<IActionResult> FetchDeploymentStatus(string org, string appName, string buildId)
         {
-            if (string.IsNullOrEmpty(applicationOwnerId) || string.IsNullOrEmpty(applicationCode) || string.IsNullOrEmpty(buildId))
+            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(appName) || string.IsNullOrEmpty(buildId))
             {
                 return BadRequest(new DeploymentStatus
                 {
@@ -233,21 +233,21 @@ namespace AltinnCore.Designer.Controllers
             });
         }
 
-        private async Task<bool> RegisterApplicationInStorage(string applicationOwnerId, string applicationCode, string versionId)
+        private async Task<bool> RegisterApplicationInStorage(string org, string appName, string versionId)
         {
             bool applicationInStorage = false;
-            ApplicationMetadata applicationMetadataFromRepository = _repository.GetApplicationMetadata(applicationOwnerId, applicationCode);
+            Application applicationMetadataFromRepository = _repository.GetApplication(org, appName);
             using (HttpClient client = new HttpClient())
             {
-                string applicationId = $"{applicationOwnerId}-{applicationCode}";
+                string appId = $"{org}/{appName}";
                 string storageEndpoint = _platformSettings.GetApiStorageEndpoint;
-                ApplicationMetadata application = null;
-                string getApplicationMetadataUrl = $"{storageEndpoint}applications/{applicationId}";
+                Application application = null;
+                string getApplicationMetadataUrl = $"{storageEndpoint}applications/{appId}";
                 HttpResponseMessage getApplicationMetadataResponse = await client.GetAsync(getApplicationMetadataUrl);
                 if (getApplicationMetadataResponse.IsSuccessStatusCode)
                 {
                     string json = getApplicationMetadataResponse.Content.ReadAsStringAsync().Result;
-                    application = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+                    application = JsonConvert.DeserializeObject<Application>(json);
                     applicationInStorage = true;
 
                     if (application.Title == null)
@@ -257,34 +257,33 @@ namespace AltinnCore.Designer.Controllers
 
                     application.Title = applicationMetadataFromRepository.Title;
                     application.VersionId = versionId;
-                    if (application.Forms == null)
+                    if (application.ElementTypes == null)
                     {
-                        application.Forms = new List<ApplicationForm>();
+                        application.ElementTypes = new List<ElementType>();
                     }
 
-                    application.Forms = applicationMetadataFromRepository.Forms;
+                    application.ElementTypes = applicationMetadataFromRepository.ElementTypes;
 
                     HttpResponseMessage response = client.PutAsync(getApplicationMetadataUrl, application.AsJson()).Result;
                     if (response.IsSuccessStatusCode)
                     {
-                        _logger.LogInformation($"Application Metadata for {applicationId} is created. New versionId is {versionId}.");
+                        _logger.LogInformation($"Application Metadata for {appId} is created. New versionId is {versionId}.");
                     }
                     else
                     {
-                        _logger.LogInformation($"An error occured while trying to update application Metadata for {applicationId}. VersionId is {versionId}.");
+                        _logger.LogInformation($"An error occured while trying to update application Metadata for {appId}. VersionId is {versionId}.");
                     }
                 }
                 else if (getApplicationMetadataResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    ApplicationMetadata appMetadata = GetApplicationMetadata(applicationId, versionId);
-                    appMetadata.ApplicationOwnerId = applicationMetadataFromRepository.ApplicationOwnerId;
+                    Application appMetadata = GetApplicationMetadata(appId, versionId);
+                    appMetadata.Org = applicationMetadataFromRepository.Org;
                     appMetadata.CreatedBy = applicationMetadataFromRepository.CreatedBy;
                     appMetadata.CreatedDateTime = applicationMetadataFromRepository.CreatedDateTime;
-                    appMetadata.Forms = new List<ApplicationForm>();
-                    appMetadata.Forms = applicationMetadataFromRepository.Forms;
+                    appMetadata.ElementTypes = applicationMetadataFromRepository.ElementTypes;
                     appMetadata.Title = applicationMetadataFromRepository.Title;
 
-                    string createApplicationMetadataUrl = $"{storageEndpoint}applications?applicationId={applicationId}";
+                    string createApplicationMetadataUrl = $"{storageEndpoint}applications?applicationId={appId}";
                     HttpResponseMessage createApplicationMetadataResponse = await client.PostAsync(createApplicationMetadataUrl, appMetadata.AsJson());
                     if (createApplicationMetadataResponse.IsSuccessStatusCode)
                     {
@@ -306,28 +305,28 @@ namespace AltinnCore.Designer.Controllers
             }
         }
 
-        private ApplicationMetadata GetApplicationMetadata(string applicationId, string versionId)
+        private Application GetApplicationMetadata(string applicationId, string versionId)
         {
             Dictionary<string, string> title = new Dictionary<string, string>
                         {
                             { "nb", "Tittel" }
                         };
 
-            ApplicationMetadata appMetadata = new ApplicationMetadata
+            Application appMetadata = new Application
             {
                 Id = applicationId,
                 Title = title,
-                Forms = new List<ApplicationForm>(),
+                ElementTypes = new List<ElementType>(),
                 VersionId = versionId
             };
 
-            ApplicationForm defaultAppForm = new ApplicationForm
+            ElementType defaultAppForm = new ElementType
             {
                 Id = "default",
                 AllowedContentType = new List<string>() { "application/xml" }
             };
 
-            appMetadata.Forms.Add(defaultAppForm);
+            appMetadata.ElementTypes.Add(defaultAppForm);
 
             return appMetadata;
         }

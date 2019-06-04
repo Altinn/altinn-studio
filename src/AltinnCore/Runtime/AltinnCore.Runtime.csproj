@@ -12,8 +12,9 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.0.1-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.1-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="2.0.0" />
