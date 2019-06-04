@@ -268,6 +268,17 @@ namespace AltinnCore.Runtime
                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                    });
 
+                routes.MapRoute(
+                   name: "runtimeRoute",
+                   template: "runtime/{org}/{service}",
+                   defaults: new { action = "StartRuntime", controller = "Instance" },
+                   constraints: new
+                   {
+                       action= "StartRuntime",
+                       controller = "Instance",
+                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                   });
+
                 // ---------------------------- API -------------------------- //
                 routes.MapRoute(
                     name: "resourceRoute",

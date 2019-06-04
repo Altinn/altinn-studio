@@ -124,11 +124,14 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize(Policy = "InstanceRead")]
         public async Task<IActionResult> EditSPA(string org, string service, Guid instanceId, string view, int? itemId)
         {
+            if (instanceId) {
             // Make sure user cannot edit an archived instance
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
             List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            }
+
 
             // TODO Add info for REACT app.
             return View();
@@ -198,7 +201,7 @@ namespace AltinnCore.Runtime.Controllers
                     WorkflowStep = instance.CurrentWorkflowStep
                 };
 
-                await _event.SaveInstanceEvent(instanceEvent, org, service);               
+                await _event.SaveInstanceEvent(instanceEvent, org, service);
             }
 
             ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);
@@ -347,7 +350,7 @@ namespace AltinnCore.Runtime.Controllers
 
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
 
-                // Create a new instance document                
+                // Create a new instance document
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
                 // Create and store the instance created event
@@ -377,6 +380,31 @@ namespace AltinnCore.Runtime.Controllers
                }).ToList();
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
+            return View(startServiceModel);
+        }
+
+        /// <summary>
+        /// Returns runtime (instantiation) without InstanceId.
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>The start Runtime View.</returns>
+        [Authorize]
+        public async Task<IActionResult> StartRuntime(string org, string service)
+        {
+            UserContext userContext = await _userHelper.GetUserContext(HttpContext);
+            var startServiceModel = new StartServiceModel
+            {
+                ReporteeList = _authorization
+                    .GetReporteeList(userContext.UserId)
+                    .Select(x => new SelectListItem
+                    {
+                        Text = x.ReporteeNumber + " " + x.ReporteeName,
+                        Value = x.PartyID.ToString(),
+                    })
+                    .ToList(),
+                ServiceID = org + "_" + service,
+            };
             return View(startServiceModel);
         }
 
