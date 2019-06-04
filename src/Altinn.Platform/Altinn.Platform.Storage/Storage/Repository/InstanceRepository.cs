@@ -1,21 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.Configuration;
-using Altinn.Platform.Storage.Models;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using Serilog;
-
 namespace Altinn.Platform.Storage.Repository
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Configuration;
+    using Altinn.Platform.Storage.Models;
+    using Microsoft.Azure.Documents;
+    using Microsoft.Azure.Documents.Client;
+    using Microsoft.Azure.Documents.Linq;
+    using Microsoft.Extensions.Options;
+    using Newtonsoft.Json;
+
     /// <summary>
-    /// Handles instances
+    /// Handles instances.
     /// </summary>
     public class InstanceRepository : IInstanceRepository
     {
@@ -25,16 +23,13 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string collectionId;
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
-        private readonly ILogger _logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
         public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings)
-        {            
+        {
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
 
@@ -62,37 +57,6 @@ namespace Altinn.Platform.Storage.Repository
             _client.OpenAsync();
         }
 
-        private Instance PreProcess(Instance instance)
-        {
-            instance.Id = InstanceIdToCosmosId(instance.Id);
-
-            return instance;
-        }
-
-        private Instance PostProcess(Instance instance)
-        {
-            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
-
-            return instance;
-        }
-
-        private List<Instance> PostProcess(List<Instance> instances)
-        {
-            instances.ForEach(i => PostProcess(i));
-            
-            return instances;
-        }
-
-        private string InstanceIdToCosmosId(string id)
-        {
-            if (id == null)
-            {
-                return null;
-            }
-
-            return id.Split("/")[1];       
-        }
-
         /// <inheritdoc/>
         public async Task<Instance> Create(Instance item)
         {
@@ -103,7 +67,7 @@ namespace Altinn.Platform.Storage.Repository
 
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            return PostProcess(instance);            
+            return PostProcess(instance);
         }
 
         /// <inheritdoc/>
@@ -118,7 +82,7 @@ namespace Altinn.Platform.Storage.Repository
                     uri.ToString(),
                     new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
 
-            return true;            
+            return true;
         }
 
         /// <inheritdoc/>
@@ -141,26 +105,26 @@ namespace Altinn.Platform.Storage.Repository
                 }
             }
 
-            return instances;           
+            return instances;
         }
 
         /// <inheritdoc/>
         public async Task<List<Instance>> GetInstancesOfApplication(string appId)
-        {            
+        {
             // string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationId = '{applicationId}'";
             FeedOptions feedOptions = new FeedOptions
             {
                 EnableCrossPartitionQuery = true,
-                MaxItemCount = 100,          
+                MaxItemCount = 100,
             };
 
             IDocumentQuery<Instance> query = _client
                 .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                .Where(i => i.AppId == appId)           
+                .Where(i => i.AppId == appId)
                 .AsDocumentQuery();
 
             FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
-             
+
             List<Instance> instances = result.ToList<Instance>();
 
             return PostProcess(instances);
@@ -171,13 +135,13 @@ namespace Altinn.Platform.Storage.Repository
         {
             string cosmosId = InstanceIdToCosmosId(instanceId);
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosId);
-              
+
             Instance instance = await _client
                 .ReadDocumentAsync<Instance>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
 
-            return PostProcess(instance);           
+            return PostProcess(instance);
         }
 
         /// <inheritdoc/>
@@ -199,7 +163,7 @@ namespace Altinn.Platform.Storage.Repository
 
             FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
 
-            return PostProcess(feedResponse.ToList<Instance>());           
+            return PostProcess(feedResponse.ToList<Instance>());
         }
 
         /// <inheritdoc/>
@@ -213,6 +177,37 @@ namespace Altinn.Platform.Storage.Repository
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
             return PostProcess(instance);
+        }
+
+        private Instance PreProcess(Instance instance)
+        {
+            instance.Id = InstanceIdToCosmosId(instance.Id);
+
+            return instance;
+        }
+
+        private Instance PostProcess(Instance instance)
+        {
+            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
+
+            return instance;
+        }
+
+        private List<Instance> PostProcess(List<Instance> instances)
+        {
+            instances.ForEach(i => PostProcess(i));
+
+            return instances;
+        }
+
+        private string InstanceIdToCosmosId(string id)
+        {
+            if (id == null)
+            {
+                return null;
+            }
+
+            return id.Split("/")[1];
         }
     }
 }

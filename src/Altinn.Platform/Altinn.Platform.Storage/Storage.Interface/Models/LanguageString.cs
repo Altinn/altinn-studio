@@ -6,7 +6,8 @@ namespace Storage.Interface.Models
 {
     /// <summary>
     /// Convenience type to handle multiple languages in a string.
-    /// </summary>
+    /// </summary
+    [Serializable]
     public class LanguageString : Dictionary<string, string>
     {
     }

@@ -1,18 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
-using Altinn.Platform.Storage.Repository;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
-using Microsoft.Extensions.Logging;
-
 namespace Altinn.Platform.Storage.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Net;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Helpers;
+    using Altinn.Platform.Storage.Models;
+    using Altinn.Platform.Storage.Repository;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.Documents;
+    using Microsoft.Extensions.Logging;
+
     /// <summary>
     /// Provides operations for handling application metadata
     /// </summary>
@@ -110,7 +110,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="appId">the unique identification of the application to be created</param>
         /// <param name="application">the application metadata object to store</param>
         /// <returns>the applicaiton metadata object</returns>
-        [HttpPost]        
+        [HttpPost]
         public async Task<ActionResult> Post(string appId, [FromBody] Application application)
         {
             if (!IsValidAppId(appId))
@@ -118,11 +118,11 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("AppId is not valid.");
             }
 
-            string org = appId.Split("/")[0];            
+            string org = appId.Split("/")[0];
 
             try
             {
-                Application existingApplication = await repository.FindOne(appId, org);
+                await repository.FindOne(appId, org);
 
                 return BadRequest("Application already exists in repository! Try update application instead. ");
             }
@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (e.StatusCode != HttpStatusCode.NotFound)
                 {
                     return StatusCode(500, $"Unable to access application collection: {e}");
-                }                
+                }
             }
             catch (Exception e)
             {
@@ -201,7 +201,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (parts.Length != 2)
             {
-                return false;            
+                return false;
             }
             
             string orgNamePattern = @"^[a-zæøå][a-zæåø0-9]*$";
@@ -266,7 +266,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                Application result = await repository.Update(existingApplication);                
+                Application result = await repository.Update(existingApplication);
 
                 return Ok(result);
             }
@@ -298,7 +298,7 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult> Delete(string org, string app, bool? hard)
         {
             string appId = $"{org}/{app}";
-            string appOwnerId = org;           
+            string appOwnerId = org;
 
             try
             {
@@ -306,7 +306,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (hard.HasValue && hard == true)
                 {
-                    bool deletedOK = await repository.Delete(appId, appOwnerId);
+                    await repository.Delete(appId, appOwnerId);
 
                     return Ok(application);
                 }
@@ -320,7 +320,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                     Application softDeleteApplication = await repository.Update(application);
 
-                    return Ok(softDeleteApplication);                    
+                    return Ok(softDeleteApplication);
                 }
             }
             catch (DocumentClientException dce)
@@ -332,7 +332,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 logger.LogError($"Unable to reach document database {dce}");
                 return StatusCode(500, $"Unable to reach document database {dce}");
-            }            
+            }
             catch (Exception e)
             {
                 logger.LogError($"Unable to perform request: {e}");

@@ -1,17 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.Configuration;
-using Altinn.Platform.Storage.Models;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-
 namespace Altinn.Platform.Storage.Repository
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Configuration;
+    using Altinn.Platform.Storage.Models;
+    using Microsoft.Azure.Documents;
+    using Microsoft.Azure.Documents.Client;
+    using Microsoft.Azure.Documents.Linq;
+    using Microsoft.Extensions.Options;
+    using Newtonsoft.Json;
+
     /// <summary>
     /// Handles applicationMetadata repository. Notice that the all methods should modify the Id attribute of the
     /// Application, since cosmosDb fails if Id contains slashes '/'. 
@@ -46,7 +46,7 @@ namespace Altinn.Platform.Storage.Repository
 
             _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, collectionId);
-                        
+
             _client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseId }).GetAwaiter().GetResult();
 
             DocumentCollection documentCollection = new DocumentCollection { Id = collectionId };
@@ -75,11 +75,9 @@ namespace Altinn.Platform.Storage.Repository
             return $"{org}/{app}";
         }
 
-        private Application PreProcess(Application application)
+        private void PreProcess(Application application)
         {
             application.Id = AppIdToCosmosId(application.Id);
-
-            return application;
         }
 
         private Application PostProcess(Application application)
@@ -104,9 +102,9 @@ namespace Altinn.Platform.Storage.Repository
             ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
             Document document = createDocumentResponse.Resource;
 
-            Application instance = JsonConvert.DeserializeObject<Application>(document.ToString());            
+            Application instance = JsonConvert.DeserializeObject<Application>(document.ToString());
 
-            return PostProcess(instance);         
+            return PostProcess(instance);
         }
 
         /// <inheritdoc/>
@@ -126,7 +124,7 @@ namespace Altinn.Platform.Storage.Repository
 
         /// <inheritdoc/>
         public async Task<List<Application>> ListApplications(string applicationOwnerId)
-        {         
+        {
             IDocumentQuery<Application> query = _client
                 .CreateDocumentQuery<Application>(_collectionUri,  new FeedOptions { EnableCrossPartitionQuery = true })
                 .Where(i => i.Org == applicationOwnerId)
@@ -135,7 +133,7 @@ namespace Altinn.Platform.Storage.Repository
             FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
             List<Application> applications = result.ToList<Application>();
 
-            return PostProcess(applications);          
+            return PostProcess(applications);
         }
 
         /// <inheritdoc/>
@@ -149,7 +147,7 @@ namespace Altinn.Platform.Storage.Repository
                 .ReadDocumentAsync<Application>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(applicationOwnerId) });
-                     
+
             return PostProcess(application);
         }
 

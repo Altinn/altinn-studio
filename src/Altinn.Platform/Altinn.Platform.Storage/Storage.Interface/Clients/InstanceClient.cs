@@ -18,7 +18,7 @@ namespace Altinn.Platform.Storage.Client
     /// </summary>
     public class InstanceClient
     {
-        private HttpClient client;
+        private readonly HttpClient client;
         private readonly string elementType = "default";
         private readonly string versionPrefix = "storage/api/v1";
         private readonly string hostName;
@@ -92,10 +92,10 @@ namespace Altinn.Platform.Storage.Client
         /// <summary>
         /// Updates data.
         /// </summary>
-        /// <param name="instanceId">a</param>
-        /// <param name="dataId">xx</param>
-        /// <param name="fileName">c</param>
-        /// <param name="contentType">d</param>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="dataId">the data id</param>
+        /// <param name="fileName">a file name</param>
+        /// <param name="contentType">content type</param>
         /// <param name="content">content as json</param>
         public async Task<Instance> PutData(string instanceId, string dataId,  string fileName, string contentType, Dictionary<string, string> content)
         {
@@ -188,12 +188,19 @@ namespace Altinn.Platform.Storage.Client
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string[] eventTypes, string from, string to)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/events?";
-            if (!(eventTypes == null))
+            if (eventTypes != null)
             {
+                StringBuilder eventTypeList = new StringBuilder();
                 foreach (string type in eventTypes)
                 {
-                    requestUri += $"&eventTypes={type}";
+                    if (eventTypeList.Length >= 1)
+                    {
+                        eventTypeList.Append(",");
+                    }
+                    eventTypeList.Append(type);
                 }
+
+                requestUri += $"&eventTypes={eventTypeList.ToString()}";
             }
 
             if (!(string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)))

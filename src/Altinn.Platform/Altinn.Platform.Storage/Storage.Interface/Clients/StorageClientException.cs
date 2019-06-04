@@ -4,7 +4,10 @@ using System.Text;
 
 namespace Storage.Interface.Clients
 {
-    class StorageClientException : Exception
+    /// <summary>
+    /// Exception class for storage exceptions.
+    /// </summary>
+    public class StorageClientException : Exception
     {
 
         public StorageClientException(string message) : base(message)

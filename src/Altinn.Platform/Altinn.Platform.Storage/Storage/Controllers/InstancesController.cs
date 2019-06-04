@@ -1,15 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
-using Altinn.Platform.Storage.Repository;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
-using Microsoft.Extensions.Logging;
-using Storage.Interface.Models;
-
 namespace Altinn.Platform.Storage.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Models;
+    using Altinn.Platform.Storage.Repository;
+    using global::Storage.Interface.Models;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.Documents;
+    using Microsoft.Extensions.Logging;
+
     /// <summary>
     /// Handles operations for the application instance resource
     /// </summary>
@@ -83,11 +83,11 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Gets an instance for a given instanceid
+        /// Gets an instance for a given instance id.
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner id</param>
-        /// <param name="instanceGuid">the guid of the instance</param>
-        /// <returns></returns>        
+        /// <param name="instanceOwnerId">instance owner id.</param>
+        /// <param name="instanceGuid">the guid of the instance.</param>
+        /// <returns>an instance.</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid)
         {
@@ -103,7 +103,7 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 return NotFound($"Unable to find instance {instanceId}: {e}");
-            }            
+            }
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceTemplate">The instance template to base the new instance on</param>
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
-        [HttpPost]        
+        [HttpPost]
         public async Task<ActionResult> Post(string appId, int instanceOwnerId, [FromBody] Instance instanceTemplate)
         {
             if (instanceTemplate == null && instanceOwnerId == 0)
@@ -131,13 +131,18 @@ namespace Altinn.Platform.Storage.Controllers
                 instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
             }
 
+            if (instanceTemplate == null)
+            {
+                instanceTemplate = new Instance();
+            }
+
             // TODO - also check instanceOwnerLookup!!
 
             // check if metadata exists
             Application appInfo;
             try
             {
-                appInfo = GetApplicationInformation(appId);                
+                appInfo = GetApplicationInformation(appId);
             }
             catch (DocumentClientException dce)
             {
@@ -154,7 +159,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return StatusCode(500, $"Unable to perform request: {e}");
             }
-             
+
             DateTime creationTime = DateTime.UtcNow;
 
             string applicationOwnerId = appInfo.Org;
@@ -168,10 +173,12 @@ namespace Altinn.Platform.Storage.Controllers
                 LastChangedDateTime = creationTime,
                 AppId = appId,
                 Org = applicationOwnerId,
-                VisibleDateTime = creationTime,
 
+                VisibleDateTime = instanceTemplate.VisibleDateTime,
+                DueDateTime = instanceTemplate.DueDateTime,
                 Labels = instanceTemplate.Labels,
                 PresentationField = instanceTemplate.PresentationField,
+
                 Workflow = new WorkflowState { CurrentStep = "FormFilling", IsComplete = false },
             };
 
