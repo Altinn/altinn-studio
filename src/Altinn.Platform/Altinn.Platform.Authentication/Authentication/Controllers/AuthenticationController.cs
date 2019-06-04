@@ -47,13 +47,13 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <param name="goToUrl">The url to redirect to if everything validates ok</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
-        [HttpGet]
+        [HttpGet("{goToUrl}")]
         public async Task<ActionResult> Get(string goToUrl)
         {
             string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goToUrl}");
             if (Request.Cookies[_generalSettings.GetSBLCookieName] == null)
             {
-                return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+               return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
             }
             else
             {
