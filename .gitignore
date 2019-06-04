@@ -356,9 +356,7 @@ pom.xml.versionsBackup
 pom.xml.next
 release.properties
 
-##########################
 ## Eclipse
-##########################
 .metadata
 .classpath
 .project
@@ -372,9 +370,7 @@ tmp/
 local.properties
 .loadpath
 
-##########################
 ## NetBeans
-##########################
 nbproject/private/
 build/
 nbbuild/
@@ -382,3 +378,6 @@ dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
+
+## IntelliJ
+.idea
