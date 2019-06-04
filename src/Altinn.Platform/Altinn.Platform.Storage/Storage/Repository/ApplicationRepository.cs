@@ -108,7 +108,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<bool> Delete(string appId, string applicationOwnerId)
+        public async Task<bool> Delete(string appId, string org)
         {
             string cosmosAppId = AppIdToCosmosId(appId);
 
@@ -117,7 +117,7 @@ namespace Altinn.Platform.Storage.Repository
             ResourceResponse<Document> instance = await _client
                 .DeleteDocumentAsync(
                     uri.ToString(),
-                    new RequestOptions { PartitionKey = new PartitionKey(applicationOwnerId) });
+                    new RequestOptions { PartitionKey = new PartitionKey(org) });
 
             return true;
         }
