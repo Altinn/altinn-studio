@@ -1854,7 +1854,7 @@ namespace AltinnCore.Common.Services.Implementation
             string textData = File.ReadAllText(_generalSettings.ServiceImplementationTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(service)));
 
             // Create the service implementation folder
             Directory.CreateDirectory(_settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
@@ -1883,7 +1883,7 @@ namespace AltinnCore.Common.Services.Implementation
             string textData = File.ReadAllText(_generalSettings.CalculateHandlerTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(service)));
 
             // Get the file path
             string calculationHandlerFilePath = _settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
@@ -1896,7 +1896,7 @@ namespace AltinnCore.Common.Services.Implementation
             string textData = File.ReadAllText(_generalSettings.RuleHandlerTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(service)));
 
             // Get the file path
             string ruleHandlerFilePath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
@@ -1909,7 +1909,7 @@ namespace AltinnCore.Common.Services.Implementation
             string textData = File.ReadAllText(_generalSettings.ValidationHandlerTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(service)));
 
             // Get the file path
             string validationHandlerFilePath = _settings.GetValidationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
@@ -1922,7 +1922,7 @@ namespace AltinnCore.Common.Services.Implementation
             string textData = File.ReadAllText(_generalSettings.InstantiationHandlerTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(service)));
 
             // Get the file path
             string instansiationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
