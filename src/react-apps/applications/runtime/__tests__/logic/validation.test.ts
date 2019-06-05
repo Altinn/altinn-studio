@@ -208,4 +208,35 @@ describe('>>> utils/validations.ts', () => {
     expect(falseResult).toBeFalsy();
     expect(trueResult).toBeTruthy();
   });
+
+  it('+++ canFormBeSaved should validate correctly', () => {
+    const validValidationResult = {
+      componentId_1: {
+        simpleBinding: {
+          errors: [
+            'Field is required',
+          ],
+          warnings: [],
+        },
+      },
+      componentId_2: {
+        customBinding: {
+          errors: [],
+          warnings: [],
+        },
+      },
+      componentId_3: {
+        simpleBinding: {
+          errors: [
+            'Field is required',
+          ],
+          warnings: [],
+        },
+      },
+    };
+    const falseResult = validation.canFormBeSaved(mockFormValidationResult);
+    const trueResult = validation.canFormBeSaved(validValidationResult);
+    expect(falseResult).toBeFalsy();
+    expect(trueResult).toBeTruthy();
+  });
 });
