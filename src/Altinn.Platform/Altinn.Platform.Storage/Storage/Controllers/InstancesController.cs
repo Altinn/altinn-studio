@@ -38,27 +38,33 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Get all instances for a given instanceowner, org or appId. Only one parameter at the time.
+        /// Gets all instances for a given instance owner.
         /// </summary>
-        /// <param name="instanceOwnerId">owner of the instances</param>
+        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <returns>list of instances</returns>
+        [HttpGet("{instanceOwnerId:int}")]
+        public async Task<ActionResult> GetInstanceOwners(int instanceOwnerId)
+        {
+            List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerId);
+            if (result == null || result.Count == 0)
+            {
+                return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get all instances for a given org or appId. Only one parameter at the time.
+        /// </summary>
         /// <param name="org">application owner</param>
         /// <param name="appId">application id</param>
         /// <returns>list of all instances for given instanceowner</returns>
-        /// GET /instances
+        /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
         [HttpGet]
-        public async Task<ActionResult> GetMany(int instanceOwnerId, string org, string appId)
+        public async Task<ActionResult> GetMany(string org, string appId)
         {
-            if (instanceOwnerId != 0)
-            {
-                List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerId);
-                if (result == null || result.Count == 0)
-                {
-                    return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
-                }
-
-                return Ok(result);
-            }
-            else if (!string.IsNullOrEmpty(org))
+            if (!string.IsNullOrEmpty(org))
             {
                 List<Instance> result = await _instanceRepository.GetInstancesOfOrg(org);
                 if (result == null || result.Count == 0)
