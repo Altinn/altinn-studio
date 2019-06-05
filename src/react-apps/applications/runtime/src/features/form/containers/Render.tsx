@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { GenericComponent } from '../components/GenericComponent';
-import { ILayout, ILayoutComponent, ILayoutGroup } from '../features/form/layout/';
-import { makeGetLayout } from '../selectors/getLayoutData';
-import { IRuntimeState } from '../types';
+import { GenericComponent } from '../../../components/GenericComponent';
+import { makeGetLayout } from '../../../selectors/getLayoutData';
+import { IRuntimeState } from '../../../types';
+import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
+
 export interface IRenderProps {
   layout: ILayout;
   textResources: any;

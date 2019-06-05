@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import FormFillerActions from '../features/form/data/actions';
+import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import FormFillerActions from '../data/actions';
 
-import { IAltinnWindow, IRuntimeState } from '../types';
-import { IValidations } from '../types/global';
+import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IValidations } from '../../../types/global';
 
 export interface IWorkflowStepProvidedProps {
   header: string;

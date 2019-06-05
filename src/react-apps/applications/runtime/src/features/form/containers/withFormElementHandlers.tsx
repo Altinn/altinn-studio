@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } from '../features/form/layout/';
-import { makeGetLayout } from '../selectors/getLayoutData';
-import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
-import { IRuntimeState } from '../types';
-import { IComponentValidations } from '../types/global';
-import { renderValidationMessagesForComponent } from '../utils/render';
+import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { makeGetLayout } from '../../../selectors/getLayoutData';
+import { makeGetComponentValidationsSelector } from '../../../selectors/getValidations';
+import { IRuntimeState } from '../../../types';
+import { IComponentValidations } from '../../../types/global';
+import { renderValidationMessagesForComponent } from '../../../utils/render';
+import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } from '../layout';
 
 export interface IProvidedProps {
   id: string;

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
+import { formComponentWithHandlers } from '../features/form/containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
 import { IFormData } from '../features/form/data/reducer';
 import FormDynamicsActions from '../features/form/dynamics/actions';
