@@ -155,6 +155,37 @@ export function getErrorCount(validations: IValidations) {
 }
 
 /*
+* Checks if form can be saved. If it contains anything other than valid error messages it returns false
+*/
+export function canFormBeSaved(validations: IValidations) {
+  if (!validations) {
+    return true;
+  }
+  const layoutCanBeSaved = Object.keys(validations).every((componentId: string) => {
+    const componentValidations: IComponentValidations = validations[componentId];
+    const componentCanBeSaved = Object.keys(componentValidations).every((bindingKey: string) => {
+      const componentErrors = componentValidations[bindingKey].errors;
+      if (componentErrors) {
+        return componentErrors.every((error) => (
+          validErrorMessages.includes(error)
+        ));
+      } else {
+        return true;
+      }
+    });
+    return componentCanBeSaved;
+  });
+  return layoutCanBeSaved;
+}
+
+/*
+* Validation messages we allow before saving the form
+*/
+const validErrorMessages: string[] = [
+  'Field is required',
+];
+
+/*
   Maps the API validation response to our redux format
 */
 export function mapApiValidationsToRedux(
