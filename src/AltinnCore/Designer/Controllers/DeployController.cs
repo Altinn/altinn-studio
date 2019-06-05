@@ -72,8 +72,8 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public async Task<IActionResult> StartDeployment(string applicationOwnerId, string applicationCode)
         {
-            _logger.LogInformation("repository -{0}", applicationOwnerId);
-            _logger.LogInformation("repository -{0}", applicationCode);
+            _logger.LogInformation("applicationOwnerId -{0}", applicationOwnerId);
+            _logger.LogInformation("applicationCode -{0}", applicationCode);
             if (applicationOwnerId == null || applicationCode == null)
             {
                 _logger.LogInformation("failed in owner and app code -bad request");
