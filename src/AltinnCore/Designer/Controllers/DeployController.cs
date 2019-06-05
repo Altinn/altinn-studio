@@ -77,7 +77,7 @@ namespace AltinnCore.Designer.Controllers
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "ApplicationOwnerId and applicationCode must be supplied",
+                    Message = "Application owner (org) and application name must be supplied",
                 });
             }
 
