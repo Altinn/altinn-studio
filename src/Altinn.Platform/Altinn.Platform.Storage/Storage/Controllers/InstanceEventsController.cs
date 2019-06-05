@@ -16,17 +16,14 @@ namespace Altinn.Platform.Storage.Controllers
     public class InstanceEventsController : Controller
     {
         private readonly IInstanceEventRepository _repository;
-        private readonly ILogger logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventsController"/> class
         /// </summary>
         /// <param name="instanceEventRepository">the instance repository handler</param>
-        /// <param name="logger"> the logger </param>
-        public InstanceEventsController(IInstanceEventRepository instanceEventRepository, ILogger<InstanceEventsController> logger)
+        public InstanceEventsController(IInstanceEventRepository instanceEventRepository)
         {
             _repository = instanceEventRepository;
-            this.logger = logger;
         }
 
         /// <summary>

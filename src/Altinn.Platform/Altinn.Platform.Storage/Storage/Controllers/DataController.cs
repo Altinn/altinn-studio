@@ -9,6 +9,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
     using global::Storage.Interface.Models;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Features;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.WebUtilities;
@@ -215,22 +216,62 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return appErrorMessage;
             }
-            
+
+            if (!appInfo.ElementTypes.Exists(e => e.Id == elementType))
+            {
+                return BadRequest("Requested element type is not declared in application metadata");
+            }
+
+            DataElement newData = CreateDataElement(Request, elementType, instance, instanceGuid, out Stream theStream);
+
+            if (theStream == null)
+            {
+                return BadRequest("No data attachements found");
+            }
+
+            if (instance.Data == null)
+            {
+                instance.Data = new List<DataElement>();
+            }
+
+            instance.Data.Add(newData);
+
+            try
+            {
+                // store file as blob
+                await _dataRepository.CreateDataInStorage(theStream, newData.StorageUrl);
+
+                // update instance
+                Instance result = await _instanceRepository.Update(instance);
+
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Unable to create instance data in storage: {e}");
+            }         
+        }
+
+        /// <summary>
+        /// Creates a data element by reading the first multipart element or the body of the request.
+        /// </summary>
+        private DataElement CreateDataElement(HttpRequest request, string elementType, Instance instance, Guid instanceGuid, out Stream theStream)
+        {
             DateTime creationTime = DateTime.UtcNow;
 
-            Stream theStream = null;
+            theStream = null;
             string contentType = null;
             string contentFileName = null;
             long fileSize = 0;
 
-            if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+            if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
             {
                 // Only read the first section of the mulitpart message.
-                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
+                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
                 string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
 
-                MultipartReader reader = new MultipartReader(boundary, Request.Body);
-                MultipartSection section = await reader.ReadNextSectionAsync();
+                MultipartReader reader = new MultipartReader(boundary, request.Body);
+                MultipartSection section = reader.ReadNextSectionAsync().Result;
 
                 theStream = section.Body;
                 contentType = section.ContentType;
@@ -245,13 +286,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                theStream = Request.Body;
-                contentType = Request.ContentType;
-            }
-
-            if (theStream == null)
-            {
-                return BadRequest("No data attachements found");
+                theStream = request.Body;
+                contentType = request.ContentType;
             }
 
             string dataId = Guid.NewGuid().ToString();
@@ -282,34 +318,7 @@ namespace Altinn.Platform.Storage.Controllers
             string filePath = DataFileName(instance.AppId, instanceGuid.ToString(), newData.Id.ToString());
             newData.StorageUrl = filePath;
 
-            if (instance.Data == null)
-            {
-                instance.Data = new List<DataElement>();
-            }
-
-            instance.Data.Add(newData);
-
-            try
-            {
-                // store file as blob
-                await _dataRepository.CreateDataInStorage(theStream, filePath);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unable to create instance data in storage: {e}");
-            }
-
-            try
-            {
-                // update instance
-                Instance result = await _instanceRepository.Update(instance);
-
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unable to store instance in storage: {e}");
-            }            
+            return newData;
         }
 
         /// <summary>

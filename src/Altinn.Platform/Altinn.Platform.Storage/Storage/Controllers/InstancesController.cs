@@ -63,7 +63,7 @@ namespace Altinn.Platform.Storage.Controllers
                 List<Instance> result = await _instanceRepository.GetInstancesOfOrg(org);
                 if (result == null || result.Count == 0)
                 {
-                    return NotFound($"Did not find any instances for applicationOwnerId={org}");
+                    return NotFound($"Did not find any instances for application owner (org)={org}");
                 }
 
                 return Ok(result);
@@ -162,7 +162,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             DateTime creationTime = DateTime.UtcNow;
 
-            string applicationOwnerId = appInfo.Org;
+            string org = appInfo.Org;
 
             Instance createdInstance = new Instance()
             {
@@ -172,7 +172,7 @@ namespace Altinn.Platform.Storage.Controllers
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
                 AppId = appId,
-                Org = applicationOwnerId,
+                Org = org,
 
                 VisibleDateTime = instanceTemplate.VisibleDateTime,
                 DueDateTime = instanceTemplate.DueDateTime,

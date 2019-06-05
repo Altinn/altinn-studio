@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 
 namespace Storage.Interface.Clients
@@ -25,6 +26,16 @@ namespace Storage.Interface.Clients
         /// <param name="inner">the exception</param>
         public StorageClientException(string message, Exception inner) : base(message, inner)
         {
+        }
+
+        /// <summary>
+        /// Gets the object data
+        /// </summary>
+        /// <param name="info">info</param>
+        /// <param name="context">context</param>
+        public override void GetObjectData(SerializationInfo info, StreamingContext context)
+        {
+            base.GetObjectData(info, context);
         }
     }
 }

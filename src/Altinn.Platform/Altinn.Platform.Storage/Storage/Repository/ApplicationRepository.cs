@@ -123,11 +123,11 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Application>> ListApplications(string applicationOwnerId)
+        public async Task<List<Application>> ListApplications(string org)
         {
             IDocumentQuery<Application> query = _client
                 .CreateDocumentQuery<Application>(_collectionUri,  new FeedOptions { EnableCrossPartitionQuery = true })
-                .Where(i => i.Org == applicationOwnerId)
+                .Where(i => i.Org == org)
                 .AsDocumentQuery();
 
             FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
@@ -137,7 +137,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<Application> FindOne(string appId, string applicationOwnerId)
+        public async Task<Application> FindOne(string appId, string org)
         {
             string cosmosAppId = AppIdToCosmosId(appId);
 
@@ -146,7 +146,7 @@ namespace Altinn.Platform.Storage.Repository
             Application application = await _client
                 .ReadDocumentAsync<Application>(
                     uri,
-                    new RequestOptions { PartitionKey = new PartitionKey(applicationOwnerId) });
+                    new RequestOptions { PartitionKey = new PartitionKey(org) });
 
             return PostProcess(application);
         }
