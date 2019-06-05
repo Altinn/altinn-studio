@@ -100,7 +100,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IWorkflow, WorkflowAppSI>();
                 services.AddSingleton<ITestdata, TestdataAppSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
-                services.AddHttpClient<StorageClient>();
+                services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
