@@ -14,17 +14,15 @@ export default class TestData {
   }
 }
 
-export const AutoTestUser = Role(app.baseUrl, async t => {
+export const AutoTestUser = Role(app.baseUrl + '/Home/Index#/', async t => {
   await t
-      .click(loginPage.welcomeLoginButton)
       .typeText(loginPage.userInput, "AutoTest")
       .typeText(loginPage.passwordInput, "test123")
       .click(loginPage.loginButton)
-})
+}, { preserveUrl: true })
 
-export const NoDeployUser = Role(app.baseUrl, async t => {
+export const NoDeployUser = Role(app.baseUrl +'/Home/Index#/', async t => {
   await t
-      .click(loginPage.welcomeLoginButton)
       .typeText(loginPage.userInput, "automatedtest@email.com")
       .typeText(loginPage.passwordInput, "test123")
       .click(loginPage.loginButton)

@@ -18,8 +18,8 @@ createTestCafe()
         skipJsErrors: true,
         quarantineMode: false,
         selectorTimeout: 10000,
-        assertionTimeout: 20000,
-        pageLoadTimeout: 10000,
+        assertionTimeout: 10000,
+        pageLoadTimeout: 5000,
         speed: 1,
         debugOnFail: false,
         stopOnFirstFail: false

@@ -25,10 +25,6 @@ fixture('Regression tests of services in runtime')
 test('Instantiate a service in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/uieditor')
-    .expect(designer.hentEndringer.exists).ok()
-    .click(designer.hentEndringer)
-    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
-    .click(designer.testeNavigationTab)
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].visible).ok()
@@ -84,7 +80,7 @@ test('Read-only components test in runtime', async () => {
     .switchToMainWindow()
 })
 
-test.skip('axe UI accessibility test for runtime', async t => {
+test('axe UI accessibility test for runtime', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)
