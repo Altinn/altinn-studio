@@ -236,7 +236,9 @@ describe('>>> utils/validations.ts', () => {
     };
     const falseResult = validation.canFormBeSaved(mockFormValidationResult);
     const trueResult = validation.canFormBeSaved(validValidationResult);
+    const trueResult2 = validation.canFormBeSaved(null);
     expect(falseResult).toBeFalsy();
     expect(trueResult).toBeTruthy();
+    expect(trueResult2).toBeTruthy();
   });
 });
