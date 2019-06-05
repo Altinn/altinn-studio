@@ -5,13 +5,14 @@ import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
   id: string;
-  component: IFormCheckboxComponent;
   formData: any;
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid: boolean;
-  validationMessages: IComponentValidations;
-  designMode: boolean;
+  validationMessages: any;
+  options: any[];
+  preselectedOptionIndex: number;
+  readOnly: boolean;
 }
 
 export interface ICheckboxContainerState {
@@ -24,13 +25,13 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     super(props, state);
     if (
       !this.props.formData &&
-      this.props.component.preselectedOptionIndex &&
-      this.props.component.options &&
-      this.props.component.preselectedOptionIndex < this.props.component.options.length
+      this.props.preselectedOptionIndex &&
+      this.props.options &&
+      this.props.preselectedOptionIndex < this.props.options.length
     ) {
       const selected: string[] = [];
-      selected[props.component.preselectedOptionIndex] =
-        props.component.options[this.props.component.preselectedOptionIndex].value;
+      selected[props.preselectedOptionIndex] =
+        props.options[this.props.preselectedOptionIndex].value;
       this.state = {
         selected,
       };
@@ -41,7 +42,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     }
   }
 
-  public onDataChanged = (selectedValue: any, index: number) => {
+  public onDataChanged = (selectedValue: any, index: number, label: string) => {
     const newSelected = this.state.selected;
     if (newSelected[index] === selectedValue) {
       newSelected[index] = '';
@@ -51,7 +52,13 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     this.setState({
       selected: newSelected,
     });
-    this.props.handleDataChange(newSelected.join());
+    let count = 0;
+    for (const i in newSelected) {
+      if (newSelected[i]) {
+        count++;
+      }
+    }
+    this.props.handleDataChange(count > 1 ? newSelected.join() : selectedValue);
   }
 
   public isOptionSelected = (option: string) => {
@@ -63,9 +70,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
   }
 
   public render() {
-    const { options } = this.props.component;
-    const optionsLength = (options) ? options.length : 0;
-    const isStacked: boolean = (optionsLength > 2);
+    const isStacked: boolean = (this.props.options.length > 2);
     return (
       <div
         className={
@@ -78,12 +83,12 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
         id={this.props.id}
         style={isStacked ? {} : { alignItems: 'start' }}
       >
-        {options.map((option, index) => (
+        {this.props.options.map((option, index) => (
           <div
             key={index}
             className={classNames('custom-control', 'custom-checkbox', 'a-custom-checkbox', 'pl-0', 'pr-4 mr-3',
-              { 'no-cursor': this.props.component.readOnly })}
-            onClick={this.props.component.readOnly ? null : this.onDataChanged.bind(this, option.value, index)}
+              { 'no-cursor': this.props.readOnly })}
+            onClick={this.props.readOnly ? null : this.onDataChanged.bind(this, option.value, index, option.label)}
           >
             <input
               type='checkbox'
@@ -95,13 +100,13 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
             />
             <label
               className={classNames('custom-control-label', 'pl-3',
-                { 'disabled-checkbox no-cursor': this.props.component.readOnly })}
+                { 'disabled-checkbox no-cursor': this.props.readOnly })}
             >
               {option.label}
             </label>
             {this.props.validationMessages && this.isOptionSelected(option.value) &&
               renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding,
-                this.props.component.id)}
+                this.props.id)}
           </div>
         ))}
       </div>

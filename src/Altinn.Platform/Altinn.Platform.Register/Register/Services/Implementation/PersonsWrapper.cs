@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Helpers;
@@ -9,6 +11,7 @@ using Altinn.Platform.Register.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Register.Services.Implementation
 {
@@ -36,10 +39,11 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Person person = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Person));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/persons/{ssn}");
+            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/persons");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
-                HttpResponseMessage response = await client.GetAsync(endpointUrl);
+                string ssnData = JsonConvert.SerializeObject(ssn);
+                HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(ssnData, Encoding.UTF8, "application/json"));
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();

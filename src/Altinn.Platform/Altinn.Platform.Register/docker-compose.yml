@@ -12,8 +12,8 @@ services:
     networks:
       - altinnplatform_network
     environment:
-      - GeneralSettings:BridgeApiEndpoint=https://at21.altinn.cloud/api/bridge/
-      - GeneralSettings:ShouldUseMock=true
+      - GeneralSettings:BridgeApiEndpoint=https://at21.altinn.cloud/sblbridge/register/api
+      - GeneralSettings:ShouldUseMock=false
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5020
     ports:

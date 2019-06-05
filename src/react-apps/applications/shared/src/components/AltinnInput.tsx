@@ -43,7 +43,7 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnInput extends React.Component<IAltinnInputCompontentProvidedProps, IAltinnInputComponentState> {
+export class AltinnInput extends React.Component<IAltinnInputCompontentProvidedProps, IAltinnInputComponentState> {
   public render() {
     const { classes } = this.props;
     return (

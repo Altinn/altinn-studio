@@ -59,7 +59,7 @@ namespace AltinnCore.Common.Services.Implementation
         public IServiceImplementation GetServiceImplementation(string applicationOwnerId, string applicationId, bool startServiceFlag)
         {
             string assemblyName = LoadServiceAssembly(applicationOwnerId, applicationId, startServiceFlag);
-            string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, applicationOwnerId, applicationId) + ".ServiceImplementation," + assemblyName;
+            string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, applicationOwnerId, CompileHelper.GetCSharpValidAppId(applicationId)) + ".ServiceImplementation," + assemblyName;
 
             return (IServiceImplementation)Activator.CreateInstance(Type.GetType(implementationTypeName));
         }

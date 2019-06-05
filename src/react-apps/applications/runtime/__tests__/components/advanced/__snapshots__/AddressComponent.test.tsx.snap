@@ -14,7 +14,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
     disabled={false}
     onBlur={[Function]}
     onChange={[Function]}
-    value=""
+    value="adresse 1"
   />
   <div
     className="address-component-postplace-zipCode"

@@ -9,7 +9,11 @@ import * as FormDesignerActionTypes from '../../actions/formDesignerActions/form
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { IServiceConfigurationState } from '../../reducers/serviceConfigurationReducer';
-import { getParentContainerId } from '../../utils/formLayout';
+import {
+  convertFromLayoutToInternalFormat,
+  convertInternalToLayoutFormat,
+  getParentContainerId,
+} from '../../utils/formLayout';
 import { get, post } from '../../utils/networking';
 import { getAddApplicationMetadataUrl, getDeleteApplicationMetadataUrl, getSaveFormLayoutUrl, getUpdateApplicationMetadataUrl } from '../../utils/urlHelper';
 // tslint:disable-next-line:no-var-requires
@@ -69,7 +73,7 @@ function* addFormComponentSaga({
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
     );
-    if (component.component === 'FileUpload') {
+    if (component.type === 'FileUpload') {
       const { maxNumberOfAttachments, maxFileSizeInMB, validFileEndings } = component as IFormFileUploaderComponent;
       yield call(FormDesignerActionDispatchers.addApplicationMetadata,
         id, maxNumberOfAttachments, maxFileSizeInMB, validFileEndings);
@@ -150,7 +154,7 @@ function* deleteFormComponentSaga({
     );
     const component = formDesignerState.layout.components[id];
 
-    if (component.component === 'FileUpload') {
+    if (component.type === 'FileUpload') {
       yield call(FormDesignerActionDispatchers.deleteApplicationMetadata,
         id);
     }
@@ -201,20 +205,31 @@ function* fetchFormLayoutSaga({
   url,
 }: FormDesignerActions.IFetchFormLayoutAction): SagaIterator {
   try {
-    const formLayout = yield call(get, url);
-    if (!formLayout || !formLayout.data) {
-      yield call(
-        FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
-        null,
-      );
+    const fetchedFormLayout = yield call(get, url);
+    let convertedFormLayout;
+    let hasOldFormat = false;
+    if (!fetchedFormLayout || !fetchedFormLayout.data) {
+      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, {});
+    } else if (!fetchedFormLayout.data.layout) {
+      // TODO: remove this else at some later point
+      // The service has the old internal format -> map from old to new, then back to fix component.component update
+      // This else can be removed at some point
+      hasOldFormat = true;
+      const newLayout = yield call(convertInternalToLayoutFormat, fetchedFormLayout.data);
+      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, newLayout);
     } else {
-      yield call(
-        FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
-        formLayout.data,
-      );
+      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, fetchedFormLayout.data.layout);
+    }
+    yield call(
+      FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
+      convertedFormLayout,
+    );
+
+    if (hasOldFormat) {
+      yield call(FormDesignerActionDispatchers.saveFormLayout, getSaveFormLayoutUrl());
     }
 
-    if (!formLayout || !formLayout.data || !Object.keys(formLayout.data.order).length) {
+    if (!convertedFormLayout || !Object.keys(convertedFormLayout.order).length) {
       yield call(FormDesignerActionDispatchers.addFormContainer,
         {
           repeating: false,
@@ -224,6 +239,7 @@ function* fetchFormLayoutSaga({
       );
     }
   } catch (err) {
+    console.error(err);
     yield call(FormDesignerActionDispatchers.fetchFormLayoutRejected, err);
   }
 }
@@ -304,11 +320,14 @@ function* saveFormLayoutSaga({
 }: FormDesignerActions.ISaveFormLayoutAction): SagaIterator {
   try {
     const formLayout: IAppState = yield select();
+    const convertedFormLayout = yield call(convertInternalToLayoutFormat, {
+      components: formLayout.formDesigner.layout.components,
+      containers: formLayout.formDesigner.layout.containers,
+      order: formLayout.formDesigner.layout.order,
+    });
     yield call(post, url, {
       data: {
-        components: formLayout.formDesigner.layout.components,
-        containers: formLayout.formDesigner.layout.containers,
-        order: formLayout.formDesigner.layout.order,
+        layout: convertedFormLayout,
       },
     });
     yield call(FormDesignerActionDispatchers.saveFormLayoutFulfilled);
@@ -365,7 +384,7 @@ function* updateFormComponentSaga({
       FormDesignerActionDispatchers.saveFormLayout,
       saveFormLayoutUrl,
     );
-    if (updatedComponent.component === 'FileUpload') {
+    if (updatedComponent.type === 'FileUpload') {
       const {
         maxNumberOfAttachments,
         maxFileSizeInMB,

@@ -1,12 +1,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
+import FormFillerActions from '../features/form/data/actions';
+
+import { IAltinnWindow, IRuntimeState } from '../types';
+import { IValidations } from '../types/global';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
   step: WorkflowSteps;
-  onStepChange: any;
 }
 
 /*
@@ -117,7 +119,8 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public handleSubmitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
-    FormFillerActionDispatchers.completeAndSendInForm(
+    // TODO: UPDATE WITH NEW RUNTIME API LINK WHEN MERGING WITH MASTER
+    FormFillerActions.completeAndSendInForm(
       `${window.location.origin}/runtime/${org}/${service}/${instanceId}/CompleteAndSendIn`);
   }
   public renderFormFiller = () => {
@@ -167,7 +170,9 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                 <div>
                   <h3 className='a-fontReg' style={{ marginBottom: 0 }}>
                     <i className='ai ai-circle-exclamation a-icon' />
-                    <span>{getLanguageFromKey('form_filler.error_report_header', this.props.language)}</span>
+                    <span>
+                      {getLanguageFromKey('form_filler.error_report_header', this.props.language)}
+                    </span>
                   </h3>
                 </div>
               </div>
@@ -222,12 +227,12 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             </div>
           </div>
         </div>
-      </ div>
+      </div>
     );
   }
 }
 
-const getErrorList = (validations: IValidationResults) => {
+const getErrorList = (validations: IValidations) => {
   const unmappedValidations = validations.unmapped;
   if (!unmappedValidations) {
     return null;
@@ -238,10 +243,10 @@ const getErrorList = (validations: IValidationResults) => {
   });
 };
 
-const mapStateToProps = (state: IAppState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
+const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
-    language: state.appData.language.language,
-    errorList: getErrorList(state.formFiller.validationResults),
+    language: state.language ? state.language.language : {},
+    errorList: getErrorList(state.formValidations ? state.formValidations.validations : {}),
     ...props,
   };
 };

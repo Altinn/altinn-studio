@@ -79,11 +79,19 @@ Build and run the code.
 
 ```cmd
 dotnet build
-npm run gulp
 npm run gulp-develop
 ```
 
+If you are not going to edit the designer react app you can use
 
+```cmd
+cd src\AltinnCore\Designer
+npm install
+npm run gulp
+dotnet run
+```
+
+Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
 **Runtime**
 
 Stop the container running Runtime.
@@ -109,7 +117,15 @@ npm run gulp
 dotnet run
 ```
 
-Which will build the runtime app, but not listen for changes to our react app.
+Which will build the runtime .net backend and runtime react app, but not listen for changes to our react app.
+
+## Building other react apps
+If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/react-apps/applications/dashboard` and then run the following build script
+
+```cmd
+npm run build
+```
+Some of the react projects also have various other predefined npm tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/react-apps/applications/dashboard/package.json`
 
 ## Running the tests
 

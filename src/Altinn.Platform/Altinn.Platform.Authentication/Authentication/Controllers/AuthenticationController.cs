@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authentication.Controllers
 {
@@ -44,25 +45,25 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <summary>
         /// Request that handles the form authentication cookie from SBL
         /// </summary>
-        /// <param name="goToUrl">The url to redirect to if everything validates ok</param>
+        /// <param name="goTo">The url to redirect to if everything validates ok</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [HttpGet]
-        public async Task<ActionResult> Get(string goToUrl)
+        public async Task<ActionResult> Get(string goTo)
         {
-            string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goToUrl}");
+            string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
             if (Request.Cookies[_generalSettings.GetSBLCookieName] == null)
             {
-                return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+               return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
             }
             else
             {
                 UserAuthenticationModel userAuthentication = null;
                 DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
-                Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}");
+                Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}/tickets");
                 using (HttpClient client = new HttpClient())
                 {
-                    UserAuthenticationModel postUserValue = new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] };
-                    HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(postUserValue.ToString(), Encoding.UTF8, "application/json"));
+                    string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] });
+                    HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         Stream stream = await response.Content.ReadAsStreamAsync();
@@ -99,7 +100,7 @@ namespace Altinn.Platform.Authentication.Controllers
                                 Response.Cookies.Append(_generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
                             }
 
-                            return Redirect(goToUrl);
+                            return Redirect(goTo);
                         }
                         else
                         {

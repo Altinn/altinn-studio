@@ -5,12 +5,19 @@ import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnButtonComponentProvidedProps extends WithStyles<typeof styles> {
+  /** Button ID */
   id?: any;
+  /** @ignore */
   classes: any;
+  /** Text shown on button */
   btnText: string;
+  /** onClick function */
   onClickFunction?: any;
+  /** Class objects created with Material-Ui's createStyle */
   className?: any;
+  /** Secondary styling */
   secondaryButton?: boolean;
+  /** Disabled styling */
   disabled?: boolean;
 }
 
@@ -61,7 +68,7 @@ const styles = () => createStyles({
   },
 });
 
-class AltinnButton extends
+export class AltinnButton extends
   React.Component<IAltinnButtonComponentProvidedProps, IAltinnButtonComponentState> {
 
   public render() {

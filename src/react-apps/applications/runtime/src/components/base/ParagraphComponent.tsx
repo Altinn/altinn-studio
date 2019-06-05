@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export interface IParagraphProps {
-  component: IFormComponent;
+  id: string;
   text: string;
 }
 
@@ -11,7 +11,7 @@ export class ParagraphComponent extends React.Component<IParagraphProps, IParagr
 
   public render() {
     return (
-      <span id={this.props.component.id}>{this.props.text}</span>
+      <span id={this.props.id}>{this.props.text}</span>
     );
   }
 }
