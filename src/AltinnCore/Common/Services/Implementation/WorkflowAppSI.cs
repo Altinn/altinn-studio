@@ -59,7 +59,7 @@ namespace AltinnCore.Common.Services.Implementation
             _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
             _cookieOptions = cookieOptions.Value;
-            _client = httpClientAccessor.Client;
+            _client = httpClientAccessor.StorageClient;
         }
 
         /// <inheritdoc/>

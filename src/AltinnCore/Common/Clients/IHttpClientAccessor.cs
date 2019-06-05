@@ -13,6 +13,16 @@ namespace AltinnCore.Common.Clients
         /// <summary>
         /// segwsgwsg
         /// </summary>
-        HttpClient Client { get; }
+        HttpClient StorageClient { get; }
+        
+        /// <summary>
+        /// segwsgwsg
+        /// </summary>
+        HttpClient RegisterClient { get; }
+
+        /// <summary>
+        /// segwsgwsg
+        /// </summary>
+        HttpClient ProfileClient { get; }
     }
 }

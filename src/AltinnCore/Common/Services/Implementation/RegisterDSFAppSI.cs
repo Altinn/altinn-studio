@@ -49,16 +49,10 @@ namespace AltinnCore.Common.Services.Implementation
 
             Uri endpointUrl = new Uri($"{_platformSettings.GetApiRegisterEndpoint}persons/{SSN}");
 
-            // string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             using (HttpClient client = new HttpClient())
             {
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authentication");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {

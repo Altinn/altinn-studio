@@ -63,7 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
-            _client = httpClientAccessor.Client;
+            _client = httpClientAccessor.StorageClient;
         }
 
         /// <inheritdoc />
