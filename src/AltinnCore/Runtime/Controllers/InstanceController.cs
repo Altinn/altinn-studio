@@ -384,31 +384,6 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Returns runtime (instantiation) without InstanceId.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>The start Runtime View.</returns>
-        [Authorize]
-        public async Task<IActionResult> StartRuntime(string org, string service)
-        {
-            UserContext userContext = await _userHelper.GetUserContext(HttpContext);
-            var startServiceModel = new StartServiceModel
-            {
-                ReporteeList = _authorization
-                    .GetReporteeList(userContext.UserId)
-                    .Select(x => new SelectListItem
-                    {
-                        Text = x.ReporteeNumber + " " + x.ReporteeName,
-                        Value = x.PartyID.ToString(),
-                    })
-                    .ToList(),
-                ServiceID = org + "_" + service,
-            };
-            return View(startServiceModel);
-        }
-
-        /// <summary>
         /// Get the current state.
         /// </summary>
         /// <param name="org">The Organization code for the service owner.</param>
