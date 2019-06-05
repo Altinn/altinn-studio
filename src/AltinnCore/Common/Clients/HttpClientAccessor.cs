@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Clients
 {
     /// <summary>
-    /// Http client accessor for handling... 
+    /// Http client accessor for accessing clients  for Altinn Platform integration
     /// </summary>
     public class HttpClientAccessor : IHttpClientAccessor
     {
@@ -18,6 +18,7 @@ namespace AltinnCore.Common.Clients
         private readonly HttpClient _profileClient;
 
         /// <summary>
+        /// Initializes a new HttpClient accessor of the <see cref="HttpClientAccessor"/> class.
         /// <param name="platformSettings">the platform settings</param>
         /// </summary>
         public HttpClientAccessor(IOptions<PlatformSettings> platformSettings)

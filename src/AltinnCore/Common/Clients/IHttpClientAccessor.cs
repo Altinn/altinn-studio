@@ -6,22 +6,22 @@ using System.Text;
 namespace AltinnCore.Common.Clients
 {
     /// <summary>
-    /// Interface for handling form data related operations
+    /// Interface for http client accessor
     /// </summary>
     public interface IHttpClientAccessor
     {
         /// <summary>
-        /// segwsgwsg
+        /// An Http StorageClient that communicates with the Altinn Platform Storage component
         /// </summary>
         HttpClient StorageClient { get; }
-        
+
         /// <summary>
-        /// segwsgwsg
+        /// An Http RegisterClient that communicates with the Altinn Platform Register component
         /// </summary>
         HttpClient RegisterClient { get; }
 
         /// <summary>
-        /// segwsgwsg
+        /// An Http ProfileClient that communicates with the Altinn Platform Profile component.
         /// </summary>
         HttpClient ProfileClient { get; }
     }
