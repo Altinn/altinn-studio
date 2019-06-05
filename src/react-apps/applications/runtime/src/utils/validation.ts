@@ -179,7 +179,7 @@ export function canFormBeSaved(validations: IValidations) {
 }
 
 /*
-* Validation messages we allow before sending in form
+* Validation messages we allow before saving the form
 */
 const validErrorMessages: string[] = [
   'Field is required',
