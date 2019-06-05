@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AltinnCore.Common.Constants;
+using AltinnCore.Common.Helpers;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Newtonsoft.Json.Linq;
 
@@ -66,7 +67,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
-                .AppendLine("namespace " + string.Format(CodeGeneration.ServiceNamespaceTemplate, serviceMetadata.Org, serviceMetadata.RepositoryName))
+                .AppendLine("namespace " + string.Format(CodeGeneration.ServiceNamespaceTemplate, serviceMetadata.Org, CompileHelper.GetCSharpValidAppId(serviceMetadata.RepositoryName)))
                 .AppendLine("{")
                 ////Append all classes
                 .Append(string.Concat(classes.Values))

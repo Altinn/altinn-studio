@@ -1,3 +1,5 @@
+/* tslint:disable:jsx-wrap-multiline */
+/* tslint:disable:max-line-length */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -110,15 +112,30 @@ describe('>>> components/base/createNewService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    expect(instance.createRepoNameFromServiceName('1234ThisIsAnInValidServiceName')).toBe('ThisIsAnInValidServiceName');
-    expect(instance.createRepoNameFromServiceName('1234 This Is A Valid Service Name'))
-      .toBe('This_Is_A_Valid_Service_Name');
-    // tslint:disable-next-line:max-line-length
-    expect(instance.createRepoNameFromServiceName('SpicyJalapenoBaconIpsumDolorAmetCillumShankVelitAdipisicingFugiatDuisShortRibsShortLoinPariaturCapicolaVenison'))
-      .toBe('SpicyJalapenoBaconIpsumDolorAmetCillumShankVelitAdipisicingFugiatDuisShortRibsShortLoinPariaturCapic');
-    expect(instance.createRepoNameFromServiceName('Særvice Næme')).toBe('Saervice_Naeme');
-    expect(instance.createRepoNameFromServiceName('1234__ThisIsAnInValidServiceName'))
-      .toBe('ThisIsAnInValidServiceName');
+
+    // Assert removing non a-z in beginning of name
+    expect(instance.createRepoNameFromServiceName('1234_-FjernerTallOgSpesialTegnIStartenAvNavn'))
+      .toBe('fjernertallogspesialtegnistartenavnavn');
+
+    // Assert spaces
+    expect(instance.createRepoNameFromServiceName('1234 Removes Numbers And Inserts Dashes'))
+      .toBe('removes-numbers-and-inserts-dashes');
+
+    // Assert æøå replacement
+    expect(instance.createRepoNameFromServiceName('Tjeneste med æ ø og å 2019'))
+      .toBe('tjeneste-med-ae-oe-og-aa-2019');
+
+    // Assert replace illegal characters
+    expect(instance.createRepoNameFromServiceName('Replaces three illegal characters with one dash($_?2019'))
+      .toBe('replaces-three-illegal-characters-with-one-dash-2019');
+
+    // Assert lowercase
+    expect(instance.createRepoNameFromServiceName('1234RemovesNumbersAndUppercaseLetters'))
+      .toBe('removesnumbersanduppercaseletters');
+
+    // Assert substring
+    expect(instance.createRepoNameFromServiceName('TjenesteMedVeldigLangtNavnSomOverstiger100TegnOmNoenFlereOrdHerNaaErViSnartIMaalMedNokOrd-JaErHundreDetteErOverHundre'))
+      .toBe('tjenestemedveldiglangtnavnsomoverstiger100tegnomnoenflereordhernaaervisnartimaalmednokord-jaerhundre');
   });
 
   it('+++ should validate service names', () => {
@@ -132,16 +149,33 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
-    instance.state.repoName = '1234ThisIsAnInValidServiceName';
+
+    // Assert empty name
+    instance.state.repoName = '';
     expect(instance.validateService()).toBe(false);
-    instance.state.repoName = 'ThisIsAValidServiceName';
+
+    // Assert namestarts with number
+    instance.state.repoName = '1234thisisnotvalid';
+    expect(instance.validateService()).toBe(false);
+
+    // Assert valid name
+    instance.state.repoName = 'thisisavalidservicename';
     expect(instance.validateService()).toBe(true);
-    // tslint:disable-next-line:max-line-length
+
+    // Assert valid name with dash and number
+    instance.state.repoName = 'this-is-a-valid-servicename-2019';
+    expect(instance.validateService()).toBe(true);
+
+    // Assert name with uppercase
+    instance.state.repoName = 'ThisIsNotAValidServiceName';
+    expect(instance.validateService()).toBe(false);
+
+    // Assert a very long name
     instance.state.repoName = 'SpicyJalapenoBaconIpsumDolorAmetCillumShankVelitAdipisicingFugiatDuisShortRibsShortLoinPariaturCapicolaVenison';
     expect(instance.validateService()).toBe(false);
   });
 
-  it('+++ should handle updateing service owner, service name and repo name', () => {
+  it('+++ should handle updating service owner, service name and repo name', () => {
     const mountedComponent = mount(
       <CreateNewServiceComponent
         language={mockLanguage}
@@ -154,11 +188,11 @@ describe('>>> components/base/createNewService.tsx', () => {
     instance.handleUpdateDropdown({ target: { value: mockSelectableUser[0].name } });
     expect(instance.state.selectedOrgOrUser).toBe(mockSelectableUser[0].name);
 
-    const mockServiceName = 'Service name';
+    const mockServiceName = '1234service-name';
     instance.handleServiceNameUpdated({ target: { value: mockServiceName } });
     expect(instance.state.serviceName).toBe(mockServiceName);
 
-    const mockRepoName = 'ServiceName';
+    const mockRepoName = 'service-name';
     instance.handleRepoNameUpdated({ target: { value: mockRepoName } });
     expect(instance.state.repoName).toBe(mockRepoName);
   });
@@ -173,18 +207,29 @@ describe('>>> components/base/createNewService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    instance.state.repoName = 'ServiceName';
-    instance.handleServiceNameOnBlur();
-    expect(instance.state.repoName).toBe('ServiceName');
 
+    // When reponame is null, convert service name to valid reponame
+    instance.state.serviceName = 'Service Name';
+    instance.state.repoName = null;
+    instance.handleServiceNameOnBlur();
+    expect(instance.state.repoName).toBe('service-name');
+
+    // RepoName is RepoName
+    instance.state.repoName = 'service-name-2019';
+    instance.handleServiceNameOnBlur();
+    expect(instance.state.repoName).toBe('service-name-2019');
+
+    // Repo name is still 'service-name-2019'
     instance.state.serviceName = 'Service Name';
     instance.handleServiceNameOnBlur();
-    expect(instance.state.repoName).toBe('ServiceName');
+    expect(instance.state.repoName).toBe('service-name-2019');
 
+    // Reponame does not change when service name changes
     instance.state.serviceName = 'Service Name';
-    instance.state.repoName = 'RepoName';
+    instance.state.repoName = 'repo-name';
     instance.handleServiceNameOnBlur();
-    expect(instance.state.repoName).toBe('RepoName');
+    expect(instance.state.repoName).toBe('repo-name');
+
   });
 
   it('+++ should handle creating new service when servicename is already taken', () => {
@@ -198,7 +243,7 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance._isMounted = true;
-    instance.state.repoName = 'ServiceName';
+    instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
       repositoryCreatedStatus: 422,
@@ -225,7 +270,7 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance._isMounted = true;
-    instance.state.repoName = 'ServiceName';
+    instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
       repositoryCreatedStatus: 418,
@@ -252,7 +297,7 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance._isMounted = true;
-    instance.state.repoName = 'ServiceName';
+    instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockError = Error('mocked error');
     const getStub = jest.fn();
@@ -279,11 +324,11 @@ describe('>>> components/base/createNewService.tsx', () => {
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance._isMounted = true;
-    instance.state.repoName = 'ServiceName';
+    instance.state.repoName = 'service-name';
     instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
       repositoryCreatedStatus: 201,
-      full_name: 'FirstOrg/ServiceName',
+      full_name: 'FirstOrg/service-name',
     };
     const getSpy = jest.spyOn(networking, 'post').mockImplementation(() => Promise.resolve(mockResult));
     window.location.assign = jest.fn();
@@ -291,7 +336,6 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance.state.isLoading).toBe(true);
     return Promise.resolve().then(() => {
       expect(getSpy).toHaveBeenCalled();
-      // tslint:disable-next-line:max-line-length
       expect(window.location.assign).toHaveBeenCalledWith(`${window.location.origin}/designer/${mockResult.full_name}#/aboutservice`);
     });
   });
