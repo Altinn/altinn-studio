@@ -29,7 +29,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     const model = convertDataBindingToModel(formDataState.formData, dataModelState.dataModel);
     const validations = validateFormData(formDataState.formData, dataModelState.dataModel, layoutState.layout);
     if (canFormBeSaved(validations)) {
-      const result = yield call(put, url, apiMode || 'Update', { body: model });
+      const result = yield call(put, url, apiMode || 'Update', model);
       yield call(FormDataActions.submitFormDataFulfilled);
       if (result.status === 0 && result.nextState) {
         WorkflowActions.setCurrentState(result.nextState);

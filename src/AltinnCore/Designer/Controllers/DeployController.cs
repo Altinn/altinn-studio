@@ -72,8 +72,11 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public async Task<IActionResult> StartDeployment(string applicationOwnerId, string applicationCode)
         {
+            _logger.LogInformation("applicationOwnerId -{0}", applicationOwnerId);
+            _logger.LogInformation("applicationCode -{0}", applicationCode);
             if (applicationOwnerId == null || applicationCode == null)
             {
+                _logger.LogInformation("failed in owner and app code -bad request");
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
@@ -81,8 +84,10 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
+            _logger.LogInformation("access token {0}", _configuration["AccessTokenDevOps"]);
             if (_configuration["AccessTokenDevOps"] == null)
             {
+                _logger.LogInformation("failed in access token -bad request");
                 ViewBag.ServiceUnavailable = true;
                 return BadRequest(new DeploymentStatus
                 {
@@ -92,8 +97,12 @@ namespace AltinnCore.Designer.Controllers
             }
 
             Repository repository = _giteaAPI.GetRepository(applicationOwnerId, applicationCode).Result;
+            _logger.LogInformation("repository -{0}", repository);
+            _logger.LogInformation("repository permission -{0}", repository.Permissions);
+            _logger.LogInformation("repository permission push -{0}", repository.Permissions.Push);
             if (repository != null && repository.Permissions != null && repository.Permissions.Push != true)
             {
+                _logger.LogInformation("failed in repository -bad request");
                 ViewBag.ServiceUnavailable = true;
                 return BadRequest(new DeploymentStatus
                 {
