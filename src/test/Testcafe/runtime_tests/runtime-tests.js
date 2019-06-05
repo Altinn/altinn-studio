@@ -16,14 +16,15 @@ fixture('Regression tests of services in runtime')
     //Testdata and other testing context
     t.ctx.serviceName = "runtime";
     t.ctx.tjenesteOppdatert = "Tjenesten din er oppdatert til siste versjon";
-    await t.useRole(AutoTestUser);
+    await t
+      .useRole(AutoTestUser)
+      .resizeWindow(1280,610)
   })
 
 
 test('Instantiate a service in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/uieditor')
-    .maximizeWindow()
     .expect(designer.hentEndringer.exists).ok()
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
@@ -57,7 +58,6 @@ test('Upload files using file component in SBL', async () => {
 test('Validations when uploading file', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/uieditor')
-    .maximizeWindow()
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
@@ -84,7 +84,7 @@ test('Read-only components test in runtime', async () => {
     .switchToMainWindow()
 })
 
-test('axe UI accessibility test for runtime', async t => {
+test.skip('axe UI accessibility test for runtime', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)

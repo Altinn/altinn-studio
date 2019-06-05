@@ -15,9 +15,10 @@ fixture('Navigating the Service designer')
   .before(async () => {
   })
   .beforeEach(async t => {
-    await t.useRole(AutoTestUser)
-    await waitForReact();
-    await t.navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
+    await t
+      .useRole(AutoTestUser)
+      .resizeWindow(1280,610)
+      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice');
   })
   .after(async () => {
   })

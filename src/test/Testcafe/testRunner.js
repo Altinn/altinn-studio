@@ -9,7 +9,7 @@ createTestCafe()
     const stream = fs.createWriteStream('junit.xml');
 
     return runner
-      .browsers(['chrome'])
+      .browsers(['puppeteer'])
       .concurrency(1)
       .screenshots('./screenshots', { takeOnFails: true })
       .reporter('junit', stream)

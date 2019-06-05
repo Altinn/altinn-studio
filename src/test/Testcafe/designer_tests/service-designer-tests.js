@@ -12,7 +12,9 @@ fixture('GUI service designer tests')
   .beforeEach(async t => {
     t.ctx.deltMessage = "Du har delt dine endringer";
     t.ctx.syncMessage = "Endringene er validert";
-    await t.useRole(AutoTestUser)
+    await t
+      .useRole(AutoTestUser)
+      .resizeWindow(1280,610)
   })
 
 test('Drag and drop test', async () => {
@@ -95,7 +97,7 @@ test('About page items and editing', async () => {
     .expect(designer.omKommentarer.textContent).contains("Lorem")
 })
 
-test('Automated accessibility test for designer page', async t => {
+test.skip('Automated accessibility test for designer page', async t => {
   axeCheck(t);
 })
 

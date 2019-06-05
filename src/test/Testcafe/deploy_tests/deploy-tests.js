@@ -27,14 +27,15 @@ fixture('GUI service designer tests')
     t.ctx.ikkeTilgjengelig = "Tjenesten din er ikke tilgjengelig i testmiljø";
     t.ctx.ikkeTilgang = "Du har ikke tilgang til å legge ut tjenesten";
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
-    await t.useRole(AutoTestUser)
+    await t
+      .useRole(AutoTestUser)
+      .resizeWindow(1280,610)
   })
 
 test('Happy case; deploy a service to a test environment after a change', async() => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
     .click(designer.lageNavigationTab)
-    .maximizeWindow()
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
     .click(designer.omNavigationTab) //remove pop up
@@ -63,7 +64,6 @@ test('Happy case; deploy a service to a test environment after a change', async(
 test('Service cannot deploy due to compilation error', async() => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/aboutservice')
-    .maximizeWindow()
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(designer.ingenEndringer.exists).ok()
@@ -78,7 +78,6 @@ test('Service cannot deploy due to compilation error', async() => {
 test('Service cannot be deployed due to local changes', async() => {
   await t
   .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
-  .maximizeWindow()
   .click(designer.lageNavigationTab)
   .click(designer.hentEndringer)
   .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
@@ -103,7 +102,6 @@ test('Service cannot be deployed due to local changes', async() => {
 
 test('User does not have write access to service, and cannot deploy', async() => {
   await t
-    .maximizeWindow()
     .useRole(NoDeployUser)
     .click(dash.serviceSearch)
     .typeText(dash.serviceSearch, "manualDeployTest") // the noAccessUser login does not have access to manualDeployTest
@@ -119,7 +117,7 @@ test('User does not have write access to service, and cannot deploy', async() =>
     .expect(Selector("h2").withText(t.ctx.ikkeTilgang).visible).ok()
 })
 
-test('Accessibility testing for deployment to test environment page', async t => {
+test.skip('Accessibility testing for deployment to test environment page', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)

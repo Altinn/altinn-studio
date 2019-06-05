@@ -15,8 +15,9 @@ fixture('Creating/Reading/Updating/Deleting services')
     t.ctx.newServiceName = "testcafe04";
     t.ctx.deltMessage = "Du har delt dine endringer";
     t.ctx.syncMessage = "Endringene er validert";
-    await t.useRole(AutoTestUser)
-    //app.before()
+    await t
+      .useRole(AutoTestUser)
+      .resizeWindow(1280,610)
   })
   .after(async (t) => {
     //await dash.logout();

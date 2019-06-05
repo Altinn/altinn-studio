@@ -28,4 +28,4 @@ export const NoDeployUser = Role(app.baseUrl, async t => {
       .typeText(loginPage.userInput, "automatedtest@email.com")
       .typeText(loginPage.passwordInput, "test123")
       .click(loginPage.loginButton)
-})
+}, { preserveUrl: true })
