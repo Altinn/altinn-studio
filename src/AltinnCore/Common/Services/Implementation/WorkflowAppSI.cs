@@ -108,7 +108,6 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 State = currentWorkflowState
             };
-
         }
 
         /// <inheritdoc/>

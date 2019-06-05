@@ -86,6 +86,8 @@ namespace AltinnCore.Common.Services.Implementation
                 _client.DefaultRequestHeaders.Remove("Authorization");
             }
 
+            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
