@@ -11,8 +11,8 @@ namespace Altinn.Platform.Register.Services.Interfaces
         /// <summary>
         /// Method that fetches a organization based on a organization number
         /// </summary>
-        /// <param name="OrgNr">The organization number</param>
+        /// <param name="orgNr">The organization number</param>
         /// <returns></returns>
-        Task<Organization> GetOrganization(string OrgNr);
+        Task<Organization> GetOrganization(string orgNr);
     }
 }

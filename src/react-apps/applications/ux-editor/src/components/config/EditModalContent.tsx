@@ -509,7 +509,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                 inputDescriptionStyling={{ marginTop: '24px' }}
                 type={'number'}
               />
-              <Typography style={{ fontSize: '1.6rem', display: 'inline-block', marginTop: '23px' }}>
+              <Typography style={{ fontSize: '1.6rem', display: 'inline-block', marginTop: '23px', marginLeft: '6px' }}>
                 {getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size_helper', this.props.language)}
               </Typography>
