@@ -41,7 +41,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="logger">the logger</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
-        /// <param name="httpClientAccessor">The Http client accessor </param>
+        /// <param name="httpClientAccessor">The http client accessor </param>
         public DataAppSI(
             IOptions<PlatformSettings> platformSettings,
             ILogger<DataAppSI> logger,

@@ -4,6 +4,7 @@ using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
+using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
@@ -25,6 +26,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterAppSI"/> class
@@ -35,13 +37,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="platformSettings">The platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
+        /// <param name="httpClientAccessor">The http client accessor </param>
         public RegisterAppSI(
             IDSF dfs,
             IER er,
             ILogger<RegisterAppSI> logger,
             IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<JwtCookieOptions> cookieOptions)
+            IOptions<JwtCookieOptions> cookieOptions,
+            IHttpClientAccessor httpClientAccessor)
         {
             _dsf = dfs;
             _er = er;
@@ -49,6 +53,7 @@ namespace AltinnCore.Common.Services.Implementation
             _platformSettings = platformSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
+            _client = httpClientAccessor.RegisterClient;
         }
 
         /// <summary>
@@ -76,18 +81,19 @@ namespace AltinnCore.Common.Services.Implementation
             Uri endpointUrl = new Uri($"{_platformSettings.GetApiRegisterEndpoint}party/{partyId}");
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
-            using (HttpClient client = new HttpClient())
+            if (_client.DefaultRequestHeaders.Contains("Authorization"))
             {
-                client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-                HttpResponseMessage response = await client.GetAsync(endpointUrl);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    party = await response.Content.ReadAsAsync<Party>();
-                }
-                else
-                {
-                    _logger.LogError($"Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
-                }
+                _client.DefaultRequestHeaders.Remove("Authentication");
+            }
+
+            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                party = await response.Content.ReadAsAsync<Party>();
+            }
+            else
+            {
+                _logger.LogError($"Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
             }
 
             return party;

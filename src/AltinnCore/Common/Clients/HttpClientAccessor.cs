@@ -35,21 +35,12 @@ namespace AltinnCore.Common.Clients
         }
 
         /// <inheritdoc />
-        public HttpClient RegisterClient
-        {
-            get { return _registerClient; }
-        }
+        public HttpClient RegisterClient => _registerClient;
 
         /// <inheritdoc />
-        public HttpClient ProfileClient
-        {
-            get { return _profileClient; }
-        }
+        public HttpClient ProfileClient => _profileClient;
 
         /// <inheritdoc />
-        public HttpClient StorageClient
-        {
-            get { return _storageClient; }
-        }
+        public HttpClient StorageClient => _storageClient;
     }
 }
