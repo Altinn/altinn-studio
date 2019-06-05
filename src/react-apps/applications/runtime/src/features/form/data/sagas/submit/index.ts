@@ -30,7 +30,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     const validations = validateFormData(formDataState.formData, dataModelState.dataModel, layoutState.layout);
     const errorCount = getErrorCount(validations);
     if (errorCount === 0) {
-      const result = yield call(put, url, apiMode || 'Update', { body: model });
+      const result = yield call(put, url, apiMode || 'Update', model);
       yield call(FormDataActions.submitFormDataFulfilled);
       if (result.status === 0 && result.nextState) {
         WorkflowActions.setCurrentState(result.nextState);
