@@ -12,7 +12,7 @@ import { IFormDataState } from '../../reducer';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { put } from '../../../../../utils/networking';
-import { getErrorCount, mapApiValidationsToRedux, validateFormData, canFormBeSaved } from '../../../../../utils/validation';
+import { canFormBeSaved, mapApiValidationsToRedux, validateFormData } from '../../../../../utils/validation';
 import { IDataModelState } from '../../../datamodell/reducer';
 import { ILayoutState } from '../../../layout/reducer';
 import FormValidationActions from '../../../validation/actions';
