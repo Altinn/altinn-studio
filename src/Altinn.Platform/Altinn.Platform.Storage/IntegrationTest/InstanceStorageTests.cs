@@ -119,18 +119,57 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        ///  Checks that the Inline data urls returns a proper encoding.
+        ///  Checks that the GET returns a proper encoding.
+        /// </summary>
+        [Fact]
+        public async void GetInstancesAndCheckEncoding()
+        {
+            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+
+            string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+        }
+
+        /// <summary>
+        ///  Checks that the GET returns an instance owners codes
         /// </summary>
         [Fact]
         public async void GetInstancesForInstanceOwner()
         {
             await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
 
-            string url = $"{versionPrefix}/instances?instanceOwnerId={testInstanceOwnerId}";
+            string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
             HttpResponseMessage response = await client.GetAsync(url);
 
             response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+
+            string json = await response.Content.ReadAsStringAsync();
+            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
+
+            Assert.Equal(2, instances.Count);
+        }
+
+        /// <summary>
+        ///  Checks that multiple instances can be returned with org query param.
+        /// </summary>
+        [Fact]
+        public async void GetInstancesForOrg()
+        {
+            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+
+            string url = $"{versionPrefix}/instances?org={testOrg}";
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string json = await response.Content.ReadAsStringAsync();
+            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
+
+            Assert.Equal(2, instances.Count);
         }
 
         /// <summary>
