@@ -78,12 +78,12 @@ namespace AltinnCore.Common.Services.Implementation
             Party party = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
 
-            Uri endpointUrl = new Uri($"{_platformSettings.GetApiRegisterEndpoint}party/{partyId}");
+            string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             if (_client.DefaultRequestHeaders.Contains("Authorization"))
             {
-                _client.DefaultRequestHeaders.Remove("Authentication");
+                _client.DefaultRequestHeaders.Remove("Authorization");
             }
 
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);

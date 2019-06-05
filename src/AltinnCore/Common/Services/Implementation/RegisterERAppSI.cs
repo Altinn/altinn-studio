@@ -52,12 +52,12 @@ namespace AltinnCore.Common.Services.Implementation
             Organization organization = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));
 
-            Uri endpointUrl = new Uri($"{_platformSettings.GetApiRegisterEndpoint}organizations/{OrgNr}");
+            string endpointUrl = $"organizations/{OrgNr}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
 
             if (_client.DefaultRequestHeaders.Contains("Authorization"))
             {
-                _client.DefaultRequestHeaders.Remove("Authentication");
+                _client.DefaultRequestHeaders.Remove("Authorization");
             }
 
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);

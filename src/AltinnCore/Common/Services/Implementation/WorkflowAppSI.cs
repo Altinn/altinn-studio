@@ -86,7 +86,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (_client.DefaultRequestHeaders.Contains("Authorization"))
             {
-                _client.DefaultRequestHeaders.Remove("Authentication");
+                _client.DefaultRequestHeaders.Remove("Authorization");
             }
 
             _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
