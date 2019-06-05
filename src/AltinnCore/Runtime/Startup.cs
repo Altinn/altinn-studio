@@ -271,10 +271,10 @@ namespace AltinnCore.Runtime
                 routes.MapRoute(
                    name: "runtimeRoute",
                    template: "runtime/{org}/{service}",
-                   defaults: new { action = "StartRuntime", controller = "Instance" },
+                   defaults: new { action = "EditSPA", controller = "Instance" },
                    constraints: new
                    {
-                       action= "StartRuntime",
+                       action= "EditSPA",
                        controller = "Instance",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
