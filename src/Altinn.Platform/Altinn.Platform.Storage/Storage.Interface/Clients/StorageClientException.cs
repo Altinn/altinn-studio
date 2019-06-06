@@ -29,6 +29,16 @@ namespace Storage.Interface.Clients
         }
 
         /// <summary>
+        /// Sonarcloud wanted this 
+        /// </summary>
+        /// <param name="info"></param>
+        /// <param name="context"></param>
+        protected StorageClientException(SerializationInfo info, StreamingContext context)
+             : base(info, context)
+        {
+        }
+
+        /// <summary>
         /// Gets the object data
         /// </summary>
         /// <param name="info">info</param>

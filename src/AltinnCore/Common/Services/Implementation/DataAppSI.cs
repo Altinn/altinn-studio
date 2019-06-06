@@ -139,7 +139,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             List<DataElement> dataList = null;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
-            List<Attachment> attachments = null;
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data";
             using (HttpClient client = new HttpClient())
             {
@@ -150,7 +149,8 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     string instanceData = await response.Content.ReadAsStringAsync();
                     dataList = JsonConvert.DeserializeObject<List<DataElement>>(instanceData);
-                    attachments = ExtractAttachments(dataList, attachmentList, attachments);
+
+                    ExtractAttachments(dataList, attachmentList);
                 }
                 else
                 {
@@ -161,8 +161,9 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        private static List<Attachment> ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList, List<Attachment> attachments)
+        private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
         {
+            List<Attachment> attachments = null;
             IEnumerable<DataElement> attachmentTypes = dataList.GroupBy(m => m.ElementType).Select(m => m.FirstOrDefault());
 
             foreach (DataElement attachmentType in attachmentTypes)
@@ -191,8 +192,6 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
             }
-
-            return attachments;
         }
 
         /// <inheritdoc />

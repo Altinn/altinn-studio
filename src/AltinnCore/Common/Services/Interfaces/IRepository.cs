@@ -36,9 +36,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Returns serviceMetadata for a service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="appName">The name of the current service</param>
         /// <returns>The service meta data</returns>
-        ServiceMetadata GetServiceMetaData(string org, string service);
+        ServiceMetadata GetServiceMetaData(string org, string appName);
 
         /// <summary>
         /// Returns a list of available services

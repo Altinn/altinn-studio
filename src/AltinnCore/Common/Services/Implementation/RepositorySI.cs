@@ -271,7 +271,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public bool UpdateMetadataForAttachment(string org, string service, string applicationMetadata)
+        public bool UpdateMetadataForAttachment(string org, string appName, string applicationMetadata)
         {
             try
             {
@@ -294,9 +294,9 @@ namespace AltinnCore.Common.Services.Implementation
                 applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
                 applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
                                
-                DeleteMetadataForAttachment(org, service, attachmentId);
+                DeleteMetadataForAttachment(org, appName, attachmentId);
                 string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
-                AddMetadataForAttachment(org, service, metadataAsJson);
+                AddMetadataForAttachment(org, appName, metadataAsJson);
             }
             catch (Exception)
             {

@@ -42,14 +42,14 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// insert new instance into collection
         /// </summary>
-        /// <param name="instance">the form data</param>
+        /// <param name="item">the  the instance to base the new one on</param>
         /// <returns>The instance id</returns>
-        Task<Instance> Create(Instance instance);
+        Task<Instance> Create(Instance item);
 
         /// <summary>
         /// update existing instance
         /// </summary>
-        /// <param name="item">the instance</param>
+        /// <param name="item">the instance to update</param>
         /// <returns>The updated instance</returns>
         Task<Instance> Update(Instance item);
 

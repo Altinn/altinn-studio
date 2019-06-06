@@ -58,16 +58,16 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> Create(Instance instanceTemplate)
+        public async Task<Instance> Create(Instance instance)
         {
-            PreProcess(instanceTemplate);
+            PreProcess(instance);
 
-            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, instanceTemplate);
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, instance);
             Document document = createDocumentResponse.Resource;
 
-            Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+            Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            return PostProcess(instance);
+            return PostProcess(instanceStored);
         }
 
         /// <inheritdoc/>

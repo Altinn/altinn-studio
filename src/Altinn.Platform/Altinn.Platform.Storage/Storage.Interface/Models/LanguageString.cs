@@ -11,10 +11,14 @@ namespace Storage.Interface.Models
     [Serializable]
     public class LanguageString : Dictionary<string, string>
     {
+        /// <summary>
+        /// Required by sonarcloud
+        /// </summary>
+        /// <param name="info">info</param>
+        /// <param name="context">context </param>
         protected LanguageString(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-
         }
 
         /// <summary>
