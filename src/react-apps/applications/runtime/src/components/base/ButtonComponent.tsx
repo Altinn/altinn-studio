@@ -1,23 +1,28 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
+import { makeGetValidationsSelector } from '../../selectors/getValidations';
+import { IValidations } from '../../types/global';
+import { canFormBeSaved, getErrorCount } from '../../utils/validation';
 import FormDataActions from './../../../src/features/form/data/actions/index';
-import { IAltinnWindow } from './../../types';
-export interface IButtonProps {
+import { IAltinnWindow, IRuntimeState } from './../../types';
+export interface IButtonProvidedProps {
   id: string;
   text: string;
   disabled: boolean;
   handleDataChange: (value: any) => void;
   unsavedChanges: boolean;
   formDataCount: number;
-  validationResults: any;
+}
+
+export interface IButtonProps extends IButtonProvidedProps {
+  validations: IValidations;
 }
 
 export interface IButtonState { }
 
-export class ButtonComponent extends React.Component<IButtonProps, IButtonState> {
+export class ButtonComponentClass extends React.Component<IButtonProps, IButtonState> {
   public renderSubmitButton = () => {
-    const disabled = (this.props.formDataCount > 0 &&
-      (this.props.validationResults !== null && Object.keys(this.props.validationResults).length !== 0))
-      || this.props.unsavedChanges || this.props.formDataCount === 0;
+    const disabled = (getErrorCount(this.props.validations) > 0) || this.props.unsavedChanges;
     return (
       <button
         type='submit'
@@ -33,7 +38,7 @@ export class ButtonComponent extends React.Component<IButtonProps, IButtonState>
 
   // TODO: Remove saveButton and functions (and sagas) when we have implemented automatic save.
   public renderSaveButton = () => {
-    const disabled = !this.props.unsavedChanges;
+    const disabled = !this.props.unsavedChanges || !canFormBeSaved(this.props.validations);
     return (
       <button
         type='submit'
@@ -75,3 +80,16 @@ export class ButtonComponent extends React.Component<IButtonProps, IButtonState>
     );
   }
 }
+
+const makeMapStateToProps = () => {
+  const GetValidations = makeGetValidationsSelector();
+  const mapStateToProps = (state: IRuntimeState, props: IButtonProvidedProps): IButtonProps => {
+    return {
+      validations: GetValidations(state),
+      ...props,
+    };
+  };
+  return mapStateToProps;
+};
+
+export const ButtonComponent = connect(makeMapStateToProps)(ButtonComponentClass);

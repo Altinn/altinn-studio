@@ -14,8 +14,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5030
-      - GeneralSettings:BridgeApiEndpoint=https://at21.altinn.cloud/api/bridge/
-      - GeneralSettings:ShouldUseMock=true
+      - GeneralSettings:BridgeApiEndpoint=https://at21.altinn.cloud/sblbridge/profile/api
+      - GeneralSettings:ShouldUseMock=false
     ports:
       - "5030:5030"
     build:

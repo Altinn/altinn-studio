@@ -86,7 +86,6 @@ namespace Altinn.Platform.Register
                 app.UseExceptionHandler("/Error");
             }
 
-            // app.UseHttpsRedirection();
             app.UseMvc();
         }
     }

@@ -58,6 +58,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             var serviceMetadata = new ServiceMetadata
             {
                 Elements = new Dictionary<string, ElementMetadata>(),
+                RepositoryName = service,
+                Org = org,                
             };
             this.xsd = xsd;
             this.secondaryXsds = secondaryXsds;

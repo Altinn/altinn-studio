@@ -28,5 +28,15 @@ namespace AltinnCore.Common.Helpers
 
             return Task<CodeCompilationResult>.Factory.StartNew(compile);
         }
+
+        /// <summary>
+        /// Converts the appId to a string that is valid in a C# Namespace
+        /// </summary>
+        /// <param name="appId">The appId</param>
+        /// <returns>The modified appId</returns>
+        public static string GetCSharpValidAppId(string appId)
+        {
+            return appId.Replace('-', '_').ToLower();
+        }
     }
 }
