@@ -40,7 +40,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public renderUser = () => {
-    if (this.props.formUser && this.props.formUser.firstName) {
+    if (this.props.formUser.firstName) {
       const user = this.props.formUser.firstName.concat(
         ' ',
         (this.props.formUser.middleName !== null ? (this.props.formUser.middleName.concat(' ')) : ''),

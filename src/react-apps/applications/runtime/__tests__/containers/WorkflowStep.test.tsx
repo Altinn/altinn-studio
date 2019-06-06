@@ -20,7 +20,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         language: {
           form_filler: {
             error_report_header: 'Mock error report',
-            placeholder_user: 'OLA PRIVATPERSON',
           },
         },
       },
@@ -33,6 +32,12 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
             },
           },
         },
+      },
+      formUser: {
+        firstName: 'Ola',
+        middleName: null,
+        lastName: 'Privatperson',
+        organization: null,
       },
     };
     mockStore = createStore(initialState);
