@@ -40,7 +40,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public renderUser = () => {
-    if (this.props.formUser.firstName) {
+    if (this.props.formUser && this.props.formUser.firstName) {
       const user = this.props.formUser.firstName.concat(
         ' ',
         (this.props.formUser.middleName !== null ? (this.props.formUser.middleName.concat(' ')) : ''),
@@ -71,14 +71,14 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                   </span>
                   <span style={{ color: '#022F51', lineHeight: '18px' }}>
                     {
-                      this.props.formUser.organization &&
+                      this.props.formUser && this.props.formUser.organization &&
                       getLanguageFromKey('general.for', this.props.language) + ' ' +
                       this.props.formUser.organization.toUpperCase()
                     }
                   </span>
                   <span className='d-block' />
                 </span>
-                {this.props.formUser.organization ?
+                {this.props.formUser && this.props.formUser.organization ?
                   <i
                     className='fa fa-corp-circle-big'
                     aria-hidden='true'
