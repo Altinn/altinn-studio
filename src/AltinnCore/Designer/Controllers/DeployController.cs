@@ -246,17 +246,17 @@ namespace AltinnCore.Designer.Controllers
         private async Task<bool> RegisterApplicationInStorage(string org, string appName, string versionId)
         {
             bool applicationInStorage = false;
-            Application applicationMetadataFromRepository = _repository.GetApplication(org, appName);
+            Application applicationFromRepository = _repository.GetApplication(org, appName);
             using (HttpClient client = new HttpClient())
             {
                 string appId = $"{org}/{appName}";
                 string storageEndpoint = _platformSettings.GetApiStorageEndpoint;
                 Application application = null;
                 string getApplicationMetadataUrl = $"{storageEndpoint}applications/{appId}";
-                HttpResponseMessage getApplicationMetadataResponse = await client.GetAsync(getApplicationMetadataUrl);
-                if (getApplicationMetadataResponse.IsSuccessStatusCode)
+                HttpResponseMessage getApplicationResponse = await client.GetAsync(getApplicationMetadataUrl);
+                if (getApplicationResponse.IsSuccessStatusCode)
                 {
-                    string json = getApplicationMetadataResponse.Content.ReadAsStringAsync().Result;
+                    string json = getApplicationResponse.Content.ReadAsStringAsync().Result;
                     application = JsonConvert.DeserializeObject<Application>(json);
                     applicationInStorage = true;
 
@@ -265,14 +265,14 @@ namespace AltinnCore.Designer.Controllers
                         application.Title = new Dictionary<string, string>();
                     }
 
-                    application.Title = applicationMetadataFromRepository.Title;
+                    application.Title = applicationFromRepository.Title;
                     application.VersionId = versionId;
                     if (application.ElementTypes == null)
                     {
                         application.ElementTypes = new List<ElementType>();
                     }
 
-                    application.ElementTypes = applicationMetadataFromRepository.ElementTypes;
+                    application.ElementTypes = applicationFromRepository.ElementTypes;
 
                     HttpResponseMessage response = client.PutAsync(getApplicationMetadataUrl, application.AsJson()).Result;
                     if (response.IsSuccessStatusCode)
@@ -284,14 +284,14 @@ namespace AltinnCore.Designer.Controllers
                         _logger.LogInformation($"An error occured while trying to update application Metadata for {appId}. VersionId is {versionId}.");
                     }
                 }
-                else if (getApplicationMetadataResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
+                else if (getApplicationResponse.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    Application appMetadata = GetApplicationMetadata(appId, versionId);
-                    appMetadata.Org = applicationMetadataFromRepository.Org;
-                    appMetadata.CreatedBy = applicationMetadataFromRepository.CreatedBy;
-                    appMetadata.CreatedDateTime = applicationMetadataFromRepository.CreatedDateTime;
-                    appMetadata.ElementTypes = applicationMetadataFromRepository.ElementTypes;
-                    appMetadata.Title = applicationMetadataFromRepository.Title;
+                    Application appMetadata = CreateApplication(appId, versionId);
+                    appMetadata.Org = applicationFromRepository.Org;
+                    appMetadata.CreatedBy = applicationFromRepository.CreatedBy;
+                    appMetadata.CreatedDateTime = applicationFromRepository.CreatedDateTime;
+                    appMetadata.ElementTypes = applicationFromRepository.ElementTypes;
+                    appMetadata.Title = applicationFromRepository.Title;
 
                     string createApplicationMetadataUrl = $"{storageEndpoint}applications?appId={appId}";
                     HttpResponseMessage createApplicationMetadataResponse = await client.PostAsync(createApplicationMetadataUrl, appMetadata.AsJson());
@@ -308,14 +308,14 @@ namespace AltinnCore.Designer.Controllers
                 else
                 {
                     applicationInStorage = false;
-                    _logger.LogError("Something went wrong when trying to get metadata, response code is: ", getApplicationMetadataResponse.StatusCode);
+                    _logger.LogError("Something went wrong when trying to get metadata, response code is: ", getApplicationResponse.StatusCode);
                 }
 
                 return applicationInStorage;
             }
         }
 
-        private Application GetApplicationMetadata(string appId, string versionId)
+        private Application CreateApplication(string appId, string versionId)
         {
             Dictionary<string, string> title = new Dictionary<string, string>
                         {
@@ -330,13 +330,13 @@ namespace AltinnCore.Designer.Controllers
                 VersionId = versionId
             };
 
-            ElementType defaultAppForm = new ElementType
+            ElementType elementTypes = new ElementType
             {
                 Id = "default",
                 AllowedContentType = new List<string>() { "application/xml" }
             };
 
-            appMetadata.ElementTypes.Add(defaultAppForm);
+            appMetadata.ElementTypes.Add(elementTypes);
 
             return appMetadata;
         }
