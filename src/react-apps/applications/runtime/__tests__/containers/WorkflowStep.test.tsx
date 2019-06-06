@@ -147,5 +147,37 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     );
     expect(wrapper.find('.a-modal-header').first().prop('style')).toHaveProperty('backgroundColor', '#F9CAD3');
   });
-
+  it('no user in state returns null', () => {
+    const createStore = configureStore();
+    const newState = {
+      language: {
+        language: {
+          form_filler: {
+            error_report_header: 'Mock error report',
+          },
+        },
+      },
+      formValidations: {
+        validations: {
+          'mock-component-id': {
+            simpleBinding: {
+              errors: ['mock-error-message'],
+              warnings: ['mock-warning-message'],
+            },
+          },
+        },
+      },
+      formUser: null,
+    };
+    mockStore = createStore(newState);
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <WorkflowStep
+          header={mockHeader}
+          step={WorkflowSteps.Submit}
+        />
+      </Provider>,
+    );
+    expect(wrapper.find('.d-block').first().text()).toEqual('');
+  });
 });
