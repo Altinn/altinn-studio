@@ -29,7 +29,7 @@ export enum ComponentTypes {
   Paragraph,
   Input,
   Datepicker,
-  DropDown,
+  // DropDown,
   CheckBox,
   RadioButton,
   TextArea,
