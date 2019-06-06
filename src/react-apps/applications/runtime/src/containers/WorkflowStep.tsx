@@ -40,7 +40,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public renderUser = () => {
-    if (this.props.formUser.firstName) {
+    if (this.props.formUser && this.props.formUser.firstName) {
       const user = this.props.formUser.firstName.concat(
         ' ',
         (this.props.formUser.middleName !== null ? (this.props.formUser.middleName.concat(' ')) : ''),
@@ -80,13 +80,13 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                 </span>
                 {this.props.formUser.organization ?
                   <i
-                    className='fa fa-private-circle-big fa-corp'
+                    className='fa fa-corp-circle-big'
                     aria-hidden='true'
                     style={{ color: '#022F51', fontSize: '3.1rem', marginLeft: '5px' }}
                   />
                   :
                   <i
-                    className='fa fa-private-circle-big  a-personSwitcher-icon'
+                    className='fa fa-private-circle-big'
                     aria-hidden='true'
                     style={{ color: '#022F51', fontSize: '3.1rem', marginLeft: '5px' }}
                   />
