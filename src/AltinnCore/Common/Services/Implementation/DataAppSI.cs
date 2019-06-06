@@ -150,35 +150,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     string instanceData = await response.Content.ReadAsStringAsync();
                     dataList = JsonConvert.DeserializeObject<List<DataElement>>(instanceData);
-
-                    IEnumerable<DataElement> attachmentTypes = dataList.GroupBy(m => m.ElementType).Select(m => m.FirstOrDefault());
-
-                    foreach (DataElement attachmentType in attachmentTypes)
-                    {
-                        attachments = new List<Attachment>();
-                        foreach (DataElement data in dataList)
-                        {
-                            if (data.ElementType != "default" && data.ElementType == attachmentType.ElementType)
-                            {
-                                attachments.Add(new Attachment
-                                {
-                                    Id = data.Id,
-                                    Name = data.FileName,
-                                    Size = data.FileSize
-                                });
-                            }
-                        }
-
-                        if (attachments.Count > 0)
-                        {
-                            attachmentList.Add(new AttachmentList { Type = attachmentType.ElementType, Attachments = attachments });
-                        }
-                    }
-
-                    if (attachments != null && attachments.Count > 0)
-                    {
-                        attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
-                    }
+                    attachments = ExtractAttachments(dataList, attachmentList, attachments);
                 }
                 else
                 {
@@ -187,6 +159,40 @@ namespace AltinnCore.Common.Services.Implementation
 
                 return attachmentList;
             }
+        }
+
+        private static List<Attachment> ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList, List<Attachment> attachments)
+        {
+            IEnumerable<DataElement> attachmentTypes = dataList.GroupBy(m => m.ElementType).Select(m => m.FirstOrDefault());
+
+            foreach (DataElement attachmentType in attachmentTypes)
+            {
+                attachments = new List<Attachment>();
+                foreach (DataElement data in dataList)
+                {
+                    if (data.ElementType != "default" && data.ElementType == attachmentType.ElementType)
+                    {
+                        attachments.Add(new Attachment
+                        {
+                            Id = data.Id,
+                            Name = data.FileName,
+                            Size = data.FileSize
+                        });
+                    }
+                }
+
+                if (attachments.Count > 0)
+                {
+                    attachmentList.Add(new AttachmentList { Type = attachmentType.ElementType, Attachments = attachments });
+                }
+            }
+
+            if (attachments != null && attachments.Count > 0)
+            {
+                attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
+            }
+
+            return attachments;
         }
 
         /// <inheritdoc />

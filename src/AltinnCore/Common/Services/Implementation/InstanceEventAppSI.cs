@@ -28,7 +28,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string appId)
+        public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
 
@@ -52,7 +52,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string appId, string[] eventTypes, string from, string to)
+        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName, string[] eventTypes, string from, string to)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
 
@@ -89,7 +89,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<string> SaveInstanceEvent(object dataToSerialize, string org, string appId)
+        public async Task<string> SaveInstanceEvent(object dataToSerialize, string org, string appName)
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.CreatedDateTime = DateTime.UtcNow;

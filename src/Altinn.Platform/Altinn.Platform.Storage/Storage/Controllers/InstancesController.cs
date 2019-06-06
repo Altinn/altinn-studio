@@ -185,7 +185,7 @@ namespace Altinn.Platform.Storage.Controllers
                 Labels = instanceTemplate.Labels,
                 PresentationField = instanceTemplate.PresentationField,
 
-                Workflow = new WorkflowState { CurrentStep = "FormFilling", IsComplete = false },
+                Workflow = new WorkflowState { CurrentStep = "FormFilling", IsComplete = false }
             };
 
             try
@@ -207,7 +207,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">instance id</param>
         /// <param name="instance">instance</param>
         /// <returns></returns>        
-        [HttpPut("{instanceOwnerId:int}/{guid:guid}")]
+        [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> Put(int instanceOwnerId, Guid instanceGuid, [FromBody] Instance instance)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
@@ -251,15 +251,15 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Delete an instance
         /// </summary>
-        /// <param name="guid">instance id</param>
+        /// <param name="instanceGuid">instance id</param>
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="hard">if true hard delete will take place</param>
         /// <returns>updated instance object</returns>
         /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}
-        [HttpDelete("{instanceOwnerId:int}/{guid:guid}")]
-        public async Task<ActionResult> Delete(Guid guid, int instanceOwnerId, bool? hard)
+        [HttpDelete("{instanceOwnerId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerId, bool? hard)
         {
-            string instanceId = $"{instanceOwnerId}/{guid}";
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
             Instance instance;
             try
