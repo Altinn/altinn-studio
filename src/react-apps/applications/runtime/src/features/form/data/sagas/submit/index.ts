@@ -12,7 +12,7 @@ import { IFormDataState } from '../../reducer';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { put } from '../../../../../utils/networking';
-import { getErrorCount, mapApiValidationsToRedux, validateFormData } from '../../../../../utils/validation';
+import { canFormBeSaved, mapApiValidationsToRedux, validateFormData } from '../../../../../utils/validation';
 import { IDataModelState } from '../../../datamodell/reducer';
 import { ILayoutState } from '../../../layout/reducer';
 import FormValidationActions from '../../../validation/actions';
@@ -28,8 +28,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     const layoutState: ILayoutState = yield select(LayoutSelector);
     const model = convertDataBindingToModel(formDataState.formData, dataModelState.dataModel);
     const validations = validateFormData(formDataState.formData, dataModelState.dataModel, layoutState.layout);
-    const errorCount = getErrorCount(validations);
-    if (errorCount === 0) {
+    if (canFormBeSaved(validations)) {
       const result = yield call(put, url, apiMode || 'Update', model);
       yield call(FormDataActions.submitFormDataFulfilled);
       if (result.status === 0 && result.nextState) {
