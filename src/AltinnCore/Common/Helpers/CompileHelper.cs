@@ -36,7 +36,7 @@ namespace AltinnCore.Common.Helpers
         /// <returns>The modified appId</returns>
         public static string GetCSharpValidAppId(string appId)
         {
-            if(appId.Contains("-"))
+            if (appId.Contains("-"))
             {
                 return appId.Replace('-', '_').ToLower();
             }
