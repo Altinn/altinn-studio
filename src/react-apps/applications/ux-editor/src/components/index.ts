@@ -88,6 +88,7 @@ export const schemaComponents: IComponent[] = [
     },
     Icon: componentIcons.Datepicker,
   },
+  /* removed for now
   {
     name: 'Dropdown',
     Tag: DropdownComponent,
@@ -97,6 +98,7 @@ export const schemaComponents: IComponent[] = [
       options: [],
     },
   },
+  */
   {
     name: 'Checkboxes',
     Tag: CheckboxContainerComponent,
