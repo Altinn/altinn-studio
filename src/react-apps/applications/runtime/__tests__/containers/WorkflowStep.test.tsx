@@ -180,4 +180,43 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     );
     expect(wrapper.find('.d-block').first().text()).toEqual('');
   });
+  it('if organization a different icon should show', () => {
+    const createStore = configureStore();
+    const newState = {
+      language: {
+        language: {
+          form_filler: {
+            error_report_header: 'Mock error report',
+          },
+        },
+      },
+      formValidations: {
+        validations: {
+          'mock-component-id': {
+            simpleBinding: {
+              errors: ['mock-error-message'],
+              warnings: ['mock-warning-message'],
+            },
+          },
+        },
+      },
+      formUser: {
+        firstName: 'Pål',
+        middleName: null,
+        lastName: 'Revisor',
+        organization: 'Tull og Tøys AS',
+      },
+    };
+    mockStore = createStore(newState);
+    const wrapper = mount(
+      <Provider store={mockStore}>
+        <WorkflowStep
+          header={mockHeader}
+          step={WorkflowSteps.Submit}
+        />
+      </Provider>,
+    );
+    expect(wrapper.find('.d-block').first().text()).toEqual('PÅL REVISOR');
+    expect(wrapper.find('.fa-corp-circle-big').length).toBe(1);
+  });
 });
