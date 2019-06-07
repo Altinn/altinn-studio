@@ -121,14 +121,17 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="view">name of the view</param>
         /// <param name="itemId">the item id</param>
         /// <returns>The react view or the receipt</returns>
-        [Authorize(Policy = "InstanceRead")]
+        [Authorize]
         public async Task<IActionResult> EditSPA(string org, string service, Guid instanceId, string view, int? itemId)
         {
             // Make sure user cannot edit an archived instance
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
-            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            if (instanceId != null)
+            {
+                RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
+                requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
+                requestContext.Reportee = requestContext.UserContext.Reportee;
+                List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            }
 
             // TODO Add info for REACT app.
             return View();
@@ -198,7 +201,7 @@ namespace AltinnCore.Runtime.Controllers
                     WorkflowStep = instance.CurrentWorkflowStep
                 };
 
-                await _event.SaveInstanceEvent(instanceEvent, org, service);               
+                await _event.SaveInstanceEvent(instanceEvent, org, service);
             }
 
             ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);
@@ -347,7 +350,7 @@ namespace AltinnCore.Runtime.Controllers
 
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
 
-                // Create a new instance document                
+                // Create a new instance document
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
                 // Create and store the instance created event

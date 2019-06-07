@@ -258,7 +258,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                    name: "uiEditRoute",
-                   template: "runtime/{org}/{service}/{instanceId}",
+                   template: "runtime/{org}/{service}/{instanceId?}",
                    defaults: new { action = "EditSPA", controller = "Instance" },
                    constraints: new
                    {
