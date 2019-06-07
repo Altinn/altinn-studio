@@ -10,7 +10,7 @@ let app = new App();
 let runtime = new RunTimePage();
 let designer = new DesignerPage();
 
-fixture.only('Regression tests of services in runtime')
+fixture('Regression tests of services in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
@@ -90,7 +90,7 @@ test('axe UI accessibility test for runtime', async t => {
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
-    .click(runtime.testUsers[1])
+    .click(runtime.testUsers[0])
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
