@@ -85,10 +85,10 @@
             <summary>
             Updates data.
             </summary>
-            <param name="instanceId">a</param>
-            <param name="dataId">xx</param>
-            <param name="fileName">c</param>
-            <param name="contentType">d</param>
+            <param name="instanceId">the instance id</param>
+            <param name="dataId">the data id</param>
+            <param name="fileName">a file name</param>
+            <param name="contentType">content type</param>
             <param name="content">content as json</param>
         </member>
         <member name="M:Altinn.Platform.Storage.Client.InstanceClient.GetData(System.String,System.String)">
@@ -515,6 +515,38 @@
             <param name="o">the json object to wrap.</param>
             <returns>a StringContent object.</returns>
         </member>
+        <member name="T:Storage.Interface.Clients.StorageClientException">
+            <summary>
+            Exception class for storage exceptions.
+            </summary>
+        </member>
+        <member name="M:Storage.Interface.Clients.StorageClientException.#ctor(System.String)">
+            <summary>
+            Exception with plain message.
+            </summary>
+            <param name="message">the message</param>
+        </member>
+        <member name="M:Storage.Interface.Clients.StorageClientException.#ctor(System.String,System.Exception)">
+            <summary>
+            Exception with message and inner exception
+            </summary>
+            <param name="message">the message</param>
+            <param name="inner">the exception</param>
+        </member>
+        <member name="M:Storage.Interface.Clients.StorageClientException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Sonarcloud wanted this 
+            </summary>
+            <param name="info"></param>
+            <param name="context"></param>
+        </member>
+        <member name="M:Storage.Interface.Clients.StorageClientException.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Gets the object data
+            </summary>
+            <param name="info">info</param>
+            <param name="context">context</param>
+        </member>
         <member name="T:Storage.Interface.Models.ApplicationOwnerDataState">
             <summary>
             Model to hold application owner state for a specific data element
@@ -571,6 +603,20 @@
             <summary>
             Convenience type to handle multiple languages in a string.
             </summary>
+        </member>
+        <member name="M:Storage.Interface.Models.LanguageString.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Required by sonarcloud
+            </summary>
+            <param name="info">info</param>
+            <param name="context">context </param>
+        </member>
+        <member name="M:Storage.Interface.Models.LanguageString.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Get object data.
+            </summary>
+            <param name="info">info</param>
+            <param name="context">context</param>
         </member>
         <member name="T:Storage.Interface.Models.ResourceLinks">
             <summary>

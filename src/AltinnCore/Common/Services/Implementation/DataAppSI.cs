@@ -154,7 +154,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.Log(LogLevel.Error, "Unable to fetch attachment list{0}", response.StatusCode);                    
+                    _logger.Log(LogLevel.Error, "Unable to fetch attachment list {0}", response.StatusCode);                    
                 }
 
                 return attachmentList;

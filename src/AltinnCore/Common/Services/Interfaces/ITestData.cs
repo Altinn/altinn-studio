@@ -19,7 +19,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="org">The application owner</param>
-        /// <param name="appName">The application id</param>
+        /// <param name="appName">The application name</param>
         /// <returns>List of form instances</returns>
         List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string appName);
 
@@ -28,7 +28,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="org">The application owner</param>
-        /// <param name="appName">The application id</param>
+        /// <param name="appName">The application name</param>
         /// <returns>List over prefill</returns>
         List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string appName);
     }

@@ -1,19 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Models;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Documents.Linq;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+
 namespace Altinn.Platform.Storage.Repository
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Altinn.Platform.Storage.Configuration;
-    using Altinn.Platform.Storage.Models;
-    using Microsoft.Azure.Documents;
-    using Microsoft.Azure.Documents.Client;
-    using Microsoft.Azure.Documents.Linq;
-    using Microsoft.Extensions.Options;
-    using Newtonsoft.Json;
-
     /// <summary>
-    /// Handles instances.
+    /// Repository operations for application instances.
     /// </summary>
     public class InstanceRepository : IInstanceRepository
     {
@@ -67,7 +67,9 @@ namespace Altinn.Platform.Storage.Repository
 
             Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            return PostProcess(instanceStored);
+            PostProcess(instanceStored);
+
+            return instanceStored;
         }
 
         /// <inheritdoc/>
@@ -101,7 +103,8 @@ namespace Altinn.Platform.Storage.Repository
             {
                 foreach (Instance instance in await query.ExecuteNextAsync().ConfigureAwait(false))
                 {
-                    instances.Add(PostProcess(instance));
+                    PostProcess(instance);
+                    instances.Add(instance);
                 }
             }
 
@@ -127,7 +130,9 @@ namespace Altinn.Platform.Storage.Repository
 
             List<Instance> instances = result.ToList<Instance>();
 
-            return PostProcess(instances);
+            PostProcess(instances);
+
+            return instances;
         }
 
         /// <inheritdoc/>
@@ -141,7 +146,9 @@ namespace Altinn.Platform.Storage.Repository
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
 
-            return PostProcess(instance);
+            PostProcess(instance);
+
+            return instance;
         }
 
         /// <inheritdoc/>
@@ -163,7 +170,11 @@ namespace Altinn.Platform.Storage.Repository
 
             FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
 
-            return PostProcess(feedResponse.ToList<Instance>());
+            List<Instance> instances = feedResponse.ToList<Instance>();
+
+            PostProcess(instances);
+
+            return instances;
         }
 
         /// <inheritdoc/>
@@ -176,36 +187,55 @@ namespace Altinn.Platform.Storage.Repository
             Document document = createDocumentResponse.Resource;
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-            return PostProcess(instance);
+            PostProcess(instance);
+
+            return instance;
         }
 
+        /// <summary>
+        /// Converts the instanceId (id) of the instance from {instanceOwnerId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
+        /// </summary>
+        /// <param name="instance">the instance to preprocess</param>
         private void PreProcess(Instance instance)
         {
             instance.Id = InstanceIdToCosmosId(instance.Id);
         }
 
-        private Instance PostProcess(Instance instance)
+        /// <summary>
+        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerId}/{instanceGuid} to be used outside cosmos.
+        /// </summary>
+        /// <param name="instance">the instance to preprocess</param>
+        private void PostProcess(Instance instance)
         {
             instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
-
-            return instance;
         }
 
-        private List<Instance> PostProcess(List<Instance> instances)
+        /// <summary>
+        /// Preprosesses a list of instances.
+        /// </summary>
+        /// <param name="instances">the list of instances</param>
+        private void PostProcess(List<Instance> instances)
         {
             instances.ForEach(i => PostProcess(i));
-
-            return instances;
         }
 
-        private string InstanceIdToCosmosId(string id)
+        /// <summary>
+        /// An instanceId should follow this format {int}/{guid}.
+        /// Cosmos does not allow / in id. 
+        /// But in some old cases instanceId is just {guid}.
+        /// </summary>
+        /// <param name="instanceId">the id to convert to cosmos</param>
+        /// <returns>the guid of the instance</returns>
+        private string InstanceIdToCosmosId(string instanceId)
         {
-            if (id == null)
+            string cosmosId = instanceId;
+
+            if (instanceId != null && instanceId.Contains("/"))
             {
-                return null;
+                cosmosId = instanceId.Split("/")[1];
             }
 
-            return id.Split("/")[1];
+            return cosmosId;
         }
     }
 }

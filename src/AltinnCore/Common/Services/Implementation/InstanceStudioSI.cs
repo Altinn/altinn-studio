@@ -73,7 +73,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 Id = instanceId.ToString(),
                 InstanceOwnerId = instanceOwnerId.ToString(),
-                AppId = appName,
+                AppId = $"{org}/{appName}",
                 CreatedBy = instanceOwnerId.ToString(),
                 CreatedDateTime = DateTime.UtcNow,
                 Workflow = new Storage.Interface.Models.WorkflowState()

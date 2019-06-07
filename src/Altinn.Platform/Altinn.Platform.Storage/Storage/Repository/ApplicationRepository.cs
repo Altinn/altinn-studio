@@ -59,39 +59,68 @@ namespace Altinn.Platform.Storage.Repository
             _client.OpenAsync();
         }
 
+        /// <summary>
+        /// Converts the appId "{org}/{appName}" to "{org}-{appName}"
+        /// </summary>
+        /// <param name="appId">the id to convert</param>
+        /// <returns>the converted id</returns>
         private string AppIdToCosmosId(string appId)
         {
-            string[] parts = appId.Split("/");
+            string cosmosId = appId;
 
-            return $"{parts[0]}-{parts[1]}";
+            if (appId != null && appId.Contains("/"))
+            {
+                string[] parts = appId.Split("/");
+
+                cosmosId = $"{parts[0]}-{parts[1]}";
+            }
+
+            return cosmosId;            
         }
 
+        /// <summary>
+        /// Converts the cosmosId "{org}-{appName}" to "{org}/{appName}"
+        /// </summary>
+        /// <param name="cosmosId">the id to convert</param>
+        /// <returns>the converted id</returns>
         private string CosmosIdToAppId(string cosmosId)
         {
-            int firstDash = cosmosId.IndexOf("-");
-            string app = cosmosId.Substring(firstDash + 1);
-            string org = cosmosId.Split("-")[0];
+            string appId = cosmosId;
 
-            return $"{org}/{app}";
+            int firstDash = cosmosId.IndexOf("-");
+
+            if (firstDash > 0)
+            {
+                string appName = cosmosId.Substring(firstDash + 1);
+                string org = cosmosId.Split("-")[0];
+
+                appId = $"{org}/{appName}";
+            }
+
+            return appId;
         }
 
+        /// <summary>
+        /// fix appId so that cosmos can store it: org/appName-23 -> org-appName-23
+        /// </summary>
+        /// <param name="application">the application to preprocess</param>
         private void PreProcess(Application application)
         {
             application.Id = AppIdToCosmosId(application.Id);
         }
 
-        private Application PostProcess(Application application)
+        /// <summary>
+        /// postprocess applications so that appId becomes org/appName-23 to use outside cosmos
+        /// </summary>
+        /// <param name="application">the application to postprocess</param>
+        private void PostProcess(Application application)
         {
             application.Id = CosmosIdToAppId(application.Id);
-
-            return application;
         }
 
-        private List<Application> PostProcess(List<Application> applications)
+        private void PostProcess(List<Application> applications)
         {
-            applications.ForEach(a => a.Id = CosmosIdToAppId(a.Id));
-
-            return applications;
+            applications.ForEach(a => PostProcess(a));
         }
 
         /// <inheritdoc/>
@@ -104,7 +133,9 @@ namespace Altinn.Platform.Storage.Repository
 
             Application instance = JsonConvert.DeserializeObject<Application>(document.ToString());
 
-            return PostProcess(instance);
+            PostProcess(instance);
+
+            return instance;
         }
 
         /// <inheritdoc/>
@@ -133,7 +164,9 @@ namespace Altinn.Platform.Storage.Repository
             FeedResponse<Application> result = await query.ExecuteNextAsync<Application>();
             List<Application> applications = result.ToList<Application>();
 
-            return PostProcess(applications);
+            PostProcess(applications);
+
+            return applications;
         }
 
         /// <inheritdoc/>
@@ -148,7 +181,9 @@ namespace Altinn.Platform.Storage.Repository
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
 
-            return PostProcess(application);
+            PostProcess(application);
+
+            return application;
         }
 
         /// <inheritdoc/>
@@ -168,7 +203,9 @@ namespace Altinn.Platform.Storage.Repository
 
             Application application = JsonConvert.DeserializeObject<Application>(storedApplication);
 
-            return PostProcess(application);
+            PostProcess(application);
+
+            return application;
         }
     }
 }

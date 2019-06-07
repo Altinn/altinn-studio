@@ -176,7 +176,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Creates the application metadata file
         /// </summary>
         /// <param name="org">the application owner</param>
-        /// <param name="appName">the application id</param>
+        /// <param name="appName">the application name</param>
         public void CreateApplication(string org, string appName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);

@@ -10,10 +10,10 @@ namespace AltinnCore.Common.Helpers
     public static class ApplicationHelper
     {
         /// <summary>
-        /// Gets the application id formatted as "org/appName"
+        /// Gets the application id  (appId) formatted as "org/appName"
         /// </summary>
         /// <param name="org">the application owner</param>
-        /// <param name="appName">the application id</param>
+        /// <param name="appName">the application name</param>
         /// <returns></returns>
         public static string GetFormattedApplicationId(string org, string appName)
         {
