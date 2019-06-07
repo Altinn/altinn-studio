@@ -10,7 +10,7 @@ let app = new App();
 let runtime = new RunTimePage();
 let designer = new DesignerPage();
 
-fixture('Regression tests of services in runtime')
+fixture.only('Regression tests of services in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
@@ -30,8 +30,10 @@ test('Instantiate a service in runtime', async () => {
     .expect(runtime.testUsers[0].visible).ok()
     .hover(runtime.testUsers[0])
     .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.visible).ok()
+    .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
+    .switchToMainWindow()
+    .expect(runtime.testUserHeader[0].exists).ok()
 })
 
 test('Upload files using file component in SBL', async () => {
@@ -40,9 +42,10 @@ test('Upload files using file component in SBL', async () => {
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.visible).ok()
+    .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
+    .expect(runtime.testUserHeader[0].exists).ok()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.fileDeleteButton)
@@ -57,9 +60,10 @@ test('Validations when uploading file', async () => {
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.visible).ok()
+    .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
+    .expect(runtime.testUserHeader[0].exists).ok()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
     .expect(runtime.errorMessage).ok();
   await t.eval(() => location.reload(true))
@@ -74,10 +78,11 @@ test('Read-only components test in runtime', async () => {
     .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view#/aboutservice')
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
-    .click(runtime.testUsers[1])
-    .expect(runtime.startNewButton.visible).ok()
+    .click(runtime.testUsers[0])
+    .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
+    .expect(runtime.testUserHeader[0].exists).ok()
 })
 
 test('axe UI accessibility test for runtime', async t => {
@@ -86,8 +91,9 @@ test('axe UI accessibility test for runtime', async t => {
     .click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[1])
-    .expect(runtime.startNewButton.visible).ok()
+    .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
+    .expect(runtime.testUserHeader[0].exists).ok()
   axeCheck(t);
 });

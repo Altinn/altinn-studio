@@ -13,7 +13,7 @@ export default class RunTimePage {
     this.languageSelection = Selector('#reporteeLanguageSelect');
     this.changeLanguageButton = Selector('.btn.btn-primary').withAttribute('value', 'Oppdater språk');
     this.prefillData = Selector('#PrefillList');
-    this.startNewButton = Selector('.btn.btn-primary').withAttribute('value', 'Start ny');
+    this.startNewButton = Selector("#startService > div:nth-child(3) > input"); //Selector('.btn.btn-primary').withAttribute('value', 'Start ny');
     this.backToAltinnStudio = Selector('.btn.btn-primary').withAttribute('value', 'Tilbake til Altinn Studio');
 
     //SBL components
@@ -29,6 +29,12 @@ export default class RunTimePage {
 
     //read-only components
     //this.readOnlyInput = readOnlySelectors('Navn');
+    this.testUserHeader = [
+      Selector('div').withAttribute('title', 'OLA PRIVATPERSON'),
+      Selector('div').withText('Kari'),
+      Selector('div').withText('Anne'),
+      Selector('div').withText('Pål')
+    ];
   }
 
   async readOnlySelectors(innerText) {
