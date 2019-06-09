@@ -1,4 +1,7 @@
 package altinn.platform.pdf.models;
 
-public class Data {
+import java.util.ArrayList;
+
+public class FormLayoutData {
+  public ArrayList<FormLayoutElement> layout;
 }

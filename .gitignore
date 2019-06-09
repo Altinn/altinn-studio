@@ -380,4 +380,4 @@ nbactions.xml
 nb-configuration.xml
 
 ## IntelliJ
-.idea
+.idea/*/**

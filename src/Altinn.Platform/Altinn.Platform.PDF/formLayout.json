@@ -1,0 +1,40 @@
+{
+  "data": {
+    "layout": [
+      {
+        "id": "0d292a83-fe66-4f20-a40a-8b5d42520ccb",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Input"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "skattyterinforgrp5801.kontaktgrp5803.kontaktpersonPoststeddatadef10442.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "20158575-6db3-429a-95d6-c49e57d77ebb",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "Input"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "skattyterinforgrp5801.kontaktgrp5803.kontaktpersonEPostdatadef27688.value"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "28ff99b3-0d48-484a-8a6d-1e7bc9894b91",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Button"
+        },
+        "dataModelBindings": {},
+        "textResourceId": "Standard.Button.Button",
+        "customType": "Standard"
+      }
+    ]
+  }
+}
