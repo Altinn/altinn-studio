@@ -233,6 +233,15 @@ namespace AltinnCore.Designer.Controllers
         {
             bool applicationInStorage = false;
             ApplicationMetadata applicationMetadataFromRepository = _repository.GetApplicationMetadata(applicationOwnerId, applicationCode);
+
+            // for old service application meta data file was not generated, so create the application meta data file
+            // but the metadata for attachment will not be available on deployment
+            if (applicationMetadataFromRepository == null)
+            {
+                _repository.CreateApplicationMetadata(applicationOwnerId, applicationCode);
+                applicationMetadataFromRepository = _repository.GetApplicationMetadata(applicationOwnerId, applicationCode);
+            }
+
             using (HttpClient client = new HttpClient())
             {
                 string applicationId = $"{applicationOwnerId}-{applicationCode}";
