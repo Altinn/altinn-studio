@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using AltinnCore.Common.Configuration;
 using Microsoft.Extensions.Options;
@@ -13,9 +14,9 @@ namespace AltinnCore.Common.Clients
     public class HttpClientAccessor : IHttpClientAccessor
     {
         private readonly PlatformSettings _platformSettings;
-        private readonly HttpClient _storageClient;
-        private readonly HttpClient _registerClient;
-        private readonly HttpClient _profileClient;
+        private HttpClient _storageClient;
+        private HttpClient _registerClient;
+        private HttpClient _profileClient;
 
         /// <summary>
         /// Initializes a new HttpClient accessor of the <see cref="HttpClientAccessor"/> class.
@@ -24,24 +25,56 @@ namespace AltinnCore.Common.Clients
         public HttpClientAccessor(IOptions<PlatformSettings> platformSettings)
         {
             _platformSettings = platformSettings.Value;
-
-            _storageClient = new HttpClient();
-            _storageClient.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
-
-            _profileClient = new HttpClient();
-            _profileClient.BaseAddress = new Uri($"{_platformSettings.GetApiProfileEndpoint}");
-
-            _registerClient = new HttpClient();
-            _registerClient.BaseAddress = new Uri($"{_platformSettings.GetApiRegisterEndpoint}");
         }
 
         /// <inheritdoc />
-        public HttpClient RegisterClient => _registerClient;
+        public HttpClient RegisterClient
+        {
+            get
+            {
+                if (_registerClient == null)
+                {
+                    _registerClient = new HttpClient();
+                    _registerClient.BaseAddress = new Uri($"{_platformSettings.GetApiRegisterEndpoint}");
+                    _registerClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                }
+
+                return _registerClient;
+            }
+        }
 
         /// <inheritdoc />
-        public HttpClient ProfileClient => _profileClient;
+        public HttpClient ProfileClient
+        {
+            get
+            {
+                if (_profileClient == null)
+                {
+                    _profileClient = new HttpClient();
+                    _profileClient.BaseAddress = new Uri($"{_platformSettings.GetApiProfileEndpoint}");
+                    _profileClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                }
+
+                return _profileClient;
+            }
+        }
 
         /// <inheritdoc />
-        public HttpClient StorageClient => _storageClient;
+        public HttpClient StorageClient
+        {
+            get
+            {
+                if (_storageClient == null)
+                {
+                    _storageClient = new HttpClient();
+                    _storageClient.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
+                    _storageClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+                }
+
+                return _storageClient;
+            }
+        }
     }
 }

@@ -63,15 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             Instance instance;
 
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            HttpClientAccessor.SetAuthToken(_client, token);
 
             XmlSerializer serializer = new XmlSerializer(type);
             using (MemoryStream stream = new MemoryStream())
@@ -99,14 +91,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUrl = $"instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            _client.DefaultRequestHeaders.Accept.Clear();
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            HttpClientAccessor.SetAuthToken(_client, token);
 
             XmlSerializer serializer = new XmlSerializer(type);
             using (MemoryStream stream = new MemoryStream())
@@ -116,12 +101,12 @@ namespace AltinnCore.Common.Services.Implementation
                 StreamContent streamContent = new StreamContent(stream);
                 streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
 
-                if (_client.DefaultRequestHeaders.Contains("Authorization"))
+                if (streamContent.Headers.Contains("Authorization"))
                 {
-                    _client.DefaultRequestHeaders.Remove("Authorization");
+                    streamContent.Headers.Remove("Authorization");
                 }
 
-                _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+                streamContent.Headers.Add("Authorization", "Bearer " + token);
                 Task<HttpResponseMessage> response = _client.PutAsync(apiUrl, streamContent);
                 if (!response.Result.IsSuccessStatusCode)
                 {
@@ -135,13 +120,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUrl = $"instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            HttpClientAccessor.SetAuthToken(_client, token);
 
             Task<HttpResponseMessage> response = _client.GetAsync(apiUrl);
             if (response.Result.IsSuccessStatusCode)
@@ -173,13 +152,7 @@ namespace AltinnCore.Common.Services.Implementation
             List<Attachment> attachments = null;
             string apiUrl = $"instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            HttpClientAccessor.SetAuthToken(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -230,13 +203,7 @@ namespace AltinnCore.Common.Services.Implementation
             List<AttachmentList> attachmentList = new List<AttachmentList>();
             string apiUrl = $"instances/{instanceId}/data/{attachmentId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            HttpClientAccessor.SetAuthToken(_client, token);
 
             Task<HttpResponseMessage> response = _client.DeleteAsync(apiUrl);
             response.Result.EnsureSuccessStatusCode();
@@ -245,7 +212,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
-            string apiUrl = $"instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             Instance instance;
 
@@ -253,36 +220,35 @@ namespace AltinnCore.Common.Services.Implementation
             string contentType;
             provider.TryGetContentType(attachmentName, out contentType);
 
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
+            // using a non-generic client in order to support unknown content type 
+            using (HttpClient client = new HttpClient())
             {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
+                client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
+                JwtTokenUtil.SetAuthToken(client, token);
 
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
-
-            using (Stream input = attachment.Body)
-            {
-                HttpContent fileStreamContent = new StreamContent(input);
-
-                using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                using (Stream input = attachment.Body)
                 {
-                    fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-                    ContentDispositionHeaderValue header = new ContentDispositionHeaderValue("form-data");
-                    header.FileName = attachmentName;
-                    header.Size = attachment.ContentLength;
-                    formData.Headers.ContentDisposition = header;
-                    formData.Headers.Add("Authorization", "Bearer " + token);
-                    formData.Add(fileStreamContent, attachmentType, attachmentName);
-                    HttpResponseMessage response = _client.PostAsync(apiUrl, formData).Result;
+                    HttpContent fileStreamContent = new StreamContent(input);
 
-                    response.EnsureSuccessStatusCode();
+                    using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                    {
+                        fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+                        ContentDispositionHeaderValue header = new ContentDispositionHeaderValue("form-data");
+                        header.FileName = attachmentName;
+                        header.Size = attachment.ContentLength;
+                        formData.Headers.ContentDisposition = header;
+                        formData.Headers.Add("Authorization", "Bearer " + token);
+                        formData.Add(fileStreamContent, attachmentType, attachmentName);
+                        HttpResponseMessage response = _client.PostAsync(apiUrl, formData).Result;
 
-                    string instancedata = await response.Content.ReadAsStringAsync();
-                    instance = JsonConvert.DeserializeObject<Instance>(instancedata);
-                    return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                        response.EnsureSuccessStatusCode();
+
+                        string instancedata = await response.Content.ReadAsStringAsync();
+                        instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+                        return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                    }
                 }
             }
         }
