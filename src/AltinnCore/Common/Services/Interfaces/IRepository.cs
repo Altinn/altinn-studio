@@ -459,5 +459,12 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="applicationId">the application owner</param>
         /// <returns>The application  metadata for an application</returns>
         ApplicationMetadata GetApplicationMetadata(string org, string applicationId);
+
+        /// <summary>
+        /// creates application  metadata for attachment
+        /// </summary>
+        /// <param name="org">the organisation that owns the application</param>
+        /// <param name="applicationId">the application id</param>
+        void CreateApplicationMetadata(string org, string applicationId);
     }
 }

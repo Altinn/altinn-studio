@@ -175,16 +175,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the application metadata file
         /// </summary>
-        /// <param name="applicationOwnerId">the application owner</param>
+        /// <param name="org">the application owner</param>
         /// <param name="applicationId">the application id</param>
-        public void CreateApplicationMetadata(string applicationOwnerId, string applicationId)
+        public void CreateApplicationMetadata(string org, string applicationId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             ApplicationMetadata appMetadata = new ApplicationMetadata
             {
-                Id = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId),
+                Id = ApplicationHelper.GetFormattedApplicationId(org, applicationId),
                 VersionId = null,
-                ApplicationOwnerId = applicationOwnerId,
+                ApplicationOwnerId = org,
                 CreatedDateTime = DateTime.UtcNow,
                 CreatedBy = developer,
                 LastChangedDateTime = DateTime.UtcNow,
@@ -210,7 +210,7 @@ namespace AltinnCore.Common.Services.Implementation
             });
 
             string metaDataDir = _settings.GetMetadataPath(
-                                    applicationOwnerId,
+                                    org,
                                     applicationId,
                                     developer);
             DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
@@ -361,7 +361,11 @@ namespace AltinnCore.Common.Services.Implementation
             string filename = _settings.GetMetadataPath(org, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
             try
             {
-                filedata = File.ReadAllText(filename, Encoding.UTF8);
+                if (File.Exists(filename))
+                {
+                    filedata = File.ReadAllText(filename, Encoding.UTF8);
+                }
+
                 return JsonConvert.DeserializeObject<ApplicationMetadata>(filedata);
             }
             catch (Exception ex)
