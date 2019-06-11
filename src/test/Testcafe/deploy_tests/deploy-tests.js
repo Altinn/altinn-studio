@@ -34,7 +34,7 @@ fixture('GUI service designer tests')
 
 test('Happy case; deploy a service to a test environment after a change', async() => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/tdd/deploytotestenv#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
@@ -57,7 +57,7 @@ test('Happy case; deploy a service to a test environment after a change', async(
     .expect(designer.deployButton.exists).ok()
     .click(designer.deployButton)
     .expect(Selector("p").withText(t.ctx.leggerUtTjenesten).exists).ok()
-    .expect(Selector("h2").withText(t.ctx.tilgjengelig).exists).ok()
+    .expect(Selector("h2").withText(t.ctx.tilgjengelig).exists).ok({ timeout: 120000 })
 
 })
 
@@ -66,7 +66,7 @@ test('Service cannot deploy due to compilation error', async() => {
     .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
-    .expect(designer.ingenEndringer.exists).ok()
+    .expect(designer.ingenEndringer.exists).ok({ timeout: 10000 })
     .click(designer.testeNavigationTab) //click twice to remove pop up from "del"
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
@@ -77,7 +77,7 @@ test('Service cannot deploy due to compilation error', async() => {
 
 test('Service cannot be deployed due to local changes', async() => {
   await t
-  .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
+  .navigateTo(app.baseUrl + 'designer/tdd/deploytotestenv#/aboutservice')
   .click(designer.lageNavigationTab)
   .click(designer.hentEndringer)
   .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
@@ -108,9 +108,6 @@ test('User does not have write access to service, and cannot deploy', async() =>
     .click(Selector('div > button > div').withText('manualDeployTest')) //click to open the service
     .expect(designer.omTjenesteNavn.visible).ok()
     .click(designer.lageNavigationTab)
-    .click(designer.hentEndringer)
-    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
-    .click(designer.testeNavigationTab) //click once to remove pop up
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])
@@ -119,7 +116,7 @@ test('User does not have write access to service, and cannot deploy', async() =>
 
 test.skip('Accessibility testing for deployment to test environment page', async t => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/tdd/deploytotestenv#/deploytotest')
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])

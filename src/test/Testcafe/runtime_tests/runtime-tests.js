@@ -16,6 +16,7 @@ fixture('Regression tests of services in runtime')
     //Testdata and other testing context
     t.ctx.serviceName = "runtime";
     t.ctx.tjenesteOppdatert = "Tjenesten din er oppdatert til siste versjon";
+    t.ctx.instanceID = "44b3b0f2-b630-4c65-9a63-3cc5f50053c6";
     await t
       .useRole(AutoTestUser)
       .resizeWindow(1280,610)
@@ -30,11 +31,20 @@ test('Instantiate a service in runtime', async () => {
     .expect(runtime.testUsers[0].visible).ok()
     .hover(runtime.testUsers[0])
     .click(runtime.testUsers[0])
+    .switchToMainWindow()
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
-    .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
 })
+
+test('Direct link navigation to runtime', async () => {
+  await t
+    .navigateTo(app.baseUrl + '/runtime/AutoTest/runtime')
+    .expect(runtime.fileDropComponent.exists).notOk()
+    .navigateTo(app.baseUrl + 'runtime/AutoTest/runtime#' +t.ctx.instanceID + '#/Preview')
+    .expect(runtime.fileDropComponent.exists).notOk()
+})
+
 
 test('Upload files using file component in SBL', async () => {
   await t
