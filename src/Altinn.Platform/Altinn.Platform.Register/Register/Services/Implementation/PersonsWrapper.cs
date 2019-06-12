@@ -50,7 +50,6 @@ namespace Altinn.Platform.Register.Services.Implementation
 
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
-                string ssnData = JsonConvert.SerializeObject(ssn);
                 HttpResponseMessage response = await client.SendAsync(request).ConfigureAwait(false);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
