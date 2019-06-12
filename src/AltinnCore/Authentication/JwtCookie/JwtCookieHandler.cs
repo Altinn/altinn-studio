@@ -65,7 +65,7 @@ namespace AltinnCore.Authentication.JwtCookie
         /// </summary>
         /// <returns></returns>
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
-        {
+        {         
             try
             {
                 // Get the cookie from request 
