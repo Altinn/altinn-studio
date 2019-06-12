@@ -242,7 +242,7 @@
             path to blob storage
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.DataElement.SelfLinks">
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.DataLinks">
             <summary>
             Links to access the data elements
             </summary>
@@ -493,7 +493,7 @@
             Person number (national identification number)
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.ElementType">
+        <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.organisationNumber">
             <summary>
             organisation number
             </summary>

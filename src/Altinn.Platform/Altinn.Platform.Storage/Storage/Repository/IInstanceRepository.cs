@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Repository
         /// Gets all the instances for an application owner
         /// </summary>
         /// <param name="org">the application owner</param>
-        /// <returns>The list of instances for a given organization</returns>
+        /// <returns>The list of instances for a given organisation</returns>
         Task<List<Instance>> GetInstancesOfOrg(string org);
 
         /// <summary>
