@@ -16,11 +16,15 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
     const component = getLayoutComponentById(componentId, state.formLayout.layout);
     const dataModelField = state.formDataModel.dataModel.find((element: any) => element.DataBindingName === field);
     const componentValidations: IComponentValidations = validateComponentFormData(
+      state.formAttachments,
       data,
       dataModelField,
       component,
+      state.language.language,
     );
-    yield call(FormDataActions.updateFormDataFulfilled, field, data);
+    if (state.formData.formData[field] !== data) {
+      yield call(FormDataActions.updateFormDataFulfilled, field, data);
+    }
     yield call(FormValidationActions.updateComponentValidations, componentValidations, componentId);
   } catch (err) {
     console.error(err);
@@ -31,3 +35,4 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
 export function* watchUpdateFormDataSaga(): SagaIterator {
   yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA, updateFormDataSaga);
 }
+

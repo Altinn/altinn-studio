@@ -139,6 +139,7 @@ export const schemaComponents: IComponent[] = [
     customProperties: {
       maxFileSizeInMB: 25,
       maxNumberOfAttachments: 1,
+      minNumberOfAttachments: 1,
       displayMode: 'simple',
     },
   },

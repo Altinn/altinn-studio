@@ -489,8 +489,19 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             }
             <Grid item={true} xs={12}>
               <AltinnInputField
+                id={'modal-properties-minimum-files'}
+                onChangeFunction={this.handleNumberOfAttachmentsChange('min')}
+                inputValue={component.minNumberOfAttachments || 1}
+                inputDescription={getLanguageFromKey('ux_editor.modal_properties_minimum_files', this.props.language)}
+                inputFieldStyling={{ width: '60px' }}
+                inputDescriptionStyling={{ marginTop: '24px' }}
+                type={'number'}
+              />
+            </Grid>
+            <Grid item={true} xs={12}>
+              <AltinnInputField
                 id={'modal-properties-maximum-files'}
-                onChangeFunction={this.handleMaxNumberOfAttachmentsChange}
+                onChangeFunction={this.handleNumberOfAttachmentsChange('max')}
                 inputValue={component.maxNumberOfAttachments || 1}
                 inputDescription={getLanguageFromKey('ux_editor.modal_properties_maximum_files', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
@@ -568,9 +579,13 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.props.handleComponentUpdate(component);
   }
 
-  public handleMaxNumberOfAttachmentsChange = (event: any) => {
+  public handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
-    component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+    if (type === 'max') {
+      component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+    } else {
+      component.minNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+    }
     this.setState({
       component,
     });

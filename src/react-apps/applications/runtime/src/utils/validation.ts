@@ -1,6 +1,7 @@
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { IFormData } from '../features/form/data/reducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
-import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
+import { IComponentValidations, IDataModelFieldElement, IFormFileUploaderComponent, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
 export function min(value: number, test: number): boolean {
@@ -47,40 +48,57 @@ const validationFunctions: any = {
   Validates formData for a single component, returns a IComponentValidations object
 */
 export function validateComponentFormData(
+  formAttachments: any,
   formData: any,
   dataModelFieldElement: IDataModelFieldElement,
-  component: ILayoutComponent,
+  component: any,
+  language: any,
 ): IComponentValidations {
   const validationErrors: string[] = [];
-  const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
+  let fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
     component.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
+  if (!fieldKey) {
+    fieldKey = 'simpleBinding';
+  }
   const componentValidations: IComponentValidations = {
     [fieldKey]: {
       errors: [],
       warnings: [],
     },
   };
-  Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
-    const validationSuccess = runValidation(key, dataModelFieldElement.Restrictions[key], formData);
-    if (!validationSuccess) {
-      if (dataModelFieldElement.Restrictions[key].ErrortText) {
+  if (dataModelFieldElement) {
+    Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
+      const validationSuccess = runValidation(key, dataModelFieldElement.Restrictions[key], formData);
+      if (!validationSuccess) {
+        if (dataModelFieldElement.Restrictions[key].ErrortText) {
+          validationErrors.push(
+            dataModelFieldElement.Restrictions[key].ErrortText,
+          );
+        } else {
+          validationErrors.push(
+            `${key}: ${dataModelFieldElement.Restrictions[key].Value}`,
+          );
+        }
+      }
+    });
+    if (
+      (dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1) ||
+      (component.required)
+    ) {
+      if (formData.length === 0) {
         validationErrors.push(
-          dataModelFieldElement.Restrictions[key].ErrortText,
-        );
-      } else {
-        validationErrors.push(
-          `${key}: ${dataModelFieldElement.Restrictions[key].Value}`,
+          getLanguageFromKey('form_filler.error_required', language),
         );
       }
     }
-  });
-  if (
-    (dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1) ||
-    (component.required)
-  ) {
-    if (formData.length === 0) {
+  }
+  if (component.type === 'FileUpload') {
+    if (component.minNumberOfAttachments > 0 && Object.keys(formAttachments.attachments).length < 1 ||
+      formAttachments.attachments[component.id].length < component.minNumberOfAttachments) {
       validationErrors.push(
-        `Field is required`,
+        getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language) + ' ' +
+        component.minNumberOfAttachments + ' ' +
+        getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language),
       );
     }
   }
@@ -92,9 +110,11 @@ export function validateComponentFormData(
   Validates the entire formData and returns an IValidations object with validations mapped for all components
 */
 export function validateFormData(
+  formAttachments: any,
   formData: IFormData,
   dataModelFieldElements: IDataModelFieldElement[],
   layout: ILayout,
+  language: any,
 ): IValidations {
   const result: IValidations = {};
   Object.keys(formData).forEach((formDataKey) => {
@@ -124,8 +144,10 @@ export function validateFormData(
     });
 
     if (dataModelFieldKey && connectedComponent) {
+      console.log('component', connectedComponent);
       const componentValidations =
-        validateComponentFormData(formData[formDataKey], dataModelFieldElement, connectedComponent);
+        validateComponentFormData(formAttachments, formData[formDataKey], dataModelFieldElement, connectedComponent
+          language);
       result[connectedComponent.id] = componentValidations;
     }
     dataModelFieldKey = null;
