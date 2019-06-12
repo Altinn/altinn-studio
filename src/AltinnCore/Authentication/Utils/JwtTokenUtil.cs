@@ -41,11 +41,11 @@ namespace AltinnCore.Authentication.Utils
         }
 
         /// <summary>
-        /// Included provided authorization token in clients request header
+        /// Updates http client by including authorization token in request header
         /// </summary>
         /// <param name="client">The HTTP client</param>
         /// <param name="token">The authorization token</param>
-        /// <returns>Client with updated request header</returns>
+
         public static void AddTokenToRequestHeader(HttpClient client, string token)
         {
             if (client.DefaultRequestHeaders.Contains("Authorization"))
