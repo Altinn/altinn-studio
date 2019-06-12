@@ -61,9 +61,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUrl = $"instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            Instance instance;
-
-            HttpClientAccessor.SetAuthToken(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            Instance instance;    
 
             XmlSerializer serializer = new XmlSerializer(type);
             using (MemoryStream stream = new MemoryStream())
@@ -91,7 +90,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUrl = $"instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            HttpClientAccessor.SetAuthToken(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             XmlSerializer serializer = new XmlSerializer(type);
             using (MemoryStream stream = new MemoryStream())
@@ -120,7 +119,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUrl = $"instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            HttpClientAccessor.SetAuthToken(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             Task<HttpResponseMessage> response = _client.GetAsync(apiUrl);
             if (response.Result.IsSuccessStatusCode)
@@ -152,7 +151,7 @@ namespace AltinnCore.Common.Services.Implementation
             List<Attachment> attachments = null;
             string apiUrl = $"instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            HttpClientAccessor.SetAuthToken(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -203,7 +202,7 @@ namespace AltinnCore.Common.Services.Implementation
             List<AttachmentList> attachmentList = new List<AttachmentList>();
             string apiUrl = $"instances/{instanceId}/data/{attachmentId}?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            HttpClientAccessor.SetAuthToken(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             Task<HttpResponseMessage> response = _client.DeleteAsync(apiUrl);
             response.Result.EnsureSuccessStatusCode();
@@ -226,7 +225,7 @@ namespace AltinnCore.Common.Services.Implementation
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
-                JwtTokenUtil.SetAuthToken(client, token);
+                JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
                 using (Stream input = attachment.Body)
                 {

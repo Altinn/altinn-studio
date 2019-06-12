@@ -56,13 +56,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUrl = $"instances/{instanceId}/events";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             try
             {
@@ -82,6 +76,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string apiUrl = $"instances/{instanceId}/events?";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             if (eventTypes != null)
             {
@@ -98,13 +93,6 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 apiUrl += $"&from={from}&to={to}";
             }
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
 
             try
             {
@@ -128,16 +116,7 @@ namespace AltinnCore.Common.Services.Implementation
             instanceEvent.CreatedDateTime = DateTime.UtcNow;
             string apiUrl = $"instances/{instanceEvent.InstanceId}/events";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-
-            _client.DefaultRequestHeaders.Accept.Clear();
-            _client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             try
             {

@@ -80,13 +80,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-
-            if (_client.DefaultRequestHeaders.Contains("Authorization"))
-            {
-                _client.DefaultRequestHeaders.Remove("Authorization");
-            }
-
-            _client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)

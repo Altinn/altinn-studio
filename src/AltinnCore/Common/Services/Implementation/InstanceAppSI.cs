@@ -76,10 +76,9 @@ namespace AltinnCore.Common.Services.Implementation
             int instanceOwnerId = startServiceModel.ReporteeID;
 
             string apiUrl = $"instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
-
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            HttpClientAccessor.SetAuthToken(_client, token);
-            
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
             try
             {
                 HttpResponseMessage response = await _client.PostAsync(apiUrl, null);
@@ -116,7 +115,7 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = new Instance();
             string apiUrl = $"instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            HttpClientAccessor.SetAuthToken(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -139,7 +138,7 @@ namespace AltinnCore.Common.Services.Implementation
             applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId);
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            HttpClientAccessor.SetAuthToken(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -165,7 +164,7 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = new Instance();
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            HttpClientAccessor.SetAuthToken(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             string jsonData = JsonConvert.SerializeObject(dataToSerialize);
             StringContent httpContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
