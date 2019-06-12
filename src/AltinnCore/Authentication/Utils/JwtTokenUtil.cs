@@ -45,7 +45,6 @@ namespace AltinnCore.Authentication.Utils
         /// </summary>
         /// <param name="client">The HTTP client</param>
         /// <param name="token">The authorization token</param>
-
         public static void AddTokenToRequestHeader(HttpClient client, string token)
         {
             if (client.DefaultRequestHeaders.Contains("Authorization"))
