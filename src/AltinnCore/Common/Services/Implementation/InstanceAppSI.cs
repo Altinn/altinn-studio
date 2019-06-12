@@ -53,6 +53,7 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = null;
             string org = startServiceModel.Org;
             string appId = ApplicationHelper.GetFormattedApplicationId(org, startServiceModel.Service);
+            string appName = startServiceModel.Service;
             int instanceOwnerId = startServiceModel.ReporteeID;
 
             using (HttpClient client = new HttpClient())
@@ -64,8 +65,8 @@ namespace AltinnCore.Common.Services.Implementation
                 try
                 {
                     HttpResponseMessage response = await client.PostAsync(apiUrl, null);
-                    string id = await response.Content.ReadAsAsync<string>();
-                    instanceId = Guid.Parse(id);
+                    Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
+                    instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
                 }
                 catch
                 {
@@ -79,10 +80,10 @@ namespace AltinnCore.Common.Services.Implementation
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
-                appId,
+                appName,
                 instanceOwnerId);
 
-            ServiceState currentState = _workflow.GetInitialServiceState(org, appId);
+            ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
 
             // set initial workflow state
             instance.Workflow = new Storage.Interface.Models.WorkflowState()
@@ -91,7 +92,7 @@ namespace AltinnCore.Common.Services.Implementation
                 IsComplete = false,
             };
 
-            instance = await UpdateInstance(instance, appId, org, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
 
             return instance;
         }
