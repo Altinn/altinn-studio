@@ -495,7 +495,7 @@
         </member>
         <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.ElementType">
             <summary>
-            organization number
+            organisation number
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.UserName">

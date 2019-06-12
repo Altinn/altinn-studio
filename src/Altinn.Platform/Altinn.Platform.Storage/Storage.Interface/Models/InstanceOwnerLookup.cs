@@ -20,7 +20,7 @@ namespace Altinn.Platform.Storage.Models
         public string PersonNumber { get; set; }
 
         /// <summary>
-        /// organization number
+        /// organisation number
         /// </summary>
         [JsonProperty(PropertyName = "organisationNumber")]
         public string organisationNumber { get; set; }

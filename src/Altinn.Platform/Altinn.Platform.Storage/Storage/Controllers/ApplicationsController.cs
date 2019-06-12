@@ -290,7 +290,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Delete an application
         /// </summary>
-        /// <param name="org">the organization owning the app</param>
+        /// <param name="org">the organisation owning the app</param>
         /// <param name="app">application name</param>
         /// <param name="hard">if true hard delete will take place</param>
         /// <returns>updated application object</returns>
