@@ -47,7 +47,7 @@ namespace Altinn.Platform.Storage.Models
         /// Links to access the data elements
         /// </summary>
         [JsonProperty(PropertyName = "dataLinks")]
-        public ResourceLinks SelfLinks { get; set; }
+        public ResourceLinks DataLinks { get; set; }
 
         /// <summary>
         /// Size of file in bytes

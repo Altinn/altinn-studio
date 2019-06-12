@@ -32,7 +32,7 @@ namespace Altinn.Platform.Storage.Repository
         Task<List<Instance>> GetInstancesOfApplication(string appId);
 
         /// <summary>
-        /// Get an instance for a given instance
+        /// Get an instance for a given instance id
         /// </summary>
         /// <param name="instanceId">the instance id</param>
         /// <param name="instanceOwnerId">the instance owner id</param>
