@@ -34,7 +34,7 @@ namespace Altinn.Platform.Register.Services.Implementation
             _logger = logger;
         }
 
-        /// <inheritdoc />196
+        /// <inheritdoc />
         public async Task<Person> GetPerson(string ssn)
         {
             Person person = null;
