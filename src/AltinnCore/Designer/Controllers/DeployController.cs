@@ -71,12 +71,8 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public async Task<IActionResult> StartDeployment(string org, string appName)
         {
-            _logger.LogInformation("org -{0}", org);
-            _logger.LogInformation("appName -{0}", appName);
-
             if (org == null || appName == null)
             {
-                _logger.LogInformation("failed in owner and app code -bad request");
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
@@ -84,10 +80,8 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
-            _logger.LogInformation("access token {0}", _configuration["AccessTokenDevOps"]);
             if (_configuration["AccessTokenDevOps"] == null)
             {
-                _logger.LogInformation("failed in access token -bad request");
                 ViewBag.ServiceUnavailable = true;
                 return BadRequest(new DeploymentStatus
                 {
@@ -97,13 +91,9 @@ namespace AltinnCore.Designer.Controllers
             }
 
             Repository repository = _giteaAPI.GetRepository(org, appName).Result;
-            _logger.LogInformation("repository -{0}", repository);
-            _logger.LogInformation("repository permission -{0}", repository.Permissions);
-            _logger.LogInformation("repository permission push -{0}", repository.Permissions.Push);
 
             if (repository != null && repository.Permissions != null && repository.Permissions.Push != true)
             {
-                _logger.LogInformation("failed in repository -bad request");
                 ViewBag.ServiceUnavailable = true;
                 return BadRequest(new DeploymentStatus
                 {
@@ -157,13 +147,9 @@ namespace AltinnCore.Designer.Controllers
                     string buildjson = JsonConvert.SerializeObject(buildContent);
                     StringContent httpContent = new StringContent(buildjson, Encoding.UTF8, "application/json");
 
-                    _logger.LogInformation("buildjson {0}", buildjson);
-
                     using (HttpResponseMessage response = await client.PostAsync("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds?api-version=5.0-preview.4", httpContent))
                     {
-                        response.EnsureSuccessStatusCode();
-                        _logger.LogInformation("response content type - {0}", response.Content.Headers.ContentType);
-                        _logger.LogInformation("response content - {0}", response.Content.ReadAsStringAsync().Result);
+                        response.EnsureSuccessStatusCode();                                                
                         BuildModel responseBody = await response.Content.ReadAsAsync<BuildModel>();
                         result = responseBody.Id;
                     }
@@ -246,7 +232,17 @@ namespace AltinnCore.Designer.Controllers
         private async Task<bool> RegisterApplicationInStorage(string org, string appName, string versionId)
         {
             bool applicationInStorage = false;
+
             Application applicationFromRepository = _repository.GetApplication(org, appName);
+
+            // for old service application meta data file was not generated, so create the application meta data file
+            // but the metadata for attachment will not be available on deployment
+            if (applicationFromRepository == null)
+            {
+                _repository.CreateApplication(org, appName);
+                applicationFromRepository = _repository.GetApplication(org, appName);
+            }
+
             using (HttpClient client = new HttpClient())
             {
                 string appId = $"{org}/{appName}";

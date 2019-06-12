@@ -415,7 +415,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   {this.state.isEditMode ?
                     <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
                       <EditModalContent
-                        component={this.state.component}
+                        component={JSON.parse(JSON.stringify(this.state.component))}
                         language={this.props.language}
                         handleComponentUpdate={this.handleComponentUpdate}
                       />

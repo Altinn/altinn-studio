@@ -459,5 +459,12 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="appName">the application name</param>
         /// <returns>The application  metadata for an application</returns>
         Application GetApplication(string org, string appName);
+    
+        /// <summary>
+        /// creates application  metadata for attachment
+        /// </summary>
+        /// <param name="org">the organisation that owns the application</param>
+        /// <param name="appName">the application name</param>
+        void CreateApplication(string org, string appName);
     }
 }

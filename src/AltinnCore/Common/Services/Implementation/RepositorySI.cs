@@ -185,6 +185,7 @@ namespace AltinnCore.Common.Services.Implementation
                 Id = ApplicationHelper.GetFormattedApplicationId(org, appName),
                 VersionId = null,
                 Org = org,
+
                 CreatedDateTime = DateTime.UtcNow,
                 CreatedBy = developer,
                 LastChangedDateTime = DateTime.UtcNow,
@@ -361,7 +362,11 @@ namespace AltinnCore.Common.Services.Implementation
             string filename = _settings.GetMetadataPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
             try
             {
-                filedata = File.ReadAllText(filename, Encoding.UTF8);
+                if (File.Exists(filename))
+                {
+                    filedata = File.ReadAllText(filename, Encoding.UTF8);
+                }
+
                 return JsonConvert.DeserializeObject<Application>(filedata);
             }
             catch (Exception ex)
