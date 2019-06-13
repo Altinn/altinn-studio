@@ -55,7 +55,7 @@ namespace AltinnCore.Common.Services.Implementation
                     returnList.Add(new ServiceInstance
                     {
                         ServiceInstanceID = Guid.Parse(instance.Id),
-                        IsArchived = instance.Workflow.IsComplete,
+                        IsArchived = instance.InstanceState != null ? instance.InstanceState.IsArchived : false,
                         LastChanged = instance.LastChangedDateTime ?? DateTime.MinValue,
                     });
                 }

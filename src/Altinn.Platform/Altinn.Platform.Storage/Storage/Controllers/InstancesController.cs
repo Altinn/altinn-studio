@@ -185,7 +185,8 @@ namespace Altinn.Platform.Storage.Controllers
                 Labels = instanceTemplate.Labels,
                 PresentationField = instanceTemplate.PresentationField,
 
-                Workflow = new WorkflowState { CurrentStep = "FormFilling", IsComplete = false }
+                Workflow = new WorkflowState { CurrentStep = "FormFilling", IsComplete = false },
+                InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },                
             };
 
             try
@@ -227,6 +228,8 @@ namespace Altinn.Platform.Storage.Controllers
 
             existingInstance.AppOwnerState = instance.AppOwnerState;
             existingInstance.Workflow = instance.Workflow;
+            existingInstance.InstanceState = instance.InstanceState;
+
             existingInstance.PresentationField = instance.PresentationField;
             existingInstance.DueDateTime = instance.DueDateTime;
             existingInstance.VisibleDateTime = instance.VisibleDateTime;

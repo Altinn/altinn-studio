@@ -74,13 +74,20 @@ namespace AltinnCore.Common.Services.Implementation
                 Id = instanceId.ToString(),
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 AppId = $"{org}/{appName}",
+                Org = org,
                 CreatedBy = instanceOwnerId.ToString(),
                 CreatedDateTime = DateTime.UtcNow,
                 Workflow = new Storage.Interface.Models.WorkflowState()
-                    {
-                        CurrentStep = currentState.State.ToString(),
-                        IsComplete = false,
-                    },
+                {
+                    CurrentStep = currentState.State.ToString(),
+                    IsComplete = false,
+                },
+                InstanceState = new Storage.Interface.Models.InstanceState()
+                {
+                    IsArchived = false,
+                    IsDeleted = false,
+                    IsMarkedForHardDelete = false,
+                },
                 LastChangedDateTime = DateTime.UtcNow,
                 LastChangedBy = instanceOwnerId.ToString(),
             };         
@@ -184,8 +191,12 @@ namespace AltinnCore.Common.Services.Implementation
             
             Instance instance = await GetInstance(appName, org, instanceOwnerId, instanceId);
 
+            instance.Workflow = instance.Workflow ?? new Storage.Interface.Models.WorkflowState();
             instance.Workflow.IsComplete = true;
             instance.Workflow.CurrentStep = WorkflowStep.Archived.ToString();
+
+            instance.InstanceState = instance.InstanceState ?? new Storage.Interface.Models.InstanceState();
+            instance.InstanceState.IsArchived = true;
 
             instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
             return instance;
