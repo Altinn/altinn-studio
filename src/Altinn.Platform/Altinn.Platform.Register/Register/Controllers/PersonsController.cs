@@ -26,6 +26,7 @@ namespace Altinn.Platform.Register.Controllers
         /// <summary>
         /// Gets the person for a given ssn
         /// </summary>
+        /// <param name="ssn">The ssn</param>
         /// <returns>The information about a given person</returns>
         [HttpGet]
         public async Task<ActionResult> Get([FromBody] string ssn)
