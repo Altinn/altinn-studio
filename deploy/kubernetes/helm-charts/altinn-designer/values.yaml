@@ -32,17 +32,17 @@ environmentVariables:
     - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
     - name: PlatformSettings__ApiStorageEndpoint
-      value: http://platform.altinn.cloud/storage/api/v1/
+      value: http://platform.at21.altinn.cloud/storage/api/v1/
     - name: PlatformSettings__ApiStorageEndpointHost
-      value: http://platform.altinn.cloud
+      value: http://platform.at21.altinn.cloud
     - name: PlatformSettings__ApiRegisterEndpoint
-      value: http://platform.altinn.cloud/register/api/v1/
+      value: http://platform.at21.altinn.cloud/register/api/v1/
     - name: PlatformSettings__ApiRegisterEndpointHost
-      value: http://platform.altinn.cloud
+      value: http://platform.at21.altinn.cloud
     - name: PlatformSettings__ApiProfileEndpoint
-      value: http://platform.altinn.cloud/profile/api/v1/
+      value: http://platform.at21.altinn.cloud/profile/api/v1/
     - name: PlatformSettings__ApiProfileEndpointHost
-      value: http://platform.altinn.cloud
+      value: http://platform.at21.altinn.cloud
   production:
     - name: GiteaEndpoint
       value: altinn.studio
@@ -67,17 +67,17 @@ environmentVariables:
     - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
     - name: PlatformSettings__ApiStorageEndpoint
-      value: http://platform.altinn.cloud/storage/api/v1/
+      value: http://platform.at21.altinn.cloud/storage/api/v1/
     - name: PlatformSettings__ApiStorageEndpointHost
-      value: http://platform.altinn.cloud
+      value: http://platform.at21.altinn.cloud
     - name: PlatformSettings__ApiRegisterEndpoint
-      value: http://platform.altinn.cloud/register/api/v1/
+      value: http://platform.at21.altinn.cloud/register/api/v1/
     - name: PlatformSettings__ApiRegisterEndpointHost
-      value: http://platform.altinn.cloud
+      value: http://platform.at21.altinn.cloud
     - name: PlatformSettings__ApiProfileEndpoint
-      value: http://platform.altinn.cloud/profile/api/v1/
+      value: http://platform.at21.altinn.cloud/profile/api/v1/
     - name: PlatformSettings__ApiProfileEndpointHost
-      value: http://platform.altinn.cloud
+      value: http://platform.at21.altinn.cloud
 
 volumeMounts:
   - name: altinn-repo-storage
