@@ -4,7 +4,7 @@ import { watchDeleteAttachmentSaga } from './delete/deleteAttachmentsSagas';
 import { watchFetchAttachmentsSaga } from './fetch/fetchAttachmentsSagas';
 import { watchUploadAttachmentSaga } from './upload/uploadAttachmentsSagas';
 
-export default function* (): SagaIterator {
+export default function*(): SagaIterator {
   yield fork(watchUploadAttachmentSaga);
   yield fork(watchDeleteAttachmentSaga);
   yield fork(watchFetchAttachmentsSaga);
