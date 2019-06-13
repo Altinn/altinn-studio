@@ -82,7 +82,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             try
             {
-                HttpResponseMessage response = await client.PostAsync(apiUrl, null);
+                HttpResponseMessage response = await _client.PostAsync(apiUrl, null);
                 Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
                 instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
             }

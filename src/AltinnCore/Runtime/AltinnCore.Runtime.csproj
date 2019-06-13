@@ -8,7 +8,7 @@
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
     <!-- SonarCloud needs this -->
-    <ProjectGuid>{7186bd86-e7dd-4ab0-a961-d2cec92b4435}</ProjectGuid>
+    <ProjectGuid>{05798ABD-2FDC-48B4-8D69-780A0A4D4977}</ProjectGuid>
   </PropertyGroup>
   
   <ItemGroup>
