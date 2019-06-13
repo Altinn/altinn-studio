@@ -28,11 +28,8 @@ namespace Altinn.Platform.Register.Controllers
         /// </summary>
         /// <returns>The information about a given person</returns>
         [HttpGet]
-        public async Task<ActionResult> Get()
-        {
-            using (var reader = new StreamReader(Request.Body))
-            {
-                string ssn = await reader.ReadToEndAsync();
+        public async Task<ActionResult> Get([FromBody] string ssn)
+        {     
                 Person result = await _personsWrapper.GetPerson(ssn);
                 if (result == null)
                 {
@@ -40,7 +37,6 @@ namespace Altinn.Platform.Register.Controllers
                 }
 
                 return Ok(result);
-            }
         }     
     }
 }
