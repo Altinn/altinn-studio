@@ -15,7 +15,7 @@ createTestCafe()
       .reporter('junit', stream)
       .src(['./*_tests/*.js'])
       .run({
-        skipJsErrors: true,
+        skipJsErrors: false,
         quarantineMode: false,
         selectorTimeout: 15000,
         assertionTimeout: 15000,

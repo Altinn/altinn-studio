@@ -25,15 +25,14 @@ fixture('Regression tests of services in runtime')
 
 test('Instantiate a service in runtime', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/uieditor')
-    .click(designer.testeNavigationTab)
+    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/test')
     .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].visible).ok()
+    .expect(runtime.testUsers[0].exists).ok()
     .hover(runtime.testUsers[0])
     .click(runtime.testUsers[0])
-    .switchToMainWindow()
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
+    .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
 })
 
@@ -48,8 +47,7 @@ test('Direct link navigation to runtime', async () => {
 
 test('Upload files using file component in SBL', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component#/aboutservice')
-    .click(designer.testeNavigationTab)
+    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
     .expect(runtime.startNewButton.exists).ok()
@@ -66,8 +64,7 @@ test('Upload files using file component in SBL', async () => {
 
 test('Validations when uploading file', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/uieditor')
-    .click(designer.testeNavigationTab)
+    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
     .expect(runtime.startNewButton.exists).ok()
@@ -85,8 +82,7 @@ test('Validations when uploading file', async () => {
 
 test('Read-only components test in runtime', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view#/aboutservice')
-    .click(designer.testeNavigationTab)
+    .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
     .expect(runtime.startNewButton.exists).ok()
@@ -97,13 +93,15 @@ test('Read-only components test in runtime', async () => {
 
 test('axe UI accessibility test for runtime', async t => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
-    .click(designer.testeNavigationTab)
-    .switchToIframe(runtime.testBrukerIframe)
-    .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
-    .click(runtime.startNewButton)
-    .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
+  .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/test')
+  //.click(designer.testeNavigationTab)
+  .switchToIframe(runtime.testBrukerIframe)
+  .expect(runtime.testUsers[0].exists).ok()
+  .hover(runtime.testUsers[0])
+  .click(runtime.testUsers[0])
+  .expect(runtime.startNewButton.exists).ok()
+  .click(runtime.startNewButton)
+  .switchToMainWindow()
+  .expect(runtime.testUserHeader[0].exists).ok()
   axeCheck(t);
 });
