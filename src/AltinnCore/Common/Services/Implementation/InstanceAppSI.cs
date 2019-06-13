@@ -71,19 +71,20 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Guid instanceId;
             Instance instance = null;
-            string applicationOwnerId = startServiceModel.Org;
-            string applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, startServiceModel.Service);
+            string org = startServiceModel.Org;
+            string appId = ApplicationHelper.GetFormattedApplicationId(org, startServiceModel.Service);
+            string appName = startServiceModel.Service;
             int instanceOwnerId = startServiceModel.ReporteeID;
 
-            string apiUrl = $"instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"instances/?appId={appId}&instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             try
             {
-                HttpResponseMessage response = await _client.PostAsync(apiUrl, null);
-                string id = await response.Content.ReadAsAsync<string>();
-                instanceId = Guid.Parse(id);
+                HttpResponseMessage response = await client.PostAsync(apiUrl, null);
+                Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
+                instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
             }
             catch
             {
@@ -95,25 +96,33 @@ namespace AltinnCore.Common.Services.Implementation
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
-                applicationOwnerId,
-                applicationId,
+                org,
+                appName,
                 instanceOwnerId);
 
-            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId);
+            ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
 
             // set initial workflow state
-            instance.CurrentWorkflowStep = currentState.State.ToString();
+            instance.Workflow = new Storage.Interface.Models.WorkflowState()
+            {
+                CurrentStep = currentState.State.ToString(),
+                IsComplete = false,
+            };
 
-            instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
 
             return instance;
         }
 
         /// <inheritdoc />
-        public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string appName, string org, int instanceOwnerId, Guid instanceId)
         {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
             Instance instance = new Instance();
-            string apiUrl = $"instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
+
+            string apiUrl = $"instances/{instanceIdentifier}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -132,11 +141,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
+        /// TODO - fix logic, what are you using this for? It will only get instances for a instance owners the way storage is implemented now
+        public async Task<List<Instance>> GetInstances(string appName, string org, int instanceOwnerId)
         {
             List<Instance> instances = null;
-            applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId);
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
+            appName = ApplicationHelper.GetFormattedApplicationId(org, appName);
+            string apiUrl = $"instances?instanceOwnerId={instanceOwnerId}&appId={appName}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -159,10 +170,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> UpdateInstance(object dataToSerialize, string appName, string org, int instanceOwnerId, Guid instanceId)
         {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             Instance instance = new Instance();
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"instances/{instanceIdentifier}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -183,14 +195,14 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string appName, string org, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance = GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId).Result;
+            Instance instance = GetInstance(appName, org, instanceOwnerId, instanceId).Result;
 
-            instance.IsCompleted = true;
-            instance.CurrentWorkflowStep = WorkflowStep.Archived.ToString();
+            instance.Workflow.IsComplete = true;
+            instance.Workflow.CurrentStep = WorkflowStep.Archived.ToString();
 
-            instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
             return instance;
         }
     }

@@ -22,7 +22,7 @@ namespace Altinn.Platform.Storage.Repository
         /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
         /// <param name="instanceId"> Id of instance to retrieve events for. </param>
-        /// <param name="eventTypes">Array of event types to filter the events by./param>
+        /// <param name="eventTypes">Array of event types to filter the events by. </param>
         /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
         /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
         /// <returns>List of instance events.</returns>

@@ -155,7 +155,7 @@ namespace AltinnCore.Runtime.Controllers
             ViewBag.PlatformServices = _platformSI;
 
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.ElementType.Equals(FORM_ID)).Id);
 
             // Getting the Form Data from datastore
             object serviceModel = this._data.GetFormData(
@@ -420,7 +420,7 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.ElementType.Equals(FORM_ID)).Id);
 
             // Save Formdata to database
             this._data.UpdateData(
@@ -442,7 +442,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.CurrentWorkflowStep
+                    WorkflowStep = instance.Workflow.CurrentStep
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
@@ -451,7 +451,12 @@ namespace AltinnCore.Runtime.Controllers
             if (apiMode.Equals(ApiMode.Complete))
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
-                instance.CurrentWorkflowStep = currentState.State.ToString();
+                instance.Workflow = new Storage.Interface.Models.WorkflowState()
+                {
+                    CurrentStep = currentState.State.ToString(),
+                    IsComplete = false,
+                };
+                
                 await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.ReporteeId, instanceId);
 
                 Response.StatusCode = 200;

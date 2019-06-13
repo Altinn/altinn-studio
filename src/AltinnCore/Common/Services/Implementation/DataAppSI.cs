@@ -57,9 +57,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
+        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId)
         {
-            string apiUrl = $"instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";  
+            string apiUrl = $"instances/{instanceIdentifier}/data?elementType={FORM_ID}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             Instance instance;    
@@ -86,9 +87,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
+        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
-            string apiUrl = $"instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -115,9 +117,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public object GetFormData(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
+        public object GetFormData(Guid instanceId, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
-            string apiUrl = $"instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -144,63 +147,71 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<AttachmentList>> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
+        public async Task<List<AttachmentList>> GetFormAttachments(string org, string appName, int instanceOwnerId, Guid instanceId)
         {
-            List<Data> dataList = null;
-            List<AttachmentList> attachmentList = new List<AttachmentList>();
-            List<Attachment> attachments = null;
-            string apiUrl = $"instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";  
+            string apiUrl = $"instances/{instanceIdentifier}/data";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            List<DataElement> dataList = null;
+            List<AttachmentList> attachmentList = new List<AttachmentList>();
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                dataList = JsonConvert.DeserializeObject<List<Data>>(instanceData);
+                dataList = JsonConvert.DeserializeObject<List<DataElement>>(instanceData);
 
-                IEnumerable<Data> attachmentTypes = dataList.GroupBy(m => m.FormId).Select(m => m.FirstOrDefault());
-
-                foreach (Data attachmentType in attachmentTypes)
-                {
-                    attachments = new List<Attachment>();
-                    foreach (Data data in dataList)
-                    {
-                        if (data.FormId != "default" && data.FormId == attachmentType.FormId)
-                        {
-                            attachments.Add(new Attachment
-                            {
-                                Id = data.Id,
-                                Name = data.FileName,
-                                Size = data.FileSize
-                            });
-                        }
-                    }
-
-                    if (attachments.Count > 0)
-                    {
-                        attachmentList.Add(new AttachmentList { Type = attachmentType.FormId, Attachments = attachments });
-                    }
-                }
-
-                if (attachments != null && attachments.Count > 0)
-                {
-                    attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
-                }
+                ExtractAttachments(dataList, attachmentList);
             }
             else
             {
-                _logger.Log(LogLevel.Error, "Unable to fetch attachment list{0}", response.StatusCode);
+                _logger.Log(LogLevel.Error, "Unable to fetch attachment list {0}", response.StatusCode);
             }
 
             return attachmentList;
+        }    
+
+        private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
+        {
+            List<Attachment> attachments = null;
+            IEnumerable<DataElement> attachmentTypes = dataList.GroupBy(m => m.ElementType).Select(m => m.FirstOrDefault());
+
+            foreach (DataElement attachmentType in attachmentTypes)
+            {
+                attachments = new List<Attachment>();
+                foreach (DataElement data in dataList)
+                {
+                    if (data.ElementType != "default" && data.ElementType == attachmentType.ElementType)
+                    {
+                        attachments.Add(new Attachment
+                        {
+                            Id = data.Id,
+                            Name = data.FileName,
+                            Size = data.FileSize
+                        });
+                    }
+                }
+
+                if (attachments.Count > 0)
+                {
+                    attachmentList.Add(new AttachmentList { Type = attachmentType.ElementType, Attachments = attachments });
+                }
+            }
+
+            if (attachments != null && attachments.Count > 0)
+            {
+                attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
+            }
         }
 
         /// <inheritdoc />
-        public void DeleteFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
+        public void DeleteFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
         {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             List<AttachmentList> attachmentList = new List<AttachmentList>();
-            string apiUrl = $"instances/{instanceId}/data/{attachmentId}?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"instances/{instanceIdentifier}/data/{attachmentId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -209,9 +220,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
+        public async Task<Guid> SaveFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             Instance instance;
 
@@ -225,7 +237,7 @@ namespace AltinnCore.Common.Services.Implementation
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
-                JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+                JwtTokenUtil.AddTokenToRequestHeader(client, token);
 
                 using (Stream input = attachment.Body)
                 {
@@ -240,7 +252,7 @@ namespace AltinnCore.Common.Services.Implementation
                         formData.Headers.ContentDisposition = header;
                         formData.Headers.Add("Authorization", "Bearer " + token);
                         formData.Add(fileStreamContent, attachmentType, attachmentName);
-                        HttpResponseMessage response = _client.PostAsync(apiUrl, formData).Result;
+                        HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
 
                         response.EnsureSuccessStatusCode();
 

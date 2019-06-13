@@ -8,8 +8,6 @@ using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Enums;
-using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -52,9 +50,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId)
+        public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName)
         {
-            string apiUrl = $"instances/{instanceId}/events";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string apiUrl = $"instances/{instanceIdentifier}/events";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -72,9 +71,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
+        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName, string[] eventTypes, string from, string to)
         {
-            string apiUrl = $"instances/{instanceId}/events?";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string apiUrl = $"{instanceOwnerId}/{instanceId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -110,7 +110,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<string> SaveInstanceEvent(object dataToSerialize, string applicationOwnerId, string applicationId)
+        public async Task<string> SaveInstanceEvent(object dataToSerialize, string org, string appName)
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.CreatedDateTime = DateTime.UtcNow;

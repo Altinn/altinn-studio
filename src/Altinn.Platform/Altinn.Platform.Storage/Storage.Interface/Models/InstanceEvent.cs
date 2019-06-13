@@ -6,60 +6,66 @@ using System.Text;
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
-    /// Model for the instance event
+    /// Model for the instance event.
     /// </summary>
     public class InstanceEvent
     {
         /// <summary>
-        /// Gets or sets identifier used to identify unique instance events.
+        /// unique identifier of the event
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public Guid? Id { get; set; }
 
         /// <summary>
-        /// Gets or sets identifier used to identify unique instance
+        /// the instance the event refers to
         /// </summary>
         [JsonProperty(PropertyName = "instanceId")]
         public string InstanceId { get; set; }
 
         /// <summary>
-        /// Gets or sets identifier used to identify when Authentication Event was created
+        /// the data element which the event refers to
+        /// </summary>
+        [JsonProperty(PropertyName = "dataId")]
+        public string DataId { get; set; }
+
+        /// <summary>
+        /// event creation date-time
         /// </summary>
         [JsonProperty(PropertyName = "createdDateTime")]
         public DateTime? CreatedDateTime { get; set; }
 
         /// <summary>
-        /// Gets or sets identifier used to identify what type of Instance Event
+        /// the event type, e.g. created, saved, workflow-change
         /// </summary>
         [JsonProperty(PropertyName = "eventType")]
         public string EventType { get; set; }
 
         /// <summary>
-        /// Gets or sets identifier used to identify unique instance owner
+        /// the instance owner id
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwnerId")]
         public string InstanceOwnerId { get; set; }
 
         /// <summary>
-        /// Gets or sets identifier used to identify user who created Authorization Event
+        /// the user who created
         /// </summary>
         [JsonProperty(PropertyName = "userId")]
         public int? UserId { get; set; }
 
         /// <summary>
-        /// Gets or sets Identifier used to identify the authentication level for the user which triggered the event
+        /// the authentication level for the user which triggered the event
         /// </summary>
         [JsonProperty(PropertyName = "authenticationLevel")]
         public int AuthenticationLevel { get; set; }
 
         /// <summary>
-        /// Get or sets identifier used to identify the end user system that triggered the event
+        /// the end user system that triggered the event
         /// </summary>
         [JsonProperty(PropertyName = "endUserSystemId")]
         public int? EndUserSystemId { get; set; }
 
         /// <summary>
-        /// Gets or sets identifier used to identify the workflow step during which the event occured
+        /// the workflow step during which the event occured
         /// </summary>
         [JsonProperty(PropertyName = "workflowStep")]
         public string WorkflowStep { get; set; }
