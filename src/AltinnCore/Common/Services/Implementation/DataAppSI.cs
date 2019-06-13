@@ -40,9 +40,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
+        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId)
         {
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={FORM_ID}";
             Instance instance;
             using (HttpClient client = new HttpClient())
             {
@@ -73,9 +75,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
+        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataId}";
 
             using (HttpClient client = new HttpClient())
             {
@@ -97,9 +101,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public object GetFormData(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
+        public object GetFormData(Guid instanceId, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -127,12 +133,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<AttachmentList>> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
+        public async Task<List<AttachmentList>> GetFormAttachments(string org, string appName, int instanceOwnerId, Guid instanceId)
         {
-            List<Data> dataList = null;
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
+            List<DataElement> dataList = null;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
-            List<Attachment> attachments = null;
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -141,51 +148,59 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string instanceData = await response.Content.ReadAsStringAsync();
-                    dataList = JsonConvert.DeserializeObject<List<Data>>(instanceData);
+                    dataList = JsonConvert.DeserializeObject<List<DataElement>>(instanceData);
 
-                    IEnumerable<Data> attachmentTypes = dataList.GroupBy(m => m.FormId).Select(m => m.FirstOrDefault());
-
-                    foreach (Data attachmentType in attachmentTypes)
-                    {
-                        attachments = new List<Attachment>();
-                        foreach (Data data in dataList)
-                        {
-                            if (data.FormId != "default" && data.FormId == attachmentType.FormId)
-                            {
-                                attachments.Add(new Attachment
-                                {
-                                    Id = data.Id,
-                                    Name = data.FileName,
-                                    Size = data.FileSize
-                                });
-                            }
-                        }
-
-                        if (attachments.Count > 0)
-                        {
-                            attachmentList.Add(new AttachmentList { Type = attachmentType.FormId, Attachments = attachments });
-                        }
-                    }
-
-                    if (attachments != null && attachments.Count > 0)
-                    {
-                        attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
-                    }
+                    ExtractAttachments(dataList, attachmentList);
                 }
                 else
                 {
-                    _logger.Log(LogLevel.Error, "Unable to fetch attachment list{0}", response.StatusCode);                    
+                    _logger.Log(LogLevel.Error, "Unable to fetch attachment list {0}", response.StatusCode);                    
                 }
 
                 return attachmentList;
             }
         }
 
-        /// <inheritdoc />
-        public void DeleteFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
+        private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
         {
+            List<Attachment> attachments = null;
+            IEnumerable<DataElement> attachmentTypes = dataList.GroupBy(m => m.ElementType).Select(m => m.FirstOrDefault());
+
+            foreach (DataElement attachmentType in attachmentTypes)
+            {
+                attachments = new List<Attachment>();
+                foreach (DataElement data in dataList)
+                {
+                    if (data.ElementType != "default" && data.ElementType == attachmentType.ElementType)
+                    {
+                        attachments.Add(new Attachment
+                        {
+                            Id = data.Id,
+                            Name = data.FileName,
+                            Size = data.FileSize
+                        });
+                    }
+                }
+
+                if (attachments.Count > 0)
+                {
+                    attachmentList.Add(new AttachmentList { Type = attachmentType.ElementType, Attachments = attachments });
+                }
+            }
+
+            if (attachments != null && attachments.Count > 0)
+            {
+                attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
+            }
+        }
+
+        /// <inheritdoc />
+        public void DeleteFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
+        {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
             List<AttachmentList> attachmentList = new List<AttachmentList>();
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data/{attachmentId}?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data/{attachmentId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -196,9 +211,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
+        public async Task<Guid> SaveFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
             Instance instance;
 
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();

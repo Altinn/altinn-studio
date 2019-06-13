@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
-
 namespace Altinn.Platform.Storage.Repository
 {
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Models;
+
     /// <summary>
     /// Interface to talk to the application repository
     /// </summary>
@@ -15,37 +13,37 @@ namespace Altinn.Platform.Storage.Repository
         /// Creates an application metadata object in repository
         /// </summary>
         /// <param name="item">the application metadata object</param>
-        /// <returns></returns>
-        Task<ApplicationMetadata> Create(ApplicationMetadata item);
+        /// <returns>the created application</returns>
+        Task<Application> Create(Application item);
 
         /// <summary>
         /// Delets an instance.
         /// </summary>
-        /// <param name="applicationId">The id of the application to delete</param>
-        /// <param name="applicationOwnerId">The application owner id</param>
+        /// <param name="appId">The id of the application to delete</param>
+        /// <param name="org">The application owner id</param>
         /// <returns>if the item is deleted or not</returns>
-        Task<bool> Delete(string applicationId, string applicationOwnerId);
+        Task<bool> Delete(string appId, string org);
 
         /// <summary>
         /// Get the application owners' applications
         /// </summary>
-        /// <param name="applicationOwnerId">application owner id</param>
+        /// <param name="org">application owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        Task<List<ApplicationMetadata>> ListApplications(string applicationOwnerId);
+        Task<List<Application>> ListApplications(string org);
 
         /// <summary>
         /// Get the instance based on the input parameters
         /// </summary>
-        /// <param name="applicationId">application id</param>
-        /// <param name="applicationOwnerId">applicaiton owner id</param>
+        /// <param name="appId">application id</param>
+        /// <param name="org">applicaiton owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        Task<ApplicationMetadata> FindOne(string applicationId, string applicationOwnerId);
+        Task<Application> FindOne(string appId, string org);
 
         /// <summary>
         /// Update instance for a given form id
         /// </summary>
-        /// <param name="item">the instance</param>
-        /// <returns>The instance</returns>
-        Task<ApplicationMetadata> Update(ApplicationMetadata item);
+        /// <param name="item">the application object</param>
+        /// <returns>The updated application instance</returns>
+        Task<Application> Update(Application item);
     }
 }

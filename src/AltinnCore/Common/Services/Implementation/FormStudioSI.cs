@@ -42,10 +42,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public object GetPrefill(string applicationOwnerId, string applicationId, Type type, int instanceOwnerId, string prefillkey)
+        public object GetPrefill(string org, string appName, Type type, int instanceOwnerId, string prefillkey)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string prefillFilePath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/prefill/{prefillkey}.xml";
+            string prefillFilePath = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/prefill/{prefillkey}.xml";
             try
             {
                 using (Stream stream = File.Open(prefillFilePath, FileMode.Open, FileAccess.Read))

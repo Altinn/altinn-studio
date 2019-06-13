@@ -52,7 +52,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId)
+        public ServiceState GetInitialServiceState(string org, string appName)
         {            
             // Read the workflow template
             string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
@@ -60,17 +60,18 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetUrlForCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, WorkflowStep currentState)
+        public string GetUrlForCurrentState(Guid instanceId, string org, string appName, WorkflowStep currentState)
         {
-            return WorkflowHelper.GetUrlForCurrentState(instanceId, applicationOwnerId, applicationId, currentState);
+            return WorkflowHelper.GetUrlForCurrentState(instanceId, org, appName, currentState);
         }
 
         /// <inheritdoc/>
-        public ServiceState GetCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
+        public ServiceState GetCurrentState(Guid instanceId, string org, string appName, int instanceOwnerId)
         {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -86,7 +87,7 @@ namespace AltinnCore.Common.Services.Implementation
                     throw new Exception("Unable to fetch workflow state");
                 }
 
-                Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentWorkflowState);
+                Enum.TryParse<WorkflowStep>(instance.Workflow.CurrentStep, out WorkflowStep currentWorkflowState);
 
                 return new ServiceState
                 {
@@ -96,9 +97,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
+        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string org, string appName, int instanceOwnerId)
         {
-            ServiceState currentState = GetCurrentState(instanceId, applicationOwnerId, applicationId, instanceOwnerId);
+            ServiceState currentState = GetCurrentState(instanceId, org, appName, instanceOwnerId);
             string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
             return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }
