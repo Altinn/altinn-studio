@@ -53,6 +53,7 @@ namespace Altinn.Platform.Authentication
                     {
                         options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                         options.Cookie.Name = "AltinnRuntimeCookie";
+                        options.Cookie.Name = "at21.altinn.cloud";
                     });
         }
 
