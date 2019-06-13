@@ -44,10 +44,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string applicationOwnerId, string applicationId)
+        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string appName)
         {
             List<ServiceInstance> returnList = new List<ServiceInstance>();
-            List<Instance> instances = _instance.GetInstances(applicationId, applicationOwnerId, instanceOwnerId).Result;
+            List<Instance> instances = _instance.GetInstances(appName, org, instanceOwnerId).Result;
             if (instances != null && instances.Count > 0)
             {
                 foreach (Instance instance in instances)
@@ -55,8 +55,8 @@ namespace AltinnCore.Common.Services.Implementation
                     returnList.Add(new ServiceInstance
                     {
                         ServiceInstanceID = Guid.Parse(instance.Id),
-                        IsArchived = instance.IsCompleted,
-                        LastChanged = instance.LastChangedDateTime
+                        IsArchived = instance.Workflow.IsComplete,
+                        LastChanged = instance.LastChangedDateTime ?? DateTime.MinValue,
                     });
                 }
             }
@@ -74,7 +74,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string applicationOwnerId, string applicationId)
+        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string appName)
         {
             // TDOD: to be implemented
             return new List<ServicePrefill>();

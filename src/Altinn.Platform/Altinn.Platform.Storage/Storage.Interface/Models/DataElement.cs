@@ -3,35 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
-    /// Model for form data
+    /// Model to hold a data element.
     /// </summary>
     [Serializable]
-    public class Data
+    public class DataElement
     {
         /// <summary>
-        /// data id
+        /// data id, an guid.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// the form identifier, tells us what data element this is 
+        /// the element type, must be equal to the ones defined in application element types.
         /// </summary>
-        [JsonProperty(PropertyName = "formId")]
-        public string FormId { get; set; }
+        [JsonProperty(PropertyName = "elementType")]
+        public string ElementType { get; set; }
 
         /// <summary>
-        /// users filename
+        /// the name of the data element (file)
         /// </summary>
         [JsonProperty(PropertyName = "fileName")]
         public string FileName { get; set; }
 
         /// <summary>
-        /// contentType of file in blob
+        /// contentType of data element (file) stored
         /// </summary>
         [JsonProperty(PropertyName = "contentType")]
         public string ContentType { get; set; }
@@ -43,10 +44,10 @@ namespace Altinn.Platform.Storage.Models
         public string StorageUrl { get; set; }
 
         /// <summary>
-        /// path to storage
+        /// Links to access the data elements
         /// </summary>
-        [JsonProperty(PropertyName = "link")]
-        public string Link { get; set; }
+        [JsonProperty(PropertyName = "dataLinks")]
+        public ResourceLinks DataLinks { get; set; }
 
         /// <summary>
         /// Size of file in bytes
@@ -61,31 +62,31 @@ namespace Altinn.Platform.Storage.Models
         public string Signature { get; set; }
 
         /// <summary>
-        /// Size of file in bytes
+        /// Indicates that the instance owner no longer can update the data element
         /// </summary>
         [JsonProperty(PropertyName = "isLocked")]
         public bool IsLocked { get; set; }
 
         /// <summary>
-        /// create date and time for the instance
+        /// create date and time for the data element
         /// </summary>
         [JsonProperty(PropertyName = "createdDateTime")]
         public DateTime CreatedDateTime { get; set; }
 
         /// <summary>
-        /// reportee id of the user who created the instance
+        /// user id of the user who created the data element
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
         public string CreatedBy { get; set; }
 
         /// <summary>
-        /// last changed date time for the instance
+        /// last changed date time for the data element
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedDateTime")]
-        public DateTime LastChangedDateTime { get; set; }
+        public DateTime? LastChangedDateTime { get; set; }
 
         /// <summary>
-        /// reportee id of the user who last changed the instance
+        /// user id of the user who last changed the instance
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
