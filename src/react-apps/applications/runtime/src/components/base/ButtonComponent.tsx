@@ -71,22 +71,10 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
   public submitForm = () => {
     const { reportee, org, service, instanceId } = window as IAltinnWindow;
-    for (const component in this.props.layout) {
-      if (component) {
-        const key: string = 'simpleBinding';
-        const dataModelField = this.props.layout[component].dataModelBindings[key];
-        const value = this.props.allFormData.formData[this.props.layout[component].dataModelBindings[key]];
-        FormDataActions.updateFormData(dataModelField, (value ? value : ''), this.props.layout[component].id);
-      }
-    }
-    console.log(this.props.allValidations.validations, Object.keys(this.props.allValidations.validations).length === 0);
-    // TODO: should wait for validation state
-    if (Object.keys(this.props.allValidations.validations).length === 0) {
-      FormDataActions.submitFormData(
-        `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
-        'Complete',
-      );
-    }
+    FormDataActions.submitFormData(
+      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+      'Complete',
+    );
   }
 
   public render() {
