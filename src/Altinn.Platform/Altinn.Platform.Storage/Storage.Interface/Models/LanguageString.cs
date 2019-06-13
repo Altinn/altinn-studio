@@ -12,6 +12,13 @@ namespace Storage.Interface.Models
     public class LanguageString : Dictionary<string, string>
     {
         /// <summary>
+        /// public constructor
+        /// </summary>
+        public LanguageString()
+        {
+        }
+
+        /// <summary>
         /// Required by sonarcloud
         /// </summary>
         /// <param name="info">info</param>

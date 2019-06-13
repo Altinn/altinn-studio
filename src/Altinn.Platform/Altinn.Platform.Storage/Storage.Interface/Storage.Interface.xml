@@ -604,6 +604,11 @@
             Convenience type to handle multiple languages in a string.
             </summary>
         </member>
+        <member name="M:Storage.Interface.Models.LanguageString.#ctor">
+            <summary>
+            public constructor
+            </summary>
+        </member>
         <member name="M:Storage.Interface.Models.LanguageString.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
             <summary>
             Required by sonarcloud
