@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { IAttachments } from 'src/features/form/fileUpload';
+import { IAttachments } from 'src/sharedResources/attachments';
 import * as ActionTypes from '../../types';
 
 export interface IFetchAttachmentsActionFulfilled extends Action {

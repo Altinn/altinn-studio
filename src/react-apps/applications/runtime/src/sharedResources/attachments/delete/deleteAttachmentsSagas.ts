@@ -1,13 +1,13 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
-import { IAltinnWindow } from '../..';
-import { getFileUploadComponentValidations } from '../../../../../components/base/FileUploadComponent';
-import { IRuntimeState } from '../../../../../types';
-import { get, post } from '../../../../../utils/networking';
-import FormValidationsDispatcher from '../../../validation/actions';
-import FormFileUploadDispatcher from '../../actions';
-import * as deleteActions from '../../actions/delete';
-import * as FileUploadActionsTypes from '../../actions/types';
+import { IAltinnWindow } from '..';
+import { getFileUploadComponentValidations } from '../../../components/base/FileUploadComponent';
+import FormValidationsDispatcher from '../../../features/form/validation/actions';
+import { IRuntimeState } from '../../../types';
+import { get, post } from '../../../utils/networking';
+import FormFileUploadDispatcher from '../attachmentsActions';
+import * as FileUploadActionsTypes from '../attachmentsActionTypes';
+import * as deleteActions from './deleteAttachmentsActions';
 
 export function* watchDeleteAttachmentSaga(): SagaIterator {
   yield takeEvery(FileUploadActionsTypes.DELETE_ATTACHMENT, deleteAttachmentSaga);

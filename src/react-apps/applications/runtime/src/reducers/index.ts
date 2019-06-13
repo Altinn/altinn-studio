@@ -8,7 +8,6 @@ import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import FormDynamics from '../features/form/dynamics/reducer';
-import FormFileUploadReducer, { IFormFileUploadState } from '../features/form/fileUpload/reducer';
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
 import FormResourceReducer, { IResourceState } from '../features/form/resources/reducer';
 import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
@@ -16,6 +15,7 @@ import FormUserReducer, { IFormUserState } from '../features/form/user/reducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import LanguageReducer, { ILanguageState } from '../features/languages/reducer';
+import FormFileUploadReducer, { IFormFileUploadState } from '../sharedResources/attachments/attachmentsReducer';
 
 export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
   formLayout: T1;

@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { IAttachment } from 'src/features/form/fileUpload';
+import { IAttachment } from 'src/sharedResources/attachments';
 import { IComponentValidations } from 'src/types/global';
 import * as ActionTypes from '../../types';
 

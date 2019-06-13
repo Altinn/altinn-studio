@@ -1,10 +1,10 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IAttachments } from '..';
-import * as deleteActions from '../actions/delete';
-import * as fetchActions from '../actions/fetch';
-import * as FileUploadActionsTypes from '../actions/types';
-import * as uploadActions from '../actions/upload';
+import { IAttachments } from '.';
+import * as FileUploadActionsTypes from './attachmentsActionTypes';
+import * as deleteActions from './delete/deleteAttachmentsActions';
+import * as fetchActions from './fetch/fetchAttachmentsActions';
+import * as uploadActions from './upload/uploadAttachmentsActions';
 
 export interface IFormFileUploadState {
   attachments: IAttachments;

@@ -2,10 +2,10 @@ import { IFormConfigState } from '../features/form/config/reducer';
 import { IFormDataState } from '../features/form/data/reducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';
-import { IFormFileUploadState } from '../features/form/fileUpload/reducer';
 import { ILayoutState } from '../features/form/layout/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
 import { ILanguageState } from '../features/languages/reducer';
+import { IFormFileUploadState } from '../sharedResources/attachments/attachmentsReducer';
 
 export interface IRuntimeStore {
   formLayout: ILayoutState;

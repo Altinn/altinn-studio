@@ -1,10 +1,10 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IAttachment, IAttachments } from '..';
-import { store } from '../../../../store';
+import { IAttachment, IAttachments } from '.';
+import { store } from '../../store';
 
-import * as deleteActions from './delete';
-import * as fetchActions from './fetch';
-import * as uploadActions from './upload';
+import * as deleteActions from './delete/deleteAttachmentsActions';
+import * as fetchActions from './fetch/fetchAttachmentsActions';
+import * as uploadActions from './upload/uploadAttachmentsActions';
 
 export interface IFileUploadActions extends ActionCreatorsMapObject {
   uploadAttachment: (

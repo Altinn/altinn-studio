@@ -1,6 +1,6 @@
 import { Action } from 'redux';
-import { IAttachment } from '../..';
-import * as ActionTypes from '../types';
+import { IAttachment } from '..';
+import * as ActionTypes from '../attachmentsActionTypes';
 
 export interface IUploadAttachmentAction extends Action {
   file: File;
