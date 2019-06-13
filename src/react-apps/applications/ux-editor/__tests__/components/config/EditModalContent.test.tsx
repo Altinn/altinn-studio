@@ -117,6 +117,6 @@ describe('>>> containers/EditModalContent', () => {
         />
       </Provider>,
     );
-    expect(mountedEditModalContent.find('input').length).toBe(8);
+    expect(mountedEditModalContent.find('input').length).toBe(9);
   });
 });

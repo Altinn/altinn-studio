@@ -50,25 +50,23 @@ export function validateFormComponents(
   language: any,
 ) {
   const validations = {};
-  const validationErrors: string[] = [];
   const fieldKey = 'simpleBinding';
-  const componentValidations: IComponentValidations = {
-    [fieldKey]: {
-      errors: [],
-      warnings: [],
-    },
-  };
   formLayout.forEach((component) => {
     validations[component.id] = {};
     if (component.type === 'FileUpload') {
       if (component.minNumberOfAttachments > 0 && Object.keys(formAttachments).length < 1 ||
         formAttachments[component.id].length < component.minNumberOfAttachments) {
-        validationErrors.push(
+        const componentValidations: IComponentValidations = {
+          [fieldKey]: {
+            errors: [],
+            warnings: [],
+          },
+        };
+        componentValidations[fieldKey].errors.push(
           getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language) + ' ' +
           component.minNumberOfAttachments + ' ' +
           getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language),
         );
-        componentValidations[fieldKey].errors = validationErrors;
         validations[component.id] = componentValidations;
       }
     }

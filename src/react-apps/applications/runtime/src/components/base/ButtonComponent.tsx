@@ -1,13 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { makeGetFormDataSelector } from '../../selectors/getFormData';
 import { makeGetValidationsSelector } from '../../selectors/getValidations';
-import { IDataModelFieldElement, IValidations } from '../../types/global';
+import { IValidations } from '../../types/global';
 import { canFormBeSaved, getErrorCount } from '../../utils/validation';
 import FormDataActions from './../../features/form/data/actions/index';
-import { IFormDataState } from './../../features/form/data/reducer';
-import { ILayoutState } from './../../features/form/layout/reducer';
-import ValidationActions from './../../features/form/validation/actions';
 import { IAltinnWindow, IRuntimeState } from './../../types';
 export interface IButtonProvidedProps {
   id: string;
@@ -19,10 +15,6 @@ export interface IButtonProvidedProps {
 }
 
 export interface IButtonProps extends IButtonProvidedProps {
-  dataModel: IDataModelFieldElement[];
-  allFormData: IFormDataState;
-  allValidations: any;
-  layout: ILayoutState;
   validations: IValidations;
 }
 
@@ -91,13 +83,8 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
 const makeMapStateToProps = () => {
   const GetValidations = makeGetValidationsSelector();
-  const GetFormData = makeGetFormDataSelector();
   const mapStateToProps = (state: IRuntimeState, props: IButtonProvidedProps): IButtonProps => {
     return {
-      dataModel: state.formDataModel.dataModel,
-      allFormData: state.formData,
-      allValidations: state.formValidations,
-      layout: state.formLayout,
       validations: GetValidations(state),
       ...props,
     };

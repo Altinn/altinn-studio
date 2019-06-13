@@ -141,6 +141,7 @@ export const schemaComponents: IComponent[] = [
       maxNumberOfAttachments: 1,
       minNumberOfAttachments: 1,
       displayMode: 'simple',
+      required: true,
     },
   },
   {

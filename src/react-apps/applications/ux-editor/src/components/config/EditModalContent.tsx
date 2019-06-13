@@ -491,7 +491,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <AltinnInputField
                 id={'modal-properties-minimum-files'}
                 onChangeFunction={this.handleNumberOfAttachmentsChange('min')}
-                inputValue={component.minNumberOfAttachments || 1}
+                inputValue={component.minNumberOfAttachments || 0}
                 inputDescription={getLanguageFromKey('ux_editor.modal_properties_minimum_files', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
                 inputDescriptionStyling={{ marginTop: '24px' }}
@@ -584,7 +584,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     if (type === 'max') {
       component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
     } else {
-      component.minNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+      component.minNumberOfAttachments = (event.target.value >= 0) ? event.target.value : 0;
+      component.required = event.target.value > 0;
     }
     this.setState({
       component,
