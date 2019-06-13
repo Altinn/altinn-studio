@@ -307,7 +307,7 @@ namespace Altinn.Platform.Storage.Controllers
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
 
-                SelfLinks = new ResourceLinks()
+                DataLinks = new ResourceLinks()
                 {
                     Apps = dataLink,
                 },
