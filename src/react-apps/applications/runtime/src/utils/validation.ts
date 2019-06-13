@@ -80,7 +80,7 @@ export function validateFormComponents(
 export function validateComponentFormData(
   formData: any,
   dataModelFieldElement: IDataModelFieldElement,
-  component: any,
+  component: ILayoutComponent,
   language: any,
 ): IComponentValidations {
   const validationErrors: string[] = [];

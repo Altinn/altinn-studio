@@ -14,6 +14,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockIsValid: boolean;
   let mockMaxFileSizeInMB: number;
   let mockMaxNumberOfAttachments: number;
+  let mockMinNumberOfAttachments: number;
   let mockReadOnly: boolean;
   let mockAttachments: any[];
   let mockFileList: File[];
@@ -43,6 +44,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       },
     };
     mockMaxNumberOfAttachments = 4;
+    mockMinNumberOfAttachments = 1;
     mockMaxFileSizeInMB = 2;
     mockHasCustomFileEndings = false;
     mockDisplayMode = 'simple';
@@ -62,6 +64,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
           language={{}}
           maxFileSizeInMB={mockMaxFileSizeInMB}
           maxNumberOfAttachments={mockMaxNumberOfAttachments}
+          minNumberOfAttachments={mockMinNumberOfAttachments}
           readOnly={mockReadOnly}
         />
       </Provider>,
@@ -78,6 +81,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         language={{}}
         maxFileSizeInMB={mockMaxFileSizeInMB}
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
@@ -95,6 +99,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         language={{}}
         maxFileSizeInMB={mockMaxFileSizeInMB}
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
@@ -114,6 +119,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         language={{}}
         maxFileSizeInMB={mockMaxFileSizeInMB}
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
@@ -136,6 +142,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         language={{}}
         maxFileSizeInMB={mockMaxFileSizeInMB}
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
