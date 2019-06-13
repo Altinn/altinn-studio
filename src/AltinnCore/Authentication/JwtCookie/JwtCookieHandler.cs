@@ -71,7 +71,7 @@ namespace AltinnCore.Authentication.JwtCookie
                 // Get the cookie from request 
                 string token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
 
-                Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Token has value: {token}");
+                Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Expected name: { Options.Cookie.Name} Token has value: {token}");
 
                 // If no cookie present 
                 if (string.IsNullOrEmpty(token))
