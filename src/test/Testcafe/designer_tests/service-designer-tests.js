@@ -19,7 +19,7 @@ fixture('GUI service designer tests')
 
 test('Drag and drop test', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/test123#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
     .expect(designer.inputComponent).ok()
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .dragToElement(designer.addressComponent, designer.dragToArea)

@@ -23,7 +23,10 @@ export default class RunTimePage {
     this.checkBox = Selector('');
     this.textboxComponent = Selector('textarea')
     this.addressComponent = Selector('input').withAttribute('type', 'text');
-
+    this.inputButton = Selector("input"); //Selector("#662fc4a0-6aab-4ac2-babb-be2f5ffb4ebd"); //unique uuid
+    this.saveButton = Selector("#saveBtn");
+    this.sendInnButton = Selector("#cf94bf1d-e680-43ff-8a4b-dfdc3f7d7f99"); //unique uuid
+    this.workflowSubmit = Selector("#workflowSubmitStepButton");
     //file component error message
     this.errorMessage = Selector('.field-validation-error.a-message.a-message-error');
 

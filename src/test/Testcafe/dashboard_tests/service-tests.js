@@ -13,6 +13,7 @@ fixture('Creating/Reading/Updating/Deleting services')
   })
   .beforeEach(async t => {
     t.ctx.newServiceName = "testcafe04";
+    t.ctx.existingService = "formfill";
     t.ctx.deltMessage = "Du har delt dine endringer";
     t.ctx.syncMessage = "Endringene er validert";
     await t
@@ -32,6 +33,20 @@ test.skip('Create a new service', async () => {
     .pressKey("tab")
     .click(dash.opprettButton)
 });
+
+test('Cannot create new service, as service name already exists', async () => {
+  await t
+    .click(dash.newServiceButton)
+    .click(dash.tjenesteEier)
+    .pressKey('enter')
+    .pressKey('down')
+    .click(dash.tjenesteNavn)
+    .typeText(dash.tjenesteNavn, t.ctx.existingService)
+    .pressKey("tab")
+    .pressKey("tab")
+    .click(dash.opprettButton)
+    .expect(dash.serviceExistsDialogue.exists).ok()
+})
 
 test('Search for only my users services', async () => {
   await t

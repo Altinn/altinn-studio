@@ -114,7 +114,7 @@ test('User does not have write access to service, and cannot deploy', async() =>
     .expect(Selector("h2").withText(t.ctx.ikkeTilgang).visible).ok()
 })
 
-test.skip('Accessibility testing for deployment to test environment page', async t => {
+test('Accessibility testing for deployment to test environment page', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deploytotestenv#/deploytotest')
     .click(designer.testeNavigationTab)

@@ -14,6 +14,7 @@ export default class DashBoard {
     this.rettigheterMelding = Selector("p").withText("Du har ikke rettigheter");
     this.skriveRettigheter = Selector("div > div > p").withText("Du har ikke skriverettigheter");
     this.opprettButton = Selector("button").withExactText("Opprett");
+    this.serviceExistsDialogue = Selector("div").withExactText("Lagringsnavnet finnes allerede");
   }
 
   async logout() {
