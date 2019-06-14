@@ -51,7 +51,6 @@ describe('>>> containers/EditModalContent', () => {
     };
     mockComponent = {
       dataModelBindings: {},
-      itemType: 'COMPONENT',
       readOnly: false,
       required: false,
       textResourceBindings: {
@@ -80,7 +79,6 @@ describe('>>> containers/EditModalContent', () => {
   it('+++ should return header spesific content when type header', () => {
     mockComponent = {
       dataModelBindings: {},
-      itemType: 'COMPONENT',
       readOnly: false,
       required: false,
       textResourceBindings: {
@@ -98,5 +96,27 @@ describe('>>> containers/EditModalContent', () => {
       </Provider>,
     );
     expect(mountedEditModalContent.find('input').length).toBe(2);
+  });
+  it('+++ should return file uploader spesific content when type file uploader', () => {
+    mockComponent = {
+      dataModelBindings: {},
+      readOnly: false,
+      required: false,
+      textResourceBindings: {
+        title: 'Header',
+      },
+      type: 'FileUpload',
+    };
+    const mountedEditModalContent = mount(
+      <Provider store={mockStore}>
+        <EditModalContent
+          component={mockComponent}
+          language={mockLanguage}
+          handleComponentUpdate={mockHandleComponentUpdate}
+          classes={null}
+        />
+      </Provider>,
+    );
+    expect(mountedEditModalContent.find('input').length).toBe(8);
   });
 });

@@ -121,14 +121,17 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="view">name of the view</param>
         /// <param name="itemId">the item id</param>
         /// <returns>The react view or the receipt</returns>
-        [Authorize(Policy = "InstanceRead")]
+        [Authorize]
         public async Task<IActionResult> EditSPA(string org, string service, Guid instanceId, string view, int? itemId)
         {
             // Make sure user cannot edit an archived instance
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
-            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            if (instanceId != null)
+            {
+                RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
+                requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
+                requestContext.Reportee = requestContext.UserContext.Reportee;
+                List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            }
 
             // TODO Add info for REACT app.
             return View();
@@ -166,7 +169,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Getting the Form Data
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
+            Guid.TryParse(instance.Data.Find(m => m.ElementType == FORM_ID).Id, out Guid dataId);
             object serviceModel = _data.GetFormData(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, dataId);
             serviceImplementation.SetServiceModel(serviceModel);
 
@@ -195,10 +198,10 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.CurrentWorkflowStep
+                    WorkflowStep = instance.Workflow.CurrentStep,
                 };
 
-                await _event.SaveInstanceEvent(instanceEvent, org, service);               
+                await _event.SaveInstanceEvent(instanceEvent, org, service);
             }
 
             ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);
@@ -347,7 +350,7 @@ namespace AltinnCore.Runtime.Controllers
 
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
 
-                // Create a new instance document                
+                // Create a new instance document
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
                 // Create and store the instance created event
@@ -358,12 +361,12 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.CurrentWorkflowStep
+                    WorkflowStep = instance.Workflow.CurrentStep
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
 
-                Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentStep);
+                Enum.TryParse<WorkflowStep>(instance.Workflow.CurrentStep, out WorkflowStep currentStep);
 
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
                 return Redirect(redirectUrl);
@@ -427,7 +430,7 @@ namespace AltinnCore.Runtime.Controllers
             // use of the plattform services
             serviceImplementation.SetPlatformServices(_platformSI);
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
+            Guid.TryParse(instance.Data.Find(m => m.ElementType == FORM_ID).Id, out Guid dataId);
 
             // Getting the populated form data from disk
             dynamic serviceModel = _data.GetFormData(

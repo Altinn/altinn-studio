@@ -33,7 +33,7 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateRepoOption" /> class.
         /// </summary>
-        [JsonConstructorAttribute]
+        [JsonConstructor]
         protected CreateRepoOption()
         {
         }

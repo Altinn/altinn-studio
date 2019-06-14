@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormFillerActions from '../features/form/data/actions';
-
+import { IFormUserState } from '../features/form/user/reducer';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IValidations } from '../types/global';
 
@@ -22,6 +22,7 @@ export enum WorkflowSteps {
 }
 
 export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
+  formUser: IFormUserState;
   language: any;
   errorList: string[];
 }
@@ -38,6 +39,17 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     };
   }
 
+  public renderUser = () => {
+    if (this.props.formUser && this.props.formUser.firstName) {
+      const user = this.props.formUser.firstName.concat(
+        ' ',
+        (this.props.formUser.middleName !== null ? (this.props.formUser.middleName.concat(' ')) : ''),
+        this.props.formUser.lastName);
+      return user.toUpperCase();
+    }
+    return null;
+  }
+
   public renderTop = () => {
     return (
       <div className='row'>
@@ -51,19 +63,34 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             <div className='a-modal-top-user'>
               <div
                 className='a-personSwitcher '
-                title={getLanguageFromKey('form_filler.placeholder_user', this.props.language)}
+                title={this.renderUser()}
               >
-                <span className='a-personSwitcher-name'>
-                  <span className='d-block' style={{ color: '#022F51' }}>
-                    {getLanguageFromKey('form_filler.placeholder_user', this.props.language)}
+                <span className='a-personSwitcher-name' style={{ marginBottom: '10px' }}>
+                  <span className='d-block' style={{ color: '#022F51', lineHeight: '18px' }}>
+                    {this.renderUser()}
+                  </span>
+                  <span style={{ color: '#022F51', lineHeight: '18px' }}>
+                    {
+                      this.props.formUser && this.props.formUser.organization &&
+                      getLanguageFromKey('general.for', this.props.language) + ' ' +
+                      this.props.formUser.organization.toUpperCase()
+                    }
                   </span>
                   <span className='d-block' />
                 </span>
-                <i
-                  className='fa fa-private-circle-big  a-personSwitcher-icon'
-                  aria-hidden='true'
-                  style={{ color: '#022F51' }}
-                />
+                {this.props.formUser && this.props.formUser.organization ?
+                  <i
+                    className='fa fa-corp-circle-big'
+                    aria-hidden='true'
+                    style={{ color: '#022F51', fontSize: '3.1rem', marginLeft: '5px' }}
+                  />
+                  :
+                  <i
+                    className='fa fa-private-circle-big'
+                    aria-hidden='true'
+                    style={{ color: '#022F51', fontSize: '3.1rem', marginLeft: '5px' }}
+                  />
+                }
               </div>
             </div>
           </div>
@@ -245,6 +272,7 @@ const getErrorList = (validations: IValidations) => {
 
 const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
+    formUser: state.formUser,
     language: state.language ? state.language.language : {},
     errorList: getErrorList(state.formValidations ? state.formValidations.validations : {}),
     ...props,

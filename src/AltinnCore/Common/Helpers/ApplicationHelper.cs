@@ -5,19 +5,19 @@ using System.Text;
 namespace AltinnCore.Common.Helpers
 {
     /// <summary>
-    /// helper class for functionalities realted to application or application meta data
+    /// helper class for functionalities related to application or application meta data
     /// </summary>
     public static class ApplicationHelper
     {
         /// <summary>
-        /// Gets the application id formatted as "applicationId-applicationOwnerID"
+        /// Gets the application id  (appId) formatted as "org/appName"
         /// </summary>
-        /// <param name="applicationOwnerId">the application owner</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="org">the application owner</param>
+        /// <param name="appName">the application name</param>
         /// <returns></returns>
-        public static string GetFormattedApplicationId(string applicationOwnerId, string applicationId)
+        public static string GetFormattedApplicationId(string org, string appName)
         {
-            return $"{applicationOwnerId}-{applicationId}";
+            return $"{org}/{appName}";
         }
     }
 }
