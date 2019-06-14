@@ -55,8 +55,8 @@ namespace Altinn.Platform.Storage
                     Version = "v1"
                 });
 
-                c.IncludeXmlComments(GetXmlCommentsPathForControllers());
-                /* add path to nuget package. xml file is not copied does not work:
+                /*c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                 add path to nuget package. xml file is not copied does not work:
                  * c.IncludeXmlComments("..\\Storage.Interface\\Storage.Interface.xml");*/
             });
         }
@@ -67,7 +67,7 @@ namespace Altinn.Platform.Storage
             string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.XML";
             string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
-            return xmlPath;                     
+            return xmlPath;
         }
 
         /// <summary>
