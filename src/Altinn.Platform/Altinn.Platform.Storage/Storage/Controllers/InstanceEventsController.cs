@@ -5,21 +5,17 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
-using Serilog.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
     /// API for managing the instance event element
     /// </summary>
-    [Route("storage/api/v1/instances/{instanceId}/events")]
+    [Route("storage/api/v1/instances/{instanceOwnerId}/{instanceGuid}/events")]
     public class InstanceEventsController : Controller
     {
         private readonly IInstanceEventRepository _repository;
-        private Logger logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventsController"/> class
@@ -58,18 +54,23 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
-        /// <param name="eventTypes">Array of event types to filter the events by./param>
-        /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
-        /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
+        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="instanceGuid"> Id of instance to retrieve events for. </param>
+        /// <param name="eventTypes">Array of event types to filter the events by.</param>
+        /// <param name="from"> Lower bound for DateTime span to filter events by.</param>
+        /// <param name="to"> Upper bound for DateTime span to filter events by.</param>
         /// <returns>List of instance events.</returns>
+        /// <!--
         /// GET  storage/api/v1/instances/{instanceId}/events
         /// GET  storage/api/v1/instances/{instanceId}/events?eventTypes=deleted,submited
         /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23
-        /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23&eventTypes=deleted&eventTypes=submited
+        /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23&eventTypes=deleted,submited
+        /// -->
         [HttpGet]
-        public async Task<ActionResult> Get(string instanceId, string[] eventTypes, string from, string to)
+        public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid, string[] eventTypes, string from, string to)
         {
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+
             if (string.IsNullOrEmpty(instanceId))
             {
                 return BadRequest("Unable to perform query.");
@@ -103,12 +104,15 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Deletes all events related to an instance id.
         /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for. .</param>
+        /// <param name="instanceOwnerId">Id of instance owner to retrieve events for. .</param>
+        /// <param name="instanceGuid">Guid of the instance</param>
         /// <returns>Number of deleted events.</returns>
         /// DELETE storage/api/v1/instances/{instanceId}/events
         [HttpDelete]
-        public async Task<ActionResult> Delete(string instanceId)
+        public async Task<ActionResult> Delete(int instanceOwnerId, Guid instanceGuid)
         {
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+
             if (string.IsNullOrEmpty(instanceId))
             {
                 return BadRequest("Unable to perform query.");

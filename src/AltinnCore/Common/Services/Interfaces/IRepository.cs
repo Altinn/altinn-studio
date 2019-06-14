@@ -36,9 +36,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Returns serviceMetadata for a service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="appName">The name of the current service</param>
         /// <returns>The service meta data</returns>
-        ServiceMetadata GetServiceMetaData(string org, string service);
+        ServiceMetadata GetServiceMetaData(string org, string appName);
 
         /// <summary>
         /// Returns a list of available services
@@ -420,51 +420,51 @@ namespace AltinnCore.Common.Services.Interfaces
         /// update  metadata for attachment
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="appName">the application name</param>
         /// <param name="applicationMetadata">the application metadata to be updated</param>
         /// <returns></returns>
-        bool AddMetadataForAttachment(string org, string applicationId, string applicationMetadata);
+        bool AddMetadataForAttachment(string org, string appName, string applicationMetadata);
 
         /// <summary>
         /// update  metadata for attachment
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="appName">the application name</param>
         /// <param name="applicationMetadata">the application metadata to be updated</param>
         /// <returns></returns>
-        bool UpdateMetadataForAttachment(string org, string applicationId, string applicationMetadata);
+        bool UpdateMetadataForAttachment(string org, string appName, string applicationMetadata);
 
         /// <summary>
         /// Delete metadata for attachment component
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="appName">the application name</param>
         /// <param name="id">the id of the attachment component</param>
         /// <returns></returns>
-        bool DeleteMetadataForAttachment(string org, string applicationId, string id);
+        bool DeleteMetadataForAttachment(string org, string appName, string id);
 
         /// <summary>
-        /// Updates the application information in Application meta data 
+        /// Updates the application information in Application metadata 
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
+        /// <param name="appName">the application name</param>
         /// <param name="applicationInformation">the application information to be updated</param>
         /// <returns>true if the information is updated successfully</returns>
-        bool UpdateServiceInformationInApplicationMetadata(string org, string applicationId, ServiceConfiguration applicationInformation);
+        bool UpdateServiceInformationInApplication(string org, string appName, ServiceConfiguration applicationInformation);
 
         /// <summary>
-        /// Returns the applicaiton metadata for an application
+        /// Returns the application metadata for an application
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application owner</param>
+        /// <param name="appName">the application name</param>
         /// <returns>The application  metadata for an application</returns>
-        ApplicationMetadata GetApplicationMetadata(string org, string applicationId);
-
+        Application GetApplication(string org, string appName);
+    
         /// <summary>
         /// creates application  metadata for attachment
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
-        /// <param name="applicationId">the application id</param>
-        void CreateApplicationMetadata(string org, string applicationId);
+        /// <param name="appName">the application name</param>
+        void CreateApplication(string org, string appName);
     }
 }

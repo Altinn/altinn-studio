@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading.Tasks;
 using Altinn.Platform.Register.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
@@ -27,16 +28,16 @@ namespace Altinn.Platform.Register.Controllers
         /// </summary>
         /// <param name="ssn">The ssn</param>
         /// <returns>The information about a given person</returns>
-        [HttpPost]
-        public async Task<ActionResult> Get([FromBody]string ssn)
-        {
-            Person result = await _personsWrapper.GetPerson(ssn);
-            if (result == null)
-            {
-                return NotFound();
-            }
+        [HttpGet]
+        public async Task<ActionResult> Get([FromBody] string ssn)
+        {     
+                Person result = await _personsWrapper.GetPerson(ssn);
+                if (result == null)
+                {
+                    return NotFound();
+                }
 
-            return Ok(result);
-        }
+                return Ok(result);
+        }     
     }
 }

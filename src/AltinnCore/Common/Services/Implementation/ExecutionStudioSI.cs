@@ -56,24 +56,24 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IServiceImplementation GetServiceImplementation(string applicationOwnerId, string applicationId, bool startServiceFlag)
+        public IServiceImplementation GetServiceImplementation(string org, string appName, bool startServiceFlag)
         {
-            string assemblyName = LoadServiceAssembly(applicationOwnerId, applicationId, startServiceFlag);
-            string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, applicationOwnerId, CompileHelper.GetCSharpValidAppId(applicationId)) + ".ServiceImplementation," + assemblyName;
+            string assemblyName = LoadServiceAssembly(org, appName, startServiceFlag);
+            string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(appName)) + ".ServiceImplementation," + assemblyName;
 
             return (IServiceImplementation)Activator.CreateInstance(Type.GetType(implementationTypeName));
         }
 
         /// <inheritdoc/>
-        public ServiceContext GetServiceContext(string applicationOwnerId, string applicationId, bool startServiceFlag)
+        public ServiceContext GetServiceContext(string org, string appName, bool startServiceFlag)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(applicationOwnerId, applicationId, false).GetServiceModelType(),
-                ServiceText = _repository.GetServiceTexts(applicationOwnerId, applicationId),
-                ServiceMetaData = _repository.GetServiceMetaData(applicationOwnerId, applicationId),
+                ServiceModelType = GetServiceImplementation(org, appName, false).GetServiceModelType(),
+                ServiceText = _repository.GetServiceTexts(org, appName),
+                ServiceMetaData = _repository.GetServiceMetaData(org, appName),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = _repository.GetWorkFlow(applicationOwnerId, applicationId),
+                WorkFlow = _repository.GetWorkFlow(org, appName),
             };
 
             if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)
@@ -91,27 +91,27 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetCodelist(string applicationOwnerId, string applicationId, string name)
+        public string GetCodelist(string org, string appName, string name)
         {
-            string codeList = _repository.GetCodelist(applicationOwnerId, applicationId, name);
+            string codeList = _repository.GetCodelist(org, appName, name);
             if (string.IsNullOrEmpty(codeList))
             {
                 // Try find the codelist at the service owner level
-                codeList = _repository.GetCodelist(applicationOwnerId, null, name);
+                codeList = _repository.GetCodelist(org, null, name);
             }
 
             return codeList;
         }
 
         /// <inheritdoc/>
-        public byte[] GetServiceResource(string applicationOwnerId, string applicationId, string resource)
+        public byte[] GetServiceResource(string org, string appName, string resource)
         {
-            return _repository.GetServiceResource(applicationOwnerId, applicationId, resource);
+            return _repository.GetServiceResource(org, appName, resource);
         }
 
-        private string LoadServiceAssembly(string applicationOwnerId, string applicationId, bool startServiceFlag)
+        private string LoadServiceAssembly(string org, string appName, bool startServiceFlag)
         {
-            var codeCompilationResult = _compilation.CreateServiceAssembly(applicationOwnerId, applicationId, startServiceFlag);
+            var codeCompilationResult = _compilation.CreateServiceAssembly(org, appName, startServiceFlag);
             if (!codeCompilationResult.Succeeded)
             {
                 var errorMessages = codeCompilationResult?.CompilationInfo?.Where(e => e.Severity == "Error")
@@ -127,9 +127,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceMetadata GetServiceMetaData(string applicationOwnerId, string applicationId)
+        public ServiceMetadata GetServiceMetaData(string org, string appName)
         {
-            return _repository.GetServiceMetaData(applicationOwnerId, applicationId);
+            return _repository.GetServiceMetaData(org, appName);
         }
 
         /// <inheritdoc/>

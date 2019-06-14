@@ -169,7 +169,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Getting the Form Data
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
+            Guid.TryParse(instance.Data.Find(m => m.ElementType == FORM_ID).Id, out Guid dataId);
             object serviceModel = _data.GetFormData(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, dataId);
             serviceImplementation.SetServiceModel(serviceModel);
 
@@ -198,7 +198,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.CurrentWorkflowStep
+                    WorkflowStep = instance.Workflow.CurrentStep,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
@@ -361,12 +361,12 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.CurrentWorkflowStep
+                    WorkflowStep = instance.Workflow.CurrentStep
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
 
-                Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentStep);
+                Enum.TryParse<WorkflowStep>(instance.Workflow.CurrentStep, out WorkflowStep currentStep);
 
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
                 return Redirect(redirectUrl);
@@ -430,7 +430,7 @@ namespace AltinnCore.Runtime.Controllers
             // use of the plattform services
             serviceImplementation.SetPlatformServices(_platformSI);
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
+            Guid.TryParse(instance.Data.Find(m => m.ElementType == FORM_ID).Id, out Guid dataId);
 
             // Getting the populated form data from disk
             dynamic serviceModel = _data.GetFormData(

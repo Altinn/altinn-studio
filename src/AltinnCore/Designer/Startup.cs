@@ -11,21 +11,16 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Authorization;
 using AltinnCore.Designer.ModelBinding;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 namespace AltinnCore.Designer
@@ -232,7 +227,7 @@ namespace AltinnCore.Designer
                           });
                 routes.MapRoute(
                           name: "appRoute",
-                          template: "designer/{applicationOwnerId}/{applicationCode}/{controller}/{action=Index}/{id?}",
+                          template: "designer/{org}/{appName}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Deploy" },
                           constraints: new
                           {

@@ -1,17 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
-using Altinn.Platform.Storage.Repository;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
-using Microsoft.Extensions.Logging;
-
 namespace Altinn.Platform.Storage.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Net;
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Helpers;
+    using Altinn.Platform.Storage.Models;
+    using Altinn.Platform.Storage.Repository;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Azure.Documents;
+    using Microsoft.Extensions.Logging;
+
     /// <summary>
     /// Provides operations for handling application metadata
     /// </summary>
@@ -34,21 +35,21 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Get all applications for a given application owner
+        /// Get all applications for a given application owner (org)
         /// </summary>
-        /// <param name="applicationOwnerId">application owner id</param>
+        /// <param name="org">application owner id</param>
         /// <returns>list of all applications for a given owner</returns>        
-        [HttpGet]
-        public async Task<ActionResult> GetMany(string applicationOwnerId)
-        {            
-            if (string.IsNullOrEmpty(applicationOwnerId))
+        [HttpGet("{org}")]
+        public async Task<ActionResult> GetMany(string org)
+        {
+            if (string.IsNullOrEmpty(org) || org.Contains("-") || org.Contains(" "))
             {
-                return BadRequest("Query parameter applicationOwnerId cannot be empty or null");
+                return BadRequest($"Application owner id '{org}' is not valid");
             }
-
+           
             try
             {
-                List<ApplicationMetadata> result = await repository.ListApplications(applicationOwnerId);
+                List<Application> result = await repository.ListApplications(org);
 
                 return Ok(result);
             }
@@ -56,31 +57,33 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 if (dce.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return NotFound($"Cannot find applications for application owner {applicationOwnerId}");
+                    return NotFound($"Cannot find applications for application owner {org}");
                 }
 
-                logger.LogError($"Unable to access document database {dce.Message}");
-                return StatusCode(500, $"Unable to access document database {dce.Message}");
+                logger.LogError($"Unable to access document database {dce}");
+                return StatusCode(500, $"Unable to access document database {dce}");
             }
             catch (Exception e)
             {
                 logger.LogError($"Unable to perform query request {e}");
                 return StatusCode(500, $"Unable to perform query request {e}");
             }
-        }        
+        }
 
         /// <summary>
         /// Gets one application
         /// </summary>
+        /// <param name="org">application owner id</param>
+        /// <param name="app">application name</param>
         /// <returns></returns>
-        [HttpGet("{applicationId}")]
-        public async Task<ActionResult> GetOne(string applicationId)
+        [HttpGet("{org}/{app}")]
+        public async Task<ActionResult> GetOne(string org, string app)
         {
-            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
+            string appId = $"{org}/{app}";
 
             try
             {
-                ApplicationMetadata result = await repository.FindOne(applicationId, applicationOwnerId);
+                Application result = await repository.FindOne(appId, org);
 
                 return Ok(result);
             }
@@ -88,7 +91,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 if (dce.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return NotFound($"Could not find an application to update with applicationId={applicationId} . You first have to create one");
+                    return NotFound($"Could not find an application with appId={appId}");
                 }
 
                 logger.LogError($"Unable to access document database: {dce}");
@@ -104,30 +107,22 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Inserts new application
         /// </summary>
-        /// <param name="applicationId">the applicationid</param>
+        /// <param name="appId">the unique identification of the application to be created</param>
         /// <param name="application">the application metadata object to store</param>
         /// <returns>the applicaiton metadata object</returns>
-        [HttpPost]        
-        public async Task<ActionResult> Post(string applicationId, [FromBody] ApplicationMetadata application)
+        [HttpPost]
+        public async Task<ActionResult> Post(string appId, [FromBody] Application application)
         {
-            if (string.IsNullOrEmpty(applicationId))
+            if (!IsValidAppId(appId))
             {
-                return BadRequest("Missing parameter value: applicationId must be set");
+                return BadRequest("AppId is not valid.");
             }
 
-            string applicationOwnerId;
-            try
-            {
-                applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
-            }
-            catch (Exception e)
-            {
-                return BadRequest($"Illegal applicationId: {e.Message}");
-            }
+            string org = appId.Split("/")[0];
 
             try
             {
-                ApplicationMetadata existingApplication = await repository.FindOne(applicationId, applicationOwnerId);
+                await repository.FindOne(appId, org);
 
                 return BadRequest("Application already exists in repository! Try update application instead. ");
             }
@@ -136,8 +131,8 @@ namespace Altinn.Platform.Storage.Controllers
                 // repository throws exception if not found
                 if (e.StatusCode != HttpStatusCode.NotFound)
                 {
-                    return StatusCode(500, "Unable to access application collection: " + e.Message);
-                }                
+                    return StatusCode(500, $"Unable to access application collection: {e}");
+                }
             }
             catch (Exception e)
             {
@@ -148,8 +143,8 @@ namespace Altinn.Platform.Storage.Controllers
             DateTime creationTime = DateTime.UtcNow;
 
             // make sure minimum application values are set
-            application.Id = applicationId;
-            application.ApplicationOwnerId = applicationOwnerId;
+            application.Id = appId;
+            application.Org = org;
             application.CreatedBy = User.Identity.Name;
             application.CreatedDateTime = creationTime;
             application.LastChangedBy = User.Identity.Name;
@@ -159,11 +154,11 @@ namespace Altinn.Platform.Storage.Controllers
                 application.ValidFrom = creationTime;
             }
 
-            if (application.Forms == null || application.Forms.Count == 0)
+            if (application.ElementTypes == null || application.ElementTypes.Count == 0)
             {
-                application.Forms = new List<ApplicationForm>();
+                application.ElementTypes = new List<ElementType>();
 
-                ApplicationForm form = new ApplicationForm()
+                ElementType form = new ElementType()
                 {
                     Id = "default",
                     AllowedContentType = new List<string>(),
@@ -171,14 +166,14 @@ namespace Altinn.Platform.Storage.Controllers
                 form.AllowedContentType.Add("text/xml");
                 form.AllowedContentType.Add("application/xml");
 
-                application.Forms.Add(form);
+                application.ElementTypes.Add(form);
             }
 
             try
             {
-                ApplicationMetadata result = await repository.Create(application);
+                Application result = await repository.Create(application);
 
-                logger.LogInformation($"Application {applicationId} sucessfully stored", application);
+                logger.LogInformation($"Application {appId} sucessfully stored", result);
 
                 return Ok(result);
             }
@@ -190,44 +185,88 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Checks if an appId is valid
+        /// </summary>
+        /// <param name="appId">the id to check</param>
+        /// <returns>true if it is valid, false otherwise</returns>
+        [ApiExplorerSettings(IgnoreApi = true)]
+        public bool IsValidAppId(string appId)
+        {
+            if (string.IsNullOrEmpty(appId))
+            {
+                return false;
+            }
+
+            string[] parts = appId.Split("/");
+
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+            
+            string orgNamePattern = @"^[a-zæøå][a-zæåø0-9]*$";
+            if (!Regex.IsMatch(parts[0], orgNamePattern))
+            {
+                return false;
+            }
+
+            string appNamePattern = @"^[a-zæøå][a-zæøå0-9\-]*$";
+            if (!Regex.IsMatch(parts[1], appNamePattern))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Updates an application
         /// </summary>
         /// <returns>the updated application metadata object</returns>
-        [HttpPut("{applicationId}")]
-        public async Task<ActionResult> Put(string applicationId, [FromBody] ApplicationMetadata application)
+        [HttpPut("{org}/{app}")]
+        public async Task<ActionResult> Put(string org, string app, [FromBody] Application application)
         {
-            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
-            ApplicationMetadata existingApplication;
+            string appId = $"{org}/{app}";
 
-            if (application.Id == null || !application.Id.Equals(applicationId))
+            if (!IsValidAppId(appId))
             {
-                return BadRequest("applicationId in path does not match id in attached object");
+                return BadRequest($"Illegal appId {appId}");
             }
 
-            if (application.ApplicationOwnerId == null || !application.ApplicationOwnerId.Equals(applicationOwnerId))
+            if (application.Id == null || !application.Id.Equals(appId))
             {
-                return BadRequest("ApplicationOwnerId from applicationId is not matching attached object");
+                return BadRequest("appId in path does not match id in attached object");
             }
 
+            if (application.Org == null || !application.Org.Equals(org))
+            {
+                return BadRequest("Org (application owner id) from path is not matching attached object");
+            }
+
+            Application existingApplication;
             try
             {
-                existingApplication = await repository.FindOne(applicationId, application.ApplicationOwnerId);
+                existingApplication = await repository.FindOne(appId, org);
             }
             catch (Exception e)
             {
-                return NotFound($"Unable to find application with applicationId={applicationId} for applicationOwnerId={applicationOwnerId} for update: {e.Message}");
+                return NotFound($"Unable to find application with appId={appId} to update: {e}");
             }
 
-            application.LastChangedBy = User.Identity.Name;
-            application.LastChangedDateTime = DateTime.UtcNow;
+            existingApplication.LastChangedBy = User.Identity.Name;
+            existingApplication.LastChangedDateTime = DateTime.UtcNow;
 
-            // Make sure client has not updated any important fields
-            application.CreatedBy = existingApplication.CreatedBy;
-            application.CreatedDateTime = existingApplication.CreatedDateTime;
+            existingApplication.VersionId = application.VersionId;
+            existingApplication.ValidTo = application.ValidTo;
+            existingApplication.ValidFrom = application.ValidFrom;
+            existingApplication.Title = application.Title;
+            existingApplication.WorkflowId = application.WorkflowId;
+            existingApplication.MaxSize = application.MaxSize;
+            existingApplication.ElementTypes = application.ElementTypes;
 
             try
             {
-                ApplicationMetadata result = await repository.Update(application);                
+                Application result = await repository.Update(existingApplication);
 
                 return Ok(result);
             }
@@ -235,45 +274,39 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 if (dce.Error.Code.Equals("NotFound"))
                 {
-                    return NotFound($"Did not find application with id={applicationId} to update");
+                    return NotFound($"Did not find application with id={appId} to update");
                 }
 
-                logger.LogError($"Document database error: {dce.Message}");
-                return StatusCode(500, $"Document database error: {dce.Message}");
+                logger.LogError($"Document database error: {dce}");
+                return StatusCode(500, $"Document database error: {dce}");
             }
-            catch (Exception e) 
+            catch (Exception exception) 
             {
-                logger.LogError($"Unable to perform request: {e.Message}");
-                return StatusCode(500, $"Unable to perform request: {e.Message}");
+                logger.LogError($"Unable to perform request: {exception}");
+                return StatusCode(500, $"Unable to perform request: {exception}");
             }
         }
 
         /// <summary>
         /// Delete an application
         /// </summary>
-        /// <param name="applicationId">an application id</param>
+        /// <param name="org">the organisation owning the app</param>
+        /// <param name="app">application name</param>
         /// <param name="hard">if true hard delete will take place</param>
         /// <returns>updated application object</returns>
-        [HttpDelete("{applicationId}")]
-        public async Task<ActionResult> Delete(string applicationId, bool? hard)
+        [HttpDelete("{org}/{app}")]
+        public async Task<ActionResult> Delete(string org, string app, bool? hard)
         {
-            string applicationOwnerId;
-            try
-            {
-                applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
-            }
-            catch (Exception e)
-            {
-                return BadRequest($"Illegal applicationId: {e.Message}");
-            }
+            string appId = $"{org}/{app}";
+            string appOwnerId = org;
 
             try
             {
-                ApplicationMetadata application = await repository.FindOne(applicationId, applicationOwnerId);
+                Application application = await repository.FindOne(appId, appOwnerId);
 
                 if (hard.HasValue && hard == true)
                 {
-                    bool deletedOK = await repository.Delete(applicationId, applicationOwnerId);
+                    await repository.Delete(appId, appOwnerId);
 
                     return Ok(application);
                 }
@@ -285,25 +318,25 @@ namespace Altinn.Platform.Storage.Controllers
                     application.LastChangedDateTime = timestamp;
                     application.ValidTo = timestamp;
 
-                    ApplicationMetadata softDeleteApplication = await repository.Update(application);
+                    Application softDeleteApplication = await repository.Update(application);
 
-                    return Ok(softDeleteApplication);                    
+                    return Ok(softDeleteApplication);
                 }
             }
             catch (DocumentClientException dce)
             {
                 if (dce.StatusCode == HttpStatusCode.NotFound)
                 {
-                    return NotFound($"Didn't find the object that should be deleted with applicationId={applicationId}");
+                    return NotFound($"Didn't find the object that should be deleted with appId={appId}");
                 }
 
                 logger.LogError($"Unable to reach document database {dce}");
                 return StatusCode(500, $"Unable to reach document database {dce}");
-            }            
+            }
             catch (Exception e)
             {
-                logger.LogError($"Unable to perform request: {e.Message}");
-                return StatusCode(500, $"Unable to perform request: {e.Message}");
+                logger.LogError($"Unable to perform request: {e}");
+                return StatusCode(500, $"Unable to perform request: {e}");
             }
         }
     }
