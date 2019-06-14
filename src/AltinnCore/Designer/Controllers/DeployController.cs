@@ -149,7 +149,7 @@ namespace AltinnCore.Designer.Controllers
 
                     using (HttpResponseMessage response = await client.PostAsync("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds?api-version=5.0-preview.4", httpContent))
                     {
-                        response.EnsureSuccessStatusCode();                                                
+                        response.EnsureSuccessStatusCode();
                         BuildModel responseBody = await response.Content.ReadAsAsync<BuildModel>();
                         result = responseBody.Id;
                     }
@@ -247,8 +247,11 @@ namespace AltinnCore.Designer.Controllers
             {
                 string appId = $"{org}/{appName}";
                 string storageEndpoint = _platformSettings.GetApiStorageEndpoint;
+                _logger.LogInformation($"Client url {storageEndpoint}");
+
                 Application application = null;
                 string getApplicationMetadataUrl = $"{storageEndpoint}applications/{appId}";
+                _logger.LogInformation($"Request endpoint: {getApplicationMetadataUrl}");
                 HttpResponseMessage getApplicationResponse = await client.GetAsync(getApplicationMetadataUrl);
                 if (getApplicationResponse.IsSuccessStatusCode)
                 {
