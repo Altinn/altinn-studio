@@ -3,11 +3,11 @@ import { call, takeLatest } from 'redux-saga/effects';
 import { IAltinnWindow, IAttachments } from '..';
 import { mapAttachmentListApiResponseToAttachments } from '../../../utils/attachment';
 import { get } from '../../../utils/networking';
-import FormFileUploadDispatcher from '../attachmentsActions';
-import * as FileUploadActionsTypes from '../attachmentsActionTypes';
+import AttachmentDispatcher from '../attachmentActions';
+import * as AttachmentActionsTypes from '../attachmentActionTypes';
 
 export function* watchFetchAttachmentsSaga(): SagaIterator {
-  yield takeLatest(FileUploadActionsTypes.FETCH_ATTACHMENTS, fetchAttachments);
+  yield takeLatest(AttachmentActionsTypes.FETCH_ATTACHMENTS, fetchAttachments);
 }
 
 export function* fetchAttachments(): SagaIterator {
@@ -19,8 +19,8 @@ export function* fetchAttachments(): SagaIterator {
       `${instanceId}/GetFormAttachments`;
     const response = yield call(get, attachmentListUrl);
     const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
-    yield call(FormFileUploadDispatcher.fetchAttachmentsFulfilled, attachments);
+    yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
   } catch (err) {
-    yield call(FormFileUploadDispatcher.fetchAttachmentsRejected, err);
+    yield call(AttachmentDispatcher.fetchAttachmentsRejected, err);
   }
 }

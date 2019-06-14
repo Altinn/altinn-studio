@@ -15,7 +15,7 @@ import FormUserReducer, { IFormUserState } from '../features/form/user/reducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import LanguageReducer, { ILanguageState } from '../features/languages/reducer';
-import FormFileUploadReducer, { IFormFileUploadState } from '../sharedResources/attachments/attachmentsReducer';
+import AttachmentReducer, { IAttachmentState } from '../sharedResources/attachments/attachmentReducer';
 
 export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
   formLayout: T1;
@@ -23,7 +23,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
   formConfig: T3;
   formWorkflow: T4;
   formDataModel: T5;
-  formAttachments: T6;
+  attachments: T6;
   formDynamics: T7;
   formRules?: T8;
   language: T9;
@@ -38,7 +38,7 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IFormConfigState>,
   Reducer<IWorkflowState>,
   Reducer<IDataModelState>,
-  Reducer<IFormFileUploadState>,
+  Reducer<IAttachmentState>,
   Reducer<IFormDynamicState>,
   Reducer<IFormRuleState>,
   Reducer<ILanguageState>,
@@ -55,7 +55,7 @@ const reducers: IRuntimeReducers = {
   formConfig: FormConfigState,
   formWorkflow: FormWorkflowReducer,
   formDataModel: FormDataModel,
-  formAttachments: FormFileUploadReducer,
+  attachments: AttachmentReducer,
   formDynamics: FormDynamics,
   formRules: FormRuleReducer,
   language: LanguageReducer,

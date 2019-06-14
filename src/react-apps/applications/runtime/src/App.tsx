@@ -9,7 +9,7 @@ import FormRuleActions from './features/form/rules/actions';
 import FormUserActions from './features/form/user/actions';
 import FormWorkflowActions from './features/form/workflow/actions';
 import LanguageActions from './features/languages/actions';
-import FormFileUploadActions from './sharedResources/attachments/attachmentsActions';
+import AttachmentActions from './sharedResources/attachments/attachmentActions';
 
 import { IAltinnWindow } from './types';
 
@@ -47,7 +47,7 @@ export default () => {
       `${window.location.origin}/runtime/api/v1/profile/user`,
     );
 
-    FormFileUploadActions.fetchAttachments();
+    AttachmentActions.fetchAttachments();
 
   }, []);
   return (

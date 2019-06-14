@@ -5,9 +5,9 @@ import { getFileUploadComponentValidations } from '../../../components/base/File
 import FormValidationsDispatcher from '../../../features/form/validation/actions';
 import { IRuntimeState } from '../../../types';
 import { get, post } from '../../../utils/networking';
-import FormFileUploadDispatcher from '../attachmentsActions';
-import * as FileUploadActionsTypes from '../attachmentsActionTypes';
-import * as uploadActions from './uploadAttachmentsActions';
+import AttachmentDispatcher from '../attachmentActions';
+import * as AttachmentActionsTypes from '../attachmentActionTypes';
+import * as uploadActions from './uploadAttachmentActions';
 
 export function* uploadAttachmentSaga(
   { file, attachmentType, tmpAttachmentId, componentId }: uploadActions.IUploadAttachmentAction): SagaIterator {
@@ -28,22 +28,22 @@ export function* uploadAttachmentSaga(
     if (response.status === 200) {
       const attachment: IAttachment
         = { name: file.name, size: file.size, uploaded: true, id: response.data.id, deleting: false };
-      yield call(FormFileUploadDispatcher.uploadAttachmentFulfilled,
+      yield call(AttachmentDispatcher.uploadAttachmentFulfilled,
         attachment, attachmentType, tmpAttachmentId, componentId);
     } else {
       const validations = getFileUploadComponentValidations('upload', language);
       yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
-      yield call(FormFileUploadDispatcher.uploadAttachmentRejected,
+      yield call(AttachmentDispatcher.uploadAttachmentRejected,
         tmpAttachmentId, attachmentType, componentId);
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations('upload', language);
     yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
-    yield call(FormFileUploadDispatcher.uploadAttachmentRejected,
+    yield call(AttachmentDispatcher.uploadAttachmentRejected,
       tmpAttachmentId, attachmentType, componentId);
   }
 }
 
 export function* watchUploadAttachmentSaga(): SagaIterator {
-  yield takeEvery(FileUploadActionsTypes.UPLOAD_ATTACHMENT, uploadAttachmentSaga);
+  yield takeEvery(AttachmentActionsTypes.UPLOAD_ATTACHMENT, uploadAttachmentSaga);
 }

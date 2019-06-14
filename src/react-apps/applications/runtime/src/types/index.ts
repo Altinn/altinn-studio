@@ -8,7 +8,7 @@ import { IFormUserState } from '../features/form/user/reducer';
 import { IValidationState } from '../features/form/validation/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
 import { ILanguageState } from '../features/languages/reducer';
-import { IFormFileUploadState } from '../sharedResources/attachments/attachmentsReducer';
+import { IAttachmentState } from '../sharedResources/attachments/attachmentReducer';
 
 export interface IRuntimeState {
   formLayout: ILayoutState;
@@ -16,7 +16,7 @@ export interface IRuntimeState {
   formConfig: IFormConfigState;
   formWorkflow: IWorkflowState;
   formDataModel: IDataModelState;
-  formAttachments: IFormFileUploadState;
+  attachments: IAttachmentState;
   formDynamics: IFormDynamicState;
   language: ILanguageState;
   formResources: IResourceState;

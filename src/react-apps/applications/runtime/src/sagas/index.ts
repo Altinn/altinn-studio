@@ -13,13 +13,13 @@ import FormUserSagas from '../features/form/user/sagas';
 import FormValidationSagas from '../features/form/validation/sagas';
 import FormWorkflowSagas from '../features/form/workflow/sagas';
 import LanguageSagas from '../features/languages/sagas';
-import FormAttachments from '../sharedResources/attachments/attachmentsSagas';
+import Attachments from '../sharedResources/attachments/attachmentSagas';
 
 function* root(): SagaIterator {
   yield fork(FormConfigSagas);
   yield fork(FormDataSagas);
   yield fork(FormDynamicsSagas);
-  yield fork(FormAttachments);
+  yield fork(Attachments);
   yield fork(FormLayoutSagas);
   yield fork(FormRulesSagas);
   yield fork(FormWorkflowSagas);
