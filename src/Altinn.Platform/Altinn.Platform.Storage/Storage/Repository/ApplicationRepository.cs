@@ -38,8 +38,8 @@ namespace Altinn.Platform.Storage.Repository
 
             ConnectionPolicy connectionPolicy = new ConnectionPolicy
             {
-                ConnectionMode = ConnectionMode.Gateway,
-                ConnectionProtocol = Protocol.Https,
+                ConnectionMode = ConnectionMode.Direct,
+                ConnectionProtocol = Protocol.Tcp,
             };
 
             _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
