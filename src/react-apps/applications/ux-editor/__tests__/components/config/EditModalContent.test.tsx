@@ -122,7 +122,7 @@ describe('>>> containers/EditModalContent', () => {
     mockComponent = {
       dataModelBindings: {},
       readOnly: false,
-      required: false,
+      required: true,
       textResourceBindings: {
         title: 'FileUpload',
       },
@@ -140,18 +140,20 @@ describe('>>> containers/EditModalContent', () => {
       </Provider>,
     );
     const instance = mountedEditModalContent.childAt(0).instance() as EditModalContentComponent;
-    const maxFilesInput = mountedEditModalContent.find('#modal-properties-maximum-files').first();
-    const minFilesInput = mountedEditModalContent.find('#modal-properties-minimum-files').first();
+    const maxFilesInput = mountedEditModalContent.find('#modal-properties-maximum-files').first().find('input');
+    const minFilesInput = mountedEditModalContent.find('#modal-properties-minimum-files').first().find('input');
 
     const spy = jest.spyOn(instance, 'handleNumberOfAttachmentsChange');
+    maxFilesInput.simulate('change', { target: { value: '2' } });
     instance.forceUpdate();
-    maxFilesInput.simulate('change', 'max');
     expect(spy).toHaveBeenCalled();
     expect(spy).toHaveBeenCalledWith('max');
+    expect(instance.state.component.required).toBe(true);
 
-    minFilesInput.simulate('change', 'min');
+    minFilesInput.simulate('change', { target: { value: '0' } });
     instance.forceUpdate();
     expect(spy).toHaveBeenCalled();
     expect(spy).toHaveBeenCalledWith('min');
+    expect(instance.state.component.required).toBe(false);
   });
 });
