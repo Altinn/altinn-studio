@@ -92,7 +92,7 @@ test('Read-only components test in runtime', async () => {
     .expect(runtime.testUserHeader[0].exists).ok()
 })
 
-test.only('Fill out, save, and submit a form', async () => {
+test('Fill out, save, and submit a form', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/formfill#/test')
     .switchToIframe(runtime.testBrukerIframe)
