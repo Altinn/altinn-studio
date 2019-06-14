@@ -46,7 +46,7 @@ export interface IEditModalContentState {
   component: IFormComponent;
 }
 
-class EditModalContentComponent extends React.Component<IEditModalContentProps, IEditModalContentState> {
+export class EditModalContentComponent extends React.Component<IEditModalContentProps, IEditModalContentState> {
   constructor(_props: IEditModalContentProps, _state: IEditModalContentState) {
     super(_props, _state);
     this.state = {

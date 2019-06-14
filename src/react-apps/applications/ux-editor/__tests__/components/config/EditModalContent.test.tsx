@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { EditModalContent } from '../../../src/components/config/EditModalContent';
+import { EditModalContent, EditModalContentComponent } from '../../../src/components/config/EditModalContent';
 
 describe('>>> containers/EditModalContent', () => {
   let mockComponent: any;
@@ -14,30 +14,6 @@ describe('>>> containers/EditModalContent', () => {
 
   beforeEach(() => {
     const createStore = configureStore();
-    const initialState = {
-      appData: {
-        codeLists: {
-          codeLists: [] as any,
-          error: null as any,
-          fetched: true,
-          fetching: false,
-        },
-        language: {
-          language: {},
-        },
-        dataModel: {
-          model: [] as any[],
-        },
-        textResources: {
-          resources: [{ id: 'ServiceName', value: 'Test' }],
-        },
-      },
-      thirdPartyComponents: {
-        components: null as any,
-        error: null as any,
-      },
-    };
-
     mockLanguage = {
       general: {
         label: '',
@@ -57,6 +33,29 @@ describe('>>> containers/EditModalContent', () => {
         title: 'Input',
       },
       type: 'Input',
+    };
+    const initialState = {
+      appData: {
+        codeLists: {
+          codeLists: [] as any,
+          error: null as any,
+          fetched: true,
+          fetching: false,
+        },
+        language: {
+          language: mockLanguage,
+        },
+        dataModel: {
+          model: [] as any[],
+        },
+        textResources: {
+          resources: [{ id: 'ServiceName', value: 'Test' }],
+        },
+      },
+      thirdPartyComponents: {
+        components: null as any,
+        error: null as any,
+      },
     };
     mockHandleComponentUpdate = () => {
       // something
@@ -103,7 +102,7 @@ describe('>>> containers/EditModalContent', () => {
       readOnly: false,
       required: false,
       textResourceBindings: {
-        title: 'Header',
+        title: 'FileUpload',
       },
       type: 'FileUpload',
     };
@@ -118,5 +117,41 @@ describe('>>> containers/EditModalContent', () => {
       </Provider>,
     );
     expect(mountedEditModalContent.find('input').length).toBe(9);
+  });
+  it('+++ should update min/max number of files on change', () => {
+    mockComponent = {
+      dataModelBindings: {},
+      readOnly: false,
+      required: false,
+      textResourceBindings: {
+        title: 'FileUpload',
+      },
+      type: 'FileUpload',
+    };
+    const mountedEditModalContent = mount(
+      <Provider store={mockStore}>
+        <EditModalContentComponent
+          component={mockComponent}
+          language={mockLanguage}
+          handleComponentUpdate={mockHandleComponentUpdate}
+          classes={null}
+          textResources={[]}
+        />
+      </Provider>,
+    );
+    const instance = mountedEditModalContent.childAt(0).instance() as EditModalContentComponent;
+    const maxFilesInput = mountedEditModalContent.find('#modal-properties-maximum-files').first();
+    const minFilesInput = mountedEditModalContent.find('#modal-properties-minimum-files').first();
+
+    const spy = jest.spyOn(instance, 'handleNumberOfAttachmentsChange');
+    instance.forceUpdate();
+    maxFilesInput.simulate('change', 'max');
+    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledWith('max');
+
+    minFilesInput.simulate('change', 'min');
+    instance.forceUpdate();
+    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledWith('min');
   });
 });
