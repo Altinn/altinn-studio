@@ -5,6 +5,9 @@
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{d9c0433e-738c-4e07-9f88-d71d7df04e3f}</ProjectGuid>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
  <ItemGroup>
@@ -21,6 +24,12 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
+ <ItemGroup>
+   <Reference Include="Common">
+     <HintPath>..\..\Altinn.Platform.Common\Common\Common\bin\Debug\netcoreapp2.2\Common.dll</HintPath>
+   </Reference>
+ </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
