@@ -5,35 +5,41 @@
         "id": "0d292a83-fe66-4f20-a40a-8b5d42520ccb",
         "type": "Input",
         "textResourceBindings": {
-          "title": "Input"
+          "title": "25798.OppgavegiverPoststedPreutfyltdatadef25798.Label",
+          "description": "25457.KlageSpesifiseringdatadef25457.Label"
         },
         "dataModelBindings": {
-          "simpleBinding": "skattyterinforgrp5801.kontaktgrp5803.kontaktpersonPoststeddatadef10442.value"
+          "simpleBinding": "Skattyterinfor-grp-5801.info-grp-5802.OppgavegiverNavnPreutfylt-datadef-25795.value"
         },
         "required": true,
         "readOnly": false
       },
       {
         "id": "20158575-6db3-429a-95d6-c49e57d77ebb",
-        "type": "Input",
+        "type": "TextField",
         "textResourceBindings": {
-          "title": "Input"
+          "title": "17.EnhetKommunenummerdatadef17.PlaceHolder",
+          "description": "Skjema.Label"
         },
         "dataModelBindings": {
-          "simpleBinding": "skattyterinforgrp5801.kontaktgrp5803.kontaktpersonEPostdatadef27688.value"
+          "simpleBinding": "Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value"
         },
         "required": true,
         "readOnly": false
       },
       {
-        "id": "28ff99b3-0d48-484a-8a6d-1e7bc9894b91",
-        "type": "Button",
+        "id": "28ff99b3-0d48-484a-8a6d-123123123",
+        "type": "CheckBoxes",
         "textResourceBindings": {
-          "title": "Button"
+          "title": "3.KontaktpersonTelefonnummerdatadef3.Label",
+          "description": "25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label"
         },
-        "dataModelBindings": {},
+        "dataModelBindings": {
+          "simpleBinding": "Skattyterinfor-grp-5803.info-grp-5804.OppgavegiverNavnPreutfylt-datadef-25797.value"
+        },
         "textResourceId": "Standard.Button.Button",
-        "customType": "Standard"
+        "customType": "Standard",
+        "options": [{"label": "Valg 1", "value": "Verdi"}, {"label": "Valg 2", "value": "Verdi 2"}]
       }
     ]
   }

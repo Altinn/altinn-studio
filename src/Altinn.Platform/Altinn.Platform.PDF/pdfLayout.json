@@ -1,0 +1,50 @@
+{
+  "backgroundColor": "#1eaef7",
+  "modalColor": "#022f51",
+  "spacingComponents": 100,
+  "elements": [
+    {
+      "type": "Input",
+      "id": "0d292a83-fe66-4f20-a40a-8b5d42520ccb",
+      "dataModelBindings": {
+        "simpleBinding": "Skattyterinfor-grp-5801.info-grp-5802.OppgavegiverNavnPreutfylt-datadef-25795.value"
+      },
+      "textResourceBindings": {
+        "title": "25798.OppgavegiverPoststedPreutfyltdatadef25798.Label",
+        "description": "25457.KlageSpesifiseringdatadef25457.Label"
+      }
+    },
+    {
+      "type": "TextField",
+      "id": "20158575-6db3-429a-95d6-c49e57d77ebb",
+      "dataModelBindings": {
+        "simpleBinding": "Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value"
+      },
+      "textResourceBindings": {
+        "title": "17.EnhetKommunenummerdatadef17.PlaceHolder",
+        "description": "Skjema.Label"
+      }
+    },
+    {
+      "type": "CheckBoxes",
+      "id": "28ff99b3-0d48-484a-8a6d-123123123",
+      "dataModelBindings": {
+        "simpleBinding": "Skattyterinfor-grp-5803.info-grp-5804.OppgavegiverNavnPreutfylt-datadef-25797.value"
+      },
+      "textResourceBindings": {
+        "title": "3.KontaktpersonTelefonnummerdatadef3.Label",
+        "description": "25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label"
+      },
+      "options": [
+        {
+          "label": "Valg 1",
+          "value": "Verdi"
+        },
+        {
+          "label": "Valg 2",
+          "value": "Verdi 2"
+        }
+      ]
+    }
+  ]
+}

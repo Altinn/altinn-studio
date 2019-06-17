@@ -1,0 +1,11 @@
+{
+  "original": {
+    "backgroundColor": "#1eaef7",
+    "modalColor": "#022f51"
+  },
+  "fancy": {
+    "backgroundColor": "#FF0009",
+    "modalColor": "#33FF00"
+  }
+}
+

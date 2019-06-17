@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Skjema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" skjemanummer="1243" spesifikasjonsnummer="10702" blankettnummer="RF-1117" tittel="Klage på likningen" gruppeid="5800">
+  <Skattyterinfor-grp-5801 gruppeid="5801">
+    <info-grp-5802 gruppeid="5802">
+      <OppgavegiverNavnPreutfylt-datadef-25795 orid="25795">Noe data</OppgavegiverNavnPreutfylt-datadef-25795>
+    </info-grp-5802>
+  </Skattyterinfor-grp-5801>
+  <Skattyterinfor-grp-5802 gruppeid="5802">
+  <info-grp-5803 gruppeid="5802">
+    <OppgavegiverNavnPreutfylt-datadef-25796 orid="25796">Hentet fra xml</OppgavegiverNavnPreutfylt-datadef-25796>
+  </info-grp-5803>
+  </Skattyterinfor-grp-5802>
+  <Skattyterinfor-grp-5803 gruppeid="5803">
+    <info-grp-5804 gruppeid="5802">
+      <OppgavegiverNavnPreutfylt-datadef-25797 orid="25797">Dette er også hentet fra xml</OppgavegiverNavnPreutfylt-datadef-25797>
+    </info-grp-5804>
+  </Skattyterinfor-grp-5803>
+</Skjema>
