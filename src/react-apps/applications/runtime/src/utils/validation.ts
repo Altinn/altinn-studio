@@ -51,10 +51,11 @@ export function validateFormComponents(
 ) {
   const validations = {};
   const fieldKey = 'simpleBinding';
+  const attachements = formAttachments ? Object.keys(formAttachments).length : 0;
   formLayout.forEach((component) => {
     validations[component.id] = {};
     if (component.type === 'FileUpload') {
-      if (component.minNumberOfAttachments > 0 && Object.keys(formAttachments).length < 1 ||
+      if (component.minNumberOfAttachments > 0 && attachements < 1 ||
         formAttachments[component.id].length < component.minNumberOfAttachments) {
         const componentValidations: IComponentValidations = {
           [fieldKey]: {
