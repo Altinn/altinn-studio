@@ -287,6 +287,24 @@ describe('>>> utils/validations.ts', () => {
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+  it('+++ validateFormComponents should return error on fileUpload if its no file', () => {
+    mockFormAttachments = {
+      attachments: null,
+    };
+    const componentSpesificValidations =
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language);
+
+    const mockResult = {
+      componentId_4: {
+        simpleBinding: {
+          errors: ['For å fortsette må du laste opp 2 vedlegg'],
+          warnings: [],
+        },
+      },
+    };
+
+    expect(componentSpesificValidations).toEqual(mockResult);
+  });
   it('+++ validateFormComponents should not return error on fileUpload if its enough files', () => {
     mockLayout = [
       {
