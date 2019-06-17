@@ -50,13 +50,13 @@ export function validateFormComponents(
   language: any,
 ) {
   const validations = {};
-  const fieldKey = 'simpleBinding';
   const attachments = formAttachments ? Object.keys(formAttachments).length : 0;
+  const fieldKey = 'simpleBinding';
   formLayout.forEach((component) => {
-    validations[component.id] = {};
     if (component.type === 'FileUpload') {
       if (component.minNumberOfAttachments > 0 && attachments < 1 ||
         formAttachments[component.id].length < component.minNumberOfAttachments) {
+        validations[component.id] = {};
         const componentValidations: IComponentValidations = {
           [fieldKey]: {
             errors: [],
