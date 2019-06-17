@@ -277,9 +277,6 @@ describe('>>> utils/validations.ts', () => {
       validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language);
 
     const mockResult = {
-      componentId_1: {},
-      componentId_2: {},
-      componentId_3: {},
       componentId_4: {
         simpleBinding: {
           errors: ['For å fortsette må du laste opp 2 vedlegg'],
@@ -303,9 +300,7 @@ describe('>>> utils/validations.ts', () => {
     const componentSpesificValidations =
       validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language);
 
-    const mockResult = {
-      componentId_4: {},
-    };
+    const mockResult = {};
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
