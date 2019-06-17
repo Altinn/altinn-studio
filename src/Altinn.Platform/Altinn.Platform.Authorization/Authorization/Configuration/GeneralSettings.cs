@@ -11,22 +11,6 @@ namespace Altinn.Platform.Authorization.Configuration
     public class GeneralSettings
     {
         /// <summary>
-        /// Gets or sets the sbl cookie name
-        /// </summary>
-        public string SBLCookieName { get; set; }
-
-        /// <summary>
-        /// Gets the sbl cookie from kubernetes environment variables and appsettings if environment variable is not set
-        /// </summary>
-        public string GetSBLCookieName
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("GeneralSettings__SBLCookieName") ?? SBLCookieName;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the bridge api endpoint
         /// </summary>
         public string BridgeApiEndpoint { get; set; }
