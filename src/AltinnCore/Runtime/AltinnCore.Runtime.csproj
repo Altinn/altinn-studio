@@ -8,7 +8,7 @@
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
     <!-- SonarCloud needs this -->
-    <ProjectGuid>{7186bd86-e7dd-4ab0-a961-d2cec92b4435}</ProjectGuid>
+    <ProjectGuid>{05798ABD-2FDC-48B4-8D69-780A0A4D4977}</ProjectGuid>
   </PropertyGroup>
   
   <ItemGroup>
@@ -23,7 +23,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="2.6.1" />
-    <PackageReference Include="JWTCookieAuthentication" Version="0.8.1-alpha" />
+    <PackageReference Include="JWTCookieAuthentication" Version="0.8.8-alpha" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
   </ItemGroup>
 
