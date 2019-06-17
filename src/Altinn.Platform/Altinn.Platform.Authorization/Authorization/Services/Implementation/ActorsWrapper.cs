@@ -45,7 +45,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             Actor testActor = new Actor()
             {
-                SSNNumber = "123456",
+                SSN = "123456",
                 Name = "test",
                 PartyID = 54321
             };
@@ -55,7 +55,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             // var request = new HttpRequestMessage(
             //    HttpMethod.Get,
             //    "actors");
-            //  request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             // using (var response = await _actorClient.Client.SendAsync(
             //                                request,

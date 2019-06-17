@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -25,14 +25,9 @@
     </PackageReference>
   </ItemGroup>
 
- <ItemGroup>
-   <Reference Include="Authorization.Interface">
-     <HintPath>..\Authorization.Interface\bin\Debug\netcoreapp2.2\Authorization.Interface.dll</HintPath>
-   </Reference>
-   <Reference Include="Common">
-     <HintPath>..\..\Altinn.Platform.Common\Common\Common\bin\Debug\netcoreapp2.2\Common.dll</HintPath>
-   </Reference>
- </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Authorization.Interface\Authorization.Interface.csproj" />
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>

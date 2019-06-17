@@ -23,6 +23,11 @@ namespace Altinn.Platform.Authorization.Controllers
             _actorWrapper = actorWrapper;
         }
 
+        /// <summary>
+        /// Gets the list of actors that the logged in user can represent
+        /// </summary>
+        /// <param name="userId">the user id</param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult> Get(int userId)
         {

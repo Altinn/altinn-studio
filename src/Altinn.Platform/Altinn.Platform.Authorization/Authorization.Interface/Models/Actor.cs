@@ -32,7 +32,7 @@ namespace Authorization.Interface.Models
         /// Gets or sets the SSNNumber
         /// </summary>
         [JsonProperty]
-        public string SSNNumber { get; set; }
+        public string SSN { get; set; }
 
         /// <summary>
         /// Gets or sets the Name
