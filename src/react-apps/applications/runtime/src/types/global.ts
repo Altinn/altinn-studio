@@ -91,6 +91,7 @@ export interface IFormFileUploaderComponent extends IFormComponent {
   maxFileSizeInMB: number;
   displayMode: string;
   maxNumberOfAttachments: number;
+  minNumberOfAttachments: number;
   validFileEndings?: string;
 }
 

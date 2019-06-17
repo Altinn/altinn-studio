@@ -1,6 +1,7 @@
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { IFormData } from '../features/form/data/reducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
-import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
+import { IComponentValidations, IDataModelFieldElement, IFormFileUploaderComponent, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
 export function min(value: number, test: number): boolean {
@@ -43,6 +44,37 @@ const validationFunctions: any = {
   pattern,
 };
 
+export function validateFormComponents(
+  formAttachments: any,
+  formLayout: any,
+  language: any,
+) {
+  const validations = {};
+  const attachments = formAttachments ? Object.keys(formAttachments).length : 0;
+  const fieldKey = 'simpleBinding';
+  formLayout.forEach((component) => {
+    if (component.type === 'FileUpload') {
+      if (component.minNumberOfAttachments > 0 && attachments < 1 ||
+        formAttachments[component.id].length < component.minNumberOfAttachments) {
+        validations[component.id] = {};
+        const componentValidations: IComponentValidations = {
+          [fieldKey]: {
+            errors: [],
+            warnings: [],
+          },
+        };
+        componentValidations[fieldKey].errors.push(
+          getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language) + ' ' +
+          component.minNumberOfAttachments + ' ' +
+          getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language),
+        );
+        validations[component.id] = componentValidations;
+      }
+    }
+  });
+  return validations;
+}
+
 /*
   Validates formData for a single component, returns a IComponentValidations object
 */
@@ -50,6 +82,7 @@ export function validateComponentFormData(
   formData: any,
   dataModelFieldElement: IDataModelFieldElement,
   component: ILayoutComponent,
+  language: any,
 ): IComponentValidations {
   const validationErrors: string[] = [];
   const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
@@ -80,7 +113,7 @@ export function validateComponentFormData(
   ) {
     if (formData.length === 0) {
       validationErrors.push(
-        `Field is required`,
+        getLanguageFromKey('form_filler.error_required', language),
       );
     }
   }
@@ -95,6 +128,7 @@ export function validateFormData(
   formData: IFormData,
   dataModelFieldElements: IDataModelFieldElement[],
   layout: ILayout,
+  language: any,
 ): IValidations {
   const result: IValidations = {};
   Object.keys(formData).forEach((formDataKey) => {
@@ -125,7 +159,8 @@ export function validateFormData(
 
     if (dataModelFieldKey && connectedComponent) {
       const componentValidations =
-        validateComponentFormData(formData[formDataKey], dataModelFieldElement, connectedComponent);
+        validateComponentFormData(formData[formDataKey], dataModelFieldElement, connectedComponent,
+          language);
       result[connectedComponent.id] = componentValidations;
     }
     dataModelFieldKey = null;

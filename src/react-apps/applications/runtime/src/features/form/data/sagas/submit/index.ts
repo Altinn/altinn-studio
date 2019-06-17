@@ -1,33 +1,32 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
-
+import { IRuntimeState } from 'src/types';
+import { IRuntimeStore } from '../../../../../types/global';
+import { convertDataBindingToModel } from '../../../../../utils/databindings';
+import { put } from '../../../../../utils/networking';
+import { canFormBeSaved, mapApiValidationsToRedux, validateFormComponents, validateFormData } from '../../../../../utils/validation';
+import { ILayoutState } from '../../../layout/reducer';
+import FormValidationActions from '../../../validation/actions';
 import WorkflowActions from '../../../workflow/actions';
 import FormDataActions from '../../actions';
 import {
   ISubmitDataAction,
 } from '../../actions/submit';
 import * as FormDataActionTypes from '../../actions/types';
-import { IFormDataState } from '../../reducer';
 
-import { IRuntimeStore } from '../../../../../types/global';
-import { convertDataBindingToModel } from '../../../../../utils/databindings';
-import { put } from '../../../../../utils/networking';
-import { canFormBeSaved, mapApiValidationsToRedux, validateFormData } from '../../../../../utils/validation';
-import { IDataModelState } from '../../../datamodell/reducer';
-import { ILayoutState } from '../../../layout/reducer';
-import FormValidationActions from '../../../validation/actions';
-
-const FormDataSelector: (store: IRuntimeStore) => IFormDataState = (store: IRuntimeStore) => store.formData;
-const DataModelSelector: (store: IRuntimeStore) => IDataModelState = (store: IRuntimeStore) => store.formDataModel;
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 
 function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
   try {
-    const formDataState: IFormDataState = yield select(FormDataSelector);
-    const dataModelState: IDataModelState = yield select(DataModelSelector);
-    const layoutState: ILayoutState = yield select(LayoutSelector);
-    const model = convertDataBindingToModel(formDataState.formData, dataModelState.dataModel);
-    const validations = validateFormData(formDataState.formData, dataModelState.dataModel, layoutState.layout);
+    const state: IRuntimeState = yield select();
+    const model = convertDataBindingToModel(state.formData, state.formDataModel.dataModel);
+    let validations = validateFormData(state.formData, state.formDataModel.dataModel, state.formLayout.layout,
+      state.language.language);
+    const componentSpesificValidations =
+      validateFormComponents(state.formAttachments.attachments, state.formLayout.layout,
+        state.language.language);
+
+    validations = Object.assign(validations, componentSpesificValidations);
     if (canFormBeSaved(validations)) {
       const result = yield call(put, url, apiMode || 'Update', model);
       yield call(FormDataActions.submitFormDataFulfilled);

@@ -11,6 +11,8 @@ describe('>>> utils/validations.ts', () => {
   let mockFormData: IFormData;
   let mockDataModelFields: any[];
   let mockFormValidationResult: any;
+  let mockLanguage: any;
+  let mockFormAttachments: any;
 
   beforeEach(() => {
     mockApiResponse = {
@@ -26,6 +28,16 @@ describe('>>> utils/validations.ts', () => {
         random_key: {
           errors: ['test error'],
           warnings: ['test warning'],
+        },
+      },
+    };
+
+    mockLanguage = {
+      language: {
+        form_filler: {
+          error_required: 'Feltet er påkrevd',
+          file_uploader_validation_error_file_number_1: 'For å fortsette må du laste opp',
+          file_uploader_validation_error_file_number_2: 'vedlegg',
         },
       },
     };
@@ -55,7 +67,24 @@ describe('>>> utils/validations.ts', () => {
         },
         required: true,
       },
+      {
+        type: 'FileUpload',
+        id: 'componentId_4',
+        dataModelBindings: {},
+        maxNumberOfAttachments: '3',
+        minNumberOfAttachments: '2',
+      },
     ];
+
+    mockFormAttachments = {
+      attachments: {
+        componentId_4: [
+          {
+            name: 'test.png', size: 75375, uploaded: true, id: '77a34540-b670-4ede-9379-43df4aaf18b9', deleting: false,
+          },
+        ],
+      },
+    };
 
     mockLayoutState = {
       layout: mockLayout,
@@ -138,7 +167,7 @@ describe('>>> utils/validations.ts', () => {
       componentId_3: {
         simpleBinding: {
           errors: [
-            'Field is required',
+            'Feltet er påkrevd',
           ],
           warnings: [],
         },
@@ -152,13 +181,15 @@ describe('>>> utils/validations.ts', () => {
   });
 
   it('+++ should catch errors when validating the whole form data', () => {
-    const result = validation.validateFormData(mockFormData, mockDataModelFields, mockLayoutState.layout);
+    const result = validation.validateFormData(mockFormData, mockDataModelFields, mockLayoutState.layout,
+      mockLanguage.language);
     expect(result).toEqual(mockFormValidationResult);
   });
 
   it('+++ should catch errors when validating component specific form data', () => {
     const result =
-      validation.validateComponentFormData(mockFormData.dataModelField_2, mockDataModelFields[1], mockLayout[1]);
+      validation.validateComponentFormData(mockFormData.dataModelField_2, mockDataModelFields[1], mockLayout[1],
+        mockLanguage.language);
     expect(result).toEqual(mockFormValidationResult.componentId_2);
   });
 
@@ -240,5 +271,55 @@ describe('>>> utils/validations.ts', () => {
     expect(falseResult).toBeFalsy();
     expect(trueResult).toBeTruthy();
     expect(trueResult2).toBeTruthy();
+  });
+  it('+++ validateFormComponents should return error on fileUpload if its not enough files', () => {
+    const componentSpesificValidations =
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language);
+
+    const mockResult = {
+      componentId_4: {
+        simpleBinding: {
+          errors: ['For å fortsette må du laste opp 2 vedlegg'],
+          warnings: [],
+        },
+      },
+    };
+
+    expect(componentSpesificValidations).toEqual(mockResult);
+  });
+  it('+++ validateFormComponents should return error on fileUpload if its no file', () => {
+    mockFormAttachments = {
+      attachments: null,
+    };
+    const componentSpesificValidations =
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayoutState.layout, mockLanguage.language);
+
+    const mockResult = {
+      componentId_4: {
+        simpleBinding: {
+          errors: ['For å fortsette må du laste opp 2 vedlegg'],
+          warnings: [],
+        },
+      },
+    };
+
+    expect(componentSpesificValidations).toEqual(mockResult);
+  });
+  it('+++ validateFormComponents should not return error on fileUpload if its enough files', () => {
+    mockLayout = [
+      {
+        type: 'FileUpload',
+        id: 'componentId_4',
+        dataModelBindings: {},
+        maxNumberOfAttachments: '1',
+        minNumberOfAttachments: '0',
+      },
+    ];
+    const componentSpesificValidations =
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language);
+
+    const mockResult = {};
+
+    expect(componentSpesificValidations).toEqual(mockResult);
   });
 });

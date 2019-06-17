@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { FileUploadComponent, FileUploadComponentClass } from '../../../src/components/base/FileUploadComponent';
+import { FileUploadComponent, FileUploadComponentClass, getFileUploadComponentValidations } from '../../../src/components/base/FileUploadComponent';
 import { mapAttachmentListApiResponseToAttachments } from '../../../src/utils/attachment';
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
@@ -14,6 +14,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockIsValid: boolean;
   let mockMaxFileSizeInMB: number;
   let mockMaxNumberOfAttachments: number;
+  let mockMinNumberOfAttachments: number;
   let mockReadOnly: boolean;
   let mockAttachments: any[];
   let mockFileList: File[];
@@ -43,6 +44,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       },
     };
     mockMaxNumberOfAttachments = 4;
+    mockMinNumberOfAttachments = 1;
     mockMaxFileSizeInMB = 2;
     mockHasCustomFileEndings = false;
     mockDisplayMode = 'simple';
@@ -62,6 +64,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
           language={{}}
           maxFileSizeInMB={mockMaxFileSizeInMB}
           maxNumberOfAttachments={mockMaxNumberOfAttachments}
+          minNumberOfAttachments={mockMinNumberOfAttachments}
           readOnly={mockReadOnly}
         />
       </Provider>,
@@ -78,6 +81,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         language={{}}
         maxFileSizeInMB={mockMaxFileSizeInMB}
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
@@ -95,6 +99,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         language={{}}
         maxFileSizeInMB={mockMaxFileSizeInMB}
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
@@ -114,6 +119,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         language={{}}
         maxFileSizeInMB={mockMaxFileSizeInMB}
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
@@ -136,6 +142,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         language={{}}
         maxFileSizeInMB={mockMaxFileSizeInMB}
         maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
         readOnly={mockReadOnly}
         attachments={mockAttachments}
       />,
@@ -188,6 +195,24 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
 
     expect(mappedResponse.mockType4.length).toBe(0);
 
+  });
+  it('+++ getFileUploadComponentValidations should return correct validation', () => {
+    const mockLanguage = {
+      language: {
+        form_filler: {
+          file_uploader_validation_error_delete: 'Noe gikk galt under slettingen av filen, prøv igjen senere.',
+          file_uploader_validation_error_upload: 'Noe gikk galt under opplastingen av filen, prøv igjen senere',
+
+        },
+      },
+    };
+    let validation = getFileUploadComponentValidations('upload', mockLanguage.language);
+    expect(validation).toEqual
+      ({ simpleBinding: { errors: ['Noe gikk galt under opplastingen av filen, prøv igjen senere'], warnings: [] } });
+
+    validation = getFileUploadComponentValidations('delete', mockLanguage.language);
+    expect(validation).toEqual
+      ({ simpleBinding: { errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'], warnings: [] } });
   });
 
 });
