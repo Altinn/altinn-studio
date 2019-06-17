@@ -203,7 +203,7 @@ namespace AltinnCore.Runtime
                     Version = "v1"
                 });
 
-                options.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                //options.IncludeXmlComments(GetXmlCommentsPathForControllers());
             });
         }
 
