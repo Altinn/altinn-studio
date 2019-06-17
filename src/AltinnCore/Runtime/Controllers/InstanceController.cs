@@ -287,6 +287,8 @@ namespace AltinnCore.Runtime.Controllers
         [HttpPost]
         public async Task<IActionResult> StartService(StartServiceModel startServiceModel)
         {
+            _logger.LogInformation("// 404 // Entered start service");
+
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
             bool startService = true;
