@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Services.Interface;
-using Common.Model;
+using Authorization.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -41,22 +41,30 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc />
         public async Task<List<Actor>> GetActors(int userId)
         {            
-            List<Actor> actorList;
-            var request = new HttpRequestMessage(
-                HttpMethod.Get,
-                "api/movies");
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+            List<Actor> actorList = new List<Actor>();
 
-            using (var response = await _actorClient.Client.SendAsync(
-                                            request,
-                                            HttpCompletionOption.ResponseHeadersRead))
+            Actor testActor = new Actor()
             {
-                string actorDataList = await response.Content.ReadAsStringAsync();
-                response.EnsureSuccessStatusCode();
-                actorList = JsonConvert.DeserializeObject<List<Actor>>(actorDataList);
-            }
+                SSNNumber = "123456",
+                Name = "test",
+                PartyID = 54321
+            };
 
+            actorList.Add(testActor);
+
+            // var request = new HttpRequestMessage(
+            //    HttpMethod.Get,
+            //    "actors");
+            //  request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            // using (var response = await _actorClient.Client.SendAsync(
+            //                                request,
+            //                                HttpCompletionOption.ResponseHeadersRead))
+            // {
+            //    string actorDataList = await response.Content.ReadAsStringAsync();
+            //    response.EnsureSuccessStatusCode();
+            //    actorList = JsonConvert.DeserializeObject<List<Actor>>(actorDataList);
+            // }
             return actorList;
         }
     }

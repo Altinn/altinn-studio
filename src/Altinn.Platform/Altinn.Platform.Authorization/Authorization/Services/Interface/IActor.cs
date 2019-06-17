@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Common.Model;
+using Authorization.Interface.Models;
 
 namespace Altinn.Platform.Authorization.Services.Interface
 {

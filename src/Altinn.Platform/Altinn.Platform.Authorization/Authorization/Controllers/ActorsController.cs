@@ -1,18 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Platform.Authorization.Clients;
-using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Services.Interface;
-using Common.Model;
+using Authorization.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Controllers
 {
