@@ -14,7 +14,7 @@ fixture('GUI service designer tests')
     t.ctx.syncMessage = "Endringene er validert";
     await t
       .useRole(AutoTestUser)
-      .resizeWindow(1280,610)
+      .resizeWindow(1280, 610)
   })
 
 test('Drag and drop test', async () => {
@@ -27,25 +27,25 @@ test('Drag and drop test', async () => {
 
 test('Add one of each component to the designer using keyboard', async () => {
   await t
-  .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
-  .click(designer.lageNavigationTab)
-  .expect(designer.inputBtn.visible).ok()
-  .click(designer.inputBtn)
-  .pressKey('enter') //input button
-  .pressKey('tab')
-  .pressKey('enter') //datepicker
-  .pressKey('tab')
-  .pressKey('enter') //dropdown
-  .pressKey('tab')
-  .pressKey('enter') //checkboxes
-  .pressKey('tab')
-  .pressKey('enter') //radiobutton
-  .pressKey('tab')
-  .pressKey('enter') //text area
-  .pressKey('tab')
-  .pressKey('enter') //file upload
-  .pressKey('tab')
-  .pressKey('enter') //submit
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
+    .click(designer.lageNavigationTab)
+    .expect(designer.inputBtn.visible).ok()
+    .click(designer.inputBtn)
+    .pressKey('enter') //input button
+    .pressKey('tab')
+    .pressKey('enter') //datepicker
+    .pressKey('tab')
+    .pressKey('enter') //dropdown
+    .pressKey('tab')
+    .pressKey('enter') //checkboxes
+    .pressKey('tab')
+    .pressKey('enter') //radiobutton
+    .pressKey('tab')
+    .pressKey('enter') //text area
+    .pressKey('tab')
+    .pressKey('enter') //file upload
+    .pressKey('tab')
+    .pressKey('enter') //submit
 })
 
 test('Sync a service with master', async () => {

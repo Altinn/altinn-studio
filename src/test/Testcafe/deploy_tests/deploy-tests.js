@@ -4,7 +4,7 @@ import App from '../app';
 import DashBoard from '../page-objects/DashboardPage';
 import LoginPage from '../page-objects/loginPage';
 import CommonPage from '../page-objects/common';
-import { AutoTestUser,NoDeployUser } from '../TestData';
+import { AutoTestUser, NoDeployUser } from '../TestData';
 import DesignerPage from '../page-objects/designerPage';
 
 let app = new App();
@@ -29,12 +29,12 @@ fixture('Deploy of service to a test environment tests')
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
     await t
       .useRole(AutoTestUser)
-      .resizeWindow(1280,610)
+      .resizeWindow(1280, 610)
   })
 
-test('Happy case; deploy a service to a test environment after a change', async() => {
+test('Happy case; deploy a service to a test environment after a change', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deploytotestenv#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
@@ -61,7 +61,7 @@ test('Happy case; deploy a service to a test environment after a change', async(
 
 })
 
-test('Service cannot deploy due to compilation error', async() => {
+test('Service cannot deploy due to compilation error', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/aboutservice')
     .click(designer.lageNavigationTab)
@@ -75,32 +75,32 @@ test('Service cannot deploy due to compilation error', async() => {
     .expect(Selector("h2").withText(t.ctx.noCompile).exists).ok()
 })
 
-test('Service cannot be deployed due to local changes', async() => {
+test('Service cannot be deployed due to local changes', async () => {
   await t
-  .navigateTo(app.baseUrl + 'designer/tdd/deploytotestenv#/aboutservice')
-  .click(designer.lageNavigationTab)
-  .click(designer.hentEndringer)
-  .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
-  .click(designer.omNavigationTab) //remove pop up
-  .click(designer.radioButtons)
-  .pressKey('enter')
-  .expect(designer.delEndringer.exists).ok()
-  .click(designer.testeNavigationTab)
-  .hover(designer.leftDrawerMenu)
-  .click(designer.testeLeftMenuItems[1])
-  .expect(designer.deployButton.getAttribute("disabled")).notOk()
-  .expect((Selector("h2").withText(t.ctx.localChanges)).exists).ok()
-  .click(designer.delEndringer)
-  .click(designer.commitMessageBox)
-  .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
-  .expect(designer.validerEndringer.exists).ok()
-  .click(designer.validerEndringer)
-  .pressKey("tab")
-  .pressKey("enter")
-  .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok()
+    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
+    .click(designer.lageNavigationTab)
+    .click(designer.hentEndringer)
+    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
+    .click(designer.omNavigationTab) //remove pop up
+    .click(designer.radioButtons)
+    .pressKey('enter')
+    .expect(designer.delEndringer.exists).ok()
+    .click(designer.testeNavigationTab)
+    .hover(designer.leftDrawerMenu)
+    .click(designer.testeLeftMenuItems[1])
+    .expect(designer.deployButton.getAttribute("disabled")).notOk()
+    .expect((Selector("h2").withText(t.ctx.localChanges)).exists).ok()
+    .click(designer.delEndringer)
+    .click(designer.commitMessageBox)
+    .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
+    .expect(designer.validerEndringer.exists).ok()
+    .click(designer.validerEndringer)
+    .pressKey("tab")
+    .pressKey("enter")
+    .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok()
 })
 
-test('User does not have write access to service, and cannot deploy', async() => {
+test('User does not have write access to service, and cannot deploy', async () => {
   await t
     .useRole(NoDeployUser)
     .click(dash.serviceSearch)
@@ -116,7 +116,7 @@ test('User does not have write access to service, and cannot deploy', async() =>
 
 test('Accessibility testing for deployment to test environment page', async t => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deploytotestenv#/deploytotest')
+    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/deploytotest')
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])
