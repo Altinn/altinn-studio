@@ -53,7 +53,7 @@ namespace Altinn.Platform.Authentication.Controllers
             string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
             if (Request.Cookies[_generalSettings.GetSBLCookieName] == null)
             {
-               return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
             }
             else
             {
@@ -62,8 +62,10 @@ namespace Altinn.Platform.Authentication.Controllers
                 Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}/tickets");
                 using (HttpClient client = new HttpClient())
                 {
+                    _logger.LogInformation($"// 1936 debug // Created client. Sending request to endpoint {endpointUrl}");
                     string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] });
                     HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
+                    _logger.LogInformation($"// 1936 debug // Received response from server {response.Content.ReadAsStringAsync()}");
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         Stream stream = await response.Content.ReadAsStreamAsync();
