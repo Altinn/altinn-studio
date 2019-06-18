@@ -78,7 +78,7 @@ namespace Altinn.Platform.Authentication.Controllers
                             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, userAuthentication.AuthenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
                             if (userAuthentication.SSN != null)
                             {
                                 claims.Add(new Claim(AltinnCoreClaimTypes.SSN, userAuthentication.SSN, ClaimValueTypes.String, issuer));
