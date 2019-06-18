@@ -12,11 +12,12 @@ import FormFileUploadReducer, { IFormFileUploadState } from '../features/form/fi
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
 import FormResourceReducer, { IResourceState } from '../features/form/resources/reducer';
 import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
+import FormUserReducer, { IFormUserState } from '../features/form/user/reducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import LanguageReducer, { ILanguageState } from '../features/languages/reducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -27,7 +28,8 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> {
   formRules?: T8;
   language: T9;
   formResources: T10;
-  formValidations: T11;
+  formUser: T11;
+  formValidations: T12;
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -41,6 +43,7 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IFormRuleState>,
   Reducer<ILanguageState>,
   Reducer<IResourceState>,
+  Reducer<IFormUserState>,
   Reducer<IValidationState>
   >,
   ReducersMapObject {
@@ -57,6 +60,7 @@ const reducers: IRuntimeReducers = {
   formRules: FormRuleReducer,
   language: LanguageReducer,
   formResources: FormResourceReducer,
+  formUser: FormUserReducer,
   formValidations: ValidationReducer,
 };
 

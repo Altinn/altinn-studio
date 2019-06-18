@@ -14,20 +14,20 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Returns the ServiceImplementation for a service.
         /// </summary>
-        /// <param name="applicationOwnerId">The application owner id.</param>
-        /// <param name="applicationId">The application id.</param>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="appName">The application name.</param>
         /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>The service implementation.</returns>
-        IServiceImplementation GetServiceImplementation(string applicationOwnerId, string applicationId, bool startServiceFlag);
+        IServiceImplementation GetServiceImplementation(string org, string appName, bool startServiceFlag);
 
         /// <summary>
         /// Returns the serviceContext.
         /// </summary>
-        /// <param name="applicationOwnerId">The application owner id.</param>
-        /// <param name="applicationId">The application id.</param>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="appName">The application name.</param>
         /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>The serviceContext.</returns>
-        ServiceContext GetServiceContext(string applicationOwnerId, string applicationId, bool startServiceFlag);
+        ServiceContext GetServiceContext(string org, string appName, bool startServiceFlag);
 
         /// <summary>
         /// Returns a new instanceId for a service.
@@ -38,28 +38,28 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets the raw content of a code list.
         /// </summary>
-        /// <param name="applicationOwnerId">The application owner id.</param>
-        /// <param name="applicationId">The application id.</param>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="appName">The application name.</param>
         /// <param name="name">The name of the code list to retrieve.</param>
         /// <returns>Raw contents of a code list file.</returns>
-        string GetCodelist(string applicationOwnerId, string applicationId, string name);
+        string GetCodelist(string org, string appName, string name);
 
         /// <summary>
         /// Get the resource for the given parameters.
         /// </summary>
-        /// <param name="applicationOwnerId">The application owner id.</param>
-        /// <param name="applicationId">The application id.</param>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="appName">The application name.</param>
         /// <param name="resource">the resource.</param>
         /// <returns>The service resource.</returns>
-        byte[] GetServiceResource(string applicationOwnerId, string applicationId, string resource);
+        byte[] GetServiceResource(string org, string appName, string resource);
 
         /// <summary>
         /// Returns the service metadata for a service.
         /// </summary>
-        /// <param name="applicationOwnerId">The application owner id.</param>
-        /// <param name="applicationId">The application id.</param>
+        /// <param name="org">The application owner id.</param>
+        /// <param name="appName">The application name.</param>
         /// <returns>The service metadata for a service.</returns>
-        ServiceMetadata GetServiceMetaData(string applicationOwnerId, string applicationId);
+        ServiceMetadata GetServiceMetaData(string org, string appName);
 
         /// <summary>
         /// Method that fetches the runtime resources stored in wwwroot

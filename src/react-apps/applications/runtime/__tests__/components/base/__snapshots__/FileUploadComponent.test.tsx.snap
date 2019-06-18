@@ -146,5 +146,10 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
   >
     form_filler.file_uploader_add_attachment
   </button>
+  <p
+    className="file-upload-text-bold-small"
+  >
+    form_filler.file_uploader_number_of_files 3/1
+  </p>
 </div>
 `;

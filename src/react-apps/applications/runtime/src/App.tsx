@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Route } from 'react-router-dom';
 import FormFiller from './features/form/containers';
-import Header from './features/header/containers';
 import Instantiate from './features/instantiate/containers';
 import ServiceInfo from './features/serviceInfo/containers';
 

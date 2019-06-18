@@ -21,6 +21,7 @@ export interface IFileUploadProvidedProps {
   language: any;
   maxFileSizeInMB: number;
   maxNumberOfAttachments: number;
+  minNumberOfAttachments: number;
   readOnly: boolean;
   validFileEndings?: string;
 }
@@ -307,14 +308,21 @@ export class FileUploadComponentClass
                 );
               }}
             </DropZone>
-            {(validationMessages.simpleBinding.errors.length > 0) &&
-              renderValidationMessagesForComponent(validationMessages.simpleBinding,
-                this.props.id)
-            }
           </div>
         }
         {this.renderFileList()}
         {this.renderAddMoreAttachmentsButton()}
+        <p className={'file-upload-text-bold-small'}>
+          {
+            getLanguageFromKey('form_filler.file_uploader_number_of_files', this.props.language) + ' ' +
+            (this.props.minNumberOfAttachments ? this.state.attachments.length + '/' + this.props.minNumberOfAttachments
+              : this.state.attachments.length)
+          }
+        </p>
+        {(validationMessages.simpleBinding.errors.length > 0) &&
+          renderValidationMessagesForComponent(validationMessages.simpleBinding,
+            this.props.id)
+        }
       </div>
     );
   }

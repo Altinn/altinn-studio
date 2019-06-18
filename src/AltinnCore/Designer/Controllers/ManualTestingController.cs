@@ -236,17 +236,17 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that checks if there is a newer version of the workflow file and updates it if there are
         /// </summary>
-        /// <param name="applicationOwnerId">The application owner id</param>
-        /// <param name="applicationId">The applicaiton id</param>
-        private void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId)
+        /// <param name="org">The application owner id</param>
+        /// <param name="appName">The applicaiton id</param>
+        private void CheckAndUpdateWorkflowFile(string org, string appName)
         {
-            string workflowFullFilePath = _serviceRepositorySettings.GetWorkflowPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _serviceRepositorySettings.WorkflowFileName;
+            string workflowFullFilePath = _serviceRepositorySettings.GetWorkflowPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _serviceRepositorySettings.WorkflowFileName;
             string templateWorkflowData = System.IO.File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
 
             if (!System.IO.File.Exists(workflowFullFilePath))
             {
                 // Create the workflow folder
-                Directory.CreateDirectory(_serviceRepositorySettings.GetWorkflowPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+                Directory.CreateDirectory(_serviceRepositorySettings.GetWorkflowPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
                 System.IO.File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
             }
             else

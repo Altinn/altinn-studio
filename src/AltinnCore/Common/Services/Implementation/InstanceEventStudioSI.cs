@@ -11,6 +11,7 @@ using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -23,25 +24,29 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventStudioSI"/> class.
         /// </summary>
         /// <param name="repositorySettings">repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
+        /// <param name="logger">The logger</param>
         public InstanceEventStudioSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<InstanceEventStudioSI> logger)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
-        public Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string applicationOwnerId, string applicationId)
+        public Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string folderForEvents = $"{testDataForParty}{instanceOwnerId}/{instanceId}/events";
 
             if (Directory.Exists(folderForEvents))
@@ -53,10 +58,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
+        public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName, string[] eventTypes, string from, string to)
         {  
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string folderForEvents = $"{testDataForParty}{instanceOwnerId}/{instanceId}/events";
             DateTime? fromDateTime = null, toDateTime = null;
             List<InstanceEvent> events = new List<InstanceEvent>();
@@ -70,7 +75,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 catch
                 {
-                    throw new Exception("Unable to perform query. Invalid format for time span. Use string format of UTC.");
+                    _logger.LogError("Unable to perform query. Invalid format for time span. Use string format of UTC.");
                 }
             }
 
@@ -86,28 +91,28 @@ namespace AltinnCore.Common.Services.Implementation
 
             IQueryable<InstanceEvent> result = events.AsQueryable();
 
-            if (eventTypes != null && eventTypes.Length > 0 && events.Count() > 0)
+            if (eventTypes != null && eventTypes.Length > 0 && events.Any())
             {
-               result = result.Where(e => eventTypes.Contains(e.EventType));                
+                result = result.Where(e => eventTypes.Contains(e.EventType));
             }
 
-            if (fromDateTime.HasValue && toDateTime.HasValue && events.Count() > 0)
+            if (fromDateTime.HasValue && toDateTime.HasValue && events.Any())
             {
-              result = result.Where(e => fromDateTime < e.CreatedDateTime && toDateTime > e.CreatedDateTime);
+                result = result.Where(e => fromDateTime < e.CreatedDateTime && toDateTime > e.CreatedDateTime);
             }
 
             return Task.FromResult(result.ToList());
         }
 
         /// <inheritdoc/>
-        public Task<string> SaveInstanceEvent(object dataToSerialize, string applicationOwnerId, string applicationId)
+        public Task<string> SaveInstanceEvent(object dataToSerialize, string org, string appName)
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.Id = Guid.NewGuid();
             instanceEvent.CreatedDateTime = DateTime.UtcNow;
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string folderForEvents = $"{testDataForParty}{instanceEvent.InstanceOwnerId}/{instanceEvent.InstanceId}/events";
             Directory.CreateDirectory(folderForEvents);
             string eventFilePath = $"{folderForEvents}/{instanceEvent.Id}.json";

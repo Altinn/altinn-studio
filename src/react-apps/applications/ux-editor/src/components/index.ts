@@ -1,7 +1,7 @@
 import { AddressComponent } from './advanced/AddressComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
 import { DatepickerComponent } from './base/DatepickerComponent';
-import { DropdownComponent } from './base/DropdownComponent';
+// import { DropdownComponent } from './base/DropdownComponent';
 import { FileUploadComponent } from './base/FileUploadComponent';
 import { HeaderComponent } from './base/HeaderComponent';
 import { InputComponent } from './base/InputComponent';
@@ -88,6 +88,7 @@ export const schemaComponents: IComponent[] = [
     },
     Icon: componentIcons.Datepicker,
   },
+  /* removed for now
   {
     name: 'Dropdown',
     Tag: DropdownComponent,
@@ -97,6 +98,7 @@ export const schemaComponents: IComponent[] = [
       options: [],
     },
   },
+  */
   {
     name: 'Checkboxes',
     Tag: CheckboxContainerComponent,
@@ -137,7 +139,9 @@ export const schemaComponents: IComponent[] = [
     customProperties: {
       maxFileSizeInMB: 25,
       maxNumberOfAttachments: 1,
+      minNumberOfAttachments: 1,
       displayMode: 'simple',
+      required: true,
     },
   },
   {

@@ -1,0 +1,657 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Storage.Interface</name>
+    </assembly>
+    <members>
+        <member name="T:Altinn.Platform.Storage.Client.ApplicationClient">
+            <summary>
+            Client for managing application metadata.
+            </summary>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.ApplicationClient.#ctor(System.Net.Http.HttpClient,System.String)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="client">the http client to use</param>
+            <param name="enpointUrl">the url of the endpoint</param>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.ApplicationClient.CreateApplication(System.String,Storage.Interface.Models.LanguageString)">
+            <summary>
+            Creates and stores an application with an appId and a title.
+            </summary>
+            <param name="appId">the application id, e.g. test/app42</param>
+            <param name="title">the title of the application</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.ApplicationClient.CreateApplication(Altinn.Platform.Storage.Models.Application)">
+            <summary>
+            Stores application from an application instance.
+            </summary>
+            <param name="application">the application to store</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.ApplicationClient.UpdateApplication(Altinn.Platform.Storage.Models.Application)">
+            <summary>
+            Updates and application
+            </summary>
+            <param name="application">the application that should be updated</param>
+            <returns>the updated application</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.ApplicationClient.GetApplication(System.String)">
+            <summary>
+            Fetches the application with a given id.
+            </summary>
+            <param name="appId">the application id</param>
+            <returns>the application object</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.ApplicationClient.DeleteApplication(System.String)">
+            <summary>
+            Deletes an application in storage.
+            </summary>
+            <param name="appId">the application ied</param>
+            <returns>the application object that was deleted</returns>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Client.InstanceClient">
+            <summary>
+            Storage client methods.
+            </summary>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.#ctor(System.Net.Http.HttpClient,System.String)">
+            <summary>
+            Create a client.
+            </summary>
+            <param name="client">the http client</param>
+            <param name="hostName">the host name</param>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.PostDataReadFromFile(System.String,System.String,System.String)">
+            <summary>
+            Creates data from file.
+            </summary>
+            <param name="instanceId">a</param>
+            <param name="fileName">c</param>
+            <param name="contentType">d</param>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.PostData(System.String,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
+            <summary>
+            Creates data.
+            </summary>
+            <param name="instanceId">a</param>
+            <param name="fileName">c</param>
+            <param name="contentType">d</param>
+            <param name="content">f</param>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.PutData(System.String,System.String,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            Updates data.
+            </summary>
+            <param name="instanceId">the instance id</param>
+            <param name="dataId">the data id</param>
+            <param name="fileName">a file name</param>
+            <param name="contentType">content type</param>
+            <param name="content">content as json</param>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.GetData(System.String,System.String)">
+            <summary>
+             Gets a data element.
+            </summary>
+            <param name="instanceId">the instance id</param>
+            <param name="dataId">the data id</param>
+            <returns>the data content as byte array</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.GetInstances(System.String)">
+            <summary>
+            Get an instance.
+            </summary>
+            <param name="instanceId">the instance id</param>
+            <returns>the instance object</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.PostInstances(System.String,System.Int32)">
+            <summary>
+            Creates an instance
+            </summary>
+            <param name="appId">application id of the instance (must be registered in platform storage)</param>
+            <param name="instanceOwnerId">the instance owner id</param>
+            <returns>the instance just created</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.GetInstanceEvents(System.String,System.String[],System.String,System.String)">
+            <summary>
+            Retrieves all instance events related to given instance, listed event types and given time frame from instanceEvent collection.
+            </summary>
+            <param name="instanceId"> Id of instance to retrieve events for. </param>
+            <param name="eventTypes">List of event types to filter the events by.</param>
+            <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+            <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+            <returns>List of intance events.</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.PostInstanceEvent(Altinn.Platform.Storage.Models.InstanceEvent)">
+            <summary>
+            Inserts new instance event into the instanceEvent collection.
+            </summary>
+            <param name="instanceEvent">Instance event to be stored. </param>
+            <returns>The stored instance event.</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.DeleteInstanceEvents(System.String)">
+            <summary>
+            Deletes all events related to an instance id.
+            </summary>
+            <param name="instanceId">Id of instance to retrieve events for. </param>
+            <returns>True if instance events were successfully deleted.</returns>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Models.Application">
+            <summary>
+            Model for application metadata.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.Id">
+            <summary>
+            Unique id of the application, e.g. test/app-34
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.VersionId">
+            <summary>
+            the application build version 
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.Org">
+            <summary>
+            Service owner code for the service, e.g. nav.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.CreatedDateTime">
+            <summary>
+            Creation date-time for the instance, first time application is deployed and registered in storage.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.CreatedBy">
+            <summary>
+            User id of the user who created (deployed) the application first time.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.LastChangedDateTime">
+            <summary>
+            Last changed date-time for the application.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.LastChangedBy">
+            <summary>
+            User id of the user who last redeployed the application.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.Title">
+            <summary>
+            Title of the application with language codes. 
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.ValidFrom">
+            <summary>
+            application is valid from this date-time
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.ValidTo">
+            <summary>
+            application is valid to this date-time
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.WorkflowId">
+            <summary>
+            Identifier of the workflow that is used by the application
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.MaxSize">
+            <summary>
+            Maximum allowed size of all the data element files of an application instance in bytes.
+            If not set there is no limit on file size.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.ElementTypes">
+            <summary>
+            Gets or sets the data element types associated with the application
+            </summary>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Models.Application.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Models.DataElement">
+            <summary>
+            Model to hold a data element.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.Id">
+            <summary>
+            data id, an guid.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.ElementType">
+            <summary>
+            the element type, must be equal to the ones defined in application element types.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.FileName">
+            <summary>
+            the name of the data element (file)
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.ContentType">
+            <summary>
+            contentType of data element (file) stored
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.StorageUrl">
+            <summary>
+            path to blob storage
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.DataLinks">
+            <summary>
+            Links to access the data elements
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.FileSize">
+            <summary>
+            Size of file in bytes
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.Signature">
+            <summary>
+            Signature
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.IsLocked">
+            <summary>
+            Indicates that the instance owner no longer can update the data element
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.CreatedDateTime">
+            <summary>
+            create date and time for the data element
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.CreatedBy">
+            <summary>
+            user id of the user who created the data element
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.LastChangedDateTime">
+            <summary>
+            last changed date time for the data element
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.DataElement.LastChangedBy">
+            <summary>
+            user id of the user who last changed the instance
+            </summary>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Models.ElementType">
+            <summary>
+            Model for application element type.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.Id">
+            <summary>
+            The element type id. It must be unique within the scope of an application.
+            Logical name of the schema of which data elements should be validated against.
+            Should be in lower case and can only contain letters, dash and numbers. No space or slashes are allowed.
+            Examples are: main, subschema-x, cv, attachement
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.Description">
+            <summary>
+            Description of the element type with language description.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.AllowedContentType">
+            <summary>
+            List of allowed content types (Mime types).
+            If null or empty all content types are allowed.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.MaxSize">
+            <summary>
+            Maximum allowed size of the file in bytes. If missing there is no limit on file size.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.MaxCount">
+            <summary>
+            Maximum number of instances of same element. Default is 1.
+            If negative no limit on number of data elements.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.ShouldSign">
+            <summary>
+            True if signature is required. Default value is false.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.ShouldEncrypt">
+            <summary>
+            Encryption required by application. Default value is false.  
+            </summary>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Models.Instance">
+            <summary>
+            Holds metadata of an application instance for a particular instance owner.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.Id">
+            <summary>
+            unique id of the instance {integer}/{guid}
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.InstanceOwnerId">
+            <summary>
+            owner of the instance.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.InstanceOwnerLookup">
+            <summary>
+            instance owner lookup. Only to be used when instantiating an application instance. Will be set to null by storage.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.SelfLinks">
+            <summary>
+            Links to access the instance resource
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.AppId">
+            <summary>
+            id of the application, e.g. org/app22
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.Org">
+            <summary>
+            application owner for the service, should be lower case.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.Labels">
+            <summary>
+            Label mechanism, can be used to set external system references
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.CreatedDateTime">
+            <summary>
+            create date and time for the instance
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.CreatedBy">
+            <summary>
+            user id of the user who created the instance
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.LastChangedDateTime">
+            <summary>
+            last changed date time for the instance
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.LastChangedBy">
+            <summary>
+            user id of the user who last changed the instance
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.DueDateTime">
+            <summary>
+            due date to submit the instance to application owner.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.VisibleDateTime">
+            <summary>
+            date time to show the instance in inbox
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.PresentationField">
+            <summary>
+            title of the instance
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.Workflow">
+            <summary>
+            Workflow state section
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.InstanceState">
+            <summary>
+            Section for instance state properties
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.AppOwnerState">
+            <summary>
+            Section for app owner state properties
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Instance.Data">
+            <summary>
+            the data elements associated with the instance
+            </summary>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Models.Instance.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Models.InstanceEvent">
+            <summary>
+            Model for the instance event.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.Id">
+            <summary>
+            unique identifier of the event
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.InstanceId">
+            <summary>
+            the instance the event refers to
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.DataId">
+            <summary>
+            the data element which the event refers to
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.CreatedDateTime">
+            <summary>
+            event creation date-time
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.EventType">
+            <summary>
+            the event type, e.g. created, saved, workflow-change
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.InstanceOwnerId">
+            <summary>
+            the instance owner id
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.UserId">
+            <summary>
+            the user who created
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.AuthenticationLevel">
+            <summary>
+            the authentication level for the user which triggered the event
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.EndUserSystemId">
+            <summary>
+            the end user system that triggered the event
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.WorkflowStep">
+            <summary>
+            the workflow step during which the event occured
+            </summary>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Models.InstanceEvent.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Models.InstanceOwnerLookup">
+            <summary>
+            Model to hold a instance owner lookup element
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.PersonNumber">
+            <summary>
+            Person number (national identification number)
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.organisationNumber">
+            <summary>
+            organisation number
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.UserName">
+            <summary>
+            user name
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Clients.Extensions">
+            <summary>
+            Class to wrap a json object into a StringContent with correct encoding and content type.
+            </summary>
+        </member>
+        <member name="M:Storage.Interface.Clients.Extensions.AsJson(System.Object)">
+            <summary>
+             Wrapper method.
+            </summary>
+            <param name="o">the json object to wrap.</param>
+            <returns>a StringContent object.</returns>
+        </member>
+        <member name="T:Storage.Interface.Clients.StorageClientException">
+            <summary>
+            Exception class for storage exceptions.
+            </summary>
+        </member>
+        <member name="M:Storage.Interface.Clients.StorageClientException.#ctor(System.String)">
+            <summary>
+            Exception with plain message.
+            </summary>
+            <param name="message">the message</param>
+        </member>
+        <member name="M:Storage.Interface.Clients.StorageClientException.#ctor(System.String,System.Exception)">
+            <summary>
+            Exception with message and inner exception
+            </summary>
+            <param name="message">the message</param>
+            <param name="inner">the exception</param>
+        </member>
+        <member name="M:Storage.Interface.Clients.StorageClientException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Sonarcloud wanted this 
+            </summary>
+            <param name="info"></param>
+            <param name="context"></param>
+        </member>
+        <member name="M:Storage.Interface.Clients.StorageClientException.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Gets the object data
+            </summary>
+            <param name="info">info</param>
+            <param name="context">context</param>
+        </member>
+        <member name="T:Storage.Interface.Models.ApplicationOwnerDataState">
+            <summary>
+            Model to hold application owner state for a specific data element
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ApplicationOwnerDataState.Downloaded">
+            <summary>
+            List of date-timestamps for when the application owner has downloaded data
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ApplicationOwnerDataState.DownloadConfirmed">
+            <summary>
+            List of date-timestamps when application owner has confirmed the download
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.ApplicationOwnerState">
+            <summary>
+            Various fields that application owner can set. Some can be displayed to the user. Others dictate beahviour.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ApplicationOwnerState.Messages">
+            <summary>
+            List of messages that may be shown to user.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ApplicationOwnerState.CanBeDeletedAfter">
+            <summary>
+            The date and time for when the system can delete the instance if user chose to do so.
+            Should only be set if application owner has downloaded the instance and its data elements and
+            processed them successfully.
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.InstanceState">
+            <summary>
+            Holds the state of an instance
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.InstanceState.IsDeleted">
+            <summary>
+            Gets or sets whether a user has deleted the instance
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.InstanceState.IsMarkedForHardDelete">
+            <summary>
+            Gets or sets whether a user has marked the instance for hard delete
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.InstanceState.IsArchived">
+            <summary>
+            Gets or sets whether a user archived the instance
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.LanguageString">
+            <summary>
+            Convenience type to handle multiple languages in a string.
+            </summary>
+        </member>
+        <member name="M:Storage.Interface.Models.LanguageString.#ctor">
+            <summary>
+            public constructor
+            </summary>
+        </member>
+        <member name="M:Storage.Interface.Models.LanguageString.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Required by sonarcloud
+            </summary>
+            <param name="info">info</param>
+            <param name="context">context </param>
+        </member>
+        <member name="M:Storage.Interface.Models.LanguageString.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>
+            Get object data.
+            </summary>
+            <param name="info">info</param>
+            <param name="context">context</param>
+        </member>
+        <member name="T:Storage.Interface.Models.ResourceLinks">
+            <summary>
+            represent actual links to resources in various enpoints
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ResourceLinks.Apps">
+            <summary>
+            application resource link
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ResourceLinks.Platform">
+            <summary>
+            platform resource link
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.WorkflowState">
+            <summary>
+            Holds the workflow state. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.WorkflowState.CurrentStep">
+            <summary>
+            the current workflow step
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.WorkflowState.IsComplete">
+            <summary>
+            If workflow is completed the value should be true, otherwise false.
+            </summary>
+        </member>
+    </members>
+</doc>

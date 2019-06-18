@@ -36,27 +36,43 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
             >
               <span
                 className="a-personSwitcher-name"
+                style={
+                  Object {
+                    "marginBottom": "10px",
+                  }
+                }
               >
                 <span
                   className="d-block"
                   style={
                     Object {
                       "color": "#022F51",
+                      "lineHeight": "18px",
                     }
                   }
                 >
                   OLA PRIVATPERSON
                 </span>
                 <span
+                  style={
+                    Object {
+                      "color": "#022F51",
+                      "lineHeight": "18px",
+                    }
+                  }
+                />
+                <span
                   className="d-block"
                 />
               </span>
               <i
                 aria-hidden="true"
-                className="fa fa-private-circle-big  a-personSwitcher-icon"
+                className="fa fa-private-circle-big"
                 style={
                   Object {
                     "color": "#022F51",
+                    "fontSize": "3.1rem",
+                    "marginLeft": "5px",
                   }
                 }
               />

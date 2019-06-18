@@ -22,7 +22,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         private InstanceClient storage;
-        private readonly string testInstanceId = "922e412e-0e7d-4af3-968f-10b372ec7fd9";
+        private readonly string testInstanceId = "100/922e412e-0e7d-4af3-968f-10b372ec7fd9";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventsTest"/> class.
