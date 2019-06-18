@@ -241,7 +241,7 @@ namespace AltinnCore.Authentication.JwtCookie
             if (signInContext.Properties.IsPersistent)
             {
                 var expiresUtc = signInContext.Properties.ExpiresUtc ?? issuedUtc.Add(Options.ExpireTimeSpan);
-                signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();              
+                signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();         
             }
 
             string jwtToken = GetToken(user, Options.ExpireTimeSpan);
