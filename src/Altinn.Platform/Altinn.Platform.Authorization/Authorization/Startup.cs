@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Platform.Authorization.Clients;
+using Altinn.Platform.Authorization.Configuration;
+using Altinn.Platform.Authorization.Services.Implementation;
+using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -40,6 +45,14 @@ namespace Altinn.Platform.Authorization
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
+            services.AddSingleton<IActor, ActorsWrapper>();
+            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.AddHttpClient<ActorClient>()
+            .ConfigurePrimaryHttpMessageHandler(handler =>
+            new HttpClientHandler()
+            {
+                AutomaticDecompression = System.Net.DecompressionMethods.GZip
+            });
         }
 
         /// <summary>
