@@ -10,7 +10,7 @@ data:
 
     http {
 
-      client_max_body_size 5M;
+      client_max_body_size 50M;
 
       upstream designer {
         server altinn-designer:5000;

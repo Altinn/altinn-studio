@@ -135,7 +135,7 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.FileUpload,
     Icon: componentIcons.FileUpload,
     customProperties: {
-      maxFileSizeInMB: 0,
+      maxFileSizeInMB: 25,
       maxNumberOfAttachments: 1,
       displayMode: 'simple',
     },
