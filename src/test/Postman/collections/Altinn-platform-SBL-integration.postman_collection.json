@@ -38,14 +38,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "register/api/v1/{{envURL}}/organizations/{{orgNr}}",
+							"raw": "{{at21}}/register/api/v1/organizations/{{orgNr}}",
 							"host": [
-								"register"
+								"{{at21}}"
 							],
 							"path": [
+								"register",
 								"api",
 								"v1",
-								"{{envURL}}",
 								"organizations",
 								"{{orgNr}}"
 							]
@@ -55,15 +55,36 @@
 				},
 				{
 					"name": "parties",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3dc27b90-5c04-4fc8-a5d4-8157c75b8842",
+								"exec": [
+									"pm.test(\"GET organization returns 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct organization name is returned\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"01066660040\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{envURL}}/parties/{{partyID}}",
+							"raw": "{{at21}}/register/api/v1/parties/{{partyID}}",
 							"host": [
-								"{{envURL}}"
+								"{{at21}}"
 							],
 							"path": [
+								"register",
+								"api",
+								"v1",
 								"parties",
 								"{{partyID}}"
 							]
@@ -73,8 +94,11 @@
 				},
 				{
 					"name": "persons",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
 					"request": {
-						"method": "POST",
+						"method": "GET",
 						"header": [
 							{
 								"key": "Content-Type",
@@ -85,14 +109,17 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "01023102389"
+							"raw": "\"01023102389\""
 						},
 						"url": {
-							"raw": "{{envURL}}/persons",
+							"raw": "{{at21}}/register/api/v1/persons",
 							"host": [
-								"{{envURL}}"
+								"{{at21}}"
 							],
 							"path": [
+								"register",
+								"api",
+								"v1",
 								"persons"
 							]
 						}
@@ -110,9 +137,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{envURL}}/profile/api/v1/users/{{userID}}",
+							"raw": "{{at21}}/profile/api/v1/users/{{userID}}",
 							"host": [
-								"{{envURL}}"
+								"{{at21}}"
 							],
 							"path": [
 								"profile",
@@ -123,6 +150,51 @@
 							]
 						},
 						"description": "Get information about a user"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Tickets",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"encryptedTicket\": \"CD4E027814113A483207C670A4\"\r\n}"
+						},
+						"url": {
+							"raw": "{{envUrl}}/authentication/api/v1/authentication?goto=http://www.vg.no",
+							"host": [
+								"{{envUrl}}"
+							],
+							"path": [
+								"authentication",
+								"api",
+								"v1",
+								"authentication"
+							],
+							"query": [
+								{
+									"key": "goto",
+									"value": "http://www.vg.no"
+								}
+							]
+						}
 					},
 					"response": []
 				}
