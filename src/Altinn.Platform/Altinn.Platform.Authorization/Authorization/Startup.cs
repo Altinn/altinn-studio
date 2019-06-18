@@ -46,13 +46,10 @@ namespace Altinn.Platform.Authorization
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
             services.AddSingleton<IActor, ActorsWrapper>();
+            services.AddSingleton<IRoles, RolesWrapper>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.AddHttpClient<ActorClient>()
-            .ConfigurePrimaryHttpMessageHandler(handler =>
-            new HttpClientHandler()
-            {
-                AutomaticDecompression = System.Net.DecompressionMethods.GZip
-            });
+            services.AddHttpClient<ActorClient>();
+            services.AddHttpClient<RolesClient>();
         }
 
         /// <summary>

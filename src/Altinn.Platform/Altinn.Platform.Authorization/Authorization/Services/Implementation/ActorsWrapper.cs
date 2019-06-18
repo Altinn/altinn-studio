@@ -52,13 +52,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             actorList.Add(testActor);
 
-            // var request = new HttpRequestMessage(
-            //    HttpMethod.Get,
-            //    "actors");
+            var request = $"actors?userid={userId}";           
 
-            // using (var response = await _actorClient.Client.SendAsync(
+            // var response = await _actorClient.Client.GetAsync(
             //                                request,
-            //                                HttpCompletionOption.ResponseHeadersRead))
+            //                                HttpCompletionOption.ResponseHeadersRead)
             // {
             //    string actorDataList = await response.Content.ReadAsStringAsync();
             //    response.EnsureSuccessStatusCode();
