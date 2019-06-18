@@ -2,7 +2,7 @@
   "recommendations": [
     "ms-vscode.csharp",
     "k--kato.docomment",
-    "peterjausovec.vscode-docker",
+    "ms-azuretools.vscode-docker",
     "eamodio.gitlens",
     "DavidAnson.vscode-markdownlint",
     "msjsdiag.debugger-for-chrome",

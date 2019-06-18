@@ -87,6 +87,9 @@ namespace Altinn.Platform.Authentication.Controllers
                             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
                             identity.AddClaims(claims);
                             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+                            _logger.LogInformation($"/// Authorization test /// [AuthenticationController] [Get] Calling HttpContext.SignInAsync. ");
+
                             await HttpContext.SignInAsync(
                                 JwtCookieDefaults.AuthenticationScheme,
                                 principal,

@@ -39,5 +39,26 @@ namespace Altinn.Platform.Authorization.Controllers
 
             return Ok(actorList);
         }
+
+        /// <summary>
+        /// Dummy api for testing
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("test")]
+        public ActionResult GetValues()
+        {
+            List<Actor> actorList = new List<Actor>();
+
+            Actor testActor = new Actor()
+            {
+                SSN = "123456",
+                Name = "test",
+                PartyID = 54321
+            };
+
+            actorList.Add(testActor);
+
+            return Ok(actorList);
+        }
     }
 }
