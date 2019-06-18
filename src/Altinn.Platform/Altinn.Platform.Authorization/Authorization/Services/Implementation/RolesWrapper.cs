@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Services.Interface;
 using Authorization.Interface.Models;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
@@ -16,20 +14,15 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class RolesWrapper : IRoles
     {
-        private readonly GeneralSettings _generalSettings;
-        private readonly ILogger _logger;
         private readonly RolesClient _rolesClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ActorsWrapper"/> class
         /// </summary>
-        /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">the logger</param>
         /// <param name="rolesClient">the client handler for roles api</param>
-        public RolesWrapper(IOptions<GeneralSettings> generalSettings, ILogger<ActorsWrapper> logger, RolesClient rolesClient)
+        public RolesWrapper(RolesClient rolesClient)
         {
-            _generalSettings = generalSettings.Value;
-            _logger = logger;
             _rolesClient = rolesClient;
         }
 
