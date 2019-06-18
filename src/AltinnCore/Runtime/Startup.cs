@@ -274,7 +274,7 @@ namespace AltinnCore.Runtime
                    defaults: new { action = "EditSPA", controller = "Instance" },
                    constraints: new
                    {
-                       action= "EditSPA",
+                       action = "EditSPA",
                        controller = "Instance",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });

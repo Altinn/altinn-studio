@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 
-import { WorkflowStep, WorkflowSteps } from '../../src/containers/WorkflowStep';
+import { WorkflowStep, WorkflowSteps } from '../../src/features/form/containers/WorkflowStep';
 
 describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
   let mockHeader: string;

@@ -12,9 +12,21 @@ import FormFiller from './FormFiller';
 
 import { IAltinnWindow } from '../../../types';
 
-export default () => {
+export default (props) => {
+  const {
+    match: {
+      params: {
+        instanceId,
+      },
+    },
+  } = props;
+
+  (window as IAltinnWindow).instanceId = instanceId;
+
+  console.log(instanceId);
+
   React.useEffect(() => {
-    const { org, service, instanceId, reportee } = window as IAltinnWindow;
+    const { org, service, reportee } = window as IAltinnWindow;
     LanguageActions.fetchLanguage(
       `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`,
       'nb',
