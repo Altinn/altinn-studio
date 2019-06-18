@@ -82,6 +82,8 @@ namespace AltinnCore.Common.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
+            _logger.LogInformation($"/// Authentication test /// Trying to assign adress {_client.BaseAddress}/{endpointUrl}");
+
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
