@@ -15,14 +15,14 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <Version>0.8.8-alpha</Version>
+    <Version>0.8.9-alpha</Version>
     <Description>JWTCookieAuthentication is a package for usage of JWT token for authentication both as bearer token and inside cookie</Description>
     <PackageTags>altinn studio, authentication, jwt, JWTCookieAuthentication</PackageTags>
     <PackageId>JWTCookieAuthentication</PackageId>
     <Company>Altinn</Company>
     <Product>JWTCookieAuthentication</Product>
-    <AssemblyVersion>0.8.8.0</AssemblyVersion>
-    <FileVersion>0.8.7.0</FileVersion>
+    <AssemblyVersion>0.8.9.0</AssemblyVersion>
+    <FileVersion>0.8.9.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
