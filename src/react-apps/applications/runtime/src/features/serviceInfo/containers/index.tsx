@@ -2,8 +2,8 @@ import Grid from '@material-ui/core/Grid';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
-import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import { get } from '../../../utils/networking';
+import Header from '../../header/containers';
 
 const styles = () => createStyles({
   container: {
@@ -34,6 +34,7 @@ function ServiceInfo(props: any) {
   const { classes } = props;
   return (
     <>
+      <Header />
       <Grid
         container={true}
         classes={classes}

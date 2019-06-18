@@ -8,7 +8,6 @@ import ServiceInfo from './features/serviceInfo/containers';
 export default function() {
   return (
     <>
-      <Header />
       <Route path={'/'} exact={true} component={ServiceInfo} />
       <Route path={'/new'} exact={true} component={Instantiate} />
       <Route path={'/instance/:instanceId'} component={FormFiller} />
