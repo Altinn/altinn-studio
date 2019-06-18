@@ -11,8 +11,6 @@ namespace Altinn.Platform.Authorization.Clients
     /// </summary>
     public class RolesClient
     {
-        private readonly GeneralSettings generalSettings;
-
         /// <summary>
         /// Gets an instance of httpclient from httpclientfactory
         /// </summary>
@@ -25,7 +23,7 @@ namespace Altinn.Platform.Authorization.Clients
         /// <param name="settings">the general settings configured for the authorization component</param>
         public RolesClient(HttpClient client, IOptions<GeneralSettings> settings)
         {
-            generalSettings = settings.Value;
+            GeneralSettings generalSettings = settings.Value;
             Client = client;
             Client.BaseAddress = new Uri(generalSettings.GetBridgeApiEndpoint);
             Client.DefaultRequestHeaders.Clear();

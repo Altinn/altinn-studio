@@ -19,7 +19,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="ActorsWrapper"/> class
         /// </summary>
-        /// <param name="logger">the logger</param>
         /// <param name="rolesClient">the client handler for roles api</param>
         public RolesWrapper(RolesClient rolesClient)
         {
