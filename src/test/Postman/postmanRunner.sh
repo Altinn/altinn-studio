@@ -2,5 +2,5 @@
 cd ./src/test/postman
 npm install -g newman
 for collection in ./collections/*; do 
-    newman run "$collection" --environment ./PostmanEnvironments/Test.postman_environment.json -r junit; 
+    newman run "$collection" --environment ./altinn.postman_environment.json -r junit; 
 done
