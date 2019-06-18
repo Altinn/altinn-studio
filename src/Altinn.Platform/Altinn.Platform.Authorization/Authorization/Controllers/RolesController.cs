@@ -34,13 +34,13 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(int coveredByUserId, int offeredByPartyId)
         {
-            List<Role> actorList = await _rolesWrapper.GetDecisionPointRolesForUser(coveredByUserId, offeredByPartyId);
-            if (actorList == null || actorList.Count == 0)
+            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(coveredByUserId, offeredByPartyId);
+            if (roleList == null || roleList.Count == 0)
             {
                 return NotFound();
             }
 
-            return Ok(actorList);
+            return Ok(roleList);
         }
     }
 }
