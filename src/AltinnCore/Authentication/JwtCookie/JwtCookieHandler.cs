@@ -196,6 +196,9 @@ namespace AltinnCore.Authentication.JwtCookie
         /// <returns></returns>
         protected async override Task HandleSignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
         {
+            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Entered method. ");
+            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Value options cookie domain: {Options.Cookie.Domain} ");
+
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
@@ -204,6 +207,8 @@ namespace AltinnCore.Authentication.JwtCookie
             properties = properties ?? new AuthenticationProperties();
 
             CookieOptions cookieOptions = BuildCookieOptions();
+            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Cookie options: {cookieOptions} ");
+            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Cookie options domain: {cookieOptions.Domain} ");
 
             JwtCookieSigningInContext signInContext = new JwtCookieSigningInContext(
                Context,
@@ -212,6 +217,8 @@ namespace AltinnCore.Authentication.JwtCookie
                user,
                properties,
                cookieOptions);
+
+            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Set singInContext {signInContext} ");
 
             DateTimeOffset issuedUtc;
             if (signInContext.Properties.IssuedUtc.HasValue)
@@ -234,7 +241,7 @@ namespace AltinnCore.Authentication.JwtCookie
             if (signInContext.Properties.IsPersistent)
             {
                 var expiresUtc = signInContext.Properties.ExpiresUtc ?? issuedUtc.Add(Options.ExpireTimeSpan);
-                signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();
+                signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();         
             }
 
             string jwtToken = GetToken(user, Options.ExpireTimeSpan);
