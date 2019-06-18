@@ -20,13 +20,13 @@ fixture('Regression tests of services in runtime')
     t.ctx.formFillComplete = "Skjemaet er nå fullført og sendt inn.";
     await t
       .useRole(AutoTestUser)
-      .resizeWindow(1280, 610)
+      .resizeWindow(1536, 864)
   })
 
 
 test('Instantiate a service in runtime', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/test')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].exists).ok()
     .hover(runtime.testUsers[0])
@@ -39,9 +39,9 @@ test('Instantiate a service in runtime', async () => {
 
 test('Direct link navigation to runtime', async () => {
   await t
-    .navigateTo(app.baseUrl + '/runtime/AutoTest/runtime')
+    .navigateTo(app.baseUrl + '/runtime/AutoTest/runtime2')
     .expect(runtime.fileDropComponent.exists).notOk()
-    .navigateTo(app.baseUrl + 'runtime/AutoTest/runtime#' + t.ctx.instanceID + '#/Preview')
+    .navigateTo(app.baseUrl + 'runtime/AutoTest/runtime2#' + t.ctx.instanceID + '#/Preview')
     .expect(runtime.fileDropComponent.exists).notOk()
 })
 
@@ -119,7 +119,7 @@ test('Fill out, save, and submit a form', async () => {
 
 test('axe UI accessibility test for runtime', async t => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/test')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
     //.click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].exists).ok()

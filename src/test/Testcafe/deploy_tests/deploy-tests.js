@@ -29,7 +29,7 @@ fixture('Deploy of service to a test environment tests')
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
     await t
       .useRole(AutoTestUser)
-      .resizeWindow(1280, 610)
+      .resizeWindow(1536, 864)
   })
 
 test('Happy case; deploy a service to a test environment after a change', async () => {
@@ -40,8 +40,6 @@ test('Happy case; deploy a service to a test environment after a change', async 
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
     .click(designer.omNavigationTab) //remove pop up
     .dragToElement(designer.inputBtn, designer.dragToArea)
-    .click(designer.omNavigationTab)
-    .click(designer.lageNavigationTab)
     .expect(designer.delEndringer.exists).ok()
     .click(designer.delEndringer)
     .expect(designer.commitMessageBox.exists).ok()
