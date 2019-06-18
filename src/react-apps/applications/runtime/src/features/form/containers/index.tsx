@@ -23,8 +23,6 @@ export default (props) => {
 
   (window as IAltinnWindow).instanceId = instanceId;
 
-  console.log(instanceId);
-
   React.useEffect(() => {
     const { org, service, reportee } = window as IAltinnWindow;
     LanguageActions.fetchLanguage(
