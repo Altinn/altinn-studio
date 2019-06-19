@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Services.Interface;
+using AltinnCore.ServiceLibrary.Models;
 using Authorization.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,13 +30,16 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Get the decision point roles for the loggedin user for a selected party
         /// </summary>
-        /// <param name="coveredByUserId">the logged in user id</param>
-        /// <param name="offeredByPartyId">the partyid of the person/org the logged in user is representing</param>
-        /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult> Get(int coveredByUserId, int offeredByPartyId)
+        public async Task<ActionResult> Get()
         {
-            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(coveredByUserId, offeredByPartyId);
+            List<Role> roleList = null;
+            UserContext userContext = ContextHelper.GetUserContext(HttpContext);
+            if (userContext != null && userContext.UserId != 0 && userContext.PartyId != 0)
+            {
+                roleList = await _rolesWrapper.GetDecisionPointRolesForUser(userContext.UserId, userContext.PartyId);
+            }
+
             if (roleList == null || roleList.Count == 0)
             {
                 return NotFound();
