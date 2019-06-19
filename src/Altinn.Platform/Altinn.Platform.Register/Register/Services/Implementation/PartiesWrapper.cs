@@ -21,7 +21,7 @@ namespace Altinn.Platform.Register.Services.Implementation
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PartiesWrapper"/> class 
+        /// Initializes a new instance of the <see cref="PartiesWrapper"/> class
         /// </summary>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">the logger</param>
@@ -36,7 +36,7 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Party party = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/parties/{partyId}");
+            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}parties/{partyId}");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
