@@ -29,7 +29,6 @@ export interface IGenericComponentProps extends IProvidedProps {
   isValid: boolean;
   textResources: ITextResource[];
   layoutElement: ILayoutGroup | ILayoutComponent;
-  validationMessages: IComponentValidations;
   unsavedChanges: boolean;
 }
 
@@ -126,7 +125,6 @@ const makeMapStateToProps = () => {
       textResources: state.formResources.languageResource.resources,
       formData: GetFormDataSelector(state, props),
       unsavedChanges: state.formData.unsavedChanges,
-      validationMessages: GetComponentValidations(state, props),
       ...props,
     };
   };
