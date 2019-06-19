@@ -48,7 +48,7 @@ namespace Altinn.Platform.Register.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError($"Getting party with party Id {partyId} failed with statuscode {response.StatusCode}");
+                    _logger.LogError($"New msg: Getting party with party Id {partyId} failed with statuscode {response.StatusCode}");
                 }
             }
 
