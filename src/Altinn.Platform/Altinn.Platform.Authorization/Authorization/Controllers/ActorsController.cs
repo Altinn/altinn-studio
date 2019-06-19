@@ -46,8 +46,7 @@ namespace Altinn.Platform.Authorization.Controllers
             else
             {
                 return Ok(actorList);
-            }
-            
+            }            
         }
 
         /// <summary>
