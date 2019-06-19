@@ -33,7 +33,7 @@ function ServiceInfo(props) {
   const createNewInstance = async () => {
     try {
       const { org, service } = window as IAltinnWindow;
-      const url = `${window.location.origin}/runtime/Instance/InstansiateApp`;
+      const url = `${window.location.origin}/runtime/Instance/InstantiateApp`;
       const formData: FormData = new FormData();
       formData.append('ReporteeID', reportee.userId);
       formData.append('Org', org);

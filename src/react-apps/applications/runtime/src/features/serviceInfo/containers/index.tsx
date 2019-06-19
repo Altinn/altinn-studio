@@ -28,7 +28,7 @@ function ServiceInfo(props: any) {
   }, []);
 
   const onClickInstantiate = () => {
-    history.push('/new');
+    history.push('/instantiate');
   };
 
   const { classes } = props;

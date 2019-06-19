@@ -279,13 +279,13 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// This is the post operation to instansiate an instance
+        /// This is the post operation to instantiate an instance
         /// </summary>
         /// <param name="startServiceModel">The start service model.</param>
         /// <returns>JSON Object with the instance ID</returns>
         [Authorize]
         [HttpPost]
-        public async Task<dynamic> InstansiateApp(StartServiceModel startServiceModel)
+        public async Task<dynamic> InstantiateApp(StartServiceModel startServiceModel)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
