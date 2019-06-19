@@ -83,16 +83,16 @@ namespace AltinnCore.Common.Services.Implementation
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
-            _logger.LogInformation($" ///// Response headers: {response.Headers}");
-            _logger.LogInformation($" ///// Client base adress : {_client.BaseAddress}");
-            _logger.LogInformation($" ///// Client endpoint adress : {endpointUrl}");
+            _logger.LogInformation($" // RUNTIME Response headers: {response.Headers}");
+            _logger.LogInformation($" // RUNTIME Client base adress : {_client.BaseAddress}");
+            _logger.LogInformation($" // RUNTIME Client endpoint adress : {endpointUrl}");
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 party = await response.Content.ReadAsAsync<Party>();
             }
             else
             {
-                _logger.LogError($"Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
+                _logger.LogError($"// RUNTIME Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
             }
 
             return party;
