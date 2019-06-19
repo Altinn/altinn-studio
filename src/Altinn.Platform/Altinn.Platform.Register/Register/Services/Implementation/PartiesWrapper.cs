@@ -36,8 +36,8 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Party party = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}parties/{partyId}");
-            _logger.LogInformation($" /// Access app test /// Sending request to bridge endpoint: {endpointUrl}");
+            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/parties/{partyId}");
+            _logger.LogInformation($"// REGISTER Sending request to bridge endpoint: {endpointUrl}");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
@@ -48,7 +48,7 @@ namespace Altinn.Platform.Register.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError($"New msg: Getting party with party Id {partyId} failed with statuscode {response.StatusCode}");
+                    _logger.LogError($"// REGISTER Getting party with party Id {partyId} failed with statuscode {response.StatusCode}");
                 }
             }
 
