@@ -1,16 +1,16 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
-import { IAltinnWindow } from '../..';
-import { getFileUploadComponentValidations } from '../../../../../components/base/FileUploadComponent';
-import { IRuntimeState } from '../../../../../types';
-import { get, post } from '../../../../../utils/networking';
-import FormValidationsDispatcher from '../../../validation/actions';
-import FormFileUploadDispatcher from '../../actions';
-import * as deleteActions from '../../actions/delete';
-import * as FileUploadActionsTypes from '../../actions/types';
+import { IAltinnWindow } from '..';
+import { getFileUploadComponentValidations } from '../../../components/base/FileUploadComponent';
+import FormValidationsDispatcher from '../../../features/form/validation/actions';
+import { IRuntimeState } from '../../../types';
+import { get, post } from '../../../utils/networking';
+import AttachmentDispatcher from '../attachmentActions';
+import * as AttachmentActionsTypes from '../attachmentActionTypes';
+import * as deleteActions from './deleteAttachmentActions';
 
 export function* watchDeleteAttachmentSaga(): SagaIterator {
-  yield takeEvery(FileUploadActionsTypes.DELETE_ATTACHMENT, deleteAttachmentSaga);
+  yield takeEvery(AttachmentActionsTypes.DELETE_ATTACHMENT, deleteAttachmentSaga);
 }
 
 export function* deleteAttachmentSaga(
@@ -28,18 +28,18 @@ export function* deleteAttachmentSaga(
       + `/DeleteFormAttachment?attachmentType=${attachmentType}&attachmentId=${attachment.id}`;
     const response = yield call(post, deleteUrl);
     if (response.status === 200) {
-      yield call(FormFileUploadDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
+      yield call(AttachmentDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
     } else {
       const validations = getFileUploadComponentValidations('delete', language);
       yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
-      yield call(FormFileUploadDispatcher.deleteAttachmentRejected,
+      yield call(AttachmentDispatcher.deleteAttachmentRejected,
         attachment, attachmentType, componentId);
 
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations('delete', language);
     yield call(FormValidationsDispatcher.updateComponentValidations, validations, componentId);
-    yield call(FormFileUploadDispatcher.deleteAttachmentRejected,
+    yield call(AttachmentDispatcher.deleteAttachmentRejected,
       attachment, attachmentType, componentId);
     console.error(err);
   }

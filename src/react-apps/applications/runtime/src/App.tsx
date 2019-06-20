@@ -3,13 +3,13 @@ import FormFiller from './containers/FormFiller';
 import FormDataActions from './features/form/data/actions';
 import FormDataModelActions from './features/form/datamodell/actions';
 import FormDynamicActions from './features/form/dynamics/actions';
-import FormFileUploadActions from './features/form/fileUpload/actions';
 import FormLayoutActions from './features/form/layout/actions';
 import FormResourceActions from './features/form/resources/actions';
 import FormRuleActions from './features/form/rules/actions';
 import FormUserActions from './features/form/user/actions';
 import FormWorkflowActions from './features/form/workflow/actions';
 import LanguageActions from './features/languages/actions';
+import AttachmentActions from './sharedResources/attachments/attachmentActions';
 
 import { IAltinnWindow } from './types';
 
@@ -47,7 +47,7 @@ export default () => {
       `${window.location.origin}/runtime/api/v1/profile/user`,
     );
 
-    FormFileUploadActions.fetchAttachments();
+    AttachmentActions.fetchAttachments();
 
   }, []);
   return (

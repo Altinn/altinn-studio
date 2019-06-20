@@ -1,12 +1,12 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { IAttachment, IAttachments } from '..';
-import { store } from '../../../../store';
+import { IAttachment, IAttachments } from '.';
+import { store } from '../../store';
 
-import * as deleteActions from './delete';
-import * as fetchActions from './fetch';
-import * as uploadActions from './upload';
+import * as deleteActions from './delete/deleteAttachmentActions';
+import * as fetchActions from './fetch/fetchAttachmentsActions';
+import * as uploadActions from './upload/uploadAttachmentActions';
 
-export interface IFileUploadActions extends ActionCreatorsMapObject {
+export interface IAttachmentActions extends ActionCreatorsMapObject {
   uploadAttachment: (
     file: File,
     fileType: string,
@@ -44,7 +44,7 @@ export interface IFileUploadActions extends ActionCreatorsMapObject {
   fetchAttachmentsRejected: (error: Error) => fetchActions.IFetchAttachmentsActionRejected;
 }
 
-const actions: IFileUploadActions = {
+const actions: IAttachmentActions = {
   uploadAttachment: uploadActions.uploadAttachment,
   uploadAttachmentFulfilled: uploadActions.uploadAttachmentFulfilled,
   uploadAttachmentRejected: uploadActions.uploadAttachmentRejected,
@@ -56,6 +56,6 @@ const actions: IFileUploadActions = {
   fetchAttachmentsRejected: fetchActions.fetchAttachmentsRejected,
 };
 
-const FormFileUploadDispatcher: IFileUploadActions = bindActionCreators<any, any>(actions, store.dispatch);
+const AttachmentDispatcher: IAttachmentActions = bindActionCreators<any, any>(actions, store.dispatch);
 
-export default FormFileUploadDispatcher;
+export default AttachmentDispatcher;

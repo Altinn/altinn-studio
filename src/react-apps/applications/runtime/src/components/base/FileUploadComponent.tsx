@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 import uuid = require('uuid');
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
-import { IAttachment } from '../../features/form/fileUpload';
-import FormFileUploadDispatcher from '../../features/form/fileUpload/actions';
+import { IAttachment } from '../../sharedResources/attachments';
+import AttachmentDispatcher from '../../sharedResources/attachments/attachmentActions';
 import '../../styles/FileUploadComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
@@ -87,7 +87,7 @@ export class FileUploadComponentClass
       if ((this.state.attachments.length + newFiles.length) < this.props.maxNumberOfAttachments) {
         const tmpId: string = uuid();
         newFiles.push({ name: file.name, size: file.size, uploaded: false, id: tmpId, deleting: false });
-        FormFileUploadDispatcher.uploadAttachment(file, fileType, tmpId, this.props.id);
+        AttachmentDispatcher.uploadAttachment(file, fileType, tmpId, this.props.id);
       }
     });
     const validations: string[] = [];
@@ -127,7 +127,7 @@ export class FileUploadComponentClass
     this.setState({
       attachments: newList,
     });
-    FormFileUploadDispatcher.deleteAttachment(attachmentToDelete, fileType, this.props.id);
+    AttachmentDispatcher.deleteAttachment(attachmentToDelete, fileType, this.props.id);
   }
 
   public getComponentValidations = (): IComponentValidations => {
@@ -331,7 +331,7 @@ export class FileUploadComponentClass
 const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps): IFileUploadProps => {
   return {
     ...props,
-    attachments: state.formAttachments.attachments[props.id] || [],
+    attachments: state.attachments.attachments[props.id] || [],
   };
 };
 
