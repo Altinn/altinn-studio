@@ -4,10 +4,7 @@ import { IRuntimeState } from 'src/types';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { put } from '../../../../../utils/networking';
-import {
-  canFormBeSaved, mapApiValidationsToRedux, validateEmptyFields, validateFormComponents,
-  validateFormData,
-} from '../../../../../utils/validation';
+import { canFormBeSaved, mapApiValidationsToRedux, validateFormComponents, validateFormData } from '../../../../../utils/validation';
 import { ILayoutState } from '../../../layout/reducer';
 import FormValidationActions from '../../../validation/actions';
 import WorkflowActions from '../../../workflow/actions';
@@ -28,11 +25,8 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     const componentSpesificValidations =
       validateFormComponents(state.formAttachments.attachments, state.formLayout.layout,
         state.language.language);
-    const emptyFieldsValidations =
-      validateEmptyFields(state.formData.formData, state.formLayout.layout, state.language.language);
 
     validations = Object.assign(validations, componentSpesificValidations);
-    validations = Object.assign(validations, emptyFieldsValidations);
     if (canFormBeSaved(validations)) {
       const result = yield call(put, url, apiMode || 'Update', model);
       yield call(FormDataActions.submitFormDataFulfilled);
