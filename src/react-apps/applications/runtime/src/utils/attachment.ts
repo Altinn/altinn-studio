@@ -1,4 +1,4 @@
-import { IAttachmentListApiResponse, IAttachments } from '../features/form/fileUpload';
+import { IAttachmentListApiResponse, IAttachments } from '../sharedResources/attachments';
 
 export function mapAttachmentListApiResponseToAttachments(response: IAttachmentListApiResponse[]): IAttachments {
   const attachments: IAttachments = {};

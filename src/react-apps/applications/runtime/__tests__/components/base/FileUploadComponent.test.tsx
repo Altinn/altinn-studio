@@ -30,7 +30,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       { name: 'attachment-name-3', id: 'attachment-id-3', size: '400', uploaded: true, deleting: true },
     ];
     mockInitialState = {
-      formAttachments: {
+      attachments: {
         attachments: {
           mockId: mockAttachments,
         },

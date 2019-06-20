@@ -1,7 +1,6 @@
 import { Action } from 'redux';
-import { IAttachment } from 'src/features/form/fileUpload';
-import { IComponentValidations } from 'src/types/global';
-import * as ActionTypes from '../../types';
+import { IAttachment } from '..';
+import * as ActionTypes from '../attachmentActionTypes';
 
 export interface IUploadAttachmentAction extends Action {
   file: File;
@@ -21,7 +20,6 @@ export interface IUploadAttachmentActionRejected extends Action {
   attachmentId: string;
   attachmentType: string;
   componentId: string;
-  validationMessages: IComponentValidations;
 }
 
 export function uploadAttachment(
@@ -58,13 +56,11 @@ export function uploadAttachmentRejected(
   attachmentId: string,
   attachmentType: string,
   componentId: string,
-  validationMessages: IComponentValidations,
 ): IUploadAttachmentActionRejected {
   return {
     type: ActionTypes.UPLOAD_ATTACHMENT_REJECTED,
     attachmentId,
     attachmentType,
     componentId,
-    validationMessages,
   };
 }
