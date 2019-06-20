@@ -44,6 +44,41 @@ const validationFunctions: any = {
   pattern,
 };
 
+/*
+  Fetches validations for fields without data
+*/
+export function validateEmptyFields(
+  formData: any,
+  formLayout: any,
+  language: any,
+) {
+  const validations = {};
+  formLayout.forEach((component) => {
+    if (!component.hidden && component.required) {
+      const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
+        component.dataModelBindings[binding]);
+      const value = formData[component.dataModelBindings[fieldKey]];
+      if (!value && fieldKey) {
+        validations[component.id] = {};
+        const componentValidations: IComponentValidations = {
+          [fieldKey]: {
+            errors: [],
+            warnings: [],
+          },
+        };
+        componentValidations[fieldKey].errors.push(
+          getLanguageFromKey('form_filler.error_required', language),
+        );
+        validations[component.id] = componentValidations;
+      }
+    }
+  });
+  return validations;
+}
+
+/*
+  Fetches component spesific validations
+*/
 export function validateFormComponents(
   formAttachments: any,
   formLayout: any,
@@ -53,22 +88,24 @@ export function validateFormComponents(
   const attachments = formAttachments ? Object.keys(formAttachments).length : 0;
   const fieldKey = 'simpleBinding';
   formLayout.forEach((component) => {
-    if (component.type === 'FileUpload') {
-      if (component.minNumberOfAttachments > 0 && attachments < 1 ||
-        formAttachments[component.id].length < component.minNumberOfAttachments) {
-        validations[component.id] = {};
-        const componentValidations: IComponentValidations = {
-          [fieldKey]: {
-            errors: [],
-            warnings: [],
-          },
-        };
-        componentValidations[fieldKey].errors.push(
-          getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language) + ' ' +
-          component.minNumberOfAttachments + ' ' +
-          getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language),
-        );
-        validations[component.id] = componentValidations;
+    if (!component.hidden) {
+      if (component.type === 'FileUpload') {
+        if (component.minNumberOfAttachments > 0 && attachments < 1 ||
+          formAttachments[component.id].length < component.minNumberOfAttachments) {
+          validations[component.id] = {};
+          const componentValidations: IComponentValidations = {
+            [fieldKey]: {
+              errors: [],
+              warnings: [],
+            },
+          };
+          componentValidations[fieldKey].errors.push(
+            getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_1', language) + ' ' +
+            component.minNumberOfAttachments + ' ' +
+            getLanguageFromKey('form_filler.file_uploader_validation_error_file_number_2', language),
+          );
+          validations[component.id] = componentValidations;
+        }
       }
     }
   });
