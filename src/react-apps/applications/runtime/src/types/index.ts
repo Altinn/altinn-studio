@@ -5,10 +5,10 @@ import { IFormDynamicState } from '../features/form/dynamics';
 import { IFormFileUploadState } from '../features/form/fileUpload/reducer';
 import { ILayoutState } from '../features/form/layout/reducer';
 import { IResourceState } from '../features/form/resources/reducer';
-import { IFormUserState } from '../features/form/user/reducer';
 import { IValidationState } from '../features/form/validation/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
 import { ILanguageState } from '../features/languages/reducer';
+import { IProfileState } from '../sharedResources/profile/reducer';
 
 export interface IRuntimeState {
   formLayout: ILayoutState;
@@ -20,7 +20,7 @@ export interface IRuntimeState {
   formDynamics: IFormDynamicState;
   language: ILanguageState;
   formResources: IResourceState;
-  formUser: IFormUserState;
+  profile: IProfileState;
   formValidations: IValidationState;
 }
 
