@@ -1,11 +1,11 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IProfile } from '..';
+import { IProfile } from '.';
 import {
   IFetchProfileFulfilled,
   IFetchProfileRejected,
-} from '../actions/fetch';
-import * as ActionTypes from '../actions/types';
+} from './fetch/fetchProfileActions';
+import * as ActionTypes from './fetch/fetchProfileActionTypes';
 
 export interface IProfileState {
   profile: IProfile;

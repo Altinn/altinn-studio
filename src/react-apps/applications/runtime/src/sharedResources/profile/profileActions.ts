@@ -1,7 +1,7 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../../store';
-import { IProfile } from './..';
-import * as FetchProfileActions from './fetch';
+import { store } from '../../store';
+import { IProfile } from './';
+import * as FetchProfileActions from './fetch/fetchProfileActions';
 
 export interface IProfileActions extends ActionCreatorsMapObject {
   fetchProfile: (url: string) => FetchProfileActions.IFetchProfile;

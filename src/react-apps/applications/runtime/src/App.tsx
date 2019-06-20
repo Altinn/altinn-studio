@@ -9,7 +9,7 @@ import FormResourceActions from './features/form/resources/actions';
 import FormRuleActions from './features/form/rules/actions';
 import FormWorkflowActions from './features/form/workflow/actions';
 import LanguageActions from './features/languages/actions';
-import ProfileActions from './sharedResources/profile/actions';
+import ProfileActions from './sharedResources/profile/profileActions';
 
 import { IAltinnWindow } from './types';
 

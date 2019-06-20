@@ -15,7 +15,7 @@ import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer'
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import LanguageReducer, { ILanguageState } from '../features/languages/reducer';
-import ProfileReducer, { IProfileState } from '../sharedResources/profile/reducer';
+import ProfileReducer, { IProfileState } from '../sharedResources/profile/profileReducers';
 
 export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
   formLayout: T1;

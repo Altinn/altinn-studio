@@ -1,6 +1,6 @@
 import { Action } from 'redux';
-import { IProfile } from '../..';
-import * as ActionTypes from '../types';
+import { IProfile } from './..';
+import * as ActionTypes from './fetchProfileActionTypes';
 
 export interface IFetchProfile extends Action {
   url: string;

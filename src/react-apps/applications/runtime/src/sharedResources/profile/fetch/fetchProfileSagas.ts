@@ -1,9 +1,9 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import { get } from '../../../../../../shared/src/utils/networking';
-import ProfileActions from '../../actions';
-import { IFetchProfile } from '../../actions/fetch';
-import * as ProfileActionTypes from '../../actions/types';
+import { get } from '../../../../../shared/src/utils/networking';
+import ProfileActions from '../profileActions';
+import { IFetchProfile } from './fetchProfileActions';
+import * as ProfileActionTypes from './fetchProfileActionTypes';
 
 function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
   try {

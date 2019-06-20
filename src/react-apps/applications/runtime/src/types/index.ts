@@ -8,7 +8,7 @@ import { IResourceState } from '../features/form/resources/reducer';
 import { IValidationState } from '../features/form/validation/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
 import { ILanguageState } from '../features/languages/reducer';
-import { IProfileState } from '../sharedResources/profile/reducer';
+import { IProfileState } from '../sharedResources/profile/profileReducers';
 
 export interface IRuntimeState {
   formLayout: ILayoutState;
