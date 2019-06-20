@@ -12,6 +12,7 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -27,6 +28,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IInstance _instance;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestdataAppSI"/> class
@@ -35,12 +37,19 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">Service repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="instanceSI">the instance service</param>
-        public TestdataAppSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IInstance instanceSI)
+        /// <param name="logger">The logger</param>
+        public TestdataAppSI(
+            IOptions<TestdataRepositorySettings> testdataRepositorySettings,
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IHttpContextAccessor httpContextAccessor,
+            IInstance instanceSI,
+            ILogger<TestdataAppSI> logger)
         {
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _instance = instanceSI;
+            _logger = logger;
         }
 
         /// <inheritdoc />
