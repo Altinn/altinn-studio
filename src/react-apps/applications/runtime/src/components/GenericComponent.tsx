@@ -10,7 +10,6 @@ import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetLayoutElement } from '../selectors/getLayoutData';
-import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
@@ -116,7 +115,6 @@ export const isComponentValid = (validations: IComponentValidations): boolean =>
 const makeMapStateToProps = () => {
   const GetFormDataSelector = makeGetFormDataSelector();
   const GetLayoutElement = makeGetLayoutElement();
-  const GetComponentValidations = makeGetComponentValidationsSelector();
   const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => {
     return {
       dataModel: state.formDataModel.dataModel,

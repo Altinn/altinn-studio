@@ -45,7 +45,7 @@ const validationFunctions: any = {
 };
 
 /*
-  Fetches validations for fileds without data
+  Fetches validations for fields without data
 */
 export function validateEmptyFields(
   formData: any,
