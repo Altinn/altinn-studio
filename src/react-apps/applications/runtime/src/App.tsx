@@ -6,10 +6,10 @@ import FormDynamicActions from './features/form/dynamics/actions';
 import FormLayoutActions from './features/form/layout/actions';
 import FormResourceActions from './features/form/resources/actions';
 import FormRuleActions from './features/form/rules/actions';
-import FormUserActions from './features/form/user/actions';
 import FormWorkflowActions from './features/form/workflow/actions';
 import LanguageActions from './features/languages/actions';
 import AttachmentActions from './sharedResources/attachments/attachmentActions';
+import ProfileActions from './sharedResources/profile/profileActions';
 
 import { IAltinnWindow } from './types';
 
@@ -43,7 +43,7 @@ export default () => {
     FormResourceActions.fetchFormResource(
       `${window.location.origin}/runtime/api/textresources/${org}/${service}`,
     );
-    FormUserActions.fetchFormUser(
+    ProfileActions.fetchProfile(
       `${window.location.origin}/runtime/api/v1/profile/user`,
     );
 

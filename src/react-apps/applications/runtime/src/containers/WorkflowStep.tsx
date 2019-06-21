@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormFillerActions from '../features/form/data/actions';
-import { IFormUserState } from '../features/form/user/reducer';
+import { IProfile } from '../sharedResources/profile';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IValidations } from '../types/global';
 
@@ -22,7 +22,7 @@ export enum WorkflowSteps {
 }
 
 export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
-  formUser: IFormUserState;
+  profile: IProfile;
   language: any;
   errorList: string[];
 }
@@ -40,17 +40,20 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public renderUser = () => {
-    if (this.props.formUser && this.props.formUser.firstName) {
-      const user = this.props.formUser.firstName.concat(
+    const party = this.props.profile ? this.props.profile.party : null;
+    if (party && party.person) {
+      const user = party.person.firstName.concat(
         ' ',
-        (this.props.formUser.middleName !== null ? (this.props.formUser.middleName.concat(' ')) : ''),
-        this.props.formUser.lastName);
+        (party.person.middleName !== null ?
+          (party.person.middleName.concat(' ')) : ''),
+        party.person.lastName);
       return user.toUpperCase();
     }
     return null;
   }
 
   public renderTop = () => {
+    const party = this.props.profile ? this.props.profile.party : null;
     return (
       <div className='row'>
         <div className='col-xl-12'>
@@ -71,14 +74,14 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                   </span>
                   <span style={{ color: '#022F51', lineHeight: '18px' }}>
                     {
-                      this.props.formUser && this.props.formUser.organization &&
+                      party && party.organization &&
                       getLanguageFromKey('general.for', this.props.language) + ' ' +
-                      this.props.formUser.organization.toUpperCase()
+                      party.organization.toUpperCase()
                     }
                   </span>
                   <span className='d-block' />
                 </span>
-                {this.props.formUser && this.props.formUser.organization ?
+                {party && party.organization ?
                   <i
                     className='fa fa-corp-circle-big'
                     aria-hidden='true'
@@ -272,7 +275,7 @@ const getErrorList = (validations: IValidations) => {
 
 const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
-    formUser: state.formUser,
+    profile: state.profile.profile,
     language: state.language ? state.language.language : {},
     errorList: getErrorList(state.formValidations ? state.formValidations.validations : {}),
     ...props,

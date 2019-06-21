@@ -9,11 +9,11 @@ import FormDynamicsSagas from '../features/form/dynamics/sagas';
 import FormLayoutSagas from '../features/form/layout/sagas';
 import FormResourceSagas from '../features/form/resources/sagas';
 import FormRulesSagas from '../features/form/rules/sagas';
-import FormUserSagas from '../features/form/user/sagas';
 import FormValidationSagas from '../features/form/validation/sagas';
 import FormWorkflowSagas from '../features/form/workflow/sagas';
 import LanguageSagas from '../features/languages/sagas';
 import Attachments from '../sharedResources/attachments/attachmentSagas';
+import ProfileSagas from '../sharedResources/profile/profileSagas';
 
 function* root(): SagaIterator {
   yield fork(FormConfigSagas);
@@ -26,7 +26,7 @@ function* root(): SagaIterator {
   yield fork(FormDataModelSagas);
   yield fork(LanguageSagas);
   yield fork(FormResourceSagas);
-  yield fork(FormUserSagas);
+  yield fork(ProfileSagas);
   yield fork(FormValidationSagas);
 }
 
