@@ -80,18 +80,18 @@ export function validateEmptyFields(
   Fetches component spesific validations
 */
 export function validateFormComponents(
-  formAttachments: any,
+  attachments: any,
   formLayout: any,
   language: any,
 ) {
   const validations = {};
-  const attachments = formAttachments ? Object.keys(formAttachments).length : 0;
+  const numberOfAttachments = attachments ? Object.keys(attachments).length : 0;
   const fieldKey = 'simpleBinding';
   formLayout.forEach((component) => {
     if (!component.hidden) {
       if (component.type === 'FileUpload') {
-        if (component.minNumberOfAttachments > 0 && attachments < 1 ||
-          formAttachments[component.id].length < component.minNumberOfAttachments) {
+        if (component.minNumberOfAttachments > 0 && numberOfAttachments < 1 ||
+          attachments[component.id].length < component.minNumberOfAttachments) {
           validations[component.id] = {};
           const componentValidations: IComponentValidations = {
             [fieldKey]: {
