@@ -26,7 +26,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     let validations = validateFormData(state.formData, state.formDataModel.dataModel, state.formLayout.layout,
       state.language.language);
     const componentSpesificValidations =
-      validateFormComponents(state.formAttachments.attachments, state.formLayout.layout,
+      validateFormComponents(state.attachments.attachments, state.formLayout.layout,
         state.language.language);
     const emptyFieldsValidations =
       validateEmptyFields(state.formData.formData, state.formLayout.layout, state.language.language);
