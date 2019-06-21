@@ -82,6 +82,7 @@
     "node-sass": "4.11.0",
     "prettier": "1.16.4",
     "prettier-tslint": "0.4.2",
+    "react-content-loader": "4.2.1",
     "react-dnd": "7.0.2",
     "react-dnd-html5-backend": "7.0.2",
     "react-test-renderer": "16.8.6",

@@ -58,6 +58,20 @@
       </div>
     </form>
 
+
+    <button id="btnStartNewService" class="btn btn-primary" value="@org/@service">Start ny 2.0</button>
+    <script>
+
+      var startServiceButton = document.getElementById('btnStartNewService');
+      console.log('button?', startServiceButton);
+      startServiceButton.addEventListener('click', function (event) {
+        const [org, service] = event.target.value.split('/');
+        var win = window.open(`${window.location.origin}/runtime/${org}/${service}`, '_blank');
+        win.focus();
+      });
+    </script>
+
+
     <form id="startService" method="post" action="/runtime/Instance/StartService" target="_blank">
       <input type="hidden" asp-for="ServiceID" />
       <div class="form-group">
