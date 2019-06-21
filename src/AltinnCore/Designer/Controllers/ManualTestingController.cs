@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Controllers
@@ -43,6 +44,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly GeneralSettings _generalSettings;
         private readonly IGitea _giteaApi;
         private readonly IWorkflow _workflow;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
@@ -56,7 +58,18 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaApi">the gitea api</param>
         /// <param name="workflow">the workflow</param>
-        public ManualTestingController(IHttpContextAccessor httpContextAccessor, IProfile profile, IRegister register, IAuthorization authorization, ITestdata testdata, IOptions<ServiceRepositorySettings> serviceRepositorySettings, IOptions<GeneralSettings> generalSettings, IGitea giteaApi, IWorkflow workflow)
+        /// <param name="logger">the logger</param>
+        public ManualTestingController(
+            IHttpContextAccessor httpContextAccessor,
+            IProfile profile,
+            IRegister register,
+            IAuthorization authorization,
+            ITestdata testdata,
+            IOptions<ServiceRepositorySettings> serviceRepositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IGitea giteaApi,
+            IWorkflow workflow,
+            ILogger<ManualTestingController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _register = register;
@@ -68,6 +81,7 @@ namespace AltinnCore.Designer.Controllers
             _generalSettings = generalSettings.Value;
             _giteaApi = giteaApi;
             _workflow = workflow;
+            _logger = logger;
         }
 
         /// <summary>

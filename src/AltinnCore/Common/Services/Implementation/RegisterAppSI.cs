@@ -78,24 +78,26 @@ namespace AltinnCore.Common.Services.Implementation
             Party party = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
 
+            // To do : clean up use of client after issue 2009 is closed.
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
-            _logger.LogInformation($" // RUNTIME Response headers: {response.Headers}");
-            _logger.LogInformation($" // RUNTIME Client base adress : {_client.BaseAddress}");
-            _logger.LogInformation($" // RUNTIME Client endpoint adress : {endpointUrl}");
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            using (HttpClient c = new HttpClient())
             {
-                party = await response.Content.ReadAsAsync<Party>();
-            }
-            else
-            {
-                _logger.LogError($"// RUNTIME Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
-            }
+                string url = $"platform.at21.altinn.cloud/register/api/v1/parties/{partyId}";
+                HttpResponseMessage response = await c.GetAsync("https://" + url);
+                _logger.LogInformation($"// RUNTIME Request URL to platform parties: https://" + url);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    party = await response.Content.ReadAsAsync<Party>();
+                }
+                else
+                {
+                    _logger.LogError($"// RUNTIME Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
+                }
 
-            return party;
+                return party;
+            }
         }
     }
 }
