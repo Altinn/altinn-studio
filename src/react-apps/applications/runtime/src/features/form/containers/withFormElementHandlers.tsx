@@ -115,7 +115,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       }
       const simpleBinding = component.dataModelBindings.simpleBinding;
       const type = component.type;
-      return simpleBinding && type !== 'Checkboxes' && type !== 'RadioButtons' && type !== 'FileUpload';
+      return simpleBinding && type !== 'FileUpload';
     }
 
     private errorMessage(): JSX.Element[] {

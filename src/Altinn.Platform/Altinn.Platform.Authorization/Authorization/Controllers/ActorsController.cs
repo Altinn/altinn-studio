@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Services.Interface;
+using AltinnCore.ServiceLibrary.Models;
 using Authorization.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,16 +28,43 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Gets the list of actors that the logged in user can represent
         /// </summary>
-        /// <param name="userId">the user id</param>
-        /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult> Get(int userId)
+        public async Task<ActionResult> Get()
         {
-            List<Actor> actorList = await _actorWrapper.GetActors(userId);
+            List<Actor> actorList = null;
+            UserContext userContext = ContextHelper.GetUserContext(HttpContext);
+
+            if (userContext != null && userContext.UserId != 0)
+            {
+                actorList = await _actorWrapper.GetActors(userContext.UserId);
+            }
+
             if (actorList == null || actorList.Count == 0)
             {
                 return NotFound();
             }
+            else
+            {
+                return Ok(actorList);
+            }            
+        }
+
+        /// <summary>
+        /// Dummy api for testing
+        /// </summary>
+        [HttpGet("test")]
+        public ActionResult GetValues()
+        {
+            List<Actor> actorList = new List<Actor>();
+
+            Actor testActor = new Actor()
+            {
+                SSN = "123456",
+                Name = "test",
+                PartyID = 54321
+            };
+
+            actorList.Add(testActor);
 
             return Ok(actorList);
         }
