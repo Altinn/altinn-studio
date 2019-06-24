@@ -1,13 +1,12 @@
+/* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { FileUploadComponent, FileUploadComponentClass, getFileUploadComponentValidations, bytesInOneMB } from '../../../src/components/base/FileUploadComponent';
+import { bytesInOneMB, FileUploadComponent, FileUploadComponentClass, getFileUploadComponentValidations } from '../../../src/components/base/FileUploadComponent';
 import { mapAttachmentListApiResponseToAttachments } from '../../../src/utils/attachment';
-import { isMainThread } from 'worker_threads';
-import { ExpansionPanelActions, TableSortLabel } from '@material-ui/core';
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockDisplayMode: string;
@@ -288,4 +287,22 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       ({ simpleBinding: { errors: ['Noe gikk galt under slettingen av filen, prøv igjen senere.'], warnings: [] } });
   });
 
+  it('+++ should not show file upload when max files is reached', () => {
+    const wrapper = mount(
+      <FileUploadComponentClass
+        displayMode={mockDisplayMode}
+        id={mockId}
+        isValid={mockIsValid}
+        language={{}}
+        maxFileSizeInMB={mockMaxFileSizeInMB}
+        maxNumberOfAttachments={3}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
+        readOnly={mockReadOnly}
+        attachments={mockAttachments}
+      />,
+    );
+    const instance = wrapper.instance() as FileUploadComponentClass;
+    const result = instance.shouldShowFileUpload();
+    expect(result).toBe(false);
+  });
 });
