@@ -117,6 +117,28 @@ test('Fill out, save, and submit a form', async () => {
     .expect(Selector("p").withText(t.ctx.formFillComplete).visible).ok()
 })
 
+test.skip('conditional rendering of component in runtime', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/conditionalrender#/test')
+    .switchToIframe(runtime.testBrukerIframe)
+    .expect(runtime.testUsers[0].exists).ok()
+    .hover(runtime.testUsers[0])
+    .click(runtime.testUsers[0])
+    .expect(runtime.startNewButton.exists).ok()
+    .click(runtime.startNewButton)
+    .switchToMainWindow()
+    .expect(runtime.testUserHeader[0].exists).ok()
+    .typeText(Selector("input"), "123456789") //This selector is brittle, but there is only one input component in this service
+    .doubleClick(runtime.serviceBody)
+    .wait(1000)
+    .expect(Selector('button').withText('Button').exists).ok()
+    .click(Selector("input"))
+    .pressKey("ctrl+a")
+    .pressKey("backspace")
+    .expect(Selector('button').withText('Button').exists).notOk()
+})
+
+
 test('axe UI accessibility test for runtime', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')

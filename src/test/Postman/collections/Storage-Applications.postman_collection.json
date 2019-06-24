@@ -1,0 +1,203 @@
+{
+	"info": {
+		"_postman_id": "e33c80d2-7166-4d55-9d55-86a7b771724a",
+		"name": "Storage-Applications",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "POST",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "c41aa913-9f1a-4cc8-87dc-d896ef72317c",
+						"exec": [
+							"var current_timestamp = new Date();\r",
+							"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "1b3da8e9-45b9-477f-aef7-0e2ede88ed12",
+						"exec": [
+							"pm.test(\"Status code of storing a pre-existing app is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Body of response contains \\\"Application already exists\\\"\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"Application already exists\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Posting app to storeage less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"appId\": \"tdd/postmantest\",\r\n  \"versionId\": \"\",\r\n  \"org\": \"tdd\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"\",\r\n  \"title\": {\r\n    \"nb\": \"postmanapp\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    }\r\n  ]\r\n}"
+				},
+				"url": {
+					"raw": "{{at21}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+					"host": [
+						"{{at21}}"
+					],
+					"path": [
+						"storage",
+						"api",
+						"v1",
+						"applications"
+					],
+					"query": [
+						{
+							"key": "appId",
+							"value": "{{org}}%2F{{app}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET (OwnerID)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+						"exec": [
+							"pm.test(\"Status code of retrieving app is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Body of response contains postmanapp\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.id).to.eql(\"tdd/postmanapp\");\r",
+							"})\r",
+							"\r",
+							"pm.test(\"Getting app from storeage less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{at21}}/storage/api/v1/applications/{{org}}/{{app}}",
+					"host": [
+						"{{at21}}"
+					],
+					"path": [
+						"storage",
+						"api",
+						"v1",
+						"applications",
+						"{{org}}",
+						"{{app}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PUT",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"appId\": \"tdd/postmanapp\",\t\r\n  \"org\": \"tdd\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 100,\r\n      \"maxCount\": 50,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    }\r\n  ]\r\n}"
+				},
+				"url": {
+					"raw": "{{at21}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+					"host": [
+						"{{at21}}"
+					],
+					"path": [
+						"storage",
+						"api",
+						"v1",
+						"applications"
+					],
+					"query": [
+						{
+							"key": "appId",
+							"value": "{{org}}%2F{{app}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c9b3b6a7-ab5e-4f32-a63c-3e0150654efb",
+						"exec": [
+							"pm.test(\"Status code of app deletion is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{at21}}/storage/api/v1/applications/{{org}}/{{app}}?hard=true",
+					"host": [
+						"{{at21}}"
+					],
+					"path": [
+						"storage",
+						"api",
+						"v1",
+						"applications",
+						"{{org}}",
+						"{{app}}"
+					],
+					"query": [
+						{
+							"key": "hard",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

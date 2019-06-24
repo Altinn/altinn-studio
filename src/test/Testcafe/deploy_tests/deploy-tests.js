@@ -13,7 +13,7 @@ let loginPage = new LoginPage();
 let common = new CommonPage();
 let designer = new DesignerPage();
 
-fixture('Deploy of service to a test environment tests')
+fixture.only('Deploy of service to a test environment tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Header texts
