@@ -131,7 +131,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     const instance = wrapper.instance() as FileUploadComponentClass;
     const spy = jest.spyOn(instance, 'setState');
     instance.onDrop(mockFileList, []);
-    const call = spy.mock.calls[0][0];
+    const call = spy.mock.calls[0][0] as any;
     expect(call.attachments.length).toBe(mockAttachments.length);
   });
 
@@ -153,7 +153,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     const instance = wrapper.instance() as FileUploadComponentClass;
     const spy = jest.spyOn(instance, 'setState');
     instance.onDrop(mockAccepted, []);
-    const call = spy.mock.calls[0][0];
+    const call = spy.mock.calls[0][0] as any;
     expect(call.attachments.length).toBe(mockAttachments.length + mockAccepted.length);
   });
 
