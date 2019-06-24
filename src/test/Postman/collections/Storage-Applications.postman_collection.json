@@ -24,12 +24,13 @@
 					"script": {
 						"id": "1b3da8e9-45b9-477f-aef7-0e2ede88ed12",
 						"exec": [
-							"pm.test(\"Status code of storing a pre-existing app is 400\", function () {\r",
-							"    pm.response.to.have.status(400);\r",
+							"pm.test(\"Status code of storing an app is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Body of response contains \\\"Application already exists\\\"\", function () {\r",
-							"    pm.expect(pm.response.text()).to.include(\"Application already exists\");\r",
+							"pm.test(\"Body of response contains app id\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.id).to.eql(\"tdd/postmanapp\");\r",
 							"});\r",
 							"\r",
 							"pm.test(\"Posting app to storeage less than 200ms\", function () {\r",
@@ -122,6 +123,29 @@
 		},
 		{
 			"name": "PUT",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7762b309-0916-44bc-bb7c-5fb2dc8e639b",
+						"exec": [
+							"pm.test(\"Status code of retrieving app is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Body of response contains \\\"Application already exists\\\"\", function () {\r",
+							"    pm.expect(pm.response.text()).to.include(\"true\");\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Getting app from storeage less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "PUT",
 				"header": [
@@ -167,6 +191,10 @@
 						"exec": [
 							"pm.test(\"Status code of app deletion is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Deleting an app from storeage less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
 							"});"
 						],
 						"type": "text/javascript"
