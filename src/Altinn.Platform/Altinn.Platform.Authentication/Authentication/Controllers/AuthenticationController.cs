@@ -62,10 +62,9 @@ namespace Altinn.Platform.Authentication.Controllers
                 Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}/tickets");
                 using (HttpClient client = new HttpClient())
                 {
-                    _logger.LogInformation($"// 1936 debug // Created client. Sending request to endpoint {endpointUrl}");
                     string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] });
                     HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
-                    _logger.LogInformation($"// 1936 debug // Received response from server {response.Content.ReadAsStringAsync().Result}");
+
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         Stream stream = await response.Content.ReadAsStreamAsync();
@@ -78,7 +77,7 @@ namespace Altinn.Platform.Authentication.Controllers
                             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, userAuthentication.AuthenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
                             if (userAuthentication.SSN != null)
                             {
                                 claims.Add(new Claim(AltinnCoreClaimTypes.SSN, userAuthentication.SSN, ClaimValueTypes.String, issuer));
@@ -87,6 +86,9 @@ namespace Altinn.Platform.Authentication.Controllers
                             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
                             identity.AddClaims(claims);
                             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+                            _logger.LogInformation($"/// Authorization test /// [AuthenticationController] [Get] Calling HttpContext.SignInAsync. ");
+
                             await HttpContext.SignInAsync(
                                 JwtCookieDefaults.AuthenticationScheme,
                                 principal,

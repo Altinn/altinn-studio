@@ -100,6 +100,7 @@ services:
       - GeneralSettings:LanguageFilesLocation=Languages/
       - TestdataRepositorySettings:RepositoryLocation=/app/Testdata
       - TestdataRepositorySettings:DesignerHost=altinn-designer
+      - PlatformSettings:ApiAuthenticationEndpoint=http://localhost:5040/authentication/api/v1/
     ports:
       - "5005:5005"
     build:

@@ -33,11 +33,18 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
           },
         },
       },
-      formUser: {
-        firstName: 'Ola',
-        middleName: null,
-        lastName: 'Privatperson',
-        organization: null,
+      profile: {
+        error: null,
+        profile: {
+          party: {
+            person: {
+              firstName: 'Ola',
+              middleName: null,
+              lastName: 'Privatperson',
+            },
+            organization: null,
+          },
+        },
       },
     };
     mockStore = createStore(initialState);
@@ -135,6 +142,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
           },
         },
       },
+      profile: {
+        profile: null,
+      },
     };
     mockStore = createStore(newState);
     const wrapper = mount(
@@ -167,7 +177,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
           },
         },
       },
-      formUser: null,
+      profile: {
+        profile: null,
+      },
     };
     mockStore = createStore(newState);
     const wrapper = mount(
@@ -200,11 +212,18 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
           },
         },
       },
-      formUser: {
-        firstName: 'Pål',
-        middleName: null,
-        lastName: 'Revisor',
-        organization: 'Tull og Tøys AS',
+      profile: {
+        error: null,
+        profile: {
+          party: {
+            person: {
+              firstName: 'Pål',
+              middleName: null,
+              lastName: 'Revisor',
+            },
+            organization: 'Tull og Tøys AS',
+          },
+        },
       },
     };
     mockStore = createStore(newState);

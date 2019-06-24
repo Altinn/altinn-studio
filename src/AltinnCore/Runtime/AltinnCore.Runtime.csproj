@@ -10,10 +10,9 @@
     <!-- SonarCloud needs this -->
     <ProjectGuid>{05798ABD-2FDC-48B4-8D69-780A0A4D4977}</ProjectGuid>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.3-alpha" />
-    <PackageReference Include="JWTCookieAuthentication" Version="0.8.8-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
@@ -23,7 +22,7 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="2.6.1" />
-    <PackageReference Include="JWTCookieAuthentication" Version="0.8.8-alpha" />
+    <PackageReference Include="JWTCookieAuthentication" Version="0.8.9-alpha" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
   </ItemGroup>
 
@@ -49,7 +48,7 @@
     <None Remove="JWTValidationCert.cer" />
     <None Remove="stylecop.json" />
   </ItemGroup>
-  
+
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
@@ -59,7 +58,7 @@
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
-  
+
   <ItemGroup>
     <Content Include="JWTValidationCert.cer">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -69,12 +68,12 @@
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.2\AltinnCore.Runtime.xml</DocumentationFile>
     <OutputPath>bin\Debug\netcoreapp2.2\</OutputPath>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>bin\Release\AltinnCore.Runtime.xml</DocumentationFile>
     <OutputPath>bin\Release\</OutputPath>
