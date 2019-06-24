@@ -9,7 +9,6 @@ import { mapAttachmentListApiResponseToAttachments } from '../../../src/utils/at
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockDisplayMode: string;
-  let mockHasCustomFileEndings: boolean;
   let mockId: string;
   let mockIsValid: boolean;
   let mockMaxFileSizeInMB: number;
@@ -46,11 +45,16 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     mockMaxNumberOfAttachments = 4;
     mockMinNumberOfAttachments = 1;
     mockMaxFileSizeInMB = 2;
-    mockHasCustomFileEndings = false;
     mockDisplayMode = 'simple';
     mockIsValid = true;
     mockReadOnly = false;
-    mockFileList = [{ name: 'mock-name.txt', lastModified: null, size: 100, slice: null, type: null }];
+    mockFileList = [
+      { name: 'mock-name-1.txt', lastModified: null, size: 100, slice: null, type: null },
+      { name: 'mock-name-2.txt', lastModified: null, size: 100, slice: null, type: null },
+      { name: 'mock-name-3.txt', lastModified: null, size: 100, slice: null, type: null },
+      { name: 'mock-name-4.txt', lastModified: null, size: 100, slice: null, type: null },
+      { name: 'mock-name-5.txt', lastModified: null, size: 100, slice: null, type: null },
+    ];
     mockStore = createStore(mockInitialState);
   });
 
@@ -108,6 +112,49 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     expect(instance.state.validations.length).toBe(0);
     instance.onDrop([], mockFileList);
     expect(instance.state.validations.length).toBe(1);
+  });
+
+  it('+++ should not upload any files if number of files are greater than max files', () => {
+    const wrapper = mount(
+      <FileUploadComponentClass
+        displayMode={mockDisplayMode}
+        id={mockId}
+        isValid={mockIsValid}
+        language={{}}
+        maxFileSizeInMB={mockMaxFileSizeInMB}
+        maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
+        readOnly={mockReadOnly}
+        attachments={mockAttachments}
+      />,
+    );
+    const instance = wrapper.instance() as FileUploadComponentClass;
+    const spy = jest.spyOn(instance, 'setState');
+    instance.onDrop(mockFileList, []);
+    const call = spy.mock.calls[0][0];
+    expect(call.attachments.length).toBe(mockAttachments.length);
+  });
+
+  it('+++ should upload all files if number of accepted files are less then max allowed files', () => {
+    const mockAccepted = [{ name: 'mock-name-1.txt', lastModified: null, size: 100, slice: null, type: null }];
+    const wrapper = mount(
+      <FileUploadComponentClass
+        displayMode={mockDisplayMode}
+        id={mockId}
+        isValid={mockIsValid}
+        language={{}}
+        maxFileSizeInMB={mockMaxFileSizeInMB}
+        maxNumberOfAttachments={mockMaxNumberOfAttachments}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
+        readOnly={mockReadOnly}
+        attachments={mockAttachments}
+      />,
+    );
+    const instance = wrapper.instance() as FileUploadComponentClass;
+    const spy = jest.spyOn(instance, 'setState');
+    instance.onDrop(mockAccepted, []);
+    const call = spy.mock.calls[0][0];
+    expect(call.attachments.length).toBe(mockAttachments.length + mockAccepted.length);
   });
 
   it('+++ should trigger onDelete on when delete is clicked and update state to deleting for that attachment', () => {

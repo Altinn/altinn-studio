@@ -343,7 +343,7 @@ export class FileUploadComponentClass
 
         {showFileUpload && this.renderAttachmentsCounter()}
 
-        {((validationMessages.simpleBinding.errors.length > 0 && showFileUpload)) &&
+        {(validationMessages.simpleBinding.errors.length > 0 && showFileUpload) &&
           renderValidationMessagesForComponent(validationMessages.simpleBinding, this.props.id)
         }
 
@@ -351,7 +351,7 @@ export class FileUploadComponentClass
 
         {!showFileUpload && this.renderAttachmentsCounter()}
 
-        {((validationMessages.simpleBinding.errors.length > 0 && !showFileUpload)) &&
+        {(validationMessages.simpleBinding.errors.length > 0 && !showFileUpload) &&
           renderValidationMessagesForComponent(validationMessages.simpleBinding, this.props.id)
         }
 
