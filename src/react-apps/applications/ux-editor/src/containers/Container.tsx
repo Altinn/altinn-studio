@@ -94,8 +94,12 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service, instanceId, reportee } = altinnWindow;
+      let routePrefix: string = null;
+      if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+        routePrefix = '/runtime';
+      }
       FormFillerActionDispatchers.runSingleFieldValidation(
-        `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+        `${window.location.origin}${routePrefix}/api/${reportee}/${org}/${service}/${instanceId}`,
         dataBindingName,
       );
     }

@@ -59,19 +59,21 @@
     </form>
 
 
-    <button id="btnStartNewService" class="btn btn-primary" value="@org/@service">Start ny 2.0</button>
+    <button id="btnStartNewService" class="btn btn-primary" value="@org/@service">Instansier med ny visning</button>
     <script>
-
       var startServiceButton = document.getElementById('btnStartNewService');
-      console.log('button?', startServiceButton);
       startServiceButton.addEventListener('click', function (event) {
         const [org, service] = event.target.value.split('/');
-        var win = window.open(`${window.location.origin}/runtime/${org}/${service}`, '_blank');
+        let routePrefix = null;
+        if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+          routePrefix = '/runtime';
+        }
+        var win = window.open(`${window.location.origin}${routePrefix}/${org}/${service}`, '_blank');
         win.focus();
       });
     </script>
 
-
+    <!--
     <form id="startService" method="post" action="/runtime/Instance/StartService" target="_blank">
       <input type="hidden" asp-for="ServiceID" />
       <div class="form-group">
@@ -83,9 +85,10 @@
         <span asp-validation-for="PrefillList" class="text-danger"></span>
       </div>
       <div class="form-group">
-        <input class="btn btn-primary" type="submit" value="Start ny" />
+        <input class="btn btn-primary" type="submit" value="Instansier med gammel visning" />
       </div>
     </form>
+    -->
 
 
 @if (instanceList.Count > 0)

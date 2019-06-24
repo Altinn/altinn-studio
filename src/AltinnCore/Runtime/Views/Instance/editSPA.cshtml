@@ -13,11 +13,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js"></script>
 
 <script>
+  var routePrefix = null;
+  if (window.location.origin.includes('altinn3.no') || window.location.origin.includes('altinn.studio')) {
+    routePrefix = '/runtime';
+  }
+
   function loadScript() {
     var script = document.createElement('script');
     var service = window.location.pathname.split('/');
     script.type = 'text/javascript';
-    script.src = window.location.origin + '/runtime/api/runtimeresources/runtime.js';
+    script.src = window.location.origin + routePrefix +'/api/runtimeresources/runtime.js';
     window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)altinncorereportee\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
     window.org = service[2];
     window.service = service[3];
@@ -27,8 +32,8 @@
 
   function loadStyles() {
     var service = window.location.pathname.split('/');
-    var resourcesUrl = window.location.origin + '/runtime/api/runtimeresources/';
-    var stylesConfigUrl = window.location.origin + '/runtime/api/runtimeresources/Styles.json';
+    var resourcesUrl = window.location.origin + routePrefix + '/api/runtimeresources/';
+    var stylesConfigUrl = window.location.origin + routePrefix +'/api/runtimeresources/Styles.json';
     var xmlhttp = new XMLHttpRequest();
 
     xmlhttp.onreadystatechange = function () {

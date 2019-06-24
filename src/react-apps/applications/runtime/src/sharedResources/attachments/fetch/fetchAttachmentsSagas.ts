@@ -15,8 +15,12 @@ export function* fetchAttachments(): SagaIterator {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
-    const attachmentListUrl = `${altinnWindow.location.origin}/runtime/api/attachment/${reportee}/${servicePath}/` +
-      `${instanceId}/GetFormAttachments`;
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = `/runtime`;
+    }
+    const attachmentListUrl = `${altinnWindow.location.origin}${routePrefix}/api/attachment/${reportee}/` +
+    `${servicePath}/${instanceId}/GetFormAttachments`;
     const response = yield call(get, attachmentListUrl);
     const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
     yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);

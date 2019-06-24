@@ -16,7 +16,11 @@ function ServiceInfo(props: any) {
   const { history } = props;
 
   const fetchReportee = async () => {
-    const url: string = `${window.location.origin}/runtime/api/v1/profile/user`;
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = '/runtime';
+    }
+    const url: string = `${window.location.origin}${routePrefix}/api/v1/profile/user`;
     const fetchedReportee: any = await get(url);
     setReportee(fetchedReportee);
   };
