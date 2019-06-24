@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AltinnCore.Authentication.JwtCookie;
@@ -235,7 +236,19 @@ namespace AltinnCore.Runtime
             // app.UseHsts();
             // app.UseHttpsRedirection();
             app.UseAuthentication();
+            app.UseStatusCodePages(async context =>
+            {
+                var request = context.HttpContext.Request;
+                var response = context.HttpContext.Response;
+                string url = $"{request.Host.ToString()}{request.Path.ToString()}";
 
+                // you may also check requests path to do this only for specific methods       
+                // && request.Path.Value.StartsWith("/specificPath")
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                {
+                    response.Redirect($"/runtime/account/login?gotoUrl={url}");
+                }
+            });
             app.UseResponseCompression();
             app.UseRequestLocalization();
             app.UseStaticFiles(new StaticFileOptions()
@@ -409,6 +422,14 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "Language",
+                    });
+                routes.MapRoute(
+                    name: "authenticationRoute",
+                    template: "runtime/{controller}/{action}/{gotourl?}",
+                    defaults: new { controller = "Account" },
+                    constraints: new
+                    {
+                        controller = "Account",
                     });
 
                 // -------------------------- DEFAULT ------------------------- //
