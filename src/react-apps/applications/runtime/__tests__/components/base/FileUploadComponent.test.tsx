@@ -4,8 +4,10 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { FileUploadComponent, FileUploadComponentClass, getFileUploadComponentValidations } from '../../../src/components/base/FileUploadComponent';
+import { FileUploadComponent, FileUploadComponentClass, getFileUploadComponentValidations, bytesInOneMB } from '../../../src/components/base/FileUploadComponent';
 import { mapAttachmentListApiResponseToAttachments } from '../../../src/utils/attachment';
+import { isMainThread } from 'worker_threads';
+import { ExpansionPanelActions, TableSortLabel } from '@material-ui/core';
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockDisplayMode: string;
@@ -52,8 +54,8 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       { name: 'mock-name-1.txt', lastModified: null, size: 100, slice: null, type: null },
       { name: 'mock-name-2.txt', lastModified: null, size: 100, slice: null, type: null },
       { name: 'mock-name-3.txt', lastModified: null, size: 100, slice: null, type: null },
-      { name: 'mock-name-4.txt', lastModified: null, size: 100, slice: null, type: null },
-      { name: 'mock-name-5.txt', lastModified: null, size: 100, slice: null, type: null },
+      { name: 'mock-name-4.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null },
+      { name: 'mock-name-5.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null },
     ];
     mockStore = createStore(mockInitialState);
   });
@@ -155,6 +157,30 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
     instance.onDrop(mockAccepted, []);
     const call = spy.mock.calls[0][0] as any;
     expect(call.attachments.length).toBe(mockAttachments.length + mockAccepted.length);
+  });
+
+  it('+++ should add validation messages if file is rejected', () => {
+    const wrapper = mount(
+      <FileUploadComponentClass
+        displayMode={mockDisplayMode}
+        id={mockId}
+        isValid={mockIsValid}
+        language={{}}
+        maxFileSizeInMB={10}
+        maxNumberOfAttachments={10}
+        minNumberOfAttachments={mockMinNumberOfAttachments}
+        readOnly={mockReadOnly}
+        attachments={mockAttachments}
+      />,
+    );
+    const instance = wrapper.instance() as FileUploadComponentClass;
+    const spy = jest.spyOn(instance, 'setState');
+    instance.onDrop([], mockFileList);
+    const call = spy.mock.calls[0][0] as any;
+    expect(call.validations.length).toBe(mockFileList.length);
+    // tslint:disable-next-line: max-line-length
+    expect(call.validations[0]).toBe('form_filler.file_uploader_validation_error_general_1 mock-name-1.txt form_filler.file_uploader_validation_error_general_2');
+    expect(call.validations[3]).toBe('mock-name-4.txt form_filler.file_uploader_validation_error_file_size');
   });
 
   it('+++ should trigger onDelete on when delete is clicked and update state to deleting for that attachment', () => {

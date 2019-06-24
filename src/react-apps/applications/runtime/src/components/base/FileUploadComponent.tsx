@@ -147,7 +147,7 @@ export class FileUploadComponentClass
   public getComponentValidations = (): IComponentValidations => {
     const { validations } = this.state;
     let { validationMessages } = this.props;
-    validationMessages = JSON.parse(JSON.stringify(validationMessages ? validationMessages : {}));
+    validationMessages = JSON.parse(JSON.stringify(validationMessages || {}));
     if (!validationMessages || !validationMessages.simpleBinding) {
       validationMessages = {
         ['simpleBinding']: {
