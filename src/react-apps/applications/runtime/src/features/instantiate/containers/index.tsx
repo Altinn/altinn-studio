@@ -69,7 +69,7 @@ function ServiceInfo(props) {
     const { classes } = props;
     return (
       <>
-      <Header />
+      <Header type='formFillers' language={{}}/>
       <AltinnModal
         classes={classes}
         isOpen={true}

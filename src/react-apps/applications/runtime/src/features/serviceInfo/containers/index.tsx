@@ -1,13 +1,21 @@
 import Grid from '@material-ui/core/Grid';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
+import { connect, useSelector } from 'react-redux';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
+import LanguageActions from '../../../sharedResources/language/languageActions';
+import { IProfile } from '../../../sharedResources/profile';
 import ProfileActions from '../../../sharedResources/profile/profileActions';
+import { IRuntimeState } from '../../../types';
 import Header from '../../altinnAppHeader/containers';
-import { IRuntimeState } from 'src/types';
 
-export interface IServiceInfoProps {
+export interface IServiceInfoProvidedProps {
+  classes: any;
+  history: any;
+}
 
+export interface IServiceInfoProps extends IServiceInfoProvidedProps {
+  profile: IProfile;
 }
 
 const styles = () => createStyles({
@@ -16,12 +24,17 @@ const styles = () => createStyles({
   },
 });
 
-function ServiceInfo(props: any) {
+function ServiceInfoContainer(props: IServiceInfoProps) {
   const { history } = props;
+  const language = useSelector((state: IRuntimeState) => state.language.language);
 
   React.useEffect(() => {
     ProfileActions.fetchProfile(
       `${window.location.origin}/runtime/api/v1/profile/user`,
+    );
+    LanguageActions.fetchLanguage(
+      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`,
+      'nb',
     );
   }, []);
 
@@ -32,12 +45,13 @@ function ServiceInfo(props: any) {
   const { classes } = props;
   return (
     <>
-      <Header />
+      <Header type='instantiate' language={language.instantiate} profile={props.profile}/>
       <Grid
         container={true}
         classes={classes}
+        className='container'
       >
-        {`Hei${null}!`}<br />
+        {`Hei ${props.profile ? props.profile.party.person.firstName : null}!`}<br />
         {`Du leverer skjema som `} <br />
         <AltinnButton
           onClickFunction={onClickInstantiate}
@@ -117,9 +131,12 @@ function ServiceInfo(props: any) {
 }
 const mapStateToProps: (
   state: IRuntimeState,
-  props: IServiceInfoProps,
-) => IServiceInfoProps = (state: IRuntimeState, props: IServiceInfoProps) => ({
+  props: IServiceInfoProvidedProps,
+) => IServiceInfoProps = (state: IRuntimeState, props: IServiceInfoProvidedProps) => ({
+  classes: props.classes,
+  history: props.history,
   profile: state.profile.profile,
 });
 
-export default withStyles(styles)(ServiceInfo);
+export const ServiceInfo =
+  withStyles(styles, { withTheme: true })(connect(mapStateToProps)(ServiceInfoContainer));

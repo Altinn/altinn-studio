@@ -1,7 +1,7 @@
 import 'jest';
 import { call, takeLatest } from 'redux-saga/effects';
-import LanguageActions from '../../src/features/languages/actions';
-import { fetchLanguageSaga, watchFetchLanguageSaga } from '../../src/features/languages/sagas/fetch';
+import { fetchLanguageSaga, watchFetchLanguageSaga } from '../../src/sharedResources/language/fetch/fetchLanguageSagas';
+import LanguageActions from '../../src/sharedResources/language/languageActions';
 
 const mockUrl: string = 'http://altinn3.no/runtime/api/Language/GetLanguageAsJSON';
 const mockLanguageCode: string = 'nb';
