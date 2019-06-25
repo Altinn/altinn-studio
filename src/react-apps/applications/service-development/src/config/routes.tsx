@@ -1,5 +1,6 @@
 import AltinnInformationCard from '../../../shared/src/components/AltinnInformationCard';
 import uieditorApp from '../../../ux-editor/src/SubApp';
+import AccessControlContainer from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import DeployToTestEnvironment from '../features/deploy/containers/deployToTestContainer';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
@@ -209,6 +210,17 @@ export const routes = [
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
       iframeEndingUrl: 'Rules/Code',
+    },
+  },
+  {
+    path: '/accesscontrol',
+    exact: true,
+    activeSubHeaderSelection: 'Lage',
+    activeLeftMenuSelection: 'Tilgangsstyring',
+    menu: 'create',
+    subapp: AccessControlContainer,
+    props: {
+      imageSource: '../../designer/img/illustration-help-circle.svg',
     },
   },
   {
