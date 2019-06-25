@@ -3,6 +3,7 @@ FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a
 WORKDIR Authorization/
 
 COPY Authorization ./Authorization
+COPY Authorization.Interface ./Authorization
 WORKDIR Authorization/
 
 RUN dotnet build Altinn.Platform.Authorization.csproj -c Release -o /app_output

@@ -9,6 +9,7 @@ namespace Altinn.Platform.Storage.Repository
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
     using Newtonsoft.Json;
 
@@ -30,7 +31,7 @@ namespace Altinn.Platform.Storage.Repository
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        public ApplicationRepository(IOptions<AzureCosmosSettings> cosmosettings)
+        public ApplicationRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<ApplicationRepository> logger)
         {
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
@@ -43,11 +44,10 @@ namespace Altinn.Platform.Storage.Repository
             };
 
             _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
-
             _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, collectionId);
 
-            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseId }).GetAwaiter().GetResult();
+            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseId }).GetAwaiter().GetResult();            
 
             DocumentCollection documentCollection = new DocumentCollection { Id = collectionId };
             documentCollection.PartitionKey.Paths.Add(partitionKey);
@@ -55,7 +55,6 @@ namespace Altinn.Platform.Storage.Repository
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 _databaseUri,
                 documentCollection).GetAwaiter().GetResult();
-
             _client.OpenAsync();
         }
 

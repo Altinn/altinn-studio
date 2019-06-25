@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { makeGetValidationsSelector } from '../../selectors/getValidations';
 import { IValidations } from '../../types/global';
 import { canFormBeSaved, getErrorCount } from '../../utils/validation';
-import FormDataActions from './../../../src/features/form/data/actions/index';
+import FormDataActions from './../../features/form/data/actions/index';
 import { IAltinnWindow, IRuntimeState } from './../../types';
 export interface IButtonProvidedProps {
   id: string;
