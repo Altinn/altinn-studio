@@ -25,7 +25,11 @@ function ServiceInfo(props) {
   const [instantiationError, setInstantiationError] = React.useState(null);
 
   const fetchReportee = async () => {
-    const url: string = `${window.location.origin}/runtime/api/v1/profile/user`;
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = '/runtime';
+    }
+    const url: string = `${window.location.origin}${routePrefix}/api/v1/profile/user`;
     const fetchedReportee: any = await get(url);
     setReportee(fetchedReportee);
   };
@@ -33,7 +37,11 @@ function ServiceInfo(props) {
   const createNewInstance = async () => {
     try {
       const { org, service } = window as IAltinnWindow;
-      const url = `${window.location.origin}/runtime/Instance/InstantiateApp`;
+      let routePrefix: string = null;
+      if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+        routePrefix = '/runtime';
+      }
+      const url = `${window.location.origin}${routePrefix}/Instance/InstantiateApp`;
       const formData: FormData = new FormData();
       formData.append('ReporteeID', reportee.userId);
       formData.append('Org', org);

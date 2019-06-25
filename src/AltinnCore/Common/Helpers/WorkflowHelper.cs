@@ -68,7 +68,11 @@ namespace AltinnCore.Common.Helpers
                 case WorkflowStep.FormFilling:
                 case WorkflowStep.Submit:
                 case WorkflowStep.Archived:
-                    return $"/runtime/{org}/{appName}/#/instance/{instanceId}";
+                    string apiEndPoint = Environment.GetEnvironmentVariable("ApiEndPointHost");
+                    if (apiEndPoint.Contains("altinn3") || apiEndPoint.Contains("altinn.studio")) {
+                        return $"/runtime/{org}/{appName}/#/instance/{instanceId}";
+                    }
+                    return $"/{org}/{appName}/#/instance/{instanceId}";
                 default:
                     // TODO: figure out what should be here and update.
                     return $"/designer/{org}/{appName}/ManualTesting";

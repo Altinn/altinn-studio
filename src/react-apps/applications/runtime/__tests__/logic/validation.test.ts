@@ -322,4 +322,31 @@ describe('>>> utils/validations.ts', () => {
 
     expect(componentSpesificValidations).toEqual(mockResult);
   });
+  it('+++ validateFormComponents should not return error if element is hidden', () => {
+    mockLayout = [
+      {
+        type: 'FileUpload',
+        id: 'componentId_4',
+        dataModelBindings: {},
+        maxNumberOfAttachments: '1',
+        minNumberOfAttachments: '0',
+        hidden: true,
+      },
+    ];
+    const componentSpesificValidations =
+      validation.validateFormComponents(mockFormAttachments.attachments, mockLayout, mockLanguage.language);
+
+    const mockResult = {};
+
+    expect(componentSpesificValidations).toEqual(mockResult);
+  });
+  it('+++ validateEmptyFields should return error if empty fields are required', () => {
+
+    const componentSpesificValidations =
+      validation.validateEmptyFields(mockFormData, mockLayout, mockLanguage.language);
+
+    const mockResult = { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } };
+
+    expect(componentSpesificValidations).toEqual(mockResult);
+  });
 });

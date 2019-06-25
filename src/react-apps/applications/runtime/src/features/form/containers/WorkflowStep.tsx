@@ -138,8 +138,12 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
     // TODO: UPDATE WITH NEW RUNTIME API LINK WHEN MERGING WITH MASTER
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = '/runtime';
+    }
     FormFillerActions.completeAndSendInForm(
-      `${window.location.origin}/runtime/${org}/${service}/${instanceId}/CompleteAndSendIn`);
+      `${window.location.origin}${routePrefix}/${org}/${service}/${instanceId}/CompleteAndSendIn`);
   }
   public renderFormFiller = () => {
     return this.props.children;

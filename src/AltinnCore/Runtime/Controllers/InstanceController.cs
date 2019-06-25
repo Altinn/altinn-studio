@@ -124,15 +124,6 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         public async Task<IActionResult> EditSPA(string org, string service, Guid instanceId, string view, int? itemId)
         {
-            // Make sure user cannot edit an archived instance
-            if (instanceId != null)
-            {
-                RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
-                requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-                requestContext.Reportee = requestContext.UserContext.Reportee;
-                List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
-            }
-
             // TODO Add info for REACT app.
             return View();
         }
