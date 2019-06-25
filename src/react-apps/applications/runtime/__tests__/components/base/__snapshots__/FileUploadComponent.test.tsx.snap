@@ -37,7 +37,7 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             attachment-name-1
           </td>
           <td>
-            1200
+            0.00 form_filler.file_uploader_mb
           </td>
           <td>
             <div>
@@ -67,7 +67,7 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             attachment-name-2
           </td>
           <td>
-            800
+            0.00 form_filler.file_uploader_mb
           </td>
           <td>
             <div
@@ -105,7 +105,7 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
             attachment-name-3
           </td>
           <td>
-            400
+            0.00 form_filler.file_uploader_mb
           </td>
           <td>
             <div>
@@ -140,16 +140,16 @@ exports[`>>> components/base/FileUploadComponent.tsx +++ should match snapshot 1
       </tbody>
     </table>
   </div>
+  <p
+    className="file-upload-text-bold-small"
+  >
+    form_filler.file_uploader_number_of_files 3/4
+  </p>
   <button
     className="file-upload-button blue-underline"
     onClick={[Function]}
   >
     form_filler.file_uploader_add_attachment
   </button>
-  <p
-    className="file-upload-text-bold-small"
-  >
-    form_filler.file_uploader_number_of_files 3/1
-  </p>
 </div>
 `;

@@ -83,30 +83,44 @@ export class FileUploadComponentClass
   public onDrop = (acceptedFiles: File[], rejectedFiles: File[]) => {
     const newFiles: IAttachment[] = [];
     const fileType = this.props.id; // component id used as filetype identifier for now, see issue #1364
-    acceptedFiles.forEach((file: File) => {
-      if ((this.state.attachments.length + newFiles.length) < this.props.maxNumberOfAttachments) {
-        const tmpId: string = uuid();
-        newFiles.push({ name: file.name, size: file.size, uploaded: false, id: tmpId, deleting: false });
-        AttachmentDispatcher.uploadAttachment(file, fileType, tmpId, this.props.id);
-      }
-    });
     const validations: string[] = [];
-    if (rejectedFiles.length > 0) {
-      rejectedFiles.forEach((file) => {
-        if (file.size > (this.props.maxFileSizeInMB * bytesInOneMB)) {
-          validations.push(
-            file.name + ' ' +
-            getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', this.props.language));
-        } else {
-          validations.push(
-            getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', this.props.language) + ' ' +
-            file.name + ' ' +
-            getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', this.props.language));
+    const totalAttachments = acceptedFiles.length + rejectedFiles.length + this.props.attachments.length;
+    let showFileUpload = this.state.showFileUpload;
+    if (totalAttachments > this.props.maxNumberOfAttachments) {
+      // if the user adds more attachments than max, all should be ignored
+      validations.push(
+        getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_1', this.props.language) +
+        ' ' + this.props.maxNumberOfAttachments + ' ' +
+        getLanguageFromKey('form_filler.file_uploader_validation_error_exceeds_max_files_2', this.props.language));
+    } else {
+      // we should upload all files, if any rejected files we should display an error
+      acceptedFiles.forEach((file: File) => {
+        if ((this.state.attachments.length + newFiles.length) < this.props.maxNumberOfAttachments) {
+          const tmpId: string = uuid();
+          newFiles.push({ name: file.name, size: file.size, uploaded: false, id: tmpId, deleting: false });
+          AttachmentDispatcher.uploadAttachment(file, fileType, tmpId, this.props.id);
         }
       });
+
+      if (acceptedFiles.length > 0) {
+        showFileUpload = (this.props.displayMode === 'simple') ? false :
+          (this.props.attachments.length < this.props.maxNumberOfAttachments);
+      }
+      if (rejectedFiles.length > 0) {
+        rejectedFiles.forEach((file) => {
+          if (file.size > (this.props.maxFileSizeInMB * bytesInOneMB)) {
+            validations.push(
+              file.name + ' ' +
+              getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', this.props.language));
+          } else {
+            validations.push(
+              getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', this.props.language) + ' ' +
+              file.name + ' ' +
+              getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', this.props.language));
+          }
+        });
+      }
     }
-    const showFileUpload = (this.props.displayMode === 'simple') ? false :
-      (this.props.attachments.length < this.props.maxFileSizeInMB);
     this.setState({
       attachments: this.state.attachments.concat(newFiles),
       // if simple mode, we should hide list on each drop
@@ -133,6 +147,7 @@ export class FileUploadComponentClass
   public getComponentValidations = (): IComponentValidations => {
     const { validations } = this.state;
     let { validationMessages } = this.props;
+    validationMessages = JSON.parse(JSON.stringify(validationMessages || {}));
     if (!validationMessages || !validationMessages.simpleBinding) {
       validationMessages = {
         ['simpleBinding']: {
@@ -170,7 +185,10 @@ export class FileUploadComponentClass
               return (
                 <tr key={index} className={'blue-underline-dotted'} id={'altinn-file-list-row-' + attachment.id}>
                   <td>{attachment.name}</td>
-                  <td>{attachment.size}</td>
+                  <td>
+                    {(attachment.size / bytesInOneMB).toFixed(2) + ' ' +
+                      getLanguageFromKey('form_filler.file_uploader_mb', this.props.language)}
+                  </td>
                   <td>
                     {attachment.uploaded &&
                       <div>
@@ -252,6 +270,18 @@ export class FileUploadComponentClass
     }
   }
 
+  public renderAttachmentsCounter = (): JSX.Element => {
+    return (
+      <p className={'file-upload-text-bold-small'}>
+        {
+          getLanguageFromKey('form_filler.file_uploader_number_of_files', this.props.language) + ' ' +
+          (this.props.minNumberOfAttachments ? this.state.attachments.length + '/' + this.props.maxNumberOfAttachments
+            : this.state.attachments.length)
+        }
+      </p>
+    );
+  }
+
   public showFileUpload = () => {
     this.setState({
       showFileUpload: true,
@@ -310,19 +340,23 @@ export class FileUploadComponentClass
             </DropZone>
           </div>
         }
-        {this.renderFileList()}
-        {this.renderAddMoreAttachmentsButton()}
-        <p className={'file-upload-text-bold-small'}>
-          {
-            getLanguageFromKey('form_filler.file_uploader_number_of_files', this.props.language) + ' ' +
-            (this.props.minNumberOfAttachments ? this.state.attachments.length + '/' + this.props.minNumberOfAttachments
-              : this.state.attachments.length)
-          }
-        </p>
-        {(validationMessages.simpleBinding.errors.length > 0) &&
-          renderValidationMessagesForComponent(validationMessages.simpleBinding,
-            this.props.id)
+
+        {showFileUpload && this.renderAttachmentsCounter()}
+
+        {(validationMessages.simpleBinding.errors.length > 0 && showFileUpload) &&
+          renderValidationMessagesForComponent(validationMessages.simpleBinding, this.props.id)
         }
+
+        {this.renderFileList()}
+
+        {!showFileUpload && this.renderAttachmentsCounter()}
+
+        {(validationMessages.simpleBinding.errors.length > 0 && !showFileUpload) &&
+          renderValidationMessagesForComponent(validationMessages.simpleBinding, this.props.id)
+        }
+
+        {this.renderAddMoreAttachmentsButton()}
+
       </div>
     );
   }
