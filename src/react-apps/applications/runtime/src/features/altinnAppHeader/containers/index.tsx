@@ -19,7 +19,13 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
   appBarWrapper: {
-    flexGrow: 1,
+    'flexGrow': 1,
+    '& header': {
+      boxShadow: 'none',
+    },
+  },
+  default: {
+    backgroundColor: 'transparent',
   },
   headerLink: {
     'color': altinnTheme.altinnPalette.primary.blueDark,
@@ -87,7 +93,7 @@ function Header(props) {
   const party = props.profile ? props.profile.party : null;
   return (
     <div className={classes.appBarWrapper}>
-    <AppBar position='static' className={type === 'instantiate' && classes.instantiation}>
+    <AppBar position='static' className={type === 'instantiate' ? classes.instantiation : classes.default}>
       <Toolbar className={'container ' + classes.toolbarContainer}>
         <Grid
           item={true}
