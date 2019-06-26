@@ -51,7 +51,7 @@ const styles = createStyles({
     marginBottom: 30,
   },
   sidebar: {
-    [theme.breakpoints.down('md')]: {
+    [theme.breakpoints.up('md')]: {
       borderLeft: '1px solid ' + theme.altinnPalette.primary.greyMedium,
       paddingLeft: 10,
     },
