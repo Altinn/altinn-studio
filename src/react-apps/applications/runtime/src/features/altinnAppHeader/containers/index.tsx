@@ -12,7 +12,7 @@ export interface IHeaderprops {
   classes: any;
   language: any;
   profile: IProfile;
-  type: string;
+  type?: string;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -23,6 +23,12 @@ const styles = createStyles({
     '& header': {
       boxShadow: 'none',
     },
+  },
+  blueDark: {
+    color: altinnTheme.altinnPalette.primary.blueDark,
+  },
+  blueDarker: {
+    color: altinnTheme.altinnPalette.primary.blueDarker,
   },
   default: {
     backgroundColor: 'transparent',
@@ -59,8 +65,8 @@ const styles = createStyles({
   headerProfile: {
     float: 'right',
   },
-  instantiation: {
-    backgroundColor: '#FFF',
+  partyChoice: {
+    backgroundColor: '#F5F5F5',
   },
   languageDropdown: {
     fontSize: '1.4rem',
@@ -74,7 +80,6 @@ const styles = createStyles({
     },
   },
   partyIcon: {
-    color: altinnTheme.altinnPalette.primary.blueDark,
     fontSize: '3.1rem !important',
     marginLeft: '5px',
   },
@@ -88,25 +93,31 @@ const styles = createStyles({
   },
 });
 
-function Header(props) {
+const Header = (props) => {
   const { classes, type } = props;
   const party = props.profile ? props.profile.party : null;
   return (
     <div className={classes.appBarWrapper}>
-    <AppBar position='static' className={type === 'instantiate' ? classes.instantiation : classes.default}>
+    <AppBar
+      position='static'
+      className={type === 'partyChoice' ? classes.partyChoice : classes.default}
+    >
       <Toolbar className={'container ' + classes.toolbarContainer}>
         <Grid
           item={true}
           className={classes.logo}
         >
-          <AltinnLogo color={altinnTheme.altinnPalette.primary.blueDark} />
+          <AltinnLogo
+            color={
+              type === 'partyChoice' ? altinnTheme.altinnPalette.primary.blueDark :
+              altinnTheme.altinnPalette.primary.blueDarker}
+          />
         </Grid>
-        <ul
-          className={classes.headerLinkList}
-        >
             {
-              type === 'instantiate' &&
-              <>
+              type &&
+              <ul
+                className={classes.headerLinkList}
+              >
                 <li
                   className={classes.headerLink}
                 >
@@ -128,34 +139,39 @@ function Header(props) {
                     {getLanguageFromKey('profile', props.language)}
                   </a>
                 </li>
-              </>
+              </ul>
             }
-        </ul>
         <div
           className={'a-personSwitcher'}
           title={renderParty(props.profile)}
         >
           <span className='a-personSwitcher-name' style={{ marginBottom: '10px' }}>
-            <span className='d-block' style={{ color: altinnTheme.altinnPalette.primary.blueDark, lineHeight: '18px' }}>
-              {renderParty(props.profile)}
-            </span>
-            <span style={{ color: altinnTheme.altinnPalette.primary.blueDark, lineHeight: '18px' }}>
-              {
-                party && party.organization &&
-                getLanguageFromKey('general.for', props.language) + ' ' +
-                party.organization.toUpperCase()
-              }
-            </span>
+            { !type &&
+            <>
+              <span className={'d-block ' + (type ? classes.blueDark : classes.blueDarker)}>
+                {renderParty(props.profile)}
+              </span>
+              <span className={type ? classes.blueDark : classes.blueDarker}>
+                {
+                  party && party.organization &&
+                  getLanguageFromKey('general.for', props.language) + ' ' +
+                  party.organization.toUpperCase()
+                }
+              </span>
+            </>
+            }
             <span className='d-block' />
           </span>
           {party && party.organization ?
             <i
-              className={'fa fa-corp-circle-big ' + classes.partyIcon}
+              className={'fa fa-corp-circle-big ' + classes.partyIcon + ' ' +
+                (type ? classes.blueDark : classes.blueDarker)}
               aria-hidden='true'
             />
             :
             <i
-              className={'fa fa-private-circle-big ' + classes.partyIcon}
+              className={'fa fa-private-circle-big ' + classes.partyIcon + ' ' +
+                (type ? classes.blueDark : classes.blueDarker)}
               aria-hidden='true'
             />
           }
@@ -164,6 +180,6 @@ function Header(props) {
     </AppBar>
     </div>
   );
-}
+};
 
 export default withStyles(styles)(Header);
