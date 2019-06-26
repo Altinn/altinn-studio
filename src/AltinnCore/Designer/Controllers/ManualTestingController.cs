@@ -85,7 +85,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// This methods list the instances for a given reportee for a service. This can be looked 
+        /// This methods list the instances for a given reportee for a service. This can be looked
         /// at as a simplified message box
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>

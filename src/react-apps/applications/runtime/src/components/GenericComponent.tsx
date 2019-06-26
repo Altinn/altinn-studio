@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
+import { formComponentWithHandlers } from '../features/form/containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
 import { IFormData } from '../features/form/data/reducer';
 import FormDynamicsActions from '../features/form/dynamics/actions';
@@ -44,7 +44,11 @@ export class GenericComponentClass extends React.Component<IGenericComponentProp
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service, instanceId, reportee } = altinnWindow;
-      const url = `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`;
+      let routePrefix: string = null;
+      if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+        routePrefix = '/runtime';
+      }
+      const url = `${window.location.origin}${routePrefix}/api/${reportee}/${org}/${service}/${instanceId}`;
       ValidationActions.runSingleFieldValidation(url, dataModelField);
     }
     const dataModelElement = this.props.dataModel.find(

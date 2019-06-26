@@ -204,7 +204,7 @@ namespace AltinnCore.Runtime
                     Version = "v1"
                 });
 
-                //options.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                // options.IncludeXmlComments(GetXmlCommentsPathForControllers());
             });
         }
 
@@ -302,6 +302,17 @@ namespace AltinnCore.Runtime
                        controller = "Instance",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                   });
+
+                routes.MapRoute(
+                   name: "runtimeRoute",
+                   template: "runtime/{org}/{service}",
+                   defaults: new { action = "EditSPA", controller = "Instance" },
+                   constraints: new
+                   {
+                       action = "EditSPA",
+                       controller = "Instance",
+                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
                 // ---------------------------- API -------------------------- //

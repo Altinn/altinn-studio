@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import FormFillerActions from '../features/form/data/actions';
-import { IProfile } from '../sharedResources/profile';
-import { IAltinnWindow, IRuntimeState } from '../types';
-import { IValidations } from '../types/global';
+import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { IProfile } from '../../../sharedResources/profile'
+import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IValidations } from '../../../types/global';
+import FormFillerActions from '../data/actions';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
@@ -150,8 +150,12 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
     // TODO: UPDATE WITH NEW RUNTIME API LINK WHEN MERGING WITH MASTER
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = '/runtime';
+    }
     FormFillerActions.completeAndSendInForm(
-      `${window.location.origin}/runtime/${org}/${service}/${instanceId}/CompleteAndSendIn`);
+      `${window.location.origin}${routePrefix}/${org}/${service}/${instanceId}/CompleteAndSendIn`);
   }
   public renderFormFiller = () => {
     return this.props.children;

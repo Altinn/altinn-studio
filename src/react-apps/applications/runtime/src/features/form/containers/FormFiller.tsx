@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { WorkflowSteps } from '../features/form/workflow/typings';
-import { IRuntimeState } from '../types';
+import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { IRuntimeState } from '../../../types';
+import { WorkflowSteps } from '../workflow/typings';
 import Render from './Render';
 import { WorkflowStep } from './WorkflowStep';
 

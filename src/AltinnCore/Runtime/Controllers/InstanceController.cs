@@ -270,6 +270,124 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
+        /// This is the post operation to instantiate an instance
+        /// </summary>
+        /// <param name="startServiceModel">The start service model.</param>
+        /// <returns>JSON Object with the instance ID</returns>
+        [Authorize]
+        [HttpPost]
+        public async Task<dynamic> InstantiateApp(StartServiceModel startServiceModel)
+        {
+            // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
+            // Will compile code and load DLL in to memory for AltinnCore
+            bool startService = true;
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(startServiceModel.Org, startServiceModel.Service, startService);
+
+            // Get the service context containing metadata about the service
+            ServiceContext serviceContext = _execution.GetServiceContext(startServiceModel.Org, startServiceModel.Service, startService);
+
+            // Create and populate the RequestContext object and make it available for the service implementation so
+            // service developer can implement logic based on information about the request and the user performing
+            // the request
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
+
+            // Populate the reportee information
+            requestContext.UserContext.Reportee = await _register.GetParty(startServiceModel.ReporteeID);
+            requestContext.Reportee = requestContext.UserContext.Reportee;
+
+            // Create platform service and assign to service implementation making it possible for the service implementation
+            // to use plattform services. Also make it available in ViewBag so it can be used from Views
+            serviceImplementation.SetPlatformServices(_platformSI);
+
+            // Assign the different context information to the service implementation making it possible for
+            // the service developer to take use of this information
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
+
+            object serviceModel = null;
+
+            if (!string.IsNullOrEmpty(startServiceModel.PrefillKey))
+            {
+                _form.GetPrefill(
+                    startServiceModel.Org,
+                    startServiceModel.Service,
+                    serviceImplementation.GetServiceModelType(),
+                    startServiceModel.ReporteeID,
+                    startServiceModel.PrefillKey);
+            }
+
+            if (serviceModel == null)
+            {
+                // If the service model was not loaded from prefill.
+                serviceModel = serviceImplementation.CreateNewServiceModel();
+            }
+
+            // Assign service model to the implementation
+            serviceImplementation.SetServiceModel(serviceModel);
+
+            // Run Instansiation event
+            await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
+
+            // Run validate Instansiation event where
+            await serviceImplementation.RunServiceEvent(ServiceEventType.ValidateInstantiation);
+
+            // If ValidateInstansiation event has not added any errors the new form is saved and user is redirercted to the correct
+            if (ModelState.IsValid)
+            {
+                if (serviceContext.WorkFlow.Any() && serviceContext.WorkFlow[0].StepType.Equals(StepType.Lookup))
+                {
+                    return JsonConvert.SerializeObject(
+                        new
+                        {
+                            org = startServiceModel.Org,
+                            service = startServiceModel.Service
+                        });
+                }
+
+                int instanceOwnerId = requestContext.UserContext.ReporteeId;
+
+                // Create a new instance document
+                Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
+
+                // Create and store the instance created event
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
+                    EventType = InstanceEventType.Created.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instanceOwnerId.ToString(),
+                    UserId = requestContext.UserContext.UserId,
+                    WorkflowStep = instance.Workflow.CurrentStep
+                };
+
+                await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
+
+                Enum.TryParse<WorkflowStep>(instance.Workflow.CurrentStep, out WorkflowStep currentStep);
+
+                return JsonConvert.SerializeObject(
+                    new
+                    {
+                        instanceId = instance.Id,
+                    });
+            }
+
+            startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
+               .Select(x => new SelectListItem
+               {
+                   Text = x.ReporteeNumber + " " + x.ReporteeName,
+                   Value = x.PartyID.ToString(),
+               }).ToList();
+
+            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
+
+            return JsonConvert.SerializeObject(
+                new
+                {
+                    redirectUrl = View(startServiceModel),
+                });
+        }
+
+        /// <summary>
         /// This is the post operation for the start service.
         /// </summary>
         /// <param name="startServiceModel">The start service model.</param>
