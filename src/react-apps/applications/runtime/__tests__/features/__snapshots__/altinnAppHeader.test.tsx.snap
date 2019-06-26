@@ -12,6 +12,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
     >
       <div
         className="MuiGrid-item-55 Header-logo-10"
+        style={Object {}}
       >
         <svg
           height="20px"
