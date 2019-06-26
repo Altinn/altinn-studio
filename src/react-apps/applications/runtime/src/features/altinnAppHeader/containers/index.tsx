@@ -106,6 +106,7 @@ const Header = (props) => {
         <Grid
           item={true}
           className={classes.logo}
+          style={!type ? {flexGrow: 1} : {}}
         >
           <AltinnLogo
             color={

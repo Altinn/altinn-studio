@@ -64,7 +64,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   public saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
-    let routePrefix: string = null;
+    let routePrefix: string = '';
     if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
       routePrefix = '/runtime';
     }
@@ -75,7 +75,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   public submitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
-    let routePrefix: string = null;
+    let routePrefix: string = '';
     if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
       routePrefix = '/runtime';
     }

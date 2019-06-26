@@ -94,7 +94,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service, instanceId, reportee } = altinnWindow;
-      let routePrefix: string = null;
+      let routePrefix: string = '';
       if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
         routePrefix = '/runtime';
       }
