@@ -12,6 +12,8 @@ spec:
       labels:
         run: altinn-runtime
     spec:
+      nodeSelector:
+        altinn-runtime: "true"
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
