@@ -24,7 +24,7 @@ export function* deleteAttachmentSaga(
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
-    let routePrefix: string = null;
+    let routePrefix: string = '';
     if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
       routePrefix = '/runtime';
     }
