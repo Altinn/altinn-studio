@@ -117,7 +117,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public handleSubmitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
-    let routePrefix: string = null;
+    let routePrefix: string = '';
     if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
       routePrefix = '/runtime';
     }

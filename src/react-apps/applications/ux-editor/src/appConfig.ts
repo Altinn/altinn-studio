@@ -1,7 +1,7 @@
 const appConfig = {
   serviceConfiguration: {
     getCodeLists: (window: Window) => {
-      let routePrefix: string = null;
+      let routePrefix: string = '';
       if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
         routePrefix = '/runtime';
       }
