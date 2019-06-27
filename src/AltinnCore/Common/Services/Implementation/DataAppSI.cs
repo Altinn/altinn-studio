@@ -59,11 +59,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";  
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             string apiUrl = $"instances/{instanceIdentifier}/data?elementType={FORM_ID}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-            Instance instance;    
+            Instance instance;
 
             XmlSerializer serializer = new XmlSerializer(type);
             using (MemoryStream stream = new MemoryStream())
@@ -149,7 +149,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<List<AttachmentList>> GetFormAttachments(string org, string appName, int instanceOwnerId, Guid instanceId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";  
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             string apiUrl = $"instances/{instanceIdentifier}/data";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -171,7 +171,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return attachmentList;
-        }    
+        }
 
         private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
         {
@@ -223,7 +223,7 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<Guid> SaveFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}/instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             Instance instance;
 
@@ -231,7 +231,7 @@ namespace AltinnCore.Common.Services.Implementation
             string contentType;
             provider.TryGetContentType(attachmentName, out contentType);
 
-            // using a non-generic client in order to support unknown content type 
+            // using a non-generic client in order to support unknown content type
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
