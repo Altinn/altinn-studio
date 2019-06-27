@@ -93,7 +93,7 @@ const styles = createStyles({
   },
 });
 
-const Header = (props) => {
+const Header = (props: IHeaderprops) => {
   const { classes, type } = props;
   const party = props.profile ? props.profile.party : null;
   return (
@@ -123,21 +123,21 @@ const Header = (props) => {
                   className={classes.headerLink}
                 >
                   <a href='https://altinn.no/ui/messagebox'>
-                    {getLanguageFromKey('inbox', props.language)}
+                    {getLanguageFromKey('instantiate.inbox', props.language)}
                   </a>
                 </li>
                 <li
                   className={classes.headerLink}
                 >
                   <a href='https://altinn.no/nn/skjemaoversikt/'>
-                    {getLanguageFromKey('all_schemas', props.language)}
+                    {getLanguageFromKey('instantiate.all_schemas', props.language)}
                   </a>
                 </li>
                 <li
                   className={classes.headerLink}
                 >
                   <a href='https://altinn.no/ui/profile'>
-                    {getLanguageFromKey('profile', props.language)}
+                    {getLanguageFromKey('instantiate.profile', props.language)}
                   </a>
                 </li>
               </ul>

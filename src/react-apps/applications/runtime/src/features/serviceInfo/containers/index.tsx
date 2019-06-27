@@ -45,7 +45,7 @@ function ServiceInfoContainer(props: IServiceInfoProps) {
   const { classes } = props;
   return (
     <>
-      <Header language={language.instantiate} profile={props.profile}/>
+      <Header language={language} profile={props.profile}/>
       <Grid
         container={true}
         classes={classes}

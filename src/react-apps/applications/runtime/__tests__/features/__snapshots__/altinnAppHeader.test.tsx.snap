@@ -159,7 +159,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           <a
             href="https://altinn.no/ui/messagebox"
           >
-            inbox
+            instantiate.inbox
           </a>
         </li>
         <li
@@ -168,7 +168,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           <a
             href="https://altinn.no/nn/skjemaoversikt/"
           >
-            all_schemas
+            instantiate.all_schemas
           </a>
         </li>
         <li
@@ -177,7 +177,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           <a
             href="https://altinn.no/ui/profile"
           >
-            profile
+            instantiate.profile
           </a>
         </li>
       </ul>
