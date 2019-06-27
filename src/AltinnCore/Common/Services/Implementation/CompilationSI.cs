@@ -137,13 +137,6 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            if (_assemblyNames.ContainsKey(assemblykey) && _assemblyNames[assemblykey].CompileStarted > lastChanged && string.IsNullOrWhiteSpace(outputLocation)
-                && !startServiceFlag)
-            {
-                compilationResult = _assemblyNames[assemblykey];
-                return compilationResult;
-            }
-
             SyntaxTree[] syntaxTrees = GetSyntaxTrees(org, service);
             List<MetadataReference> references = new List<MetadataReference>();
             Assembly root = Assembly.GetEntryAssembly();
