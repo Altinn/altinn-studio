@@ -19,15 +19,15 @@
   }
 
   function loadScript() {
-    var script = document.createElement('script');
+    // var script = document.createElement('script');
     var service = window.location.pathname.split('/');
-    script.type = 'text/javascript';
-    script.src = window.location.origin + routePrefix +'/api/runtimeresources/runtime.js';
+    // script.type = 'text/javascript';
+    // script.src = window.location.origin + routePrefix +'/api/runtimeresources/runtime.js';
     window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)altinncorereportee\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
     window.org = service[2];
     window.service = service[3];
     window.instanceId = service[4];
-    document.body.appendChild(script);
+    // document.body.appendChild(script);
   }
 
   function loadStyles() {
@@ -70,7 +70,6 @@
 
 </script>
 <div id="root" class="media-body flex-column d-flex"></div>
-<script src="~/runtime/js/react/runtime.js"></script>
 <link rel="stylesheet" type="text/css" href="~/runtime/css/react/runtime.css">
 <script>
   loadScript();
