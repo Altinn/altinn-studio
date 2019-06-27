@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   # Set "repository" name of your image for manual Helm install and upgrade.
-  repository: tddregistry.azurecr.io/kuberneteswrapper
+  repository: tddaltinnregistry.azurecr.io/kuberneteswrapper
   tag: latest
   pullPolicy: Always
   pullSecrets:
