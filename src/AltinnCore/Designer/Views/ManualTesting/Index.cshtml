@@ -64,11 +64,7 @@
       var startServiceButton = document.getElementById('btnStartNewService');
       startServiceButton.addEventListener('click', function (event) {
         const [org, service] = event.target.value.split('/');
-        let routePrefix = null;
-        if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
-          routePrefix = '/runtime';
-        }
-        var win = window.open(`${window.location.origin}${routePrefix}/${org}/${service}`, '_blank');
+        var win = window.open(`${window.location.origin}/${org}/${service}`, '_blank');
         win.focus();
       });
     </script>
