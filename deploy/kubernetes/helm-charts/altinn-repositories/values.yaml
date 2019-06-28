@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repositoryDev: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev
   repositoryProd: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-prod
-  tag: 1.4.7
+  tag: 2.0.0
   pullPolicy: IfNotPresent
   containerPorts:
     port: 3000
