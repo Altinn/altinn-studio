@@ -3,7 +3,7 @@ import { call, takeLatest } from 'redux-saga/effects';
 import LanguageActions from '../../src/features/languages/actions';
 import { fetchLanguageSaga, watchFetchLanguageSaga } from '../../src/features/languages/sagas/fetch';
 
-const mockUrl: string = 'http://altinn3.no/runtime/api/Language/GetLanguageAsJSON';
+const mockUrl: string = 'http://altinn3.no/api/Language/GetLanguageAsJSON';
 const mockLanguageCode: string = 'nb';
 
 describe('>>> features/language action', () => {
