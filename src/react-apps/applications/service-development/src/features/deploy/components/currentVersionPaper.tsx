@@ -40,6 +40,7 @@ interface ICurrentVersionPaperProps {
 export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
   const { classes } = props;
   const { org, service } = window as IAltinnWindow;
+  console.log(org, service);
 
   return (
     <React.Fragment>
@@ -77,7 +78,7 @@ export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
                 target='_blank'
                 className={classes.link}
               >
-                {`${org}.apps.${props.env}.${urls.hostname.apps.test}/${service}`}
+                {`${org}.apps.${props.env}.${urls.hostname.apps.test}/${org}/${service}`}
               </a>
             </Typography>
           </div>
