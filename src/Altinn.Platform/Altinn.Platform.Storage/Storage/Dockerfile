@@ -1,8 +1,8 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2-alpine3.9 AS build
-WORKDIR /Storage/
+WORKDIR Storage/
 
 COPY Storage ./Storage
-WORKDIR /Storage/
+WORKDIR Storage/
 
 RUN dotnet build Altinn.Platform.Storage.csproj -c Release -o /app_output
 RUN dotnet publish Altinn.Platform.Storage.csproj -c Release -o /app_output
