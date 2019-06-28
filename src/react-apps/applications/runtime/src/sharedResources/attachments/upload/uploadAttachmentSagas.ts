@@ -22,11 +22,7 @@ export function* uploadAttachmentSaga(
     const servicePath = `${org}/${service}`;
     const data = new FormData();
     data.append('file', file);
-<<<<<<< HEAD
-    let routePrefix: string = null;
-=======
     let routePrefix: string = '';
->>>>>>> master
     if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
       routePrefix = '/runtime';
     }
