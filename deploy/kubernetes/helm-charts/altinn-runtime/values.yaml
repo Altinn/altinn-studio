@@ -8,11 +8,11 @@ image:
 environmentVariables:
   development:
     - name: GiteaEndpoint
-      value: dev.altinn.studio
+      value: http://altinn-repositories:3000/repos
     - name: GiteaLoginEndpoint
       value: https://dev.altinn.studio/user/login
     - name: GiteaApiEndpoint
-      value: https://dev.altinn.studio/api/v1
+      value: http://altinn-repositories:3000/repos/api/v1
     - name: ASPNETCORE_ENVIRONMENT
       value: Development
     - name: ASPNETCORE_URLS
@@ -20,7 +20,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
-      value: http://altinn-repositories:3000/
+      value: http://altinn-repositories:3000/repos
     - name: ServiceRepositorySettings__GiteaInternalHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
