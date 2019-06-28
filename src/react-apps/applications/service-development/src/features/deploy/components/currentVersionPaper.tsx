@@ -40,7 +40,6 @@ interface ICurrentVersionPaperProps {
 export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
   const { classes } = props;
   const { org, service } = window as IAltinnWindow;
-  console.log(org, service);
 
   return (
     <React.Fragment>
