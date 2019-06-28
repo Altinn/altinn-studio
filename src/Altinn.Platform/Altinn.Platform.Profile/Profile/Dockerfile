@@ -1,8 +1,8 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:2.2-alpine3.9 AS build
-WORKDIR /Profile
+WORKDIR /Profile/
 
 COPY Profile ./Profile
-WORKDIR /Profile
+WORKDIR /Profile/
 
 RUN dotnet build Altinn.Platform.Profile.csproj -c Release -o /app_output
 RUN dotnet publish Altinn.Platform.Profile.csproj -c Release -o /app_output
