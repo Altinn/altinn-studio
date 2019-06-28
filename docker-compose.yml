@@ -61,7 +61,7 @@ services:
       - ServiceRepositorySettings:EnableGiteaIntegration=true
       - ServiceRepositorySettings:ForceGiteaAuthentication=true
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/repos/api/v1
-      - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories/repos
+      - ServiceRepositorySettings:ApiEndPointHost=altinn3.no
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/repos
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:DeploymentLocation=/Templates/deployment
@@ -93,7 +93,7 @@ services:
       - ServiceRepositorySettings:EnableGiteaIntegration=true
       - ServiceRepositorySettings:ForceGiteaAuthentication=true
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/repos/api/v1
-      - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories/repos
+      - ServiceRepositorySettings:ApiEndPointHost=altinn3.no
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/repos
       - ServiceRepositorySettings:ShouldFetchFromDatabase=false
       - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/

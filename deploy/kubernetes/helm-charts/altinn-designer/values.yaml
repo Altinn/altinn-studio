@@ -10,11 +10,11 @@ image:
 environmentVariables:
   development:
     - name: GiteaEndpoint
-      value: altinn-repositories:3000/repos
+      value: dev.altinn.studio
     - name: GiteaApiEndpoint
       value: http://altinn-repositories:3000/repos/api/v1
     - name: GiteaLoginEndpoint
-      value: https://dev.altinn.studio/user/login
+      value: https://dev.altinn.studio/repos/user/login
     - name: ASPNETCORE_ENVIRONMENT
       value: Development
     - name: ASPNETCORE_URLS
@@ -49,7 +49,7 @@ environmentVariables:
     - name: GiteaApiEndpoint
       value: https://altinn.studio/api/v1
     - name: GiteaLoginEndpoint
-      value: https://altinn.studio/user/login
+      value: https://altinn.studio/repos/user/login
     - name: ASPNETCORE_ENVIRONMENT
       value: Development
     - name: ASPNETCORE_URLS
