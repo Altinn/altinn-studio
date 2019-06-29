@@ -1,0 +1,15 @@
+[
+  {
+    "SSN": "01017512345",
+    "PartyId": "1",
+    "PartyTypeName": "Person",
+	"Person": 
+		{
+			"SSN": "01017512345",
+			"Name": "Ola PrivatPerson",
+			"FirstName": "Ola",
+			"MiddleName": "",
+			"LastName": "PrivatPerson"
+		}
+  }  
+]
