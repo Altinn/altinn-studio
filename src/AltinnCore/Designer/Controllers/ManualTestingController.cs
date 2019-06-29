@@ -108,8 +108,8 @@ namespace AltinnCore.Designer.Controllers
             StartServiceModel startServiceModel = new StartServiceModel
             {
                 ServiceID = org + "_" + service,
-                ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
-                    .Select(x => new SelectListItem { Text = x.ReporteeNumber + " " + x.ReporteeName, Value = x.PartyID.ToString() })
+                ReporteeList = _authorization.GetPartyList(requestContext.UserContext.UserId)
+                    .Select(x => new SelectListItem { Text = x.PartyId + " " + x.Person.FirstName, Value = x.PartyId.ToString() })
                     .ToList(),
                 PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
@@ -231,13 +231,13 @@ namespace AltinnCore.Designer.Controllers
                         AllowRefresh = false,
                     });
 
-            List<Reportee> reporteeList = _authorization.GetReporteeList(profile.UserId);
-            Reportee reporteeBE = null;
+            List<Party> partyList = _authorization.GetPartyList(profile.UserId);
+            Party partyBE = null;
 
-            if (!string.IsNullOrEmpty(reportee) && reporteeList.Any(r => r.ReporteeNumber.Equals(reportee)))
+            if (!string.IsNullOrEmpty(reportee) && partyList.Any(r => r.PartyId.Equals(reportee)))
             {
-                reporteeBE = reporteeList.FirstOrDefault(r => r.ReporteeNumber.Equals(reportee));
-                HttpContext.Response.Cookies.Append("altinncorereportee", reporteeBE.PartyID.ToString());
+                partyBE = partyList.FirstOrDefault(r => r.PartyId.Equals(reportee));
+                HttpContext.Response.Cookies.Append("altinncorereportee", partyBE.PartyId.ToString());
             }
             else
             {

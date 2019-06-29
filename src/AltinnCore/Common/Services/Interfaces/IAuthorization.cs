@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -11,8 +12,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Returns the list of parties that user has any rights for
         /// </summary>
-        /// <param name="userID">The userID</param>
+        /// <param name="userId">The userID</param>
         /// <returns>List of parties</returns>
-        List<Reportee> GetReporteeList(int userID);
+        List<Party> GetPartyList(int userId);
     }
 }

@@ -257,11 +257,11 @@ namespace AltinnCore.Runtime.Controllers
             var startServiceModel = new StartServiceModel
             {
                 ReporteeList = _authorization
-                    .GetReporteeList(userContext.UserId)
+                    .GetPartyList(userContext.UserId)
                     .Select(x => new SelectListItem
                     {
-                        Text = x.ReporteeNumber + " " + x.ReporteeName,
-                        Value = x.PartyID.ToString(),
+                        Text = x.PartyId + " " + x.Person.FirstName,
+                        Value = x.PartyId.ToString(),
                     })
                     .ToList(),
                 ServiceID = org + "_" + service,
@@ -373,11 +373,11 @@ namespace AltinnCore.Runtime.Controllers
                 return Redirect(redirectUrl);
             }
 
-            startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
+            startServiceModel.ReporteeList = _authorization.GetPartyList(requestContext.UserContext.UserId)
                .Select(x => new SelectListItem
                {
-                   Text = x.ReporteeNumber + " " + x.ReporteeName,
-                   Value = x.PartyID.ToString(),
+                   Text = x.PartyId + " " + x.Person.FirstName,
+                   Value = x.PartyId.ToString(),
                }).ToList();
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
