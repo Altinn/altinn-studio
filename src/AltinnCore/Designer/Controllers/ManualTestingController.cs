@@ -108,8 +108,12 @@ namespace AltinnCore.Designer.Controllers
             StartServiceModel startServiceModel = new StartServiceModel
             {
                 ServiceID = org + "_" + service,
-                ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
-                    .Select(x => new SelectListItem { Text = x.ReporteeNumber + " " + x.ReporteeName, Value = x.PartyID.ToString() })
+                ReporteeList = _authorization.GetPartyList(requestContext.UserContext.UserId)
+                    .Select(x => new SelectListItem
+                    {
+                        Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Person.Name : x.OrgNumber + " " + x.Organization.Name,
+                        Value = x.PartyId.ToString()
+                    })
                     .ToList(),
                 PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
@@ -231,13 +235,13 @@ namespace AltinnCore.Designer.Controllers
                         AllowRefresh = false,
                     });
 
-            List<Reportee> reporteeList = _authorization.GetReporteeList(profile.UserId);
-            Reportee reporteeBE = null;
+            List<Party> reporteeList = _authorization.GetPartyList(profile.UserId);
+            Party reporteeBE = null;
 
-            if (!string.IsNullOrEmpty(reportee) && reporteeList.Any(r => r.ReporteeNumber.Equals(reportee)))
+            if (!string.IsNullOrEmpty(reportee) && reporteeList.Any(r => (r.PartyTypeName == PartyType.Person) ? r.SSN.Equals(reportee) : r.OrgNumber.Equals(reportee)))
             {
-                reporteeBE = reporteeList.FirstOrDefault(r => r.ReporteeNumber.Equals(reportee));
-                HttpContext.Response.Cookies.Append("altinncorereportee", reporteeBE.PartyID.ToString());
+                reporteeBE = reporteeList.FirstOrDefault(r => (r.PartyTypeName == PartyType.Person) ? r.SSN.Equals(reportee) : r.OrgNumber.Equals(reportee));
+                HttpContext.Response.Cookies.Append("altinncorereportee", reporteeBE.PartyId.ToString());
             }
             else
             {

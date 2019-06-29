@@ -11,8 +11,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Returns the list of parties that user has any rights for
         /// </summary>
-        /// <param name="userID">The userID</param>
+        /// <param name="userId">The userId</param>
         /// <returns>List of parties</returns>
-        List<Reportee> GetReporteeList(int userID);
+        List<Party> GetPartyList(int userId);
     }
 }
