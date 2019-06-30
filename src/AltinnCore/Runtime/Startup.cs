@@ -236,7 +236,7 @@ namespace AltinnCore.Runtime
             // app.UseHsts();
             // app.UseHttpsRedirection();
             app.UseAuthentication();
-            app.UseStatusCodePages(async context =>
+         /*   app.UseStatusCodePages(async context =>
             {
                 var request = context.HttpContext.Request;
                 var response = context.HttpContext.Response;
@@ -248,7 +248,7 @@ namespace AltinnCore.Runtime
                 {
                     response.Redirect($"/account/login?gotoUrl={url}");
                 }
-            });
+            });*/
             app.UseResponseCompression();
             app.UseRequestLocalization();
             app.UseStaticFiles(new StaticFileOptions()
@@ -434,14 +434,15 @@ namespace AltinnCore.Runtime
                     {
                         controller = "Language",
                     });
-                routes.MapRoute(
+
+               /* routes.MapRoute(
                     name: "authenticationRoute",
                     template: "{controller}/{action}/{gotourl?}",
                     defaults: new { controller = "Account" },
                     constraints: new
                     {
                         controller = "Account",
-                    });
+                    }); */
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
