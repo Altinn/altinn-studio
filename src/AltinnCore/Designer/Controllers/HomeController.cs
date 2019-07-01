@@ -58,7 +58,7 @@ namespace AltinnCore.Designer.Controllers
         {
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
             string userName = _giteaApi.GetUserNameFromUI().Result;
-    
+
             if (string.IsNullOrEmpty(userName))
             {
                 return View("StartPage");
@@ -74,7 +74,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The front page</returns>
         [Authorize]
         public ActionResult Index(RepositorySearch repositorySearch)
-        {            
+        {
             return View();
         }
 

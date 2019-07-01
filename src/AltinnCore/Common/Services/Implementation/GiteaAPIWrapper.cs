@@ -355,7 +355,7 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<string> GetUserNameFromUI()
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/");
-            using (HttpClient client = GetWebHtmlClient())
+            using (HttpClient client = GetWebHtmlClient(false))
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)

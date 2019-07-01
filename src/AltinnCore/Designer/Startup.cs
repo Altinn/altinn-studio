@@ -233,6 +233,10 @@ namespace AltinnCore.Designer
                           {
                               controller = @"(Deploy)",
                           });
+                routes.MapRoute(
+                        name: "reposRoute",
+                        template: "repos/{action=Index}/",
+                        defaults: new { controller = "Repos" });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
