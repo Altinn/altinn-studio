@@ -9,7 +9,7 @@ namespace Altinn.Platform.Authorization.Clients
     /// <summary>
     /// Client configuration for actor api
     /// </summary>
-    public class ActorClient
+    public class PartyClient
     {
         private readonly GeneralSettings _generalSettings;
 
@@ -23,7 +23,7 @@ namespace Altinn.Platform.Authorization.Clients
         /// </summary>
         /// <param name="client">the http client</param>
         /// <param name="generalSettings">the general settings configured for the authorization component</param>
-        public ActorClient(HttpClient client, IOptions<GeneralSettings> generalSettings)
+        public PartyClient(HttpClient client, IOptions<GeneralSettings> generalSettings)
         {
             _generalSettings = generalSettings.Value;
             Client = client;
