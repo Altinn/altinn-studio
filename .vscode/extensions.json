@@ -7,7 +7,7 @@
     "DavidAnson.vscode-markdownlint",
     "msjsdiag.debugger-for-chrome",
     "EditorConfig.EditorConfig",
-    "eg2.tslint",
-    "github.vscode-pull-request-github"
+    "github.vscode-pull-request-github",
+    "ms-vscode.vscode-typescript-tslint-plugin"
   ]
 }

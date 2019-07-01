@@ -56,15 +56,23 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
   public saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = '/runtime';
+    }
     FormDataActions.submitFormData(
-      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+      `${window.location.origin}${routePrefix}/api/${reportee}/${org}/${service}/${instanceId}`,
     );
   }
 
   public submitForm = () => {
     const { reportee, org, service, instanceId } = window as IAltinnWindow;
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = '/runtime';
+    }
     FormDataActions.submitFormData(
-      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+      `${window.location.origin}${routePrefix}/api/${reportee}/${org}/${service}/${instanceId}`,
       'Complete',
     );
   }
