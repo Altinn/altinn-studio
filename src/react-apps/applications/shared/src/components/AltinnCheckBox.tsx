@@ -5,7 +5,7 @@ export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof
   checked: boolean;
   disabled?: boolean;
   id?: any;
-  onChangeFunction: any;
+  onChangeFunction?: any;
   onKeyPressFunction?: any;
 }
 

@@ -3,7 +3,7 @@ import 'jest';
 import * as React from 'react';
 import AltinnColumnLayout from '../../src/components/AltinnColumnLayout';
 
-describe('>>> AltinnCheckBox', () => {
+describe('>>> AltinnColumnLayout', () => {
   let mockHeader: string;
   let mockChildren: any;
   let mockSideMenuChildren: any;
