@@ -16,7 +16,6 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private const string TESDATA_USER_DIRECTORY = @"/User/";
 
-        private const string REPORTEELIST_FILENAME = "reporteelist.json";
         private const string PARTYLIST_FILENAME = "partylist.json";
 
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
