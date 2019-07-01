@@ -46,7 +46,7 @@ namespace AltinnCore.Runtime.Controllers
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
-            return Ok();
+            return Ok(partyList);
         }
     }
 }

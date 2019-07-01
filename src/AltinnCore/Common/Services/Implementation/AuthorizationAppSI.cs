@@ -47,7 +47,7 @@ namespace AltinnCore.Common.Services.Implementation
         public List<Party> GetPartyList(int userId)
         {
             List<Party> partyList = null;
-            string apiUrl = $"actors?userid={userId}";
+            string apiUrl = $"/parties?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             try
@@ -65,7 +65,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError("Unable to fetch reporteeList");
+                    _logger.LogError("Unable to fetch party list");
                 }
 
                 return partyList;
