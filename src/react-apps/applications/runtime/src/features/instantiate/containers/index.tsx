@@ -46,7 +46,7 @@ function ServiceInfo(props) {
       }
       const url = `${window.location.origin}${routePrefix}/Instance/InstantiateApp`;
       const formData: FormData = new FormData();
-      formData.append('ReporteeID', reportee.userId);
+      formData.append('PartyId', reportee.userId);
       formData.append('Org', org);
       formData.append('Service', service);
       const response = await post(url, null, formData);

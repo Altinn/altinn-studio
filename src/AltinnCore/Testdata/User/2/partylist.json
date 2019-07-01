@@ -1,0 +1,25 @@
+[
+  {
+    "SSN": "02017512345",
+    "PartyId": "2",
+    "PartyTypeName": "Person",
+	"Person": 
+		{
+			"SSN": "02017512345",
+			"Name": "Kari Selvstendig",
+			"FirstName": "Kari",
+			"MiddleName": "",
+			"LastName": "Selvstendig"
+		}	
+  },
+  {
+    "OrgNumber": "900000001",
+    "PartyId": "10001",
+    "PartyTypeName": "Organization",
+	"Organization": 
+		{
+			"OrgNumber": "900000001",
+			"Name": "Kari Consulting",
+		}	
+  }    
+] 

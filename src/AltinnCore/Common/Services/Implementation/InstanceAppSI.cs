@@ -74,7 +74,7 @@ namespace AltinnCore.Common.Services.Implementation
             string org = startServiceModel.Org;
             string appId = ApplicationHelper.GetFormattedApplicationId(org, startServiceModel.Service);
             string appName = startServiceModel.Service;
-            int instanceOwnerId = startServiceModel.ReporteeID;
+            int instanceOwnerId = startServiceModel.PartyId;
 
             string apiUrl = $"instances/?appId={appId}&instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
