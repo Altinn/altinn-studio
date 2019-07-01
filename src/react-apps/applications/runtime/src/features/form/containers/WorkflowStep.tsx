@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-import { IProfile } from '../../../sharedResources/profile'
+import FormFillerActions from '../../../features/form/data/actions';
+import { IProfile } from '../../../sharedResources/profile';
+import { renderParty } from '../../../sharedResources/utils/party';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { IValidations } from '../../../types/global';
-import FormFillerActions from '../data/actions';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
@@ -39,19 +40,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     };
   }
 
-  public renderUser = () => {
-    const party = this.props.profile ? this.props.profile.party : null;
-    if (party && party.person) {
-      const user = party.person.firstName.concat(
-        ' ',
-        (party.person.middleName !== null ?
-          (party.person.middleName.concat(' ')) : ''),
-        party.person.lastName);
-      return user.toUpperCase();
-    }
-    return null;
-  }
-
   public renderTop = () => {
     const party = this.props.profile ? this.props.profile.party : null;
     return (
@@ -66,11 +54,11 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             <div className='a-modal-top-user'>
               <div
                 className='a-personSwitcher '
-                title={this.renderUser()}
+                title={renderParty(this.props.profile)}
               >
                 <span className='a-personSwitcher-name' style={{ marginBottom: '10px' }}>
                   <span className='d-block' style={{ color: '#022F51', lineHeight: '18px' }}>
-                    {this.renderUser()}
+                    {renderParty(this.props.profile)}
                   </span>
                   <span style={{ color: '#022F51', lineHeight: '18px' }}>
                     {
