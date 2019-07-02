@@ -25,9 +25,9 @@ namespace Designer.Controllers
         /// <returns>Redirect to login page with gitea cookie set with path = / </returns>
         public ActionResult Index()
         {
-            string cookieKey = "i_like_gitea";
-            var giteaCookie = _httpContextAccessor.HttpContext.Request.Cookies[cookieKey];
-            Response.Cookies.Append(cookieKey, giteaCookie);
+            string giteaCookieKey = "i_like_gitea";
+            var giteaCookieValue = _httpContextAccessor.HttpContext.Request.Cookies[giteaCookieKey];
+            Response.Cookies.Append(giteaCookieKey, giteaCookieValue);
             return RedirectToAction("Login", "Home");
 
         }
