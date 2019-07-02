@@ -11,36 +11,25 @@ namespace Designer.Controllers
         private IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        ///  Some shit
+        ///  Repos controller
         /// </summary>
-        /// <param name="httpContextAccessor">Param</param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
         public ReposController(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
-        /// Some shit
+        /// Index controller
         /// </summary>
-        /// <returns>Something</returns>
+        /// <returns>Redirect to login page with gitea cookie set with path = / </returns>
         public ActionResult Index()
         {
             string cookieKey = "i_like_gitea";
             var giteaCookie = _httpContextAccessor.HttpContext.Request.Cookies[cookieKey];
-            Set(cookieKey, giteaCookie);
+            Response.Cookies.Append(cookieKey, giteaCookie);
             return RedirectToAction("Login", "Home");
 
-        }
-
-        /// <summary>
-        /// set the cookie
-        /// </summary>
-        /// <param name="key">key (unique indentifier)</param>
-        /// <param name="value">value to store in cookie object</param>
-        private void Set(string key, string value)
-        {
-            CookieOptions option = new CookieOptions();
-            Response.Cookies.Append(key, value, option);
         }
     }
 }
