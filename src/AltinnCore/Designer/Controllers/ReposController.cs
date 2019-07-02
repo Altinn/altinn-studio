@@ -1,31 +1,38 @@
+using AltinnCore.Common.Configuration;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Designer.Controllers
 {
     /// <summary>
-    ///  Some shit
+    ///  Controller for generating repository cookie
     /// </summary>
+    [Authorize]
     public class ReposController: Controller
     {
         private IHttpContextAccessor _httpContextAccessor;
+        private readonly ServiceRepositorySettings _settings;
 
         /// <summary>
-        ///  Repos controller
+        ///  Initializes a new instance of the <see cref="ReposController"/> class. 
         /// </summary>
         /// <param name="httpContextAccessor">The http context accessor</param>
-        public ReposController(IHttpContextAccessor httpContextAccessor)
+        /// <param name="repositorySettings"> The service repository settings. </param>
+        public ReposController(IHttpContextAccessor httpContextAccessor, IOptions<ServiceRepositorySettings> repositorySettings)
         {
             _httpContextAccessor = httpContextAccessor;
+            _settings = repositorySettings.Value;
         }
 
         /// <summary>
-        /// Index method used for setting i_like_gitea with correct path
+        /// Index method used for setting gitea cookie without path specification
         /// </summary>
-        /// <returns>Redirect to login page with gitea cookie set with path = / </returns>
+        /// <returns> Redirect to login page with gitea cookie </returns>
         public ActionResult Index()
         {
-            string giteaCookieKey = "i_like_gitea";
+            string giteaCookieKey = _settings.GiteaCookieName;
             var giteaCookieValue = _httpContextAccessor.HttpContext.Request.Cookies[giteaCookieKey];
             Response.Cookies.Append(giteaCookieKey, giteaCookieValue);
             return RedirectToAction("Login", "Home");
