@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormFillerActions from '../features/form/data/actions';
 import { IFormUserState } from '../features/form/user/reducer';
+import ReceiptComponent from '../features/receipt/components/receiptComponent';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IValidations } from '../types/global';
 
@@ -111,7 +112,9 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             <i className='fa fa-corp a-icon' aria-hidden='true' />
           </div>
           <h1 className='a-iconText-text mb-0'>
-            <span className='a-iconText-text-large'>{this.props.header}</span>
+            <span className='a-iconText-text-large'>{this.props.step === WorkflowSteps.Archived ? (
+              <span>Kvittering</span>
+            ) : (this.props.header)}</span>
           </h1>
         </div>
       </div>
@@ -244,7 +247,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                           this.renderSubmit()
                         }
                         {this.props.step === WorkflowSteps.Archived &&
-                          this.renderReceipt()
+                          <ReceiptComponent />
                         }
                       </div>
                     </div>

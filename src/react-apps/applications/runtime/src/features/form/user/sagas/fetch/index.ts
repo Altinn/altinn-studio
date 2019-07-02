@@ -8,6 +8,7 @@ import * as FormUserActionTypes from '../../actions/types';
 function* fetchFormUserSaga({ url }: IFetchFormUser): SagaIterator {
   try {
     const formUser = yield call(get, url);
+    console.log('formUser', formUser);
     const { organization, person } = formUser.party;
     yield call(
       FormUserActions.fetchFormUserFulfilled, person.firstName, person.middleName, person.lastName, organization,
