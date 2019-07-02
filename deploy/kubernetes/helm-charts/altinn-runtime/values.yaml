@@ -20,7 +20,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
-      value: http://altinn-repositories:3000/repos
+      value: http://altinn-repositories:3000/repos/
     - name: ServiceRepositorySettings__GiteaInternalHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration

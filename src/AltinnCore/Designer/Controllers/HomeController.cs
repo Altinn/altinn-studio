@@ -58,7 +58,7 @@ namespace AltinnCore.Designer.Controllers
         {
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
             string userName = _giteaApi.GetUserNameFromUI().Result;
-
+            _logger.LogInformation($"Username: {userName}");
             if (string.IsNullOrEmpty(userName))
             {
                 return View("StartPage");
@@ -139,6 +139,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The login page</returns>
         public async Task<IActionResult> Login()
         {
+            _logger.LogInformation("Starting method Login in HOME CONTROLLER.");
             string userName = string.Empty;
             string goToUrl = "/";
 
