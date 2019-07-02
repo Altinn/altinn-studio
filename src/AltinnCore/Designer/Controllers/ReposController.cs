@@ -20,7 +20,7 @@ namespace Designer.Controllers
         }
 
         /// <summary>
-        /// Index controller
+        /// Index method used for setting i_like_gitea with correct path
         /// </summary>
         /// <returns>Redirect to login page with gitea cookie set with path = / </returns>
         public ActionResult Index()
