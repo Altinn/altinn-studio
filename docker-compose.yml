@@ -60,9 +60,10 @@ services:
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - ServiceRepositorySettings:EnableGiteaIntegration=true
       - ServiceRepositorySettings:ForceGiteaAuthentication=true
-      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/repos/api/v1
+      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1
       - ServiceRepositorySettings:ApiEndPointHost=altinn3.no
-      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/repos
+      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/
+      - ServiceRepositorySettings:GiteaCookieName=i_like_gitea
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:LanguageFilesLocation=Languages/
@@ -92,9 +93,10 @@ services:
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
       - ServiceRepositorySettings:EnableGiteaIntegration=true
       - ServiceRepositorySettings:ForceGiteaAuthentication=true
-      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/repos/api/v1
+      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1
       - ServiceRepositorySettings:ApiEndPointHost=altinn3.no
-      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/repos
+      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/
+       - ServiceRepositorySettings:GiteaCookieName=i_like_gitea
       - ServiceRepositorySettings:ShouldFetchFromDatabase=false
       - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/
       - GeneralSettings:LanguageFilesLocation=Languages/

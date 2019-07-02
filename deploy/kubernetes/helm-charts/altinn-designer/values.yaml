@@ -27,6 +27,8 @@ environmentVariables:
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
       value: \"true\"
+    - name:  ServiceRepositorySettings__GiteaCookieName
+      value: i_like_gitea
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
@@ -62,6 +64,8 @@ environmentVariables:
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
       value: \"true\"
+    - name:  ServiceRepositorySettings__GiteaCookieName
+      value: i_like_gitea
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
