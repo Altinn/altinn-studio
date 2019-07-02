@@ -9,7 +9,6 @@ namespace Designer.Controllers
     /// <summary>
     ///  Controller for generating repository cookie
     /// </summary>
-    [Authorize]
     public class ReposController: Controller
     {
         private IHttpContextAccessor _httpContextAccessor;
