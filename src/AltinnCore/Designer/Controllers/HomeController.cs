@@ -206,7 +206,7 @@ namespace AltinnCore.Designer.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return LocalRedirect("/user/logout");
+            return LocalRedirect("/repos/user/logout");
         }
 
         /// <summary>
