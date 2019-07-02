@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
+using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
 using AltinnCore.Common.Services.Implementation;
@@ -90,16 +92,17 @@ namespace AltinnCore.Runtime
             else
             {
                 // Services added if code is running in app
-                services.AddSingleton<IExecution, ExecutionStudioSI>();
+                services.AddSingleton<IExecution, ExecutionAppSI>();
                 services.AddSingleton<IDSF, RegisterDSFAppSI>();
                 services.AddSingleton<IER, RegisterERAppSI>();
-                services.AddSingleton<IRegister, RegisterStudioSI>();
-                services.AddSingleton<IProfile, ProfileStudioSI>();
+                services.AddSingleton<IRegister, RegisterAppSI>();
+                services.AddSingleton<IProfile, ProfileAppSI>();
                 services.AddSingleton<IInstance, InstanceAppSI>();
                 services.AddSingleton<IData, DataAppSI>();
                 services.AddSingleton<IWorkflow, WorkflowAppSI>();
                 services.AddSingleton<ITestdata, TestdataAppSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
+                services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
@@ -201,7 +204,7 @@ namespace AltinnCore.Runtime
                     Version = "v1"
                 });
 
-                options.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                // options.IncludeXmlComments(GetXmlCommentsPathForControllers());
             });
         }
 
@@ -233,7 +236,19 @@ namespace AltinnCore.Runtime
             // app.UseHsts();
             // app.UseHttpsRedirection();
             app.UseAuthentication();
+            app.UseStatusCodePages(async context =>
+            {
+                var request = context.HttpContext.Request;
+                var response = context.HttpContext.Response;
+                string url = $"{request.Host.ToString()}{request.Path.ToString()}";
 
+                // you may also check requests path to do this only for specific methods       
+                // && request.Path.Value.StartsWith("/specificPath")
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                {
+                    response.Redirect($"/runtime/account/login?gotoUrl={url}");
+                }
+            });
             app.UseResponseCompression();
             app.UseRequestLocalization();
             app.UseStaticFiles(new StaticFileOptions()
@@ -287,6 +302,17 @@ namespace AltinnCore.Runtime
                        controller = "Instance",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                   });
+
+                routes.MapRoute(
+                   name: "runtimeRoute",
+                   template: "runtime/{org}/{service}",
+                   defaults: new { action = "EditSPA", controller = "Instance" },
+                   constraints: new
+                   {
+                       action = "EditSPA",
+                       controller = "Instance",
+                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
                 // ---------------------------- API -------------------------- //
@@ -407,6 +433,14 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "Language",
+                    });
+                routes.MapRoute(
+                    name: "authenticationRoute",
+                    template: "runtime/{controller}/{action}/{gotourl?}",
+                    defaults: new { controller = "Account" },
+                    constraints: new
+                    {
+                        controller = "Account",
                     });
 
                 // -------------------------- DEFAULT ------------------------- //

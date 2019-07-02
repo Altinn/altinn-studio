@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { makeGetValidationsSelector } from '../../selectors/getValidations';
 import { IValidations } from '../../types/global';
 import { canFormBeSaved, getErrorCount } from '../../utils/validation';
-import FormDataActions from './../../../src/features/form/data/actions/index';
+import FormDataActions from './../../features/form/data/actions/index';
 import { IAltinnWindow, IRuntimeState } from './../../types';
 export interface IButtonProvidedProps {
   id: string;
@@ -56,15 +56,23 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
   public saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = '/runtime';
+    }
     FormDataActions.submitFormData(
-      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+      `${window.location.origin}${routePrefix}/api/${reportee}/${org}/${service}/${instanceId}`,
     );
   }
 
   public submitForm = () => {
     const { reportee, org, service, instanceId } = window as IAltinnWindow;
+    let routePrefix: string = null;
+    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+      routePrefix = '/runtime';
+    }
     FormDataActions.submitFormData(
-      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+      `${window.location.origin}${routePrefix}/api/${reportee}/${org}/${service}/${instanceId}`,
       'Complete',
     );
   }

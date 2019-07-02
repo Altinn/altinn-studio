@@ -38,8 +38,13 @@ interface ICurrentVersionPaperProps {
 }
 
 export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
+  const [imageVersion, setImageVersion] = React.useState(props.imageVersion);
   const { classes } = props;
   const { org, service } = window as IAltinnWindow;
+
+  React.useEffect(() => {
+    setImageVersion(props.imageVersion);
+  }, [props.imageVersion]);
 
   return (
     <React.Fragment>
@@ -61,7 +66,7 @@ export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
           {getLanguageFromKey('deploy_to_test.current_version_title', props.language)}
         </Typography>
 
-        {props.imageVersion ? (
+        {imageVersion ? (
           <div>
             <Typography variant='body1'>
               <span style={{ fontWeight: 500 }}>
@@ -77,7 +82,7 @@ export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
                 target='_blank'
                 className={classes.link}
               >
-                {`${org}.apps.${props.env}.${urls.hostname.apps.test}/${service}`}
+                {`${org}.apps.${props.env}.${urls.hostname.apps.test}/${org}/${service}`}
               </a>
             </Typography>
           </div>

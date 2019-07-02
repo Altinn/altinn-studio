@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Controllers
@@ -43,6 +44,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly GeneralSettings _generalSettings;
         private readonly IGitea _giteaApi;
         private readonly IWorkflow _workflow;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
@@ -56,7 +58,18 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaApi">the gitea api</param>
         /// <param name="workflow">the workflow</param>
-        public ManualTestingController(IHttpContextAccessor httpContextAccessor, IProfile profile, IRegister register, IAuthorization authorization, ITestdata testdata, IOptions<ServiceRepositorySettings> serviceRepositorySettings, IOptions<GeneralSettings> generalSettings, IGitea giteaApi, IWorkflow workflow)
+        /// <param name="logger">the logger</param>
+        public ManualTestingController(
+            IHttpContextAccessor httpContextAccessor,
+            IProfile profile,
+            IRegister register,
+            IAuthorization authorization,
+            ITestdata testdata,
+            IOptions<ServiceRepositorySettings> serviceRepositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IGitea giteaApi,
+            IWorkflow workflow,
+            ILogger<ManualTestingController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _register = register;
@@ -68,10 +81,11 @@ namespace AltinnCore.Designer.Controllers
             _generalSettings = generalSettings.Value;
             _giteaApi = giteaApi;
             _workflow = workflow;
+            _logger = logger;
         }
 
         /// <summary>
-        /// This methods list the instances for a given reportee for a service. This can be looked 
+        /// This methods list the instances for a given reportee for a service. This can be looked
         /// at as a simplified message box
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -94,24 +108,28 @@ namespace AltinnCore.Designer.Controllers
             StartServiceModel startServiceModel = new StartServiceModel
             {
                 ServiceID = org + "_" + service,
-                ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
-                    .Select(x => new SelectListItem { Text = x.ReporteeNumber + " " + x.ReporteeName, Value = x.PartyID.ToString() })
+                PartyList = _authorization.GetPartyList(requestContext.UserContext.UserId)
+                    .Select(x => new SelectListItem
+                    {
+                        Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Person.Name : x.OrgNumber + " " + x.Organization.Name,
+                        Value = x.PartyId.ToString()
+                    })
                     .ToList(),
                 PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
-                ReporteeID = requestContext.Reportee.PartyId,
+                PartyId = requestContext.Reportee.PartyId,
                 Org = org,
                 Service = service,
             };
 
-            if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
+            if (reporteeId != 0 && reporteeId != startServiceModel.PartyId && startServiceModel.PartyList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
-                startServiceModel.ReporteeID = reporteeId;
-                requestContext.Reportee = await _register.GetParty(startServiceModel.ReporteeID);
+                startServiceModel.PartyId = reporteeId;
+                requestContext.Reportee = await _register.GetParty(startServiceModel.PartyId);
                 requestContext.UserContext.ReporteeId = reporteeId;
                 requestContext.UserContext.Reportee = requestContext.Reportee;
-                HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
+                HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.PartyId.ToString());
             }
 
             List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
@@ -217,13 +235,13 @@ namespace AltinnCore.Designer.Controllers
                         AllowRefresh = false,
                     });
 
-            List<Reportee> reporteeList = _authorization.GetReporteeList(profile.UserId);
-            Reportee reporteeBE = null;
+            List<Party> partyList = _authorization.GetPartyList(profile.UserId);
+            Party partyBE = null;
 
-            if (!string.IsNullOrEmpty(reportee) && reporteeList.Any(r => r.ReporteeNumber.Equals(reportee)))
+            if (!string.IsNullOrEmpty(reportee) && partyList.Any(r => (r.PartyTypeName == PartyType.Person) ? r.SSN.Equals(reportee) : r.OrgNumber.Equals(reportee)))
             {
-                reporteeBE = reporteeList.FirstOrDefault(r => r.ReporteeNumber.Equals(reportee));
-                HttpContext.Response.Cookies.Append("altinncorereportee", reporteeBE.PartyID.ToString());
+                partyBE = partyList.FirstOrDefault(r => (r.PartyTypeName == PartyType.Person) ? r.SSN.Equals(reportee) : r.OrgNumber.Equals(reportee));
+                HttpContext.Response.Cookies.Append("altinncorereportee", partyBE.PartyId.ToString());
             }
             else
             {

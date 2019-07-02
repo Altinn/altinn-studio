@@ -22,7 +22,7 @@ namespace Altinn.Platform.Authentication
     public class Startup
     {
         /// <summary>
-        ///  Initializes a new instance of the <see cref="Startup"/> class 
+        ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
         /// <param name="configuration">The configuration for the authentication component</param>
         public Startup(IConfiguration configuration)
@@ -38,7 +38,7 @@ namespace Altinn.Platform.Authentication
         /// <summary>
         /// Configure authentication setttings for the service
         /// </summary>
-        /// <param name="services">the service configuration</param>    
+        /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
@@ -52,7 +52,7 @@ namespace Altinn.Platform.Authentication
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                     {
                         options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                        options.Cookie.Name = "AltinnRuntimeCookie";
+                        options.Cookie.Name = "AltinnStudioRuntime";
                         options.Cookie.Domain = "at21.altinn.cloud";
                     });
         }

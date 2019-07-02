@@ -2,12 +2,12 @@
   "recommendations": [
     "ms-vscode.csharp",
     "k--kato.docomment",
-    "peterjausovec.vscode-docker",
+    "ms-azuretools.vscode-docker",
     "eamodio.gitlens",
     "DavidAnson.vscode-markdownlint",
     "msjsdiag.debugger-for-chrome",
     "EditorConfig.EditorConfig",
-    "eg2.tslint",
-    "github.vscode-pull-request-github"
+    "github.vscode-pull-request-github",
+    "ms-vscode.vscode-typescript-tslint-plugin"
   ]
 }

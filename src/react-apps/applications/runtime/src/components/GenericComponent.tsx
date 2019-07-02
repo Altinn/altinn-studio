@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
+import { formComponentWithHandlers } from '../features/form/containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
 import { IFormData } from '../features/form/data/reducer';
 import FormDynamicsActions from '../features/form/dynamics/actions';
@@ -10,7 +10,6 @@ import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetLayoutElement } from '../selectors/getLayoutData';
-import { makeGetComponentValidationsSelector } from '../selectors/getValidations';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
@@ -29,7 +28,6 @@ export interface IGenericComponentProps extends IProvidedProps {
   isValid: boolean;
   textResources: ITextResource[];
   layoutElement: ILayoutGroup | ILayoutComponent;
-  validationMessages: IComponentValidations;
   unsavedChanges: boolean;
 }
 
@@ -46,7 +44,11 @@ export class GenericComponentClass extends React.Component<IGenericComponentProp
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service, instanceId, reportee } = altinnWindow;
-      const url = `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`;
+      let routePrefix: string = null;
+      if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
+        routePrefix = '/runtime';
+      }
+      const url = `${window.location.origin}${routePrefix}/api/${reportee}/${org}/${service}/${instanceId}`;
       ValidationActions.runSingleFieldValidation(url, dataModelField);
     }
     const dataModelElement = this.props.dataModel.find(
@@ -117,7 +119,6 @@ export const isComponentValid = (validations: IComponentValidations): boolean =>
 const makeMapStateToProps = () => {
   const GetFormDataSelector = makeGetFormDataSelector();
   const GetLayoutElement = makeGetLayoutElement();
-  const GetComponentValidations = makeGetComponentValidationsSelector();
   const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => {
     return {
       dataModel: state.formDataModel.dataModel,
@@ -126,7 +127,6 @@ const makeMapStateToProps = () => {
       textResources: state.formResources.languageResource.resources,
       formData: GetFormDataSelector(state, props),
       unsavedChanges: state.formData.unsavedChanges,
-      validationMessages: GetComponentValidations(state, props),
       ...props,
     };
   };

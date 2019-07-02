@@ -9,8 +9,8 @@ export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof
   onKeyPressFunction?: any;
 }
 
-export interface IAltinnCheckBoxComponentState {
-}
+export interface IAltinnCheckBoxComponentState { }
+
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
