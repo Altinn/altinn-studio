@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.Common.Services.Interfaces

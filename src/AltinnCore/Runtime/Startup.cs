@@ -88,6 +88,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IRegister, RegisterStudioSI>();
                 services.AddSingleton<IProfile, ProfileStudioSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
+                services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             }
             else
             {
@@ -103,11 +104,11 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<ITestdata, TestdataAppSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
+                services.AddSingleton<IAuthorization, AuthorizationAppSI>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
-            services.AddSingleton<IArchive, ArchiveStudioSI>();
-            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
+            services.AddSingleton<IArchive, ArchiveStudioSI>();            
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICompilation, CompilationSI>();
