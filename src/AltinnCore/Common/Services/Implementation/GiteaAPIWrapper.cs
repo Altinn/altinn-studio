@@ -407,10 +407,10 @@ namespace AltinnCore.Common.Services.Implementation
                     var setCookieHeader = setCookieHeaders.Where(s => s.Contains("macaron_flash")).First().Split(";")[0];
                     _logger.LogInformation($"Set Cookie Header: {setCookieHeader}");
                     var splitSetCookieHeader = setCookieHeader.Split("=");
-                    var MacaronFlashKey = splitSetCookieHeader[0];
-                    var MacaronFlashValue = splitSetCookieHeader[1];
-                    var clientWithToken = GetWebHtmlClient(false, new Cookie(MacaronFlashKey, MacaronFlashValue, "/", "altinn-repositories"));
-                    _logger.LogInformation($"Cookie {MacaronFlashKey} : {MacaronFlashValue}");
+                    var macaronFlashKey = splitSetCookieHeader[0];
+                    var macaronFlashValue = splitSetCookieHeader[1];
+                    var clientWithToken = GetWebHtmlClient(false, new Cookie(macaronFlashKey, macaronFlashValue, "/", "altinn-repositories"));
+                    _logger.LogInformation($"Cookie {macaronFlashKey} : {macaronFlashValue}");
                     HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
                     string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
                     string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
@@ -625,9 +625,12 @@ namespace AltinnCore.Common.Services.Implementation
             _logger.LogInformation($"GetWebHtmlClient_Cookie value :{cookie.Value}");
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
-            if (tokenCookie != null) {
+
+            if (tokenCookie != null)
+            {
                 cookieContainer.Add(tokenCookie);
             }
+
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer, AllowAutoRedirect = allowAutoRedirect };
 
             return new HttpClient(handler);
