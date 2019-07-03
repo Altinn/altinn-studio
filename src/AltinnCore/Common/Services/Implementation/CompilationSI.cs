@@ -125,7 +125,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             CodeCompilationResult compilationResult = new CodeCompilationResult() { CompileStarted = DateTime.Now };
             string assemblykey = org + "_" + CompileHelper.GetCSharpValidAppId(service);
-
+            _logger.LogInformation($"org createserviceassembly{org}");
+            _logger.LogInformation($"service createserviceassembly{service}");
             List<AltinnCoreFile> implementationFiles = _repository.GetImplementationFiles(org, service);
 
             DateTime lastChanged = new DateTime(2000, 01, 01);

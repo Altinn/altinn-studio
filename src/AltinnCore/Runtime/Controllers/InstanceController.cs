@@ -281,6 +281,8 @@ namespace AltinnCore.Runtime.Controllers
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
             bool startService = true;
+            _logger.LogInformation($"Startservicemodel org: {startServiceModel.Org}");
+            _logger.LogInformation($"Startservicemodel service: {startServiceModel.Service}");
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(startServiceModel.Org, startServiceModel.Service, startService);
 
             // Get the service context containing metadata about the service

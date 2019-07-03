@@ -19,6 +19,7 @@ using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -33,6 +34,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IRepository _repository;
         private readonly Interfaces.ICompilation _compilation;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionStudioSI"/> class
@@ -42,22 +44,27 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
         /// <param name="hostingEnvironment">the hosting environment</param>
+        /// <param name="logger">the logger</param>
         public ExecutionStudioSI(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             Interfaces.ICompilation compilationService,
             ApplicationPartManager partManager,
-            IHostingEnvironment hostingEnvironment)
+            IHostingEnvironment hostingEnvironment,
+            ILogger<ExecutionStudioSI> logger)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _compilation = compilationService;
             _hostingEnvironment = hostingEnvironment;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
         public IServiceImplementation GetServiceImplementation(string org, string appName, bool startServiceFlag)
         {
+            _logger.LogInformation($"Org : {org}");
+            _logger.LogInformation($"Servie : {appName}");
             string assemblyName = LoadServiceAssembly(org, appName, startServiceFlag);
             string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(appName)) + ".ServiceImplementation," + assemblyName;
 
@@ -111,6 +118,8 @@ namespace AltinnCore.Common.Services.Implementation
 
         private string LoadServiceAssembly(string org, string appName, bool startServiceFlag)
         {
+            _logger.LogInformation($"Org loadserviceassembly: {org}");
+            _logger.LogInformation($"Servie loadserviceassembly : {appName}");
             var codeCompilationResult = _compilation.CreateServiceAssembly(org, appName, startServiceFlag);
             if (!codeCompilationResult.Succeeded)
             {
