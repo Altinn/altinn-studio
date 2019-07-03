@@ -403,7 +403,15 @@ namespace AltinnCore.Common.Services.Implementation
                 _logger.LogInformation($"response : {response.StatusCode}");
                 if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
                 {
-                    HttpResponseMessage tokenResponse = await client.GetAsync(giteaUrl);
+                    var setCookieHeaders = response.Headers.GetValues("Set-Cookie");
+                    var setCookieHeader = setCookieHeaders.Where(s => s.Contains("macaron_flash")).First().Split(";")[0];
+                    _logger.LogInformation($"Set Cookie Header: {setCookieHeader}");
+                    var splitSetCookieHeader = setCookieHeader.Split("=");
+                    var MacaronFlashKey = splitSetCookieHeader[0];
+                    var MacaronFlashValue = splitSetCookieHeader[1];
+                    var clientWithToken = GetWebHtmlClient(false, new Cookie(MacaronFlashKey, MacaronFlashValue, "/", "altinn-repositories"));
+                    _logger.LogInformation($"Cookie {MacaronFlashKey} : {MacaronFlashValue}");
+                    HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
                     string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
                     string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
                     List<string> keys = FindAllAppKeysId(htmlContent, keyName);
@@ -414,6 +422,7 @@ namespace AltinnCore.Common.Services.Implementation
                     }
 
                     KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
+                    _logger.LogInformation($"Token is {token}");
 
                     return keyValuePair;
                 }
@@ -607,7 +616,7 @@ namespace AltinnCore.Common.Services.Implementation
             return client;
         }
 
-        private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true)
+        private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true, Cookie tokenCookie = null)
         {
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
             _logger.LogInformation($"Giteasession in GetWebHtmlClient{giteaSession}");
@@ -616,6 +625,9 @@ namespace AltinnCore.Common.Services.Implementation
             _logger.LogInformation($"GetWebHtmlClient_Cookie value :{cookie.Value}");
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
+            if (tokenCookie != null) {
+                cookieContainer.Add(tokenCookie);
+            }
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer, AllowAutoRedirect = allowAutoRedirect };
 
             return new HttpClient(handler);
