@@ -389,21 +389,22 @@ namespace AltinnCore.Common.Services.Implementation
 
             _logger.LogInformation($"GiteaApiWrapper // GetSessionAppKey // giteaUrl = {giteaUrl}");
             _logger.LogInformation($"Giteaurl : {giteaUrl}");
+            _logger.LogInformation($"csrf : {csrf}");
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
-
             FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
 
-            using (HttpClient client = GetWebHtmlClient())
+            using (HttpClient client = GetWebHtmlClient(false))
             {
                 _logger.LogInformation($"before response : {giteaUrl}");
-                _logger.LogInformation($"before response : {content.ReadAsStringAsync()}");
+                _logger.LogInformation($"content : {formValues}");
                 HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
                 _logger.LogInformation($"response : {response.StatusCode}");
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
                 {
-                    string htmlContent = await response.Content.ReadAsStringAsync();
+                    HttpResponseMessage tokenResponse = await client.GetAsync(giteaUrl);
+                    string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
                     string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
                     List<string> keys = FindAllAppKeysId(htmlContent, keyName);
                     _logger.LogInformation($"The number of app keys matching keyname {keyName} is {keys.Count}");
