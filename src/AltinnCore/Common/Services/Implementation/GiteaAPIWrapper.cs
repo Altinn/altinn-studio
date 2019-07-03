@@ -391,14 +391,16 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = GetWebHtmlClient(false))
             {
+                // creating new API key
                 HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
 
                 if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
                 {
                     Cookie cookie = StealMacaronCookie(response);
-
+                    
                     using (HttpClient clientWithToken = GetWebHtmlClient(false, cookie))
                     {
+                        // reading the API key value
                         HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
                         string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
                         string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
@@ -642,7 +644,7 @@ namespace AltinnCore.Common.Services.Implementation
             return giteaUrl;
         }
 
-        private string GetGiteaHost()
+        private string GetApiEndpointHost()
         {
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") != null)
             {
@@ -665,7 +667,7 @@ namespace AltinnCore.Common.Services.Implementation
             var splitSetCookieHeader = setCookieHeader.Split("=");
             string macaronFlashValue = splitSetCookieHeader[1];
 
-            return new Cookie(macaronFlashKey, macaronFlashValue, "/", GetGiteaHost());
+            return new Cookie(macaronFlashKey, macaronFlashValue, "/",  GetApiEndpointHost());
         }
     }
 }
