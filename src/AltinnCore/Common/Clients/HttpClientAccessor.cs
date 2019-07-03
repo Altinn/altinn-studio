@@ -86,8 +86,7 @@ namespace AltinnCore.Common.Clients
                 if (_authorizationClient == null)
                 {
                     _authorizationClient = new HttpClient();
-                    _authorizationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");
-                    _authorizationClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    _authorizationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");                    
                     _authorizationClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 }
 
