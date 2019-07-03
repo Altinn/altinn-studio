@@ -58,7 +58,7 @@ namespace AltinnCore.Designer.Controllers
         {
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
             string userName = _giteaApi.GetUserNameFromUI().Result;
-            _logger.LogInformation($"Username: {userName}");
+
             if (string.IsNullOrEmpty(userName))
             {
                 return View("StartPage");
