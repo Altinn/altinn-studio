@@ -46,9 +46,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser()
         {
+            _logger.LogInformation($"GiteaApiWrapper // GetCurrentUser // Starting function");
             AltinnCore.RepositoryClient.Model.User user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri endpointUrl = new Uri(GetApiBaseUrl() + "/user");
+            _logger.LogInformation($"GiteaApiWrapper // GetCurrentUser // endpoint = {endpointUrl}");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
@@ -377,12 +379,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A newly generated token</returns>
         public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
         {
+            _logger.LogInformation($"GiteaApiWrapper // GetSessionAppKey // Starting function");
             string csrf = GetCsrf().Result;
 
             await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
 
+            _logger.LogInformation($"GiteaApiWrapper // GetSessionAppKey // giteaUrl = {giteaUrl}");
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
@@ -585,6 +589,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             HttpClient client = new HttpClient(httpClientHandler);
             client.DefaultRequestHeaders.Add(Constants.General.AuthorizationTokenHeaderName, AuthenticationHelper.GetDeveloperTokenHeaderValue(_httpContextAccessor.HttpContext));
+            _logger.LogInformation($" GiteaApiWrapper // GetApiClient // httpcontext: {_httpContextAccessor.HttpContext}");
             return client;
         }
 
@@ -606,9 +611,9 @@ namespace AltinnCore.Common.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost") != null)
             {
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost"));
             }
             else
             {
