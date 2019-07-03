@@ -49,6 +49,7 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.User user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri endpointUrl = new Uri(GetApiBaseUrl() + "/user");
+            _logger.LogInformation($"apibaseurl : {endpointUrl}");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
@@ -354,7 +355,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the logged in user</returns>
         public async Task<string> GetUserNameFromUI()
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/");
             using (HttpClient client = GetWebHtmlClient(false))
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -381,8 +382,9 @@ namespace AltinnCore.Common.Services.Implementation
 
             await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
 
+            _logger.LogInformation($"Giteaurl : {giteaUrl}");
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
@@ -391,7 +393,10 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = GetWebHtmlClient())
             {
+                _logger.LogInformation($"before response : {giteaUrl}");
+                _logger.LogInformation($"before response : {content.ReadAsStringAsync()}");
                 HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
+                _logger.LogInformation($"response : {response.StatusCode}");
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string htmlContent = await response.Content.ReadAsStringAsync();
@@ -414,11 +419,15 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<string> GetCsrf()
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
+
+            _logger.LogInformation($"Csrf Giteaurl : {giteaUrl}");
 
             using (HttpClient client = GetWebHtmlClient())
             {
+                _logger.LogInformation($"csrf before response : {giteaUrl}");
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                _logger.LogInformation($"csrf response : {response.StatusCode}");
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string htmlContent = await response.Content.ReadAsStringAsync();
@@ -432,7 +441,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task DeleteCurrentAppKeys(string csrf, string keyName = null)
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
             List<string> appKeyIds = new List<string>();
 
             using (HttpClient client = GetWebHtmlClient())
@@ -450,7 +459,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task DeleteAllAppKeys(List<string> appKeys, string csrf)
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications/delete");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications/delete");
 
             using (HttpClient client = GetWebHtmlClient())
             {
@@ -568,10 +577,13 @@ namespace AltinnCore.Common.Services.Implementation
             string baseUrl = string.Empty;
             if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
             {
+                _logger.LogInformation($"GiteaApiEndPoint : {Environment.GetEnvironmentVariable("GiteaApiEndpoint")}");
+                _logger.LogInformation($"GiteaEndPoint : {Environment.GetEnvironmentVariable("GiteaEndpoint")}");
                 baseUrl = Environment.GetEnvironmentVariable("GiteaApiEndpoint");
             }
             else
             {
+                _logger.LogInformation($"ApiEndPoint : {_settings.ApiEndPoint}");
                 baseUrl = _settings.ApiEndPoint;
             }
 
@@ -584,6 +596,7 @@ namespace AltinnCore.Common.Services.Implementation
             httpClientHandler.AllowAutoRedirect = allowAutoRedirect;
 
             HttpClient client = new HttpClient(httpClientHandler);
+            _logger.LogInformation($"DeveloperToken : {AuthenticationHelper.GetDeveloperTokenHeaderValue(_httpContextAccessor.HttpContext)}");
             client.DefaultRequestHeaders.Add(Constants.General.AuthorizationTokenHeaderName, AuthenticationHelper.GetDeveloperTokenHeaderValue(_httpContextAccessor.HttpContext));
             return client;
         }
@@ -591,8 +604,10 @@ namespace AltinnCore.Common.Services.Implementation
         private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true)
         {
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+            _logger.LogInformation($"Giteasession in GetWebHtmlClient{giteaSession}");
             Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-
+            _logger.LogInformation($"GetWebHtmlClient_Cookie name :{cookie.Name}");
+            _logger.LogInformation($"GetWebHtmlClient_Cookie value :{cookie.Value}");
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer, AllowAutoRedirect = allowAutoRedirect };
@@ -606,15 +621,17 @@ namespace AltinnCore.Common.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") != null)
             {
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost"));
             }
             else
             {
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
             }
 
+            _logger.LogInformation($"Cookie name : {cookie.Name}");
+            _logger.LogInformation($"Cookie value : {cookie.Value}");
             return cookie;
         }
 
