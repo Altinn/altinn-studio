@@ -14,16 +14,14 @@ namespace Altinn.Platform.Authorization.Controllers
     [ApiController]
     public class PartiesController : ControllerBase
     {
-        private readonly IParties _partiesWrapper;
-        private readonly ILogger _logger;
+        private readonly IParties _partiesWrapper;        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesController"/> class
         /// </summary>
-        public PartiesController(IParties partiesWrapper, ILogger<PartiesController> logger)
+        public PartiesController(IParties partiesWrapper)
         {
             _partiesWrapper = partiesWrapper;
-            _logger = logger;
         }
 
         /// <summary>
