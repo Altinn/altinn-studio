@@ -46,12 +46,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser()
         {
-            _logger.LogInformation($"GiteaApiWrapper // GetCurrentUser // Starting function");
             AltinnCore.RepositoryClient.Model.User user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri endpointUrl = new Uri(GetApiBaseUrl() + "/user");
-            _logger.LogInformation($"GiteaApiWrapper // GetCurrentUser // endpoint = {endpointUrl}");
-            _logger.LogInformation($"apibaseurl : {endpointUrl}");
+
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
@@ -187,9 +185,9 @@ namespace AltinnCore.Common.Services.Implementation
                         repo.IsClonedToLocal = IsLocalRepo(repo.Owner.Login, repo.Name);
                         Organization org = await GetCachedOrg(repo.Owner.Login);
                         if (org.Id != -1)
-                         {
-                             repo.Owner.UserType = UserType.Org;
-                         }
+                        {
+                            repo.Owner.UserType = UserType.Org;
+                        }
                     }
                 }
             }
@@ -380,16 +378,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A newly generated token</returns>
         public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
         {
-            _logger.LogInformation($"GiteaApiWrapper // GetSessionAppKey // Starting function");
             string csrf = GetCsrf().Result;
 
             await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 
             Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
 
-            _logger.LogInformation($"GiteaApiWrapper // GetSessionAppKey // giteaUrl = {giteaUrl}");
-            _logger.LogInformation($"Giteaurl : {giteaUrl}");
-            _logger.LogInformation($"csrf : {csrf}");
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
@@ -397,34 +391,23 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = GetWebHtmlClient(false))
             {
-                _logger.LogInformation($"before response : {giteaUrl}");
-                _logger.LogInformation($"content : {formValues}");
                 HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
-                _logger.LogInformation($"response : {response.StatusCode}");
+
                 if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
                 {
-                    var setCookieHeaders = response.Headers.GetValues("Set-Cookie");
-                    var setCookieHeader = setCookieHeaders.Where(s => s.Contains("macaron_flash")).First().Split(";")[0];
-                    _logger.LogInformation($"Set Cookie Header: {setCookieHeader}");
-                    var splitSetCookieHeader = setCookieHeader.Split("=");
-                    var macaronFlashKey = splitSetCookieHeader[0];
-                    var macaronFlashValue = splitSetCookieHeader[1];
-                    var clientWithToken = GetWebHtmlClient(false, new Cookie(macaronFlashKey, macaronFlashValue, "/", GetGiteaHost()));
-                    _logger.LogInformation($"Cookie {macaronFlashKey} : {macaronFlashValue}");
-                    HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
-                    string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
-                    string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
-                    List<string> keys = FindAllAppKeysId(htmlContent, keyName);
-                    _logger.LogInformation($"The number of app keys matching keyname {keyName} is {keys.Count}");
-                    foreach (string key in keys)
+                    Cookie cookie = StealMacaronCookie(response);
+
+                    using (HttpClient clientWithToken = GetWebHtmlClient(false, cookie))
                     {
-                        _logger.LogInformation($"Keyvalue is {key}");
+                        HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
+                        string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
+                        string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
+                        List<string> keys = FindAllAppKeysId(htmlContent, keyName);
+
+                        KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
+
+                        return keyValuePair;
                     }
-
-                    KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
-                    _logger.LogInformation($"Token is {token}");
-
-                    return keyValuePair;
                 }
             }
 
@@ -435,13 +418,10 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
 
-            _logger.LogInformation($"Csrf Giteaurl : {giteaUrl}");
-
             using (HttpClient client = GetWebHtmlClient())
             {
-                _logger.LogInformation($"csrf before response : {giteaUrl}");
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
-                _logger.LogInformation($"csrf response : {response.StatusCode}");
+
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string htmlContent = await response.Content.ReadAsStringAsync();
@@ -591,13 +571,10 @@ namespace AltinnCore.Common.Services.Implementation
             string baseUrl = string.Empty;
             if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
             {
-                _logger.LogInformation($"GiteaApiEndPoint : {Environment.GetEnvironmentVariable("GiteaApiEndpoint")}");
-                _logger.LogInformation($"GiteaEndPoint : {Environment.GetEnvironmentVariable("GiteaEndpoint")}");
                 baseUrl = Environment.GetEnvironmentVariable("GiteaApiEndpoint");
             }
             else
             {
-                _logger.LogInformation($"ApiEndPoint : {_settings.ApiEndPoint}");
                 baseUrl = _settings.ApiEndPoint;
             }
 
@@ -610,19 +587,14 @@ namespace AltinnCore.Common.Services.Implementation
             httpClientHandler.AllowAutoRedirect = allowAutoRedirect;
 
             HttpClient client = new HttpClient(httpClientHandler);
-            _logger.LogInformation($"DeveloperToken : {AuthenticationHelper.GetDeveloperTokenHeaderValue(_httpContextAccessor.HttpContext)}");
             client.DefaultRequestHeaders.Add(Constants.General.AuthorizationTokenHeaderName, AuthenticationHelper.GetDeveloperTokenHeaderValue(_httpContextAccessor.HttpContext));
-            _logger.LogInformation($" GiteaApiWrapper // GetApiClient // httpcontext: {_httpContextAccessor.HttpContext}");
             return client;
         }
 
         private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true, Cookie tokenCookie = null)
         {
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-            _logger.LogInformation($"Giteasession in GetWebHtmlClient{giteaSession}");
             Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-            _logger.LogInformation($"GetWebHtmlClient_Cookie name :{cookie.Name}");
-            _logger.LogInformation($"GetWebHtmlClient_Cookie value :{cookie.Value}");
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
 
@@ -651,8 +623,6 @@ namespace AltinnCore.Common.Services.Implementation
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
             }
 
-            _logger.LogInformation($"Cookie name : {cookie.Name}");
-            _logger.LogInformation($"Cookie value : {cookie.Value}");
             return cookie;
         }
 
@@ -682,6 +652,20 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 return _settings.ApiEndPointHost;
             }
+        }
+
+        private Cookie StealMacaronCookie(HttpResponseMessage response)
+        {
+            string macaronFlashKey = "macaron_flash";
+            string setCookieHeader = response.Headers.GetValues("Set-Cookie")
+                .Where(s => s.Contains(macaronFlashKey))
+                .First()
+                .Split(";")[0];
+
+            var splitSetCookieHeader = setCookieHeader.Split("=");
+            string macaronFlashValue = splitSetCookieHeader[1];
+
+            return new Cookie(macaronFlashKey, macaronFlashValue, "/", GetGiteaHost());
         }
     }
 }
