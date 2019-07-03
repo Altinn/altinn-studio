@@ -5,14 +5,14 @@
 
 An early test version of Altinn Studio is available at https://altinn.studio.
 
-Use the [documentation](https://docs.altinn.studio/) to get started using Altinn Studio.
+Use the [documentation](https://docs.altinn.studio/) to get started using Altinn.
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
-
+# test
 1. [.NET Core 2.2 SDK](https://dotnet.microsoft.com/download/dotnet-core/2.2#sdk-2.2.105)
 2. [Node.js](https://nodejs.org) (Version 10.*)
 3. Newest [Git](https://git-scm.com/downloads)
