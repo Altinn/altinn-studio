@@ -4,7 +4,8 @@ RUN npm install
 COPY /src/AltinnCore/Designer .
 RUN npm run gulp build
 
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2-alpine3.9 AS build
+#dotnet:2.2-sdk
+FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a7633d0b374470 AS build
 COPY /src/AltinnCore ./AltinnCore/
 COPY --from=generate-designer-js /wwwroot /AltinnCore/Designer/wwwroot
 RUN dotnet build AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
@@ -18,7 +19,8 @@ FROM altinn-studio-dashboard:latest AS altinn-studio-dashboard
 
 FROM altinn-runtime-app:latest AS generate-runtime-app
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2-alpine3.9 AS final
+#dotnet:2.2-aspnetcore-runtime
+FROM microsoft/dotnet@sha256:7a9dfa52e5c02d1764964bbb034d9467d798020aa3747e2ddaea1ee3d2d386b8 AS final
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
