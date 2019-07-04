@@ -24,11 +24,7 @@ export function* deleteAttachmentSaga(
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
-    let routePrefix: string = '';
-    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
-      routePrefix = '/runtime';
-    }
-    const deleteUrl = `${altinnWindow.location.origin}${routePrefix}/api/attachment/${reportee}/${servicePath}/` +
+    const deleteUrl = `${altinnWindow.location.origin}/api/attachment/${reportee}/${servicePath}/` +
     `${instanceId}/DeleteFormAttachment?attachmentType=${attachmentType}&attachmentId=${attachment.id}`;
     const response = yield call(post, deleteUrl);
     if (response.status === 200) {

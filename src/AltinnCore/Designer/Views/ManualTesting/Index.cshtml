@@ -64,17 +64,13 @@
       var startServiceButton = document.getElementById('btnStartNewService');
       startServiceButton.addEventListener('click', function (event) {
         const [org, service] = event.target.value.split('/');
-        let routePrefix = null;
-        if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
-          routePrefix = '/runtime';
-        }
-        var win = window.open(`${window.location.origin}${routePrefix}/${org}/${service}`, '_blank');
+        var win = window.open(`${window.location.origin}/${org}/${service}`, '_blank');
         win.focus();
       });
     </script>
 
     <!--
-    <form id="startService" method="post" action="/runtime/Instance/StartService" target="_blank">
+    <form id="startService" method="post" action="/Instance/StartService" target="_blank">
       <input type="hidden" asp-for="ServiceID" />
       <div class="form-group">
         <input type="hidden" asp-for="ReporteeID" />
@@ -107,11 +103,11 @@
                 <td>
                     @if (instance.IsArchived)
                     {
-                        <a href="/runtime/@org/@service#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID (Arktivert)</a>
+                        <a href="/@org/@service#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID (Arktivert)</a>
                     }
                     else
                     {
-                        <a href="/runtime/@org/@service#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID</a>
+                        <a href="/@org/@service#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID</a>
                     }
                 </td>
                 <td>

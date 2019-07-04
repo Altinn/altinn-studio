@@ -58,7 +58,7 @@ namespace AltinnCore.Designer.Controllers
         {
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
             string userName = _giteaApi.GetUserNameFromUI().Result;
-    
+
             if (string.IsNullOrEmpty(userName))
             {
                 return View("StartPage");
@@ -74,7 +74,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The front page</returns>
         [Authorize]
         public ActionResult Index(RepositorySearch repositorySearch)
-        {            
+        {
             return View();
         }
 
@@ -154,12 +154,9 @@ namespace AltinnCore.Designer.Controllers
                 userName = _giteaApi.GetUserNameFromUI().Result;
                 if (string.IsNullOrEmpty(userName))
                 {
-                    if (Environment.GetEnvironmentVariable("GiteaLoginEndpoint") != null)
-                    {
-                        return Redirect(Environment.GetEnvironmentVariable("GiteaLoginEndpoint"));
-                    }
-
-                    return Redirect(_settings.GiteaLoginUrl);
+                    return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl") != null)
+                    ? Redirect(Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl"))
+                    : Redirect(_settings.GiteaLoginUrl);
                 }
             }
             catch (Exception ex)
@@ -206,7 +203,7 @@ namespace AltinnCore.Designer.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return LocalRedirect("/user/logout");
+            return LocalRedirect("/repos/user/logout");
         }
 
         /// <summary>
