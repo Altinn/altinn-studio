@@ -2,11 +2,12 @@ import Grid from '@material-ui/core/Grid';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import ContentLoader from 'react-content-loader';
+import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import { IAltinnWindow } from 'src/types';
+import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import { get, post } from '../../../utils/networking';
-import Header from '../../header/containers';
+import Header from '../../altinnAppHeader/containers';
 
 const styles = () => createStyles({
   modal: {
@@ -23,6 +24,8 @@ function ServiceInfo(props) {
   const [reportee, setReportee] = React.useState(null);
   const [instanceId, setInstanceId] = React.useState(null);
   const [instantiationError, setInstantiationError] = React.useState(null);
+  const language = useSelector((state: IRuntimeState) => state.language.language);
+  const profile = useSelector((state: IRuntimeState) => state.profile.profile);
 
   const fetchReportee = async () => {
     const url: string = `${window.location.origin}/api/v1/profile/user`;
@@ -35,7 +38,7 @@ function ServiceInfo(props) {
       const { org, service } = window as IAltinnWindow;
       const url = `${window.location.origin}/Instance/InstantiateApp`;
       const formData: FormData = new FormData();
-      formData.append('ReporteeID', reportee.userId);
+      formData.append('PartyId', reportee.userId);
       formData.append('Org', org);
       formData.append('Service', service);
       const response = await post(url, null, formData);
@@ -69,7 +72,7 @@ function ServiceInfo(props) {
     const { classes } = props;
     return (
       <>
-      <Header />
+      <Header profile={profile} language={language}/>
       <AltinnModal
         classes={classes}
         isOpen={true}

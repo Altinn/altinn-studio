@@ -256,12 +256,12 @@ namespace AltinnCore.Runtime.Controllers
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
             var startServiceModel = new StartServiceModel
             {
-                ReporteeList = _authorization
-                    .GetReporteeList(userContext.UserId)
+                PartyList = _authorization
+                    .GetPartyList(userContext.UserId)
                     .Select(x => new SelectListItem
                     {
-                        Text = x.ReporteeNumber + " " + x.ReporteeName,
-                        Value = x.PartyID.ToString(),
+                        Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Person.Name : x.OrgNumber + " " + x.Organization.Name,
+                        Value = x.PartyId.ToString(),
                     })
                     .ToList(),
                 ServiceID = org + "_" + service,
@@ -295,7 +295,7 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
 
             // Populate the reportee information
-            requestContext.UserContext.Reportee = await _register.GetParty(startServiceModel.ReporteeID);
+            requestContext.UserContext.Reportee = await _register.GetParty(startServiceModel.PartyId);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Create platform service and assign to service implementation making it possible for the service implementation
@@ -314,7 +314,7 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.Org,
                     startServiceModel.Service,
                     serviceImplementation.GetServiceModelType(),
-                    startServiceModel.ReporteeID,
+                    startServiceModel.PartyId,
                     startServiceModel.PrefillKey);
             }
 
@@ -373,14 +373,14 @@ namespace AltinnCore.Runtime.Controllers
                     });
             }
 
-            startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
+            startServiceModel.PartyList = _authorization.GetPartyList(requestContext.UserContext.UserId)
                .Select(x => new SelectListItem
                {
-                   Text = x.ReporteeNumber + " " + x.ReporteeName,
-                   Value = x.PartyID.ToString(),
+                   Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Person.Name : x.OrgNumber + " " + x.Organization.Name,
+                   Value = x.PartyId.ToString(),
                }).ToList();
 
-            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
+            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.PartyId.ToString());
 
             return JsonConvert.SerializeObject(
                 new
@@ -415,7 +415,7 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
 
             // Populate the reportee information
-            requestContext.UserContext.Reportee = await _register.GetParty(startServiceModel.ReporteeID);
+            requestContext.UserContext.Reportee = await _register.GetParty(startServiceModel.PartyId);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Create platform service and assign to service implementation making it possible for the service implementation
@@ -434,7 +434,7 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.Org,
                     startServiceModel.Service,
                     serviceImplementation.GetServiceModelType(),
-                    startServiceModel.ReporteeID,
+                    startServiceModel.PartyId,
                     startServiceModel.PrefillKey);
             }
 
@@ -493,14 +493,14 @@ namespace AltinnCore.Runtime.Controllers
                 return Redirect(redirectUrl);
             }
 
-            startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
+            startServiceModel.PartyList = _authorization.GetPartyList(requestContext.UserContext.UserId)
                .Select(x => new SelectListItem
                {
-                   Text = x.ReporteeNumber + " " + x.ReporteeName,
-                   Value = x.PartyID.ToString(),
+                   Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Person.Name : x.OrgNumber + " " + x.Organization.Name,
+                   Value = x.PartyId.ToString(),
                }).ToList();
 
-            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
+            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.PartyId.ToString());
             _logger.LogInformation($" // 404 // Setting startService Model view: {startServiceModel} ");
             return View(startServiceModel);
         }

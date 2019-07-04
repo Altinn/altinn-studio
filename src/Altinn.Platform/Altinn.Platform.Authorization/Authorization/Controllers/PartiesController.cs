@@ -1,51 +1,50 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.Platform.Authorization.Helpers;
 using Altinn.Platform.Authorization.Services.Interface;
-using AltinnCore.ServiceLibrary.Models;
 using Authorization.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Authorization.Controllers
 {
     /// <summary>
-    /// Contains all actions related to the Actor model
+    /// Contains all actions related to the party
     /// </summary>
-    [Route("authorization/api/v1/actors")]
+    [Route("authorization/api/v1/parties")]
     [ApiController]
-    public class ActorsController : ControllerBase
+    public class PartiesController : ControllerBase
     {
-        private readonly IActor _actorWrapper;
+        private readonly IParties _partiesWrapper;        
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActorsController"/> class
+        /// Initializes a new instance of the <see cref="PartiesController"/> class
         /// </summary>
-        public ActorsController(IActor actorWrapper)
+        public PartiesController(IParties partiesWrapper)
         {
-            _actorWrapper = actorWrapper;
+            _partiesWrapper = partiesWrapper;
         }
 
         /// <summary>
         /// Gets the list of actors that the logged in user can represent
         /// </summary>
+        /// <param name="userId">the user id</param>
         [HttpGet]
-        public async Task<ActionResult> Get()
+        public async Task<ActionResult> Get(int userId)
         {
-            List<Actor> actorList = null;
-            UserContext userContext = ContextHelper.GetUserContext(HttpContext);
+            List<Party> partyList = null;
 
-            if (userContext != null && userContext.UserId != 0)
+            if (userId != 0)
             {
-                actorList = await _actorWrapper.GetActors(userContext.UserId);
+                partyList = await _partiesWrapper.GetParties(userId);
             }
 
-            if (actorList == null || actorList.Count == 0)
+            if (partyList == null || partyList.Count == 0)
             {
                 return NotFound();
             }
             else
             {
-                return Ok(actorList);
+                return Ok(partyList);
             }            
         }
 
@@ -55,12 +54,15 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpGet("test")]
         public ActionResult GetValues()
         {
-            List<Actor> actorList = new List<Actor>();
+            List<Party> actorList = new List<Party>();
 
-            Actor testActor = new Actor()
+            Party testActor = new Party()
             {
                 SSN = "123456",
-                Name = "test",
+                Person = new Person()
+                {
+                    Name = "test",
+                },
                 PartyID = 54321
             };
 

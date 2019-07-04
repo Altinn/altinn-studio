@@ -1,7 +1,7 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IFetchLanguageFulfilled, IFetchLanguageRejected } from '../actions/fetch';
-import * as LanguageActionTypes from '../actions/types';
+import { IFetchLanguageFulfilled, IFetchLanguageRejected } from './fetch/fetchLanguageActions';
+import * as LanguageActionTypes from './fetch/fetchLanguageActionTypes';
 
 export interface ILanguageState {
   language: any;

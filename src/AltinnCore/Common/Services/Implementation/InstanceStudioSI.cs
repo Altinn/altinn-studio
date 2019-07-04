@@ -65,7 +65,7 @@ namespace AltinnCore.Common.Services.Implementation
             Guid instanceId = Guid.NewGuid();
             string appName = startServiceModel.Service;
             string org = startServiceModel.Org;
-            int instanceOwnerId = startServiceModel.ReporteeID;
+            int instanceOwnerId = startServiceModel.PartyId;
 
             ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
 

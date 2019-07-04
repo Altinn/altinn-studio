@@ -1,0 +1,68 @@
+[
+  {
+    "SSN": "01047512345",
+    "PartyId": "4",
+    "PartyTypeName": "Person",
+	"Person": 
+		{
+			"SSN": "01047512345",
+			"Name": "Pål Revisor",
+			"FirstName": "Pål",
+			"MiddleName": "",
+			"LastName": "Revisor"
+		}	
+  },
+  {
+    "OrgNumber": "900000002",
+    "PartyId": "10002",
+    "PartyTypeName": "Organization",
+	"Organization": 
+		{
+			"OrgNumber": "900000002",
+			"Name": "Frisk & Sporty Oslo",
+		}	
+  },
+  {
+    "OrgNumber": "900000003",
+    "PartyId": "10003",
+    "PartyTypeName": "Organization",
+	"Organization": 
+		{
+			"OrgNumber": "900000003",
+			"Name": "Frisk & Sporty Bergen",
+		}	
+  },
+  {
+    "OrgNumber": "900000004",
+    "PartyId": "10004",
+    "PartyTypeName": "Organization",
+	"Organization": 
+		{
+			"OrgNumber": "900000004",
+			"Name": "Frisk & Sporty Trondheim",
+		}	
+  },
+  {
+    "SSN": "02017512345",
+    "PartyId": "2",
+    "PartyTypeName": "Person",
+	"Person": 
+		{
+			"SSN": "02017512345",
+			"Name": "Kari Selvstendig",
+			"FirstName": "Kari",
+			"MiddleName": "",
+			"LastName": "Selvstendig"
+		}	
+  }, 
+  {
+    "OrgNumber": "900000001",
+    "PartyId": "10001",
+    "PartyTypeName": "Organization",
+	"Organization": 
+		{
+			"OrgNumber": "900000001",
+			"Name": "Kari Consulting",
+		}	
+  }  
+]
