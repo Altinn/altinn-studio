@@ -1,6 +1,7 @@
 import * as React from 'react';
 import AttachmentActions from '../../../sharedResources/attachments/attachmentActions';
-import LanguageActions from '../../languages/actions';
+import LanguageActions from '../../../sharedResources/language/languageActions';
+import ProfileActions from '../../../sharedResources/profile/profileActions';
 import FormDataActions from '../data/actions';
 import FormDataModelActions from '../datamodell/actions';
 import FormDynamicActions from '../dynamics/actions';
@@ -51,6 +52,10 @@ export default (props) => {
     );
     FormResourceActions.fetchFormResource(
       `${window.location.origin}/api/textresources/${org}/${service}`,
+    );
+
+    ProfileActions.fetchProfile(
+      `${window.location.origin}/runtime/api/v1/profile/user`,
     );
 
     AttachmentActions.fetchAttachments();

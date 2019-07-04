@@ -45,10 +45,10 @@ namespace Altinn.Platform.Authorization
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
-            services.AddSingleton<IActor, ActorsWrapper>();
+            services.AddSingleton<IParties, PartiesWrapper>();
             services.AddSingleton<IRoles, RolesWrapper>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.AddHttpClient<ActorClient>();
+            services.AddHttpClient<PartyClient>();
             services.AddHttpClient<RolesClient>();
         }
 

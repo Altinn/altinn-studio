@@ -1,9 +1,22 @@
 import Grid from '@material-ui/core/Grid';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
+import { connect, useSelector } from 'react-redux';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
-import { get } from '../../../utils/networking';
-import Header from '../../header/containers';
+import LanguageActions from '../../../sharedResources/language/languageActions';
+import { IProfile } from '../../../sharedResources/profile';
+import ProfileActions from '../../../sharedResources/profile/profileActions';
+import { IRuntimeState } from '../../../types';
+import Header from '../../altinnAppHeader/containers';
+
+export interface IServiceInfoProvidedProps {
+  classes: any;
+  history: any;
+}
+
+export interface IServiceInfoProps extends IServiceInfoProvidedProps {
+  profile: IProfile;
+}
 
 const styles = () => createStyles({
   container: {
@@ -11,20 +24,19 @@ const styles = () => createStyles({
   },
 });
 
-function ServiceInfo(props: any) {
-  const [reportee, setReportee] = React.useState(null);
+function ServiceInfoContainer(props: IServiceInfoProps) {
   const { history } = props;
 
-  const fetchReportee = async () => {
-    const url: string = `${window.location.origin}/api/v1/profile/user`;
-    const fetchedReportee: any = await get(url);
-    setReportee(fetchedReportee);
-  };
+  const language = useSelector((state: IRuntimeState) => state.language.language);
 
   React.useEffect(() => {
-    if (!reportee) {
-      fetchReportee();
-    }
+    ProfileActions.fetchProfile(
+      `${window.location.origin}/api/v1/profile/user`,
+    );
+    LanguageActions.fetchLanguage(
+      `${window.location.origin}/api/Language/GetLanguageAsJSON`,
+      'nb',
+    );
   }, []);
 
   const onClickInstantiate = () => {
@@ -34,12 +46,13 @@ function ServiceInfo(props: any) {
   const { classes } = props;
   return (
     <>
-      <Header />
+      <Header language={language} profile={props.profile}/>
       <Grid
         container={true}
         classes={classes}
+        className='container'
       >
-        {`Hei${reportee ? ' ' + reportee.party.person.firstName : null}!`}<br />
+        {`Hei ${props.profile ? props.profile.party.person.firstName : null}!`}<br />
         {`Du leverer skjema som `} <br />
         <AltinnButton
           onClickFunction={onClickInstantiate}
@@ -117,5 +130,14 @@ function ServiceInfo(props: any) {
     </>
   );
 }
+const mapStateToProps: (
+  state: IRuntimeState,
+  props: IServiceInfoProvidedProps,
+) => IServiceInfoProps = (state: IRuntimeState, props: IServiceInfoProvidedProps) => ({
+  classes: props.classes,
+  history: props.history,
+  profile: state.profile.profile,
+});
 
-export default withStyles(styles)(ServiceInfo);
+export const ServiceInfo =
+  withStyles(styles, { withTheme: true })(connect(mapStateToProps)(ServiceInfoContainer));

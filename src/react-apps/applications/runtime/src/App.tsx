@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Route } from 'react-router-dom';
 import FormFiller from './features/form/containers';
 import Instantiate from './features/instantiate/containers';
-import ServiceInfo from './features/serviceInfo/containers';
+import { ServiceInfo } from './features/serviceInfo/containers';
 
 export default function() {
   return (

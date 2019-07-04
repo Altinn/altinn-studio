@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import * as ActionTypes from '../types';
+import * as ActionTypes from './fetchLanguageActionTypes';
 
 export interface IFetchLanguage extends Action {
   url: string;

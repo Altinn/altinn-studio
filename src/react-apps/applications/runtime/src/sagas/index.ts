@@ -11,8 +11,8 @@ import FormResourceSagas from '../features/form/resources/sagas';
 import FormRulesSagas from '../features/form/rules/sagas';
 import FormValidationSagas from '../features/form/validation/sagas';
 import FormWorkflowSagas from '../features/form/workflow/sagas';
-import LanguageSagas from '../features/languages/sagas';
 import Attachments from '../sharedResources/attachments/attachmentSagas';
+import LanguageSagas from '../sharedResources/language/langaugeSagas';
 import ProfileSagas from '../sharedResources/profile/profileSagas';
 
 function* root(): SagaIterator {
