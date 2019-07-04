@@ -26,7 +26,6 @@ service:
 ingress:
   enabled: true
   annotations:
-    # traefik.ingress.kubernetes.io/request-modifier: "AddPrefix: /runtime"
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   paths:
