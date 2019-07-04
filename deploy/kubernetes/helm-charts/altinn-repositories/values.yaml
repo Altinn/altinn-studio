@@ -3,8 +3,8 @@ replicaCount: 1
 image:
   repositoryDev: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev
   repositoryProd: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-prod
-  tag: 1.4.7
-  pullPolicy: IfNotPresent
+  tag: latest
+  pullPolicy: Always
   containerPorts:
     port: 3000
   imagePullSecret: acrsecret

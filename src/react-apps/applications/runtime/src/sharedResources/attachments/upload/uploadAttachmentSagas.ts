@@ -22,11 +22,7 @@ export function* uploadAttachmentSaga(
     const servicePath = `${org}/${service}`;
     const data = new FormData();
     data.append('file', file);
-    let routePrefix: string = '';
-    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
-      routePrefix = '/runtime';
-    }
-    const fileUploadLink = `${altinnWindow.location.origin}${routePrefix}/api/attachment/${reportee}/${servicePath}/` +
+    const fileUploadLink = `${altinnWindow.location.origin}/api/attachment/${reportee}/${servicePath}/` +
       `${instanceId}/SaveFormAttachment?attachmentType=${attachmentType}&attachmentName=${file.name}`;
     const response = yield call(post, fileUploadLink, null, data);
     if (response.status === 200) {

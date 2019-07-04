@@ -9,24 +9,20 @@ image:
 
 environmentVariables:
   development:
-    - name: GiteaEndpoint
-      value: dev.altinn.studio
-    - name: GiteaApiEndpoint
-      value: https://dev.altinn.studio/api/v1
-    - name: GiteaLoginEndpoint
-      value: https://dev.altinn.studio/user/login
     - name: ASPNETCORE_ENVIRONMENT
       value: Development
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://dev.altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
-      value: http://altinn-repositories:3000/
-    - name: ServiceRepositorySettings__GiteaInternalHost
-      value: altinn-repositories
-    - name: ServiceRepositorySettings__EnableGiteaIntegration
-      value: \"true\"
+      value: http://altinn-repositories:3000
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
@@ -44,24 +40,20 @@ environmentVariables:
     - name: PlatformSettings__ApiProfileEndpointHost
       value: https://platform.at21.altinn.cloud
   production:
-    - name: GiteaEndpoint
-      value: altinn.studio
-    - name: GiteaApiEndpoint
-      value: https://altinn.studio/api/v1
-    - name: GiteaLoginEndpoint
-      value: https://altinn.studio/user/login
     - name: ASPNETCORE_ENVIRONMENT
       value: Development
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
-      value: http://altinn-repositories:3000/
-    - name: ServiceRepositorySettings__GiteaInternalHost
-      value: altinn-repositories
-    - name: ServiceRepositorySettings__EnableGiteaIntegration
-      value: \"true\"
+      value: http://altinn-repositories:3000
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
