@@ -91,16 +91,6 @@ namespace AltinnCore.Common.Configuration
         public string RepositoryLocation { get; set; }
 
         /// <summary>
-        /// Gets or sets a valude indicating
-        /// </summary>
-        public bool EnableGitAutentication { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating if user should be forced to log in in Gitea
-        /// </summary>
-        public bool ForceGiteaAuthentication { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating if runtime should fetch service information from database or from disk
         /// </summary>
         public bool ShouldFetchFromDatabase { get; set; }

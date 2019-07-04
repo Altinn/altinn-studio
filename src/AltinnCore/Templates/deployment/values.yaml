@@ -15,8 +15,6 @@ image:
       value: /AltinnService/
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnService/
-    - name: ServiceRepositorySettings__ForceGiteaAuthentication
-      value: false
 
 service:
   name: deployment
