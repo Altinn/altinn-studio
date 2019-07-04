@@ -31,10 +31,10 @@ function ServiceInfoContainer(props: IServiceInfoProps) {
 
   React.useEffect(() => {
     ProfileActions.fetchProfile(
-      `${window.location.origin}/runtime/api/v1/profile/user`,
+      `${window.location.origin}/api/v1/profile/user`,
     );
     LanguageActions.fetchLanguage(
-      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`,
+      `${window.location.origin}/api/Language/GetLanguageAsJSON`,
       'nb',
     );
   }, []);
