@@ -67,7 +67,7 @@ data:
         }
 
           location ~ ^/repos/$ {
-          return 301 /;
+          rewrite ^/repos/$ /Repos break;
           proxy_set_header 	  Host altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
