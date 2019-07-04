@@ -155,12 +155,9 @@ namespace AltinnCore.Designer.Controllers
                 userName = _giteaApi.GetUserNameFromUI().Result;
                 if (string.IsNullOrEmpty(userName))
                 {
-                    if (Environment.GetEnvironmentVariable("GiteaLoginEndpoint") != null)
-                    {
-                        return Redirect(Environment.GetEnvironmentVariable("GiteaLoginEndpoint"));
-                    }
-
-                    return Redirect(_settings.GiteaLoginUrl);
+                    return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl") != null)
+                    ? Redirect(Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaLoginUrl"))
+                    : Redirect(_settings.GiteaLoginUrl);
                 }
             }
             catch (Exception ex)

@@ -123,15 +123,9 @@ namespace AltinnCore.Runtime
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddResponseCompression();
 
-            string repoLocation = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
-            }
-            else
-            {
-                repoLocation = Configuration["ServiceRepositorySettings:RepositoryLocation"];
-            }
+            string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
+                                Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
             if (!Directory.Exists(repoLocation))
             {
