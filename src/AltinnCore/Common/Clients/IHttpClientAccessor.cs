@@ -24,5 +24,10 @@ namespace AltinnCore.Common.Clients
         /// An Http ProfileClient that communicates with the Altinn Platform Profile component.
         /// </summary>
         HttpClient ProfileClient { get; }
+
+        /// <summary>
+        /// An Http Authorization client that communicates with the Altinn Platform Authorization component.
+        /// </summary>
+        HttpClient AuthorizationClient { get; }
     }
 }

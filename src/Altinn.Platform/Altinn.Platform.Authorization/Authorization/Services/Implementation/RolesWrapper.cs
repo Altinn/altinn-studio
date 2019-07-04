@@ -17,7 +17,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly RolesClient _rolesClient;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActorsWrapper"/> class
+        /// Initializes a new instance of the <see cref="RolesWrapper"/> class
         /// </summary>
         /// <param name="rolesClient">the client handler for roles api</param>
         public RolesWrapper(RolesClient rolesClient)

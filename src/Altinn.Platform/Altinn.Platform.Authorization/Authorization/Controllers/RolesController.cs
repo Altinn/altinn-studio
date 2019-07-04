@@ -20,7 +20,7 @@ namespace Altinn.Platform.Authorization.Controllers
         private readonly IRoles _rolesWrapper;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActorsController"/> class
+        /// Initializes a new instance of the <see cref="RolesController"/> class
         /// </summary>
         public RolesController(IRoles rolesWrapper)
         {

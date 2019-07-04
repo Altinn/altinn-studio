@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Authorization.Interface.Enums;
 using Newtonsoft.Json;
 
 namespace Authorization.Interface.Models
@@ -8,8 +9,32 @@ namespace Authorization.Interface.Models
     /// Model for an Actor
     /// </summary>
     [Serializable]
-    public class Actor
+    public class Party
     {
+        /// <summary>
+        /// Gets or sets PartyType
+        /// </summary>
+        [JsonProperty]
+        public PartyType PartyTypeName { get; set; }
+
+        /// <summary>
+        /// Gets or sets OrgNumber
+        /// </summary>
+        [JsonProperty]
+        public string OrgNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets Person
+        /// </summary>
+        [JsonProperty]
+        public Person Person { get; set; }
+
+        /// <summary>
+        /// Gets or sets Organization
+        /// </summary>
+        [JsonProperty]
+        public Organization Organization { get; set; }
+
         /// <summary>
         /// Gets or sets the PartyID
         /// </summary>
@@ -56,6 +81,6 @@ namespace Authorization.Interface.Models
         /// Gets or sets the value of ChildActors
         /// </summary>
         [JsonProperty]
-        public List<Actor> ChildActors { get; set; }
+        public List<Party> ChildActors { get; set; }
     }
 }
