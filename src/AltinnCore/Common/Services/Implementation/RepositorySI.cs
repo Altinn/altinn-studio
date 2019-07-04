@@ -85,14 +85,9 @@ namespace AltinnCore.Common.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                serviceOrgPath = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org;
-            }
-            else
-            {
-                serviceOrgPath = _settings.RepositoryLocation + serviceMetadata.Org;
-            }
+            serviceOrgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org
+                            : _settings.RepositoryLocation + serviceMetadata.Org;
 
             string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName;
 
@@ -196,7 +191,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 appMetadata.Title = new Dictionary<string, string>();
             }
-            
+
             appMetadata.Title.Add("nb", appName);
             if (appMetadata.ElementTypes == null)
             {
@@ -294,7 +289,7 @@ namespace AltinnCore.Common.Services.Implementation
                 applicationForm.Id = attachmentMetadata.GetValue("id").Value;
                 applicationForm.MaxCount = Convert.ToInt32(attachmentMetadata.GetValue("maxCount").Value);
                 applicationForm.MaxSize = Convert.ToInt32(attachmentMetadata.GetValue("maxSize").Value);
-                               
+
                 DeleteMetadataForAttachment(org, appName, attachmentId);
                 string metadataAsJson = JsonConvert.SerializeObject(applicationForm);
                 AddMetadataForAttachment(org, appName, metadataAsJson);
@@ -1009,14 +1004,10 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<ServiceMetadata> services = new List<ServiceMetadata>();
             string[] serviceOwners = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                serviceOwners = Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"));
-            }
-            else
-            {
-                serviceOwners = Directory.GetDirectories(_settings.RepositoryLocation);
-            }
+
+            serviceOwners = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                            ? serviceOwners = Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
+                            : serviceOwners = Directory.GetDirectories(_settings.RepositoryLocation);
 
             foreach (string serviceOwner in serviceOwners)
             {
@@ -1046,14 +1037,10 @@ namespace AltinnCore.Common.Services.Implementation
             List<OrgConfiguration> serviceOwners = new List<OrgConfiguration>();
 
             string[] serviceOwnerDirectories = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                serviceOwnerDirectories = Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"));
-            }
-            else
-            {
-                serviceOwnerDirectories = Directory.GetDirectories(_settings.RepositoryLocation);
-            }
+
+            serviceOwnerDirectories = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+            ? Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
+            : Directory.GetDirectories(_settings.RepositoryLocation);
 
             foreach (string serviceOwnerDirectory in serviceOwnerDirectories)
             {
@@ -1160,14 +1147,9 @@ namespace AltinnCore.Common.Services.Implementation
 
                 string directoryPath = null;
 
-                if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                {
-                    directoryPath = $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}/{developerUserName}/{org}";
-                }
-                else
-                {
-                    directoryPath = $"{_settings.RepositoryLocation}/{developerUserName}/{org}";
-                }
+                directoryPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}/{developerUserName}/{org}"
+                                : $"{_settings.RepositoryLocation}/{developerUserName}/{org}";
 
                 if (!string.IsNullOrEmpty(service))
                 {
@@ -1307,15 +1289,10 @@ namespace AltinnCore.Common.Services.Implementation
         {
             try
             {
-                string localServiceRepoFolder = null;
-                if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                {
-                    localServiceRepoFolder = $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
-                }
-                else
-                {
-                    localServiceRepoFolder = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
-                }
+                string localServiceRepoFolder =
+                    (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                    ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists"
+                    : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
 
                 using (Repository repo = new Repository(localServiceRepoFolder))
                 {
@@ -1374,14 +1351,9 @@ namespace AltinnCore.Common.Services.Implementation
 
             Dictionary<string, string> codelists = new Dictionary<string, string>();
             string codelistDirectoryPath = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                codelistDirectoryPath = $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-            }
-            else
-            {
-                codelistDirectoryPath = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-            }
+            codelistDirectoryPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}"
+                : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
 
             if (!string.IsNullOrEmpty(service))
             {
@@ -1421,16 +1393,11 @@ namespace AltinnCore.Common.Services.Implementation
         {
             try
             {
-                string filePath = null;
-                if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                {
-                    filePath = $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-                }
-                else
-                {
-                    filePath = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-                }
-
+                string filePath =
+                    (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                    ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}"
+                    : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
+                
                 if (!string.IsNullOrEmpty(service))
                 {
                     filePath += "/" + service;
@@ -1460,15 +1427,9 @@ namespace AltinnCore.Common.Services.Implementation
         {
             try
             {
-                string filePath = null;
-                if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                {
-                    filePath = $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-                }
-                else
-                {
-                    filePath = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
-                }
+                string filePath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}"
+                : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
 
                 if (!string.IsNullOrEmpty(service))
                 {
@@ -1812,7 +1773,7 @@ namespace AltinnCore.Common.Services.Implementation
                 else
                 {
                     existingApplicationMetadata.Title.Add("nb", applicationInformation.ServiceName);
-                }                   
+                }
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
                 string filePath = _settings.GetMetadataPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;

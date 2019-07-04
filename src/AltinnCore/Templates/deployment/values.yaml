@@ -15,8 +15,6 @@ image:
       value: /AltinnService/
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnService/
-    - name: ServiceRepositorySettings__ForceGiteaAuthentication
-      value: false
 
 service:
   name: deployment
@@ -28,7 +26,6 @@ service:
 ingress:
   enabled: true
   annotations:
-    traefik.ingress.kubernetes.io/request-modifier: "AddPrefix: /runtime"
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   paths:
