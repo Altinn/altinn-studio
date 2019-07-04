@@ -121,11 +121,6 @@ namespace AltinnCore.Common.Configuration
         public string RepositoryBaseURL { get; set; }
 
         /// <summary>
-        /// Gets or sets the Internal repository BaseURL
-        /// </summary>
-        public string InternalRepositoryBaseURL { get; set; }
-
-        /// <summary>
         /// Gets or sets the GiteaCookieName
         /// </summary>
         public string GiteaCookieName { get; set; }

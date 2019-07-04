@@ -397,7 +397,7 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
                 {
                     Cookie cookie = StealMacaronCookie(response);
-                    
+
                     using (HttpClient clientWithToken = GetWebHtmlClient(false, cookie))
                     {
                         // reading the API key value
@@ -571,9 +571,9 @@ namespace AltinnCore.Common.Services.Implementation
         private string GetApiBaseUrl()
         {
             string baseUrl = string.Empty;
-            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint") != null)
             {
-                baseUrl = Environment.GetEnvironmentVariable("GiteaApiEndpoint");
+                baseUrl = Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint");
             }
             else
             {
