@@ -1482,9 +1482,6 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
 
-            _logger.LogInformation($"org : {org}");
-            _logger.LogInformation($"service : {service}");
-            _logger.LogInformation($"Implementation path : {_settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))}");
             string[] files = Directory.GetFiles(_settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in files)
             {
