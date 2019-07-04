@@ -570,17 +570,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private string GetApiBaseUrl()
         {
-            string baseUrl = string.Empty;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint") != null)
-            {
-                baseUrl = Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint");
-            }
-            else
-            {
-                baseUrl = _settings.ApiEndPoint;
-            }
-
-            return baseUrl;
+            return Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint") ?? _settings.ApiEndPoint;    
         }
 
         private HttpClient GetApiClient(bool allowAutoRedirect = true)
@@ -612,48 +602,23 @@ namespace AltinnCore.Common.Services.Implementation
 
         private Cookie CreateGiteaSessionCookie(string giteaSession)
         {
-            Cookie cookie;
-
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost") != null)
-            {
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost"));
-            }
-            else
-            {
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
-            }
-
-            return cookie;
+            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost") != null)
+                    ? new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost"))
+                    : new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
         }
 
         private Uri BuildGiteaUrl(string path)
         {
-            Uri giteaUrl;
-
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-            {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + path);
-            }
-            else
-            {
-                giteaUrl = new Uri(_settings.RepositoryBaseURL + path);
-            }
-
-            return giteaUrl;
+            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+                     ? new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + path)
+                     : new Uri(_settings.RepositoryBaseURL + path);
         }
 
         private string GetApiEndpointHost()
         {
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") != null)
-            {
-                return Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost");
-            }
-            else
-            {
-                return _settings.ApiEndPointHost;
-            }
+            return Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") ?? _settings.ApiEndPointHost;
         }
 
         private Cookie StealMacaronCookie(HttpResponseMessage response)
@@ -667,7 +632,7 @@ namespace AltinnCore.Common.Services.Implementation
             var splitSetCookieHeader = setCookieHeader.Split("=");
             string macaronFlashValue = splitSetCookieHeader[1];
 
-            return new Cookie(macaronFlashKey, macaronFlashValue, "/",  GetApiEndpointHost());
+            return new Cookie(macaronFlashKey, macaronFlashValue, "/", GetApiEndpointHost());
         }
     }
 }
