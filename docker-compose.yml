@@ -58,8 +58,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
-      - ServiceRepositorySettings:EnableGiteaIntegration=true
-      - ServiceRepositorySettings:ForceGiteaAuthentication=true
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000
@@ -92,8 +90,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5005
       - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
-      - ServiceRepositorySettings:EnableGiteaIntegration=true
-      - ServiceRepositorySettings:ForceGiteaAuthentication=true
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000
