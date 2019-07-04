@@ -21,8 +21,6 @@ environmentVariables:
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000
-    - name:  ServiceRepositorySettings__GiteaCookieName
-      value: i_like_gitea
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
     - name: GeneralSettings__AltinnStudioEndpoint
@@ -56,8 +54,6 @@ environmentVariables:
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000
-    - name:  ServiceRepositorySettings__GiteaCookieName
-      value: i_like_gitea
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
     - name: GeneralSettings__AltinnStudioEndpoint
