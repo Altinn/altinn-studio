@@ -83,7 +83,7 @@ namespace AltinnCore.Designer
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
+                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
                                 : Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
             if (!Directory.Exists(repoLocation))

@@ -124,7 +124,7 @@ namespace AltinnCore.Runtime
 
             string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
                                 ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
-                                Configuration["ServiceRepositorySettings:RepositoryLocation"];
+                                : Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
             if (!Directory.Exists(repoLocation))
             {
