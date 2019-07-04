@@ -28,7 +28,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {            
             List<Party> partiesList = null;
 
-            var request = $"/actors?userid={userId}";
+            var request = $"/parties?userid={userId}";
 
             var response = await _partyClient.Client.GetAsync(request);            
             string partiesDataList = await response.Content.ReadAsStringAsync();
