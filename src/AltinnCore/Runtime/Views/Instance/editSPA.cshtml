@@ -14,15 +14,11 @@
 
 <script>
   function loadScript() {
-    // var script = document.createElement('script');
     var service = window.location.pathname.split('/');
-    // script.type = 'text/javascript';
-    // script.src = window.location.origin '/api/runtimeresources/runtime.js';
     window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)altinncorereportee\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
     window.org = service[1];
     window.service = service[2];
     window.instanceId = service[3];
-    // document.body.appendChild(script);
   }
 
   function loadStyles() {
