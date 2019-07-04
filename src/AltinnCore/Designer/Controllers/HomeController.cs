@@ -139,7 +139,6 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The login page</returns>
         public async Task<IActionResult> Login()
         {
-            _logger.LogInformation("Starting method Login in HOME CONTROLLER.");
             string userName = string.Empty;
             string goToUrl = "/";
 
