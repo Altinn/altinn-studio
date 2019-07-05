@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 namespace Designer.Controllers
 {
     /// <summary>
-    ///  Controller for generating repository cookie
+    ///  Controller for redirecting
     /// </summary>
     public class RedirectController: Controller
     {
@@ -29,7 +29,7 @@ namespace Designer.Controllers
         }
 
         /// <summary>
-        /// Index method used for setting gitea cookie without path specification
+        /// Method used for setting gitea cookie without path specification and redirecting to Login Home
         /// </summary>
         /// <returns> Redirect to login page with gitea cookie </returns>
         public ActionResult FetchCookieAndRedirectHome()
