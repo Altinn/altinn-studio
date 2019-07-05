@@ -47,7 +47,7 @@ environmentVariables:
     - name: ASPNETCORE_URLS
       value: http://+:5005
     - name: GeneralSetting__HostName
-      value: dev.altinn.studio
+      value: altinn.studio
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
