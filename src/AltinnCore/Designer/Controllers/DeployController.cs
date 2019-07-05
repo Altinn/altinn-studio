@@ -30,7 +30,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly IConfiguration _configuration;
         private readonly IGitea _giteaAPI;
         private readonly ILogger<DeployController> _logger;
-        private readonly ServiceRepositorySettings _settings;
+        private readonly GeneralSettings _settings;
         private readonly PlatformSettings _platformSettings;
         private readonly IRepository _repository;
 
@@ -49,7 +49,7 @@ namespace AltinnCore.Designer.Controllers
             IConfiguration configuration,
             IGitea giteaAPI,
             ILogger<DeployController> logger,
-            IOptions<ServiceRepositorySettings> settings,
+            IOptions<GeneralSettings> settings,
             IOptions<PlatformSettings> platformSettings,
             IRepository repositoryService)
         {
@@ -134,7 +134,7 @@ namespace AltinnCore.Designer.Controllers
                 {
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                    string giteaEnvironment = Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") ?? _settings.ApiEndPointHost;
+                    string giteaEnvironment = Environment.GetEnvironmentVariable("GeneralSettings__HostName") ?? _settings.HostName;
                     object buildContent = new
                     {
                         definition = new

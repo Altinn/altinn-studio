@@ -11,6 +11,8 @@ environmentVariables:
       value: Development
     - name: ASPNETCORE_URLS
       value: http://+:5005
+    - name: GeneralSettings__HostName
+      value: dev.altinn.studio
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -41,9 +43,11 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud
   production:
     - name: ASPNETCORE_ENVIRONMENT
-      value: Development
+      value: Production
     - name: ASPNETCORE_URLS
       value: http://+:5005
+    - name: GeneralSettings__HostName
+      value: altinn.studio
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
