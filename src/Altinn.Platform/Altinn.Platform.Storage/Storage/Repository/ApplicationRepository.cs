@@ -175,18 +175,13 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<Application> FindOne(string appId, string org)
         {
-            _logger.LogInformation($"// ApplicationRepository // FindOne // Starting function");
             string cosmosAppId = AppIdToCosmosId(appId);
-            _logger.LogInformation($"// ApplicationRepository // FindOne // CosmosAppId = {cosmosAppId}");
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
-            _logger.LogInformation($"// ApplicationRepository // FindOne // Uri = {uri}. Trying to read document async.");
             Application application = await _client
                 .ReadDocumentAsync<Application>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
-            _logger.LogInformation($"// ApplicationRepository // FindOne // Retrieved application with id: {application.Id}. Trying to PostProcess");
             PostProcess(application);
-            _logger.LogInformation($"// ApplicationRepository // FindOne // PostProcess completed. New id: {application.Id}.");
             return application;
         }
 
