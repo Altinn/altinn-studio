@@ -106,11 +106,6 @@ namespace AltinnCore.Common.Configuration
         public string ApiEndPointHost { get; set; }
 
         /// <summary>
-        /// Gets or sets the host name
-        /// </summary>
-        public string HostName { get; set; }
-
-        /// <summary>
         /// Gets or sets the Repository Base URL
         /// </summary>
         public string RepositoryBaseURL { get; set; }
