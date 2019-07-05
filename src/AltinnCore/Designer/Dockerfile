@@ -1,3 +1,5 @@
+#Testing buildserver
+
 FROM node:10.13.0 AS generate-designer-js
 COPY /src/AltinnCore/Designer/package.json .
 RUN npm install
