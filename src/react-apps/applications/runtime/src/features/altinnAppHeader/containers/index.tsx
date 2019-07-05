@@ -130,7 +130,7 @@ const Header = (props: IHeaderprops) => {
                   className={classes.headerLink}
                 >
                   <a href='https://altinn.no/nn/skjemaoversikt/'>
-                    {getLanguageFromKey('instantiate.all_schemas', props.language)}
+                    {getLanguageFromKey('instantiate.all_forms', props.language)}
                   </a>
                 </li>
                 <li
