@@ -26,16 +26,20 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string partitionKey = "/org";
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
+        private ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
+        /// <param name="logger">dependency injection of logger</param>
         public ApplicationRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<ApplicationRepository> logger)
         {
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
             databaseId = _cosmosettings.Database;
+
+            _logger = logger;
 
             ConnectionPolicy connectionPolicy = new ConnectionPolicy
             {
@@ -47,7 +51,7 @@ namespace Altinn.Platform.Storage.Repository
             _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, collectionId);
 
-            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseId }).GetAwaiter().GetResult();            
+            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseId }).GetAwaiter().GetResult();
 
             DocumentCollection documentCollection = new DocumentCollection { Id = collectionId };
             documentCollection.PartitionKey.Paths.Add(partitionKey);
@@ -74,7 +78,7 @@ namespace Altinn.Platform.Storage.Repository
                 cosmosId = $"{parts[0]}-{parts[1]}";
             }
 
-            return cosmosId;            
+            return cosmosId;
         }
 
         /// <summary>
@@ -156,7 +160,7 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<List<Application>> ListApplications(string org)
         {
             IDocumentQuery<Application> query = _client
-                .CreateDocumentQuery<Application>(_collectionUri,  new FeedOptions { EnableCrossPartitionQuery = true })
+                .CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
                 .Where(i => i.Org == org)
                 .AsDocumentQuery();
 
@@ -171,17 +175,18 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<Application> FindOne(string appId, string org)
         {
+            _logger.LogInformation($"// ApplicationRepository // FindOne // Starting function");
             string cosmosAppId = AppIdToCosmosId(appId);
-
+            _logger.LogInformation($"// ApplicationRepository // FindOne // CosmosAppId = {cosmosAppId}");
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosAppId);
-
+            _logger.LogInformation($"// ApplicationRepository // FindOne // Uri = {uri}. Trying to read document async.");
             Application application = await _client
                 .ReadDocumentAsync<Application>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
-
+            _logger.LogInformation($"// ApplicationRepository // FindOne // Retrieved application with id: {application.Id}. Trying to PostProcess");
             PostProcess(application);
-
+            _logger.LogInformation($"// ApplicationRepository // FindOne // PostProcess completed. New id: {application.Id}.");
             return application;
         }
 
