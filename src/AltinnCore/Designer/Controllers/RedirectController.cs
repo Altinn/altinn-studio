@@ -8,19 +8,19 @@ using Microsoft.Extensions.Options;
 namespace Designer.Controllers
 {
     /// <summary>
-    ///  Controller for generating repository cookie
+    ///  Controller for redirecting
     /// </summary>
-    public class ReposController: Controller
+    public class RedirectController: Controller
     {
         private IHttpContextAccessor _httpContextAccessor;
         private readonly ServiceRepositorySettings _settings;
 
         /// <summary>
-        ///  Initializes a new instance of the <see cref="ReposController"/> class. 
+        ///  Initializes a new instance of the <see cref="RedirectController"/> class. 
         /// </summary>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="repositorySettings"> The service repository settings. </param>
-        public ReposController(
+        public RedirectController(
             IHttpContextAccessor httpContextAccessor,
             IOptions<ServiceRepositorySettings> repositorySettings)
         {
@@ -29,14 +29,19 @@ namespace Designer.Controllers
         }
 
         /// <summary>
-        /// Index method used for setting gitea cookie without path specification
+        /// Method used for setting gitea cookie without path specification and redirecting to Login Home
         /// </summary>
         /// <returns> Redirect to login page with gitea cookie </returns>
-        public ActionResult Index()
+        public ActionResult FetchCookieAndRedirectHome()
         {            
             string giteaCookieKey = _settings.GiteaCookieName;          
             var giteaCookieValue = _httpContextAccessor.HttpContext.Request.Cookies[giteaCookieKey];
-            Response.Cookies.Append(giteaCookieKey, giteaCookieValue);
+
+            if (giteaCookieValue != null)
+            {
+                Response.Cookies.Append(giteaCookieKey, giteaCookieValue);
+            }
+         
             return RedirectToAction("Login", "Home");
         }
     }
