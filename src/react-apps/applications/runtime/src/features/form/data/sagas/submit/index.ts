@@ -40,7 +40,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
         WorkflowActions.setCurrentState(result.nextState);
       }
       const currentUrl = window.location.href.replace(window.location.origin, '');
-      if (result.status === 0 && result.nextStepUrl && !result.nextStepUrl.equals(currentUrl)) {
+      if (result.status === 0 && result.nextStepUrl && result.nextStepUrl !== currentUrl) {
         // If next step is placed somewhere other then the SPA, for instance payment, we must redirect.
         if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
           window.location.replace(`${window.location.origin}${result.nextStepUrl}`);

@@ -55,7 +55,7 @@ export default (props) => {
     );
 
     ProfileActions.fetchProfile(
-      `${window.location.origin}/runtime/api/v1/profile/user`,
+      `${window.location.origin}/api/v1/profile/user`,
     );
 
     AttachmentActions.fetchAttachments();
