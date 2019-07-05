@@ -228,8 +228,8 @@ namespace AltinnCore.Designer
                           });
                 routes.MapRoute(
                         name: "reposRoute",
-                        template: "repos/{action=Index}/",
-                        defaults: new { controller = "Repos" });
+                        template: "{controller}/{action}/",
+                        defaults: new { controller = "RedirectController" });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
