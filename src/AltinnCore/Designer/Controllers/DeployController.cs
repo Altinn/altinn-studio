@@ -134,7 +134,7 @@ namespace AltinnCore.Designer.Controllers
                 {
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                    string giteaEnvironment = Environment.GetEnvironmentVariable("GeneralSettings__HostName") ?? _settings.HostName;
+                    string giteaEnvironment = (Environment.GetEnvironmentVariable("GeneralSettings__HostName") ?? _settings.HostName) + "/repos";
                     object buildContent = new
                     {
                         definition = new
