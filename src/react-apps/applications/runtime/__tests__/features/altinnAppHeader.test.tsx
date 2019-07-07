@@ -12,7 +12,7 @@ describe('>>> features/altinnAppHeader.tsx', () => {
     mockLanguage = {
       language: {
         instantiate: {
-          all_schemas: 'alle skjema',
+          all_forms: 'alle skjema',
           inbox: 'innboks',
           profile: 'profil',
         },

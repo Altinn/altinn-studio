@@ -168,7 +168,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           <a
             href="https://altinn.no/nn/skjemaoversikt/"
           >
-            instantiate.all_schemas
+            instantiate.all_forms
           </a>
         </li>
         <li
