@@ -1,5 +1,4 @@
 import { createStyles, Paper, Typography, withStyles } from '@material-ui/core';
-import axios from 'axios';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
@@ -9,6 +8,8 @@ import AltinnFormControlLabel from '../../../../../shared/src/components/AltinnF
 import AltinnInputField from '../../../../../shared/src/components/AltinnInputField';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import VersionControlHeader from '../../../../../shared/src/version-control/versionControlHeader';
+import applicationMetadataDispatcher from '../../../sharedResources/applicationMetadata/applicationMetadataDispatcher';
+import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 
 const styles = createStyles({
   sectionHeader: {
@@ -48,6 +49,7 @@ const styles = createStyles({
 
 export interface IAccessControlContainerProvidedProps {
   classes: any;
+  applicationMetadata: any;
 }
 
 export interface IAccessControlContainerProps extends IAccessControlContainerProvidedProps {
@@ -80,9 +82,6 @@ export enum PartyTypes {
 export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
 
-  public cancelToken = axios.CancelToken;
-  public source = this.cancelToken.source();
-
   constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
     super(props, state);
     this.state = {
@@ -101,10 +100,6 @@ export class AccessControlContainerClass extends React.Component<
       },
     };
     this.handleSubscriptionHookValuesOnBlur = this.handleSubscriptionHookValuesOnBlur.bind(this);
-  }
-
-  public componentWillUnmount: () => void = () => {
-    this.source.cancel('ComponentWillUnmount');
   }
 
   public render() {
@@ -222,7 +217,7 @@ export class AccessControlContainerClass extends React.Component<
               <AltinnFormControlLabel
                 key={key}
                 control={<AltinnCheckBox
-                  checked={this.state.partyTypeAllowed[key as PartyTypes]}
+                  checked={!!this.state.partyTypeAllowed[key as PartyTypes]}
                   onChangeFunction={this.handlePartyTypeAllowedChange.bind(this, key as PartyTypes)}
                 />}
                 label={getLanguageFromKey('access_control.' + key, this.props.language)}
@@ -244,8 +239,10 @@ export class AccessControlContainerClass extends React.Component<
   }
 
   public saveApplicationMetadata() {
-    // TODO: Actually save
-    console.log('Save application data', JSON.stringify(this.state));
+    const newApplicationMetadata = Object.assign(this.props.applicationMetadata ? this.props.applicationMetadata : {});
+    newApplicationMetadata.partyTypeAllowed = this.state.partyTypeAllowed;
+    newApplicationMetadata.hooks = this.state.hooks;
+    applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
   }
 
   public renderSideMenu = (): JSX.Element => {
@@ -275,14 +272,19 @@ export class AccessControlContainerClass extends React.Component<
   }
 }
 
-const mapStateToProps = (
-  state: IServiceDevelopmentState,
-  props: IAccessControlContainerProvidedProps,
-): IAccessControlContainerProps => {
-  return {
-    language: state.language.language,
-    ...props,
+const makeMapStateToProps = () => {
+  const getApplicationMetadata = makeGetApplicationMetadata();
+  const mapStateToProps = (
+    state: IServiceDevelopmentState,
+    props: IAccessControlContainerProvidedProps,
+  ): IAccessControlContainerProps => {
+    return {
+      language: state.language.language,
+      applicationMetadata: getApplicationMetadata(state),
+      ...props,
+    };
   };
+  return mapStateToProps;
 };
 
-export default withStyles(styles)(connect(mapStateToProps)(AccessControlContainerClass));
+export default withStyles(styles)(connect(makeMapStateToProps)(AccessControlContainerClass));

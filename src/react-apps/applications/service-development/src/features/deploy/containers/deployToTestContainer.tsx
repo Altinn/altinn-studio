@@ -315,10 +315,10 @@ export class DeployToTestContainer extends
 }
 
 const makeMapStateToProps = () => {
-  const GetCompileStatusSelector = makeGetCompileStatusResultSelector();
-  const GetCompileStatusUniqueFilenames = makeGetCompileStatusUniqueFilenames();
-  const GetRepoStatusSelector = makeGetRepoStatusSelector();
-  const GetImageTags = makeGetImageTags();
+  const getCompileStatusSelector = makeGetCompileStatusResultSelector();
+  const getCompileStatusUniqueFilenames = makeGetCompileStatusUniqueFilenames();
+  const getRepoStatusSelector = makeGetRepoStatusSelector();
+  const getImageTags = makeGetImageTags();
   const mapStateToProps = (
     state: IServiceDevelopmentState,
   ) => {
@@ -326,11 +326,11 @@ const makeMapStateToProps = () => {
       language: state.language,
       masterRepoStatus: state.deploy.masterRepoStatus,
       deploymentList: state.deploy.deploymentList,
-      repoStatus: GetRepoStatusSelector(state),
+      repoStatus: getRepoStatusSelector(state),
       deployStatus: state.deploy.deployStatus,
-      compileStatus: GetCompileStatusSelector(state),
-      compileStatusUniqueFilenames: GetCompileStatusUniqueFilenames(state),
-      imageVersions: GetImageTags(state),
+      compileStatus: getCompileStatusSelector(state),
+      compileStatusUniqueFilenames: getCompileStatusUniqueFilenames(state),
+      imageVersions: getImageTags(state),
     };
   };
   return mapStateToProps;
