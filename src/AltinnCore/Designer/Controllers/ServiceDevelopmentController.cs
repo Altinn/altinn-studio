@@ -78,6 +78,11 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The content of the file.</returns>
         public ActionResult GetServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
         {
+            if (Path.GetFileName(fileName) != fileName)
+            {
+                return BadRequest();
+            }
+
             string file = string.Empty;
             switch (fileEditorMode)
             {
@@ -118,6 +123,11 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName, bool stageFile)
         {
+            if (Path.GetFileName(fileName) != fileName)
+            {
+                return BadRequest();
+            }
+
             string content = string.Empty;
 
             try
