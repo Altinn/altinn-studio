@@ -33,8 +33,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             var response = await _rolesClient.Client.GetAsync(apiurl);           
             string roleList = await response.Content.ReadAsStringAsync();
-            response.EnsureSuccessStatusCode();
-            decisionPointRoles = JsonConvert.DeserializeObject<List<Role>>(roleList);            
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                decisionPointRoles = JsonConvert.DeserializeObject<List<Role>>(roleList);
+            }
 
             return decisionPointRoles;
         }
