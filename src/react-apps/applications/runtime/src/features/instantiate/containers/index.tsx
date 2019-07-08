@@ -21,6 +21,7 @@ const styles = () => createStyles({
 });
 
 function ServiceInfo(props) {
+  const { org, service } = window as IAltinnWindow;
   const [reportee, setReportee] = React.useState(null);
   const [instanceId, setInstanceId] = React.useState(null);
   const [instantiationError, setInstantiationError] = React.useState(null);
@@ -28,14 +29,13 @@ function ServiceInfo(props) {
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
 
   const fetchReportee = async () => {
-    const url: string = `${window.location.origin}/api/v1/profile/user`;
+    const url: string = `${window.location.origin}/${org}/${service}/api/v1/profile/user`;
     const fetchedReportee: any = await get(url);
     setReportee(fetchedReportee);
   };
 
   const createNewInstance = async () => {
     try {
-      const { org, service } = window as IAltinnWindow;
       const url = `${window.location.origin}/Instance/InstantiateApp`;
       const formData: FormData = new FormData();
       formData.append('PartyId', reportee.userId);

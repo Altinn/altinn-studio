@@ -73,6 +73,7 @@ data:
         }
 
         rewrite ^/.*/.*/staticfiles(.*)$ $1 last;
+        rewrite ^/.*/.*/api/(.*)$ /api/$1 last;
 
         location /Home/  {
           proxy_pass         	http://designer/Home/;
