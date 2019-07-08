@@ -1,3 +1,4 @@
+/* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -26,7 +27,7 @@ describe('>>> AltinnColumnLayout', () => {
       />,
     );
     const children = mounted.find('#childId');
-    const sideMenuChildren = mounted.find("#sideMenuId");
+    const sideMenuChildren = mounted.find('#sideMenuId');
     const aboveColumnChildren = mounted.find('#aboveColumnId');
     expect(children.length).toBe(1);
     expect(sideMenuChildren.length).toBe(1);

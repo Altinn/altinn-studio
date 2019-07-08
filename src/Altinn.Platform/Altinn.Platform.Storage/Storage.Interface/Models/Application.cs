@@ -102,7 +102,7 @@ namespace Altinn.Platform.Storage.Models
         /// Gets or sets the different hooks attached to the application
         /// </summary>
         [JsonProperty(PropertyName = "hooks")]
-        public Hooks Hooks;
+        public Hooks Hooks { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()

@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, WithStyles, withStyles, FormGroup } from '@material-ui/core';
+import { createMuiTheme, createStyles, FormGroup, WithStyles, withStyles } from '@material-ui/core';
 import React = require('react');
 import altinnTheme from '../theme/altinnStudioTheme';
 
