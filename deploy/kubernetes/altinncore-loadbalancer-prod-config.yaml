@@ -72,6 +72,8 @@ data:
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
+        rewrite ^/staticfiles(.*)$ $1 last;
+
         location /Home/  {
           proxy_pass         	http://designer/Home/;
           proxy_set_header 	  Host altinn.studio;
