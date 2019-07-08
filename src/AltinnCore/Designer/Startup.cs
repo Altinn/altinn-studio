@@ -227,11 +227,12 @@ namespace AltinnCore.Designer
                               controller = @"(Deploy)",
                           });
                 routes.MapRoute(
-                    name: "apiRoute",
-                    template: "designer/api/v1/{org}/{app}",
-                    defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
+                        name: "apiRoute",
+                        template: "designer/api/v1/{org}/{app}",
+                        defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
 
-                routes.MapRoute(name: "reposRoute",
+                routes.MapRoute(
+                        name: "reposRoute",
                         template: "repos/{action=Index}/",
                         defaults: new { controller = "Repos" });
 
