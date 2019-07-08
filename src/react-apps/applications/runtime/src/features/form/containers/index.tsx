@@ -1,7 +1,7 @@
 import * as React from 'react';
-import AttachmentActions from '../../../sharedResources/attachments/attachmentActions';
-import LanguageActions from '../../../sharedResources/language/languageActions';
-import ProfileActions from '../../../sharedResources/profile/profileActions';
+import AttachmentActions from '../../../shared/resources/attachments/attachmentActions';
+import LanguageActions from '../../../shared/resources/language/languageActions';
+import ProfileActions from '../../../shared/resources/profile/profileActions';
 import FormDataActions from '../data/actions';
 import FormDataModelActions from '../datamodell/actions';
 import FormDynamicActions from '../dynamics/actions';

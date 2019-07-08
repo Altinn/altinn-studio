@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 import uuid = require('uuid');
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
-import { IAttachment } from '../../sharedResources/attachments';
-import AttachmentDispatcher from '../../sharedResources/attachments/attachmentActions';
+import { IAttachment } from '../../shared/resources/attachments';
+import AttachmentDispatcher from '../../shared/resources/attachments/attachmentActions';
 import '../../styles/FileUploadComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 

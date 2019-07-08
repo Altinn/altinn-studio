@@ -1,8 +1,8 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import { IAltinnWindow, IAttachments } from '..';
-import { mapAttachmentListApiResponseToAttachments } from '../../../utils/attachment';
-import { get } from '../../../utils/networking';
+import { mapAttachmentListApiResponseToAttachments } from '../../../../utils/attachment';
+import { get } from '../../../../utils/networking';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 

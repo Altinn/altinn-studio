@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
 import { IAltinnWindow } from '..';
-import { getFileUploadComponentValidations } from '../../../components/base/FileUploadComponent';
-import FormValidationsDispatcher from '../../../features/form/validation/actions';
-import { IRuntimeState } from '../../../types';
-import { get, post } from '../../../utils/networking';
+import { getFileUploadComponentValidations } from '../../../../components/base/FileUploadComponent';
+import FormValidationsDispatcher from '../../../../features/form/validation/actions';
+import { IRuntimeState } from '../../../../types';
+import { post } from '../../../../utils/networking';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
 import * as deleteActions from './deleteAttachmentActions';
