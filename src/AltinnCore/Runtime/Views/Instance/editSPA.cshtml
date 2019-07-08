@@ -61,12 +61,13 @@
 
 </script>
 <div id="root" class="media-body flex-column d-flex"></div>
-<link rel="stylesheet" type="text/css" href="~/staticfiles/runtime/css/react/runtime.css">
+
+<link rel="stylesheet" type="text/css" href="/staticfiles/runtime/css/react/runtime.css">
 <script>
   loadScript();
   loadStyles();
 
-  (function($) {
+  (function ($) {
     $.fn.datepicker.dates['no'] = {
       days: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'],
       daysShort: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
@@ -81,7 +82,7 @@
     };
   }(jQuery));
 
-  (function($) {
+  (function ($) {
     $.fn.datepicker.dates['nn'] = {
       days: ['sundag', 'måndag', 'tysdag', 'onsdag', 'torsdag', 'fredag', 'laurdag'],
       daysShort: ['sun', 'mån', 'tys', 'ons', 'tor', 'fre', 'lau'],
@@ -109,7 +110,7 @@
         leftArrow: '<i class="fa fa-back"></i>',
         rightArrow: '<i class="fa fa-arrowright"></i>'
       }
-    }).on('show', function(e) {
+    }).on('show', function (e) {
       $('#' + dateId).find('table').attr('cellpadding', '0');
       $('#' + dateId).find('table').attr('cellspacing', '0');
     });
