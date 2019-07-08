@@ -3,7 +3,7 @@ import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect, useSelector } from 'react-redux';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
-import Header from '../../../shared/containers/altinnAppHeader';
+import Header from '../../../shared/components/altinnAppHeader';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import { IProfile } from '../../../shared/resources/profile';
 import ProfileActions from '../../../shared/resources/profile/profileActions';

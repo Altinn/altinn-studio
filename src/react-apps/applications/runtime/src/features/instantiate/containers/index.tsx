@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
-import Header from '../../../shared/containers/altinnAppHeader';
+import Header from '../../../shared/components/altinnAppHeader';
 import { get, post } from '../../../utils/networking';
 
 const styles = () => createStyles({
