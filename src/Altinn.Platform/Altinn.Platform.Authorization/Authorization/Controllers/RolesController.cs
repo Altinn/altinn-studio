@@ -30,15 +30,18 @@ namespace Altinn.Platform.Authorization.Controllers
         /// <summary>
         /// Get the decision point roles for the loggedin user for a selected party
         /// </summary>
+        /// <param name="coveredByUserId">the logged in user id</param>
+        /// <param name="offeredByPartyId">the partyid of the person/org the logged in user is representing</param>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult> Get()
+        public async Task<ActionResult> Get(int coveredByUserId, int offeredByPartyId)
         {
-            List<Role> roleList = null;
-            UserContext userContext = ContextHelper.GetUserContext(HttpContext);
-            if (userContext != null && userContext.UserId != 0 && userContext.PartyId != 0)
+            if (coveredByUserId == 0 || offeredByPartyId == 0)
             {
-                roleList = await _rolesWrapper.GetDecisionPointRolesForUser(userContext.UserId, userContext.PartyId);
+                return BadRequest();
             }
+
+            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(coveredByUserId, offeredByPartyId);
 
             if (roleList == null || roleList.Count == 0)
             {
