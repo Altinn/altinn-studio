@@ -1,118 +1,134 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <title>@ViewBag.Org- @ViewBag.App</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-@{
-  ViewBag.Title = "Home Page";
-  Layout = "~/Views/Shared/_LayoutClean.cshtml";
-}
-
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
-<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
-<script src="https://use.fortawesome.com/ed31cded.js"></script>
-<script src="https://use.fortawesome.com/df832575.js"></script>
-<script src="https://use.fortawesome.com/bdabc5c1.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js"></script>
-
-<script>
-  function loadScript() {
-    var service = window.location.pathname.split('/');
-    window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)altinncorereportee\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
-    window.org = service[1];
-    window.service = service[2];
-    window.instanceId = service[3];
-  }
-
-  function loadStyles() {
-    var service = window.location.pathname.split('/');
-    var resourcesUrl = window.location.origin + '/api/runtimeresources/';
-    var stylesConfigUrl = window.location.origin + '/api/runtimeresources/Styles.json';
-    var xmlhttp = new XMLHttpRequest();
-
-    xmlhttp.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        var stylesConfig = JSON.parse(this.responseText);;
-        loadServiceStyles(stylesConfig, resourcesUrl);
-      }
-    };
-    xmlhttp.open("GET", stylesConfigUrl, true);
-    xmlhttp.send();
-
-    function loadServiceStyles(stylesConfig, resourcesUrl) {
-      if (stylesConfig.ExternalStyles) {
-        for (var i = 0; i < stylesConfig.ExternalStyles.length; i++) {
-          var link = document.createElement('link');
-          link.setAttribute('rel', 'stylesheet');
-          link.type = 'text/css';
-          link.href = stylesConfig.ExternalStyles[i];
-          document.body.appendChild(link);
-        }
-      }
-
-      if (stylesConfig.InternalStyles) {
-        for (var i = 0; i < stylesConfig.InternalStyles.length; i++) {
-          var link = document.createElement('link');
-          link.setAttribute('rel', 'stylesheet');
-          link.type = 'text/css';
-          link.href = resourcesUrl + stylesConfig.InternalStyles[i];
-          document.body.appendChild(link);
-        }
-      }
+  <link rel="stylesheet" type="text/css" href=@String.Concat($"/{ViewBag.Org}/{ViewBag.App}", "/staticfiles/runtime/css/react/runtime.css")>
+</head>
+<body>
+  <style>
+    html, body {
+      height: 100%;
     }
-  }
+  </style>
+  <div class="flex-column d-flex media-body">
 
-</script>
-<div id="root" class="media-body flex-column d-flex"></div>
-<link rel="stylesheet" type="text/css" href="/staticfiles/runtime/css/react/runtime.css">
-<script>
-  loadScript();
-  loadStyles();
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+    <script src="https://use.fortawesome.com/ed31cded.js"></script>
+    <script src="https://use.fortawesome.com/df832575.js"></script>
+    <script src="https://use.fortawesome.com/bdabc5c1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.min.js"></script>
 
-  (function($) {
-    $.fn.datepicker.dates['no'] = {
-      days: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'],
-      daysShort: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
-      daysMin: ['sø', 'ma', 'ti', 'on', 'to', 'fr', 'lø'],
-      months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'],
-      monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
-      today: 'i dag',
-      monthsTitle: 'Måneder',
-      clear: 'Nullstill',
-      weekStart: 1,
-      format: 'dd.mm.yyyy'
-    };
-  }(jQuery));
-
-  (function($) {
-    $.fn.datepicker.dates['nn'] = {
-      days: ['sundag', 'måndag', 'tysdag', 'onsdag', 'torsdag', 'fredag', 'laurdag'],
-      daysShort: ['sun', 'mån', 'tys', 'ons', 'tor', 'fre', 'lau'],
-      daysMin: ['su', 'må', 'ty', 'on', 'to', 'fr', 'la'],
-      months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'],
-      monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
-      today: 'i dag',
-      monthsTitle: 'Månadar',
-      clear: 'Nullstill',
-      weekStart: 1,
-      format: 'dd.mm.yyyy'
-    };
-  }(jQuery));
-
-  function initDatePicker(dateId, dateFormat, dateLanguage) {
-    $('#' + dateId).datepicker({
-      format: dateFormat,
-      language: dateLanguage,
-      todayHighlight: true,
-      orientation: 'bottom left',
-      updateViewDate: false,
-      autoclose: true,
-      maxViewMode: 0,
-      templates: {
-        leftArrow: '<i class="fa fa-back"></i>',
-        rightArrow: '<i class="fa fa-arrowright"></i>'
+    <script>
+      function loadScript() {
+        var service = window.location.pathname.split('/');
+        window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)altinncorereportee\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
+        window.org = service[1];
+        window.service = service[2];
+        window.instanceId = service[3];
       }
-    }).on('show', function(e) {
-      $('#' + dateId).find('table').attr('cellpadding', '0');
-      $('#' + dateId).find('table').attr('cellspacing', '0');
-    });
-  }
-  window.initDatePicker = initDatePicker;
-</script>
+
+      function loadStyles() {
+        var service = window.location.pathname.split('/');
+        var resourcesUrl = window.location.origin + '/api/runtimeresources/';
+        var stylesConfigUrl = window.location.origin + '/api/runtimeresources/Styles.json';
+        var xmlhttp = new XMLHttpRequest();
+
+        xmlhttp.onreadystatechange = function () {
+          if (this.readyState == 4 && this.status == 200) {
+            var stylesConfig = JSON.parse(this.responseText);;
+            loadServiceStyles(stylesConfig, resourcesUrl);
+          }
+        };
+        xmlhttp.open("GET", stylesConfigUrl, true);
+        xmlhttp.send();
+
+        function loadServiceStyles(stylesConfig, resourcesUrl) {
+          if (stylesConfig.ExternalStyles) {
+            for (var i = 0; i < stylesConfig.ExternalStyles.length; i++) {
+              var link = document.createElement('link');
+              link.setAttribute('rel', 'stylesheet');
+              link.type = 'text/css';
+              link.href = stylesConfig.ExternalStyles[i];
+              document.body.appendChild(link);
+            }
+          }
+
+          if (stylesConfig.InternalStyles) {
+            for (var i = 0; i < stylesConfig.InternalStyles.length; i++) {
+              var link = document.createElement('link');
+              link.setAttribute('rel', 'stylesheet');
+              link.type = 'text/css';
+              link.href = resourcesUrl + stylesConfig.InternalStyles[i];
+              document.body.appendChild(link);
+            }
+          }
+        }
+      }
+
+    </script>
+    <div id="root" class="media-body flex-column d-flex"></div>
+    <script>
+      loadScript();
+      loadStyles();
+
+      (function ($) {
+        $.fn.datepicker.dates['no'] = {
+          days: ['søndag', 'mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag', 'lørdag'],
+          daysShort: ['søn', 'man', 'tir', 'ons', 'tor', 'fre', 'lør'],
+          daysMin: ['sø', 'ma', 'ti', 'on', 'to', 'fr', 'lø'],
+          months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'],
+          monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
+          today: 'i dag',
+          monthsTitle: 'Måneder',
+          clear: 'Nullstill',
+          weekStart: 1,
+          format: 'dd.mm.yyyy'
+        };
+      }(jQuery));
+
+      (function ($) {
+        $.fn.datepicker.dates['nn'] = {
+          days: ['sundag', 'måndag', 'tysdag', 'onsdag', 'torsdag', 'fredag', 'laurdag'],
+          daysShort: ['sun', 'mån', 'tys', 'ons', 'tor', 'fre', 'lau'],
+          daysMin: ['su', 'må', 'ty', 'on', 'to', 'fr', 'la'],
+          months: ['januar', 'februar', 'mars', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'desember'],
+          monthsShort: ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'],
+          today: 'i dag',
+          monthsTitle: 'Månadar',
+          clear: 'Nullstill',
+          weekStart: 1,
+          format: 'dd.mm.yyyy'
+        };
+      }(jQuery));
+
+      function initDatePicker(dateId, dateFormat, dateLanguage) {
+        $('#' + dateId).datepicker({
+          format: dateFormat,
+          language: dateLanguage,
+          todayHighlight: true,
+          orientation: 'bottom left',
+          updateViewDate: false,
+          autoclose: true,
+          maxViewMode: 0,
+          templates: {
+            leftArrow: '<i class="fa fa-back"></i>',
+            rightArrow: '<i class="fa fa-arrowright"></i>'
+          }
+        }).on('show', function (e) {
+          $('#' + dateId).find('table').attr('cellpadding', '0');
+          $('#' + dateId).find('table').attr('cellspacing', '0');
+        });
+      }
+      window.initDatePicker = initDatePicker;
+    </script>
+  </div>
+  <script src=@String.Concat($"/{ViewBag.Org}/{ViewBag.App}", "/staticfiles/runtime/js/react/runtime.js")></script>
+</body>
+</html>

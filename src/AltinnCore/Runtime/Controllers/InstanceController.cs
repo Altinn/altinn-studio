@@ -124,6 +124,9 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         public async Task<IActionResult> EditSPA(string org, string service, Guid instanceId, string view, int? itemId)
         {
+            ViewBag.Org = org;
+            ViewBag.App = service;
+
             // TODO Add info for REACT app.
             return View();
         }
