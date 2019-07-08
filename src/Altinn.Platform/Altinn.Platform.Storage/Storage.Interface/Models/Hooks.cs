@@ -1,4 +1,5 @@
-namespace Storage.Interface.Models
+using Newtonsoft.Json;
+namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
     /// Model of application hooks

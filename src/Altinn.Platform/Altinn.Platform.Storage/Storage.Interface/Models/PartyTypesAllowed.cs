@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
     /// Model for the different party types which are allowed to instantiate an application

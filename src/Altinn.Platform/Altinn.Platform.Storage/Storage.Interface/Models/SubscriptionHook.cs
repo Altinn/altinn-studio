@@ -1,4 +1,6 @@
-namespace Storage.Interface.Models
+using Newtonsoft.Json;
+
+namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
     /// Model for the subscription hook

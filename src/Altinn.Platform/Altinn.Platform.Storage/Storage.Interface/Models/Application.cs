@@ -96,7 +96,7 @@ namespace Altinn.Platform.Storage.Models
         /// Gets of sets the different party types allowed to instantiate the application
         /// </summary>
         [JsonProperty(PropertyName = "partyTypesAllowed")]
-        public PartyTypes PartyTypesAllowed { get; set; }
+        public PartyTypesAllowed PartyTypesAllowed { get; set; }
 
         /// <summary>
         /// Gets or sets the different hooks attached to the application
