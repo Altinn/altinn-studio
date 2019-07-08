@@ -134,7 +134,7 @@ namespace AltinnCore.Designer.Controllers
                 {
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                    string giteaEnvironment = Environment.GetEnvironmentVariable("GiteaEndpoint") ?? _settings.ApiEndPointHost;
+                    string giteaEnvironment = Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") ?? _settings.ApiEndPointHost;
                     object buildContent = new
                     {
                         definition = new
@@ -250,7 +250,7 @@ namespace AltinnCore.Designer.Controllers
                 _logger.LogInformation($"Client url {storageEndpoint}");
 
                 Application application = null;
-                string getApplicationMetadataUrl = $"{storageEndpoint}applications/{appId}";
+                string getApplicationMetadataUrl = $"{storageEndpoint}/applications/{appId}";
                 _logger.LogInformation($"Request endpoint: {getApplicationMetadataUrl}");
                 HttpResponseMessage getApplicationResponse = await client.GetAsync(getApplicationMetadataUrl);
                 if (getApplicationResponse.IsSuccessStatusCode)

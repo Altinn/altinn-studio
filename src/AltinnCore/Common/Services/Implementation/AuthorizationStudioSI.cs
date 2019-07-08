@@ -16,7 +16,7 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private const string TESDATA_USER_DIRECTORY = @"/User/";
 
-        private const string REPORTEELIST_FILENAME = "reporteelist.json";
+        private const string PARTYLIST_FILENAME = "partylist.json";
 
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
 
@@ -34,12 +34,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="userId">The userId</param>
         /// <returns>List of parties user can report for</returns>
-        public List<Reportee> GetReporteeList(int userId)
+        public List<Party> GetPartyList(int userId)
         {
-            string path = _testdataRepositorySettings.RepositoryLocation + TESDATA_USER_DIRECTORY + userId + @"/" + REPORTEELIST_FILENAME;
+            string path = _testdataRepositorySettings.RepositoryLocation + TESDATA_USER_DIRECTORY + userId + @"/" + PARTYLIST_FILENAME;
             string textData = File.ReadAllText(path, Encoding.UTF8);
-            List<Reportee> reporteeList = JsonConvert.DeserializeObject<List<Reportee>>(textData);
-            return reporteeList;
+            List<Party> partyList = JsonConvert.DeserializeObject<List<Party>>(textData);
+            return partyList;
         }
     }
 }

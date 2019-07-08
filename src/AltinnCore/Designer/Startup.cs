@@ -82,16 +82,9 @@ namespace AltinnCore.Designer
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            string repoLocation = null;
-
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
-            }
-            else
-            {
-                repoLocation = Configuration["ServiceRepositorySettings:RepositoryLocation"];
-            }
+            string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
+                                : Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
             if (!Directory.Exists(repoLocation))
             {
@@ -237,6 +230,10 @@ namespace AltinnCore.Designer
                     name: "apiRoute",
                     template: "designer/api/v1/{org}/{app}",
                     defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
+
+                routes.MapRoute(name: "reposRoute",
+                        template: "repos/{action=Index}/",
+                        defaults: new { controller = "Repos" });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
