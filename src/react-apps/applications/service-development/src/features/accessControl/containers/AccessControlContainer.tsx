@@ -137,8 +137,8 @@ export class AccessControlContainerClass extends React.Component<
   public renderMainContent = (): JSX.Element => {
     return (
       <>
-        {this.renderHooksSection()}
         {this.renderPartySection()}
+        {this.renderHooksSection()}
       </>
     );
   }
