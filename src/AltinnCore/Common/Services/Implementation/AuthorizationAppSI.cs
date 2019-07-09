@@ -28,7 +28,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Initializes a new instance of the <see cref="AuthorizationAppSI"/> class
         /// </summary>
         /// <param name="httpContextAccessor">the http context accessor</param>
-        /// <param name="httpClientAccessor"'>The Http client accessor</param>
+        /// <param name="httpClientAccessor">The Http client accessor</param>
         /// <param name="cookieOptions">the default cookie options</param>
         /// <param name="logger">the handler for logger service</param>
         public AuthorizationAppSI(
@@ -36,7 +36,7 @@ namespace AltinnCore.Common.Services.Implementation
                 IHttpClientAccessor httpClientAccessor,
                 IOptions<JwtCookieOptions> cookieOptions,
                 ILogger<AuthorizationAppSI> logger)
-        {            
+        {
             _httpContextAccessor = httpContextAccessor;
             _client = httpClientAccessor.AuthorizationClient;
             _cookieOptions = cookieOptions.Value;

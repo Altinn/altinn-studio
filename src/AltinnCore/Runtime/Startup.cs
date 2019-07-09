@@ -108,7 +108,7 @@ namespace AltinnCore.Runtime
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
-            services.AddSingleton<IArchive, ArchiveStudioSI>();            
+            services.AddSingleton<IArchive, ArchiveStudioSI>();
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICompilation, CompilationSI>();
@@ -264,7 +264,7 @@ namespace AltinnCore.Runtime
                 // ---------------------------- UI --------------------------- //
                 routes.MapRoute(
                     name: "profileApiRoute",
-                    template: "api/v1/{controller}/user/",
+                    template: "{org}/{service}/api/v1/{controller}/user/",
                     defaults: new
                     {
                         action = "GetUser",
@@ -313,7 +313,7 @@ namespace AltinnCore.Runtime
                 // ---------------------------- API -------------------------- //
                 routes.MapRoute(
                     name: "resourceRoute",
-                    template: "api/resource/{org}/{service}/{id}",
+                    template: "{org}/{service}/api/resource/{id}",
                     defaults: new { action = "Index", controller = "Resource" },
                     constraints: new
                     {
@@ -323,7 +323,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "textresourceRoute",
-                    template: "api/textresources/{org}/{service}",
+                    template: "{org}/{service}/api/textresources",
                     defaults: new { action = "TextResources", controller = "Resource" },
                     constraints: new
                     {

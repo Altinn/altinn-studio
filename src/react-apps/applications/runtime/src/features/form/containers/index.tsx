@@ -34,13 +34,13 @@ export default (props) => {
       `${window.location.origin}/${org}/${service}/api/metadata/${org}/${service}/ServiceMetaData`,
     );
     FormLayoutActions.fetchFormLayout(
-      `${window.location.origin}/${org}/${service}/api/resource/${org}/${service}/FormLayout.json`,
+      `${window.location.origin}/${org}/${service}/api/resource/FormLayout.json`,
     );
     FormDataActions.fetchFormData(
       `${window.location.origin}/${org}/${service}/api/${reportee}/${org}/${service}/Index/${instanceId}`,
     );
     FormRuleActions.fetchRuleModel(
-      `${window.location.origin}/${org}/${service}/api/resource/${org}/${service}/RuleHandler.js`,
+      `${window.location.origin}/${org}/${service}/api/resource/RuleHandler.js`,
     );
     FormWorkflowActions.getCurrentState(
       // tslint:disable-next-line:max-line-length
@@ -48,10 +48,10 @@ export default (props) => {
     );
 
     FormDynamicActions.fetchFormDynamics(
-      `${window.location.origin}/${org}/${service}/api/resource/${org}/${service}/ServiceConfigurations.json`,
+      `${window.location.origin}/${org}/${service}/api/resource/ServiceConfigurations.json`,
     );
     FormResourceActions.fetchFormResource(
-      `${window.location.origin}/${org}/${service}/api/textresources/${org}/${service}`,
+      `${window.location.origin}/${org}/${service}/api/textresources`,
     );
 
     ProfileActions.fetchProfile(
