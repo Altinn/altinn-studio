@@ -1138,7 +1138,16 @@ namespace AltinnCore.Common.Services.Implementation
                     JObject json = JObject.FromObject(new
                     {
                         language = "nb",
-                        resources = new[] { new { id = "ServiceName", value = serviceConfig.ServiceName } },
+                        resources = new[]
+                        {
+                            new { id = "ServiceName", value = serviceConfig.ServiceName },
+                            new { id = "subscription_hook_error_title", value = string.Empty },
+                            new { id = "subscription_hook_error_content", value = string.Empty },
+                            new { id = "subscription_hook_error_url", value = string.Empty },
+                            new { id = "subscription_hook_error_urlText", value = string.Empty },
+                            new { id = "subscription_hook_error_urlTextSuffix", value = string.Empty },
+                            new { id = "subscription_hook_error_statusCode", value = string.Empty }
+                        },
                     });
                     SaveResource(owner, serviceConfig.RepositoryName, "nb", json.ToString());
                 }

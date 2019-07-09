@@ -91,7 +91,8 @@ export class AccessControlContainerClass extends React.Component<
       return {
         partyTypesAllowed,
         subscriptionHook,
-        showSubscriptionHook: (subscriptionHook.serviceCode || subscriptionHook.editionCode),
+        // tslint:disable-next-line: max-line-length
+        showSubscriptionHook: (subscriptionHook.serviceCode || subscriptionHook.editionCode) || state.showSubscriptionHook,
       };
     }
     return null;
@@ -203,7 +204,9 @@ export class AccessControlContainerClass extends React.Component<
       newState.subscriptionHook.serviceCode = '';
       newState.subscriptionHook.editionCode = '';
     }
-    this.setState(newState);
+    this.setState(newState, () => {
+      this.saveApplicationMetadata();
+    });
   }
 
   public handleSubscriptionHookValuesChanged(type: string, event: any) {
@@ -261,7 +264,7 @@ export class AccessControlContainerClass extends React.Component<
   }
 
   public saveApplicationMetadata() {
-// tslint:disable-next-line: max-line-length
+    // tslint:disable-next-line: max-line-length
     const newApplicationMetadata = JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
     newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
     newApplicationMetadata.subscriptionHook = this.state.subscriptionHook;
