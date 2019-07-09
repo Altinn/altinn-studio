@@ -342,7 +342,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "metadataRoute",
-                    template: "api/metadata/{org}/{service}/{action=Index}",
+                    template: "{org}/{service}/{api/metadata/action=Index}",
                     defaults: new { controller = "Resource" },
                     constraints: new
                     {
@@ -383,7 +383,7 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "apiWorkflowRoute",
-                    template: "api/workflow/{partyId}/{org}/{service}/{action}/{instanceId?}",
+                    template: "{org}/{service}/api/workflow/{partyId}/{action}/{instanceId?}",
                     defaults: new { controller = "ServiceAPI" },
                     constraints: new
                     {
@@ -423,7 +423,7 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "languageRoute",
-                    template: "api/{controller}/{action=Index}/{id?}",
+                    template: "{org}/{service}/api/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Language" },
                     constraints: new
                     {

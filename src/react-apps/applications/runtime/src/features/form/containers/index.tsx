@@ -31,7 +31,7 @@ export default (props) => {
       'nb',
     );
     FormDataModelActions.fetchDataModel(
-      `${window.location.origin}/${org}/${service}/api/metadata/${org}/${service}/ServiceMetaData`,
+      `${window.location.origin}/${org}/${service}/api/metadata/ServiceMetaData`,
     );
     FormLayoutActions.fetchFormLayout(
       `${window.location.origin}/${org}/${service}/api/resource/FormLayout.json`,
@@ -44,7 +44,7 @@ export default (props) => {
     );
     FormWorkflowActions.getCurrentState(
       // tslint:disable-next-line:max-line-length
-      `${window.location.origin}/${org}/${service}/api/workflow/${reportee}/${org}/${service}/GetCurrentState?instanceId=${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/workflow/${reportee}/GetCurrentState?instanceId=${instanceId}`,
     );
 
     FormDynamicActions.fetchFormDynamics(
