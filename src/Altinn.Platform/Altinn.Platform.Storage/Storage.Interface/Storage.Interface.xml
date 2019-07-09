@@ -214,7 +214,7 @@
             Gets of sets the different party types allowed to instantiate the application
             </summary>
         </member>
-        <member name="F:Altinn.Platform.Storage.Models.Application.Hooks">
+        <member name="P:Altinn.Platform.Storage.Models.Application.Hooks">
             <summary>
             Gets or sets the different hooks attached to the application
             </summary>

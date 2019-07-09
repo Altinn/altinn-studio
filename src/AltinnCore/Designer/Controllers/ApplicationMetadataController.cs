@@ -1,5 +1,6 @@
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -8,6 +9,7 @@ namespace Designer.Controllers
     /// <summary>
     /// Controller for serving/editing the application metadata json file
     /// </summary>
+    [Authorize]
     [Route("/designer/api/v1/{org}/{app}")]
     public class ApplicationMetadataController : ControllerBase
     {
@@ -52,11 +54,12 @@ namespace Designer.Controllers
         /// <param name="applicationMetadata">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
-        public ActionResult ApplicationMetadata(string org, string app, [FromBody] dynamic applicationMetadata)
+        public ActionResult ApplicationMetadata(string org, string app, [FromBody] Application applicationMetadata)
         {
-            if (_repository.AddMetadataForAttachment(org, app, applicationMetadata.ToString()))
+            if (_repository.UpdateApplication(org, app, applicationMetadata))
             {
-                return Ok(applicationMetadata);
+                Application updatedApplicationMetadata = _repository.GetApplication(org, app);
+                return Ok(updatedApplicationMetadata);
             }
             else
             {

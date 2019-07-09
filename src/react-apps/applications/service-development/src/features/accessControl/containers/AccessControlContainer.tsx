@@ -57,7 +57,7 @@ export interface IAccessControlContainerProps extends IAccessControlContainerPro
 }
 
 export interface IAccessControlContainerState {
-  partyTypeAllowed: {
+  partyTypesAllowed: {
     bankruptcyEstate: boolean,
     organization: boolean,
     person: boolean,
@@ -85,7 +85,7 @@ export class AccessControlContainerClass extends React.Component<
   constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
     super(props, state);
     this.state = {
-      partyTypeAllowed: {
+      partyTypesAllowed: {
         bankruptcyEstate: false,
         organization: false,
         person: false,
@@ -217,8 +217,8 @@ export class AccessControlContainerClass extends React.Component<
               <AltinnFormControlLabel
                 key={key}
                 control={<AltinnCheckBox
-                  checked={!!this.state.partyTypeAllowed[key as PartyTypes]}
-                  onChangeFunction={this.handlePartyTypeAllowedChange.bind(this, key as PartyTypes)}
+                  checked={!!this.state.partyTypesAllowed[key as PartyTypes]}
+                  onChangeFunction={this.handlePartyTypesAllowedChange.bind(this, key as PartyTypes)}
                 />}
                 label={getLanguageFromKey('access_control.' + key, this.props.language)}
               />);
@@ -228,11 +228,11 @@ export class AccessControlContainerClass extends React.Component<
     );
   }
 
-  public handlePartyTypeAllowedChange(partyType: PartyTypes) {
-    const { partyTypeAllowed } = this.state;
-    partyTypeAllowed[partyType] = !partyTypeAllowed[partyType];
+  public handlePartyTypesAllowedChange(partyType: PartyTypes) {
+    const { partyTypesAllowed } = this.state;
+    partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
     this.setState({
-      partyTypeAllowed,
+      partyTypesAllowed,
     }, () => {
       this.saveApplicationMetadata();
     });
@@ -240,7 +240,7 @@ export class AccessControlContainerClass extends React.Component<
 
   public saveApplicationMetadata() {
     const newApplicationMetadata = Object.assign(this.props.applicationMetadata ? this.props.applicationMetadata : {});
-    newApplicationMetadata.partyTypeAllowed = this.state.partyTypeAllowed;
+    newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
     newApplicationMetadata.hooks = this.state.hooks;
     applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
   }
