@@ -342,7 +342,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "metadataRoute",
-                    template: "{org}/{service}/{api/metadata/action=Index}",
+                    template: "{org}/{service}/api/metadata/{action=Index}",
                     defaults: new { controller = "Resource" },
                     constraints: new
                     {
