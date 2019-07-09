@@ -333,7 +333,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "runtimeResourceRoute",
-                    template: "api/runtimeresources/{id}/",
+                    template: "{org}/{service}/api/runtimeresources/{id}/",
                     defaults: new { action = "RuntimeResource", controller = "Resource" },
                     constraints: new
                     {
