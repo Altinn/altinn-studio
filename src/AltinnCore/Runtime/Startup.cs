@@ -361,7 +361,7 @@ namespace AltinnCore.Runtime
                     });
 
                 routes.MapRoute(
-                    name: "apiAttachemntRoute",
+                    name: "apiAttachmentRoute",
                     template: "{org}/{service}/api/attachment/{partyId}/{instanceId}/{action}",
                     defaults: new { controller = "Instance" },
                     constraints: new
