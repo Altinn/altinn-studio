@@ -36,8 +36,8 @@
 
       function loadStyles() {
         var service = window.location.pathname.split('/');
-        var resourcesUrl = window.location.origin + '/api/runtimeresources/';
-        var stylesConfigUrl = window.location.origin + '/api/runtimeresources/Styles.json';
+        var resourcesUrl = window.location.origin + '/' + window.org+ '/' + window.service + '/api/runtimeresources/';
+        var stylesConfigUrl = window.location.origin + '/' + window.org+ '/' + window.service + '/api/runtimeresources/Styles.json';
         var xmlhttp = new XMLHttpRequest();
 
         xmlhttp.onreadystatechange = function () {

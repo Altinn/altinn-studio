@@ -44,7 +44,7 @@ export class GenericComponentClass extends React.Component<IGenericComponentProp
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service, instanceId, reportee } = altinnWindow;
-      const url = `${window.location.origin}/api/${reportee}/${org}/${service}/${instanceId}`;
+      const url = `${window.location.origin}/${org}/${service}/api/${reportee}/${instanceId}`;
       ValidationActions.runSingleFieldValidation(url, dataModelField);
     }
     const dataModelElement = this.props.dataModel.find(
