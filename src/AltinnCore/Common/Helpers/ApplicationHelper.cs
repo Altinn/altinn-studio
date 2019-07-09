@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace AltinnCore.Common.Helpers
@@ -18,6 +19,21 @@ namespace AltinnCore.Common.Helpers
         public static string GetFormattedApplicationId(string org, string appName)
         {
             return $"{org}/{appName}";
+        }
+
+        /// <summary>
+        /// Validates the filename
+        /// </summary>
+        /// <param name="fileName">the file name</param>
+        /// <returns>false if the filename contains additional characters other than filename</returns>
+        public static bool IsValidFilename(string fileName)
+        {
+            if (Path.GetFileName(fileName) != fileName)
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }
