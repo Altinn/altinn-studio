@@ -57,12 +57,7 @@ export interface IAccessControlContainerProps extends IAccessControlContainerPro
 }
 
 export interface IAccessControlContainerState {
-  partyTypesAllowed: {
-    bankruptcyEstate: boolean,
-    organization: boolean,
-    person: boolean,
-    subUnit: boolean,
-  };
+  partyTypesAllowed: IPartyTypesAllowed;
   hooks: {
     subscriptionHook: {
       active: boolean,
@@ -70,6 +65,13 @@ export interface IAccessControlContainerState {
       editionCode: string,
     },
   };
+}
+
+export interface IPartyTypesAllowed {
+  bankruptcyEstate: boolean;
+  organization: boolean;
+  person: boolean;
+  subUnit: boolean;
 }
 
 export enum PartyTypes {
@@ -82,22 +84,43 @@ export enum PartyTypes {
 export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
 
+  public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
+    const {hooks, partyTypesAllowed} = nextProps.applicationMetadata;
+    if (!hooks || !partyTypesAllowed) {
+      return null;
+    }
+    if (state.hooks !== hooks || state.partyTypesAllowed !== partyTypesAllowed) {
+      return {
+        partyTypesAllowed,
+        hooks,
+      };
+    }
+    return null;
+  }
+
   constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
     super(props, state);
-    this.state = {
-      partyTypesAllowed: {
+    let { partyTypesAllowed, hooks} = props.applicationMetadata;
+    if (!partyTypesAllowed) {
+      partyTypesAllowed = {
         bankruptcyEstate: false,
         organization: false,
         person: false,
         subUnit: false,
-      },
-      hooks: {
+      };
+    }
+    if (!hooks) {
+      hooks =  {
         subscriptionHook: {
           active: false,
           serviceCode: '',
           editionCode: '',
         },
-      },
+      };
+    }
+    this.state = {
+      partyTypesAllowed,
+      hooks,
     };
     this.handleSubscriptionHookValuesOnBlur = this.handleSubscriptionHookValuesOnBlur.bind(this);
   }
@@ -212,15 +235,17 @@ export class AccessControlContainerClass extends React.Component<
           {getLanguageFromKey('access_control.party_type', this.props.language)}
         </Typography>
         <AltinnCheckBoxGroup row={true}>
-          {partyTypeKeys.map((key: string) => {
+          {partyTypeKeys.map((partyTypeKey: string) => {
+            // value used for mapping internal state, key used for language reference
+            const partyTypeValue = PartyTypes[partyTypeKey as any] as keyof IPartyTypesAllowed;
             return (
               <AltinnFormControlLabel
-                key={key}
+                key={partyTypeKey}
                 control={<AltinnCheckBox
-                  checked={!!this.state.partyTypesAllowed[key as PartyTypes]}
-                  onChangeFunction={this.handlePartyTypesAllowedChange.bind(this, key as PartyTypes)}
+                  checked={this.state.partyTypesAllowed[partyTypeValue]}
+                  onChangeFunction={this.handlePartyTypesAllowedChange.bind(this, partyTypeValue)}
                 />}
-                label={getLanguageFromKey('access_control.' + key, this.props.language)}
+                label={getLanguageFromKey('access_control.' + partyTypeKey, this.props.language)}
               />);
           })}
         </AltinnCheckBoxGroup>
@@ -234,13 +259,16 @@ export class AccessControlContainerClass extends React.Component<
     this.setState({
       partyTypesAllowed,
     }, () => {
+      console.log(this.state.partyTypesAllowed);
       this.saveApplicationMetadata();
     });
   }
 
   public saveApplicationMetadata() {
-    const newApplicationMetadata = Object.assign(this.props.applicationMetadata ? this.props.applicationMetadata : {});
+// tslint:disable-next-line: max-line-length
+    const newApplicationMetadata = JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
     newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
+    console.log(this.state.partyTypesAllowed);
     newApplicationMetadata.hooks = this.state.hooks;
     applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
   }
