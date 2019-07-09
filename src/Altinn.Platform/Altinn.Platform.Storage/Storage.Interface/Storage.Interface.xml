@@ -214,9 +214,9 @@
             Gets of sets the different party types allowed to instantiate the application
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.Application.Hooks">
+        <member name="P:Altinn.Platform.Storage.Models.Application.SubscriptionHook">
             <summary>
-            Gets or sets the different hooks attached to the application
+            Gets or sets the subscription hook attached to the application
             </summary>
         </member>
         <member name="M:Altinn.Platform.Storage.Models.Application.ToString">
@@ -335,16 +335,6 @@
         <member name="P:Altinn.Platform.Storage.Models.ElementType.ShouldEncrypt">
             <summary>
             Encryption required by application. Default value is false.  
-            </summary>
-        </member>
-        <member name="T:Altinn.Platform.Storage.Models.Hooks">
-            <summary>
-            Model of application hooks
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Models.Hooks.SubscriptionHook">
-            <summary>
-            The subscription hook
             </summary>
         </member>
         <member name="T:Altinn.Platform.Storage.Models.Instance">
@@ -550,12 +540,7 @@
         </member>
         <member name="T:Altinn.Platform.Storage.Models.SubscriptionHook">
             <summary>
-            Model for the subscription hook
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Models.SubscriptionHook.Active">
-            <summary>
-            If the hook is active
+            A subscription hook uses an existing T2 service to evaluate if the instanceOwnerId can instantiate the app.
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Models.SubscriptionHook.ServiceCode">

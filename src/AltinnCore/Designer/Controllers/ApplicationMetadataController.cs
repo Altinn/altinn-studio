@@ -9,6 +9,7 @@ namespace Designer.Controllers
     /// <summary>
     /// Controller for serving/editing the application metadata json file
     /// </summary>
+    [ApiController]
     [Authorize]
     [Route("/designer/api/v1/{org}/{app}")]
     public class ApplicationMetadataController : ControllerBase
@@ -34,13 +35,13 @@ namespace Designer.Controllers
         /// <param name="app">The the application</param>
         /// <returns>The application metadata</returns>
         [HttpGet]
-        public ActionResult ApplicationMetadata(string org, string app)
+        [ActionName("ApplicationMetadata")]
+        public ActionResult GetApplicationMetadata(string org, string app)
         {
             Application application = _repository.GetApplication(org, app);
             if (application == null)
             {
-                _repository.CreateApplication(org, app);
-                application = _repository.GetApplication(org, app);
+                return NotFound();
             }
 
             return Ok(application);
@@ -54,7 +55,8 @@ namespace Designer.Controllers
         /// <param name="applicationMetadata">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
-        public ActionResult ApplicationMetadata(string org, string app, [FromBody] Application applicationMetadata)
+        [ActionName("ApplicationMetadata")]
+        public ActionResult UpdateApplicationMetadata(string org, string app, [FromBody] Application applicationMetadata)
         {
             if (_repository.UpdateApplication(org, app, applicationMetadata))
             {
@@ -64,6 +66,33 @@ namespace Designer.Controllers
             else
             {
                 return StatusCode(500);
+            }
+        }
+
+        /// <summary>
+        /// Create an application metadata, url POST "/designer/api/v1/org/app"
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The application</param>
+        /// <returns>The created application metadata</returns>
+        [HttpPost]
+        [ActionName("ApplicationMetadata")]
+        public ActionResult CreateApplicationMetadata(string org, string app)
+        {
+            if (_repository.GetApplication(org, app) != null)
+            {
+                return Conflict("ApplicationMetadata allready exists.");
+            }
+            else
+            {
+                _repository.CreateApplication(org, app);
+                Application createdApplication = _repository.GetApplication(org, app);
+                if (createdApplication == null)
+                {
+                    return StatusCode(500);
+                }
+
+                return Created($"/designer/api/v1/{org}/{app}", createdApplication);
             }
         }
     }

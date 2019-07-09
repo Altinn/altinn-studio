@@ -227,7 +227,7 @@ namespace AltinnCore.Designer
                               controller = @"(Deploy)",
                           });
                 routes.MapRoute(
-                        name: "apiRoute",
+                        name: "applicationMetadataApiRoute",
                         template: "designer/api/v1/{org}/{app}",
                         defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
 

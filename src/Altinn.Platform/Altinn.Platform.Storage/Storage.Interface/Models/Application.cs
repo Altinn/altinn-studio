@@ -99,10 +99,10 @@ namespace Altinn.Platform.Storage.Models
         public PartyTypesAllowed PartyTypesAllowed { get; set; }
 
         /// <summary>
-        /// Gets or sets the different hooks attached to the application
+        /// Gets or sets the subscription hook attached to the application
         /// </summary>
-        [JsonProperty(PropertyName = "hooks")]
-        public Hooks Hooks { get; set; }
+        [JsonProperty(PropertyName = "subscriptionHook")]
+        public SubscriptionHook SubscriptionHook {get; set;}
 
         /// <inheritdoc/>
         public override string ToString()

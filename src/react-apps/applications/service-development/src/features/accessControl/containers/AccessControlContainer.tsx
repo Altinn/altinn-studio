@@ -58,13 +58,11 @@ export interface IAccessControlContainerProps extends IAccessControlContainerPro
 
 export interface IAccessControlContainerState {
   partyTypesAllowed: IPartyTypesAllowed;
-  hooks: {
-    subscriptionHook: {
-      active: boolean,
-      serviceCode: string,
-      editionCode: string,
-    },
+  subscriptionHook: {
+    serviceCode: string,
+    editionCode: string,
   };
+  showSubscriptionHook: boolean;
 }
 
 export interface IPartyTypesAllowed {
@@ -85,14 +83,15 @@ export class AccessControlContainerClass extends React.Component<
   IAccessControlContainerProps, IAccessControlContainerState> {
 
   public static getDerivedStateFromProps(nextProps: IAccessControlContainerProps, state: IAccessControlContainerState) {
-    const {hooks, partyTypesAllowed} = nextProps.applicationMetadata;
-    if (!hooks || !partyTypesAllowed) {
+    const {subscriptionHook, partyTypesAllowed} = nextProps.applicationMetadata;
+    if (!subscriptionHook || !partyTypesAllowed) {
       return null;
     }
-    if (state.hooks !== hooks || state.partyTypesAllowed !== partyTypesAllowed) {
+    if (state.subscriptionHook !== subscriptionHook || state.partyTypesAllowed !== partyTypesAllowed) {
       return {
         partyTypesAllowed,
-        hooks,
+        subscriptionHook,
+        showSubscriptionHook: (subscriptionHook.serviceCode || subscriptionHook.editionCode),
       };
     }
     return null;
@@ -100,7 +99,7 @@ export class AccessControlContainerClass extends React.Component<
 
   constructor(props: IAccessControlContainerProps, state: IAccessControlContainerState) {
     super(props, state);
-    let { partyTypesAllowed, hooks} = props.applicationMetadata;
+    let { partyTypesAllowed, subscriptionHook} = props.applicationMetadata;
     if (!partyTypesAllowed) {
       partyTypesAllowed = {
         bankruptcyEstate: false,
@@ -109,18 +108,16 @@ export class AccessControlContainerClass extends React.Component<
         subUnit: false,
       };
     }
-    if (!hooks) {
-      hooks =  {
-        subscriptionHook: {
-          active: false,
-          serviceCode: '',
-          editionCode: '',
-        },
+    if (!subscriptionHook) {
+      subscriptionHook =  {
+        serviceCode: '',
+        editionCode: '',
       };
     }
     this.state = {
       partyTypesAllowed,
-      hooks,
+      subscriptionHook,
+      showSubscriptionHook: (subscriptionHook.serviceCode || subscriptionHook.editionCode),
     };
     this.handleSubscriptionHookValuesOnBlur = this.handleSubscriptionHookValuesOnBlur.bind(this);
   }
@@ -146,7 +143,7 @@ export class AccessControlContainerClass extends React.Component<
   }
 
   public renderHooksSection = (): JSX.Element => {
-    const { serviceCode, editionCode } = this.state.hooks.subscriptionHook;
+    const { serviceCode, editionCode } = this.state.subscriptionHook;
     const { classes } = this.props;
     return (
       <>
@@ -156,13 +153,13 @@ export class AccessControlContainerClass extends React.Component<
         <div className={classes.contentMargin}>
           <AltinnFormControlLabel
             control={<AltinnCheckBox
-              checked={this.state.hooks.subscriptionHook.active}
+              checked={this.state.showSubscriptionHook}
               onChangeFunction={this.handleSubscriptionHookChange.bind(this)}
             />}
             label={getLanguageFromKey('access_control.hooks', this.props.language)}
           />
         </div>
-        {this.state.hooks.subscriptionHook.active &&
+        {this.state.showSubscriptionHook &&
           <>
             <div className={classes.contentMargin}>
               <AltinnInputField
@@ -201,10 +198,10 @@ export class AccessControlContainerClass extends React.Component<
 
   public handleSubscriptionHookChange() {
     const newState = Object.assign(this.state) as IAccessControlContainerState;
-    newState.hooks.subscriptionHook.active = !newState.hooks.subscriptionHook.active;
-    if (!newState.hooks.subscriptionHook.active) {
-      newState.hooks.subscriptionHook.serviceCode = '';
-      newState.hooks.subscriptionHook.editionCode = '';
+    newState.showSubscriptionHook = !newState.showSubscriptionHook;
+    if (!newState.showSubscriptionHook) {
+      newState.subscriptionHook.serviceCode = '';
+      newState.subscriptionHook.editionCode = '';
     }
     this.setState(newState);
   }
@@ -213,9 +210,9 @@ export class AccessControlContainerClass extends React.Component<
     const value = event.target.value;
     const newState = Object.assign(this.state) as IAccessControlContainerState;
     if (type === 'serviceCode') {
-      newState.hooks.subscriptionHook.serviceCode = value;
+      newState.subscriptionHook.serviceCode = value;
     } else {
-      newState.hooks.subscriptionHook.editionCode = value;
+      newState.subscriptionHook.editionCode = value;
     }
     this.setState(newState);
   }
@@ -259,7 +256,6 @@ export class AccessControlContainerClass extends React.Component<
     this.setState({
       partyTypesAllowed,
     }, () => {
-      console.log(this.state.partyTypesAllowed);
       this.saveApplicationMetadata();
     });
   }
@@ -268,8 +264,7 @@ export class AccessControlContainerClass extends React.Component<
 // tslint:disable-next-line: max-line-length
     const newApplicationMetadata = JSON.parse(JSON.stringify((this.props.applicationMetadata ? this.props.applicationMetadata : {})));
     newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
-    console.log(this.state.partyTypesAllowed);
-    newApplicationMetadata.hooks = this.state.hooks;
+    newApplicationMetadata.subscriptionHook = this.state.subscriptionHook;
     applicationMetadataDispatcher.putApplicationMetadata(newApplicationMetadata);
   }
 
