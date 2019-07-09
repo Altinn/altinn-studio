@@ -352,7 +352,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiPostRoute",
-                    template: "api/{reportee}/{org}/{service}/{apiMode}",
+                    template: "{org}/{service}/api/{reportee}/{apiMode}",
                     defaults: new { action = "Index", controller = "ServiceAPI" },
                     constraints: new
                     {
@@ -362,7 +362,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiAttachemntRoute",
-                    template: "api/attachment/{partyId}/{org}/{service}/{instanceId}/{action}",
+                    template: "{org}/{service}/api/attachment/{partyId}/{instanceId}/{action}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
@@ -373,7 +373,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiPutRoute",
-                    template: "api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
+                    template: "{org}/{service}/api/{reportee}/{instanceId}/{apiMode}",
                     defaults: new { action = "Index", controller = "ServiceAPI" },
                     constraints: new
                     {
@@ -393,7 +393,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "codelistRoute",
-                    template: "api/{controller}/{org}/{service}/{action=Index}/{name}",
+                    template: "{org}/{service}/api/{controller}/{action=Index}/{name}",
                     defaults: new { controller = "Codelist" },
                     constraints: new
                     {
@@ -403,7 +403,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiRoute",
-                    template: "api/{reportee}/{org}/{service}/{action=Index}/{instanceId?}",
+                    template: "{org}/{service}/api/{reportee}/{action=Index}/{instanceId?}",
                     defaults: new { controller = "ServiceAPI" },
                     constraints: new
                     {

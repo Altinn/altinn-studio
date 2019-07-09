@@ -37,7 +37,7 @@ export default (props) => {
       `${window.location.origin}/${org}/${service}/api/resource/FormLayout.json`,
     );
     FormDataActions.fetchFormData(
-      `${window.location.origin}/${org}/${service}/api/${reportee}/${org}/${service}/Index/${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/${reportee}/Index/${instanceId}`,
     );
     FormRuleActions.fetchRuleModel(
       `${window.location.origin}/${org}/${service}/api/resource/RuleHandler.js`,
