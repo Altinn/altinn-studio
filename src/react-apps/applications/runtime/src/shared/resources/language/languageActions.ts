@@ -1,5 +1,5 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../store';
+import { store } from '../../../store';
 
 import * as FetchLanguage from './fetch/fetchLanguageActions';
 

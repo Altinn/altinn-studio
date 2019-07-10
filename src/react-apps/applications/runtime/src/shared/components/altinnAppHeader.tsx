@@ -1,12 +1,11 @@
-
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
-import AltinnLogo from '../../../../../shared/src/components/AltinnLogo';
-import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
-import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-import { IProfile } from '../../../sharedResources/profile';
-import { renderParty } from '../../../sharedResources/utils/party';
+import AltinnLogo from '../../../../shared/src/components/AltinnLogo';
+import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { IProfile } from '../resources/profile';
+import { renderParty } from '../resources/utils/party';
 
 export interface IHeaderprops {
   classes: any;

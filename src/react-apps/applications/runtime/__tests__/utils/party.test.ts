@@ -1,5 +1,5 @@
 import 'jest';
-import { renderParty } from '../../src/sharedResources/utils/party';
+import { renderParty } from '../../src/shared/resources/utils/party';
 
 describe('>>> sharedResources/utils/party.ts', () => {
   let mockProfile: any;

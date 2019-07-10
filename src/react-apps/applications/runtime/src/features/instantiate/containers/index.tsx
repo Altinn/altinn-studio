@@ -1,4 +1,3 @@
-import Grid from '@material-ui/core/Grid';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import ContentLoader from 'react-content-loader';
@@ -6,8 +5,8 @@ import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
+import Header from '../../../shared/components/altinnAppHeader';
 import { get, post } from '../../../utils/networking';
-import Header from '../../altinnAppHeader/containers';
 
 const styles = () => createStyles({
   modal: {

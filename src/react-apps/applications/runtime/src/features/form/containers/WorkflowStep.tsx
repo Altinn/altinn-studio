@@ -2,8 +2,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import FormFillerActions from '../../../features/form/data/actions';
-import { IProfile } from '../../../sharedResources/profile';
-import { renderParty } from '../../../sharedResources/utils/party';
+import { IProfile } from '../../../shared/resources/profile';
+import { renderParty } from '../../../shared/resources/utils/party';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { IValidations } from '../../../types/global';
 
