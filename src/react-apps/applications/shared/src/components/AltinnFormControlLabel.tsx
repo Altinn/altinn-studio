@@ -2,9 +2,14 @@ import { createStyles, FormControlLabel, WithStyles, withStyles } from '@materia
 import React = require('react');
 
 export interface IAltinnFormControlLabelProvidedProps extends WithStyles<typeof styles> {
+  /** The id */
   id?: any;
+  /** The label */
   label: string;
+  /** The component it controls */
   control: any;
+  /** @ignore */
+  classes: any;
 }
 
 const styles = () => createStyles({
@@ -17,7 +22,7 @@ const styles = () => createStyles({
   },
 });
 
-export class AltinnFormControlLabelClass extends React.Component<IAltinnFormControlLabelProvidedProps> {
+export class AltinnFormControlLabel extends React.Component<IAltinnFormControlLabelProvidedProps> {
   public render() {
     const { classes } = this.props;
     return (
@@ -30,4 +35,4 @@ export class AltinnFormControlLabelClass extends React.Component<IAltinnFormCont
   }
 }
 
-export default withStyles(styles)(AltinnFormControlLabelClass);
+export default withStyles(styles)(AltinnFormControlLabel);

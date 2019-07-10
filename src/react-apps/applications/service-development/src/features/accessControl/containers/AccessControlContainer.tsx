@@ -31,7 +31,9 @@ const styles = createStyles({
   },
   informationPaperText: {
     fontSize: 16,
-    margin: 12,
+  },
+  informationPaper: {
+    padding: 12,
   },
   sidebarSectionHeader: {
     fontSize: 16,
@@ -185,7 +187,7 @@ export class AccessControlContainerClass extends React.Component<
               />
             </div>
             <div className={classes.contentMargin}>
-              <Paper elevation={1} square={true}>
+              <Paper elevation={1} square={true} className={classes.informationPaper}>
                 <Typography className={classes.informationPaperText}>
                   {getLanguageFromKey('access_control.subscription_text_helper', this.props.language)}
                 </Typography>
@@ -227,7 +229,7 @@ export class AccessControlContainerClass extends React.Component<
   public renderPartySection = (): JSX.Element => {
     const partyTypeKeys = Object.keys(PartyTypes);
     return (
-      <>
+      <div className={this.props.classes.contentMargin}>
         <Typography className={this.props.classes.sectionHeader}>
           {getLanguageFromKey('access_control.party_type_header', this.props.language)}
         </Typography>
@@ -249,7 +251,7 @@ export class AccessControlContainerClass extends React.Component<
               />);
           })}
         </AltinnCheckBoxGroup>
-      </>
+      </div>
     );
   }
 

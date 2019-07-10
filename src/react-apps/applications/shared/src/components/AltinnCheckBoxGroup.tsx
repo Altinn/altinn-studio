@@ -3,8 +3,12 @@ import React = require('react');
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnCheckBoxGroupProvidedProps extends WithStyles<typeof styles> {
+  /** Check box group ID */
   id?: any;
+  /** If the group should be displayed as a row, if set to false the group is shown as a column */
   row: boolean;
+  /** @ignore */
+  classes: any;
 }
 
 export interface IAltinnCheckBoxGroupState {
@@ -24,7 +28,7 @@ const styles = () => createStyles({
   },
 });
 
-export class AltinnCheckBoxGroupClass extends React.Component<IAltinnCheckBoxGroupProvidedProps> {
+export class AltinnCheckBoxGroup extends React.Component<IAltinnCheckBoxGroupProvidedProps> {
   public render() {
     return (
       <FormGroup row={this.props.row}>
@@ -34,4 +38,4 @@ export class AltinnCheckBoxGroupClass extends React.Component<IAltinnCheckBoxGro
   }
 }
 
-export default withStyles(styles)(AltinnCheckBoxGroupClass);
+export default withStyles(styles)(AltinnCheckBoxGroup);

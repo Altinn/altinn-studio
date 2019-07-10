@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import { createMuiTheme, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -67,18 +67,20 @@ const styles = createStyles({
   },
 });
 
-export interface IAltinnColumnLayoutProvidedProps {
+export interface IAltinnColumnLayoutProps  extends WithStyles<typeof styles> {
+  /** Children rendered as main content */
   children: any;
+  /** Children rendered in the side menu */
   sideMenuChildren: any;
+  /** Children rendered above the colum layout itself */
   aboveColumnChildren?: any;
+  /** The header displayed above the main content */
   header: string;
-}
-
-export interface IAltinnColumnLayoutProps extends IAltinnColumnLayoutProvidedProps {
+  /** @ignore */
   classes: any;
 }
 
-export class AltinnColumnLayoutClass extends React.Component<IAltinnColumnLayoutProps> {
+export class AltinnColumnLayout extends React.Component<IAltinnColumnLayoutProps> {
   public render() {
     const { classes } = this.props;
     return (
@@ -105,4 +107,4 @@ export class AltinnColumnLayoutClass extends React.Component<IAltinnColumnLayout
     );
   }
 }
-export default withStyles(styles)(AltinnColumnLayoutClass);
+export default withStyles(styles)(AltinnColumnLayout);
