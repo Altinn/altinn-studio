@@ -444,7 +444,7 @@ namespace AltinnCore.Common.Services.Interfaces
         bool DeleteMetadataForAttachment(string org, string appName, string id);
 
         /// <summary>
-        /// Updates the application information in Application metadata 
+        /// Updates the application information in Application metadata
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
         /// <param name="appName">the application name</param>
@@ -459,12 +459,21 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="appName">the application name</param>
         /// <returns>The application  metadata for an application</returns>
         Application GetApplication(string org, string appName);
-    
+
         /// <summary>
         /// creates application  metadata for attachment
         /// </summary>
         /// <param name="org">the organisation that owns the application</param>
         /// <param name="appName">the application name</param>
         void CreateApplication(string org, string appName);
+
+        /// <summary>
+        /// Updates application metadata
+        /// </summary>
+        /// <param name="org">the organisation that owns the application</param>
+        /// <param name="appName">the application name</param>
+        /// <param name="applicationMetadata">The application metadata to be updated</param>
+        /// <returns>The updated application metadata</returns>
+        bool UpdateApplication(string org, string appName, Application applicationMetadata);
     }
 }

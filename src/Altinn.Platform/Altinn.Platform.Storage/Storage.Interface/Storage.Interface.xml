@@ -150,7 +150,7 @@
         </member>
         <member name="P:Altinn.Platform.Storage.Models.Application.VersionId">
             <summary>
-            the application build version 
+            the application build version
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Models.Application.Org">
@@ -180,7 +180,7 @@
         </member>
         <member name="P:Altinn.Platform.Storage.Models.Application.Title">
             <summary>
-            Title of the application with language codes. 
+            Title of the application with language codes.
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Models.Application.ValidFrom">
@@ -207,6 +207,16 @@
         <member name="P:Altinn.Platform.Storage.Models.Application.ElementTypes">
             <summary>
             Gets or sets the data element types associated with the application
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.PartyTypesAllowed">
+            <summary>
+            Gets of sets the different party types allowed to instantiate the application
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.Application.SubscriptionHook">
+            <summary>
+            Gets or sets the subscription hook attached to the application
             </summary>
         </member>
         <member name="M:Altinn.Platform.Storage.Models.Application.ToString">
@@ -501,6 +511,46 @@
         <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.UserName">
             <summary>
             user name
+            </summary>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Models.PartyTypesAllowed">
+            <summary>
+            Model for the different party types which are allowed to instantiate an application
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.PartyTypesAllowed.BankruptcyEstate">
+            <summary>
+            Should a bankruptcy estate be allowed to instantiate
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.PartyTypesAllowed.Organization">
+            <summary>
+            Should a organization be allowed to instantiate
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.PartyTypesAllowed.Person">
+            <summary>
+            Should a person be allowed to instantiate
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.PartyTypesAllowed.SubUnit">
+            <summary>
+            Should a sub unit be allowed to instantiate
+            </summary>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Models.SubscriptionHook">
+            <summary>
+            A subscription hook uses an existing T2 service to evaluate if the instanceOwnerId can instantiate the app.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.SubscriptionHook.ServiceCode">
+            <summary>
+            The service code
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.SubscriptionHook.EditionCode">
+            <summary>
+             The edition code
             </summary>
         </member>
         <member name="T:Storage.Interface.Clients.Extensions">
