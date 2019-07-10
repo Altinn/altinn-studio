@@ -61,7 +61,6 @@ data:
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
         rewrite ^/.*/.*/staticfiles(.*)$ $1 last;
-        rewrite ^/.*/.*/api/(.*)$ /api/$1 last;
 
         location = / {
           proxy_pass 			    http://designer/;
