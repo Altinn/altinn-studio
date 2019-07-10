@@ -36,11 +36,11 @@ function ServiceInfo(props) {
 
   const createNewInstance = async () => {
     try {
-      const url = `${window.location.origin}/Instance/InstantiateApp`;
       const formData: FormData = new FormData();
       formData.append('PartyId', reportee.userId);
       formData.append('Org', org);
       formData.append('Service', service);
+      const url = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
       const response = await post(url, null, formData);
 
       if (response.data.instanceId) {

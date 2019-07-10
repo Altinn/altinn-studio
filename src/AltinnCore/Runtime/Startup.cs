@@ -310,6 +310,17 @@ namespace AltinnCore.Runtime
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
+                routes.MapRoute(
+                   name: "instantiateRoute",
+                   template: "{org}/{service}/{controller}/InstantiateApp",
+                   defaults: new { action = "InstantiateApp", controller = "Instance" },
+                   constraints: new
+                   {
+                       action = "InstantiateApp",
+                       controller = "Instance",
+                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                   });
+
                 // ---------------------------- API -------------------------- //
                 routes.MapRoute(
                     name: "resourceRoute",
