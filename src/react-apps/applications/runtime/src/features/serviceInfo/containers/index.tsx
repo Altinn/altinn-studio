@@ -7,7 +7,7 @@ import Header from '../../../shared/components/altinnAppHeader';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import { IProfile } from '../../../shared/resources/profile';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
-import { IRuntimeState } from '../../../types';
+import { IAltinnWindow, IRuntimeState } from '../../../types';
 
 export interface IServiceInfoProvidedProps {
   classes: any;
@@ -26,15 +26,16 @@ const styles = () => createStyles({
 
 function ServiceInfoContainer(props: IServiceInfoProps) {
   const { history } = props;
+  const { org, service } = window as IAltinnWindow;
 
   const language = useSelector((state: IRuntimeState) => state.language.language);
 
   React.useEffect(() => {
     ProfileActions.fetchProfile(
-      `${window.location.origin}/api/v1/profile/user`,
+      `${window.location.origin}/${org}/${service}/api/v1/profile/user`,
     );
     LanguageActions.fetchLanguage(
-      `${window.location.origin}/api/Language/GetLanguageAsJSON`,
+      `${window.location.origin}/${org}/${service}/api/Language/GetLanguageAsJSON`,
       'nb',
     );
   }, []);

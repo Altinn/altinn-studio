@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.8.2" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.0" />
-    <PackageReference Include="JWTCookieAuthentication" Version="0.8.9-alpha" />
+    <PackageReference Include="JWTCookieAuthentication" Version="0.8.10-alpha" />
   </ItemGroup>
 
   <ItemGroup>
