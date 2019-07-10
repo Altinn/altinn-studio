@@ -250,7 +250,7 @@ namespace AltinnCore.Designer.Controllers
                 _logger.LogInformation($"Client url {storageEndpoint}");
 
                 Application application = null;
-                string getApplicationMetadataUrl = $"{storageEndpoint}/applications/{appId}";
+                string getApplicationMetadataUrl = $"{storageEndpoint}applications/{appId}";
                 _logger.LogInformation($"Request endpoint: {getApplicationMetadataUrl}");
                 HttpResponseMessage getApplicationResponse = await client.GetAsync(getApplicationMetadataUrl);
                 if (getApplicationResponse.IsSuccessStatusCode)
