@@ -20,7 +20,7 @@ const reducers: IServiceDevelopmentReducers = {
   handleMergeConflict: handleMergeConflictReducer,
   serviceInformation: handleServiceInformationReducer,
   deploy: deployReducer,
-  applicationMetadata: applicationMetadataReducer,
+  applicationMetadataState: applicationMetadataReducer,
 };
 
 export default combineReducers(reducers);

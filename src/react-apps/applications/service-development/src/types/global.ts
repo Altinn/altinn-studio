@@ -10,7 +10,7 @@ declare global {
     handleMergeConflict: T2;
     serviceInformation: T3;
     deploy: T4;
-    applicationMetadata: T5;
+    applicationMetadataState: T5;
   }
 
   export interface IServiceDevelopmentState

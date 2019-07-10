@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 
 const applicationMetadataSelector = (state: IServiceDevelopmentState) => {
-  return state.applicationMetadata.applicationMetadata;
+  return state.applicationMetadataState.applicationMetadata;
 };
 
 const getApplicationMetadata = () => {
