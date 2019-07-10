@@ -292,7 +292,7 @@ namespace AltinnCore.Designer.Controllers
                     appMetadata.ElementTypes = applicationFromRepository.ElementTypes;
                     appMetadata.Title = applicationFromRepository.Title;
 
-                    string createApplicationMetadataUrl = $"{storageEndpoint}/applications?appId={appId}";
+                    string createApplicationMetadataUrl = $"{storageEndpoint}applications?appId={appId}";
                     HttpResponseMessage createApplicationMetadataResponse = await client.PostAsync(createApplicationMetadataUrl, appMetadata.AsJson());
                     if (createApplicationMetadataResponse.IsSuccessStatusCode)
                     {
