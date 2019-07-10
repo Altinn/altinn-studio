@@ -8,13 +8,6 @@ image:
   pullSecrets:
     # Change this to the name of your pull secret
     - name: acr-secret
-  environment:
-    - name: GeneralSettings__RuntimeMode
-      value: ServiceContainer
-    - name: ServiceRepositorySettings__BaseResourceFolderContainer
-      value: /AltinnService/
-    - name: ServiceRepositorySettings__RepositoryLocation
-      value: /AltinnService/
 
 service:
   name: deployment
