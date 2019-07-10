@@ -3,11 +3,11 @@ import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect, useSelector } from 'react-redux';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
-import LanguageActions from '../../../sharedResources/language/languageActions';
-import { IProfile } from '../../../sharedResources/profile';
-import ProfileActions from '../../../sharedResources/profile/profileActions';
+import Header from '../../../shared/components/altinnAppHeader';
+import LanguageActions from '../../../shared/resources/language/languageActions';
+import { IProfile } from '../../../shared/resources/profile';
+import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
-import Header from '../../altinnAppHeader/containers';
 
 export interface IServiceInfoProvidedProps {
   classes: any;

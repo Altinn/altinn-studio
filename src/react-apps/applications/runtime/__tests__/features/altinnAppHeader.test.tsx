@@ -3,7 +3,7 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import Header from '../../src/features/altinnAppHeader/containers';
+import Header from '../../src/shared/components/altinnAppHeader';
 
 describe('>>> features/altinnAppHeader.tsx', () => {
   let mockLanguage: any;

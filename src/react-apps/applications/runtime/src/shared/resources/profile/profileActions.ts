@@ -1,5 +1,5 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../store';
+import { store } from '../../../store';
 import { IProfile } from './';
 import * as FetchProfileActions from './fetch/fetchProfileActions';
 
