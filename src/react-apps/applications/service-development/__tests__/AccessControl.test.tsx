@@ -115,4 +115,23 @@ describe('AccessControl', () => {
     instance.handleSubscriptionHookChange();
     expect(spy).toHaveBeenCalledTimes(2);
   });
+
+  it('constructor should initiate partyTypesAllowed and subscriptionHook with empty values if passed as null', () => {
+    const wrapper = mount(
+      <AccessControlContainerClass
+        applicationMetadata={{}}
+        language={{}}
+        classes={{}}
+      />);
+    expect(wrapper.state('partyTypesAllowed')).toEqual({
+      bankruptcyEstate: false,
+      organization: false,
+      person: false,
+      subUnit: false,
+    });
+    expect(wrapper.state('subscriptionHook')).toEqual({
+      serviceCode: '',
+      editionCode: '',
+    });
+  });
 });
