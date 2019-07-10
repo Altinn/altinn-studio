@@ -44,7 +44,7 @@ namespace AltinnCore.Designer.Controllers
             Dictionary<string, string> objDict = new Dictionary<string, string>();
             string currentDirectory = Directory.GetCurrentDirectory();
             string filePath = string.Empty;
-
+            _logger.LogInformation($"//LanguageController // GetLanguageAsJSON // CurrentDirectory: {currentDirectory} ");
             if (Environment.GetEnvironmentVariable("GeneralSettings__LanguageFilesLocation") != null)
             {
                 filePath = Path.Combine(currentDirectory, $"{Environment.GetEnvironmentVariable("GeneralSettings__LanguageFilesLocation")}{languageCode}.ini");
@@ -54,7 +54,10 @@ namespace AltinnCore.Designer.Controllers
                 filePath = Path.Combine(currentDirectory, $"{_generalSettings.LanguageFilesLocation}{languageCode}.ini");
             }
 
+            _logger.LogInformation($"//LanguageController // GetLanguageAsJSON // Filepath: {filePath} ");
+
             var watch = System.Diagnostics.Stopwatch.StartNew();
+            _logger.LogInformation($"//LanguageController // GetLanguageAsJSON // Trying to read file ");
             IniData parsedData = parser.ReadFile(filePath, Encoding.UTF8);
             watch.Stop();
             _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "read inifile - {0} ", watch.ElapsedMilliseconds);

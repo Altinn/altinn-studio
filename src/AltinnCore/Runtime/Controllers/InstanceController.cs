@@ -281,13 +281,19 @@ namespace AltinnCore.Runtime.Controllers
         [HttpPost]
         public async Task<dynamic> InstantiateApp(StartServiceModel startServiceModel)
         {
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Starting function");
+
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
             bool startService = true;
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(startServiceModel.Org, startServiceModel.Service, startService);
 
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Completefd GetServiceImplementation");
+
             // Get the service context containing metadata about the service
             ServiceContext serviceContext = _execution.GetServiceContext(startServiceModel.Org, startServiceModel.Service, startService);
+
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Completed GetServiceContext6");
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -295,13 +301,19 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
 
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Completed Get UserContext ");
+
             // Populate the reportee information
             requestContext.UserContext.Reportee = await _register.GetParty(startServiceModel.PartyId);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Completed GetParty");
+
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it available in ViewBag so it can be used from Views
             serviceImplementation.SetPlatformServices(_platformSI);
+
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Completed SetPlatformServices");
 
             // Assign the different context information to the service implementation making it possible for
             // the service developer to take use of this information
@@ -309,6 +321,7 @@ namespace AltinnCore.Runtime.Controllers
 
             object serviceModel = null;
 
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Completed SetContext");
             if (!string.IsNullOrEmpty(startServiceModel.PrefillKey))
             {
                 _form.GetPrefill(
@@ -319,6 +332,7 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.PrefillKey);
             }
 
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // CompletedGetPrefill");
             if (serviceModel == null)
             {
                 // If the service model was not loaded from prefill.
