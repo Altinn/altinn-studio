@@ -1137,7 +1137,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     JObject json = JObject.FromObject(new
                     {
-                        language = "nb",
+                        language = "nb-NO",
                         resources = new[]
                         {
                             new { id = "ServiceName", value = serviceConfig.ServiceName },
@@ -1149,7 +1149,7 @@ namespace AltinnCore.Common.Services.Implementation
                             new { id = "subscription_hook_error_statusCode", value = string.Empty }
                         },
                     });
-                    SaveResource(owner, serviceConfig.RepositoryName, "nb", json.ToString());
+                    SaveResource(owner, serviceConfig.RepositoryName, "nb-NO", json.ToString());
                 }
 
                 CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "Service Created" };
