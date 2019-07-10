@@ -181,7 +181,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
             </div>
             <Typography variant='body1'>
               {getLanguageFromKey('deploy_to_test.check_csharp_compiles_false_body_part1', props.language)}&nbsp;
-              <a href={`/${org}/${service}`} className={classes.link} target='_blank'>
+              <a href={`/repos/${org}/${service}`} className={classes.link} target='_blank'>
                 {/* TODO: Remember to change text when file edit page is available */}
                 {getLanguageFromKey('deploy_to_test.check_csharp_compiles_false_body_part2', props.language)}<AltinnIcon
                   isActive={true}
