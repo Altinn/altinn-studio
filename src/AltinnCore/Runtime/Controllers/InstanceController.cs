@@ -366,6 +366,8 @@ namespace AltinnCore.Runtime.Controllers
                 // Create a new instance document
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
+                _logger.LogInformation($"//InstanceController // InstantiateApp // instance is null =  {instance == null}");
+
                 // Create and store the instance created event
                 InstanceEvent instanceEvent = new InstanceEvent
                 {
