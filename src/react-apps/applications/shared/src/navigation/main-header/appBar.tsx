@@ -133,7 +133,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               <Grid xs={true} item={true} container={true}>
                 <Grid item={true}>
                   <a href='/' className={classes.aImgStyling}>
-                    <img src='/designer/img/altinn_logo_header.png' />
+                    <img src='https://altinncdn.no/img/altinn_logo_header.png' />
                   </a>
                 </Grid>
                 <Hidden mdUp>

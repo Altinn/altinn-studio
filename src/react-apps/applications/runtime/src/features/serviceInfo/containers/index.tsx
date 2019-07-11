@@ -67,7 +67,7 @@ function ServiceInfoContainer(props: IServiceInfoProps) {
             <div className='col-xl-12'>
               <div className='a-modal-top'>
                 <img
-                  src='/designer/img/a-logo-blue.svg'
+                  src='https://altinncdn.no/altinn-apps/img/a-logo-blue.svg'
                   alt='Altinn logo'
                   className='a-logo a-modal-top-logo '
                 />

@@ -47,7 +47,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
         <div className='col-xl-12'>
           <div className='a-modal-top'>
             <img
-              src='/designer/img/a-logo-blue.svg'
+              src='http://altinncdn.no/altinn-apps/img/a-logo-blue.svg'
               alt='Altinn logo'
               className='a-logo a-modal-top-logo '
             />
