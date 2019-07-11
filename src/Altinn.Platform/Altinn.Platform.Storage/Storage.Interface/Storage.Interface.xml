@@ -638,19 +638,29 @@
             platform resource link
             </summary>
         </member>
-        <member name="T:Storage.Interface.Models.WorkflowState">
+        <member name="T:Storage.Interface.Models.ProcessState">
             <summary>
-            Holds the workflow state. 
+            Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.WorkflowState.CurrentStep">
+        <member name="P:Storage.Interface.Models.ProcessState.CurrentTask">
             <summary>
-            the current workflow step
+            Refers to the current task id of an ongoing process. If process is completed or is in error it will not have value. 
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.WorkflowState.IsComplete">
+        <member name="P:Storage.Interface.Models.ProcessState.IsComplete">
             <summary>
-            If workflow is completed the value should be true, otherwise false.
+            If process is completed and in a valid end state the value is true, otherwise false or not present. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.IsInError">
+            <summary>
+            If process has reached an error end event this value is true.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.EndState">
+            <summary>
+            Refers to the id of an end state of the process. If the process is completed it should be a valid end state. If process is in error it should be a valid error end event.
             </summary>
         </member>
     </members>

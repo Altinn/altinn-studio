@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -23,13 +24,16 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string collectionId;
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
+        private readonly ILogger<InstanceRepository> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings)
+        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<InstanceRepository> logger)
         {
+            this.logger = logger;
+
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
 
@@ -112,27 +116,50 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesOfApplication(string appId)
+        public async Task<KeyValuePair<string, List<Instance>>> GetInstancesOfApplication(
+            string appId,
+            Dictionary<string, string> queryParams,
+            string continuationToken,
+            int page,
+            int size)
         {
-            // string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationId = '{applicationId}'";
             FeedOptions feedOptions = new FeedOptions
-            {
+            {               
                 EnableCrossPartitionQuery = true,
-                MaxItemCount = 100,
+                MaxItemCount = size,
             };
 
-            IDocumentQuery<Instance> query = _client
-                .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                .Where(i => i.AppId == appId)
-                .AsDocumentQuery();
+            if (continuationToken != null)
+            {
+                feedOptions.RequestContinuation = continuationToken;
+            }
 
-            FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
+            IOrderedQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
 
-            List<Instance> instances = result.ToList<Instance>();
+            queryBuilder.Where(i => i.AppId == appId);
+
+            if (continuationToken == null)
+            {
+                queryBuilder.Skip(page * size);
+            }
+
+            foreach (KeyValuePair<string, string> param in queryParams)
+            {                
+            }
+
+            IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
+            
+            FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
+
+            string nextContinuationToken = feedResponse.ResponseContinuation;            
+
+            logger.LogInformation($"continuation token: {nextContinuationToken}");
+
+            List<Instance> instances = feedResponse.ToList<Instance>();
 
             PostProcess(instances);
 
-            return instances;
+            return new KeyValuePair<string, List<Instance>>(nextContinuationToken, instances);
         }
 
         /// <inheritdoc/>

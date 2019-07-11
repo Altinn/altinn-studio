@@ -1,14 +1,20 @@
 namespace Altinn.Platform.Storage.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
     using global::Storage.Interface.Models;
+    using Halcyon.HAL;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Primitives;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Web;
 
     /// <summary>
     /// Handles operations for the application instance resource
@@ -59,11 +65,69 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="org">application owner</param>
         /// <param name="appId">application id</param>
+        /// <param name="currentTaskId">running process current task id</param>
+        /// <param name="processIsComplete">is process complete</param>
+        /// <param name="processIsInError">is process in error</param>
+        /// <param name="processEndState">process end state</param>
+        /// <param name="label">labels</param>
+        /// <param name="lastChangedDateTime">last changed date</param>
+        /// <param name="createdDateTime">created time</param>
+        /// <param name="continuationToken">continuation token</param>
+        /// <param name="page">the page number</param>
+        /// <param name="size">the page size</param>
         /// <returns>list of all instances for given instanceowner</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
         [HttpGet]
-        public async Task<ActionResult> GetMany(string org, string appId)
+        public async Task<ActionResult> GetInstances(
+            string org,
+            string appId,
+            [FromQuery(Name = "process.currentTask")] string currentTaskId,
+            [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
+            [FromQuery(Name = "process.isInError")] bool? processIsInError,
+            [FromQuery(Name = "process.endState")] bool? processEndState,
+            [FromQuery] string label,
+            [FromQuery] string lastChangedDateTime,
+            [FromQuery] string createdDateTime,
+            string continuationToken,
+            int? page,
+            int? size)
         {
+            int pageNumber = page ?? 0;
+            int pageSize = size ?? 100;
+            if (!string.IsNullOrEmpty(continuationToken))
+            {
+                continuationToken = HttpUtility.UrlDecode(continuationToken);
+            }
+
+            Dictionary<string, string> queryParams = new Dictionary<string, string>();
+
+            Dictionary<string, StringValues> q = QueryHelpers.ParseQuery(Request.QueryString.Value);
+
+            if (!string.IsNullOrEmpty(label))
+            {
+                queryParams.Add("label", label);
+            }
+
+            if (!string.IsNullOrEmpty(lastChangedDateTime))
+            {
+                queryParams.Add("lastChangedDateTime", lastChangedDateTime);
+            }
+
+            if (!string.IsNullOrEmpty(currentTaskId))
+            {
+                queryParams.Add("process.currentTask", $"{currentTaskId}");
+            }
+
+            if (processIsComplete.HasValue)
+            {
+                queryParams.Add("process.isComplete", processIsComplete.ToString().ToLower());
+            }
+
+            string url = Request.Path;
+            string query = Request.QueryString.Value;
+
+            logger.LogInformation($"uri = {url}{query}");
+
             if (!string.IsNullOrEmpty(org))
             {
                 List<Instance> result = await _instanceRepository.GetInstancesOfOrg(org);
@@ -76,16 +140,67 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (!string.IsNullOrEmpty(appId))
             {                
-                List<Instance> result = await _instanceRepository.GetInstancesOfApplication(appId);
-                if (result == null || result.Count == 0)
+                KeyValuePair<string, List<Instance>> result = await _instanceRepository.GetInstancesOfApplication(appId, queryParams, continuationToken, pageNumber, pageSize);
+                if (result.Value == null || result.Value.Count == 0)
                 {
-                    return NotFound($"Did not find any instances for applicationId={appId}");
+                    return NotFound($"Did not find any instances for appId={appId}");
                 }
 
-                return Ok(result);
+                try
+                {
+                    string nextContinuationToken = HttpUtility.UrlEncode(result.Key);
+                    var queryResult = new
+                    {
+                        result = 1,
+                        page = pageNumber,
+                        size = pageSize,
+                        count = result.Value.Count,
+                        continuationToken = nextContinuationToken,
+                    };
+
+                    HALResponse response = new HALResponse(queryResult);
+
+                    Link selfLink = new Link("self", $"{url}{query}");
+                    response.AddLinks(selfLink);
+                    if (page.HasValue)
+                    {
+
+                    }
+                    else if (nextContinuationToken != null)
+                    {
+                        string queryParamName = "continuationToken";
+
+                        QueryBuilder qb = NextQueryString(q, nextContinuationToken, queryParamName);
+
+                        string nextQueryString = qb.ToQueryString().Value;
+
+                        Link nextLink = new Link("next", $"{url}{nextQueryString}");
+                        response.AddLinks(nextLink);
+                    }
+
+                    response.AddEmbeddedCollection("instances", result.Value);
+               
+                    return Ok(response);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError("exception", e);
+                }               
             }
 
             return BadRequest("Unable to perform query");
+        }
+
+        private static QueryBuilder NextQueryString(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
+        {
+            List<KeyValuePair<string, string>> items = q.SelectMany(x => x.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value)).ToList();
+            items.RemoveAll(x => x.Key == queryParamName);
+
+            var qb = new QueryBuilder(items)
+                        {
+                            { queryParamName, newParamValue }
+                        };
+            return qb;
         }
 
         /// <summary>

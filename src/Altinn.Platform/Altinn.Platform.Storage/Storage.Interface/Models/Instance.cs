@@ -100,7 +100,7 @@ namespace Altinn.Platform.Storage.Models
         /// Workflow state section
         /// </summary>
         [JsonProperty(PropertyName = "workflow")]
-        public WorkflowState Workflow { get; set; }
+        public ProcessState Workflow { get; set; }
 
         /// <summary>
         /// Section for instance state properties

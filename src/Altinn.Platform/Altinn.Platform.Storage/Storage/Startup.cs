@@ -4,9 +4,11 @@ using System.Reflection;
 using System.Xml.XPath;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Repository;
+using Halcyon.Web.HAL.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,6 +48,12 @@ namespace Altinn.Platform.Storage
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
+
+            services.AddMvc().AddMvcOptions(c =>
+            {
+                c.OutputFormatters.RemoveType<JsonOutputFormatter>();
+                c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
+            });
 
             services.AddSwaggerGen(c =>
             {
