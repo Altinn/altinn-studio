@@ -69,7 +69,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
       // Fetch form data
       formFillerActionDispatchers.fetchFormData(
-        `${altinnWindow.location.origin}/runtime/api/${reportee}/${servicePath}/Index/${instanceId}`);
+        `${altinnWindow.location.origin}/runtime/api/${servicePath}/${reportee}/${instanceId}`);
 
       // Fetch service configuration
       manageServiceConfigurationActionDispatcher.fetchJsonFile(
