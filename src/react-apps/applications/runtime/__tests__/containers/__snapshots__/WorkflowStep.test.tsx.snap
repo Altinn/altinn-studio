@@ -25,7 +25,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
           <img
             alt="Altinn logo"
             className="a-logo a-modal-top-logo "
-            src="/designer/img/a-logo-blue.svg"
+            src="http://altinncdn.no/altinn-apps/img/a-logo-blue.svg"
           />
           <div
             className="a-modal-top-user"

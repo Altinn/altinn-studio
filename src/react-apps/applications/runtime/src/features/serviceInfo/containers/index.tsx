@@ -3,6 +3,7 @@ import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect, useSelector } from 'react-redux';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
+// import { altinnAppsImgLogoBlueSvgUrl } from '../../../../../shared/src/utils/urlHelper';
 import Header from '../../../shared/components/altinnAppHeader';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import { IProfile } from '../../../shared/resources/profile';
@@ -67,7 +68,7 @@ function ServiceInfoContainer(props: IServiceInfoProps) {
             <div className='col-xl-12'>
               <div className='a-modal-top'>
                 <img
-                  src='/designer/img/a-logo-blue.svg'
+                  src={altinnAppsImgLogoBlueSvgUrl}
                   alt='Altinn logo'
                   className='a-logo a-modal-top-logo '
                 />
