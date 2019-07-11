@@ -29,4 +29,5 @@ export interface IAltinnWindow extends Window {
   service: string;
   instanceId: string;
   reportee: string;
+  partyId: number;
 }
