@@ -236,7 +236,7 @@ namespace AltinnCore.Runtime
                {
                    var request = context.HttpContext.Request;
                    var response = context.HttpContext.Response;
-                   string url = $"{request.Host.ToString()}{request.Path.ToString()}";
+                   string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
 
                     // you may also check requests path to do this only for specific methods
                     // && request.Path.Value.StartsWith("/specificPath")
