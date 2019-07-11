@@ -70,7 +70,7 @@ namespace AltinnCore.Common.Clients
                 {
                     _storageClient = new HttpClient();
                     _storageClient.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
-                    _storageClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
                 }
 
@@ -86,7 +86,7 @@ namespace AltinnCore.Common.Clients
                 if (_authorizationClient == null)
                 {
                     _authorizationClient = new HttpClient();
-                    _authorizationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");                    
+                    _authorizationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");
                     _authorizationClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 }
 
