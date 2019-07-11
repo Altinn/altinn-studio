@@ -29,9 +29,8 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <returns></returns>
         public IActionResult Login(string goToUrl)
-        {
-            //return Redirect("http://platform.at21.altinn.cloud/authentication/api/v1/authentication?goto=https://tdd.apps.at21.altinn.cloud/tdd/testxmlfail");
-            return Redirect($"{_platformSettings.GetApiAuthenticationEndpoint}/authentication?goto={goToUrl}");
+        {            
+            return Redirect($"{_platformSettings.GetApiAuthenticationEndpoint}authentication?goto={goToUrl}");
         }
     }
 }
