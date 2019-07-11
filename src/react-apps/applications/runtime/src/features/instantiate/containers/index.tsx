@@ -36,7 +36,7 @@ function ServiceInfo(props) {
   const createNewInstance = async () => {
     try {
       const formData: FormData = new FormData();
-      formData.append('PartyId', reportee.userId);
+      formData.append('PartyId', reportee.partyId);
       formData.append('Org', org);
       formData.append('Service', service);
       const url = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
@@ -65,7 +65,7 @@ function ServiceInfo(props) {
 
   if (instanceId) {
     return (
-      <Redirect to={`/instance/${instanceId}`} />
+      <Redirect to={`/instance/${reportee.partyId}/${instanceId}`} />
     );
   } else {
     const { classes } = props;

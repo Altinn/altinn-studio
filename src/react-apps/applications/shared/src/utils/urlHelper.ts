@@ -1,5 +1,5 @@
 /* tslint:disable: max-line-length */
-const altinnWindow = window as IAltinnWindow;
+const altinnWindow = window as any;
 const { origin, org, service } = altinnWindow;
 
 export const getApplicationMetadataUrl = (): string => {
@@ -7,3 +7,5 @@ export const getApplicationMetadataUrl = (): string => {
 };
 
 export const altinnAppsIllustrationHelpCircleSvgUrl = 'https://altinncdn.no/altinn-apps/img/illustration-help-circle.svg';
+export const altinnAppsImgLogoBlueSvgUrl = 'http://altinncdn.no/altinn-apps/img/a-logo-blue.svg';
+export const altinnImgLogoHeaderUrl = 'https://altinncdn.no/img/altinn_logo_header.png';

@@ -18,14 +18,15 @@ export default (props) => {
     match: {
       params: {
         instanceId,
+        partyId,
       },
     },
   } = props;
 
   (window as IAltinnWindow).instanceId = instanceId;
-
+  (window as IAltinnWindow).partyId = partyId;
   React.useEffect(() => {
-    const { org, service, reportee } = window as IAltinnWindow;
+    const { org, service } = window as IAltinnWindow;
     LanguageActions.fetchLanguage(
       `${window.location.origin}/${org}/${service}/api/Language/GetLanguageAsJSON`,
       'nb',
@@ -37,14 +38,14 @@ export default (props) => {
       `${window.location.origin}/${org}/${service}/api/resource/FormLayout.json`,
     );
     FormDataActions.fetchFormData(
-      `${window.location.origin}/${org}/${service}/api/${reportee}/Index/${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/${partyId}/Index/${instanceId}`,
     );
     FormRuleActions.fetchRuleModel(
       `${window.location.origin}/${org}/${service}/api/resource/RuleHandler.js`,
     );
     FormWorkflowActions.getCurrentState(
       // tslint:disable-next-line:max-line-length
-      `${window.location.origin}/${org}/${service}/api/workflow/${reportee}/GetCurrentState?instanceId=${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/workflow/${partyId}/GetCurrentState?instanceId=${instanceId}`,
     );
 
     FormDynamicActions.fetchFormDynamics(
