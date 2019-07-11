@@ -37,8 +37,6 @@
   </style>
   <div class="flex-column d-flex media-body">
 
-
-
     <script>
       function loadScript() {
         var service = window.location.pathname.split('/');
@@ -46,46 +44,6 @@
         window.org = service[1];
         window.service = service[2];
         window.instanceId = service[3];
-      }
-
-      function loadStyles() {
-        var service = window.location.pathname.split('/');
-        var resourcesUrl = window.location.origin + '/' + window.org+ '/' + window.service + '/api/runtimeresources/';
-        var stylesConfigUrl = window.location.origin + '/' + window.org+ '/' + window.service + '/api/runtimeresources/Styles.json';
-        var xmlhttp = new XMLHttpRequest();
-
-        xmlhttp.onreadystatechange = function () {
-          console.log('helloou');
-          if (this.readyState == 4 && this.status == 200) {
-            console.log('helloou inside', this.responseText);
-            var stylesConfig = JSON.parse(this.responseText);;
-            loadServiceStyles(stylesConfig, resourcesUrl);
-          }
-        };
-        xmlhttp.open("GET", stylesConfigUrl, true);
-        xmlhttp.send();
-
-        function loadServiceStyles(stylesConfig, resourcesUrl) {
-          if (stylesConfig.ExternalStyles) {
-            for (var i = 0; i < stylesConfig.ExternalStyles.length; i++) {
-              var link = document.createElement('link');
-              link.setAttribute('rel', 'stylesheet');
-              link.type = 'text/css';
-              link.href = stylesConfig.ExternalStyles[i];
-              document.body.appendChild(link);
-            }
-          }
-
-          if (stylesConfig.InternalStyles) {
-            for (var i = 0; i < stylesConfig.InternalStyles.length; i++) {
-              var link = document.createElement('link');
-              link.setAttribute('rel', 'stylesheet');
-              link.type = 'text/css';
-              link.href = resourcesUrl + stylesConfig.InternalStyles[i];
-              document.body.appendChild(link);
-            }
-          }
-        }
       }
 
     </script>
