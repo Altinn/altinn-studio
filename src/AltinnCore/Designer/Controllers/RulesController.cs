@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -186,6 +187,11 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The content of the file.</returns>
         public IActionResult GetFile(string org, string service, string name)
         {
+            if (!ApplicationHelper.IsValidFilename(name))
+            {
+                return BadRequest();
+            }
+
             if (name == "RuleHandler.js")
             {
                 string fileContent = _repository.GetResourceFile(org, service, name);
@@ -209,6 +215,11 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public IActionResult SaveImplementationFile(string org, string service, string fileName, string fileContent)
         {
+            if (!ApplicationHelper.IsValidFilename(fileName))
+            {
+                return BadRequest();
+            }
+
             if (fileName == "RuleHandler.js")
             {
                 _repository.SaveResourceFile(org, service, fileName, fileContent);

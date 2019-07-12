@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
@@ -142,6 +143,11 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public ActionResult SaveJsonFile([FromBody] dynamic jsonData, string org, string service, string fileName)
         {
+            if (!ApplicationHelper.IsValidFilename(fileName))
+            {
+                return BadRequest();
+            }
+
             _repository.SaveJsonFile(org, service, jsonData.ToString(), fileName);
 
             return Json(new
@@ -161,6 +167,11 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult GetJsonFile(string org, string service, string fileName)
         {
+            if (!ApplicationHelper.IsValidFilename(fileName))
+            {
+                return BadRequest();
+            }
+
             return Content(_repository.GetJsonFile(org, service, fileName), "application/javascript", Encoding.UTF8);
         }
 

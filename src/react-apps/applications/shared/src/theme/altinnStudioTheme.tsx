@@ -96,6 +96,9 @@ const theme = {
       body1: {
         fontSize: 16,
       },
+      caption: {
+        fontSize: 14,
+      },
     },
   },
   palette: {

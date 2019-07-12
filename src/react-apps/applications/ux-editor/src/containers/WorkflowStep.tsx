@@ -117,12 +117,8 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public handleSubmitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
-    let routePrefix: string = '';
-    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
-      routePrefix = '/runtime';
-    }
     FormFillerActionDispatchers.completeAndSendInForm(
-      `${window.location.origin}${routePrefix}/${org}/${service}/${instanceId}/CompleteAndSendIn`);
+      `${window.location.origin}/${org}/${service}/${instanceId}/CompleteAndSendIn`);
   }
   public renderFormFiller = () => {
     return this.props.children;

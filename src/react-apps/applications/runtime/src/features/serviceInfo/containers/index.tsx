@@ -3,11 +3,12 @@ import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect, useSelector } from 'react-redux';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
-import LanguageActions from '../../../sharedResources/language/languageActions';
-import { IProfile } from '../../../sharedResources/profile';
-import ProfileActions from '../../../sharedResources/profile/profileActions';
-import { IRuntimeState } from '../../../types';
-import Header from '../../altinnAppHeader/containers';
+// import { altinnAppsImgLogoBlueSvgUrl } from '../../../../../shared/src/utils/urlHelper';
+import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
+import LanguageActions from '../../../shared/resources/language/languageActions';
+import { IProfile } from '../../../shared/resources/profile';
+import ProfileActions from '../../../shared/resources/profile/profileActions';
+import { IAltinnWindow, IRuntimeState } from '../../../types';
 
 export interface IServiceInfoProvidedProps {
   classes: any;
@@ -26,14 +27,16 @@ const styles = () => createStyles({
 
 function ServiceInfoContainer(props: IServiceInfoProps) {
   const { history } = props;
+  const { org, service } = window as IAltinnWindow;
+
   const language = useSelector((state: IRuntimeState) => state.language.language);
 
   React.useEffect(() => {
     ProfileActions.fetchProfile(
-      `${window.location.origin}/runtime/api/v1/profile/user`,
+      `${window.location.origin}/${org}/${service}/api/v1/profile/user`,
     );
     LanguageActions.fetchLanguage(
-      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`,
+      `${window.location.origin}/${org}/${service}/api/Language/GetLanguageAsJSON`,
       'nb',
     );
   }, []);
@@ -45,7 +48,7 @@ function ServiceInfoContainer(props: IServiceInfoProps) {
   const { classes } = props;
   return (
     <>
-      <Header language={language} profile={props.profile}/>
+      <AltinnAppHeader language={language} profile={props.profile}/>
       <Grid
         container={true}
         classes={classes}
@@ -65,7 +68,7 @@ function ServiceInfoContainer(props: IServiceInfoProps) {
             <div className='col-xl-12'>
               <div className='a-modal-top'>
                 <img
-                  src='/designer/img/a-logo-blue.svg'
+                  src={altinnAppsImgLogoBlueSvgUrl}
                   alt='Altinn logo'
                   className='a-logo a-modal-top-logo '
                 />

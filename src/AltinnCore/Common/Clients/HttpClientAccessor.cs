@@ -17,6 +17,7 @@ namespace AltinnCore.Common.Clients
         private HttpClient _storageClient;
         private HttpClient _registerClient;
         private HttpClient _profileClient;
+        private HttpClient _authorizationClient;
 
         /// <summary>
         /// Initializes a new HttpClient accessor of the <see cref="HttpClientAccessor"/> class.
@@ -69,11 +70,27 @@ namespace AltinnCore.Common.Clients
                 {
                     _storageClient = new HttpClient();
                     _storageClient.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
-                    _storageClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
                 }
 
                 return _storageClient;
+            }
+        }
+
+        /// <inheritdoc />
+        public HttpClient AuthorizationClient
+        {
+            get
+            {
+                if (_authorizationClient == null)
+                {
+                    _authorizationClient = new HttpClient();
+                    _authorizationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");
+                    _authorizationClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                }
+
+                return _authorizationClient;
             }
         }
     }

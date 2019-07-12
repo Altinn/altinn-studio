@@ -60,8 +60,16 @@ data:
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
+        rewrite ^/.*/.*/staticfiles(.*)$ $1 last;
+
         location = / {
           proxy_pass 			    http://designer/;
+          proxy_set_header 	  Host dev.altinn.studio;
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+        }
+
+        location = /repos/ {
+          proxy_pass          http://designer/Redirect/FetchCookieAndRedirectHome/;
           proxy_set_header 	  Host dev.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
@@ -78,8 +86,8 @@ data:
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
-        location /runtime/ {
-          proxy_pass          http://runtime/runtime/;
+        location / {
+          proxy_pass          http://runtime/;
           proxy_set_header 	  Host dev.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
@@ -90,7 +98,7 @@ data:
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
-        location / {
+        location /repos/ {
           proxy_pass         	http://repositories/;
           proxy_set_header 	  Host dev.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
@@ -102,5 +110,6 @@ data:
           proxy_set_header	  Host dev.altinn.studio;
           proxy_set_header	  X-Forwarded-For $remote_addr;
         }
+
       }
     }

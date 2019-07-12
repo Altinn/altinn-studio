@@ -124,6 +124,9 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         public async Task<IActionResult> EditSPA(string org, string service, Guid instanceId, string view, int? itemId)
         {
+            ViewBag.Org = org;
+            ViewBag.App = service;
+
             // TODO Add info for REACT app.
             return View();
         }
@@ -278,10 +281,14 @@ namespace AltinnCore.Runtime.Controllers
         [HttpPost]
         public async Task<dynamic> InstantiateApp(StartServiceModel startServiceModel)
         {
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Starting function");
+
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
             bool startService = true;
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(startServiceModel.Org, startServiceModel.Service, startService);
+
+            _logger.LogInformation($"//InstanceController  // InstanciateApp // Completefd GetServiceImplementation");
 
             // Get the service context containing metadata about the service
             ServiceContext serviceContext = _execution.GetServiceContext(startServiceModel.Org, startServiceModel.Service, startService);
@@ -349,6 +356,8 @@ namespace AltinnCore.Runtime.Controllers
                 // Create a new instance document
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
+                _logger.LogInformation($"//InstanceController // InstantiateApp // instance is null =  {instance == null}");
+
                 // Create and store the instance created event
                 InstanceEvent instanceEvent = new InstanceEvent
                 {
@@ -396,8 +405,6 @@ namespace AltinnCore.Runtime.Controllers
         [HttpPost]
         public async Task<IActionResult> StartService(StartServiceModel startServiceModel)
         {
-            _logger.LogInformation("// 404 // Entered start service");
-
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
             bool startService = true;
@@ -423,7 +430,7 @@ namespace AltinnCore.Runtime.Controllers
             // Assign the different context information to the service implementation making it possible for
             // the service developer to take use of this information
             serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
-            _logger.LogInformation(" // 404 // All context set. Passed line 316");
+
             object serviceModel = null;
 
             if (!string.IsNullOrEmpty(startServiceModel.PrefillKey))
@@ -442,19 +449,14 @@ namespace AltinnCore.Runtime.Controllers
                 serviceModel = serviceImplementation.CreateNewServiceModel();
             }
 
-            _logger.LogInformation(" // 404 // Set service model. Passed line 333");
-
             // Assign service model to the implementation
             serviceImplementation.SetServiceModel(serviceModel);
-            _logger.LogInformation(" // 404 // Completed assign service model to the implementation");
 
             // Run Instansiation event
             await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
-            _logger.LogInformation(" // 404 // Completed: Run Instansiation event");
 
             // Run validate Instansiation event where
             await serviceImplementation.RunServiceEvent(ServiceEventType.ValidateInstantiation);
-            _logger.LogInformation(" // 404 // Completed:  Run validate Instansiation event where");
 
             // If ValidateInstansiation event has not added any errors the new form is saved and user is redirercted to the correct
             if (ModelState.IsValid)
@@ -468,7 +470,6 @@ namespace AltinnCore.Runtime.Controllers
 
                 // Create a new instance document
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
-                _logger.LogInformation(" // 404 // Completed: Create a new instance document");
 
                 // Create and store the instance created event
                 InstanceEvent instanceEvent = new InstanceEvent
@@ -482,12 +483,9 @@ namespace AltinnCore.Runtime.Controllers
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
-                _logger.LogInformation(" // 404 // Completed: Save instance event. ");
-
                 Enum.TryParse<WorkflowStep>(instance.Workflow.CurrentStep, out WorkflowStep currentStep);
 
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
-                _logger.LogInformation($" // 404 // Set redirect url: {redirectUrl} ");
                 return Redirect(redirectUrl);
             }
 

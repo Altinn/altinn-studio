@@ -2,8 +2,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import FormFillerActions from '../../../features/form/data/actions';
-import { IProfile } from '../../../sharedResources/profile';
-import { renderParty } from '../../../sharedResources/utils/party';
+import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
+import { IProfile } from '../../../shared/resources/profile';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { IValidations } from '../../../types/global';
 import ReceiptComponent from '../../receipt/components/receiptComponent';
@@ -39,56 +39,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     this.state = {
       workflowStep: props.step,
     };
-  }
-
-  public renderTop = () => {
-    const party = this.props.profile ? this.props.profile.party : null;
-    return (
-      <div className='row'>
-        <div className='col-xl-12'>
-          <div className='a-modal-top'>
-            <img
-              src='/designer/img/a-logo-blue.svg'
-              alt='Altinn logo'
-              className='a-logo a-modal-top-logo '
-            />
-            <div className='a-modal-top-user'>
-              <div
-                className='a-personSwitcher '
-                title={renderParty(this.props.profile)}
-              >
-                <span className='a-personSwitcher-name' style={{ marginBottom: '10px' }}>
-                  <span className='d-block' style={{ color: '#022F51', lineHeight: '18px' }}>
-                    {renderParty(this.props.profile)}
-                  </span>
-                  <span style={{ color: '#022F51', lineHeight: '18px' }}>
-                    {
-                      party && party.organization &&
-                      getLanguageFromKey('general.for', this.props.language) + ' ' +
-                      party.organization.toUpperCase()
-                    }
-                  </span>
-                  <span className='d-block' />
-                </span>
-                {party && party.organization ?
-                  <i
-                    className='fa fa-corp-circle-big'
-                    aria-hidden='true'
-                    style={{ color: '#022F51', fontSize: '3.1rem', marginLeft: '5px' }}
-                  />
-                  :
-                  <i
-                    className='fa fa-private-circle-big'
-                    aria-hidden='true'
-                    style={{ color: '#022F51', fontSize: '3.1rem', marginLeft: '5px' }}
-                  />
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-      </div >
-    );
   }
 
   public renderHeader = () => {
@@ -140,13 +90,8 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public handleSubmitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
-    // TODO: UPDATE WITH NEW RUNTIME API LINK WHEN MERGING WITH MASTER
-    let routePrefix: string = null;
-    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
-      routePrefix = '/runtime';
-    }
     FormFillerActions.completeAndSendInForm(
-      `${window.location.origin}${routePrefix}/${org}/${service}/${instanceId}/CompleteAndSendIn`);
+      `${window.location.origin}/${org}/${service}/${instanceId}/CompleteAndSendIn`);
   }
   public renderFormFiller = () => {
     return this.props.children;
@@ -224,7 +169,10 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     return (
       <div id='workflowContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
         <div className='container'>
-          {this.renderTop()}
+          <AltinnAppHeader
+            language={this.props.language}
+            profile={this.props.profile}
+          />
           <div className='row'>
             <div className='col-xl-10 offset-xl-1 a-p-static'>
               {this.renderErrorReport()}

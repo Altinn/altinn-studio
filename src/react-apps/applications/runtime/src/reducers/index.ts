@@ -13,9 +13,9 @@ import FormResourceReducer, { IResourceState } from '../features/form/resources/
 import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
-import AttachmentReducer, { IAttachmentState } from '../sharedResources/attachments/attachmentReducer';
-import LanguageReducer, { ILanguageState } from '../sharedResources/language/languageReducers';
-import ProfileReducer, { IProfileState } from '../sharedResources/profile/profileReducers';
+import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
+import LanguageReducer, { ILanguageState } from '../shared/resources/language/languageReducers';
+import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 
 export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
   formLayout: T1;

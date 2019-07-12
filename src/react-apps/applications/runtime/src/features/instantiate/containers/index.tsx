@@ -1,4 +1,3 @@
-import Grid from '@material-ui/core/Grid';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import ContentLoader from 'react-content-loader';
@@ -6,8 +5,8 @@ import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
+import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { get, post } from '../../../utils/networking';
-import Header from '../../altinnAppHeader/containers';
 
 const styles = () => createStyles({
   modal: {
@@ -21,6 +20,7 @@ const styles = () => createStyles({
 });
 
 function ServiceInfo(props) {
+  const { org, service } = window as IAltinnWindow;
   const [reportee, setReportee] = React.useState(null);
   const [instanceId, setInstanceId] = React.useState(null);
   const [instantiationError, setInstantiationError] = React.useState(null);
@@ -28,27 +28,18 @@ function ServiceInfo(props) {
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
 
   const fetchReportee = async () => {
-    let routePrefix: string = null;
-    if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
-      routePrefix = '/runtime';
-    }
-    const url: string = `${window.location.origin}${routePrefix}/api/v1/profile/user`;
+    const url: string = `${window.location.origin}/${org}/${service}/api/v1/profile/user`;
     const fetchedReportee: any = await get(url);
     setReportee(fetchedReportee);
   };
 
   const createNewInstance = async () => {
     try {
-      const { org, service } = window as IAltinnWindow;
-      let routePrefix: string = null;
-      if (window.location.origin.includes('altinn.studio') || window.location.origin.includes('altinn3.no')) {
-        routePrefix = '/runtime';
-      }
-      const url = `${window.location.origin}${routePrefix}/Instance/InstantiateApp`;
       const formData: FormData = new FormData();
-      formData.append('PartyId', reportee.userId);
+      formData.append('PartyId', reportee.partyId);
       formData.append('Org', org);
       formData.append('Service', service);
+      const url = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
       const response = await post(url, null, formData);
 
       if (response.data.instanceId) {
@@ -74,13 +65,13 @@ function ServiceInfo(props) {
 
   if (instanceId) {
     return (
-      <Redirect to={`/instance/${instanceId}`} />
+      <Redirect to={`/instance/${reportee.partyId}/${instanceId}`} />
     );
   } else {
     const { classes } = props;
     return (
       <>
-      <Header profile={profile} language={language}/>
+      <AltinnAppHeader profile={profile} language={language}/>
       <AltinnModal
         classes={classes}
         isOpen={true}

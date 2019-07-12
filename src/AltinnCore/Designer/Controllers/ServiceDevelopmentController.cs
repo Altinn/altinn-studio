@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Enums;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -78,6 +79,11 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The content of the file.</returns>
         public ActionResult GetServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
         {
+            if (!ApplicationHelper.IsValidFilename(fileName))
+            {
+                return BadRequest();
+            }
+
             string file = string.Empty;
             switch (fileEditorMode)
             {
@@ -118,6 +124,11 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName, bool stageFile)
         {
+            if (!ApplicationHelper.IsValidFilename(fileName))
+            {
+                return BadRequest();
+            }
+
             string content = string.Empty;
 
             try

@@ -98,6 +98,9 @@ const theme = {
       body1: {
         fontSize: 16,
       },
+      body2: {
+        fontSize: 14,
+      },
     },
   },
   palette: {

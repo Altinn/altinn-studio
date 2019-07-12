@@ -91,16 +91,6 @@ namespace AltinnCore.Common.Configuration
         public string RepositoryLocation { get; set; }
 
         /// <summary>
-        /// Gets or sets a valude indicating
-        /// </summary>
-        public bool EnableGitAutentication { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating if user should be forced to log in in Gitea
-        /// </summary>
-        public bool ForceGiteaAuthentication { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating if runtime should fetch service information from database or from disk
         /// </summary>
         public bool ShouldFetchFromDatabase { get; set; }
@@ -119,11 +109,6 @@ namespace AltinnCore.Common.Configuration
         /// Gets or sets the Repository Base URL
         /// </summary>
         public string RepositoryBaseURL { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Internal repository BaseURL
-        /// </summary>
-        public string InternalRepositoryBaseURL { get; set; }
 
         /// <summary>
         /// Gets or sets the GiteaCookieName
@@ -326,11 +311,11 @@ namespace AltinnCore.Common.Configuration
         {
             if (developer != null)
             {
-                developer += "/";
+                developer += $"/{org}/{service}/";
             }
 
             string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
-            return $"{repositoryLocation}{developer}{org}/{service}/";
+            return developer != null ? $"{repositoryLocation}{developer}" : $"{repositoryLocation}/";
         }
 
         /// <summary>
