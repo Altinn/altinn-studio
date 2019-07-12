@@ -2,19 +2,19 @@ import { AppBar, Grid, Toolbar } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import AltinnLogo from '../../../../shared/src/components/AltinnLogo';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import altinnStudioTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { IProfile } from '../resources/profile';
 import { renderParty } from '../resources/utils/party';
 
-export interface IHeaderprops {
+export interface IHeaderProps {
   classes: any;
   language: any;
   profile: IProfile;
   type?: string;
 }
 
-const theme = createMuiTheme(altinnTheme);
+const theme = createMuiTheme(altinnStudioTheme);
 
 const styles = createStyles({
   appBarWrapper: {
@@ -24,16 +24,16 @@ const styles = createStyles({
     },
   },
   blueDark: {
-    color: altinnTheme.altinnPalette.primary.blueDark,
+    color: altinnStudioTheme.altinnPalette.primary.blueDark,
   },
   blueDarker: {
-    color: altinnTheme.altinnPalette.primary.blueDarker,
+    color: altinnStudioTheme.altinnPalette.primary.blueDarker,
   },
   default: {
     backgroundColor: 'transparent',
   },
   headerLink: {
-    'color': altinnTheme.altinnPalette.primary.blueDark,
+    'color': altinnStudioTheme.altinnPalette.primary.blueDark,
     'fontSize': '2.4rem',
     'lineHeight': '1.5',
     'marginLeft': '3.6rem',
@@ -45,12 +45,12 @@ const styles = createStyles({
       padding: 0,
     },
     '& a': {
-      color: altinnTheme.altinnPalette.primary.blueDark,
+      color: altinnStudioTheme.altinnPalette.primary.blueDark,
       borderBottom: 0,
     },
     '& a:hover': {
-      color: altinnTheme.altinnPalette.primary.blueDark,
-      borderBottom: '3px solid ' + altinnTheme.altinnPalette.primary.blueDark,
+      color: altinnStudioTheme.altinnPalette.primary.blueDark,
+      borderBottom: '3px solid ' + altinnStudioTheme.altinnPalette.primary.blueDark,
     },
   },
   headerLinkList: {
@@ -92,7 +92,7 @@ const styles = createStyles({
   },
 });
 
-const Header = (props: IHeaderprops) => {
+const AltinnAppHeader = (props: IHeaderProps) => {
   const { classes, type } = props;
   const party = props.profile ? props.profile.party : null;
   return (
@@ -109,8 +109,8 @@ const Header = (props: IHeaderprops) => {
         >
           <AltinnLogo
             color={
-              type === 'partyChoice' ? altinnTheme.altinnPalette.primary.blueDark :
-              altinnTheme.altinnPalette.primary.blueDarker}
+              type === 'partyChoice' ? altinnStudioTheme.altinnPalette.primary.blueDark :
+              altinnStudioTheme.altinnPalette.primary.blueDarker}
           />
         </Grid>
             {
@@ -182,4 +182,4 @@ const Header = (props: IHeaderprops) => {
   );
 };
 
-export default withStyles(styles)(Header);
+export default withStyles(styles)(AltinnAppHeader);
