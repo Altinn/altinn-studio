@@ -90,13 +90,15 @@ const theme = {
         fontSize: 36,
       },
       h2: {
+        fontSize: 28,
+      },
+      h3: {
         fontSize: 20,
-        fontWeight: 500,
       },
       body1: {
         fontSize: 16,
       },
-      caption: {
+      body2: {
         fontSize: 14,
       },
     },

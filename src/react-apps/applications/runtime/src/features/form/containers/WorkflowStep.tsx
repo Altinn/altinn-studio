@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { altinnAppsImgLogoBlueSvgUrl } from '../../../../../shared/src/utils/urlHelper';
 import FormFillerActions from '../../../features/form/data/actions';
 import { IProfile } from '../../../shared/resources/profile';
 import { renderParty } from '../../../shared/resources/utils/party';
@@ -47,7 +48,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
         <div className='col-xl-12'>
           <div className='a-modal-top'>
             <img
-              src='/designer/img/a-logo-blue.svg'
+              src={altinnAppsImgLogoBlueSvgUrl}
               alt='Altinn logo'
               className='a-logo a-modal-top-logo '
             />
