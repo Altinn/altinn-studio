@@ -2,16 +2,16 @@
 
 exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
 <div
-  className="Header-appBarWrapper-1"
+  className="AltinnAppHeader-appBarWrapper-1"
 >
   <header
-    className="MuiPaper-root-23 MuiPaper-elevation4-29 MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 Header-partyChoice-8"
+    className="MuiPaper-root-23 MuiPaper-elevation4-29 MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 AltinnAppHeader-partyChoice-8"
   >
     <div
-      className="MuiToolbar-root-50 MuiToolbar-regular-52 MuiToolbar-gutters-51 container Header-toolbarContainer-13"
+      className="MuiToolbar-root-50 MuiToolbar-regular-52 MuiToolbar-gutters-51 container AltinnAppHeader-toolbarContainer-13"
     >
       <div
-        className="MuiGrid-item-55 Header-logo-10"
+        className="MuiGrid-item-55 AltinnAppHeader-logo-10"
         style={Object {}}
       >
         <svg
@@ -151,10 +151,10 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
         </svg>
       </div>
       <ul
-        className="Header-headerLinkList-6"
+        className="AltinnAppHeader-headerLinkList-6"
       >
         <li
-          className="Header-headerLink-5"
+          className="AltinnAppHeader-headerLink-5"
         >
           <a
             href="https://altinn.no/ui/messagebox"
@@ -163,7 +163,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           </a>
         </li>
         <li
-          className="Header-headerLink-5"
+          className="AltinnAppHeader-headerLink-5"
         >
           <a
             href="https://altinn.no/nn/skjemaoversikt/"
@@ -172,7 +172,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
           </a>
         </li>
         <li
-          className="Header-headerLink-5"
+          className="AltinnAppHeader-headerLink-5"
         >
           <a
             href="https://altinn.no/ui/profile"
@@ -199,7 +199,7 @@ exports[`>>> features/altinnAppHeader.tsx +++ should match snapshot 1`] = `
         </span>
         <i
           aria-hidden="true"
-          className="fa fa-private-circle-big Header-partyIcon-12 Header-blueDark-2"
+          className="fa fa-private-circle-big AltinnAppHeader-partyIcon-12 AltinnAppHeader-blueDark-2"
         />
       </div>
     </div>

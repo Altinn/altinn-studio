@@ -90,6 +90,7 @@ Build and run the code.
 
 ```cmd
 dotnet build
+npm run gulp # first time only
 npm run gulp-develop
 ```
 
@@ -116,6 +117,7 @@ Navigate to the Runtime folder. Build and run the code.
 ```cmd
 cd src/AltinnCore/Runtime
 npm install
+npm run gulp # first time only
 npm run gulp-develop
 ```
 
