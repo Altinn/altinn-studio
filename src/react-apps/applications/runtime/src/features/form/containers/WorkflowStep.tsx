@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { altinnAppsImgLogoBlueSvgUrl } from '../../../../../shared/src/utils/urlHelper';
 import FormFillerActions from '../../../features/form/data/actions';
-import Header from '../../../shared/components/altinnAppHeader';
+import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IProfile } from '../../../shared/resources/profile';
 import { renderParty } from '../../../shared/resources/utils/party';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
@@ -218,7 +218,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     return (
       <div id='workflowContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
         <div className='container'>
-          <Header
+          <AltinnAppHeader
             language={this.props.language}
             profile={this.props.profile}
           />
