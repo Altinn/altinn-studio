@@ -14,16 +14,16 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
     className="container"
   >
     <div
-      className="Header-appBarWrapper-1"
+      className="AltinnAppHeader-appBarWrapper-1"
     >
       <header
-        className="MuiPaper-root-23 MuiPaper-elevation4-29 MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 Header-default-4"
+        className="MuiPaper-root-23 MuiPaper-elevation4-29 MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 AltinnAppHeader-default-4"
       >
         <div
-          className="MuiToolbar-root-50 MuiToolbar-regular-52 MuiToolbar-gutters-51 container Header-toolbarContainer-13"
+          className="MuiToolbar-root-50 MuiToolbar-regular-52 MuiToolbar-gutters-51 container AltinnAppHeader-toolbarContainer-13"
         >
           <div
-            className="MuiGrid-item-55 Header-logo-10"
+            className="MuiGrid-item-55 AltinnAppHeader-logo-10"
             style={
               Object {
                 "flexGrow": 1,
@@ -179,12 +179,12 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
               }
             >
               <span
-                className="d-block Header-blueDarker-3"
+                className="d-block AltinnAppHeader-blueDarker-3"
               >
                 OLA PRIVATPERSON
               </span>
               <span
-                className="Header-blueDarker-3"
+                className="AltinnAppHeader-blueDarker-3"
               />
               <span
                 className="d-block"
@@ -192,7 +192,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
             </span>
             <i
               aria-hidden="true"
-              className="fa fa-private-circle-big Header-partyIcon-12 Header-blueDarker-3"
+              className="fa fa-private-circle-big AltinnAppHeader-partyIcon-12 AltinnAppHeader-blueDarker-3"
             />
           </div>
         </div>
