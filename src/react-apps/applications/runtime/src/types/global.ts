@@ -4,8 +4,8 @@ import { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
-import { IAttachmentState } from '../sharedResources/attachments/attachmentReducer';
-import { ILanguageState } from '../sharedResources/language/languageReducers';
+import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
+import { ILanguageState } from '../shared/resources/language/languageReducers';
 
 export interface IRuntimeStore {
   formLayout: ILayoutState;

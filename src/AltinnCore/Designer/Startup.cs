@@ -198,7 +198,7 @@ namespace AltinnCore.Designer
                 routes.MapRoute(
                         name: "serviceDevelopmentRoute",
                         template: "designer/{org}/{service}",
-                        defaults: new { controller = "ServiceDevelopment", action="index" });
+                        defaults: new { controller = "ServiceDevelopment", action = "index" });
 
                 routes.MapRoute(
                     name: "designerApiRoute",
@@ -226,6 +226,11 @@ namespace AltinnCore.Designer
                           {
                               controller = @"(Deploy)",
                           });
+                routes.MapRoute(
+                        name: "applicationMetadataApiRoute",
+                        template: "designer/api/v1/{org}/{app}",
+                        defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
+
                 routes.MapRoute(
                         name: "reposRoute",
                         template: "{controller}/{action}/",

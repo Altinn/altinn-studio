@@ -45,7 +45,7 @@ namespace AltinnCore.Authentication.JwtCookie
         }
 
         /// <summary>
-        /// The handler calls methods on the events which give the application control at certain points where processing is occurring. 
+        /// The handler calls methods on the events which give the application control at certain points where processing is occurring.
         /// If it is not provided a default instance is supplied which does nothing when the methods are called.
         /// </summary>
         protected new JwtCookieEvents Events
@@ -61,19 +61,17 @@ namespace AltinnCore.Authentication.JwtCookie
         protected override Task<object> CreateEventsAsync() => Task.FromResult<object>(new JwtCookieEvents());
 
         /// <summary>
-        ///  Handles the authentication of the request 
+        ///  Handles the authentication of the request
         /// </summary>
         /// <returns></returns>
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
-        {         
+        {
             try
             {
-                // Get the cookie from request 
+                // Get the cookie from request
                 string token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
 
-                Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Token {Options.Cookie.Name} has value: {token}");
-
-                // If no cookie present 
+                // If no cookie present
                 if (string.IsNullOrEmpty(token))
                 {
                     string authorization = Request.Headers["Authorization"];
@@ -81,20 +79,17 @@ namespace AltinnCore.Authentication.JwtCookie
                     // If no authorization header found, nothing to process further
                     if (string.IsNullOrEmpty(authorization))
                     {
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] No authorization header was retrieved.");
                         return AuthenticateResult.NoResult();
                     }
 
                     if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                     {
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Retrieving token from request header.");
                         token = authorization.Substring("Bearer ".Length).Trim();
                     }
 
                     // If no token found, no further work possible
                     if (string.IsNullOrEmpty(token))
                     {
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Authorization header, but no bearer token.");
                         return AuthenticateResult.NoResult();
                     }
                 }
@@ -109,13 +104,7 @@ namespace AltinnCore.Authentication.JwtCookie
                 {
                     try
                     {
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Validating token.");
-
                         principal = validator.ValidateToken(token, validationParameters, out validatedToken);
-
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Token validated.");
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Validated token: {validatedToken}.");
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] validationParameters: {validationParameters}.");
 
                         JwtCookieValidatedContext jwtCookieValidatedContext = new JwtCookieValidatedContext(Context, Scheme, Options)
                         {
@@ -127,21 +116,14 @@ namespace AltinnCore.Authentication.JwtCookie
 
                         if (jwtCookieValidatedContext.Result != null)
                         {
-                            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] jwtCookieValidatedContext.Result != null.");
-                            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Return value {jwtCookieValidatedContext.Result}.");
-
                             return jwtCookieValidatedContext.Result;
                         }
 
                         jwtCookieValidatedContext.Success();
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] After jwtCookieValidatedContext.Success();");
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Return value {jwtCookieValidatedContext.Result}.");
                         return jwtCookieValidatedContext.Result;
                     }
                     catch (Exception ex)
                     {
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Exception thrown during validation:  {ex.Message}");
-
                         JwtCookieFailedContext jwtCookieFailedContext = new JwtCookieFailedContext(Context, Scheme, Options)
                         {
                             Exception = ex
@@ -151,14 +133,8 @@ namespace AltinnCore.Authentication.JwtCookie
 
                         if (jwtCookieFailedContext.Result != null)
                         {
-                            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] (jwtCookieFailedContext.Result != null");
-                            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Return value {jwtCookieFailedContext.Result}.");
-
                             return jwtCookieFailedContext.Result;
                         }
-
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Final return");
-                        Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Return exception {jwtCookieFailedContext.Exception}.");
 
                         return AuthenticateResult.Fail(jwtCookieFailedContext.Exception);
 
@@ -167,8 +143,6 @@ namespace AltinnCore.Authentication.JwtCookie
                         // Todo: Handle refresh of certificat from the token source
                     }
                 }
-
-                Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleAuthenticateAsync] Could not read token. No SecurityTokenValidator available. ");
 
                 return AuthenticateResult.Fail("No SecurityTokenValidator available for token: " + token ?? "[null]");
             }
@@ -196,9 +170,6 @@ namespace AltinnCore.Authentication.JwtCookie
         /// <returns></returns>
         protected async override Task HandleSignInAsync(ClaimsPrincipal user, AuthenticationProperties properties)
         {
-            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Entered method. ");
-            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Value options cookie domain: {Options.Cookie.Domain} ");
-
             if (user == null)
             {
                 throw new ArgumentNullException(nameof(user));
@@ -207,8 +178,6 @@ namespace AltinnCore.Authentication.JwtCookie
             properties = properties ?? new AuthenticationProperties();
 
             CookieOptions cookieOptions = BuildCookieOptions();
-            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Cookie options: {cookieOptions} ");
-            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Cookie options domain: {cookieOptions.Domain} ");
 
             JwtCookieSigningInContext signInContext = new JwtCookieSigningInContext(
                Context,
@@ -217,8 +186,6 @@ namespace AltinnCore.Authentication.JwtCookie
                user,
                properties,
                cookieOptions);
-
-            Logger.LogInformation($"/// Authorization test /// [JwtCookieHandler.cs] [HandleSignInAsync] Set singInContext {signInContext} ");
 
             DateTimeOffset issuedUtc;
             if (signInContext.Properties.IssuedUtc.HasValue)
@@ -241,7 +208,7 @@ namespace AltinnCore.Authentication.JwtCookie
             if (signInContext.Properties.IsPersistent)
             {
                 var expiresUtc = signInContext.Properties.ExpiresUtc ?? issuedUtc.Add(Options.ExpireTimeSpan);
-                signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();         
+                signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();
             }
 
             string jwtToken = GetToken(user, Options.ExpireTimeSpan);

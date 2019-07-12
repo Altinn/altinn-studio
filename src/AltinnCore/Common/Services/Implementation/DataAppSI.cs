@@ -223,7 +223,7 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<Guid> SaveFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}/instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             Instance instance;
 

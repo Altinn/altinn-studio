@@ -2,11 +2,18 @@ import { Checkbox, createMuiTheme, createStyles, WithStyles, withStyles } from '
 import React = require('react');
 import altinnTheme from '../theme/altinnStudioTheme';
 export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof styles> {
+  /** If the component is checked */
   checked: boolean;
+  /** If the component should be disabeld */
   disabled?: boolean;
+  /** Check box component ID */
   id?: any;
-  onChangeFunction: any;
+  /** Called when onChange is triggered */
+  onChangeFunction?: any;
+  /** Called when onKeyPress is triggered */
   onKeyPressFunction?: any;
+   /** @ignore */
+  classes: any;
 }
 
 export interface IAltinnCheckBoxComponentState { }

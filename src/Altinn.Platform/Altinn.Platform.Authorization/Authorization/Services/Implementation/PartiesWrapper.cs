@@ -34,8 +34,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             var request = $"parties?userid={userId}";            
             var response = await _partyClient.Client.GetAsync(request);            
             string partiesDataList = await response.Content.ReadAsStringAsync();
-            response.EnsureSuccessStatusCode();
-            partiesList = JsonConvert.DeserializeObject<List<Party>>(partiesDataList);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                partiesList = JsonConvert.DeserializeObject<List<Party>>(partiesDataList);
+            }
+
             return partiesList;
         }
     }

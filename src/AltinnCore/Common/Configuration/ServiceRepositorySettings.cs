@@ -311,11 +311,11 @@ namespace AltinnCore.Common.Configuration
         {
             if (developer != null)
             {
-                developer += "/";
+                developer += $"/{org}/{service}/";
             }
 
             string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
-            return $"{repositoryLocation}{developer}{org}/{service}/";
+            return developer != null ? $"{repositoryLocation}{developer}" : $"{repositoryLocation}/";
         }
 
         /// <summary>

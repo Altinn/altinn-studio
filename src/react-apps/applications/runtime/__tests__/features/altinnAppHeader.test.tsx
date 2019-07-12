@@ -3,7 +3,7 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import Header from '../../src/features/altinnAppHeader/containers';
+import Header from '../../src/shared/components/altinnAppHeader';
 
 describe('>>> features/altinnAppHeader.tsx', () => {
   let mockLanguage: any;
@@ -52,7 +52,7 @@ describe('>>> features/altinnAppHeader.tsx', () => {
     );
     expect(mountedHeader.exists('ul')).toEqual(true);
     expect(mountedHeader.find('header').props().className).toEqual('MuiPaper-root-23 MuiPaper-elevation4-29' +
-    ' MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 Header-partyChoice-8');
+    ' MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 AltinnAppHeader-partyChoice-8');
   });
   it('+++ should not render linklist if no type', () => {
     const mountedHeader = mount(
