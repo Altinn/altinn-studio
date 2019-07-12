@@ -1,11 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-import { altinnAppsImgLogoBlueSvgUrl } from '../../../../../shared/src/utils/urlHelper';
 import FormFillerActions from '../../../features/form/data/actions';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IProfile } from '../../../shared/resources/profile';
-import { renderParty } from '../../../shared/resources/utils/party';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { IValidations } from '../../../types/global';
 
