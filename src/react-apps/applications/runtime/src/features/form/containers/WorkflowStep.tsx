@@ -42,56 +42,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     };
   }
 
-  public renderTop = () => {
-    const party = this.props.profile ? this.props.profile.party : null;
-    return (
-      <div className='row'>
-        <div className='col-xl-12'>
-          <div className='a-modal-top'>
-            <img
-              src={altinnAppsImgLogoBlueSvgUrl}
-              alt='Altinn logo'
-              className='a-logo a-modal-top-logo '
-            />
-            <div className='a-modal-top-user'>
-              <div
-                className='a-personSwitcher '
-                title={renderParty(this.props.profile)}
-              >
-                <span className='a-personSwitcher-name' style={{ marginBottom: '10px' }}>
-                  <span className='d-block' style={{ color: '#022F51', lineHeight: '18px' }}>
-                    {renderParty(this.props.profile)}
-                  </span>
-                  <span style={{ color: '#022F51', lineHeight: '18px' }}>
-                    {
-                      party && party.organization &&
-                      getLanguageFromKey('general.for', this.props.language) + ' ' +
-                      party.organization.toUpperCase()
-                    }
-                  </span>
-                  <span className='d-block' />
-                </span>
-                {party && party.organization ?
-                  <i
-                    className='fa fa-corp-circle-big'
-                    aria-hidden='true'
-                    style={{ color: '#022F51', fontSize: '3.1rem', marginLeft: '5px' }}
-                  />
-                  :
-                  <i
-                    className='fa fa-private-circle-big'
-                    aria-hidden='true'
-                    style={{ color: '#022F51', fontSize: '3.1rem', marginLeft: '5px' }}
-                  />
-                }
-              </div>
-            </div>
-          </div>
-        </div>
-      </div >
-    );
-  }
-
   public renderHeader = () => {
     return (
       <div
