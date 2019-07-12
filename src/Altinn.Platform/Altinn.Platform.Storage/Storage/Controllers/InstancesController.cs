@@ -1,5 +1,10 @@
 namespace Altinn.Platform.Storage.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Web;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
     using global::Storage.Interface.Models;
@@ -10,11 +15,6 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Primitives;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Web;
 
     /// <summary>
     /// Handles operations for the application instance resource
@@ -73,7 +73,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="lastChangedDateTime">last changed date</param>
         /// <param name="createdDateTime">created time</param>
         /// <param name="continuationToken">continuation token</param>
-        /// <param name="page">the page number</param>
         /// <param name="size">the page size</param>
         /// <returns>list of all instances for given instanceowner</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
@@ -89,10 +88,8 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string lastChangedDateTime,
             [FromQuery] string createdDateTime,
             string continuationToken,
-            int? page,
             int? size)
         {
-            int pageNumber = page ?? 0;
             int pageSize = size ?? 100;
             if (!string.IsNullOrEmpty(continuationToken))
             {
@@ -140,7 +137,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (!string.IsNullOrEmpty(appId))
             {                
-                KeyValuePair<string, List<Instance>> result = await _instanceRepository.GetInstancesOfApplication(appId, queryParams, continuationToken, pageNumber, pageSize);
+                KeyValuePair<string, List<Instance>> result = await _instanceRepository.GetInstancesOfApplication(appId, queryParams, continuationToken, pageSize);
                 if (result.Value == null || result.Value.Count == 0)
                 {
                     return NotFound($"Did not find any instances for appId={appId}");
@@ -152,7 +149,6 @@ namespace Altinn.Platform.Storage.Controllers
                     var queryResult = new
                     {
                         result = 1,
-                        page = pageNumber,
                         size = pageSize,
                         count = result.Value.Count,
                         continuationToken = nextContinuationToken,
@@ -162,18 +158,11 @@ namespace Altinn.Platform.Storage.Controllers
 
                     Link selfLink = new Link("self", $"{url}{query}");
                     response.AddLinks(selfLink);
-                    if (page.HasValue)
+
+                    if (nextContinuationToken != null)
                     {
-
-                    }
-                    else if (nextContinuationToken != null)
-                    {
-                        string queryParamName = "continuationToken";
-
-                        QueryBuilder qb = NextQueryString(q, nextContinuationToken, queryParamName);
-
-                        string nextQueryString = qb.ToQueryString().Value;
-
+                        string nextQueryString = NextQueryString(q, "continuationToken", nextContinuationToken);
+                        
                         Link nextLink = new Link("next", $"{url}{nextQueryString}");
                         response.AddLinks(nextLink);
                     }
@@ -191,7 +180,7 @@ namespace Altinn.Platform.Storage.Controllers
             return BadRequest("Unable to perform query");
         }
 
-        private static QueryBuilder NextQueryString(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
+        private static string NextQueryString(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
         {
             List<KeyValuePair<string, string>> items = q.SelectMany(x => x.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value)).ToList();
             items.RemoveAll(x => x.Key == queryParamName);
@@ -200,7 +189,10 @@ namespace Altinn.Platform.Storage.Controllers
                         {
                             { queryParamName, newParamValue }
                         };
-            return qb;
+
+            string nextQueryString = qb.ToQueryString().Value;
+
+            return nextQueryString;
         }
 
         /// <summary>

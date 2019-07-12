@@ -30,6 +30,7 @@ namespace Altinn.Platform.Storage.Repository
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
+        /// <param name="logger">the logger</param>
         public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<InstanceRepository> logger)
         {
             this.logger = logger;
@@ -120,7 +121,6 @@ namespace Altinn.Platform.Storage.Repository
             string appId,
             Dictionary<string, string> queryParams,
             string continuationToken,
-            int page,
             int size)
         {
             FeedOptions feedOptions = new FeedOptions
@@ -137,11 +137,6 @@ namespace Altinn.Platform.Storage.Repository
             IOrderedQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
 
             queryBuilder.Where(i => i.AppId == appId);
-
-            if (continuationToken == null)
-            {
-                queryBuilder.Skip(page * size);
-            }
 
             foreach (KeyValuePair<string, string> param in queryParams)
             {                

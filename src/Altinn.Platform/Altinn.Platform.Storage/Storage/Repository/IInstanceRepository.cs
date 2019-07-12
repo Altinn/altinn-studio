@@ -30,10 +30,9 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="appId">the application identifier, e.g. org/app23</param>
         /// <param name="queryParams">the query params</param>
         /// <param name="continuationToken">a token to get the next page, more performant than using page</param>
-        /// <param name="page">The page to show, is ignored if continuationToken is used</param>
         /// <param name="size">The number of items per page</param>
         /// <returns>The list of instances with for a given application</returns>
-        Task<KeyValuePair<string, List<Instance>>> GetInstancesOfApplication(string appId, Dictionary<string, string> queryParams, string continuationToken, int page, int size);
+        Task<KeyValuePair<string, List<Instance>>> GetInstancesOfApplication(string appId, Dictionary<string, string> queryParams, string continuationToken, int size);
 
         /// <summary>
         /// Get an instance for a given instance id
