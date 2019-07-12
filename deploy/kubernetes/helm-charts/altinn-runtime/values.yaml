@@ -42,6 +42,14 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud/profile/api/v1/
     - name: PlatformSettings__ApiProfileEndpointHost
       value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
   production:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -76,6 +84,14 @@ environmentVariables:
     - name: PlatformSettings__ApiProfileEndpoint
       value: https://platform.at21.altinn.cloud/profile/api/v1/
     - name: PlatformSettings__ApiProfileEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
       value: https://platform.at21.altinn.cloud
 
 volumeMounts:

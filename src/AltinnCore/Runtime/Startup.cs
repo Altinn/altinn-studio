@@ -231,19 +231,21 @@ namespace AltinnCore.Runtime
             // app.UseHsts();
             // app.UseHttpsRedirection();
             app.UseAuthentication();
-         /*   app.UseStatusCodePages(async context =>
-            {
-                var request = context.HttpContext.Request;
-                var response = context.HttpContext.Response;
-                string url = $"{request.Host.ToString()}{request.Path.ToString()}";
 
-                // you may also check requests path to do this only for specific methods
-                // && request.Path.Value.StartsWith("/specificPath")
-                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
-                {
-                    response.Redirect($"/account/login?gotoUrl={url}");
-                }
-            });*/
+            app.UseStatusCodePages(async context =>
+               {
+                   var request = context.HttpContext.Request;
+                   var response = context.HttpContext.Response;
+                   string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
+
+                    // you may also check requests path to do this only for specific methods
+                    // && request.Path.Value.StartsWith("/specificPath")
+                   if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                   {
+                       response.Redirect($"account/login?gotoUrl={url}");
+                   }
+               });
+
             app.UseResponseCompression();
             app.UseRequestLocalization();
             app.UseStaticFiles(new StaticFileOptions()
@@ -318,6 +320,17 @@ namespace AltinnCore.Runtime
                    {
                        action = "InstantiateApp",
                        controller = "Instance",
+                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                   });
+
+                routes.MapRoute(
+                   name: "authentication",
+                   template: "{org}/{service}/{controller}/{action}/{goToUrl?}",
+                   defaults: new { action = "Login", controller = "Account" },
+                   constraints: new
+                   {
+                       action = "Login",
+                       controller = "Account",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
