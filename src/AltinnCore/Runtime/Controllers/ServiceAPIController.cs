@@ -121,7 +121,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="partyId">reportee</param>
         /// <param name="instanceId">The instanceId.</param>
         /// <returns>The Service model as JSON or XML for the given instanceId.</returns>
-        [Authorize(Policy = "ServiceRead")]
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Gindex(string org, string service, int partyId, Guid instanceId)
         {

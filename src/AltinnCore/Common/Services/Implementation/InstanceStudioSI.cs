@@ -161,11 +161,18 @@ namespace AltinnCore.Common.Services.Implementation
                 string instanceFolderName = new DirectoryInfo(file).Name;
                 if (instanceFolderName != "Archive")
                 {
-                    string instanceFileName = $"{instanceFolderName}.json";
+                    try
+                    {
+                        string instanceFileName = $"{instanceFolderName}.json";
 
-                    string instanceData = File.ReadAllText($"{instancesPath}/{instanceFolderName}/{instanceFileName}");
-                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                    formInstances.Add(instance);
+                        string instanceData = File.ReadAllText($"{instancesPath}/{instanceFolderName}/{instanceFileName}");
+                        Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                        formInstances.Add(instance);
+                    }
+                    catch 
+                    {
+                        /* Avoid problems with wrong directories that may have occured in previous testing sessions */
+                    }
                 }
             }
 

@@ -242,7 +242,9 @@ namespace AltinnCore.Runtime.Controllers
 
             object serviceModel = _archive.GetArchivedServiceModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.Reportee.PartyId);
             List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
-            ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == instanceId);
+            string properInstanceId = $"{requestContext.Reportee}/{instanceId}";
+
+            ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == properInstanceId);
 
             return View();
         }
