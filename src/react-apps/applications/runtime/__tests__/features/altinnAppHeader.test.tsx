@@ -52,7 +52,7 @@ describe('>>> features/altinnAppHeader.tsx', () => {
     );
     expect(mountedHeader.exists('ul')).toEqual(true);
     expect(mountedHeader.find('header').props().className).toEqual('MuiPaper-root-23 MuiPaper-elevation4-29' +
-    ' MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 Header-partyChoice-8');
+    ' MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 AltinnAppHeader-partyChoice-8');
   });
   it('+++ should not render linklist if no type', () => {
     const mountedHeader = mount(
