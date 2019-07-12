@@ -49,8 +49,18 @@ export default class DesignerPage {
     this.lageLeftMenuItems = [
       this.leftMenuList.withExactText('Datamodell'),
       this.leftMenuList.withExactText('GUI'),
-      this.leftMenuList.withExactText('API')
+      this.leftMenuList.withExactText('API'),
+      this.leftMenuList.withExactText('Kode'),
+      this.leftMenuList.withExactText('Tilgangsstyring')
     ];
+
+    //Tilgangstyring tab selectors
+    this.konkursBo = Selector("input").withExactText("Konkursbo").sibling(0);
+    this.virksomhet = Selector("input").withExactText("Virksomhet").sibling(0);
+    this.privatPerson = Selector("input").withExactText("Privatperson").sibling(0);
+    this.underenhet = Selector("input").withExactText("Underenhet").sibling(0);
+    this.hookCheckBox = Selector("span").withText("TUL");
+    this.tjenesteutgavekode = Selector("div").withExactText("Tjenesteutgavekode").child(0);
 
     //Form components
     this.inputComponent = Selector(".fa.fa-short-answer").parent(2);
@@ -103,7 +113,7 @@ export default class DesignerPage {
     this.validerEndringer = Selector("button > span").withExactText("Valider endringer");
     this.delEndringer = Selector("#changes_to_share_btn");
     this.ingenEndringer = Selector("#no_changes_to_share_btn");
-    this.delEndringerBlueButton = Selector("div").withText("Endringene er validert").child("button") //Selector("button > span").withText("Del endringer");
+    this.delEndringerBlueButton = Selector("span").withText("del endringer") //Selector("div").withText("Endringene er validert").child("button")
     this.commitMessageBox = Selector("#test");
   }
 
