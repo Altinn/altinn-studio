@@ -263,7 +263,7 @@ namespace AltinnCore.Runtime.Controllers
                     .GetPartyList(userContext.UserId)
                     .Select(x => new SelectListItem
                     {
-                        Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Person.Name : x.OrgNumber + " " + x.Organization.Name,
+                        Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Name : x.OrgNumber + " " + x.Name,
                         Value = x.PartyId.ToString(),
                     })
                     .ToList(),
@@ -383,7 +383,7 @@ namespace AltinnCore.Runtime.Controllers
             startServiceModel.PartyList = _authorization.GetPartyList(requestContext.UserContext.UserId)
                .Select(x => new SelectListItem
                {
-                   Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Person.Name : x.OrgNumber + " " + x.Organization.Name,
+                   Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Name : x.OrgNumber + " " + x.Name,
                    Value = x.PartyId.ToString(),
                }).ToList();
 
@@ -492,7 +492,7 @@ namespace AltinnCore.Runtime.Controllers
             startServiceModel.PartyList = _authorization.GetPartyList(requestContext.UserContext.UserId)
                .Select(x => new SelectListItem
                {
-                   Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Person.Name : x.OrgNumber + " " + x.Organization.Name,
+                   Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Name : x.OrgNumber + " " + x.Name,
                    Value = x.PartyId.ToString(),
                }).ToList();
 

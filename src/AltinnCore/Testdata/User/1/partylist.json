@@ -1,15 +1,16 @@
 [
-  {
-    "SSN": "01017512345",
-    "PartyId": "1",
-    "PartyTypeName": "Person",
-	"Person": 
-		{
-			"SSN": "01017512345",
-			"Name": "Ola PrivatPerson",
-			"FirstName": "Ola",
-			"MiddleName": "",
-			"LastName": "PrivatPerson"
-		}
-  }  
+	{
+		"partyTypeName": "Person",
+		"orgNumber": null,
+		"person": null,
+		"organization": null,
+		"partyID": "1",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "01017512345",
+		"name": "Ola PrivatPerson",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	}
 ]
