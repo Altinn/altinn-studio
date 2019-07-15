@@ -250,7 +250,6 @@ namespace AltinnCore.Common.Services.Implementation
                         header.FileName = attachmentName;
                         header.Size = attachment.ContentLength;
                         formData.Headers.ContentDisposition = header;
-                        formData.Headers.Add("Authorization", "Bearer " + token);
                         formData.Add(fileStreamContent, attachmentType, attachmentName);
                         HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
 
