@@ -3,6 +3,7 @@ import List from '@material-ui/core/List';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
@@ -62,7 +63,7 @@ export interface IToolbarState {
   advancedComponentListOpen: boolean;
   advancedComponentListCloseAnimationDone: boolean;
 }
-class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
+export class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public components: IToolbarElement[];
   public textComponents: IToolbarElement[];
   public advancedComponents: IToolbarElement[];
@@ -100,7 +101,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           componentType: c.Type,
           itemType: LayoutItemType.Component,
           textResourceBindings: {
-            title: getComponentTitleByComponentType(c.Type, this.props.language),
+            title: c.name === 'Button' ?
+            getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
+            : getComponentTitleByComponentType(c.Type, this.props.language),
           },
           dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),

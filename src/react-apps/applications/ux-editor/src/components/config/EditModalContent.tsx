@@ -389,7 +389,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
+              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language))}
           </Grid>
         );
       }
