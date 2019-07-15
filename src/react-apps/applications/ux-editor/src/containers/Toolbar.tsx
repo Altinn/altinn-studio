@@ -292,7 +292,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             >
               {this.components.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
-                  text={getComponentTitleByComponentType(component.componentType, this.props.language)}
+                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                    || component.label}
                   icon={component.icon}
                   componentType={component.componentType}
                   onDropAction={component.actionMethod}
@@ -342,7 +343,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             <List dense={false} id={'schema-texts'}>
               {this.textComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
-                  text={getComponentTitleByComponentType(component.componentType, this.props.language)}
+                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                    || component.label}
                   icon={component.icon}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
@@ -369,7 +371,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             <List dense={false} id={'advanced-components'}>
               {this.advancedComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
-                  text={getComponentTitleByComponentType(component.componentType, this.props.language)}
+                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                    || component.label}
                   icon={component.icon}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
