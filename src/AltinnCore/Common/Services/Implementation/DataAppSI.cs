@@ -102,12 +102,6 @@ namespace AltinnCore.Common.Services.Implementation
                 StreamContent streamContent = new StreamContent(stream);
                 streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
 
-                if (streamContent.Headers.Contains("Authorization"))
-                {
-                    streamContent.Headers.Remove("Authorization");
-                }
-
-                streamContent.Headers.Add("Authorization", "Bearer " + token);
                 Task<HttpResponseMessage> response = _client.PutAsync(apiUrl, streamContent);
                 if (!response.Result.IsSuccessStatusCode)
                 {
