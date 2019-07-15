@@ -16,7 +16,7 @@ export function* fetchAttachments(): SagaIterator {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
     const servicePath = `${org}/${service}`;
-    const attachmentListUrl = `${altinnWindow.location.origin}/${servicePath}/api/attachment/`+
+    const attachmentListUrl = `${altinnWindow.location.origin}/${servicePath}/api/attachment/` +
     `${instanceId}/GetFormAttachments`;
     const response = yield call(get, attachmentListUrl);
     const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);

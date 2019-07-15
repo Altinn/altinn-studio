@@ -17,9 +17,13 @@ export default (props) => {
   const {
     match: {
       params: {
+        partyId,
+        instanceGuid,
       },
     },
   } = props;
+
+  (window as IAltinnWindow).instanceId = partyId  + '/' + instanceGuid;
 
   React.useEffect(() => {
     const { org, service, instanceId } = window as IAltinnWindow;
