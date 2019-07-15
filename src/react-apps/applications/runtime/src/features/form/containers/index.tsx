@@ -17,16 +17,12 @@ export default (props) => {
   const {
     match: {
       params: {
-        instanceId,
-        partyId,
       },
     },
   } = props;
 
-  (window as IAltinnWindow).instanceId = instanceId;
-  (window as IAltinnWindow).partyId = partyId;
   React.useEffect(() => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, service, instanceId } = window as IAltinnWindow;
     LanguageActions.fetchLanguage(
       `${window.location.origin}/${org}/${service}/api/Language/GetLanguageAsJSON`,
       'nb',
@@ -38,14 +34,14 @@ export default (props) => {
       `${window.location.origin}/${org}/${service}/api/resource/FormLayout.json`,
     );
     FormDataActions.fetchFormData(
-      `${window.location.origin}/${org}/${service}/api/${partyId}/${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/${instanceId}`,
     );
     FormRuleActions.fetchRuleModel(
       `${window.location.origin}/${org}/${service}/api/resource/RuleHandler.js`,
     );
     FormWorkflowActions.getCurrentState(
       // tslint:disable-next-line:max-line-length
-      `${window.location.origin}/${org}/${service}/api/workflow/${partyId}/${instanceId}/GetCurrentState`,
+      `${window.location.origin}/${org}/${service}/api/workflow/${instanceId}/GetCurrentState`,
     );
 
     FormDynamicActions.fetchFormDynamics(

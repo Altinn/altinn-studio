@@ -44,6 +44,7 @@ function ServiceInfo(props) {
 
       if (response.data.instanceId) {
         setInstanceId(response.data.instanceId);
+        (window as any).instanceId = response.data.instanceId;
       } else {
         setInstantiationError(new Error(
           'Server responded without instanceId',
