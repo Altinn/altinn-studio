@@ -74,14 +74,10 @@ namespace Common.Helpers
                     {
                         isAllowed = true;
                     }
-                    else if (party.UnitType == null)
-                    {
-                        break;
-                    }
                     else if (partyTypesAllowed.BankruptcyEstate == true)
                     {
                         // BankruptcyEstate is a sub group of organization
-                        if (BANKRUPTCY_CODE.Equals(party.UnitType.Trim()))
+                        if (party.UnitType != null && BANKRUPTCY_CODE.Equals(party.UnitType.Trim()))
                         {
                             // The org is a BankruptcyEstate, and BankruptcyEstate are allowed to initiate
                             isAllowed = true;
@@ -90,7 +86,7 @@ namespace Common.Helpers
                     else if (partyTypesAllowed.SubUnit == true)
                     {
                         // SubUnit is a sub group of organization
-                        if (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()))
+                        if (party.UnitType != null && (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim())))
                         {
                             // The org is a SubUnit, and SubUnits are allowed to initiate
                             isAllowed = true;
