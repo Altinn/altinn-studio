@@ -22,7 +22,7 @@ export function* uploadAttachmentSaga(
     const servicePath = `${org}/${service}`;
     const data = new FormData();
     data.append('file', file);
-    const fileUploadLink = `${altinnWindow.location.origin}/${servicePath}/api/attachment/${reportee}/` +
+    const fileUploadLink = `${altinnWindow.location.origin}/${servicePath}/api/attachment/` +
       `${instanceId}/SaveFormAttachment?attachmentType=${attachmentType}&attachmentName=${file.name}`;
     const response = yield call(post, fileUploadLink, null, data);
     if (response.status === 200) {
