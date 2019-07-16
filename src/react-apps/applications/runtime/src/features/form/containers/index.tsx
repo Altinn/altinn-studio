@@ -38,14 +38,14 @@ export default (props) => {
       `${window.location.origin}/${org}/${service}/api/resource/FormLayout.json`,
     );
     FormDataActions.fetchFormData(
-      `${window.location.origin}/${org}/${service}/api/${partyId}/Index/${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/${partyId}/${instanceId}`,
     );
     FormRuleActions.fetchRuleModel(
       `${window.location.origin}/${org}/${service}/api/resource/RuleHandler.js`,
     );
     FormWorkflowActions.getCurrentState(
       // tslint:disable-next-line:max-line-length
-      `${window.location.origin}/${org}/${service}/api/workflow/${partyId}/GetCurrentState?instanceId=${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/workflow/${partyId}/${instanceId}/GetCurrentState`,
     );
 
     FormDynamicActions.fetchFormDynamics(

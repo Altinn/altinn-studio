@@ -118,11 +118,12 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner.</param>
         /// <param name="service">The service code for the current service.</param>
+        /// <param name="partyId">reportee</param>
         /// <param name="instanceId">The instanceId.</param>
         /// <returns>The Service model as JSON or XML for the given instanceId.</returns>
-        [Authorize(Policy = "ServiceRead")]
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> Index(string org, string service, Guid instanceId)
+        public async Task<IActionResult> Gindex(string org, string service, int partyId, Guid instanceId)
         {
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);

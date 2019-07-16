@@ -14,6 +14,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Net.Http.Headers;
 
     /// <summary>
@@ -28,6 +29,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
@@ -35,14 +37,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataRepository">the data repository handler</param>
         /// <param name="instanceRepository">the repository</param>
         /// <param name="applicationRepository">the application repository</param>
+        /// <param name="logger">The logger</param>
         public DataController(
             IDataRepository dataRepository,
             IInstanceRepository instanceRepository,
-            IApplicationRepository applicationRepository)
+            IApplicationRepository applicationRepository,
+            ILogger<DataController> logger)
         {
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
+            _logger = logger;
         }
 
         /// <summary>
@@ -55,6 +60,8 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpDelete("{dataId:guid}")]
         public async Task<IActionResult> Delete(Guid instanceGuid, Guid dataId, int instanceOwnerId)
         {
+            _logger.LogInformation($"//DataController // Delete // Starting method");
+
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
             // check if instance id exist and user is allowed to change the instance data            
@@ -68,10 +75,12 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (instance.Data.Exists(m => m.Id == dataIdString))
             {
+                _logger.LogInformation($"//DataController // Delete // Instance exists in database");
                 string storageFileName = DataFileName(instance.AppId, instanceId.ToString(), dataId.ToString());
 
                 bool result = await _dataRepository.DeleteDataInStorage(storageFileName);
 
+                _logger.LogInformation($"//DataController // Delete // Deleting data result: {result}");
                 if (result)
                 {
                     // Update instance record
@@ -82,6 +91,8 @@ namespace Altinn.Platform.Storage.Controllers
                     return Ok(storedInstance);
                 }
             }
+
+            _logger.LogInformation($"//DataController // Delete // Instance does not exist in database.");
 
             return BadRequest();
         }

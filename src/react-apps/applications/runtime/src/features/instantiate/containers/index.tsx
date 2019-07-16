@@ -65,7 +65,7 @@ function ServiceInfo(props) {
 
   if (instanceId) {
     return (
-      <Redirect to={`/instance/${reportee.partyId}/${instanceId}`} />
+      <Redirect to={`/instance/${instanceId}`} />
     );
   } else {
     const { classes } = props;

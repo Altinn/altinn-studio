@@ -130,9 +130,9 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (resource == _settings.RuleHandlerFileName)
             {
-                if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
+                if (File.Exists(_settings.GetDynamicsPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
                 {
-                    fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
+                    fileContent = File.ReadAllBytes( _settings.GetDynamicsPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
                 }
             }
             else
