@@ -11,7 +11,7 @@ import { EditModalContent } from '../components/config/EditModalContent';
 import { makeGetLayoutComponentsSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
-import { getTextResource, truncate } from '../utils/language';
+import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { componentIcons } from './../components';
 
 const styles = createStyles({
@@ -433,7 +433,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
                             this.props.textResources), 80)
-                        : this.props.component.type}
+                        : getComponentTitleByComponentType(this.state.component.componentType, this.props.language)}
                     </div>
                   }
                 </ListItem>

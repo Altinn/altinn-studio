@@ -248,7 +248,10 @@ describe('>>> components/base/createNewService.tsx', () => {
     const mockResult = {
       repositoryCreatedStatus: 422,
     };
-    const getSpy = jest.spyOn(networking, 'post').mockImplementation(() => Promise.resolve(mockResult));
+    const getStub = jest.fn();
+    const getSpy = jest.spyOn(networking, 'post').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.resolve(mockResult));
+
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);
     return Promise.resolve().then(() => {
@@ -275,7 +278,11 @@ describe('>>> components/base/createNewService.tsx', () => {
     const mockResult = {
       repositoryCreatedStatus: 418,
     };
-    const getSpy = jest.spyOn(networking, 'post').mockImplementation(() => Promise.resolve(mockResult));
+
+    const getStub = jest.fn();
+    const getSpy = jest.spyOn(networking, 'post').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.resolve(mockResult));
+
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);
     return Promise.resolve().then(() => {
@@ -330,7 +337,10 @@ describe('>>> components/base/createNewService.tsx', () => {
       repositoryCreatedStatus: 201,
       full_name: 'FirstOrg/service-name',
     };
-    const getSpy = jest.spyOn(networking, 'post').mockImplementation(() => Promise.resolve(mockResult));
+    const getStub = jest.fn();
+    const getSpy = jest.spyOn(networking, 'post').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.resolve(mockResult));
+
     window.location.assign = jest.fn();
     instance.createNewService();
     expect(instance.state.isLoading).toBe(true);

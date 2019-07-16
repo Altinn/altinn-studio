@@ -66,7 +66,7 @@ namespace AltinnCore.Common.Services.Implementation
         public ServiceState GetInitialServiceState(string org, string appName)
         {            
             // Read the workflow template
-            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+            string workflowData = File.ReadAllText(_settings.GetWorkflowPath(org, appName, null) + _settings.WorkflowFileName, Encoding.UTF8);
             return WorkflowHelper.GetInitialWorkflowState(workflowData);
         }
 
@@ -109,7 +109,7 @@ namespace AltinnCore.Common.Services.Implementation
         public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string org, string appName, int instanceOwnerId)
         {
             ServiceState currentState = GetCurrentState(instanceId, org, appName, instanceOwnerId);
-            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+            string workflowData = File.ReadAllText(_settings.GetWorkflowPath(org, appName, null) + _settings.WorkflowFileName, Encoding.UTF8);
             return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }
     }

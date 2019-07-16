@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
-import Header from '../../../shared/components/altinnAppHeader';
+import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { get, post } from '../../../utils/networking';
 
 const styles = () => createStyles({
@@ -36,7 +36,7 @@ function ServiceInfo(props) {
   const createNewInstance = async () => {
     try {
       const formData: FormData = new FormData();
-      formData.append('PartyId', reportee.userId);
+      formData.append('PartyId', reportee.partyId);
       formData.append('Org', org);
       formData.append('Service', service);
       const url = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
@@ -71,7 +71,7 @@ function ServiceInfo(props) {
     const { classes } = props;
     return (
       <>
-      <Header profile={profile} language={language}/>
+      <AltinnAppHeader profile={profile} language={language}/>
       <AltinnModal
         classes={classes}
         isOpen={true}
