@@ -56,7 +56,7 @@ namespace AltinnCore.Runtime.Controllers
         /// Gets the list of parties the user can represent
         /// </summary>
         /// <returns></returns>
-        [HttpGet("/Get")]
+        [HttpGet("{org}/{app}/api/v1/parties")]
         public IActionResult Get()
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
