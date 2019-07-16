@@ -60,6 +60,8 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpDelete("{dataId:guid}")]
         public async Task<IActionResult> Delete(Guid instanceGuid, Guid dataId, int instanceOwnerId)
         {
+            _logger.LogInformation($"//DataController // Delete // Starting method");
+
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
             // check if instance id exist and user is allowed to change the instance data

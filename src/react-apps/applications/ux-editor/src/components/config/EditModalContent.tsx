@@ -23,9 +23,27 @@ export const customInput = {
   }),
 };
 
+export const disabledInput = {
+  control: (base: any) => ({
+    ...base,
+    borderRadius: '0 !important',
+    background: 'repeating-linear-gradient(135deg, #efefef, #efefef 2px, #fff 3px, #fff 5px)',
+  }),
+  placeholder: (base: any) => ({
+    ...base,
+    color: '#000',
+  }),
+};
+
 const styles = {
   gridItem: {
     marginTop: '24px',
+  },
+  inputHelper: {
+    marginTop: '2.4rem',
+    fontSize: '1.6rem',
+    lineHeight: 'auto',
+    color: '#000000',
   },
 };
 
@@ -358,11 +376,20 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       case 'Button': {
         return (
           <Grid item={true} xs={12}>
+            <Typography style={styles.inputHelper}>
+              {getLanguageFromKey('ux_editor.modal_properties_button_type_helper', this.props.language)}
+            </Typography>
+            <Select
+              styles={disabledInput}
+              value={getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)}
+              placeholder={getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)}
+              isDisabled={true}
+            />
             {renderSelectTextFromResources('modal_properties_button_helper',
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
+              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language))}
           </Grid>
         );
       }

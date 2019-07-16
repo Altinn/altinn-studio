@@ -55,16 +55,16 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
   public saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { reportee, org, service, instanceId } = altinnWindow;
+    const { org, service, instanceId } = altinnWindow;
     FormDataActions.submitFormData(
-      `${window.location.origin}/${org}/${service}/api/${reportee}/${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/${instanceId}`,
     );
   }
 
   public submitForm = () => {
-    const { reportee, org, service, instanceId } = window as IAltinnWindow;
+    const {org, service, instanceId } = window as IAltinnWindow;
     FormDataActions.submitFormData(
-      `${window.location.origin}/${org}/${service}/api/${reportee}/${instanceId}`,
+      `${window.location.origin}/${org}/${service}/api/${instanceId}`,
       'Complete',
     );
   }
