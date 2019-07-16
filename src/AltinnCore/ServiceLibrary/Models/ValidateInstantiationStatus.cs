@@ -6,7 +6,7 @@ namespace ServiceLibrary.Models
     /// <summary>
     /// A status returned when validating instantiation
     /// </summary>
-    public class ValidateInstantiationStatus
+    public class InstantiationValidationResult
     {
         /// <summary>
         /// Gets or sets if the validation was valid

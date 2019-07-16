@@ -95,7 +95,7 @@ namespace AltinnCore.Runtime.Controllers
                 if (represents == null)
                 {
                     // the user does not represent the chosen party id, is not allowed to initiate
-                    return Ok(new ValidateInstantiationStatus
+                    return Ok(new InstantiationValidationResult
                     {
                         Valid = false,
                         Message = "The user does not represent the supplied party",
@@ -117,7 +117,7 @@ namespace AltinnCore.Runtime.Controllers
 
             if (!canInstantiate)
             {
-                return Ok(new ValidateInstantiationStatus
+                return Ok(new InstantiationValidationResult
                 {
                     Valid = false,
                     Message = "The supplied party is not allowed to instantiate the application",
@@ -125,7 +125,7 @@ namespace AltinnCore.Runtime.Controllers
                 });
             }
 
-            return Ok(new ValidateInstantiationStatus
+            return Ok(new InstantiationValidationResult
             {
                 Valid = true,
             });
