@@ -11,6 +11,10 @@ namespace Common.Helpers
     /// </summary>
     public static class InstantiationHelper
     {
+        private const string BANKRUPTCY_CODE = "KBO";
+        private const string SUB_UNIT_CODE = "BEDR";
+        private const string SUB_UNIT_CODE_AAFY = "AAFY";
+
         /// <summary>
         /// Filters a list of parties based on an applications allowed party types.
         /// </summary>
@@ -73,7 +77,7 @@ namespace Common.Helpers
                     else if (partyTypesAllowed.BankruptcyEstate == true)
                     {
                         // BankruptcyEstate is a sub group of organization
-                        if (string.Equals(party.UnitType, "BankruptcyEstate", StringComparison.OrdinalIgnoreCase))
+                        if (BANKRUPTCY_CODE.Equals(party.UnitType.Trim()))
                         {
                             // The org is a BankruptcyEstate, and BankruptcyEstate are allowed to initiate
                             isAllowed = true;
@@ -82,7 +86,7 @@ namespace Common.Helpers
                     else if (partyTypesAllowed.SubUnit == true)
                     {
                         // SubUnit is a sub group of organization
-                        if (string.Equals(party.UnitType, "SubUnit", StringComparison.OrdinalIgnoreCase))
+                        if (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()))
                         {
                             // The org is a SubUnit, and SubUnits are allowed to initiate
                             isAllowed = true;
