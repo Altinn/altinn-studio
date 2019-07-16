@@ -2,13 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.RepositoryClient.Model;
+using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Common.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using ServiceLibrary.Models;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -16,11 +21,14 @@ namespace AltinnCore.Runtime.Controllers
     /// Handles party related operations
     /// </summary>
     [Authorize]
-    public class PartiesController : Controller
+    [ApiController]
+    public class PartiesController : ControllerBase
     {
         private readonly ILogger _logger;
         private readonly IAuthorization _authorization;
         private readonly UserHelper _userHelper;
+        private readonly IRepository _repository;
+        private readonly IProfile _profile;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesController"/> class
@@ -28,29 +36,95 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="authorization">the authorization service handler</param>
         /// <param name="profileService">the profile service</param>
         /// <param name="registerService">the register service</param>
-        /// <param name="userHelper">the user helper</param>
+        /// <param name="repository">The repository service</param>
         /// </summary>
         public PartiesController(
                     ILogger<PartiesController> logger,
                     IAuthorization authorization,
                     IProfile profileService,
-                    IRegister registerService)
+                    IRegister registerService,
+                    IRepository repository)
         {
             _logger = logger;
             _authorization = authorization;
             _userHelper = new UserHelper(profileService, registerService);
+            _repository = repository;
+            _profile = profileService;
         }
 
         /// <summary>
-        /// Gets the lsit of parties the user can represent
+        /// Gets the list of parties the user can represent
         /// </summary>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("/Get")]
         public IActionResult Get()
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
             return Ok(partyList);
+        }
+
+        /// <summary>
+        /// Validates party and profile settings before the end user is allowed to instantiate a new app instance
+        /// </summary>
+        /// <param name="org">The organization<param>
+        /// <param name="app">The application<param>
+        /// <param name="partyId">The selected partyId<param>
+        /// <returns>A validation status</returns>
+        [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
+        public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
+        {
+            UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
+            UserProfile user = _profile.GetUserProfile(userContext.UserId).Result;
+            Application application = _repository.GetApplication(org, app);
+            List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
+            Party partyUserRepresents = null;
+            List<Party> allowedPartiesTheUserCanRepresent = new List<Party>();
+            PartyTypesAllowed partyTypesAllowed = application.PartyTypesAllowed;
+
+            // Check if the user can represent the supplied partyId
+            if (partyId != user.PartyId)
+            {
+                Party represents = InstantiationHelper.GetPartyByPartyId(partyList, partyId);
+                if (represents == null)
+                {
+                    // the user does not represent the chosen party id, is not allowed to initiate
+                    return Ok(new ValidateInstantiationStatus
+                    {
+                        Valid = false,
+                        Message = "The user does not represent the supplied party",
+                        ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, partyTypesAllowed)
+                    });
+                }
+
+                partyUserRepresents = represents;
+            }
+
+            if (partyUserRepresents == null)
+            {
+                // if not set, the user represents itself
+                partyUserRepresents = user.Party;
+            }
+
+            // Check if the application can be initiated with the party chosen
+            bool applicationCanBeInitiated = InstantiationHelper.IsPartyAllowed(partyUserRepresents, partyTypesAllowed);
+
+            if (!applicationCanBeInitiated)
+            {
+                return Ok(new ValidateInstantiationStatus
+                {
+                    Valid = false,
+                    Message = "The supplied party is not allowed to instantiate the application",
+                    ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, partyTypesAllowed)
+                });
+            }
+
+            // The user can initiate the application
+            return Ok(new ValidateInstantiationStatus
+            {
+                Valid = true,
+                ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, partyTypesAllowed)
+            });
         }
     }
 }
