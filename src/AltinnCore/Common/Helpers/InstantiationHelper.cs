@@ -74,6 +74,10 @@ namespace Common.Helpers
                     {
                         isAllowed = true;
                     }
+                    else if (party.UnitType == null)
+                    {
+                        break;
+                    }
                     else if (partyTypesAllowed.BankruptcyEstate == true)
                     {
                         // BankruptcyEstate is a sub group of organization
