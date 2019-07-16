@@ -261,7 +261,14 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         inEditMode: false,
       },
     }, () => {
-      this.handleSaveChange(this.state.component);
+      console.log(this.state.component, this.props.component);
+      /* tslint:disable:no-var-keyword prefer-const */
+      var {required, ...restState} = this.state.component;
+      var {required, ...restProps} = this.props.component;
+      /* tslint:enable:no-var-keyword prefer-const */
+      if (JSON.stringify(restState) !== JSON.stringify(restProps)) {
+        this.handleSaveChange(this.state.component);
+      }
       this.props.sendItemToParent(this.state.listItem);
       FormDesignerActionDispatchers.deleteActiveListAction();
     });

@@ -583,8 +583,12 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public getMinOccursFromDataModel = (dataBindingName: string): number => {
-    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) =>
-      e.DataBindingName === dataBindingName);
+    const parentComponent = dataBindingName.replace('.value', '');
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
+      const firstPeriod = e.ID.indexOf('.');
+      const elementDataBindingName = e.ID.substr(firstPeriod + 1, e.ID.length - (firstPeriod + 1));
+      return elementDataBindingName.toLowerCase() === parentComponent.toLowerCase();
+    });
     return element.MinOccurs;
   }
 
@@ -653,11 +657,11 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       dataModelBinding = {};
     }
     dataModelBinding[key] = selectedDataModelElement;
-    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 1) {
+    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 0) {
       this.setState({
         component: {
           ...this.state.component,
-          required: true,
+          required: false,
           dataModelBindings: dataModelBinding,
         },
       }, () => this.props.handleComponentUpdate(this.state.component));
@@ -665,6 +669,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       this.setState({
         component: {
           ...this.state.component,
+          required: true,
           dataModelBindings: dataModelBinding,
         },
       }, () => this.props.handleComponentUpdate(this.state.component));
