@@ -4,7 +4,7 @@ using AltinnCore.ServiceLibrary.Models;
 namespace ServiceLibrary.Models
 {
     /// <summary>
-    /// A status returned when validation instantiation
+    /// A status returned when validating instantiation
     /// </summary>
     public class ValidateInstantiationStatus
     {

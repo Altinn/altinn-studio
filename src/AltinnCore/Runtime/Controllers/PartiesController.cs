@@ -123,7 +123,6 @@ namespace AltinnCore.Runtime.Controllers
             return Ok(new ValidateInstantiationStatus
             {
                 Valid = true,
-                ValidParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, partyTypesAllowed)
             });
         }
     }
