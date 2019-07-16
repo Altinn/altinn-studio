@@ -55,12 +55,13 @@ export default class DesignerPage {
     ];
 
     //Tilgangstyring tab selectors
-    this.konkursBo = Selector("input").withExactText("Konkursbo").sibling(0);
-    this.virksomhet = Selector("input").withExactText("Virksomhet").sibling(0);
-    this.privatPerson = Selector("input").withExactText("Privatperson").sibling(0);
-    this.underenhet = Selector("input").withExactText("Underenhet").sibling(0);
+    this.konkursBo = Selector("span").withExactText("Konkursbo").sibling(0);
+    this.virksomhet = Selector("span").withExactText("Virksomhet").sibling(0);
+    this.privatPerson = Selector("span").withExactText("Privatperson").sibling(0);
+    this.underenhet = Selector("span").withExactText("Underenhet").sibling(0);
     this.hookCheckBox = Selector("span").withText("TUL");
-    this.tjenesteutgavekode = Selector("div").withExactText("Tjenesteutgavekode").child(0);
+    this.tjenestekode = Selector("#service-code").find('input');
+    this.tjenesteutgavekode = Selector("#edition-code").find('input');
 
     //Form components
     this.inputComponent = Selector(".fa.fa-short-answer").parent(2);

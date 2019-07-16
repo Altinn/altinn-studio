@@ -17,7 +17,7 @@ fixture('Navigating the Service designer')
   .beforeEach(async t => {
     await t
       .useRole(AutoTestUser)
-      .resizeWindow(1280,610)
+      .resizeWindow(1280, 610)
       .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice');
   })
   .after(async () => {
@@ -42,6 +42,8 @@ test('Lage tab navigation', async () => {
     .expect(designerPage.lageLeftMenuItems[0].visible).ok()
     .expect(designerPage.lageLeftMenuItems[1].visible).ok()
     .expect(designerPage.lageLeftMenuItems[2].visible).ok()
+    .expect(designerPage.lageLeftMenuItems[3].visible).ok()
+    .expect(designerPage.lageLeftMenuItems[4].visible).ok()
 });
 
 test('Språk tab navigation', async () => {

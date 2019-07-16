@@ -97,18 +97,24 @@ test('About page items and editing', async () => {
     .expect(designer.omKommentarer.textContent).contains("Lorem")
 })
 
-test.skip("Fill out Access control information on a service", async () => {
+test("Fill out Access control information on a service", async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
     .click(designer.lageNavigationTab)
-    .click(designer.leftDrawerMenu)
-    .click(designer.lageLeftMenuItems[3])
+    .hover(designer.leftDrawerMenu)
+    .click(designer.lageLeftMenuItems[4])
     .click(designer.virksomhet)
+    //.expect(designer.virksomhet.checked).ok()
     .click(designer.hookCheckBox)
-    .expect(designer.tjenesteKode.exists).ok()
-    .expect(designer.tjenesteKode.exists).ok()
-    .pressKey(designer.tjenesteKode, "qwerty")
-    .pressKey(designer.tjenesteUtGavekode, "version2.0")
+    .expect(designer.tjenestekode.exists).ok()
+    .typeText(designer.tjenestekode, '1234')
+    .expect(designer.tjenesteutgavekode.exists).ok()
+    .typeText(designer.tjenesteutgavekode, '1')
+    .click(designer.virksomhet)
+    //.expect(designer.virksomhet.checked).notOk()
+    .click(designer.hookCheckBox)
+    .expect(designer.tjenestekode.exists).notOk()
+    .expect(designer.tjenesteutgavekode.exists).notOk()
 })
 
 test('Automated accessibility test for designer page', async t => {

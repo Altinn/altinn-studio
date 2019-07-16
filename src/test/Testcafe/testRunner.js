@@ -16,6 +16,7 @@ createTestCafe()
       .src(['./*_tests/*.js'])
       .run({
         skipJsErrors: true,
+        skipUncaughtErrors: true,
         quarantineMode: false,
         selectorTimeout: 15000,
         assertionTimeout: 15000,
