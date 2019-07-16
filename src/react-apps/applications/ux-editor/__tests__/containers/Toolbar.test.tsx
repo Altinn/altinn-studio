@@ -69,7 +69,7 @@ describe('>>> containers/Toolbar', () => {
     };
     mockStore = createStore(initialState);
   });
-  it('>>> Capture snapshot of EditContainer', () => {
+  it('>>> Capture snapshot of Toolbar', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
         <Toolbar />
@@ -83,7 +83,6 @@ describe('>>> containers/Toolbar', () => {
         <Toolbar />
       </Provider>,
     );
-
     expect(mountedToolbar.exists('#schema-components')).toEqual(true);
   });
 });

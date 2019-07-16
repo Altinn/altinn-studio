@@ -63,7 +63,7 @@ export interface IToolbarState {
   advancedComponentListOpen: boolean;
   advancedComponentListCloseAnimationDone: boolean;
 }
-export class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
+class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public components: IToolbarElement[];
   public textComponents: IToolbarElement[];
   public advancedComponents: IToolbarElement[];

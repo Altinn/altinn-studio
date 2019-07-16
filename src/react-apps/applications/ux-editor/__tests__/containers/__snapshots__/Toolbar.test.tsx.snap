@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> containers/Toolbar >>> Capture snapshot of EditContainer 1`] = `
+exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
 <div
   className="col-sm-12"
 >
