@@ -13,6 +13,7 @@ import FormValidationSagas from '../features/form/validation/sagas';
 import FormWorkflowSagas from '../features/form/workflow/sagas';
 import Attachments from '../shared/resources/attachments/attachmentSagas';
 import LanguageSagas from '../shared/resources/language/langaugeSagas';
+import PartySagas from '../shared/resources/party/partySagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
 
 function* root(): SagaIterator {
@@ -28,6 +29,7 @@ function* root(): SagaIterator {
   yield fork(FormResourceSagas);
   yield fork(ProfileSagas);
   yield fork(FormValidationSagas);
+  yield fork(PartySagas);
 }
 
 export const initSagas: () => Task = () => sagaMiddleware.run(root);

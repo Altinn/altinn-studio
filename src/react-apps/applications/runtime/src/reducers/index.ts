@@ -15,9 +15,10 @@ import ValidationReducer, { IValidationState } from '../features/form/validation
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import LanguageReducer, { ILanguageState } from '../shared/resources/language/languageReducers';
+import PartyReducer, { IPartyState } from '../shared/resources/party/partyReducers';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -30,6 +31,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> {
   formResources: T10;
   profile: T11;
   formValidations: T12;
+  party: T13;
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -44,7 +46,8 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<ILanguageState>,
   Reducer<IResourceState>,
   Reducer<IProfileState>,
-  Reducer<IValidationState>
+  Reducer<IValidationState>,
+  Reducer<IPartyState>
   >,
   ReducersMapObject {
 }
@@ -62,6 +65,7 @@ const reducers: IRuntimeReducers = {
   formResources: FormResourceReducer,
   profile: ProfileReducer,
   formValidations: ValidationReducer,
+  party: PartyReducer,
 };
 
 export default combineReducers(reducers);

@@ -8,6 +8,7 @@ import { IValidationState } from '../features/form/validation/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
+import { IPartyState } from '../shared/resources/party/partyReducers';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 
 export interface IRuntimeState {
@@ -22,6 +23,7 @@ export interface IRuntimeState {
   formResources: IResourceState;
   profile: IProfileState;
   formValidations: IValidationState;
+  party: IPartyState;
 }
 
 export interface IAltinnWindow extends Window {

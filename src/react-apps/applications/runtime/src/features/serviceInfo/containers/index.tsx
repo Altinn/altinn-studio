@@ -44,6 +44,10 @@ function ServiceInfoContainer(props: IServiceInfoProps) {
     history.push('/instantiate');
   };
 
+  const temporaryClickToSelectParty = () => {
+    history.push('/partyselection');
+  };
+
   const { classes } = props;
   return (
     <>
@@ -58,6 +62,10 @@ function ServiceInfoContainer(props: IServiceInfoProps) {
         <AltinnButton
           onClickFunction={onClickInstantiate}
           btnText={'Start innsending'}
+        />
+        <AltinnButton
+          onClickFunction={temporaryClickToSelectParty}
+          btnText={'Velg avgiver'}
         />
       </Grid>
       {/*
