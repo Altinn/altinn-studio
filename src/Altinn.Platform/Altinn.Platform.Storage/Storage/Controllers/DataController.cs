@@ -60,11 +60,9 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpDelete("{dataId:guid}")]
         public async Task<IActionResult> Delete(Guid instanceGuid, Guid dataId, int instanceOwnerId)
         {
-            _logger.LogInformation($"//DataController // Delete // Starting method");
-
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
-            // check if instance id exist and user is allowed to change the instance data            
+            // check if instance id exist and user is allowed to change the instance data
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
             if (instance == null)
             {
@@ -75,12 +73,9 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (instance.Data.Exists(m => m.Id == dataIdString))
             {
-                _logger.LogInformation($"//DataController // Delete // Instance exists in database");
-                string storageFileName = DataFileName(instance.AppId, instanceId.ToString(), dataId.ToString());
-
+                string storageFileName = DataFileName(instance.AppId, instanceGuid.ToString(), dataId.ToString());
                 bool result = await _dataRepository.DeleteDataInStorage(storageFileName);
 
-                _logger.LogInformation($"//DataController // Delete // Deleting data result: {result}");
                 if (result)
                 {
                     // Update instance record
@@ -92,8 +87,6 @@ namespace Altinn.Platform.Storage.Controllers
                 }
             }
 
-            _logger.LogInformation($"//DataController // Delete // Instance does not exist in database.");
-
             return BadRequest();
         }
 
@@ -103,7 +96,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">the instance owner id (an integer)</param>
         /// <param name="instanceGuid">the instanceId</param>
         /// <param name="dataId">the data id</param>
-        /// <returns>The data file as an asyncronous streame</returns>        
+        /// <returns>The data file as an asyncronous streame</returns>
         /// <returns>If the request was successful or not</returns>
         // GET /instances/{instanceId}/data/{dataId}
         [HttpGet("{dataId:guid}")]
@@ -116,13 +109,13 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Missing parameter value: instanceOwnerId can not be empty");
             }
 
-            // check if instance id exist and user is allowed to change the instance data            
+            // check if instance id exist and user is allowed to change the instance data
             Instance instance = GetInstance(instanceId, instanceOwnerId, out ActionResult errorResult);
             if (instance == null)
             {
                 return errorResult;
-            }           
-            
+            }
+
             string storageFileName = DataFileName(instance.AppId, instanceGuid.ToString(), dataId.ToString());
             string dataIdString = dataId.ToString();
 
@@ -177,7 +170,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return errorResult;
             }
-            
+
             List<DataElement> dataList = new List<DataElement>();
             foreach (DataElement data in instance.Data)
             {
@@ -260,7 +253,7 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 return StatusCode(500, $"Unable to create instance data in storage: {e}");
-            }         
+            }
         }
 
         /// <summary>
@@ -403,7 +396,7 @@ namespace Altinn.Platform.Storage.Controllers
                         theStream = Request.Body;
                         contentType = Request.ContentType;
                     }
-                    
+
                     if (theStream == null)
                     {
                         return BadRequest("No data attachements found");
@@ -431,7 +424,7 @@ namespace Altinn.Platform.Storage.Controllers
                         return Ok(result);
                     }
 
-                    return UnprocessableEntity($"Could not process attached file");                
+                    return UnprocessableEntity($"Could not process attached file");
                 }
 
                 return StatusCode(500, $"Storage url does not match with instance metadata");
@@ -439,7 +432,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             return BadRequest("Cannot update data element that is not registered");
         }
-        
+
         private Application GetApplication(string appId, string org, out ActionResult errorMessage)
         {
             errorMessage = null;
@@ -447,7 +440,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 Application application = _applicationRepository.FindOne(appId, org).Result;
-                
+
                 return application;
             }
             catch (DocumentClientException dce)
@@ -471,7 +464,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private Instance GetInstance(string instanceId, int instanceOwnerId, out ActionResult errorMessage)
         {
-            // check if instance id exist and user is allowed to change the instance data            
+            // check if instance id exist and user is allowed to change the instance data
             Instance instance;
             errorMessage = null;
 
