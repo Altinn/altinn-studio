@@ -76,11 +76,17 @@ namespace AltinnCore.Runtime.Controllers
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             UserProfile user = _profile.GetUserProfile(userContext.UserId).Result;
-            Application application = _repository.GetApplication(org, app);
             List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
+            Application application = _repository.GetApplication(org, app);
+
+            if (application == null)
+            {
+                return NotFound("Application not found");
+            }
+
+            PartyTypesAllowed partyTypesAllowed = application.PartyTypesAllowed;
             Party partyUserRepresents = null;
             List<Party> allowedPartiesTheUserCanRepresent = new List<Party>();
-            PartyTypesAllowed partyTypesAllowed = application.PartyTypesAllowed;
 
             // Check if the user can represent the supplied partyId
             if (partyId != user.PartyId)
@@ -107,9 +113,9 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             // Check if the application can be initiated with the party chosen
-            bool applicationCanBeInitiated = InstantiationHelper.IsPartyAllowed(partyUserRepresents, partyTypesAllowed);
+            bool canInstantiate = InstantiationHelper.IsPartyAllowedToInstantiate(partyUserRepresents, partyTypesAllowed);
 
-            if (!applicationCanBeInitiated)
+            if (!canInstantiate)
             {
                 return Ok(new ValidateInstantiationStatus
                 {
@@ -119,7 +125,6 @@ namespace AltinnCore.Runtime.Controllers
                 });
             }
 
-            // The user can initiate the application
             return Ok(new ValidateInstantiationStatus
             {
                 Valid = true,

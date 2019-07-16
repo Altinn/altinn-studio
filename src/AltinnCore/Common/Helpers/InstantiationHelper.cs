@@ -27,7 +27,7 @@ namespace Common.Helpers
 
             parties.ForEach(party =>
             {
-                if (IsPartyAllowed(party, partyTypesAllowed))
+                if (IsPartyAllowedToInstantiate(party, partyTypesAllowed))
                 {
                     allowed.Add(party);
                 }
@@ -41,7 +41,7 @@ namespace Common.Helpers
         /// <param name="party">The party to check</param>
         /// <param name="partyTypesAllowed">The allowed party types</param>
         /// <returns>True or false</returns>
-        public static bool IsPartyAllowed(Party party, PartyTypesAllowed partyTypesAllowed)
+        public static bool IsPartyAllowedToInstantiate(Party party, PartyTypesAllowed partyTypesAllowed)
         {
             if (party == null)
             {
