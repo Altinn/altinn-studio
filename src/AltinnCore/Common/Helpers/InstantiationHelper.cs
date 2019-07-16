@@ -48,15 +48,9 @@ namespace Common.Helpers
                 return false;
             }
 
-            if (partyTypesAllowed == null)
+            if (partyTypesAllowed == null || (!partyTypesAllowed.BankruptcyEstate && !partyTypesAllowed.Organization && !partyTypesAllowed.Person && !partyTypesAllowed.SubUnit))
             {
                 // if party types not set, all parties are allowed to initiate
-                return true;
-            }
-
-            if (partyTypesAllowed.BankruptcyEstate == false && partyTypesAllowed.Organization == false && partyTypesAllowed.Person == false && partyTypesAllowed.SubUnit == false)
-            {
-                // if all set to false, all parties are allowed to initiate
                 return true;
             }
 
