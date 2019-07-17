@@ -256,18 +256,22 @@ namespace AltinnCore.Common.Services.Implementation
             instance.Data.Add(data);
             var time = Stopwatch.StartNew();
             int timeOutMs = 1000;
-
             string instanceDataAsString = JsonConvert.SerializeObject(instance);
+
             // Wait until file becomes available - we don't wait more than 1 second.
             while (time.ElapsedMilliseconds < timeOutMs)
             {
-                while (!IsFileAvailable(instanceFilePath))
+                if (!IsFileAvailable(instanceFilePath))
                 {
                     Thread.Sleep(50);
                 }
-
-                File.WriteAllText(instanceFilePath, instanceDataAsString);
+                else
+                {
+                    File.WriteAllText(instanceFilePath, instanceDataAsString);
+                    break;
+                }
             }
+
             return dataId;
         }
 
