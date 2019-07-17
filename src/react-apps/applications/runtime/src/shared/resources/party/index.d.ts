@@ -3,7 +3,7 @@ export interface IParty {
   orgNumber: number;
   person: IPerson;
   organization: string;
-  partyID: number;
+  partyId: number;
   organizationNumber: number;
   unitType: string;
   ssn: string;
