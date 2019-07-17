@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
@@ -252,10 +254,43 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             instance.Data.Add(data);
+            var time = Stopwatch.StartNew();
+            int timeOutMs = 1000;
 
             string instanceDataAsString = JsonConvert.SerializeObject(instance);
-            File.WriteAllText(instanceFilePath, instanceDataAsString);
+            // Wait until file becomes available - we don't wait more than 1 second.
+            while (time.ElapsedMilliseconds < timeOutMs)
+            {
+                while (!IsFileAvailable(instanceFilePath))
+                {
+                    Thread.Sleep(50);
+                }
+
+                File.WriteAllText(instanceFilePath, instanceDataAsString);
+            }
             return dataId;
+        }
+
+        /// <summary>
+        /// Checks if file is available
+        /// </summary>
+        /// <param name="filename">The filename</param>
+        /// <returns>True or false</returns>
+        private static bool IsFileAvailable(string filename)
+        {
+            // If the file can be opened for exclusive access it means that the file
+            // is no longer locked by another process.
+            try
+            {
+                using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    return inputStream.Length > 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }
