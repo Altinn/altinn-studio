@@ -9,7 +9,7 @@ export default function() {
     <>
       <Route path={'/'} exact={true} component={ServiceInfo} />
       <Route path={'/instantiate'} exact={true} component={Instantiate} />
-      <Route path={'/instance/:partyId/:instanceId'} component={FormFiller} />
+      <Route path={'/instance/:partyId/:instanceGuid'} component={FormFiller} />
     </>
   );
 }

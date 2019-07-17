@@ -57,9 +57,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId)
+        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data?elementType={FORM_ID}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -75,7 +75,7 @@ namespace AltinnCore.Common.Services.Implementation
                 Task<HttpResponseMessage> response = _client.PostAsync(apiUrl, streamContent);
                 if (!response.Result.IsSuccessStatusCode)
                 {
-                    _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instanceId, response.Result.StatusCode);
+                    _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instanceGuid, response.Result.StatusCode);
                     return null;
                 }
 
@@ -87,9 +87,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
+        public void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -102,24 +102,18 @@ namespace AltinnCore.Common.Services.Implementation
                 StreamContent streamContent = new StreamContent(stream);
                 streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
 
-                if (streamContent.Headers.Contains("Authorization"))
-                {
-                    streamContent.Headers.Remove("Authorization");
-                }
-
-                streamContent.Headers.Add("Authorization", "Bearer " + token);
                 Task<HttpResponseMessage> response = _client.PutAsync(apiUrl, streamContent);
                 if (!response.Result.IsSuccessStatusCode)
                 {
-                    _logger.LogError($"Unable to save form model for instance {instanceId}");
+                    _logger.LogError($"Unable to save form model for instance {instanceGuid}");
                 }
             }
         }
 
         /// <inheritdoc />
-        public object GetFormData(Guid instanceId, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
+        public object GetFormData(Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -147,9 +141,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<AttachmentList>> GetFormAttachments(string org, string appName, int instanceOwnerId, Guid instanceId)
+        public async Task<List<AttachmentList>> GetFormAttachments(string org, string appName, int instanceOwnerId, Guid instanceGuid)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
@@ -207,9 +201,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void DeleteFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
+        public void DeleteFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentId)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             List<AttachmentList> attachmentList = new List<AttachmentList>();
             string apiUrl = $"instances/{instanceIdentifier}/data/{attachmentId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
@@ -220,9 +214,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Guid> SaveFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
+        public async Task<Guid> SaveFormAttachment(string org, string appName, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             Instance instance;
@@ -250,7 +244,6 @@ namespace AltinnCore.Common.Services.Implementation
                         header.FileName = attachmentName;
                         header.Size = attachment.ContentLength;
                         formData.Headers.ContentDisposition = header;
-                        formData.Headers.Add("Authorization", "Bearer " + token);
                         formData.Add(fileStreamContent, attachmentType, attachmentName);
                         HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
 
