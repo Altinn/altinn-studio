@@ -278,19 +278,6 @@ namespace AltinnCore.Runtime
                         controller = "Profile",
                     });
                 routes.MapRoute(
-                    name: "PartiesApiRoute",
-                    template: "{org}/{service}/api/v1/{controller}/",
-                    defaults: new
-                    {
-                        action = "Get",
-                        controller = "Parties"
-                    },
-                    constraints: new
-                    {
-                        action = "Get",
-                        controller = "Parties",
-                    });
-                routes.MapRoute(
                     name: "uiRoute",
                     template: "{org}/{service}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
                     defaults: new { controller = "Instance" },
