@@ -1,12 +1,11 @@
 import {
   createStyles,
   Grid,
-  Typography,
   WithStyles,
   withStyles,
 } from '@material-ui/core';
 import * as React from 'react';
-import AltinnInput from '../../../../shared/src/components/AltinnInput';
+import AltinnInput from 'Shared/components/AltinnInput';
 
 const styles = createStyles({
   partySearchContainer: {
@@ -25,7 +24,7 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
 
   React.useEffect(() => {
     onSearchUpdated(searchString);
-  }, [searchString]);
+  }, []);
 
   function onChangeSearchString(e: any) {
     setSearchString(e.target.value);
