@@ -262,10 +262,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         inEditMode: false,
       },
     }, () => {
-      /* tslint:disable:no-var-keyword prefer-const */
-      var {required, ...restState} = this.state.component;
-      var {required, ...restProps} = this.props.component;
-      /* tslint:enable:no-var-keyword prefer-const */
+      const {required: requiredState, ...restState} = this.state.component;
+      const {required: requiredProps, ...restProps} = this.props.component;
       if (JSON.stringify(restState) !== JSON.stringify(restProps)) {
         this.handleSaveChange(this.state.component);
       }
