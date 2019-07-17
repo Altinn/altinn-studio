@@ -198,7 +198,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleComponentDelete = (e: any): void => {
-    if (this.props.activeList.length > 1) {
+    const activeListLength = this.props.activeList.length;
+    if (activeListLength > 1) {
       this.props.activeList.forEach((component: any) => {
         FormDesignerActionDispatchers.deleteFormComponent(component.id);
       });
@@ -261,7 +262,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         inEditMode: false,
       },
     }, () => {
-      console.log(this.state.component, this.props.component);
       /* tslint:disable:no-var-keyword prefer-const */
       var {required, ...restState} = this.state.component;
       var {required, ...restProps} = this.props.component;
