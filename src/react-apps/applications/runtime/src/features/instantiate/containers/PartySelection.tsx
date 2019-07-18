@@ -24,6 +24,10 @@ const styles = createStyles({
     alignSelf: 'center',
     padding: 12,
   },
+  partySelectionTitle: {
+    fontSize: '3rem',
+    padding: 12,
+  },
   loadMoreButton: {
     padding: 5,
     width: '100%',
@@ -103,6 +107,7 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function onFilterStringChange(filterStr: string) {
+    console.log(filterStr);
     setFilterString(filterStr);
   }
 
@@ -130,14 +135,13 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   return (
-    <>
+    <Grid container={true} className={classes.partySelectionPage}>
       <Header
         language={language}
         profile={profile}
       />
-      <Grid className={classes.partySelectionPage}>
         <Grid container={true}>
-          <Typography variant='h2'>
+          <Typography className={classes.partySelectionTitle}>
             Hvem vil du sende inn for?
           </Typography>
         </Grid>
@@ -155,8 +159,7 @@ function PartySelection(props: IPartySelectionProps) {
         <Grid container={true}>
           {renderShowMoreButton()}
         </Grid>
-      </Grid>
-    </>
+    </Grid>
   );
 }
 

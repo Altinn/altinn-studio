@@ -6,11 +6,12 @@ import {
 } from '@material-ui/core';
 import * as React from 'react';
 import AltinnInput from 'Shared/components/AltinnInput';
+import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 
 const styles = createStyles({
   partySearchContainer: {
     width: '50%',
-    marginBottom: 12,
+    border: `2px solid ${AltinnAppTheme.altinnPalette.primary.blue}`,
   },
 });
 
@@ -24,7 +25,7 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
 
   React.useEffect(() => {
     onSearchUpdated(searchString);
-  }, []);
+  }, [searchString]);
 
   function onChangeSearchString(e: any) {
     setSearchString(e.target.value);
@@ -33,9 +34,10 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
   return (
     <Grid container={true} className={classes.partySearchContainer}>
       <AltinnInput
-        id={'party-search-input'}
+        id={'altinn-party-search'}
         onChangeFunction={onChangeSearchString}
-        placeholder={'Søk etter aktør'}
+        placeholder={`Søk etter aktør`}
+        iconString={'fa fa-others'}
       />
     </Grid>
   );
