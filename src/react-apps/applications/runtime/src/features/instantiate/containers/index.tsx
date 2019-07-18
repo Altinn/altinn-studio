@@ -3,9 +3,11 @@ import * as React from 'react';
 import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
+import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
+import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { get, post } from '../../../utils/networking';
 
 const styles = () => createStyles({
@@ -20,10 +22,10 @@ const styles = () => createStyles({
 });
 
 function ServiceInfo(props) {
+  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
   const { org, service } = window as IAltinnWindow;
   const [reportee, setReportee] = React.useState(null);
   const [instanceId, setInstanceId] = React.useState(null);
-  const [instantiationError, setInstantiationError] = React.useState(null);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
 
@@ -45,12 +47,10 @@ function ServiceInfo(props) {
       if (response.data.instanceId) {
         setInstanceId(response.data.instanceId);
       } else {
-        setInstantiationError(new Error(
-          'Server responded without instanceId',
-        ));
+        throw new Error('Server did not respond with new instance');
       }
     } catch (err) {
-      alert(err);
+      throw new Error('Server did not respond with new instance');
     }
   };
 
@@ -58,7 +58,7 @@ function ServiceInfo(props) {
     if (!reportee) {
       fetchReportee();
     }
-    if (!instanceId && reportee !== null && instantiationError === null) {
+    if (!instanceId && reportee !== null) {
       createNewInstance();
     }
   }, [reportee, instanceId]);

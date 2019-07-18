@@ -1,7 +1,7 @@
-import { createStyles, Grid, Paper, Typography, withStyles, WithStyles } from '@material-ui/core';
+import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
+import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import AltinnButton from 'Shared/components/AltinnButton';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import Header from '../../../shared/components/altinnAppHeader';
@@ -11,6 +11,7 @@ import LanguageActions from '../../../shared/resources/language/languageActions'
 import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
+import { changeBodyBackground } from '../../../utils/bodyStyling';
 
 const styles = createStyles({
   partySelectionPage: {
@@ -23,6 +24,20 @@ const styles = createStyles({
     alignSelf: 'center',
     padding: 12,
   },
+  loadMoreButton: {
+    padding: 5,
+    width: '100%',
+    backgroundColor: AltinnAppTheme.altinnPalette.primary.white,
+    border: `2px dotted ${AltinnAppTheme.altinnPalette.primary.blue}`,
+  },
+  loadMoreButtonIcon: {
+    marginLeft: '1.5rem',
+  },
+  loadMoreButtonText: {
+    fontSize: '1.2rem',
+    marginLeft: '1.2rem',
+    fontWeight: 'bold',
+  },
 });
 
 export interface IPartySelectionProps extends WithStyles<typeof styles> {
@@ -30,6 +45,8 @@ export interface IPartySelectionProps extends WithStyles<typeof styles> {
 }
 
 function PartySelection(props: IPartySelectionProps) {
+  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
+
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
   const parties = useSelector((state: IRuntimeState) => state.party.parties);
@@ -98,10 +115,17 @@ function PartySelection(props: IPartySelectionProps) {
       return null;
     }
     return (
-      <AltinnButton
-        onClickFunction={increaseNumberOfShownParties}
-        btnText={'Last flere'}
-      />
+      <button
+        className={classes.loadMoreButton}
+        onClick={increaseNumberOfShownParties}
+      >
+        <Grid container={true}>
+            <AddIcon className={classes.loadMoreButtonIcon}/>
+            <Typography className={classes.loadMoreButtonText}>
+              Last flere
+            </Typography>
+        </Grid>
+      </button>
     );
   }
 
@@ -111,7 +135,7 @@ function PartySelection(props: IPartySelectionProps) {
         language={language}
         profile={profile}
       />
-      <Paper className={classes.partySelectionPage}>
+      <Grid className={classes.partySelectionPage}>
         <Grid container={true}>
           <Typography variant='h2'>
             Hvem vil du sende inn for?
@@ -131,7 +155,7 @@ function PartySelection(props: IPartySelectionProps) {
         <Grid container={true}>
           {renderShowMoreButton()}
         </Grid>
-      </Paper>
+      </Grid>
     </>
   );
 }

@@ -2,13 +2,14 @@ import Grid from '@material-ui/core/Grid';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect, useSelector } from 'react-redux';
+import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
-// import { altinnAppsImgLogoBlueSvgUrl } from '../../../../../shared/src/utils/urlHelper';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import { IProfile } from '../../../shared/resources/profile';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { changeBodyBackground } from '../../../utils/bodyStyling';
 
 export interface IServiceInfoProvidedProps {
   classes: any;
@@ -26,6 +27,8 @@ const styles = () => createStyles({
 });
 
 function ServiceInfoContainer(props: IServiceInfoProps) {
+  changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
+
   const { history } = props;
   const { org, service } = window as IAltinnWindow;
 
