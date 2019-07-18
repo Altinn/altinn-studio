@@ -51,6 +51,20 @@ describe('>>> containers/EditContainer', () => {
               '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
             ],
           },
+          components: {
+            '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88': {
+              id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+              componentType: 2,
+              dataModelBindings: {},
+              itemType: 'COMPONENT',
+              readOnly: false,
+              required: false,
+              textResourceBindings: {
+                title: 'Input',
+              },
+              type: 'Input',
+            },
+          },
         },
       },
       serviceConfigurations: {
@@ -64,8 +78,10 @@ describe('>>> containers/EditContainer', () => {
       },
     };
 
-    mockId = 'mockId';
+    mockId = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88';
     mockComponent = {
+      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+      componentType: 2,
       dataModelBindings: {},
       itemType: 'COMPONENT',
       readOnly: false,
@@ -149,9 +165,65 @@ describe('>>> containers/EditContainer', () => {
     expect(mountedEditContainer.find('Edit').find('i').last().hasClass('fa-circlecheck')).toEqual(true);
 
     /* Click on checkBtn */
+    instance.setState({component: {
+      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+      componentType: 2,
+      dataModelBindings: {},
+      itemType: 'COMPONENT',
+      readOnly: false,
+      required: true,
+      textResourceBindings: {
+        title: 'Input',
+      },
+      type: 'Input',
+    }});
+    instance.forceUpdate();
+    mountedEditContainer.update();
     const checkBtn = mountedEditContainer.find('Edit').find('button').last();
     checkBtn.simulate('click');
     instance.forceUpdate();
     expect(instance.state.isEditMode).toEqual(false);
+  });
+  it('+++ should run handleSaveChange', () => {
+    const mountedEditContainer = mount(
+      <Provider store={mockStore}>
+        <EditContainer
+          component={mockComponent}
+          id={mockId}
+          firstInActiveList={false}
+          lastInActiveList={false}
+          sendItemToParent={mockHandleActiveListChange}
+          singleSelected={false}
+        >
+          <div />
+        </EditContainer>
+      </Provider>,
+    );
+    const instance = mountedEditContainer.find('Edit').instance() as Edit;
+    const spy = jest.spyOn(instance, 'handleSaveChange');
+    instance.setState({
+      isEditMode: true,
+      component: {
+      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+      componentType: 2,
+      dataModelBindings: {
+        simpleBinding: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
+      },
+      itemType: 'COMPONENT',
+      readOnly: false,
+      required: true,
+      textResourceBindings: {
+        title: 'Input',
+      },
+      type: 'Input',
+    }});
+    instance.forceUpdate();
+    mountedEditContainer.update();
+
+    const checkBtn = mountedEditContainer.find('Edit').find('button').last();
+    checkBtn.simulate('click');
+    instance.forceUpdate();
+    expect(instance.state.isEditMode).toEqual(false);
+    expect(spy).toHaveBeenCalled();
   });
 });
