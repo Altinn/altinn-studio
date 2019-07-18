@@ -23,6 +23,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     const model = convertDataBindingToModel(state.formData.formData, state.formDataModel.dataModel);
+    console.log('Model sent with update request: ', model);
     let validations = validateFormData(state.formData, state.formDataModel.dataModel, state.formLayout.layout,
       state.language.language);
     const componentSpesificValidations =

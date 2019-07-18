@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
@@ -353,6 +354,18 @@ namespace AltinnCore.Runtime.Controllers
 
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
 
+                // Logging
+                XmlSerializer serializer = new XmlSerializer(serviceImplementation.GetServiceModelType());
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    serializer.Serialize(stream, serviceModel);
+                    stream.Position = 0;
+                    StreamReader logReader = new StreamReader(stream);
+                    string text = logReader.ReadToEnd();
+                    _logger.LogInformation($"// InstanceController // InstantiateApp // Calling InstantiateInstance with data stream content: {text}");
+                    logReader.Close();
+                }
+
                 // Create a new instance document
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
@@ -465,6 +478,18 @@ namespace AltinnCore.Runtime.Controllers
                 }
 
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
+
+                // Logging
+                XmlSerializer serializer = new XmlSerializer(serviceImplementation.GetServiceModelType());
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    serializer.Serialize(stream, serviceModel);
+                    stream.Position = 0;
+                    StreamReader logReader = new StreamReader(stream);
+                    string text = logReader.ReadToEnd();
+                    _logger.LogInformation($"// InstanceController // StartService // Calling InstantiateInstance with data stream content: {text}");
+                    logReader.Close();
+                }
 
                 // Create a new instance document
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
