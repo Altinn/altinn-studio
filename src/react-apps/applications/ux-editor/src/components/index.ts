@@ -74,7 +74,7 @@ export const schemaComponents: IComponent[] = [
     Tag: InputComponent,
     Type: ComponentTypes.Input,
     customProperties: {
-      required: false,
+      required: true,
       readOnly: false,
     },
     Icon: componentIcons.Input,
@@ -84,7 +84,7 @@ export const schemaComponents: IComponent[] = [
     Tag: TextAreaComponent,
     Type: ComponentTypes.TextArea,
     customProperties: {
-      required: false,
+      required: true,
       readOnly: false,
     },
     Icon: componentIcons.TextArea,
@@ -96,7 +96,7 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.Checkboxes,
     customProperties: {
       options: [],
-      required: false,
+      required: true,
       readOnly: false,
     },
   },
@@ -107,7 +107,7 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.RadioButtons,
     customProperties: {
       options: [],
-      required: false,
+      required: true,
       readOnly: false,
     },
   },
