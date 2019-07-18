@@ -163,7 +163,7 @@ export interface IEditContainerState {
   activeList: any;
 }
 
-class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
+export class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   constructor(_props: IEditContainerProps, _state: IEditContainerState) {
     super(_props, _state);
     if (!_props.component.textResourceBindings) {
