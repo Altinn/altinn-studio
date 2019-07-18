@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import { IAltinnWindow, IAttachments } from '..';
+import { IAttachments } from '..';
+import { IAltinnWindow } from '../../../../types';
 import { mapAttachmentListApiResponseToAttachments } from '../../../../utils/attachment';
 import { get } from '../../../../utils/networking';
 import AttachmentDispatcher from '../attachmentActions';
@@ -13,9 +14,9 @@ export function* watchFetchAttachmentsSaga(): SagaIterator {
 export function* fetchAttachments(): SagaIterator {
   try {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service, instanceId, reportee } = altinnWindow;
+    const { org, service, instanceId } = altinnWindow;
     const servicePath = `${org}/${service}`;
-    const attachmentListUrl = `${altinnWindow.location.origin}/${servicePath}/api/attachment/${reportee}/` +
+    const attachmentListUrl = `${altinnWindow.location.origin}/${servicePath}/api/attachment/` +
     `${instanceId}/GetFormAttachments`;
     const response = yield call(get, attachmentListUrl);
     const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);

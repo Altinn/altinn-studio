@@ -22,7 +22,7 @@ const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeS
 function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const model = convertDataBindingToModel(state.formData, state.formDataModel.dataModel);
+    const model = convertDataBindingToModel(state.formData.formData, state.formDataModel.dataModel);
     let validations = validateFormData(state.formData, state.formDataModel.dataModel, state.formLayout.layout,
       state.language.language);
     const componentSpesificValidations =

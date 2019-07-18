@@ -46,6 +46,7 @@ function ServiceInfo(props) {
 
       if (response.data.instanceId) {
         setInstanceId(response.data.instanceId);
+        (window as any).instanceId = response.data.instanceId;
       } else {
         throw new Error('Server did not respond with new instance');
       }
