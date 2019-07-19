@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.572
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorization", "Authorization\Altinn.Platform.Authorization.csproj", "{D9C0433E-738C-4E07-9F88-D71D7DF04E3F}"
 EndProject
@@ -13,6 +13,10 @@ EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Authorization.Interface", "Authorization.Interface\Authorization.Interface.csproj", "{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Authorization.ABAC", "..\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{115E86D1-991D-4C99-910E-374CA242BC1B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Authorization.ABAC.UnitTest", "..\Altinn.Authorization.ABAC.UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj", "{37C5C4E5-15F2-4022-9BC6-84881DC9123A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +36,14 @@ Global
 		{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{115E86D1-991D-4C99-910E-374CA242BC1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{115E86D1-991D-4C99-910E-374CA242BC1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{115E86D1-991D-4C99-910E-374CA242BC1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{115E86D1-991D-4C99-910E-374CA242BC1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37C5C4E5-15F2-4022-9BC6-84881DC9123A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37C5C4E5-15F2-4022-9BC6-84881DC9123A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37C5C4E5-15F2-4022-9BC6-84881DC9123A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37C5C4E5-15F2-4022-9BC6-84881DC9123A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

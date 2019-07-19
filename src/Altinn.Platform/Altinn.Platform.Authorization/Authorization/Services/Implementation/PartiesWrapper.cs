@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Services.Interface;
 using Authorization.Interface.Models;
- using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
@@ -20,6 +20,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// Initializes a new instance of the <see cref="PartiesWrapper"/> class
         /// </summary>
         /// <param name="partyClient">the client handler for actor api</param>
+        /// <param name="logger">The logger</param>
         public PartiesWrapper(PartyClient partyClient, ILogger<PartiesWrapper> logger)
         {
             _partyClient = partyClient;
