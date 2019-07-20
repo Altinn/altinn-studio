@@ -71,7 +71,7 @@ namespace Altinn.Authorization.ABAC.Utils
                 Version = version,
             };
 
-            IDictionary<Tuple<string, string>, Action> dicts = new Dictionary<Tuple<string, string>, Action>()
+            IDictionary<Tuple<string, string>, Action> choiceElementsWithReaderAction = new Dictionary<Tuple<string, string>, Action>()
             {
                 {
                     new Tuple<string, string>(XacmlConstants.ElementNames.CombinerParameters, Xacml30Constants.NameSpaces.Policy), () =>
@@ -84,9 +84,10 @@ namespace Altinn.Authorization.ABAC.Utils
                 { new Tuple<string, string>(XacmlConstants.ElementNames.RuleCombinerParameters, Xacml30Constants.NameSpaces.Policy), () => policy.RuleCombinerParameters.Add(ReadRuleCombinerParameters(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.VariableDefinition, Xacml30Constants.NameSpaces.Policy), () => policy.VariableDefinitions.Add(ReadVariableDefinition(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.Rule, Xacml30Constants.NameSpaces.Policy), () => policy.Rules.Add(ReadRule(reader)) },
+
             };
 
-            ReadElementsIterativeWithAction(reader, dicts);
+            ReadChoiceElements(reader, choiceElementsWithReaderAction);
 
             if (policy.VariableDefinitions.Count == 0 && policy.Rules.Count == 0)
             {
@@ -401,11 +402,12 @@ namespace Altinn.Authorization.ABAC.Utils
                 { new Tuple<string, string>(XacmlConstants.ElementNames.SubjectAttributeDesignator, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeDesignator(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.ResourceAttributeDesignator, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeDesignator(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.ActionAttributeDesignator, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeDesignator(reader)) },
-                { new Tuple<string, string>(XacmlConstants.ElementNames.EnvironmentAttributeDesignator, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeDesignator(reader)) },
+                { new Tuple<string, string>(XacmlConstants.ElementNames.AttributeDesignator, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeDesignator(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.AttributeSelector, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeSelector(reader)) },
+        
             };
 
-            ReadElementsIterativeWithAction(reader, dicts);
+            ReadChoiceElements(reader, dicts);
 
             reader.ReadEndElement();
 
@@ -448,7 +450,7 @@ namespace Altinn.Authorization.ABAC.Utils
         /// <param name="reader">The XML Reader</param>
         /// <param name="readerActions">A dictionary with actions to be used on different element types</param>
         /// <param name="isRequired">Defines if it is a required parameter</param>
-        private static void ReadElementsIterativeWithAction(XmlReader reader, IDictionary<Tuple<string, string>, Action> readerActions, bool isRequired = false)
+        private static void ReadChoiceElements(XmlReader reader, IDictionary<Tuple<string, string>, Action> readerActions, bool isRequired = false)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
             Guard.ArgumentNotNull(readerActions, nameof(readerActions));
@@ -460,12 +462,10 @@ namespace Altinn.Authorization.ABAC.Utils
 
             while (reader.NodeType != XmlNodeType.EndElement)
             {
-                if (ReadElementWithAction(reader, readerActions, isRequired))
+                if (!ReadChoiceElement(reader, readerActions, isRequired))
                 {
-                   continue;
+                   break;
                 }
-
-                isRequired = false;
             }
         }
 
@@ -476,7 +476,7 @@ namespace Altinn.Authorization.ABAC.Utils
         /// <param name="actions">The actions to be used for reading a element</param>
         /// <param name="isRequired">Defines if element is required</param>
         /// <returns></returns>
-        private static bool ReadElementWithAction(XmlReader reader, IDictionary<Tuple<string, string>, Action> actions, bool isRequired = false)
+        private static bool ReadChoiceElement(XmlReader reader, IDictionary<Tuple<string, string>, Action> actions, bool isRequired = false)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
             Guard.ArgumentNotNull(actions, nameof(actions));

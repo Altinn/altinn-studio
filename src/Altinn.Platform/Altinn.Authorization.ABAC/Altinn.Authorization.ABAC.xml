@@ -357,7 +357,7 @@
             <param name="reader">A XML Reader with the Policy loaded</param>
             <returns>The XACML Policy</returns>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadElementsIterativeWithAction(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadChoiceElements(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
             <summary>
             This method reads 
             </summary>
@@ -365,7 +365,7 @@
             <param name="readerActions">A dictionary with actions to be used on different element types</param>
             <param name="isRequired">Defines if it is a required parameter</param>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadElementWithAction(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadChoiceElement(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
             <summary>
             This method uses a dictionary with different actions to 
             </summary>
@@ -380,6 +380,14 @@
             </summary>
             <param name="reader">The xml Reader</param>
             <returns>A XacmlAttributeSelector</returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadElement`1">
+            <summary>
+            Delegate to make it possible to send different read methods in to metods
+            </summary>
+            <typeparam name="T">The type</typeparam>
+            <param name="reader">The xml reader</param>
+            <returns></returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ValidateXacmlPolicyStartElement(System.Xml.XmlReader,System.String)">
             <summary>
