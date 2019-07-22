@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { all, call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from '../../../../../types';
 import { checkIfRuleShouldRun } from '../../../../../utils/rules';
 import FormDataActions from '../../../data/actions';
@@ -33,7 +33,7 @@ function* checkIfRuleShouldRunSaga({
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
     const formDataModelState: IDataModelState = yield select(selectFormdataModelConnection);
 
-    const { ruleShouldRun, dataBindingName, result }: IResponse = checkIfRuleShouldRun(
+    const rules: IResponse[] = checkIfRuleShouldRun(
       ruleConnectionState,
       formDataState,
       formDataModelState,
@@ -41,10 +41,11 @@ function* checkIfRuleShouldRunSaga({
       repeatingContainerId,
       lastUpdatedDataBinding,
     );
-    if (ruleShouldRun) {
+    if (rules.length > 0) {
       const component = formLayoutState.layout.find((comp: any) => comp.id === lastUpdatedComponentId);
-      yield call(FormDataActions.updateFormData, dataBindingName, result,
-        component.id);
+
+      yield all(rules.map((rule) => call(FormDataActions.updateFormData, rule.dataBindingName, rule.result,
+        component.id)));
     }
 
   } catch (err) {

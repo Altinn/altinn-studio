@@ -27,6 +27,7 @@ export function checkIfRuleShouldRun(
 
   /* const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
   const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`; */
+  const rules: any[] = [];
   for (const connection in ruleConnectionState) {
     if (!connection) {
       continue;
@@ -99,21 +100,17 @@ export function checkIfRuleShouldRun(
               updatedDataBinding.DataBindingName =
                 updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
             } */
-            return {
+            rules.push({
               ruleShouldRun: true,
               dataBindingName: updatedDataBinding.DataBindingName,
               result: result.toString(),
-            };
+            });
           }
         }
       }
     }
   }
-  return {
-    ruleShouldRun: false,
-    dataBindingName: null,
-    result: null,
-  };
+  return rules;
 }
 
 export function getRuleModelFields() {
