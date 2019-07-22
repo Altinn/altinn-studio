@@ -145,7 +145,7 @@ export function validateComponentFormData(
     }
   });
   if (component.required) {
-    if (formData.length === 0) {
+    if (!formData) {
       validationErrors.push(
         getLanguageFromKey('form_filler.error_required', language),
       );
