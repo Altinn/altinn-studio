@@ -108,11 +108,6 @@ export function checkIfRuleShouldRun(
         }
       }
     }
-    return {
-      ruleShouldRun: false,
-      dataBindingName: null,
-      result: null,
-    };
   }
   return {
     ruleShouldRun: false,
