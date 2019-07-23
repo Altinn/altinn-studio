@@ -105,7 +105,7 @@ const getCurrentUsersName = (user: any) => {
 };
 
 // tslint:disable-next-line:max-line-length
-class ServicesOverviewComponent extends React.Component<IServicesOverviewComponentProps, IServicesOverviewComponentState> {
+export class ServicesOverviewComponent extends React.Component<IServicesOverviewComponentProps, IServicesOverviewComponentState> {
   // tslint:disable-next-line:max-line-length
   public static getDerivedStateFromProps(_props: IServicesOverviewComponentProps, _state: IServicesOverviewComponentState) {
     return {

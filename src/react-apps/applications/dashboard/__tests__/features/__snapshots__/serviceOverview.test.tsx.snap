@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> features/serviceOverview >>> Capture snapshot of serviceOverview 1`] = `
+<div
+  className="Connect-ServicesOverviewComponent--mar_top_100-1 Connect-ServicesOverviewComponent--mar_bot_50-3"
+>
+  <div
+    className="MuiGrid-container-13"
+  >
+    <div
+      className="MuiGrid-item-14 MuiGrid-grid-xs-12-53 MuiGrid-grid-sm-12-67 MuiGrid-grid-md-8-77 MuiGrid-grid-lg-8-91 MuiGrid-grid-xl-8-105"
+    >
+      <h1
+        className="MuiTypography-root-110 MuiTypography-h1-122 MuiTypography-gutterBottom-137"
+      >
+        Tjenesteoversikt
+      </h1>
+    </div>
+    
+  </div>
+  <p
+    className="MuiTypography-root-110 MuiTypography-body1-119 MuiTypography-gutterBottom-137 Connect-ServicesOverviewComponent--mar_top_50-2 Connect-ServicesOverviewComponent--textSyle-9"
+  >
+    main_subheader
+  </p>
+  <div
+    className="MuiGrid-container-13 Connect-ServicesOverviewComponent--mar_top_50-2"
+  >
+    <div
+      className="MuiGrid-item-14 MuiGrid-grid-xs-12-53 MuiGrid-grid-sm-10-65 MuiGrid-grid-md-10-79 MuiGrid-grid-lg-12-95 MuiGrid-grid-xl-12-109"
+    >
+      <div
+        className="MuiFormControl-root-149 AltinnSearchInput-searchBox-146 MuiFormControl-fullWidth-152"
+      >
+        <div
+          className="MuiFormControl-root-149"
+        >
+          <div
+            className="MuiInputBase-root-166 MuiInput-root-153 AltinnSearchInput-searchBoxInput-147 MuiInputBase-formControl-167 MuiInput-formControl-154 MuiInputBase-adornedStart-170"
+            onClick={[Function]}
+          >
+            <div
+              className="MuiInputAdornment-root-183 AltinnSearchInput-searchBoxIcon-148 MuiInputAdornment-positionEnd-186"
+            >
+              <i
+                className="fa fa-search"
+              />
+            </div>
+            <input
+              aria-invalid={false}
+              className="MuiInputBase-input-176 MuiInput-input-161 MuiInputBase-inputAdornedStart-181"
+              disabled={false}
+              id="service-search"
+              onBlur={[Function]}
+              onChange={[Function]}
+              onFocus={[Function]}
+              placeholder="dashboard.search_service"
+              required={false}
+              type="text"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    className="Connect-ServicesOverviewComponent--mar_top_50-2"
+  >
+    <div
+      className="MuiGrid-container-13"
+    >
+      <p
+        className="MuiTypography-root-110 MuiTypography-body1-119 MuiTypography-noWrap-136 MuiTypography-gutterBottom-137 CategoryComponent-displayInlineBlock-189 CategoryComponent-width100-190 CategoryComponent-fontSize_16-192"
+      >
+        dashboard.category_service_write
+      </p>
+    </div>
+    <div
+      className="MuiGrid-container-13"
+    >
+      <p
+        className="MuiTypography-root-110 MuiTypography-body1-119 MuiTypography-alignCenter-133 CategoryComponent-width100-190 CategoryComponent-mar_top_100-188 CategoryComponent-fontSize_24-191"
+      >
+        dashboard.no_category_service_write
+      </p>
+    </div>
+  </div>
+  <div
+    className="Connect-ServicesOverviewComponent--mar_top_100-1"
+  >
+    <div
+      className="MuiGrid-container-13"
+    >
+      <p
+        className="MuiTypography-root-110 MuiTypography-body1-119 MuiTypography-noWrap-136 MuiTypography-gutterBottom-137 CategoryComponent-displayInlineBlock-189 CategoryComponent-width100-190 CategoryComponent-fontSize_16-192"
+      >
+        dashboard.category_service_read
+      </p>
+    </div>
+    <div
+      className="MuiGrid-container-13"
+    >
+      <p
+        className="MuiTypography-root-110 MuiTypography-body1-119 MuiTypography-alignCenter-133 CategoryComponent-width100-190 CategoryComponent-mar_top_100-188 CategoryComponent-fontSize_24-191"
+      >
+        dashboard.no_category_service_read
+      </p>
+    </div>
+  </div>
+</div>
+`;
