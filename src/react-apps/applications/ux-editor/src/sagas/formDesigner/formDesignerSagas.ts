@@ -267,8 +267,11 @@ function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatin
         continue;
       }
 
-      const repeatingData = Object.keys(formFillerState.formData).filter((formDataKey) => {
-        return formDataKey.includes(container.dataModelGroup + '[');
+      const repeatingData = Object.keys(formFillerState.formData).filter((formDataKey: any) => {
+        const match = formDataKey.indexOf(container.dataModelGroup + '[') > -1;
+        if (match) {
+          return formDataKey;
+        }
       });
 
       if (repeatingData.length === 0) {
