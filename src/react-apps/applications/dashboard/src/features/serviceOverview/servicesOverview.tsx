@@ -93,7 +93,7 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
   return allDistinctServiceOwners;
 };
 
-const getListOfServicesExcludingCodelist = (services: any) => {
+export const getListOfServicesExcludingCodelist = (services: any) => {
   if (services) {
     return services.filter((service: any) => service.name !== 'codelists');
   }
