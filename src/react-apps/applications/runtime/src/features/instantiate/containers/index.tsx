@@ -7,8 +7,10 @@ import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
+import { IParty } from '../../../shared/resources/party';
+import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
-import { get, post } from '../../../utils/networking';
+import { post } from '../../../utils/networking';
 
 const styles = () => createStyles({
   modal: {
@@ -21,24 +23,25 @@ const styles = () => createStyles({
   },
 });
 
+export interface IPartyValidation {
+  valid: boolean;
+  message: string;
+  validParties: IParty[];
+}
+
 function ServiceInfo(props) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
   const { org, service } = window as IAltinnWindow;
-  const [reportee, setReportee] = React.useState(null);
   const [instanceId, setInstanceId] = React.useState(null);
+  const [partyValidation, setPartyValidation] = React.useState(null);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-
-  const fetchReportee = async () => {
-    const url: string = `${window.location.origin}/${org}/${service}/api/v1/profile/user`;
-    const fetchedReportee: any = await get(url);
-    setReportee(fetchedReportee);
-  };
+  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const createNewInstance = async () => {
     try {
       const formData: FormData = new FormData();
-      formData.append('PartyId', reportee.partyId);
+      formData.append('PartyId', selectedParty.partyId.toString());
       formData.append('Org', org);
       formData.append('Service', service);
       const url = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
@@ -46,7 +49,7 @@ function ServiceInfo(props) {
 
       if (response.data.instanceId) {
         setInstanceId(response.data.instanceId);
-        (window as any).instanceId = response.data.instanceId;
+        (window as IAltinnWindow).instanceId = response.data.instanceId;
       } else {
         throw new Error('Server did not respond with new instance');
       }
@@ -55,15 +58,57 @@ function ServiceInfo(props) {
     }
   };
 
-  React.useEffect(() => {
-    if (!reportee) {
-      fetchReportee();
+  const validatatePartySelection = async () => {
+    try {
+      if (!profile) {
+        return;
+      }
+      const { data } = await post(
+        `${window.location.origin}/${org}/${service}` +
+        `/api/v1/parties/validateInstantiation?partyId=${selectedParty.partyId}`,
+      );
+      console.log(data);
+      setPartyValidation(data);
+    } catch (err) {
+      throw new Error('Server did not respond with party validation');
     }
-    if (!instanceId && reportee !== null) {
+  };
+
+  React.useEffect(() => {
+    if (!profile) {
+      ProfileActions.fetchProfile(`${window.location.origin}/${org}/${service}/api/v1/profile/user`);
+    }
+    if (!partyValidation) {
+      validatatePartySelection();
+    }
+    if (!instanceId && profile !== null && partyValidation !== null) {
       createNewInstance();
     }
-  }, [reportee, instanceId]);
+  }, [profile, instanceId, partyValidation]);
 
+  if (!selectedParty) {
+    return (
+      <Redirect to={'/partyselection'}/>
+    );
+  }
+
+  if (partyValidation !== null && !partyValidation.valid) {
+    if (partyValidation.validParties.length > 0) {
+      return (
+        <Redirect
+          to={{
+            pathname: '/partyselection',
+            state: {
+              validParties: partyValidation.validParties,
+            },
+          }}
+        />
+      );
+    }
+    return (
+      <Redirect to={'/partyselection'}/>
+    );
+  }
   if (instanceId) {
     return (
       <Redirect to={`/instance/${instanceId}`} />

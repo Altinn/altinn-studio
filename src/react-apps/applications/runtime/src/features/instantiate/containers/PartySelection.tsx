@@ -2,6 +2,7 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
+import { Redirect, RouteProps } from 'react-router';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import Header from '../../../shared/components/altinnAppHeader';
@@ -10,6 +11,7 @@ import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
+import { IProfile } from '../../../shared/resources/profile';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 
@@ -44,23 +46,30 @@ const styles = createStyles({
   },
 });
 
-export interface IPartySelectionProps extends WithStyles<typeof styles> {
+interface IRedirectValidPartes {
+  validParties: IParty[];
+}
+
+export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteProps {
 
 }
 
 function PartySelection(props: IPartySelectionProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
 
+  const { classes, location } = props;
+
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const parties = useSelector((state: IRuntimeState) => state.party.parties);
+  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
+
+  const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
 
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
 
-  const { classes } = props;
-
   React.useEffect(() => {
+    PartyActions.selectParty(null);
     const {org, service} = window as IAltinnWindow;
     PartyActions.getParties(`${window.location.origin}/${org}/${service}/api/v1/parties`);
     if (!profile) {
@@ -76,19 +85,43 @@ function PartySelection(props: IPartySelectionProps) {
     }
   }, []);
 
+  function onSelectParty(party: IParty) {
+    if (!selectedParty) {
+      PartyActions.selectParty(party);
+    }
+  }
+
   function renderParties() {
     if (!parties || !profile) {
       return null;
     }
     // Set the current selected party first in the array and concat rest (without the current)
+    let partiesElements: IParty[] = [];
+
     const currentParty: IParty = parties.find((party) => party.partyId === profile.partyId);
-    const partiesElements = [currentParty].concat(
-      parties.map(
-        (party) => party.partyId !== currentParty.partyId ? party : null,
-      ).filter(
-          (party) => party != null,
+    if (!location.state || !(location.state as IRedirectValidPartes).validParties) {
+      partiesElements = [currentParty].concat(
+        parties.map(
+          (party: IParty) => party.partyId !== currentParty.partyId ? party : null,
+        ).filter(
+          (party: IParty) => party != null,
         ),
-    );
+      );
+    } else {
+      const { validParties } = (location.state as IRedirectValidPartes);
+      partiesElements = [currentParty].concat(
+        validParties.map(
+          (party: IParty) => party.partyId !== currentParty.partyId ? party : null,
+        ).filter(
+          (party: IParty) => party != null,
+        ),
+      );
+    }
+    if (selectedParty !== null) {
+      return (
+        <Redirect to={'/instantiate'}/>
+      );
+    }
     return (
       <>
         {partiesElements.map((party: IParty, index: number) =>
@@ -98,6 +131,7 @@ function PartySelection(props: IPartySelectionProps) {
                 key={index}
                 party={party}
                 isCurrent={party.partyId === currentParty.partyId}
+                onSelectParty={onSelectParty}
               />
               : null
             : null,
@@ -107,7 +141,6 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function onFilterStringChange(filterStr: string) {
-    console.log(filterStr);
     setFilterString(filterStr);
   }
 
