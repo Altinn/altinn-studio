@@ -268,10 +268,7 @@ function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatin
       }
 
       const repeatingData = Object.keys(formFillerState.formData).filter((formDataKey: any) => {
-        const match = formDataKey.indexOf(container.dataModelGroup + '[') > -1;
-        if (match) {
-          return formDataKey;
-        }
+        return formDataKey.indexOf(container.dataModelGroup + '[') > -1;
       });
 
       if (repeatingData.length === 0) {
