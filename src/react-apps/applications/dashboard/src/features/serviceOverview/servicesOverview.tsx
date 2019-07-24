@@ -75,15 +75,17 @@ const styles = createStyles({
 
 const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
   const allDistinctServiceOwners: string[] = [];
-  services.map((service: any) => {
-    const keyToLookFor = service.owner.full_name || service.owner.login;
-    if (allDistinctServiceOwners.indexOf(keyToLookFor) === -1) {
-      if (currentUser && currentUser === keyToLookFor) {
-        return;
+  if (services) {
+    services.map((service: any) => {
+      const keyToLookFor = service.owner.full_name || service.owner.login;
+      if (allDistinctServiceOwners.indexOf(keyToLookFor) === -1) {
+        if (currentUser && currentUser === keyToLookFor) {
+          return;
+        }
+        allDistinctServiceOwners.push(keyToLookFor);
       }
-      allDistinctServiceOwners.push(keyToLookFor);
-    }
-  });
+    });
+  }
   if (currentUser) {
     allDistinctServiceOwners.unshift(currentUser);
   }
