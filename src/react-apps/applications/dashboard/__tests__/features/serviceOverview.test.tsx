@@ -20,13 +20,19 @@ describe('>>> features/serviceOverview', () => {
         services: [
           {
             name: 'testService',
+            description: '',
             owner: { full_name: 'Ulf Utvikler' },
-            permissions: true,
+            permissions: {
+              push: true,
+            },
           },
           {
             name: 'NullSkatt',
+            description: '',
             owner: { full_name: 'Ulf Utvikler' },
-            permissions: true,
+            permissions: {
+              push: true,
+            },
           },
         ],
       },
@@ -62,7 +68,6 @@ describe('>>> features/serviceOverview', () => {
 
     const searchField = mountedServiceOverview.find('input');
     searchField.simulate('change', { target: {value: 'test'}});
-    instance.forceUpdate();
     expect(spy).toHaveBeenCalled();
   });
   it('+++ if there are no services getListOfServicesExcludingCodelist should return null', () => {
@@ -75,17 +80,23 @@ describe('>>> features/serviceOverview', () => {
       {
         name: 'testService',
         owner: { full_name: 'Ulf Utvikler' },
-        permissions: true,
+        permissions: {
+          push: true,
+        },
       },
       {
         name: 'NullSkatt',
         owner: { full_name: 'Ulf Utvikler' },
-        permissions: true,
+        permissions: {
+          push: true,
+        },
       },
       {
         name: 'codelists',
         owner: { full_name: 'Ulf Utvikler' },
-        permissions: true,
+        permissions: {
+          push: true,
+        },
       },
     ];
     const services = getListOfServicesExcludingCodelist(serviceList);
@@ -93,12 +104,16 @@ describe('>>> features/serviceOverview', () => {
       {
         name: 'testService',
         owner: { full_name: 'Ulf Utvikler' },
-        permissions: true,
+        permissions: {
+          push: true,
+        },
       },
       {
         name: 'NullSkatt',
         owner: { full_name: 'Ulf Utvikler' },
-        permissions: true,
+        permissions: {
+          push: true,
+        },
       },
     ];
 
