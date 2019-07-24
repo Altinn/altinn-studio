@@ -143,7 +143,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
   });
 
   it('+++ should return true if rule should be triggered', () => {
-    const { ruleShouldRun, dataBindingName, result } = checkIfRuleShouldRun(
+    const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
@@ -151,8 +151,8 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
-    expect(ruleShouldRun).toBe(true);
-    expect(dataBindingName).toEqual('mockDataModelBinding4');
+    expect(rules[0].ruleShouldRun).toBe(true);
+    expect(rules[0].dataBindingName).toEqual('mockDataModelBinding4');
   });
   it('+++ should return false if no rule should be triggered', () => {
     mockLastUpdatedDataBinding = {
@@ -176,7 +176,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       XsdValueType: 'String',
     };
 
-    const { ruleShouldRun } = checkIfRuleShouldRun(
+    const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
@@ -184,12 +184,12 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
-    expect(ruleShouldRun).toBe(false);
+    expect(rules.length).toBe(0);
   });
   it('+++ no ruleConnection, no rules ', () => {
     mockRuleConnectionState = {};
 
-    const { ruleShouldRun } = checkIfRuleShouldRun(
+    const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
@@ -197,7 +197,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
-    expect(ruleShouldRun).toBe(false);
+    expect(rules.length).toBe(0);
   });
   it('+++ no dataBindingkey, no rules ', () => {
     mockFormLayoutState = {
@@ -222,7 +222,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         },
       ],
     };
-    const { ruleShouldRun } = checkIfRuleShouldRun(
+    const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
@@ -230,14 +230,14 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
-    expect(ruleShouldRun).toBe(false);
+    expect(rules.length).toBe(0);
   });
   it('+++ if no components, no rules ', () => {
     mockFormLayoutState = {
       error: null,
       layout: [],
     };
-    const { ruleShouldRun } = checkIfRuleShouldRun(
+    const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
@@ -245,10 +245,10 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
-    expect(ruleShouldRun).toBe(false);
+    expect(rules.length).toBe(0);
   });
   it('+++ if no input params, no rules ', () => {
-    const { ruleShouldRun } = checkIfRuleShouldRun(
+    const rules = checkIfRuleShouldRun(
       {
         'fc4136a0-73c3-11e9-acee-8f5155710498':
         {
@@ -263,10 +263,10 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
-    expect(ruleShouldRun).toBe(false);
+    expect(rules.length).toBe(0);
   });
   it('+++ if no output params, no rules ', () => {
-    const { ruleShouldRun } = checkIfRuleShouldRun(
+    const rules = checkIfRuleShouldRun(
       {
         'fc4136a0-73c3-11e9-acee-8f5155710498':
         {
@@ -285,7 +285,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
-    expect(ruleShouldRun).toBe(false);
+    expect(rules.length).toBe(0);
   });
   it('+++ if container the function should continue ', () => {
     mockFormLayoutState = {
@@ -297,7 +297,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
         children: {},
       }],
     };
-    const { ruleShouldRun } = checkIfRuleShouldRun(
+    const rules = checkIfRuleShouldRun(
       mockRuleConnectionState,
       mockFormDataState,
       mockFormDataModelState,
@@ -305,7 +305,7 @@ describe('>>> features/rules checkIfRuleShouldRun', () => {
       mockRepeatingContainerId,
       mockLastUpdatedDataBinding,
     );
-    expect(ruleShouldRun).toBe(false);
+    expect(rules.length).toBe(0);
   });
 });
 describe('>>> features/rules getRuleModelFields', () => {

@@ -144,11 +144,8 @@ export function validateComponentFormData(
       }
     }
   });
-  if (
-    (dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1) ||
-    (component.required)
-  ) {
-    if (formData.length === 0) {
+  if (component.required) {
+    if (!formData) {
       validationErrors.push(
         getLanguageFromKey('form_filler.error_required', language),
       );
