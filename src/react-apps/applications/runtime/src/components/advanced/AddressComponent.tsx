@@ -175,7 +175,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
       }
       if (validationMessages[fieldKey]) {
         const validationMessage = validations[fieldKey];
-        if (!validationMessages[fieldKey].errors.includes(validationMessage)) {
+        const match = validationMessages[fieldKey].errors.indexOf(validationMessage) > -1;
+        if (!match) {
           validationMessages[fieldKey].errors.push(validations[fieldKey]);
         }
       } else {
