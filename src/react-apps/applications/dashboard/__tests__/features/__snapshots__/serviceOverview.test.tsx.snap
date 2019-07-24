@@ -16,7 +16,6 @@ exports[`>>> features/serviceOverview >>> Capture snapshot of serviceOverview 1`
         Tjenesteoversikt
       </h1>
     </div>
-    
   </div>
   <p
     className="MuiTypography-root-110 MuiTypography-body1-119 MuiTypography-gutterBottom-137 Connect-ServicesOverviewComponent--mar_top_50-2 Connect-ServicesOverviewComponent--textSyle-9"

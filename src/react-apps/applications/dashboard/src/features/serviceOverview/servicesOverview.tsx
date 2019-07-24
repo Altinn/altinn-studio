@@ -79,7 +79,7 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
     services.map((service: any) => {
       const keyToLookFor = service.owner.full_name || service.owner.login;
       if (allDistinctServiceOwners.indexOf(keyToLookFor) === -1) {
-        if (currentUser && currentUser === keyToLookFor) {
+        if (currentUser === keyToLookFor) {
           return;
         }
         allDistinctServiceOwners.push(keyToLookFor);

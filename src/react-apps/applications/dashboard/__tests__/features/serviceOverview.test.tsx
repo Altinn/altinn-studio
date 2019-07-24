@@ -17,6 +17,7 @@ describe('>>> features/serviceOverview', () => {
     const createStore = configureStore();
     const initialState = {
       dashboard: {
+        user: 'Ulf Utvikler',
         services: [
           {
             name: 'testService',
