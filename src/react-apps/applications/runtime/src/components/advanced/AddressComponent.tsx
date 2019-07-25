@@ -2,6 +2,7 @@ import axios from 'axios';
 import classNames = require('classnames');
 import update from 'immutability-helper';
 import * as React from 'react';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
 import { IDataModelBindings } from '../../features/form/layout';
 import '../../styles/AddressComponent.css';
@@ -19,6 +20,7 @@ export interface IAddressComponentProps {
   validationMessages?: IComponentValidations;
   dataModelBindings: IDataModelBindings;
   readOnly: boolean;
+  language: any;
 }
 
 interface IAddressValidationErrors {
@@ -201,9 +203,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         <div className={'address-component'}>
           <label className={'address-component-label'}>
             {
-              // This has been implemented for the sake of validating new textResource binding POC
-              (!this.props.dataModelBindings.address) ? 'Adresse' :
-                this.props.getTextResource(this.props.dataModelBindings.address)
+              getLanguageFromKey('ux_editor.modal_configure_address_component_address', this.props.language)
             }
           </label>
           <input
@@ -223,7 +223,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             : null}
           <div className={'address-component-postplace-zipCode'}>
             <div className={'address-component-zipCode'}>
-              <label className={'address-component-label'}>Postnummer</label>
+              <label className={'address-component-label'}>
+                {
+                  getLanguageFromKey('ux_editor.modal_configure_address_component_zip_code', this.props.language)
+                }
+              </label>
               <input
                 className={classNames('address-component-small-inputs', 'form-control',
                   {
@@ -242,7 +246,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             </div>
 
             <div className={'address-component-postplace'}>
-              <label className={'address-component-label'}>Poststed</label>
+              <label className={'address-component-label'}>
+                {
+                  getLanguageFromKey('ux_editor.modal_configure_address_component_post_place', this.props.language)
+                }
+              </label>
               <input
                 className={classNames('form-control',
                   {
@@ -265,11 +273,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     }
     return (
       <div className={'address-component'}>
-        <label className={'address-component-label'}>{
-          // This has been implemented for the sake of validating new textResource binding POC
-          (!this.props.dataModelBindings.address) ? 'Adresse' :
-            this.props.getTextResource(this.props.dataModelBindings.address)
-        }</label>
+        <label className={'address-component-label'}>
+          {
+            getLanguageFromKey('ux_editor.modal_configure_address_component_address', this.props.language)
+          }
+        </label>
         <input
           className={classNames('form-control',
             {
@@ -284,7 +292,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           renderValidationMessagesForComponent(validations[AddressKeys.address],
             `${this.props.id}_${AddressKeys.address}`)
           : null}
-        <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
+        <label className={'address-component-label'}>
+          {
+            getLanguageFromKey('ux_editor.modal_configure_address_component_care_of', this.props.language)
+          }
+        </label>
         <input
           className={classNames('form-control',
             {
@@ -301,7 +313,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           : null}
         <div className={'address-component-postplace-zipCode'}>
           <div className={'address-component-zipCode'}>
-            <label className={'address-component-label'}>Postnummer</label>
+            <label className={'address-component-label'}>
+              {
+                getLanguageFromKey('ux_editor.modal_configure_address_component_zip_code', this.props.language)
+              }
+            </label>
             <br />
             <input
               className={classNames('address-component-small-inputs', 'form-control',
@@ -319,7 +335,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               : null}
           </div>
           <div className={'address-component-postplace'}>
-            <label className={'address-component-label'}>Poststed</label>
+            <label className={'address-component-label'}>
+              {
+                getLanguageFromKey('ux_editor.modal_configure_address_component_post_place', this.props.language)
+              }
+            </label>
             <br />
             <input
               className={classNames('form-control',
@@ -338,14 +358,19 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           </div>
         </div>
         <label className={'address-component-label'}>
-          Bolignummer
+          {
+            getLanguageFromKey('ux_editor.modal_configure_address_component_house_number', this.props.language)
+          }
           <label className={'address-component-label-smaller'}>
-            <span>&nbsp;</span>(Valgfri)
+            <span>&nbsp;</span>({
+            getLanguageFromKey('general.optional', this.props.language)
+            })
           </label>
         </label>
         <p>
-          Om addressen er felles for flere boenhenter må du oppgi bolignummer.
-          Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.
+          {
+            getLanguageFromKey('ux_editor.modal_configure_address_component_house_number_helper', this.props.language)
+          }
         </p>
         <input
           className={classNames('address-component-small-inputs', 'form-control',
@@ -363,25 +388,5 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           : null}
       </div>
     );
-  }
-}
-
-export function getTextResourceByAddressKey(key: AddressKeys, language: any): string {
-  switch (key) {
-    case AddressKeys.address: {
-      return language.ux_editor.modal_configure_address_component_address;
-    }
-    case AddressKeys.zipCode: {
-      return language.ux_editor.modal_configure_address_component_zip_code;
-    }
-    case AddressKeys.houseNumber: {
-      return language.ux_editor.modal_configure_address_component_house_number;
-    }
-    case AddressKeys.careOf: {
-      return language.ux_editor.modal_configure_address_component_care_of;
-    }
-    case AddressKeys.postPlace: {
-      return language.ux_editor.modal_configure_address_component_post_place;
-    }
   }
 }
