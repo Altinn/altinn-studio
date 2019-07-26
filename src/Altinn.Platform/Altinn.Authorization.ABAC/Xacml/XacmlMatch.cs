@@ -129,5 +129,25 @@ namespace Altinn.Authorization.ABAC.Xacml
                 this.matchId = value;
             }
         }
+
+        /// <summary>
+        /// Matches the context attribute against the Policy
+        /// </summary>
+        /// <param name="xacmlAttributeValue">A xacml attribute value</param>
+        /// <returns></returns>
+        public bool IsMatch(XacmlAttributeValue xacmlAttributeValue)
+        {
+           return AttributeMatcher.MatchAttributes(AttributeValue.Value, xacmlAttributeValue.Value, MatchId.OriginalString);
+        }
+
+        /// <summary>
+        /// Matches a string attribute against the policy
+        /// </summary>
+        /// <param name="contextValue">The value from context</param>
+        /// <returns></returns>
+        public bool IsMatch(string contextValue)
+        {
+            return AttributeMatcher.MatchAttributes(AttributeValue.Value, contextValue, MatchId.OriginalString);
+        }
     }
 }

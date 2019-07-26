@@ -39,6 +39,21 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             Assert.Equal(3, firstRule.Target.AnyOf.Count);
         }
 
+        [Fact]
+        public void ParseXACMLRequest_IIA001Request()
+        {
+            XmlDocument policyDocument = new XmlDocument();
+
+            policyDocument.Load(Path.Combine(GetConformanceTestPath(), "IIA001Request.xml"));
+
+            XacmlContextRequest result;
+            using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
+            {
+                result = Xacml30Parser.ReadContextRequest(reader);
+            }
+
+            Assert.NotNull(result);
+        }
 
         [Fact]
         public void ParseXACMLPolicy_IID002Policy()

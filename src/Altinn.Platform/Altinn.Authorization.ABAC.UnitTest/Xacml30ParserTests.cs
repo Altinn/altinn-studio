@@ -13,7 +13,7 @@ namespace Altinn.Authorization.ABAC.UnitTests
         public void ParseXACMLPolicy()
         {
             XmlDocument policyDocument = new XmlDocument();
-            policyDocument.Load(Path.Combine(GetPolicyPath(), "PolicySample1.xml"));
+            policyDocument.Load(Path.Combine(GetPolicyPath(), "AltinnApps0001Policy.xml"));
 
             XacmlPolicy result;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))

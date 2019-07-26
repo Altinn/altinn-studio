@@ -84,7 +84,6 @@ namespace Altinn.Authorization.ABAC.Utils
                 { new Tuple<string, string>(XacmlConstants.ElementNames.RuleCombinerParameters, Xacml30Constants.NameSpaces.Policy), () => policy.RuleCombinerParameters.Add(ReadRuleCombinerParameters(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.VariableDefinition, Xacml30Constants.NameSpaces.Policy), () => policy.VariableDefinitions.Add(ReadVariableDefinition(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.Rule, Xacml30Constants.NameSpaces.Policy), () => policy.Rules.Add(ReadRule(reader)) },
-
             };
 
             ReadChoiceElements(reader, choiceElementsWithReaderAction);
@@ -115,6 +114,319 @@ namespace Altinn.Authorization.ABAC.Utils
             reader.ReadEndElement();
 
             return policy;
+        }
+
+        /// <summary>
+        /// Parses XML based Xacml Context Request
+        /// </summary>
+        /// <param name="reader">The XNL Reader</param>
+        /// <returns></returns>
+        public static XacmlContextRequest ReadContextRequest(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Request);
+
+            bool returnPolicyIdList = ReadAttribute<bool>(reader, XacmlConstants.AttributeNames.ReturnPolicyIdList);
+
+            // Multiple request in Context is not supported
+            bool combinedDecision = ReadAttribute<bool>(reader, XacmlConstants.AttributeNames.CombinedDecision);
+            if (combinedDecision)
+            {
+                throw new XmlException("Multiple Decision Profile not implemented");
+            }
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Request, Xacml30Constants.NameSpaces.Policy);
+
+            Uri pathVersion = null;
+            if (reader.IsStartElement(XacmlConstants.ElementNames.RequestDefaults, Xacml30Constants.NameSpaces.Policy))
+            {
+                reader.ReadStartElement(XacmlConstants.ElementNames.RequestDefaults, Xacml30Constants.NameSpaces.Policy);
+                if (!reader.IsStartElement(XacmlConstants.ElementNames.XPathVersion, Xacml30Constants.NameSpaces.Policy))
+                {
+                    throw new XmlException("XPathVerison NotStartElement");
+                }
+
+                pathVersion = new Uri(reader.ReadElementContentAsString(XacmlConstants.ElementNames.XPathVersion, Xacml30Constants.NameSpaces.Policy), UriKind.RelativeOrAbsolute);
+                reader.ReadEndElement();
+            }
+
+            List<XacmlContextAttributes> attributes = new List<XacmlContextAttributes>();
+            ReadList<XacmlContextAttributes>(attributes, XacmlConstants.ElementNames.Attributes, Xacml30Constants.NameSpaces.Policy, ReadContextAttributes, reader, isRequired: true);
+
+            XacmlContextRequest result = new XacmlContextRequest(returnPolicyIdList, combinedDecision, attributes)
+            {
+                XPathVersion = pathVersion,
+            };
+
+            if (reader.IsStartElement(XacmlConstants.ElementNames.MultiRequests, Xacml30Constants.NameSpaces.Policy))
+            {
+                reader.ReadStartElement(XacmlConstants.ElementNames.MultiRequests, Xacml30Constants.NameSpaces.Policy);
+
+                ReadList<XacmlContextRequestReference>(
+                    result.RequestReferences,
+                    XacmlConstants.ElementNames.RequestReference,
+                    Xacml30Constants.NameSpaces.Policy,
+                    o =>
+                    {
+                        reader.ReadStartElement(XacmlConstants.ElementNames.RequestReference, Xacml30Constants.NameSpaces.Policy);
+                        ICollection<string> refer = new List<string>();
+                        ReadList<string>(
+                            refer,
+                            XacmlConstants.ElementNames.AttributesReference,
+                            Xacml30Constants.NameSpaces.Policy,
+                            b =>
+                            {
+                                string referenceId = ReadAttribute<string>(
+                                    b,
+                                    XacmlConstants.AttributeNames.ReferenceId);
+                                b.Read();
+                                return referenceId;
+                            },
+                            o,
+                            isRequired: true);
+                        reader.ReadEndElement();
+                        return new XacmlContextRequestReference(refer);
+                    }, reader,
+                    isRequired: true);
+
+                reader.ReadEndElement();
+            }
+
+            reader.ReadEndElement();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Parses XACML 3.0 Context Response XML documents
+        /// </summary>
+        /// <param name="reader">The XML Reader</param>
+        /// <returns></returns>
+        public static XacmlContextResponse ReadContextResponse(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Response);
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Response, Xacml30Constants.NameSpaces.Policy);
+
+            List<XacmlContextResult> results = new List<XacmlContextResult>();
+            ReadList(results, XacmlConstants.ElementNames.Result, Xacml30Constants.NameSpaces.Policy, ReadContextResult, reader, isRequired: true);
+
+            XacmlContextResponse result = new XacmlContextResponse(results);
+
+            reader.ReadEndElement();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Parses a XMLContextResult
+        /// </summary>
+        /// <param name="reader">The XML Reader</param>
+        /// <returns></returns>
+        private static XacmlContextResult ReadContextResult(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Result);
+
+            string resourceId = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.ResourceId, isRequered: false);
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Result, Xacml30Constants.NameSpaces.Policy);
+
+            // Read elements
+            XacmlContextResult result = new XacmlContextResult(ReadRequired(XacmlConstants.ElementNames.Decision, Xacml30Constants.NameSpaces.Policy, ReadContextDecision, reader))
+            {
+                Status = ReadOptional(XacmlConstants.ElementNames.Status, Xacml30Constants.NameSpaces.Policy, ReadContextStatus, reader),
+                ResourceId = resourceId,
+            };
+
+            if (reader.IsStartElement(XacmlConstants.ElementNames.Obligations, Xacml30Constants.NameSpaces.Policy))
+            {
+                reader.ReadStartElement(XacmlConstants.ElementNames.Obligations, Xacml30Constants.NameSpaces.Policy);
+
+                ReadList<XacmlObligation>(result.Obligations, XacmlConstants.ElementNames.Obligation, Xacml30Constants.NameSpaces.Policy, ReadObligation, reader, isRequired: true);
+
+                // end obligations
+                reader.ReadEndElement();
+            }
+
+            if (reader.IsStartElement(XacmlConstants.ElementNames.AssociatedAdvice, Xacml30Constants.NameSpaces.Policy))
+            {
+                reader.ReadStartElement(XacmlConstants.ElementNames.AssociatedAdvice, Xacml30Constants.NameSpaces.Policy);
+
+                ReadList<XacmlAdvice>(result.Advices, XacmlConstants.ElementNames.Advice, Xacml30Constants.NameSpaces.Policy, ReadAdvice, reader, isRequired: true);
+
+                // end advice
+                reader.ReadEndElement();
+            }
+
+            ReadList<XacmlContextAttributes>(result.Attributes, XacmlConstants.ElementNames.Attributes, Xacml30Constants.NameSpaces.Policy, ReadContextAttributes, reader, isRequired: false);
+
+            if (reader.IsStartElement(XacmlConstants.ElementNames.PolicyIdentifierList, Xacml30Constants.NameSpaces.Policy))
+            {
+                reader.ReadStartElement(XacmlConstants.ElementNames.PolicyIdentifierList, Xacml30Constants.NameSpaces.Policy);
+
+                IDictionary<Tuple<string, string>, Action> dicts = new Dictionary<Tuple<string, string>, Action>()
+                {
+                    { new Tuple<string, string>(XacmlConstants.ElementNames.PolicyIdReference, Xacml30Constants.NameSpaces.Policy), () => result.PolicyIdReferences.Add(ReadPolicyIdReference_3_0(reader)) },
+                    { new Tuple<string, string>(XacmlConstants.ElementNames.PolicySetIdReference, Xacml30Constants.NameSpaces.Policy), () => result.PolicySetIdReferences.Add(ReadPolicySetIdReference_3_0(reader)) },
+                };
+
+                ReadChoiceElements(reader, dicts);
+
+                reader.ReadEndElement();
+            }
+
+            reader.ReadEndElement();
+
+            return result;
+        }
+
+        private static XacmlAdvice ReadAdvice(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Advice);
+
+            Uri adviceId = ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.AdviceId);
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Advice, Xacml30Constants.NameSpaces.Policy);
+
+            List<XacmlAttributeAssignment> assigments = new List<XacmlAttributeAssignment>();
+            ReadList(assigments, XacmlConstants.ElementNames.AttributeAssignment, Xacml30Constants.NameSpaces.Policy, ReadAttributeAssigment, reader, isRequired: true);
+
+            reader.ReadEndElement();
+
+            return new XacmlAdvice(adviceId, assigments);
+        }
+
+        private static XacmlAttributeAssignment ReadAttributeAssigment(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.AttributeAssignment);
+
+            Uri dataType = ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.DataType);
+            Uri attributeId = ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.AttributeId);
+
+            Uri category = ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.Category, isRequered: false);
+            string issuer = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.Issuer, isRequered: false);
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.AttributeAssignment, Xacml30Constants.NameSpaces.Policy);
+            string content = reader.ReadContentAsString();
+            reader.ReadEndElement();
+
+            return new XacmlAttributeAssignment(attributeId, dataType, content)
+            {
+                Category = category,
+                Issuer = issuer,
+            };
+        }
+
+        private static XacmlContextPolicyIdReference ReadPolicyIdReference_3_0(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.PolicyIdReference);
+
+            string version = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.Version, isRequered: false);
+            string earliestVersion = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.EarliestVersion, isRequered: false);
+            string latestVersion = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.LatestVersion, isRequered: false);
+
+            XacmlContextPolicyIdReference result = new XacmlContextPolicyIdReference()
+            {
+                Version = string.IsNullOrEmpty(version) ? null : new XacmlVersionMatchType(version),
+                EarliestVersion = string.IsNullOrEmpty(earliestVersion) ? null : new XacmlVersionMatchType(earliestVersion),
+                LatestVersion = string.IsNullOrEmpty(latestVersion) ? null : new XacmlVersionMatchType(latestVersion),
+            };
+
+            result.Value = reader.ReadInnerXml();
+            return result;
+        }
+
+        private static XacmlContextPolicySetIdReference ReadPolicySetIdReference_3_0(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.PolicySetIdReference);
+
+            string version = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.Version, isRequered: false);
+            string earliestVersion = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.EarliestVersion, isRequered: false);
+            string latestVersion = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.LatestVersion, isRequered: false);
+
+            XacmlContextPolicySetIdReference result = new XacmlContextPolicySetIdReference()
+            {
+                Version = string.IsNullOrEmpty(version) ? null : new XacmlVersionMatchType(version),
+                EarliestVersion = string.IsNullOrEmpty(earliestVersion) ? null : new XacmlVersionMatchType(earliestVersion),
+                LatestVersion = string.IsNullOrEmpty(latestVersion) ? null : new XacmlVersionMatchType(latestVersion),
+            };
+
+            result.Value = reader.ReadInnerXml();
+            return result;
+        }
+
+        private static XacmlObligation ReadObligation(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Obligation);
+
+            Uri obligationId = ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.ObligationId);
+
+            string fulFillOn = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.FulfillOn);
+            XacmlEffectType effectType = XacmlEffectType.Deny;
+            if (string.Equals(fulFillOn, "Deny", StringComparison.OrdinalIgnoreCase))
+            {
+                effectType = XacmlEffectType.Deny;
+            }
+            else if (string.Equals(fulFillOn, "Permit", StringComparison.OrdinalIgnoreCase))
+            {
+                effectType = XacmlEffectType.Permit;
+            }
+            else
+            {
+                throw ThrowXmlParserException(reader, "Wrong XacmlEffectType value");
+            }
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Obligation, Xacml30Constants.NameSpaces.Policy);
+
+            List<XacmlAttributeAssignment> assigments = new List<XacmlAttributeAssignment>();
+            ReadList(assigments, XacmlConstants.ElementNames.AttributeAssignment, Xacml30Constants.NameSpaces.Policy, ReadAttributeAssigment, reader, isRequired: true);
+
+            reader.ReadEndElement();
+
+            return new XacmlObligation(obligationId, effectType, assigments);
+        }
+
+        private static XacmlContextAttributes ReadContextAttributes(XmlReader reader)
+        {
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Attributes);
+
+            Uri category = ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.Category);
+            string id = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.Id, namespaceURI: XmlConstants.Namespaces.XmlNamespace, isRequered: false);
+
+            var result = new XacmlContextAttributes(category) { Id = id };
+
+            if (reader.IsEmptyElement)
+            {
+                reader.Read();
+                return result;
+            }
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Attributes, Xacml30Constants.NameSpaces.Policy);
+
+            if (reader.IsStartElement(XacmlConstants.ElementNames.Content, Xacml30Constants.NameSpaces.Policy))
+            {
+                result.Content = reader.ReadInnerXml();
+            }
+
+            ReadList<XacmlAttribute>(result.Attributes, XacmlConstants.ElementNames.Attribute, Xacml30Constants.NameSpaces.Policy, ReadAttribute, reader, false);
+
+            reader.ReadEndElement();
+
+            return result;
         }
 
         private static XacmlRule ReadRule(XmlReader reader)
@@ -222,6 +534,91 @@ namespace Altinn.Authorization.ABAC.Utils
             return result;
         }
 
+        private static XacmlContextStatus ReadContextStatus(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Status);
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Status, Xacml30Constants.NameSpaces.Policy);
+
+            // Read elements
+            XacmlContextStatus result = new XacmlContextStatus(ReadRequired(XacmlConstants.ElementNames.StatusCode, Xacml30Constants.NameSpaces.Policy, ReadContextStatusCode, reader))
+            {
+                StatusMessage = ReadOptional(XacmlConstants.ElementNames.StatusMessage, Xacml30Constants.NameSpaces.Policy, ReadContextStatusMessage, reader)
+            };
+
+            if (reader.IsStartElement(XacmlConstants.ElementNames.StatusDetail, Xacml30Constants.NameSpaces.Policy))
+            {
+                bool isEmptyElement = reader.IsEmptyElement;
+
+                if (isEmptyElement)
+                {
+                    reader.Read();
+                }
+                else
+                {
+                    XmlDocument document = new XmlDocument
+                    {
+                        PreserveWhitespace = true
+                    };
+                    document.Load(reader.ReadSubtree());
+                    foreach (XmlElement element in document.DocumentElement.ChildNodes)
+                    {
+                        result.StatusDetail.Add(element);
+                    }
+
+                    reader.ReadEndElement();
+                }
+            }
+
+            reader.ReadEndElement();
+
+            return result;
+        }
+               
+        private static string ReadContextStatusMessage(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.StatusMessage);
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.StatusMessage, Xacml30Constants.NameSpaces.Policy);
+
+            if (reader.IsEmptyElement)
+            {
+                reader.Read();
+                return string.Empty;
+            }
+
+            string result = reader.ReadContentAsString();
+            reader.ReadEndElement();
+            return result;
+        }
+
+        private static XacmlContextStatusCode ReadContextStatusCode(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.StatusCode);
+
+            // Read attributes
+            Uri statusCode = ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.Value, isRequered: true);
+
+            XacmlContextStatusCode result = new XacmlContextStatusCode(statusCode);
+            if (reader.IsEmptyElement)
+            {
+                reader.Read();
+                return result;
+            }
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.StatusCode, Xacml30Constants.NameSpaces.Policy);
+
+            // Read elements
+            result.StatusCode = ReadOptional(XacmlConstants.ElementNames.StatusCode, Xacml30Constants.NameSpaces.Policy, ReadContextStatusCode, reader);
+
+            reader.ReadEndElement();
+
+            return result;
+        }
+
         private static XacmlAttributeAssignmentExpression ReadAttributeAssignmentExpression(XmlReader reader)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -249,10 +646,9 @@ namespace Altinn.Authorization.ABAC.Utils
 
             IXacmlExpression result;
 
-            switch (reader.Name)
+            if (reader.IsStartElement(XacmlConstants.ElementNames.VariableReference, Xacml30Constants.NameSpaces.Policy))
             {
-                case XacmlConstants.ElementNames.VariableReference:
-                    result = ReadOptional(
+                result = ReadOptional(
                         XacmlConstants.ElementNames.VariableReference,
                         Xacml30Constants.NameSpaces.Policy,
                         new ReadElement<XacmlVariableReference>(
@@ -263,24 +659,30 @@ namespace Altinn.Authorization.ABAC.Utils
                                 return new XacmlVariableReference(res);
                             }),
                         reader);
-                    break;
-                case XacmlConstants.ElementNames.AttributeSelector:
-                    result = ReadOptional(XacmlConstants.ElementNames.AttributeSelector, Xacml30Constants.NameSpaces.Policy, ReadAttributeSelector, reader);
-                    break;
-                case XacmlConstants.ElementNames.AttributeDesignator:
-                    result = ReadOptional(XacmlConstants.ElementNames.AttributeDesignator, Xacml30Constants.NameSpaces.Policy, ReadAttributeDesignator, reader);
-                    break;
-                case XacmlConstants.ElementNames.AttributeValue:
-                    result = ReadOptional(XacmlConstants.ElementNames.AttributeValue, Xacml30Constants.NameSpaces.Policy, ReadAttributeValue, reader);
-                    break;
-                case XacmlConstants.ElementNames.Function:
-                    result = ReadOptional(XacmlConstants.ElementNames.Function, Xacml30Constants.NameSpaces.Policy, ReadFunction, reader);
-                    break;
-                case XacmlConstants.ElementNames.Apply:
-                    result = ReadOptional(XacmlConstants.ElementNames.Apply, Xacml30Constants.NameSpaces.Policy, ReadApply, reader);
-                    break;
-                default:
-                    throw ThrowXmlParserException(reader, "Wrong VariableDefinition element content");
+            }
+            else if (reader.IsStartElement(XacmlConstants.ElementNames.AttributeSelector, Xacml30Constants.NameSpaces.Policy))
+            {
+                result = ReadOptional(XacmlConstants.ElementNames.AttributeSelector, Xacml30Constants.NameSpaces.Policy, ReadAttributeSelector, reader);
+            }
+            else if (reader.IsStartElement(XacmlConstants.ElementNames.AttributeDesignator, Xacml30Constants.NameSpaces.Policy))
+            {
+                result = ReadOptional(XacmlConstants.ElementNames.AttributeDesignator, Xacml30Constants.NameSpaces.Policy, ReadAttributeDesignator, reader);
+            }
+            else if (reader.IsStartElement(XacmlConstants.ElementNames.AttributeValue, Xacml30Constants.NameSpaces.Policy))
+            {
+                result = ReadOptional(XacmlConstants.ElementNames.AttributeValue, Xacml30Constants.NameSpaces.Policy, ReadAttributeValue, reader);
+            }
+            else if (reader.IsStartElement(XacmlConstants.ElementNames.Function, Xacml30Constants.NameSpaces.Policy))
+            {
+                result = ReadOptional(XacmlConstants.ElementNames.Function, Xacml30Constants.NameSpaces.Policy, ReadFunction, reader);
+            }
+            else if (reader.IsStartElement(XacmlConstants.ElementNames.Apply, Xacml30Constants.NameSpaces.Policy))
+            {
+                result = ReadOptional(XacmlConstants.ElementNames.Apply, Xacml30Constants.NameSpaces.Policy, ReadApply, reader);
+            }
+            else
+            {
+                throw ThrowXmlParserException(reader, "Wrong VariableDefinition element content");
             }
 
             return result;
@@ -404,7 +806,6 @@ namespace Altinn.Authorization.ABAC.Utils
                 { new Tuple<string, string>(XacmlConstants.ElementNames.ActionAttributeDesignator, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeDesignator(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.AttributeDesignator, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeDesignator(reader)) },
                 { new Tuple<string, string>(XacmlConstants.ElementNames.AttributeSelector, Xacml30Constants.NameSpaces.Policy), () => apply.Parameters.Add(ReadAttributeSelector(reader)) },
-        
             };
 
             ReadChoiceElements(reader, dicts);
@@ -711,6 +1112,31 @@ namespace Altinn.Authorization.ABAC.Utils
             };
         }
 
+        private static XacmlAttribute ReadAttribute(XmlReader reader)
+        {
+            if (reader == null)
+            {
+                throw new ArgumentNullException(nameof(reader));
+            }
+
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Attribute);
+
+            XacmlAttribute result = new XacmlAttribute(
+                ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.AttributeId),
+                ReadAttribute<bool>(reader, XacmlConstants.AttributeNames.IncludeInResult))
+            {
+                Issuer = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.Issuer, isRequered: false)
+            };
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Attribute, Xacml30Constants.NameSpaces.Policy);
+
+            ReadList<XacmlAttributeValue>(result.AttributeValues, XacmlConstants.ElementNames.AttributeValue, Xacml30Constants.NameSpaces.Policy, ReadAttributeValue, reader, isRequired: true);
+
+            reader.ReadEndElement();
+
+            return result;
+        }
+
         private static XacmlAttributeValue ReadAttributeValue(XmlReader reader)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -755,6 +1181,44 @@ namespace Altinn.Authorization.ABAC.Utils
             return attribute;
         }
 
+        private static XacmlContextDecision ReadContextDecision(XmlReader reader)
+        {
+            Guard.ArgumentNotNull(reader, nameof(reader));
+
+            ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Decision);
+
+            reader.ReadStartElement(XacmlConstants.ElementNames.Decision, Xacml30Constants.NameSpaces.Policy);
+
+            // Read elements
+            string decisionText = reader.ReadContentAsString();
+            XacmlContextDecision result;
+
+            if (string.Equals(decisionText, "Deny", StringComparison.OrdinalIgnoreCase))
+            {
+                result = XacmlContextDecision.Deny;
+            }
+            else if (string.Equals(decisionText, "Permit", StringComparison.OrdinalIgnoreCase))
+            {
+                result = XacmlContextDecision.Permit;
+            }
+            else if (string.Equals(decisionText, "Indeterminate", StringComparison.OrdinalIgnoreCase))
+            {
+                result = XacmlContextDecision.Indeterminate;
+            }
+            else if (string.Equals(decisionText, "NotApplicable", StringComparison.OrdinalIgnoreCase))
+            {
+                result = XacmlContextDecision.NotApplicable;
+            }
+            else
+            {
+                throw ThrowXmlParserException(reader, "Wrong XacmlContextDecision value");
+            }
+
+            reader.ReadEndElement();
+
+            return result;
+        }
+
         #region General xml parsing methods
         private static T ReadOptional<T>(string elementName, string elementNamespace, ReadElement<T> readFunction, XmlReader reader)
         {
@@ -789,7 +1253,7 @@ namespace Altinn.Authorization.ABAC.Utils
                 throw new XmlException(elementName + " is required");
             }
         }
-
+      
         private static T ReadAttribute<T>(XmlReader reader, string attribute, string namespaceURI = null, bool isRequered = true)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -857,6 +1321,23 @@ namespace Altinn.Authorization.ABAC.Utils
             if (!reader.IsStartElement(elementName, Xacml30Constants.NameSpaces.Policy))
             {
                 throw ThrowXmlParserException(reader, "Invalid XACML Policy " + elementName + " is missing");
+            }
+        }
+
+        private static T ReadRequired<T>(string elementName, string elementNamespace, ReadElement<T> readFunction, XmlReader reader)
+        {
+            Guard.ArgumentNotNull(elementName, nameof(elementName));
+            Guard.ArgumentNotNull(reader, nameof(reader));
+            Guard.ArgumentNotNull(readFunction, nameof(readFunction));
+
+            if (!reader.IsStartElement(XacmlConstants.ElementNames.ActionAttributeDesignator, Xacml30Constants.NameSpaces.Policy))
+            {
+                T result = readFunction.Invoke(reader);
+                return result;
+            }
+            else
+            {
+                throw new XmlException(elementName + " is required");
             }
         }
 

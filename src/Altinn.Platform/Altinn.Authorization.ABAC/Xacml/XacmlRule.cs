@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Security.Claims;
+using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 
 namespace Altinn.Authorization.ABAC.Xacml
@@ -117,6 +120,206 @@ namespace Altinn.Authorization.ABAC.Xacml
             {
                 return this.advices;
             }
+        }
+
+        /// <summary>
+        /// Validates if a rule matches 
+        /// </summary>
+        /// <param name="request">The XACML Context request</param>
+        /// <returns></returns>
+        public bool IsTargetResourceMatch(XacmlContextRequest request)
+        {
+            Dictionary<string, XacmlAttribute> requestResources = GetResources(request);
+
+            bool isMatch = false;
+
+            bool resourcesFound = false;
+
+            foreach (XacmlAnyOf anyOf in Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    bool allResourcesMatched = true;
+
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                        {
+                            resourcesFound = true;
+
+                            if (requestResources.ContainsKey(xacmlMatch.AttributeDesignator.AttributeId.OriginalString))
+                            {
+                                foreach (XacmlAttributeValue attValue in requestResources[xacmlMatch.AttributeDesignator.AttributeId.OriginalString].AttributeValues)
+                                {
+                                    if (!xacmlMatch.IsMatch(attValue))
+                                    {
+                                        allResourcesMatched = false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                allResourcesMatched = false;
+                            }
+                        }
+                    }
+
+                    if (allResourcesMatched && resourcesFound)
+                    {
+                        // All allOff matches for resources in a anyOff did match.
+                        isMatch = true;
+                    }
+                }
+            }
+
+            return isMatch;
+        }
+
+        /// <summary>
+        /// Verify that rule matches 
+        /// </summary>
+        /// <param name="request">The context request</param>
+        /// <returns></returns>
+        public bool IsTargetActionMatch(XacmlContextRequest request)
+        {
+            Dictionary<string, XacmlAttribute> requestActions = GetActions(request);
+
+            if (requestActions.Count != 1)
+            {
+                return false;
+            }
+
+            bool isMatch = false;
+
+            bool actionsFound = false;
+
+            foreach (XacmlAnyOf anyOf in Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    bool allActionsMatched = true;
+
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                        {
+                            actionsFound = true;
+
+                            if (requestActions.ContainsKey(xacmlMatch.AttributeDesignator.AttributeId.OriginalString))
+                            {
+                                foreach (XacmlAttributeValue attValue in requestActions[xacmlMatch.AttributeDesignator.AttributeId.OriginalString].AttributeValues)
+                                {
+                                    if (!xacmlMatch.IsMatch(attValue))
+                                    {
+                                        allActionsMatched = false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                allActionsMatched = false;
+                            }
+                        }
+                    }
+
+                    if (allActionsMatched && actionsFound)
+                    {
+                        // All allOff matches for actions in a anyOff did match.
+                        isMatch = true;
+                    }
+                }
+            }
+
+            return isMatch;
+        }
+
+        /// <summary>
+        /// Authorized a claims principal based on the subject rules and
+        /// </summary>
+        /// <param name="claimsPrincipal">The principal</param>
+        /// <returns></returns>
+        public XacmlContextDecision AuthorizeSubject(ClaimsPrincipal claimsPrincipal)
+        {
+            XacmlContextDecision decision = XacmlContextDecision.NotApplicable;
+
+            foreach (XacmlAnyOf anyOf in Target.AnyOf)
+            {
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    bool allSubjectAttributesMatched = true;
+
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        bool matched = false;
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject))
+                        {
+                            // Get all the claims that matches the rule
+                            IEnumerable<Claim> possibleMatchingClaims = claimsPrincipal.Claims.Where(c => c.Type.Equals(xacmlMatch.AttributeDesignator.AttributeId.OriginalString));
+                            foreach (Claim claim in possibleMatchingClaims)
+                            {
+                                if (xacmlMatch.IsMatch(claim.Value))
+                                {
+                                    matched = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        if (!matched)
+                        {
+                            allSubjectAttributesMatched = false;
+                        }
+                    }
+
+                    if (allSubjectAttributesMatched)
+                    {
+                        if (Effect.Equals(XacmlEffectType.Deny))
+                        {
+                            decision = XacmlContextDecision.Deny;
+                        }
+                        else
+                        {
+                            decision = XacmlContextDecision.Permit;
+                        }
+                    }
+                }
+            }
+
+            return decision;
+        }
+
+        private Dictionary<string, XacmlAttribute> GetActions(XacmlContextRequest request)
+        {
+            Dictionary<string, XacmlAttribute> resourceAttributes = new Dictionary<string, XacmlAttribute>();
+            foreach (XacmlContextAttributes attributes in request.Attributes)
+            {
+                if (attributes.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
+                {
+                    foreach (XacmlAttribute attribute in attributes.Attributes)
+                    {
+                        resourceAttributes.Add(attribute.AttributeId.OriginalString, attribute);
+                    }
+                }
+            }
+
+            return resourceAttributes;
+        }
+
+        private Dictionary<string, XacmlAttribute> GetResources(XacmlContextRequest request)
+        {
+            Dictionary<string, XacmlAttribute> resourceAttributes = new Dictionary<string, XacmlAttribute>();
+            foreach (XacmlContextAttributes attributes in request.Attributes)
+            {
+                if (attributes.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                {
+                    foreach (XacmlAttribute attribute in attributes.Attributes)
+                    {
+                        resourceAttributes.Add(attribute.AttributeId.OriginalString, attribute);
+                    }
+                }
+            }
+
+            return resourceAttributes;
         }
     }
 }

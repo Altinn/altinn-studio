@@ -19,5 +19,16 @@ namespace Altinn.Authorization.ABAC.Constants
             /// </summary>
             public const string XmlNameSpacePrefix = "xmlns";
         }
+
+        /// <summary>
+        /// XML Namespaces
+        /// </summary>
+        public sealed class Namespaces
+        {
+            /// <summary>
+            /// The XML namespace
+            /// </summary>
+            public const string XmlNamespace = "http://www.w3.org/XML/1998/namespace";
+        }
     }
 }
