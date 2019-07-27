@@ -129,7 +129,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <returns></returns>
         public bool IsTargetResourceMatch(XacmlContextRequest request)
         {
-            Dictionary<string, XacmlAttribute> requestResources = GetResources(request);
+            Dictionary<string, XacmlAttribute> requestResources = GetCategoryAttributes(request, XacmlConstants.MatchAttributeCategory.Resource); 
 
             bool isMatch = false;
 
@@ -182,7 +182,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <returns></returns>
         public bool IsTargetActionMatch(XacmlContextRequest request)
         {
-            Dictionary<string, XacmlAttribute> requestActions = GetActions(request);
+            Dictionary<string, XacmlAttribute> requestActions = GetCategoryAttributes(request, XacmlConstants.MatchAttributeCategory.Action); 
 
             if (requestActions.Count != 1)
             {
@@ -223,6 +223,60 @@ namespace Altinn.Authorization.ABAC.Xacml
                     }
 
                     if (allActionsMatched && actionsFound)
+                    {
+                        // All allOff matches for actions in a anyOff did match.
+                        isMatch = true;
+                    }
+                }
+            }
+
+            return isMatch;
+        }
+
+        /// <summary>
+        /// Match Policy Attributes and request attributes of the same category
+        /// </summary>
+        /// <param name="request">The request</param>
+        /// <param name="category">The attribute category</param>
+        /// <returns></returns>
+        public bool MatchAttributes(XacmlContextRequest request, string category)
+        {
+            Dictionary<string, XacmlAttribute> requestAttributes = GetCategoryAttributes(request, category);
+
+            bool isMatch = false;
+
+            foreach (XacmlAnyOf anyOf in Target.AnyOf)
+            {
+                bool matchinAttributeCategoryFoundInAnyOf = false;
+
+                foreach (XacmlAllOf allOf in anyOf.AllOf)
+                {
+                    bool allAttributesInAllOfMatched = true;
+
+                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
+                    {
+                        if (xacmlMatch.AttributeDesignator.Category.Equals(category))
+                        {
+                            matchinAttributeCategoryFoundInAnyOf = true;
+
+                            if (requestAttributes.ContainsKey(xacmlMatch.AttributeDesignator.AttributeId.OriginalString))
+                            {
+                                foreach (XacmlAttributeValue attValue in requestAttributes[xacmlMatch.AttributeDesignator.AttributeId.OriginalString].AttributeValues)
+                                {
+                                    if (!xacmlMatch.IsMatch(attValue))
+                                    {
+                                        allAttributesInAllOfMatched = false;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                allAttributesInAllOfMatched = false;
+                            }
+                        }
+                    }
+
+                    if (allAttributesInAllOfMatched && matchinAttributeCategoryFoundInAnyOf)
                     {
                         // All allOff matches for actions in a anyOff did match.
                         isMatch = true;
@@ -288,38 +342,21 @@ namespace Altinn.Authorization.ABAC.Xacml
             return decision;
         }
 
-        private Dictionary<string, XacmlAttribute> GetActions(XacmlContextRequest request)
+        private Dictionary<string, XacmlAttribute> GetCategoryAttributes(XacmlContextRequest request, string category)
         {
-            Dictionary<string, XacmlAttribute> resourceAttributes = new Dictionary<string, XacmlAttribute>();
+            Dictionary<string, XacmlAttribute> categoryAttributes = new Dictionary<string, XacmlAttribute>();
             foreach (XacmlContextAttributes attributes in request.Attributes)
             {
-                if (attributes.Category.Equals(XacmlConstants.MatchAttributeCategory.Action))
+                if (attributes.Category.Equals(category))
                 {
                     foreach (XacmlAttribute attribute in attributes.Attributes)
                     {
-                        resourceAttributes.Add(attribute.AttributeId.OriginalString, attribute);
+                        categoryAttributes.Add(attribute.AttributeId.OriginalString, attribute);
                     }
                 }
             }
 
-            return resourceAttributes;
-        }
-
-        private Dictionary<string, XacmlAttribute> GetResources(XacmlContextRequest request)
-        {
-            Dictionary<string, XacmlAttribute> resourceAttributes = new Dictionary<string, XacmlAttribute>();
-            foreach (XacmlContextAttributes attributes in request.Attributes)
-            {
-                if (attributes.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                {
-                    foreach (XacmlAttribute attribute in attributes.Attributes)
-                    {
-                        resourceAttributes.Add(attribute.AttributeId.OriginalString, attribute);
-                    }
-                }
-            }
-
-            return resourceAttributes;
+            return categoryAttributes;
         }
     }
 }

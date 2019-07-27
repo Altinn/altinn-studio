@@ -2664,6 +2664,14 @@
             <param name="request">The context request</param>
             <returns></returns>
         </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.MatchAttributes(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,System.String)">
+            <summary>
+            Match Policy Attributes and request attributes of the same category
+            </summary>
+            <param name="request">The request</param>
+            <param name="category">The attribute category</param>
+            <returns></returns>
+        </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.AuthorizeSubject(System.Security.Claims.ClaimsPrincipal)">
             <summary>
             Authorized a claims principal based on the subject rules and

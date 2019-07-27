@@ -14,15 +14,15 @@ using Xunit;
 
 namespace Altinn.Authorization.ABAC.UnitTest
 {
-    public class PDPTests
+    public class AltinnAppsTests
     {
         [Fact]
-        public void PDP_AuthorizeAccess1()
+        public void PDP_AuthorizeAccess_AltinnApps0001()
         {
             bool contextRequstIsEnriched = false;
             string testCase = "AltinnApps0001";
 
-            XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetPolicyPath());
+            XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetAltinnAppsPath());
             XacmlContextResponse xacmlResponse = SetuUpPolicyDecitionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetManagingDirectorPrincialForParty());
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
@@ -31,14 +31,14 @@ namespace Altinn.Authorization.ABAC.UnitTest
 
         private XacmlContextResponse SetuUpPolicyDecitionPoint(string testCase, bool contextRequstIsEnriched, ClaimsPrincipal principal)
         {
-            XacmlContextRequest contextRequest = XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetPolicyPath());
+            XacmlContextRequest contextRequest = XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetAltinnAppsPath());
             XacmlContextRequest contextRequestEnriched = contextRequest;
             if (contextRequstIsEnriched)
             {
-                contextRequestEnriched = XacmlTestDataParser.ParseRequest(testCase + "Request_Enriched.xml", GetPolicyPath());
+                contextRequestEnriched = XacmlTestDataParser.ParseRequest(testCase + "Request_Enriched.xml", GetAltinnAppsPath());
             }
 
-            XacmlPolicy policy = XacmlTestDataParser.ParsePolicy(testCase + "Policy.xml", GetPolicyPath());
+            XacmlPolicy policy = XacmlTestDataParser.ParsePolicy(testCase + "Policy.xml", GetAltinnAppsPath());
 
             Moq.Mock<IContextHandler> moqContextHandler = new Mock<IContextHandler>();
             moqContextHandler.Setup(c => c.UpdateContextRequest(It.IsAny<XacmlContextRequest>())).Returns(contextRequestEnriched);
@@ -57,10 +57,10 @@ namespace Altinn.Authorization.ABAC.UnitTest
         }
    
 
-        private string GetPolicyPath()
+        private string GetAltinnAppsPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(PDPTests).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\Policy");
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnAppsTests).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\AltinnApps");
         }
     }
 }

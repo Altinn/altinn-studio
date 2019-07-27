@@ -58,7 +58,32 @@ namespace Altinn.Authorization.ABAC
             XacmlContextDecision overallDecision = XacmlContextDecision.NotApplicable;
             foreach (XacmlRule rule in matchingRules)
             {
-                XacmlContextDecision decision = rule.AuthorizeSubject(principal);
+                XacmlContextDecision decision;
+
+                if (principal != null)
+                {
+                   decision = rule.AuthorizeSubject(principal);
+                }
+                else
+                {
+                    // The subject has not been converted to a claims principal, need to authorize based
+                    // on the information in the Xacml context request
+                    if (rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Subject))
+                    {
+                        if (rule.Effect.Equals(XacmlEffectType.Permit))
+                        {
+                            decision = XacmlContextDecision.Permit;
+                        }
+                        else 
+                        {
+                            decision = XacmlContextDecision.Deny;
+                        }
+                    }
+                    else
+                    {
+                        decision = XacmlContextDecision.NotApplicable;
+                    }
+                }
 
                 if (!decision.Equals(XacmlContextDecision.NotApplicable))
                 {
