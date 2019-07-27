@@ -118,7 +118,8 @@ namespace Altinn.Authorization.ABAC
 
             foreach (XacmlRule rule in policy.Rules)
             {
-                if (rule.IsTargetResourceMatch(request) && rule.IsTargetActionMatch(request))
+                if (rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Resource) &&
+                    rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Action))
                 {
                     matchingRules.Add(rule);
                 }

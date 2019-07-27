@@ -19,17 +19,17 @@ namespace Altinn.Authorization.ABAC.UnitTest
         [Fact]
         public void PDP_AuthorizeAccess_AltinnApps0001()
         {
-            bool contextRequstIsEnriched = false;
+            bool contextRequstIsEnriched = true;
             string testCase = "AltinnApps0001";
 
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetAltinnAppsPath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecitionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetManagingDirectorPrincialForParty());
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetManagingDirectorPrincialForParty());
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
 
 
-        private XacmlContextResponse SetuUpPolicyDecitionPoint(string testCase, bool contextRequstIsEnriched, ClaimsPrincipal principal)
+        private XacmlContextResponse SetuUpPolicyDecisionPoint(string testCase, bool contextRequstIsEnriched, ClaimsPrincipal principal)
         {
             XacmlContextRequest contextRequest = XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetAltinnAppsPath());
             XacmlContextRequest contextRequestEnriched = contextRequest;

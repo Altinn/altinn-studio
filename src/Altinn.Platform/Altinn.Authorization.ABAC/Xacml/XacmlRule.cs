@@ -123,117 +123,6 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Validates if a rule matches 
-        /// </summary>
-        /// <param name="request">The XACML Context request</param>
-        /// <returns></returns>
-        public bool IsTargetResourceMatch(XacmlContextRequest request)
-        {
-            Dictionary<string, XacmlAttribute> requestResources = GetCategoryAttributes(request, XacmlConstants.MatchAttributeCategory.Resource); 
-
-            bool isMatch = false;
-
-            bool resourcesFound = false;
-
-            foreach (XacmlAnyOf anyOf in Target.AnyOf)
-            {
-                foreach (XacmlAllOf allOf in anyOf.AllOf)
-                {
-                    bool allResourcesMatched = true;
-
-                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
-                    {
-                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                        {
-                            resourcesFound = true;
-
-                            if (requestResources.ContainsKey(xacmlMatch.AttributeDesignator.AttributeId.OriginalString))
-                            {
-                                foreach (XacmlAttributeValue attValue in requestResources[xacmlMatch.AttributeDesignator.AttributeId.OriginalString].AttributeValues)
-                                {
-                                    if (!xacmlMatch.IsMatch(attValue))
-                                    {
-                                        allResourcesMatched = false;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                allResourcesMatched = false;
-                            }
-                        }
-                    }
-
-                    if (allResourcesMatched && resourcesFound)
-                    {
-                        // All allOff matches for resources in a anyOff did match.
-                        isMatch = true;
-                    }
-                }
-            }
-
-            return isMatch;
-        }
-
-        /// <summary>
-        /// Verify that rule matches 
-        /// </summary>
-        /// <param name="request">The context request</param>
-        /// <returns></returns>
-        public bool IsTargetActionMatch(XacmlContextRequest request)
-        {
-            Dictionary<string, XacmlAttribute> requestActions = GetCategoryAttributes(request, XacmlConstants.MatchAttributeCategory.Action); 
-
-            if (requestActions.Count != 1)
-            {
-                return false;
-            }
-
-            bool isMatch = false;
-
-            bool actionsFound = false;
-
-            foreach (XacmlAnyOf anyOf in Target.AnyOf)
-            {
-                foreach (XacmlAllOf allOf in anyOf.AllOf)
-                {
-                    bool allActionsMatched = true;
-
-                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
-                    {
-                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Resource))
-                        {
-                            actionsFound = true;
-
-                            if (requestActions.ContainsKey(xacmlMatch.AttributeDesignator.AttributeId.OriginalString))
-                            {
-                                foreach (XacmlAttributeValue attValue in requestActions[xacmlMatch.AttributeDesignator.AttributeId.OriginalString].AttributeValues)
-                                {
-                                    if (!xacmlMatch.IsMatch(attValue))
-                                    {
-                                        allActionsMatched = false;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                allActionsMatched = false;
-                            }
-                        }
-                    }
-
-                    if (allActionsMatched && actionsFound)
-                    {
-                        // All allOff matches for actions in a anyOff did match.
-                        isMatch = true;
-                    }
-                }
-            }
-
-            return isMatch;
-        }
-
-        /// <summary>
         /// Match Policy Attributes and request attributes of the same category
         /// </summary>
         /// <param name="request">The request</param>
@@ -247,17 +136,16 @@ namespace Altinn.Authorization.ABAC.Xacml
 
             foreach (XacmlAnyOf anyOf in Target.AnyOf)
             {
-                bool matchinAttributeCategoryFoundInAnyOf = false;
-
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
                 {
                     bool allAttributesInAllOfMatched = true;
+                    bool matchinAttributeCategoryFoundInAllOf = false;
 
                     foreach (XacmlMatch xacmlMatch in allOf.Matches)
                     {
                         if (xacmlMatch.AttributeDesignator.Category.Equals(category))
                         {
-                            matchinAttributeCategoryFoundInAnyOf = true;
+                            matchinAttributeCategoryFoundInAllOf = true;
 
                             if (requestAttributes.ContainsKey(xacmlMatch.AttributeDesignator.AttributeId.OriginalString))
                             {
@@ -276,9 +164,9 @@ namespace Altinn.Authorization.ABAC.Xacml
                         }
                     }
 
-                    if (allAttributesInAllOfMatched && matchinAttributeCategoryFoundInAnyOf)
+                    if (allAttributesInAllOfMatched && matchinAttributeCategoryFoundInAllOf)
                     {
-                        // All allOff matches for actions in a anyOff did match.
+                        // All allOff matches for attributes in a anyOff did match.
                         isMatch = true;
                     }
                 }

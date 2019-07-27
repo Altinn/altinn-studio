@@ -2650,20 +2650,6 @@
             authorization decision.See Section 7.18 for a description of how the set of advice to be returned by the PDP SHALL be determined.
             </summary>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.IsTargetResourceMatch(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
-            <summary>
-            Validates if a rule matches 
-            </summary>
-            <param name="request">The XACML Context request</param>
-            <returns></returns>
-        </member>
-        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.IsTargetActionMatch(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
-            <summary>
-            Verify that rule matches 
-            </summary>
-            <param name="request">The context request</param>
-            <returns></returns>
-        </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.MatchAttributes(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,System.String)">
             <summary>
             Match Policy Attributes and request attributes of the same category
