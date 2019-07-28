@@ -101,6 +101,7 @@ namespace Altinn.Authorization.ABAC
             }
 
             contextResult = new XacmlContextResult(overallDecision);
+            contextResult.Status = new XacmlContextStatus(XacmlContextStatusCode.Success);
             AddObligations(policy, contextResult);
 
             return new XacmlContextResponse(contextResult);

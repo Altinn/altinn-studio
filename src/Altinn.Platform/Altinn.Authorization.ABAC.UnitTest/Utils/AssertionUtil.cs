@@ -29,11 +29,22 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
 
             Assert.Equal(expected.Decision, actual.Decision);
 
+            AssertEqual(expected.Status, actual.Status);
+
             Assert.Equal(expected.Obligations.Count, actual.Obligations.Count);
 
             if (expected.Obligations.Count > 0)
             {
                 AssertEqual(expected.Obligations.First(), actual.Obligations.First());
+            }
+        }
+
+        private static void AssertEqual(XacmlContextStatus expected, XacmlContextStatus actual)
+        {
+            if (expected != null)
+            {
+                Assert.NotNull(actual);
+                Assert.Equal(expected.StatusCode.StatusCode, actual.StatusCode.StatusCode);
             }
         }
 

@@ -10,23 +10,26 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// Method to match attributes
         /// </summary>
         /// <param name="policyAttribute">The attribute in policy</param>
-        /// <param name="contextAttribute">The attribute in </param>
+        /// <param name="contextRequestAttribute">The attribute in </param>
         /// <param name="matchId">The match parameter</param>
         /// <returns></returns>
-        public static bool MatchAttributes(string policyAttribute, string contextAttribute, string matchId)
+        public static bool MatchAttributes(string policyAttribute, string contextRequestAttribute, string matchId)
         {
             Guard.ArgumentNotNull(policyAttribute, nameof(policyAttribute));
-            Guard.ArgumentNotNull(contextAttribute, nameof(contextAttribute));
+            Guard.ArgumentNotNull(contextRequestAttribute, nameof(contextRequestAttribute));
             Guard.ArgumentNotNull(matchId, nameof(matchId));
 
             bool isMatch = false;
             switch (matchId)
             {
                 case XacmlConstants.MatchTypeIdentifiers.StringEqual:
-                    isMatch = MatchStrings(policyAttribute, contextAttribute);
+                    isMatch = MatchStrings(policyAttribute, contextRequestAttribute);
                     break;
                 case XacmlConstants.MatchTypeIdentifiers.StringEqualIgnoreCase:
-                    isMatch = MatchStrings(policyAttribute, contextAttribute);
+                    isMatch = MatchStrings(policyAttribute, contextRequestAttribute);
+                    break;
+                case XacmlConstants.MatchTypeIdentifiers.AnyUriEqual:
+                    isMatch = MatchAnyUri(policyAttribute, contextRequestAttribute);
                     break;
                 default:
                     isMatch = false;
@@ -36,14 +39,22 @@ namespace Altinn.Authorization.ABAC.Xacml
             return isMatch;
         }
 
-        private static bool MatchStrings(string value1, string value2)
+        private static bool MatchStrings(string policyAttribute, string contextRequestAttribute)
         {
-            return value1.Equals(value2);
+            return policyAttribute.Equals(contextRequestAttribute);
         }
 
-        private static bool MatchStringsIgnoreCase(string value1, string value2)
+        private static bool MatchStringsIgnoreCase(string policyAttribute, string contextRequestAttribute)
         {
-            return value1.Equals(value2, StringComparison.OrdinalIgnoreCase);
+            return policyAttribute.Equals(contextRequestAttribute, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool MatchAnyUri(string policyValue, string contextRequestValue)
+        {
+            Uri policyUri = new Uri(policyValue);
+            Uri contextRequestUri = new Uri(contextRequestValue);
+
+            return policyUri.Equals(contextRequestUri);
         }
     }
 }

@@ -44,5 +44,22 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
 
             return principal;
         }
+
+        public static ClaimsPrincipal GetUserWithClaims(int userId, List<Claim> givenClaims)
+        {
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim("urn:altinn:userid", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
+            };
+
+            claims.AddRange(givenClaims);
+
+            ClaimsIdentity identity = new ClaimsIdentity();
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+            return principal;
+        }
     }
 }

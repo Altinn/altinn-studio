@@ -964,7 +964,7 @@
             Method to match attributes
             </summary>
             <param name="policyAttribute">The attribute in policy</param>
-            <param name="contextAttribute">The attribute in </param>
+            <param name="contextRequestAttribute">The attribute in </param>
             <param name="matchId">The match parameter</param>
             <returns></returns>
         </member>
