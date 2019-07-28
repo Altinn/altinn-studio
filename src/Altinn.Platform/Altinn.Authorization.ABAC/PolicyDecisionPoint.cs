@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Claims;
+using System.Xml;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
@@ -43,8 +44,19 @@ namespace Altinn.Authorization.ABAC
             XacmlContextResult contextResult;
             request = contextHandler.UpdateContextRequest(request);
 
-            XacmlPolicy policy = prp.GetPolicy(request);
-                       
+            XacmlPolicy policy;
+
+            try
+            {
+                policy = prp.GetPolicy(request);
+            }
+            catch (XmlException)
+            {
+                XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate);
+                result.Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError);
+                return new XacmlContextResponse(result);
+            }
+            
             ClaimsPrincipal principal = pip.GetClaimsPrincipal(request);
 
             ICollection<XacmlRule> matchingRules = GetMatchingRules(policy, request);

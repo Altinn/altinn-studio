@@ -49,8 +49,24 @@ namespace Altinn.Authorization.ABAC.UnitTest
             bool contextRequstIsEnriched = false;
             string testCase = "IIA003";
 
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim("urn:oasis:names:tc:xacml:1.0:example:attribute:role", "Physician", ClaimValueTypes.String, "Altinn"));
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, null);
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithClaims(1, claims));
+
+            AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
+        }
+
+        [Fact]
+        public void PDP_AuthorizeAccess_IIA004()
+        {
+            bool contextRequstIsEnriched = false;
+            string testCase = "IIA004";
+
+            List<Claim> claims = new List<Claim>();
+            claims.Add(new Claim("urn:oasis:names:tc:xacml:1.0:example:attribute:role", "Physician", ClaimValueTypes.String, "Altinn"));
+            XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithClaims(1, claims));
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
@@ -64,7 +80,7 @@ namespace Altinn.Authorization.ABAC.UnitTest
                 contextRequestEnriched = XacmlTestDataParser.ParseRequest(testCase + "Request_Enriched.xml", GetConformancePath());
             }
 
-            XacmlPolicy policy = XacmlTestDataParser.ParsePolicy(testCase + "Policy.xml", GetConformancePath());
+            
 
             Moq.Mock<IContextHandler> moqContextHandler = new Mock<IContextHandler>();
             moqContextHandler.Setup(c => c.UpdateContextRequest(It.IsAny<XacmlContextRequest>())).Returns(contextRequestEnriched);
@@ -73,7 +89,17 @@ namespace Altinn.Authorization.ABAC.UnitTest
             moqPip.Setup(m => m.GetClaimsPrincipal(It.IsAny<XacmlContextRequest>())).Returns(principal);
 
             Moq.Mock<IPolicyRetrievalPoint> moqPRP = new Mock<IPolicyRetrievalPoint>();
-            moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Returns(policy);
+
+            try
+            {
+                XacmlPolicy policy = XacmlTestDataParser.ParsePolicy(testCase + "Policy.xml", GetConformancePath());
+                moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Returns(policy);
+            }
+            catch(XmlException ex)
+            {
+                moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Throws(ex);
+            }
+
 
             PolicyDecisionPoint pdp = new PolicyDecisionPoint(moqContextHandler.Object, moqPRP.Object, moqPip.Object);
 
