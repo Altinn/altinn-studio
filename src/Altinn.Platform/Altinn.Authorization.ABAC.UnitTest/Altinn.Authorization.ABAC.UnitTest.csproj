@@ -18,6 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0003Policy.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0002Policy.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Data\Xacml\3.0\AltinnApps\AltinnApps0001Policy.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

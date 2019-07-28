@@ -23,7 +23,37 @@ namespace Altinn.Authorization.ABAC.UnitTest
             string testCase = "AltinnApps0001";
 
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetAltinnAppsPath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetManagingDirectorPrincialForParty());
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetManagingDirectorPrincialForParty(1));
+
+            AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
+        }
+
+        [Fact]
+        public void PDP_AuthorizeAccess_AltinnApps0002()
+        {
+            bool contextRequstIsEnriched = true;
+            string testCase = "AltinnApps0002";
+
+            List<string> roles = new List<string>();
+            roles.Add("REGNA");
+
+            XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetAltinnAppsPath());
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithRoles(2, roles));
+
+            AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
+        }
+
+        [Fact]
+        public void PDP_AuthorizeAccess_AltinnApps0003()
+        {
+            bool contextRequstIsEnriched = true;
+            string testCase = "AltinnApps0003";
+
+            List<string> roles = new List<string>();
+            roles.Add("REGNA");
+
+            XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetAltinnAppsPath());
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithRoles(2, roles));
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }

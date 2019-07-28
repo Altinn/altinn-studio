@@ -19,7 +19,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
             {
                 AssertEqual(expected.Results.First(), actual.Results.First());
             }
-        }
+       }
 
 
         private static void AssertEqual(XacmlContextResult expected, XacmlContextResult actual)
@@ -29,6 +29,31 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
 
             Assert.Equal(expected.Decision, actual.Decision);
 
+            Assert.Equal(expected.Obligations.Count, actual.Obligations.Count);
+
+            if (expected.Obligations.Count > 0)
+            {
+                AssertEqual(expected.Obligations.First(), actual.Obligations.First());
+            }
+        }
+
+        private static void AssertEqual(XacmlObligation expected, XacmlObligation actual)
+        {
+            Assert.Equal(expected.FulfillOn, actual.FulfillOn);
+            Assert.Equal(expected.ObligationId, actual.ObligationId);
+            Assert.Equal(expected.AttributeAssignment.Count, expected.AttributeAssignment.Count);
+            if (expected.AttributeAssignment.Count > 0)
+            {
+                AssertEqual(expected.AttributeAssignment.First(), actual.AttributeAssignment.First());
+            }
+        }
+
+        private static void AssertEqual(XacmlAttributeAssignment expected, XacmlAttributeAssignment actual)
+        {
+            Assert.Equal(expected.Value, actual.Value);
+            Assert.Equal(expected.Category, actual.Category);
+            Assert.Equal(expected.AttributeId, actual.AttributeId);
+            Assert.Equal(expected.DataType, actual.DataType);
         }
     }
 }

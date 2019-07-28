@@ -9,12 +9,34 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
     {
 
 
-        public static ClaimsPrincipal GetManagingDirectorPrincialForParty()
+        public static ClaimsPrincipal GetManagingDirectorPrincialForParty(int userId)
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim("urn:altinn:rolecode", "DAGL", ClaimValueTypes.String, "Altinn")
+                new Claim("urn:altinn:userid", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
+                new Claim("urn:altinn:rolecode", "DAGL", ClaimValueTypes.String, "Altinn"),
+                new Claim("urn:altinn:rolecode", "UTINN", ClaimValueTypes.String, "Altinn")
             };
+
+            ClaimsIdentity identity = new ClaimsIdentity();
+            identity.AddClaims(claims);
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+            return principal;
+        }
+
+        public static ClaimsPrincipal GetUserWithRoles(int userId, List<string> roleList)
+        {
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim("urn:altinn:userid", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
+            };
+
+            foreach(string role in roleList)
+            {
+                claims.Add(new Claim("urn:altinn:rolecode", role, ClaimValueTypes.String, "Altinn"));
+            }
 
             ClaimsIdentity identity = new ClaimsIdentity();
             identity.AddClaims(claims);
