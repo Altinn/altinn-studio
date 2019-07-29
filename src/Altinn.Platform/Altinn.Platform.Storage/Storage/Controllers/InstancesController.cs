@@ -72,6 +72,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="label">labels</param>
         /// <param name="lastChangedDateTime">last changed date</param>
         /// <param name="createdDateTime">created time</param>
+        /// <param name="visibleDateTime">the visible date time</param>
+        /// <param name="dueDateTime">the due date time</param>
         /// <param name="continuationToken">continuation token</param>
         /// <param name="size">the page size</param>
         /// <returns>list of all instances for given instanceowner</returns>
@@ -87,6 +89,8 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery] string label,
             [FromQuery] string lastChangedDateTime,
             [FromQuery] string createdDateTime,
+            [FromQuery] string visibleDateTime,
+            [FromQuery] string dueDateTime,
             string continuationToken,
             int? size)
         {
@@ -137,24 +141,18 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (!string.IsNullOrEmpty(appId))
             {                
-                KeyValuePair<string, List<Instance>> result = await _instanceRepository.GetInstancesOfApplication(appId, queryParams, continuationToken, pageSize);
-                if (result.Value == null || result.Value.Count == 0)
+                QueryResponse result = await _instanceRepository.GetInstancesOfApplication(appId, queryParams, continuationToken, pageSize);
+                if (result.TotalHits == 0)
                 {
                     return NotFound($"Did not find any instances for appId={appId}");
                 }
 
                 try
                 {
-                    string nextContinuationToken = HttpUtility.UrlEncode(result.Key);
-                    var queryResult = new
-                    {
-                        result = 1,
-                        size = pageSize,
-                        count = result.Value.Count,
-                        continuationToken = nextContinuationToken,
-                    };
+                    string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
+                    result.ContinuationToken = nextContinuationToken;
 
-                    HALResponse response = new HALResponse(queryResult);
+                    HALResponse response = new HALResponse(result);
 
                     Link selfLink = new Link("self", $"{url}{query}");
                     response.AddLinks(selfLink);
@@ -167,7 +165,7 @@ namespace Altinn.Platform.Storage.Controllers
                         response.AddLinks(nextLink);
                     }
 
-                    response.AddEmbeddedCollection("instances", result.Value);
+                    //response.AddEmbeddedCollection("instances", result.Instances);
                
                     return Ok(response);
                 }
@@ -228,20 +226,26 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]
-        public async Task<ActionResult> Post(string appId, int instanceOwnerId, [FromBody] Instance instanceTemplate)
+        public async Task<ActionResult> Post(string appId, int? instanceOwnerId, [FromBody] Instance instanceTemplate)
         {
-            if (instanceTemplate == null && instanceOwnerId == 0)
+            if (instanceTemplate == null && !instanceOwnerId.HasValue)
             {
                 return BadRequest("Missing parameter values: instanceOwnerId must be set");
             }
-            else if (instanceOwnerId == 0 && (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))) 
+            else if (!instanceOwnerId.HasValue && (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))) 
             {
                 return BadRequest("Missing parameter values: instanceOwnerId must be set");
             }
 
-            if (instanceOwnerId == 0 && instanceTemplate != null)
+            string theInstanceOwnerId = null;
+
+            if (instanceOwnerId.HasValue)
             {
-                instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
+                theInstanceOwnerId = instanceOwnerId.Value.ToString();
+            }
+            else if (instanceTemplate != null)
+            {
+                theInstanceOwnerId = instanceTemplate.InstanceOwnerId;
             }
 
             if (instanceTemplate == null)
@@ -279,7 +283,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             Instance createdInstance = new Instance()
             {
-                InstanceOwnerId = instanceOwnerId.ToString(),
+                InstanceOwnerId = theInstanceOwnerId,
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
                 LastChangedBy = User.Identity.Name,
@@ -292,9 +296,17 @@ namespace Altinn.Platform.Storage.Controllers
                 Labels = instanceTemplate.Labels,
                 PresentationField = instanceTemplate.PresentationField,
 
-                Workflow = new WorkflowState { CurrentStep = "FormFilling", IsComplete = false },
                 InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },                
             };
+
+            if (instanceTemplate.Workflow != null)
+            {
+                createdInstance.Workflow = instanceTemplate.Workflow;
+            }
+            else
+            {
+                createdInstance.Workflow = new WorkflowState { CurrentStep = "FormFilling_1", IsComplete = false };
+            }
 
             try
             {
@@ -303,8 +315,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to create {appId} instance for {instanceOwnerId} due to {e}");
-                return StatusCode(500, $"Unable to create {appId} instance for {instanceOwnerId} due to {e}");
+                logger.LogError($"Unable to create {appId} instance for {theInstanceOwnerId} due to {e}");
+                return StatusCode(500, $"Unable to create {appId} instance for {theInstanceOwnerId} due to {e}");
             }
         }
 

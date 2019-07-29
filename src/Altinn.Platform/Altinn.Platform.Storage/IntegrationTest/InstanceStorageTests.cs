@@ -83,7 +83,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Creates an instance of a service and asks then asks the service to get the instance. Checks if returned object has
+        /// Creates an instance of a service and then asks the service to get the instance. Checks if returned object has
         /// same values as object which was sent in.
         /// </summary>
         [Fact]
@@ -132,113 +132,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             response.EnsureSuccessStatusCode();
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
-        }
-
-        /// <summary>
-        ///  Checks that the GET returns an instance owners codes
-        /// </summary>
-        [Fact]
-        public async void GetInstancesForInstanceOwner()
-        {
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
-            HttpResponseMessage response = await client.GetAsync(url);
-
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.Equal(2, instances.Count);
-        }
-
-        /// <summary>
-        ///  Checks that multiple instances can be returned with org query param.
-        /// </summary>
-        [Fact]
-        public async void GetInstancesForOrg()
-        {
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string url = $"{versionPrefix}/instances?org={testOrg}";
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.Equal(2, instances.Count);
-        }
-
-        /// <summary>
-        ///  Checks that multiple instances can be returned with query param.
-        /// </summary>
-        [Fact]
-        public async void GetInstancesWithContinuationTokenAndHAL()
-        {
-            Instance instance1 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            Instance instance2 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
-
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            string contentType = response.Content.Headers.ContentType.ToString();
-
-            Assert.Contains("application/hal+json", contentType);
-
-            string jsonString = await response.Content.ReadAsStringAsync();
-            JObject jsonObject = JObject.Parse(jsonString);
-            var result = jsonObject["_embedded"]["instances"];
-
-            List<Instance> instances = result.ToObject<List<Instance>>();
-            Assert.Single(instances);
-
-            var nextUrl = jsonObject["_links"]["next"]["href"].ToString();
-
-            HttpResponseMessage response2 = await client.GetAsync(nextUrl);
-            response2.EnsureSuccessStatusCode();
-
-            string jsonString2 = await response2.Content.ReadAsStringAsync();
-            JObject jsonObject2 = JObject.Parse(jsonString2);
-
-            var result2 = jsonObject2["_embedded"]["instances"];
-            List<Instance> instances2 = result2.ToObject<List<Instance>>();
-            Assert.Single(instances2);          
-
-            var nextUrl2 = jsonObject2["_links"]["next"];
-            Assert.Null(nextUrl2);
-        }
-
-        /// <summary>
-        ///  Checks that multiple instances can be returned with org query param.
-        /// </summary>
-        [Fact]
-        public async void GetInstancesAsJson()
-        {
-            Instance instance1 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            Instance instance2 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string url = $"{versionPrefix}/instances?appId={testAppId}";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/json");
-
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            string contentType = response.Content.Headers.ContentType.ToString();
-
-            Assert.Contains("application/json", contentType);
-
-            string jsonString = await response.Content.ReadAsStringAsync();
-
-            Assert.True(true);
         }
 
         /// <summary>

@@ -117,14 +117,16 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<KeyValuePair<string, List<Instance>>> GetInstancesOfApplication(
+        public async Task<QueryResponse> GetInstancesOfApplication(
             string appId,
             Dictionary<string, string> queryParams,
             string continuationToken,
             int size)
         {
+            QueryResponse queryResponse = new QueryResponse();
+
             FeedOptions feedOptions = new FeedOptions
-            {               
+            {
                 EnableCrossPartitionQuery = true,
                 MaxItemCount = size,
             };
@@ -134,27 +136,68 @@ namespace Altinn.Platform.Storage.Repository
                 feedOptions.RequestContinuation = continuationToken;
             }
 
-            IOrderedQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
+            IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
 
-            queryBuilder.Where(i => i.AppId == appId);
-
+            queryBuilder = queryBuilder.Where(i => i.AppId == appId);
+    
             foreach (KeyValuePair<string, string> param in queryParams)
-            {                
+            {
+                if (param.Key.Equals("lastChangedDateTime"))
+                {
+                    string dateValue = param.Value;
+
+                    try
+                    {                        
+                        DateTime date = DateTime.Parse(dateValue);
+                        queryBuilder = queryBuilder.Where(i => i.LastChangedDateTime < date);
+                    }
+                    catch
+                    {
+                        logger.LogWarning($"Date format of lastChangedDataTime is wrong (try ISO-8601): {dateValue}");
+                    }
+                }
+
+                if (param.Key.Equals("process.currentTask"))
+                {
+                    string currentTaskId = param.Value;
+                    queryBuilder = queryBuilder.Where(i => i.Workflow.CurrentStep == currentTaskId);
+                }
             }
 
-            IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
-            
-            FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
+            try
+            {                
+                IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
+                
+                int matchingQuery = queryBuilder.Count();
 
-            string nextContinuationToken = feedResponse.ResponseContinuation;            
+                queryResponse.TotalHits = matchingQuery;                               
 
-            logger.LogInformation($"continuation token: {nextContinuationToken}");
+                if (queryResponse.TotalHits == 0)
+                {
+                    return queryResponse;
+                }
+               
+                FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
 
-            List<Instance> instances = feedResponse.ToList<Instance>();
+                string nextContinuationToken = feedResponse.ResponseContinuation;
 
-            PostProcess(instances);
+                logger.LogInformation($"continuation token: {nextContinuationToken}");
 
-            return new KeyValuePair<string, List<Instance>>(nextContinuationToken, instances);
+                List<Instance> instances = feedResponse.ToList<Instance>();
+
+                PostProcess(instances);
+
+                queryResponse.Instances = instances;
+                queryResponse.Size = size;
+                queryResponse.ContinuationToken = nextContinuationToken;
+                queryResponse.Count = instances.Count();
+            }
+            catch (Exception e)
+            {
+                logger.LogError("error: {e}");
+            }
+
+            return queryResponse;
         }
 
         /// <inheritdoc/>
