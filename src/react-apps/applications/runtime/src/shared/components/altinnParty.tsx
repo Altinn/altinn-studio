@@ -26,17 +26,20 @@ const styles = createStyles({
     },
   },
   partyIcon: {
-    fontSize: '36px',
     padding: 12,
-    paddingTop: 18,
+    paddingLeft: 28,
+    fontSize: '42px',
   },
   partyName: {
-    paddingTop: 12,
-    fontSize: '2rem',
+    padding: 12,
+    paddingTop: 24,
+    fontSize: '1.75rem',
     fontWeight: 700,
   },
   partyInfo: {
+    paddingTop: 26,
     fontSize: '1.5rem',
+    fontWeight: 300,
   },
 });
 
@@ -51,29 +54,24 @@ function AltinnParty(props: IAltinnPartyProps) {
   const isOrg: boolean = party.orgNumber != null;
 
   function onClickParty(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    event.preventDefault();
     onSelectParty(party);
   }
 
   return (
     <Paper className={isCurrent ? classes.partyCurrent : classes.partyPaper} onClick={onClickParty}>
       <Grid container={true}>
-        <Grid item={true}>
-          <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')}/>
-        </Grid>
-        <Grid item={true}>
-          <Grid item={true}>
-            <Typography className={classes.partyName}>
-              {party.name + (party.isDeleted ? ' (slettet)' : '')}
-            </Typography>
-            <Typography className={classes.partyInfo}>
-              {
-                isOrg ?
-                'Org.nr. ' + party.orgNumber :
-                'Personnr. ' + party.ssn
-              }
-            </Typography>
-          </Grid>
-        </Grid>
+        <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')}/>
+        <Typography className={classes.partyName}>
+          {party.name + (party.isDeleted ? ' (slettet)' : '')}
+        </Typography>
+        <Typography className={classes.partyInfo}>
+          {
+            isOrg ?
+            'org.nr. ' + party.orgNumber :
+            'personnr. ' + party.ssn
+          }
+        </Typography>
       </Grid>
     </Paper>
   );

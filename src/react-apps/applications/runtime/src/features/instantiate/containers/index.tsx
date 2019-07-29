@@ -8,6 +8,7 @@ import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IParty } from '../../../shared/resources/party';
+import PartyActions from '../../../shared/resources/party/partyActions';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { post } from '../../../utils/networking';
@@ -60,16 +61,16 @@ function ServiceInfo(props) {
 
   const validatatePartySelection = async () => {
     try {
-      if (!profile) {
+      if (!selectedParty) {
         return;
       }
       const { data } = await post(
         `${window.location.origin}/${org}/${service}` +
         `/api/v1/parties/validateInstantiation?partyId=${selectedParty.partyId}`,
       );
-      console.log(data);
       setPartyValidation(data);
     } catch (err) {
+      console.error(err);
       throw new Error('Server did not respond with party validation');
     }
   };
@@ -78,22 +79,30 @@ function ServiceInfo(props) {
     if (!profile) {
       ProfileActions.fetchProfile(`${window.location.origin}/${org}/${service}/api/v1/profile/user`);
     }
+    if (!selectedParty) {
+      PartyActions.selectParty(profile.party);
+    }
     if (!partyValidation) {
       validatatePartySelection();
     }
     if (!instanceId && profile !== null && partyValidation !== null) {
       createNewInstance();
     }
-  }, [profile, instanceId, partyValidation]);
-
-  if (!selectedParty) {
-    return (
-      <Redirect to={'/partyselection'}/>
-    );
-  }
+  }, [profile, instanceId, partyValidation, selectedParty]);
 
   if (partyValidation !== null && !partyValidation.valid) {
-    if (partyValidation.validParties.length > 0) {
+    if (partyValidation.validParties.length === 0) {
+      return (
+        <Redirect
+          to={{
+            pathname: '/error',
+            state: {
+              message: partyValidation.message,
+            },
+          }}
+        />
+      );
+    } else {
       return (
         <Redirect
           to={{
@@ -105,6 +114,9 @@ function ServiceInfo(props) {
         />
       );
     }
+  }
+
+  if (partyValidation !== null && !partyValidation.valid) {
     return (
       <Redirect to={'/partyselection'}/>
     );

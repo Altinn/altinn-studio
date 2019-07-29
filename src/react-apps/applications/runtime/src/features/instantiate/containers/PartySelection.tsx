@@ -11,7 +11,6 @@ import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
-import { IProfile } from '../../../shared/resources/profile';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 
@@ -92,14 +91,15 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function renderParties() {
-    if (!parties || !profile) {
+    if (!profile || !parties) {
       return null;
     }
     // Set the current selected party first in the array and concat rest (without the current)
     let partiesElements: IParty[] = [];
+    let currentParty: IParty = null;
 
-    const currentParty: IParty = parties.find((party) => party.partyId === profile.partyId);
     if (!location.state || !(location.state as IRedirectValidPartes).validParties) {
+      currentParty = parties.find((party) => party.partyId === profile.partyId);
       partiesElements = [currentParty].concat(
         parties.map(
           (party: IParty) => party.partyId !== currentParty.partyId ? party : null,
@@ -108,19 +108,23 @@ function PartySelection(props: IPartySelectionProps) {
         ),
       );
     } else {
-      const { validParties } = (location.state as IRedirectValidPartes);
-      partiesElements = [currentParty].concat(
-        validParties.map(
-          (party: IParty) => party.partyId !== currentParty.partyId ? party : null,
-        ).filter(
-          (party: IParty) => party != null,
-        ),
-      );
+      partiesElements = (location.state as IRedirectValidPartes).validParties;
     }
     if (selectedParty !== null) {
-      return (
-        <Redirect to={'/instantiate'}/>
-      );
+      if (!location.state || !(location.state as IRedirectValidPartes).validParties) {
+        return (
+          <Redirect to={'/instantiate'}/>
+        );
+      } else {
+        const { validParties } = (location.state as IRedirectValidPartes);
+        for (const party of validParties) {
+          if (selectedParty.partyId === party.partyId) {
+            return (
+              <Redirect to={'/instantiate'}/>
+            );
+          }
+        }
+      }
     }
     return (
       <>
@@ -130,7 +134,7 @@ function PartySelection(props: IPartySelectionProps) {
               <AltinnParty
                 key={index}
                 party={party}
-                isCurrent={party.partyId === currentParty.partyId}
+                isCurrent={currentParty !== null && party.partyId === currentParty.partyId}
                 onSelectParty={onSelectParty}
               />
               : null
