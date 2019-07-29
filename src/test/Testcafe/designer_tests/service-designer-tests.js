@@ -29,8 +29,8 @@ test('Add one of each component to the designer using keyboard', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
     .click(designer.lageNavigationTab)
-    .expect(designer.inputBtn.visible).ok()
-    .click(designer.inputBtn)
+    .expect(designer.inputComponent.visible).ok()
+    .click(designer.inputComponent)
     .pressKey('enter') //input button
     .pressKey('tab')
     .pressKey('enter') //datepicker
