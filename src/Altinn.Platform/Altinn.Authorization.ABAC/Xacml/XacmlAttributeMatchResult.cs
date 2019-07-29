@@ -1,0 +1,23 @@
+namespace Altinn.Authorization.ABAC.Xacml
+{
+    /// <summary>
+    /// Internal enum to be used in matching of attributes
+    /// </summary>
+    public enum XacmlAttributeMatchResult
+    {
+        /// <summary>
+        /// Permits a action if rules is fulfilled
+        /// </summary>
+        NoMatch,
+
+        /// <summary>
+        /// A Required attribute in the policy is missing
+        /// </summary>
+        RequiredAttributeMissing,
+
+        /// <summary>
+        /// All attributes matches
+        /// </summary>
+        Match, 
+    }
+}

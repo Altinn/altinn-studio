@@ -59,7 +59,15 @@ namespace Altinn.Authorization.ABAC
             
             ClaimsPrincipal principal = pip.GetClaimsPrincipal(request);
 
-            ICollection<XacmlRule> matchingRules = GetMatchingRules(policy, request);
+            bool requiredAttributesMissingFromContextRequest = false;
+            ICollection<XacmlRule> matchingRules = GetMatchingRules(policy, request, out requiredAttributesMissingFromContextRequest);
+
+            if (requiredAttributesMissingFromContextRequest)
+            {
+                contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate);
+                contextResult.Status = new XacmlContextStatus(XacmlContextStatusCode.MissingAttribute);
+                return new XacmlContextResponse(contextResult);
+            }
 
             if (matchingRules == null || matchingRules.Count == 0)
             {
@@ -80,7 +88,8 @@ namespace Altinn.Authorization.ABAC
                 {
                     // The subject has not been converted to a claims principal, need to authorize based
                     // on the information in the Xacml context request
-                    if (rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Subject))
+                    XacmlAttributeMatchResult subjectMatchResult = rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Subject);
+                    if (subjectMatchResult.Equals(XacmlAttributeMatchResult.Match))
                     {
                         if (rule.Effect.Equals(XacmlEffectType.Permit))
                         {
@@ -90,6 +99,12 @@ namespace Altinn.Authorization.ABAC
                         {
                             decision = XacmlContextDecision.Deny;
                         }
+                    }
+                    else if (subjectMatchResult.Equals(XacmlAttributeMatchResult.RequiredAttributeMissing))
+                    {
+                        contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate);
+                        contextResult.Status = new XacmlContextStatus(XacmlContextStatusCode.Success);
+                        return new XacmlContextResponse(contextResult);
                     }
                     else
                     {
@@ -125,16 +140,24 @@ namespace Altinn.Authorization.ABAC
         /// <param name="policy">The policy</param>
         /// <param name="request">The context request</param>
         /// <returns></returns>
-        private ICollection<XacmlRule> GetMatchingRules(XacmlPolicy policy, XacmlContextRequest request)
+        private ICollection<XacmlRule> GetMatchingRules(XacmlPolicy policy, XacmlContextRequest request, out bool requiredAttributeMissing)
         {
             ICollection<XacmlRule> matchingRules = new Collection<XacmlRule>();
 
+            requiredAttributeMissing = false;
+
             foreach (XacmlRule rule in policy.Rules)
             {
-                if (rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Resource) &&
-                    rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Action))
+                XacmlAttributeMatchResult resourceMatch = rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Resource);
+                XacmlAttributeMatchResult actionMatch = rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Action);
+
+                if (resourceMatch.Equals(XacmlAttributeMatchResult.Match) && actionMatch.Equals(XacmlAttributeMatchResult.Match))
                 {
                     matchingRules.Add(rule);
+                }
+                else if (resourceMatch.Equals(XacmlAttributeMatchResult.RequiredAttributeMissing) || actionMatch.Equals(XacmlAttributeMatchResult.RequiredAttributeMissing))
+                {
+                    requiredAttributeMissing = true;
                 }
             }
 

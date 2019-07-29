@@ -128,12 +128,12 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <param name="request">The request</param>
         /// <param name="category">The attribute category</param>
         /// <returns></returns>
-        public bool MatchAttributes(XacmlContextRequest request, string category)
+        public XacmlAttributeMatchResult MatchAttributes(XacmlContextRequest request, string category)
         {
             Dictionary<string, XacmlAttribute> requestAttributes = GetCategoryAttributes(request, category);
 
-            bool isMatch = false;
-
+            XacmlAttributeMatchResult xacmlAttributeMatchResult = XacmlAttributeMatchResult.NoMatch;
+         
             foreach (XacmlAnyOf anyOf in Target.AnyOf)
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
@@ -160,6 +160,10 @@ namespace Altinn.Authorization.ABAC.Xacml
                             else
                             {
                                 allAttributesInAllOfMatched = false;
+                                if (xacmlMatch.AttributeDesignator.MustBePresent.HasValue && xacmlMatch.AttributeDesignator.MustBePresent.Value)
+                                {
+                                    xacmlAttributeMatchResult = XacmlAttributeMatchResult.RequiredAttributeMissing;
+                                }
                             }
                         }
                     }
@@ -167,12 +171,12 @@ namespace Altinn.Authorization.ABAC.Xacml
                     if (allAttributesInAllOfMatched && matchinAttributeCategoryFoundInAllOf)
                     {
                         // All allOff matches for attributes in a anyOff did match.
-                        isMatch = true;
+                        xacmlAttributeMatchResult = XacmlAttributeMatchResult.Match;
                     }
                 }
             }
 
-            return isMatch;
+            return xacmlAttributeMatchResult;
         }
 
         /// <summary>

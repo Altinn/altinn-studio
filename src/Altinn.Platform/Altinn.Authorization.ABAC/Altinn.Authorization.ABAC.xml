@@ -854,7 +854,7 @@
             <param name="request">The Xacml Context request</param>
             <returns></returns>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.GetMatchingRules(Altinn.Authorization.ABAC.Xacml.XacmlPolicy,Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.GetMatchingRules(Altinn.Authorization.ABAC.Xacml.XacmlPolicy,Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,System.Boolean@)">
             <summary>
             Returns the list of rules that matched the ContextRequest
             </summary>
@@ -1403,6 +1403,26 @@
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator.Category">
             <summary>
             This attribute SHALL specify the Category with which to match the attribute.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult">
+            <summary>
+            Internal enum to be used in matching of attributes
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.NoMatch">
+            <summary>
+            Permits a action if rules is fulfilled
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.RequiredAttributeMissing">
+            <summary>
+            A Required attribute in the policy is missing
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.Match">
+            <summary>
+            All attributes matches
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector">

@@ -71,6 +71,32 @@ namespace Altinn.Authorization.ABAC.UnitTest
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
 
+        [Fact]
+        public void PDP_AuthorizeAccess_IIA006()
+        {
+            bool contextRequstIsEnriched = false;
+            string testCase = "IIA006";
+
+            XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, null);
+
+            AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
+        }
+
+        [Fact]
+        public void PDP_AuthorizeAccess_IIA007()
+        {
+            bool contextRequstIsEnriched = false;
+            string testCase = "IIA007";
+
+            XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, null);
+
+            AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
+        }
+
+
+
         private XacmlContextResponse SetuUpPolicyDecisionPoint(string testCase, bool contextRequstIsEnriched, ClaimsPrincipal principal)
         {
             XacmlContextRequest contextRequest = XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetConformancePath());
