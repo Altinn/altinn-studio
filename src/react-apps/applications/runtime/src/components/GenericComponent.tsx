@@ -29,6 +29,7 @@ export interface IGenericComponentProps extends IProvidedProps {
   textResources: ITextResource[];
   layoutElement: ILayoutGroup | ILayoutComponent;
   unsavedChanges: boolean;
+  language: any;
 }
 
 export class GenericComponentClass extends React.Component<IGenericComponentProps, any> {
@@ -43,8 +44,8 @@ export class GenericComponentClass extends React.Component<IGenericComponentProp
     const component = this.props.layoutElement as ILayoutComponent;
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-      const { org, service, instanceId, reportee } = altinnWindow;
-      const url = `${window.location.origin}/${org}/${service}/api/${reportee}/${instanceId}`;
+      const { org, service, instanceId } = altinnWindow;
+      const url = `${window.location.origin}/${org}/${service}/api/${instanceId}`;
       ValidationActions.runSingleFieldValidation(url, dataModelField);
     }
     const dataModelElement = this.props.dataModel.find(
@@ -92,6 +93,7 @@ export class GenericComponentClass extends React.Component<IGenericComponentProp
         getTextResource={this.getTextResource}
         formData={this.getFormData()}
         isValid={this.props.isValid}
+        language={this.props.language}
       />
     );
   }
@@ -123,6 +125,7 @@ const makeMapStateToProps = () => {
       textResources: state.formResources.languageResource.resources,
       formData: GetFormDataSelector(state, props),
       unsavedChanges: state.formData.unsavedChanges,
+      language: state.language.language,
       ...props,
     };
   };

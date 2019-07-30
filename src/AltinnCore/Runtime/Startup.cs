@@ -279,14 +279,14 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "uiRoute",
-                    template: "{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",
+                    template: "{org}/{service}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
                         action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                        instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -386,13 +386,13 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiAttachmentRoute",
-                    template: "{org}/{service}/api/attachment/{partyId}/{instanceId}/{action}",
+                    template: "{org}/{service}/api/attachment/{partyId}/{instanceGuid}/{action}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                        instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -407,12 +407,14 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "apiWorkflowRoute",
-                    template: "{org}/{service}/api/workflow/{partyId}/{action}/{instanceId?}",
+                    template: "{org}/{service}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
                     defaults: new { controller = "ServiceAPI" },
                     constraints: new
                     {
                         controller = "ServiceAPI",
+                        partyId = "[0-9]+",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -427,12 +429,14 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiRoute",
-                    template: "{org}/{service}/api/{reportee}/{action=Index}/{instanceId?}",
-                    defaults: new { controller = "ServiceAPI" },
+                    template: "{org}/{service}/api/{partyId}/{instanceId}",
+                    defaults: new { action = "Gindex", controller = "ServiceAPI" },
                     constraints: new
                     {
                         controller = "ServiceAPI",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        partyId = "[0-9]{1,20}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(

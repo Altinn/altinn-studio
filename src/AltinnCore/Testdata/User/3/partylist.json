@@ -1,45 +1,58 @@
 [
-  {
-    "SSN": "01039012345",
-    "PartyId": "3",
-    "PartyTypeName": "Person",
-	"Person": 
-		{
-			"SSN": "01039012345",
-			"Name": "Anne Sophie Næringsdrivende",
-			"FirstName": "Anne",
-			"MiddleName": "Sophie",
-			"LastName": "Næringsdrivende"
-		}	
-  },
-  {
-    "OrgNumber": "900000002",
-    "PartyId": "10002",
-    "PartyTypeName": "Organization",
-	"Organization": 
-		{
-			"OrgNumber": "900000002",
-			"Name": "Frisk & Sporty Oslo",
-		}	
-  },
-  {
-    "OrgNumber": "900000003",
-    "PartyId": "10003",
-    "PartyTypeName": "Organization",
-	"Organization": 
-		{
-			"OrgNumber": "900000003",
-			"Name": "Frisk & Sporty Bergen",
-		}	
-  },
-  {
-    "OrgNumber": "900000004",
-    "PartyId": "10004",
-    "PartyTypeName": "Organization",
-	"Organization": 
-		{
-			"OrgNumber": "900000004",
-			"Name": "Frisk & Sporty Trondheim",
-		}	
-  }   
+	{
+		"partyTypeName": "Person",
+		"orgNumber": null,
+		"person": null,
+		"organization": null,
+		"partyID": "3",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "01039012345",
+		"name": "Anne Sophie Næringsdrivende",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000002",
+		"person": null,
+		"organization": null,
+		"partyID": "10002",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Oslo",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000003",
+		"person": null,
+		"organization": null,
+		"partyID": "10003",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Bergen",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000004",
+		"person": null,
+		"organization": null,
+		"partyID": "10004",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Trondheim",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	}
 ]

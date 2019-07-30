@@ -3,7 +3,7 @@ import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import { AddressComponent, getTextResourceByAddressKey } from '../../../src/components/advanced/AddressComponent';
+import { AddressComponent } from '../../../src/components/advanced/AddressComponent';
 
 export interface ITextResourceBindings {
   [id: string]: string;
@@ -26,6 +26,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
   let mockValidationMessages: any;
   let mockDataBinding: any;
   let mockReadOnly: boolean;
+  let mockLanguage: any;
 
   mockId = 'mock-id';
   mockFormData = { address: 'adresse 1' };
@@ -38,6 +39,19 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
   mockValidationMessages = {
     zipCode: null,
     houseNumber: null,
+  };
+  mockLanguage = {
+    ux_editor: {
+      modal_configure_address_component_address: 'Adresse',
+      modal_configure_address_component_address_text_binding: 'Søk etter ledetekst for Adresse-feltet',
+      modal_configure_address_component_care_of: 'C/O eller annen tilleggsadresse',
+      modal_configure_address_component_house_number: 'Bolignummer',
+      modal_configure_address_component_house_number_helper: 'Om addressen er felles for flere boenhenter må du oppgi' +
+      ' bolignummer. Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.',
+      modal_configure_address_component_post_place: 'Poststed',
+      modal_configure_address_component_simplified: 'Enkel',
+      modal_configure_address_component_zip_code: 'Postnr',
+    },
   };
 
   it('>>> Capture snapshot of AddressComponent', () => {
@@ -52,6 +66,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        language={mockLanguage}
       />,
     );
     expect(rendered).toMatchSnapshot();
@@ -68,6 +83,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        language={mockLanguage}
       />,
     );
     const instance = shallowAddressComponent.instance() as AddressComponent;
@@ -86,6 +102,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        language={mockLanguage}
       />,
     );
     expect(shallowAddressComponent.find('input').length).toBe(3);
@@ -102,6 +119,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        language={mockLanguage}
       />,
     );
     const instance = mountedAddressComponent.instance() as AddressComponent;
@@ -124,6 +142,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        language={mockLanguage}
       />,
     );
     expect(shallowAddressComponent.find('.address-component-small-inputs').hasClass('disabled')).toBe(false);
@@ -140,6 +159,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={true}
+        language={mockLanguage}
       />,
     );
     shallowAddressComponent.find('input').forEach((node: any) => {
@@ -158,6 +178,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={true}
+        language={mockLanguage}
       />,
     );
     shallowAddressComponent.find('input').forEach((node: any) => {
@@ -177,6 +198,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        language={mockLanguage}
       />,
     );
     const instance = mountedAddressComponent.instance() as AddressComponent;
@@ -205,6 +227,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        language={mockLanguage}
       />,
     );
     const instance = mountedAddressComponent.instance() as AddressComponent;
@@ -215,37 +238,6 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     inputField.simulate('change');
     expect(spyUpdateField).toHaveBeenCalled();
   });
-  it('+++ getTextResourceByAddressKey should return the correct key', () => {
-    let mockKey = AddressKeys.address;
-    const mockLanguage = {
-      ux_editor: {
-        modal_configure_address_component_address: 'Adresse',
-        modal_configure_address_component_zip_code: 'Postnr',
-        modal_configure_address_component_house_number: 'Bolignummer',
-        modal_configure_address_component_care_of: 'C/O eller annen tilleggsadresse',
-        modal_configure_address_component_post_place: 'Poststed',
-      },
-    };
-    const result1 = getTextResourceByAddressKey(mockKey, mockLanguage);
-    expect(result1).toEqual('Adresse');
-
-    mockKey = AddressKeys.zipCode;
-    const result2 = getTextResourceByAddressKey(mockKey, mockLanguage);
-    expect(result2).toEqual('Postnr');
-
-    mockKey = AddressKeys.houseNumber;
-    const result3 = getTextResourceByAddressKey(mockKey, mockLanguage);
-    expect(result3).toEqual('Bolignummer');
-
-    mockKey = AddressKeys.careOf;
-    const result4 = getTextResourceByAddressKey(mockKey, mockLanguage);
-    expect(result4).toEqual('C/O eller annen tilleggsadresse');
-
-    mockKey = AddressKeys.postPlace;
-    const result5 = getTextResourceByAddressKey(mockKey, mockLanguage);
-    expect(result5).toEqual('Poststed');
-  });
-
   it('+++ joinValidationMessages should return all validations in correct format', () => {
     const mockResult = {
       address: {
@@ -279,6 +271,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         simplified={mockSimplified}
         dataModelBindings={mockDataBinding}
         readOnly={mockReadOnly}
+        language={mockLanguage}
       />,
     );
     const instance = mountedAddressComponent.instance() as AddressComponent;

@@ -93,9 +93,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     const component = this.props.components[id];
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-      const { org, service, instanceId, reportee } = altinnWindow;
+      const { org, service, instanceId } = altinnWindow;
       FormFillerActionDispatchers.runSingleFieldValidation(
-        `${window.location.origin}/${org}/${service}/api/${reportee}/${instanceId}`,
+        `${window.location.origin}/${org}/${service}/api/${instanceId}`,
         dataBindingName,
       );
     }

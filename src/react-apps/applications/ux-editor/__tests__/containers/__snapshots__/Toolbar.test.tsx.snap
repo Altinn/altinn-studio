@@ -1,0 +1,191 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
+<div
+  className="col-sm-12"
+>
+  <ul
+    className="MuiList-root-5 MuiList-padding-6"
+    id="collapsable-items"
+    tabIndex={-1}
+  >
+    <li
+      className="MuiListItem-root-13 Connect-ToolbarItem--collapsableButton-11 MuiListItem-default-16 MuiListItem-gutters-21"
+      disabled={false}
+      onClick={[Function]}
+      onKeyPress={[Function]}
+      tabIndex={0}
+    >
+      <div
+        className="Connect-ToolbarItem--listItemIcon-12"
+      >
+        <i
+          className="fa fa-expand-alt fa-rotate-90"
+          style={
+            Object {
+              "color": "",
+              "fontSize": null,
+              "fontWeight": null,
+              "margin": null,
+              "padding": null,
+            }
+          }
+        />
+      </div>
+      <div
+        className="MuiListItemText-root-26 Connect-ToolbarItem--collapsableButtonTextRoot-10"
+      />
+    </li>
+    <div
+      className="MuiCollapse-container-32 Connect-ToolbarClass--collapsableContainer-4 MuiCollapse-entered-33"
+      style={
+        Object {
+          "minHeight": "0px",
+        }
+      }
+    >
+      <div
+        className="MuiCollapse-wrapper-34"
+      >
+        <div
+          className="MuiCollapse-wrapperInner-35"
+        >
+          <ul
+            className="MuiList-root-5 MuiList-padding-6"
+            id="schema-components"
+          >
+            <div />
+            <div />
+            <div />
+            <div />
+            <div />
+            <div />
+            <div />
+          </ul>
+        </div>
+      </div>
+    </div>
+    <li
+      className="MuiListItem-root-13 Connect-ToolbarItem--collapsableButton-11 MuiListItem-default-16 MuiListItem-gutters-21"
+      disabled={false}
+      onClick={[Function]}
+      onKeyPress={[Function]}
+      tabIndex={0}
+    >
+      <div
+        className="Connect-ToolbarItem--listItemIcon-12"
+      >
+        <i
+          className="fa fa-expand-alt fa-rotate-90"
+          style={
+            Object {
+              "color": "",
+              "fontSize": null,
+              "fontWeight": null,
+              "margin": null,
+              "padding": null,
+            }
+          }
+        />
+      </div>
+      <div
+        className="MuiListItemText-root-26 Connect-ToolbarItem--collapsableButtonTextRoot-10"
+      />
+    </li>
+    <div
+      className="MuiCollapse-container-32 Connect-ToolbarClass--collapsableContainer-4 MuiCollapse-entered-33"
+      style={
+        Object {
+          "minHeight": "0px",
+        }
+      }
+    >
+      <div
+        className="MuiCollapse-wrapper-34"
+      >
+        <div
+          className="MuiCollapse-wrapperInner-35"
+        >
+          <ul
+            className="MuiList-root-5 MuiList-padding-6"
+            id="schema-texts"
+          >
+            <div />
+            <div />
+          </ul>
+        </div>
+      </div>
+    </div>
+    <li
+      className="MuiListItem-root-13 Connect-ToolbarItem--collapsableButton-11 MuiListItem-default-16 MuiListItem-gutters-21"
+      disabled={false}
+      onClick={[Function]}
+      onKeyPress={[Function]}
+      tabIndex={0}
+    >
+      <div
+        className="Connect-ToolbarItem--listItemIcon-12"
+      >
+        <i
+          className="fa fa-expand-alt fa-rotate-90"
+          style={
+            Object {
+              "color": "",
+              "fontSize": null,
+              "fontWeight": null,
+              "margin": null,
+              "padding": null,
+            }
+          }
+        />
+      </div>
+      <div
+        className="MuiListItemText-root-26 Connect-ToolbarItem--collapsableButtonTextRoot-10"
+      />
+    </li>
+    <div
+      className="MuiCollapse-container-32 Connect-ToolbarClass--collapsableContainer-4 MuiCollapse-entered-33"
+      style={
+        Object {
+          "minHeight": "0px",
+        }
+      }
+    >
+      <div
+        className="MuiCollapse-wrapper-34"
+      >
+        <div
+          className="MuiCollapse-wrapperInner-35"
+        >
+          <ul
+            className="MuiList-root-5 MuiList-padding-6"
+            id="advanced-components"
+          >
+            <div />
+          </ul>
+        </div>
+      </div>
+    </div>
+  </ul>
+  <div
+    className="d-block"
+  >
+    <p
+      className="a-fontSizeS mt-2 mb-1"
+    />
+    <button
+      className="a-btn a-btn-action a-fullWidthBtn a-btnBigger"
+      onClick={[Function]}
+      type="button"
+    >
+      <i
+        className="fa fa-plus a-blue"
+        onClick={[Function]}
+      />
+      <span
+        className="a-fontSizeXS"
+      />
+    </button>
+  </div>
+</div>
+`;

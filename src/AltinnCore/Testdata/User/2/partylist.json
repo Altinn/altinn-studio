@@ -1,25 +1,30 @@
 [
-  {
-    "SSN": "02017512345",
-    "PartyId": "2",
-    "PartyTypeName": "Person",
-	"Person": 
-		{
-			"SSN": "02017512345",
-			"Name": "Kari Selvstendig",
-			"FirstName": "Kari",
-			"MiddleName": "",
-			"LastName": "Selvstendig"
-		}	
-  },
-  {
-    "OrgNumber": "900000001",
-    "PartyId": "10001",
-    "PartyTypeName": "Organization",
-	"Organization": 
-		{
-			"OrgNumber": "900000001",
-			"Name": "Kari Consulting",
-		}	
-  }    
-] 
+	{
+		"partyTypeName": "Person",
+		"orgNumber": null,
+		"person": null,
+		"organization": null,
+		"partyID": "2",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "02017512345",
+		"name": "Kari Selvstendig",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000001",
+		"person": null,
+		"organization": null,
+		"partyID": "10001",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "02017512345",
+		"name": "Kari Consulting",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	}
+]

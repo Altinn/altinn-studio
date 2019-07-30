@@ -44,6 +44,7 @@ function ServiceInfo(props) {
 
       if (response.data.instanceId) {
         setInstanceId(response.data.instanceId);
+        (window as any).instanceId = response.data.instanceId;
       } else {
         setInstantiationError(new Error(
           'Server responded without instanceId',
@@ -65,7 +66,7 @@ function ServiceInfo(props) {
 
   if (instanceId) {
     return (
-      <Redirect to={`/instance/${reportee.partyId}/${instanceId}`} />
+      <Redirect to={`/instance/${instanceId}`} />
     );
   } else {
     const { classes } = props;
