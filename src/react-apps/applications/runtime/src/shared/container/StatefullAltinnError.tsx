@@ -3,9 +3,9 @@ import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { RouteProps } from 'react-router-dom';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
+import { IAltinnWindow } from 'src/types';
 import { changeBodyBackground } from '../../utils/bodyStyling';
 import AltinnError from '../components/altinnError';
-import { IAltinnWindow } from 'src/types';
 
 const styles = createStyles({
   statefulErrorPage: {

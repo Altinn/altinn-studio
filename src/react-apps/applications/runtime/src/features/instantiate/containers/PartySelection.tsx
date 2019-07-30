@@ -26,7 +26,21 @@ const styles = createStyles({
     padding: 12,
   },
   partySelectionTitle: {
-    fontSize: '3rem',
+    fontSize: '3.5rem',
+    fontWeight: 200,
+    paddingBottom: 18,
+    padding: 12,
+  },
+  partySearchFieldContainer: {
+    padding: 12,
+    paddingTop: 8,
+    width: '780px',
+  },
+  partySelectionSubTitle: {
+    fontSize: '1.75rem',
+    fontWeight: 600,
+    paddingTop: 24,
+    paddingBottom: 18,
     padding: 12,
   },
   loadMoreButton: {
@@ -39,9 +53,11 @@ const styles = createStyles({
     marginLeft: '1.5rem',
   },
   loadMoreButtonText: {
-    fontSize: '1.2rem',
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '1.75rem',
     marginLeft: '1.2rem',
-    fontWeight: 'bold',
+    fontWeight: 500,
   },
 });
 
@@ -176,19 +192,20 @@ function PartySelection(props: IPartySelectionProps) {
       <Header
         language={language}
         profile={profile}
+        type={'normal'}
       />
         <Grid container={true}>
           <Typography className={classes.partySelectionTitle}>
             Hvem vil du sende inn for?
           </Typography>
         </Grid>
-        <Grid container={true}>
+        <Grid container={true} className={classes.partySearchFieldContainer}>
           <AltinnPartySearch
             onSearchUpdated={onFilterStringChange}
           />
         </Grid>
         <Grid container={true}>
-          <Typography variant='headline'>
+          <Typography className={classes.partySelectionSubTitle}>
             Dine aktører som kan starte tjenesten:
           </Typography>
           {renderParties()}

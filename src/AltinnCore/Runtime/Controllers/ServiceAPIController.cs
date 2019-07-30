@@ -155,7 +155,7 @@ namespace AltinnCore.Runtime.Controllers
 
             ViewBag.PlatformServices = _platformSI;
 
-            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Instance instance = await _instance.GetInstance(service, org, partyId, instanceId);
             Guid dataId = Guid.Parse(instance.Data.Find(m => m.ElementType.Equals(FORM_ID)).Id);
 
             // Getting the Form Data from datastore
@@ -457,7 +457,7 @@ namespace AltinnCore.Runtime.Controllers
                     CurrentStep = currentState.State.ToString(),
                     IsComplete = false,
                 };
-                
+
                 await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.ReporteeId, instanceId);
 
                 Response.StatusCode = 200;

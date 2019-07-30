@@ -163,7 +163,7 @@ namespace AltinnCore.Runtime.Controllers
             PopulateViewBag(org, service, instanceGuid, 0, requestContext, serviceContext, _platformSI);
 
             // Getting the Form Data
-            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceGuid);
+            Instance instance = await _instance.GetInstance(service, org, partyId, instanceGuid);
             Guid.TryParse(instance.Data.Find(m => m.ElementType == FORM_ID).Id, out Guid dataId);
             object serviceModel = _data.GetFormData(instanceGuid, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, dataId);
             serviceImplementation.SetServiceModel(serviceModel);
