@@ -14,6 +14,7 @@ using Altinn.Platform.Authentication.Model;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -50,6 +51,11 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet]
         public async Task<ActionResult> Get(string goTo)
         {
+            if (!IsValidRedirectUri(new Uri(goTo).Host))
+            {
+                return Redirect($"{_generalSettings.GetBaseUrl}");
+            }
+
             string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
             if (Request.Cookies[_generalSettings.GetSBLCookieName] == null)
             {
@@ -117,6 +123,22 @@ namespace Altinn.Platform.Authentication.Controllers
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Checks that url is on same host as platform
+        /// </summary>
+        /// <param name="goToHost">The url to redirect to</param>
+        /// <returns>Boolean verifying that goToHost is on current host. </returns>
+        public bool IsValidRedirectUri(string goToHost)
+        {
+            string validHost = _generalSettings.GetHostName;
+            int segments = _generalSettings.GetHostName.Split('.').Length;
+
+            List<string> goToList = Enumerable.Reverse(new List<string>(goToHost.Split('.'))).Take(segments).Reverse().ToList();     
+            string redirectHost = string.Join(".", goToList);
+
+            return validHost.Equals(redirectHost);
         }
     }
 }

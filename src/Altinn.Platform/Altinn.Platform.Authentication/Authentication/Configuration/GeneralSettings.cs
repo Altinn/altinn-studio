@@ -105,5 +105,37 @@ namespace Altinn.Platform.Authentication.Configuration
                 return Environment.GetEnvironmentVariable("GeneralSettings__GetJwtCookieValidityTime") ?? JwtCookieValidityTime;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the hostname
+        /// </summary>
+        public string HostName { get; set; }
+
+        /// <summary>
+        /// Gets the jwt cookie validity time from kubernetes environment variables and appsettings if environment variable is not set
+        /// </summary>
+        public string GetHostName
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__HostName") ?? HostName;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the BaseUrl
+        /// </summary>
+        public string BaseUrl { get; set; }
+
+        /// <summary>
+        /// Gets the jwt cookie validity time from kubernetes environment variables and appsettings if environment variable is not set
+        /// </summary>
+        public string GetBaseUrl
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__BaseUrl") ?? BaseUrl;
+            }
+        }        
     }
 }
