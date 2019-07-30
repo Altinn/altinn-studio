@@ -32,7 +32,9 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
       validateEmptyFields(state.formData.formData, state.formLayout.layout, state.language.language);
 
     validations = Object.assign(validations, componentSpesificValidations);
-    validations = Object.assign(validations, emptyFieldsValidations);
+    if (apiMode === 'Complete') {
+      validations = Object.assign(validations, emptyFieldsValidations);
+    }
     if (canFormBeSaved(validations)) {
       const result = yield call(put, url, apiMode || 'Update', model);
       yield call(FormDataActions.submitFormDataFulfilled);

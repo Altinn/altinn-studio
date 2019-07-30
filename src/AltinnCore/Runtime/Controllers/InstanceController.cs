@@ -17,6 +17,7 @@ using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Common.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -302,6 +303,13 @@ namespace AltinnCore.Runtime.Controllers
             // Populate the reportee information
             requestContext.UserContext.Reportee = await _register.GetParty(startServiceModel.PartyId);
             requestContext.Reportee = requestContext.UserContext.Reportee;
+
+            // Checks if the reportee is allowed to initiate the application
+            Application application = _repository.GetApplication(startServiceModel.Org, startServiceModel.Service);
+            if (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Reportee, application.PartyTypesAllowed) )
+            {
+                    return new StatusCodeResult(403);
+            }
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it available in ViewBag so it can be used from Views

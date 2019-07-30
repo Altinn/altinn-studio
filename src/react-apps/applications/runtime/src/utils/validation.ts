@@ -1,7 +1,7 @@
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { IFormData } from '../features/form/data/reducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
-import { IComponentValidations, IDataModelFieldElement, IFormFileUploaderComponent, IValidations } from '../types/global';
+import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
 export function min(value: number, test: number): boolean {
@@ -52,8 +52,8 @@ export function validateEmptyFields(
   formLayout: any,
   language: any,
 ) {
-  const validations = {};
-  formLayout.forEach((component) => {
+  const validations: any = {};
+  formLayout.forEach((component: any) => {
     if (!component.hidden && component.required) {
       const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
         component.dataModelBindings[binding]);
@@ -84,10 +84,10 @@ export function validateFormComponents(
   formLayout: any,
   language: any,
 ) {
-  const validations = {};
+  const validations: any = {};
   const numberOfAttachments = attachments ? Object.keys(attachments).length : 0;
   const fieldKey = 'simpleBinding';
-  formLayout.forEach((component) => {
+  formLayout.forEach((component: any) => {
     if (!component.hidden) {
       if (component.type === 'FileUpload') {
         if (component.minNumberOfAttachments > 0 && numberOfAttachments < 1 ||
@@ -236,7 +236,7 @@ export function canFormBeSaved(validations: IValidations) {
       const componentErrors = componentValidations[bindingKey].errors;
       if (componentErrors) {
         return componentErrors.every((error) => (
-          validErrorMessages.includes(error)
+          validErrorMessages.indexOf(error) > -1
         ));
       } else {
         return true;
