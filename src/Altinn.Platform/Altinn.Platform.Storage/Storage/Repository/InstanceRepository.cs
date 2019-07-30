@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Models;
@@ -9,6 +10,7 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
@@ -119,7 +121,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <inheritdoc/>
         public async Task<QueryResponse> GetInstancesOfApplication(
             string appId,
-            Dictionary<string, string> queryParams,
+            Dictionary<string, StringValues> queryParams,
             string continuationToken,
             int size)
         {
@@ -139,37 +141,23 @@ namespace Altinn.Platform.Storage.Repository
             IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
 
             queryBuilder = queryBuilder.Where(i => i.AppId == appId);
-    
-            foreach (KeyValuePair<string, string> param in queryParams)
+
+            try
             {
-                if (param.Key.Equals("lastChangedDateTime"))
-                {
-                    string dateValue = param.Value;
-
-                    try
-                    {                        
-                        DateTime date = DateTime.Parse(dateValue);
-                        queryBuilder = queryBuilder.Where(i => i.LastChangedDateTime < date);
-                    }
-                    catch
-                    {
-                        logger.LogWarning($"Date format of lastChangedDataTime is wrong (try ISO-8601): {dateValue}");
-                    }
-                }
-
-                if (param.Key.Equals("process.currentTask"))
-                {
-                    string currentTaskId = param.Value;
-                    queryBuilder = queryBuilder.Where(i => i.Workflow.CurrentStep == currentTaskId);
-                }
+                queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
+            }
+            catch (Exception e)
+            {
+                queryResponse.Exception = e.Message;
+                return queryResponse;
             }
 
             try
             {                
                 IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
-                
-                int matchingQuery = queryBuilder.Count();
 
+                // this migth be expensive
+                int matchingQuery = queryBuilder.Count();
                 queryResponse.TotalHits = matchingQuery;                               
 
                 if (queryResponse.TotalHits == 0)
@@ -188,16 +176,211 @@ namespace Altinn.Platform.Storage.Repository
                 PostProcess(instances);
 
                 queryResponse.Instances = instances;
-                queryResponse.Size = size;
                 queryResponse.ContinuationToken = nextContinuationToken;
                 queryResponse.Count = instances.Count();
             }
             catch (Exception e)
             {
                 logger.LogError("error: {e}");
+                queryResponse.Exception = e.Message;
             }
 
             return queryResponse;
+        }
+
+        private IQueryable<Instance> BuildQueryFromParameters(Dictionary<string, StringValues> queryParams, IQueryable<Instance> queryBuilder)
+        {
+            foreach (KeyValuePair<string, StringValues> param in queryParams)
+            {
+                string queryParameter = param.Key;
+                StringValues queryValues = param.Value;
+
+                foreach (string queryValue in queryValues)
+                {
+                    switch (queryParameter)
+                    {
+                        case "lastChangeDateTime":
+                            queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "dueDateTime":
+                            queryBuilder = QueryBuilderForDueDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "visibleDateTime":
+                            queryBuilder = QueryBuilderForVisibleDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "createdDateTime":
+                            queryBuilder = QueryBuilderForCreatedDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "process.currentTask":
+                            string currentTaskId = param.Value;
+                            queryBuilder = queryBuilder.Where(i => i.Workflow.CurrentStep == currentTaskId);
+                            break;
+
+                        case "process.isComplete":
+                            bool isComplete = bool.Parse(param.Value);
+                            queryBuilder = queryBuilder.Where(i => i.Workflow.IsComplete == isComplete);
+                            break;
+                    }
+                }
+            }
+
+            return queryBuilder;
+        }
+
+        private IQueryable<Instance> QueryBuilderForDueDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.DueDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.DueDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime == dateValue);
+            }
+
+            dateValue = DateTime.Parse(queryValue);
+            return queryBuilder.Where(i => i.DueDateTime == dateValue); 
+        }
+
+        private IQueryable<Instance> QueryBuilderForLastChangedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.LastChangedDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.LastChangedDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+            }
+
+            dateValue = DateTime.Parse(queryValue);
+            return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+        }
+
+        private IQueryable<Instance> QueryBuilderForCreatedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.CreatedDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.CreatedDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+            }
+
+            dateValue = DateTime.Parse(queryValue);
+            return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+        }
+
+        private IQueryable<Instance> QueryBuilderForVisibleDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.VisibleDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.VisibleDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = DateTime.Parse(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+            }
+
+            dateValue = DateTime.Parse(queryValue);
+            return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
         }
 
         /// <inheritdoc/>

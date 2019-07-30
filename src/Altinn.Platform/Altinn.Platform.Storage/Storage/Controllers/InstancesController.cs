@@ -85,7 +85,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "process.currentTask")] string currentTaskId,
             [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
             [FromQuery(Name = "process.isInError")] bool? processIsInError,
-            [FromQuery(Name = "process.endState")] bool? processEndState,
+            [FromQuery(Name = "process.endState")] string processEndState,
             [FromQuery] string label,
             [FromQuery] string lastChangedDateTime,
             [FromQuery] string createdDateTime,
@@ -99,30 +99,8 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 continuationToken = HttpUtility.UrlDecode(continuationToken);
             }
-
-            Dictionary<string, string> queryParams = new Dictionary<string, string>();
-
-            Dictionary<string, StringValues> q = QueryHelpers.ParseQuery(Request.QueryString.Value);
-
-            if (!string.IsNullOrEmpty(label))
-            {
-                queryParams.Add("label", label);
-            }
-
-            if (!string.IsNullOrEmpty(lastChangedDateTime))
-            {
-                queryParams.Add("lastChangedDateTime", lastChangedDateTime);
-            }
-
-            if (!string.IsNullOrEmpty(currentTaskId))
-            {
-                queryParams.Add("process.currentTask", $"{currentTaskId}");
-            }
-
-            if (processIsComplete.HasValue)
-            {
-                queryParams.Add("process.isComplete", processIsComplete.ToString().ToLower());
-            }
+           
+            Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
             string url = Request.Path;
             string query = Request.QueryString.Value;
@@ -140,15 +118,21 @@ namespace Altinn.Platform.Storage.Controllers
                 return Ok(result);
             }
             else if (!string.IsNullOrEmpty(appId))
-            {                
-                QueryResponse result = await _instanceRepository.GetInstancesOfApplication(appId, queryParams, continuationToken, pageSize);
-                if (result.TotalHits == 0)
-                {
-                    return NotFound($"Did not find any instances for appId={appId}");
-                }
-
+            {
                 try
                 {
+                    QueryResponse result = await _instanceRepository.GetInstancesOfApplication(appId, queryParams, continuationToken, pageSize);
+
+                    if (result.TotalHits == 0)
+                    {
+                        return NotFound($"Did not find any instances");
+                    }
+
+                    if (!string.IsNullOrEmpty(result.Exception))
+                    {
+                        return BadRequest(result.Exception);
+                    }
+          
                     string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                     result.ContinuationToken = nextContinuationToken;
 
@@ -159,7 +143,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                     if (nextContinuationToken != null)
                     {
-                        string nextQueryString = NextQueryString(q, "continuationToken", nextContinuationToken);
+                        string nextQueryString = NextQueryString(queryParams, "continuationToken", nextContinuationToken);
                         
                         Link nextLink = new Link("next", $"{url}{nextQueryString}");
                         response.AddLinks(nextLink);
@@ -172,10 +156,11 @@ namespace Altinn.Platform.Storage.Controllers
                 catch (Exception e)
                 {
                     logger.LogError("exception", e);
+                    return BadRequest($"{e}");
                 }               
             }
 
-            return BadRequest("Unable to perform query");
+            return StatusCode(500, "Unable to perform query");
         }
 
         private static string NextQueryString(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)

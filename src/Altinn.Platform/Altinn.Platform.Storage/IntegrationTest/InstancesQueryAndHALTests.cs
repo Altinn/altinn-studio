@@ -186,7 +186,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
         [Fact]
-        public async void QueryManyInstances()
+        public async void QueryProcessCurrentTaskSubmit()
         {
             string testAppId = "tdd/m1000";
 
@@ -202,6 +202,107 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int totalHits = jsonObject["totalHits"].Value<int>();
 
             Assert.Equal(200, totalHits);
+        }
+
+        /// <summary>
+        ///  Checks that multiple instances can be returned with query param.
+        /// </summary>
+        [Fact]
+        public async void QueryProcessVisibleDateTimeGt()
+        {
+            string testAppId = "tdd/m1000";
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=gt:2019-05-01";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            int totalHits = jsonObject["totalHits"].Value<int>();
+
+            Assert.Equal(585, totalHits);
+        }
+
+        /// <summary>
+        ///  Checks that wrong syntax is ignored
+        /// </summary>
+        [Fact]
+        public async void QueryProcessIllegalVisibleDateTime()
+        {
+            string testAppId = "tdd/m1000";
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=2019-50-01";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode); 
+        }
+
+        /// <summary>
+        ///  Query with no result set
+        /// </summary>
+        [Fact]
+        public async void QueryProcessNoResult()
+        {
+            string testAppId = "tdd/m1000";
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=lt:2017-12-31";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        /// <summary>
+        ///  Checks that multiple instances can be returned with query param.
+        /// </summary>
+        [Fact]
+        public async void QueryProcessVisibleDateTimeEq()
+        {
+            string testAppId = "tdd/m1000";
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=2019-07-19T00:00:00";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            int totalHits = jsonObject["totalHits"].Value<int>();
+
+            Assert.Equal(4, totalHits);
+        }
+
+        /// <summary>
+        ///  Checks that multiple instances can be returned with query param.
+        /// </summary>
+        [Fact]
+        public async void QueryProcessVisibleDateTimeBetween()
+        {
+            string testAppId = "tdd/m1000";
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=gt:2019-07-01&visibleDateTime=lt:2019-08-01";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            int totalHits = jsonObject["totalHits"].Value<int>();
+
+            Assert.Equal(89, totalHits);
         }
 
         /// <summary>

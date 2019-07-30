@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -32,7 +33,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="continuationToken">a token to get the next page, more performant than using page</param>
         /// <param name="size">The number of items per page</param>
         /// <returns>The query response including the list of instances</returns>
-        Task<QueryResponse> GetInstancesOfApplication(string appId, Dictionary<string, string> queryParams, string continuationToken, int size);
+        Task<QueryResponse> GetInstancesOfApplication(string appId, Dictionary<string, StringValues> queryParams, string continuationToken, int size);
 
         /// <summary>
         /// Get an instance for a given instance id
