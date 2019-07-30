@@ -169,6 +169,7 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function renderShowMoreButton() {
+    console.log('language', language);
     if (!parties || numberOfPartiesShown >= parties.length) {
       return null;
     }
@@ -180,7 +181,10 @@ function PartySelection(props: IPartySelectionProps) {
         <Grid container={true}>
             <AddIcon className={classes.loadMoreButtonIcon}/>
             <Typography className={classes.loadMoreButtonText}>
-              Last flere
+              {!language.instantiate ?
+                'instantiate.party_selection_load_more' :
+                language.instantiate.party_selection_load_more
+              }
             </Typography>
         </Grid>
       </button>
@@ -196,7 +200,10 @@ function PartySelection(props: IPartySelectionProps) {
       />
         <Grid container={true}>
           <Typography className={classes.partySelectionTitle}>
-            Hvem vil du sende inn for?
+            {!language.instantiate ?
+              'instantiate.party_selection_header' :
+              language.instantiate.party_selection_header
+            }
           </Typography>
         </Grid>
         <Grid container={true} className={classes.partySearchFieldContainer}>
@@ -206,7 +213,10 @@ function PartySelection(props: IPartySelectionProps) {
         </Grid>
         <Grid container={true}>
           <Typography className={classes.partySelectionSubTitle}>
-            Dine aktører som kan starte tjenesten:
+            {!language.instantiate ?
+              'instantiate.party_selection_subheader' :
+              language.instantiate.party_selection_subheader
+            }
           </Typography>
           {renderParties()}
         </Grid>

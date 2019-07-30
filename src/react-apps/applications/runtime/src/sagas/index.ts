@@ -12,7 +12,7 @@ import FormRulesSagas from '../features/form/rules/sagas';
 import FormValidationSagas from '../features/form/validation/sagas';
 import FormWorkflowSagas from '../features/form/workflow/sagas';
 import Attachments from '../shared/resources/attachments/attachmentSagas';
-import LanguageSagas from '../shared/resources/language/langaugeSagas';
+import LanguageSagas from '../shared/resources/language/languageSagas';
 import PartySagas from '../shared/resources/party/partySagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
 

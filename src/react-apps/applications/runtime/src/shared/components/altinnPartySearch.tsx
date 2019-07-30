@@ -5,8 +5,10 @@ import {
   withStyles,
 } from '@material-ui/core';
 import * as React from 'react';
+import { useSelector } from 'react-redux';
 import AltinnInput from 'Shared/components/AltinnInput';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
+import { IRuntimeState } from 'src/types';
 
 const styles = createStyles({
   partySearchContainer: {
@@ -20,6 +22,8 @@ export interface IAltinnPartySearchProps extends WithStyles<typeof styles> {
 }
 
 function AltinnPartySearch(props: IAltinnPartySearchProps) {
+  const language = useSelector((state: IRuntimeState) => state.language.language);
+
   const [ searchString, setSearchString ] = React.useState('');
   const { classes, onSearchUpdated } = props;
 
@@ -36,7 +40,11 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
       <AltinnInput
         id={'altinn-party-search'}
         onChangeFunction={onChangeSearchString}
-        placeholder={`Søk etter aktør`}
+        placeholder={
+          !language.instantiate ?
+            'instantiate.party_selection_search_placeholder' :
+            language.instantiate.party_selection_search_placeholder
+        }
         iconString={'fa fa-others'}
       />
     </Grid>
