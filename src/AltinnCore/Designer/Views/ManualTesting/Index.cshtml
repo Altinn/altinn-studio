@@ -16,6 +16,7 @@
 {
     <form asp-action="Index" asp-controller="ManualTesting">
         <input type="hidden" asp-for="ServiceID" />
+        <input name="UserId" type="hidden" value="2" /> 
         <div class="form-group">
             <label asp-for="PartyId">Velg avgiver</label>
             <select asp-for="PartyId" asp-items="@Model.PartyList" class="form-control"></select>

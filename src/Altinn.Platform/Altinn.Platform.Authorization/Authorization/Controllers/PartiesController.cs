@@ -14,7 +14,7 @@ namespace Altinn.Platform.Authorization.Controllers
     [ApiController]
     public class PartiesController : ControllerBase
     {
-        private readonly IParties _partiesWrapper;        
+        private readonly IParties _partiesWrapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesController"/> class
@@ -45,7 +45,7 @@ namespace Altinn.Platform.Authorization.Controllers
             else
             {
                 return Ok(partyList);
-            }            
+            }
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 {
                     Name = "test",
                 },
-                PartyID = 54321
+                PartyId = 54321
             };
 
             actorList.Add(testActor);

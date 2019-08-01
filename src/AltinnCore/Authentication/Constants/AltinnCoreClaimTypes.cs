@@ -16,9 +16,9 @@ namespace AltinnCore.Authentication.Constants
         public const string SSN = "SSN";
 
         /// <summary>
-        /// The UserID for the user profile in the platform
+        /// The UserId for the user profile in the platform
         /// </summary>
-        public const string UserId = "UserID";
+        public const string UserId = "UserId";
 
         /// <summary>
         /// The PartyID in register for a given user
