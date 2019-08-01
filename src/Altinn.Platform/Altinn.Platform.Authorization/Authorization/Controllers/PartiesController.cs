@@ -53,7 +53,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         /// <param name="userId">The user id"</param>
         /// <param name="partyId">The party id"</param>
-        [HttpGet]
+        [HttpGet("{partyId}/validate")]
         public async Task<ActionResult> ValidateSelectedParty(int userId, int partyId)
         {
             if (userId == 0 || partyId == 0)
