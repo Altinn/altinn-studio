@@ -39,7 +39,7 @@ test('Happy case; deploy a service to a test environment after a change', async 
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
     .click(designer.omNavigationTab) //remove pop up
-    .dragToElement(designer.inputBtn, designer.dragToArea)
+    .dragToElement(designer.inputComponent, designer.dragToArea)
     .expect(designer.delEndringer.exists).ok()
     .click(designer.delEndringer)
     .expect(designer.commitMessageBox.exists).ok()
@@ -47,6 +47,7 @@ test('Happy case; deploy a service to a test environment after a change', async 
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
     .expect(designer.validerEndringer.exists).ok()
     .click(designer.validerEndringer)
+  await t
     .click(designer.delEndringerBlueButton)
     .click(designer.testeNavigationTab)
     .click(designer.testeNavigationTab)
@@ -80,8 +81,7 @@ test('Service cannot be deployed due to local changes', async () => {
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
     .click(designer.omNavigationTab) //remove pop up
-    .click(designer.radioButtons)
-    .pressKey('enter')
+    .dragToElement(designer.radioButtonComponent, designer.dragToArea)
     .expect(designer.delEndringer.exists).ok()
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
@@ -93,6 +93,7 @@ test('Service cannot be deployed due to local changes', async () => {
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
     .expect(designer.validerEndringer.exists).ok()
     .click(designer.validerEndringer)
+    .wait(10000)
     .pressKey("tab")
     .pressKey("enter")
     .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok()

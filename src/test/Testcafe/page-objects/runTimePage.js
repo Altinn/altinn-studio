@@ -15,6 +15,7 @@ export default class RunTimePage {
     this.prefillData = Selector('#PrefillList');
     this.startNewButton = Selector('#btnStartNewService');
     //Selector("#startService > div:nth-child(3) > input"); //Selector('.btn.btn-primary').withAttribute('value', 'Start ny');
+    this.startSendingIn = Selector('button');
     this.backToAltinnStudio = Selector('.btn.btn-primary').withAttribute('value', 'Tilbake til Altinn Studio');
 
     //SBL components

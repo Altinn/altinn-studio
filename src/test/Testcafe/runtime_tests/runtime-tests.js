@@ -72,6 +72,8 @@ test('Validations when uploading file', async () => {
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
+    .click(runtime.startSendingIn)
+  await t
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
     .expect(runtime.errorMessage).ok();
   await t.eval(() => location.reload(true))
@@ -103,6 +105,8 @@ test('Fill out, save, and submit a form', async () => {
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.startSendingIn.exists).ok()
+    .click(runtime.startSendingIn)
     .typeText(runtime.inputButton, "10101010101") //fødselsnummer input
     .pressKey("tab")
     .pressKey("tab")

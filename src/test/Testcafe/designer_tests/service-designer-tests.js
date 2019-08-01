@@ -53,8 +53,9 @@ test('Sync a service with master', async () => {
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
-    .click(designer.inputBtn)
-    .pressKey("enter")
+  await t.eval(() => location.reload(true));
+  await t
+    .dragToElement(designer.inputComponent, designer.dragToArea)
     .click(designer.omNavigationTab)
     .click(designer.lageNavigationTab)
     .expect(designer.delEndringer.exists).ok()
