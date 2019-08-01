@@ -11,6 +11,7 @@ import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
+import { IProfile } from '../../../shared/resources/profile';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 
@@ -30,6 +31,12 @@ const styles = createStyles({
     fontWeight: 200,
     paddingBottom: 18,
     padding: 12,
+  },
+  partySelectionError: {
+    padding: 12,
+    fontSize: '1.75rem',
+    fontWeight: 300,
+    backgroundColor: AltinnAppTheme.altinnPalette.primary.redLight,
   },
   partySearchFieldContainer: {
     padding: 12,
@@ -66,7 +73,6 @@ interface IRedirectValidPartes {
 }
 
 export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteProps {
-
 }
 
 function PartySelection(props: IPartySelectionProps) {
@@ -74,10 +80,9 @@ function PartySelection(props: IPartySelectionProps) {
 
   const { classes, location } = props;
 
-  const language = useSelector((state: IRuntimeState) => state.language.language);
-  const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
-
+  const language: any = useSelector((state: IRuntimeState) => state.language.language);
+  const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
+  const selectedParty: IParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
 
   const [filterString, setFilterString] = React.useState('');
@@ -169,7 +174,6 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function renderShowMoreButton() {
-    console.log('language', language);
     if (!parties || numberOfPartiesShown >= parties.length) {
       return null;
     }
@@ -205,6 +209,15 @@ function PartySelection(props: IPartySelectionProps) {
               language.instantiate.party_selection_header
             }
           </Typography>
+          {!location.state || !(location.state as IRedirectValidPartes).validParties.length ?
+            null :
+            <Typography className={classes.partySelectionError}>
+              {!language.instantiate ?
+                'instantiate.party_selection_error' :
+                language.instantiate.party_selection_error
+              }
+            </Typography>
+          }
         </Grid>
         <Grid container={true} className={classes.partySearchFieldContainer}>
           <AltinnPartySearch
