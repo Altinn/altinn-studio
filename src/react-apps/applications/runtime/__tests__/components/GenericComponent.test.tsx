@@ -24,10 +24,8 @@ describe('>>> components/GenericComponent.tsx', () => {
       language: {
         language: {},
       },
-      formResources: {
-        languageResource: {
+      textResources: {
           resources: [],
-        },
       },
       formValidations: {
         validations: {},
