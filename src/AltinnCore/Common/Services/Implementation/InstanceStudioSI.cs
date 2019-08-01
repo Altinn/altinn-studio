@@ -49,7 +49,7 @@ namespace AltinnCore.Common.Services.Implementation
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IForm formService,
             IData data,
-            IWorkflow workflowSI)            
+            IWorkflow workflowSI)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -66,7 +66,7 @@ namespace AltinnCore.Common.Services.Implementation
             string appName = startServiceModel.Service;
             string org = startServiceModel.Org;
             int instanceOwnerId = startServiceModel.PartyId;
-            int userId = startServiceModel.UserID;
+            int userId = startServiceModel.UserId;
 
             ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
 
@@ -91,7 +91,7 @@ namespace AltinnCore.Common.Services.Implementation
                 },
                 LastChangedDateTime = DateTime.UtcNow,
                 LastChangedBy = instanceOwnerId.ToString(),
-            };         
+            };
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}";
@@ -128,7 +128,7 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = (Instance)dataToSerialize;
             File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(dataToSerialize).ToString(), Encoding.UTF8);
 
-            return System.Threading.Tasks.Task.FromResult(instance);            
+            return System.Threading.Tasks.Task.FromResult(instance);
         }
 
         /// <inheritdoc/>
@@ -169,7 +169,7 @@ namespace AltinnCore.Common.Services.Implementation
                         Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
                         formInstances.Add(instance);
                     }
-                    catch 
+                    catch
                     {
                         /* Avoid problems with wrong directories that may have occured in previous testing sessions */
                     }
@@ -195,7 +195,7 @@ namespace AltinnCore.Common.Services.Implementation
                 XmlSerializer serializer = new XmlSerializer(type);
                 serializer.Serialize(stream, dataToSerialize);
             }
-            
+
             Instance instance = await GetInstance(appName, org, instanceOwnerId, instanceId);
 
             instance.Workflow = instance.Workflow ?? new Storage.Interface.Models.WorkflowState();
