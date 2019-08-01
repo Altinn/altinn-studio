@@ -67,10 +67,6 @@ namespace AltinnCore.Common.Helpers
             {
                 userContext.PartyId = Convert.ToInt32(context.Request.Cookies["altinncorereportee"]);
             }
-            else
-            {
-                userContext.PartyId = userContext.PartyId;
-            }
 
             userContext.Party = await _registerService.GetParty(userContext.PartyId);
             return userContext;
@@ -91,7 +87,6 @@ namespace AltinnCore.Common.Helpers
             userContext.Party = await _registerService.GetParty(userContext.PartyId);
 
             // userContext.UserParty = await _registerService.GetParty(userContext.PartyId); // this userPartyId is not available at this point.
-
             return userContext;
         }
     }
