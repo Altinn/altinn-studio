@@ -18,7 +18,7 @@ namespace AltinnCore.Authentication.Constants
         /// <summary>
         /// The UserID for the user profile in the platform
         /// </summary>
-        public const string UserID = "UserID";
+        public const string UserId = "UserID";
 
         /// <summary>
         /// The PartyID in register for a given user
