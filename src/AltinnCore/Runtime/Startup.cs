@@ -457,15 +457,26 @@ namespace AltinnCore.Runtime
                     {
                         controller = "Language",
                     });
+                
+                routes.MapRoute(
+                  name: "authorization",
+                  template: "{org}/{service}/api/{controller}/parties/{partyId}/validate",
+                  defaults: new { action = "ValidateSelectedParty", controller = "Authorization" },
+                  constraints: new
+                  {
+                      action = "ValidateSelectedParty",
+                      controller = "Authorization",
+                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                  });
 
-               /* routes.MapRoute(
-                    name: "authenticationRoute",
-                    template: "{controller}/{action}/{gotourl?}",
-                    defaults: new { controller = "Account" },
-                    constraints: new
-                    {
-                        controller = "Account",
-                    }); */
+                /* routes.MapRoute(
+                     name: "authenticationRoute",
+                     template: "{controller}/{action}/{gotourl?}",
+                     defaults: new { controller = "Account" },
+                     constraints: new
+                     {
+                         controller = "Account",
+                     }); */
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
