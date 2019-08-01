@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Services.Interface;
@@ -40,6 +41,14 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return partiesList;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ValidateSelectedParty(int userId, int partyId)
+        {
+            List<Party> partyList = await GetParties(userId);
+            bool result = partyList.Any(p => p.PartyID == partyId);
+            return result;            
         }
     }
 }
