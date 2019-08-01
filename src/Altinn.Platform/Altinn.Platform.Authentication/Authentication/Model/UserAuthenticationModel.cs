@@ -11,7 +11,7 @@ namespace Altinn.Platform.Authentication.Model
         /// <summary>
         /// Gets or sets the user id
         /// </summary>
-        public int UserID { get; set; }
+        public int UserId { get; set; }
 
         /// <summary>
         /// Gets or sets the username
@@ -24,9 +24,9 @@ namespace Altinn.Platform.Authentication.Model
         public string SSN { get; set; }
 
         /// <summary>
-        /// Gets or sets the partyID
+        /// Gets or sets the PartyId
         /// </summary>
-        public int PartyID { get; set; }
+        public int PartyId { get; set; }
 
         /// <summary>
         /// Gets or sets the authentication method
