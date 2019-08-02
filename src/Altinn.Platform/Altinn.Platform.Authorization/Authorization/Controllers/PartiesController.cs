@@ -25,11 +25,11 @@ namespace Altinn.Platform.Authorization.Controllers
         }
 
         /// <summary>
-        /// Gets the list of actors that the logged in user can represent
+        /// Gets the list of parties that the logged in user can represent
         /// </summary>
         /// <param name="userId">the user id</param>
         [HttpGet]
-        public async Task<ActionResult> Get(int userId)
+        public async Task<ActionResult> GetPartyList(int userId)
         {
             List<Party> partyList = null;
 
@@ -49,26 +49,21 @@ namespace Altinn.Platform.Authorization.Controllers
         }
 
         /// <summary>
-        /// Dummy api for testing
+        /// Verifies that the user can represent the given party
         /// </summary>
-        [HttpGet("test")]
-        public ActionResult GetValues()
+        /// <param name="userId">The user id"</param>
+        /// <param name="partyId">The party id"</param>
+        [HttpGet("{partyId}/validate")]
+        public async Task<ActionResult> ValidateSelectedParty(int userId, int partyId)
         {
-            List<Party> actorList = new List<Party>();
-
-            Party testActor = new Party()
+            if (userId == 0 || partyId == 0)
             {
-                SSN = "123456",
-                Person = new Person()
-                {
-                    Name = "test",
-                },
-                PartyId = 54321
-            };
+                return NotFound();
+            }
 
-            actorList.Add(testActor);
+            bool isValidParty = await _partiesWrapper.ValidateSelectedParty(userId, partyId);
 
-            return Ok(actorList);
+            return Ok(isValidParty);
         }
     }
 }
