@@ -110,7 +110,7 @@ namespace Altinn.Platform.Authentication.Controllers
                             
                             Response.Cookies.Append(
                                 _generalSettings.GetAltinnPartyCookieName,
-                                userAuthentication.PartyId.ToString(),
+                                userAuthentication.PartyID.ToString(),
                                 new CookieOptions
                                 {
                                     Domain = _generalSettings.HostName
