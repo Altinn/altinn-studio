@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Services.Interface;
@@ -32,8 +33,8 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         {
             List<Party> partiesList = null;
 
-            var request = $"parties?userid={userId}";
-            var response = await _partyClient.Client.GetAsync(request);
+            string endpointUrl = $"parties?userid={userId}";
+            HttpResponseMessage response = await _partyClient.Client.GetAsync(endpointUrl);
             string partiesDataList = await response.Content.ReadAsStringAsync();
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
