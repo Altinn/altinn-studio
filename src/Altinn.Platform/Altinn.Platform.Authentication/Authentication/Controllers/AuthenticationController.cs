@@ -79,9 +79,9 @@ namespace Altinn.Platform.Authentication.Controllers
                         {
                             List<Claim> claims = new List<Claim>();
                             string issuer = _generalSettings.GetPlatformEndpoint;
-                            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserId.ToString(), ClaimValueTypes.String, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
+                            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
                             if (userAuthentication.SSN != null)
@@ -135,7 +135,7 @@ namespace Altinn.Platform.Authentication.Controllers
             string validHost = _generalSettings.GetHostName;
             int segments = _generalSettings.GetHostName.Split('.').Length;
 
-            List<string> goToList = Enumerable.Reverse(new List<string>(goToHost.Split('.'))).Take(segments).Reverse().ToList();     
+            List<string> goToList = Enumerable.Reverse(new List<string>(goToHost.Split('.'))).Take(segments).Reverse().ToList();
             string redirectHost = string.Join(".", goToList);
 
             return validHost.Equals(redirectHost);

@@ -20,7 +20,7 @@ namespace AltinnCore.ServiceLibrary.Models
         /// <summary>
         /// Gets or sets the reportee
         /// </summary>
-        public Party Reportee { get; set; }
+        public Party Party { get; set; }
 
         /// <summary>
         /// Gets or sets the party of the user
@@ -41,11 +41,6 @@ namespace AltinnCore.ServiceLibrary.Models
         /// Gets or sets the party ID
         /// </summary>
         public int PartyId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the reportee ID
-        /// </summary>
-        public int ReporteeId { get; set; }
 
         /// <summary>
         /// Gets or sets the current 

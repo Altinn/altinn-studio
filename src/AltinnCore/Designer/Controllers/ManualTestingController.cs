@@ -90,20 +90,21 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="reporteeId">The reporteeId</param>
+        /// <param name="partyId">The partyId</param>
+        /// <param name="userId">The user id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public async Task<IActionResult> Index(string org, string service, int reporteeId)
+        public async Task<IActionResult> Index(string org, string service, int partyId, int userId)
         {
-            if (reporteeId == 0)
+            if (partyId == 0)
             {
                 return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
             }
 
             CheckAndUpdateWorkflowFile(org, service);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await _userHelper.CreateUserContextBasedOnReportee(HttpContext, reporteeId);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
+            requestContext.UserContext = await _userHelper.CreateUserContextBasedOnUserAndParty(HttpContext, userId, partyId);
+            requestContext.Party = requestContext.UserContext.Party;
 
             StartServiceModel startServiceModel = new StartServiceModel
             {
@@ -115,24 +116,24 @@ namespace AltinnCore.Designer.Controllers
                         Value = x.PartyId.ToString()
                     })
                     .ToList(),
-                PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
+                PrefillList = _testdata.GetServicePrefill(requestContext.Party.PartyId, org, service)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
-                PartyId = requestContext.Reportee.PartyId,
+                PartyId = requestContext.Party.PartyId,
                 Org = org,
                 Service = service,
             };
 
-            if (reporteeId != 0 && reporteeId != startServiceModel.PartyId && startServiceModel.PartyList.Any(r => r.Value.Equals(reporteeId.ToString())))
+            if (partyId != 0 && partyId != startServiceModel.PartyId && startServiceModel.PartyList.Any(r => r.Value.Equals(partyId.ToString())))
             {
-                startServiceModel.PartyId = reporteeId;
-                requestContext.Reportee = await _register.GetParty(startServiceModel.PartyId);
-                requestContext.UserContext.ReporteeId = reporteeId;
-                requestContext.UserContext.Reportee = requestContext.Reportee;
+                startServiceModel.PartyId = partyId;
+                requestContext.Party = await _register.GetParty(startServiceModel.PartyId);
+                requestContext.UserContext.PartyId = partyId;
+                requestContext.UserContext.Party = requestContext.Party;
                 HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.PartyId.ToString());
             }
 
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Party.PartyId, org, service);
             ViewBag.InstanceList = formInstances.OrderBy(r => r.LastChanged).ToList();
 
             return View(startServiceModel);
@@ -197,12 +198,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="id">The testUserId</param>
-        /// <param name="reportee">The reportee chosen</param>
+        /// <param name="userId">The testUserId</param>
+        /// <param name="party">The reportee chosen</param>
         /// <returns>Redirects to returnUrl</returns>
-        public async Task<IActionResult> LoginTestUser(string org, string service, int id, string reportee)
+        public async Task<IActionResult> LoginTestUser(string org, string service, int userId, string party)
         {
-            UserProfile profile = await _profile.GetUserProfile(id);
+            UserProfile profile = await _profile.GetUserProfile(userId);
             var claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, Issuer));
@@ -212,7 +213,7 @@ namespace AltinnCore.Designer.Controllers
             }
 
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.Integer32, Issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, Issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, Issuer)); // must be updated to partyId.
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, Issuer));
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             if (developer != null)
@@ -238,9 +239,9 @@ namespace AltinnCore.Designer.Controllers
             List<Party> partyList = _authorization.GetPartyList(profile.UserId);
             Party partyBE = null;
 
-            if (!string.IsNullOrEmpty(reportee) && partyList.Any(r => (r.PartyTypeName == PartyType.Person) ? r.SSN.Equals(reportee) : r.OrgNumber.Equals(reportee)))
+            if (!string.IsNullOrEmpty(party) && partyList.Any(r => (r.PartyTypeName == PartyType.Person) ? r.SSN.Equals(party) : r.OrgNumber.Equals(party)))
             {
-                partyBE = partyList.FirstOrDefault(r => (r.PartyTypeName == PartyType.Person) ? r.SSN.Equals(reportee) : r.OrgNumber.Equals(reportee));
+                partyBE = partyList.FirstOrDefault(r => (r.PartyTypeName == PartyType.Person) ? r.SSN.Equals(party) : r.OrgNumber.Equals(party));
                 HttpContext.Response.Cookies.Append("altinncorereportee", partyBE.PartyId.ToString());
             }
             else
@@ -248,7 +249,7 @@ namespace AltinnCore.Designer.Controllers
                 HttpContext.Response.Cookies.Append("altinncorereportee", profile.PartyId.ToString());
             }
 
-            return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?reporteeId={id}");
+            return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?userId={userId}&partyId={profile.PartyId}");
         }
 
         /// <summary>

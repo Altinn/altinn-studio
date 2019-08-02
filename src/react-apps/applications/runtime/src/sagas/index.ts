@@ -7,7 +7,6 @@ import FormDataSagas from '../features/form/data/sagas';
 import FormDataModelSagas from '../features/form/datamodell/sagas';
 import FormDynamicsSagas from '../features/form/dynamics/sagas';
 import FormLayoutSagas from '../features/form/layout/sagas';
-import FormResourceSagas from '../features/form/resources/sagas';
 import FormRulesSagas from '../features/form/rules/sagas';
 import FormValidationSagas from '../features/form/validation/sagas';
 import FormWorkflowSagas from '../features/form/workflow/sagas';
@@ -15,6 +14,7 @@ import Attachments from '../shared/resources/attachments/attachmentSagas';
 import LanguageSagas from '../shared/resources/language/languageSagas';
 import PartySagas from '../shared/resources/party/partySagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
+import TextResourcesSagas from '../shared/resources/textResources/sagas';
 
 function* root(): SagaIterator {
   yield fork(FormConfigSagas);
@@ -26,7 +26,7 @@ function* root(): SagaIterator {
   yield fork(FormWorkflowSagas);
   yield fork(FormDataModelSagas);
   yield fork(LanguageSagas);
-  yield fork(FormResourceSagas);
+  yield fork(TextResourcesSagas);
   yield fork(ProfileSagas);
   yield fork(FormValidationSagas);
   yield fork(PartySagas);

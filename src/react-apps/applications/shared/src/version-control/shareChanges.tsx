@@ -138,6 +138,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
     return (
       <Button
         onClick={this.shareChangesHandler}
+        id='share_changes_button'
         className={classNames(classes.color_blueDark, classes.btn,
           { [classes.clickable]: this.props.buttonOnly !== true },
         )}
