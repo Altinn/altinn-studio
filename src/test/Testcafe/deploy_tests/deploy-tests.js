@@ -1,5 +1,5 @@
 import { Selector, t } from 'testcafe';
-import { axeCheck, createReport } from 'axe-testcafe';
+import axeCheck from 'axe-testcafe';
 import App from '../app';
 import DashBoard from '../page-objects/DashboardPage';
 import LoginPage from '../page-objects/loginPage';
@@ -47,7 +47,7 @@ test('Happy case; deploy a service to a test environment after a change', async 
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
     .expect(designer.validerEndringer.exists).ok()
     .click(designer.validerEndringer)
-  await t
+    .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 10000 })
     .click(designer.delEndringerBlueButton)
     .click(designer.testeNavigationTab)
     .click(designer.testeNavigationTab)
@@ -65,7 +65,7 @@ test('Service cannot deploy due to compilation error', async () => {
     .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
-    .expect(designer.ingenEndringer.exists).ok({ timeout: 10000 })
+    .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
     .click(designer.testeNavigationTab) //click twice to remove pop up from "del"
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
@@ -93,10 +93,11 @@ test('Service cannot be deployed due to local changes', async () => {
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
     .expect(designer.validerEndringer.exists).ok()
     .click(designer.validerEndringer)
-    .wait(10000)
-    .pressKey("tab")
-    .pressKey("enter")
-    .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok()
+    .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
+    .click(designer.delEndringerBlueButton)
+  await t.eval(() => location.reload(true));
+  await t
+    .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok({ timeout: 120000 })
 })
 
 test('User does not have write access to service, and cannot deploy', async () => {

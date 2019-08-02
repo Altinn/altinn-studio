@@ -65,8 +65,9 @@ test('Sync a service with master', async () => {
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
     .expect(designer.validerEndringer.exists).ok()
     .click(designer.validerEndringer)
+    .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
     .click(designer.delEndringerBlueButton)
-    .expect(designer.ingenEndringer.exists).ok()
+    .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
 });
 
 test('About page items and editing', async () => {

@@ -54,7 +54,10 @@ test('Upload files using file component in SBL', async () => {
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
+    .expect(runtime.startSendingIn.exists).ok({ timeout: 120000 })
+    .click(runtime.startSendingIn)
     .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.fileDeleteButton)
@@ -73,11 +76,12 @@ test('Validations when uploading file', async () => {
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
     .click(runtime.startSendingIn)
-  await t
+    .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
     .expect(runtime.errorMessage).ok();
   await t.eval(() => location.reload(true))
   await t
+    .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_pdf.pdf')
     .expect(runtime.errorMessage).ok()
 })
@@ -107,6 +111,7 @@ test('Fill out, save, and submit a form', async () => {
     .expect(runtime.testUserHeader[0].exists).ok()
     .expect(runtime.startSendingIn.exists).ok()
     .click(runtime.startSendingIn)
+    .expect(runtime.inputButton.exists).ok({ timeout: 120000 })
     .typeText(runtime.inputButton, "10101010101") //fødselsnummer input
     .pressKey("tab")
     .pressKey("tab")
@@ -114,11 +119,12 @@ test('Fill out, save, and submit a form', async () => {
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.saveButton)
+    .wait(30000)
     .click(runtime.sendInnButton)
-    .expect(runtime.workflowSubmit.exists).ok()
+    .expect(runtime.workflowSubmit.exists).ok({ timeout: 120000 })
     .expect(runtime.workflowSubmit.visible).ok()
     .click(runtime.workflowSubmit)
-    .expect(Selector("p").withText(t.ctx.formFillComplete).visible).ok()
+    .expect(Selector("p").withText(t.ctx.formFillComplete).visible).ok({ timeout: 120000 })
 })
 
 test.skip('conditional rendering of component in runtime', async () => {

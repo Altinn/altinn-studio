@@ -14,19 +14,18 @@ export default class RunTimePage {
     this.changeLanguageButton = Selector('.btn.btn-primary').withAttribute('value', 'Oppdater språk');
     this.prefillData = Selector('#PrefillList');
     this.startNewButton = Selector('#btnStartNewService');
-    //Selector("#startService > div:nth-child(3) > input"); //Selector('.btn.btn-primary').withAttribute('value', 'Start ny');
     this.startSendingIn = Selector('button');
     this.backToAltinnStudio = Selector('.btn.btn-primary').withAttribute('value', 'Tilbake til Altinn Studio');
 
     //SBL components
     this.serviceBody = Selector(".modal-body.a-modal-body");
-    this.fileDropComponent = Selector('input').withAttribute('type', 'file');//Selector('.file-upload').child(0); 
+    this.fileDropComponent = Selector('.file-upload').child('input');
     this.fileListBox = Selector('[id*="-fileuploader-"]');
     this.fileDeleteButton = Selector('#attachment-delete-0');
     this.checkBox = Selector('');
     this.textboxComponent = Selector('textarea')
     this.addressComponent = Selector('input').withAttribute('type', 'text');
-    this.inputButton = Selector("input"); //Selector("#662fc4a0-6aab-4ac2-babb-be2f5ffb4ebd"); //unique uuid
+    this.inputButton = Selector('input').withAttribute('type', 'Input');
     this.saveButton = Selector("#saveBtn");
     this.sendInnButton = Selector("#cf94bf1d-e680-43ff-8a4b-dfdc3f7d7f99"); //unique uuid
     this.workflowSubmit = Selector("#workflowSubmitStepButton");

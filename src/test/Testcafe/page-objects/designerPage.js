@@ -114,7 +114,7 @@ export default class DesignerPage {
     this.validerEndringer = Selector("button > span").withExactText("Valider endringer");
     this.delEndringer = Selector("#changes_to_share_btn");
     this.ingenEndringer = Selector("#no_changes_to_share_btn");
-    this.delEndringerBlueButton = Selector("span").withText("Del endringer"); //Selector("div").withText("Endringene er validert").child("button")
+    this.delEndringerBlueButton = Selector("#share_changes_modal_button");
     this.commitMessageBox = Selector("#test");
   }
 
