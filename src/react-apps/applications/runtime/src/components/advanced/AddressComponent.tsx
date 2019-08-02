@@ -4,7 +4,7 @@ import update from 'immutability-helper';
 import * as React from 'react';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
-import { IDataModelBindings } from '../../features/form/layout';
+import { IDataModelBindings, ITextResourceBindings } from '../../features/form/layout';
 import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
 import { IComponentValidations } from '../../types/global';
@@ -21,6 +21,7 @@ export interface IAddressComponentProps {
   dataModelBindings: IDataModelBindings;
   readOnly: boolean;
   language: any;
+  textResourceBindings: ITextResourceBindings;
 }
 
 interface IAddressValidationErrors {
@@ -195,11 +196,15 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
 
   public render(): JSX.Element {
     const { address, zipCode, postPlace, careOf, houseNumber } = this.state;
-
     const validations = this.joinValidationMessages();
 
     return(
       <div className={'address-component'}>
+        {
+          this.props.textResourceBindings.title ?
+            <h4 className='mt-2'>{this.props.getTextResource(this.props.textResourceBindings.title)}</h4>
+          : null
+        }
         <label className={'address-component-label'}>
           {
             getLanguageFromKey('ux_editor.modal_configure_address_component_address', this.props.language)
