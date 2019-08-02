@@ -51,6 +51,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
         private readonly ServiceRepositorySettings _settings;
+        private readonly GeneralSettings _generalSettings;
 
         private const string FORM_ID = "default";
 
@@ -74,6 +75,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
         /// <param name="repositorySettings">the repository settings</param>
+        /// <param name="generalSettings">the general settings</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -91,7 +93,8 @@ namespace AltinnCore.Runtime.Controllers
             IInstanceEvent eventSI,
             IPlatformServices platformSI,
             IData dataSI,
-            IOptions<ServiceRepositorySettings> repositorySettings)
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -101,7 +104,7 @@ namespace AltinnCore.Runtime.Controllers
             _form = formService;
             _repository = repositoryService;
             _execution = serviceExecutionService;
-            _userHelper = new UserHelper(profileService, _register);
+            _userHelper = new UserHelper(profileService, _register, generalSettings);
             _archive = archiveService;
             _testdata = testDataService;
             _httpContextAccessor = httpContextAccessor;
@@ -111,6 +114,7 @@ namespace AltinnCore.Runtime.Controllers
             _platformSI = platformSI;
             _data = dataSI;
             _settings = repositorySettings.Value;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -393,7 +397,7 @@ namespace AltinnCore.Runtime.Controllers
                    Value = x.PartyId.ToString(),
                }).ToList();
 
-            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.PartyId.ToString());
+            HttpContext.Response.Cookies.Append(_generalSettings.GetAltinnPartyCookieName, startServiceModel.PartyId.ToString());
 
             return JsonConvert.SerializeObject(
                 new
@@ -502,7 +506,7 @@ namespace AltinnCore.Runtime.Controllers
                    Value = x.PartyId.ToString(),
                }).ToList();
 
-            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.PartyId.ToString());
+            HttpContext.Response.Cookies.Append(_generalSettings.GetAltinnPartyCookieName, startServiceModel.PartyId.ToString());
             return View(startServiceModel);
         }
 
