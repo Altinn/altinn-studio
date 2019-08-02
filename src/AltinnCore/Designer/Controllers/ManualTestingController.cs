@@ -203,7 +203,7 @@ namespace AltinnCore.Designer.Controllers
         public async Task<IActionResult> LoginTestUser(string org, string service, int userId)
         {
             UserProfile profile = await _profile.GetUserProfile(userId);
-            int partyId = (profile.ProfileSettingPreference != null) ?
+            int partyId = (profile.ProfileSettingPreference != null && profile.ProfileSettingPreference.PreSelectedPartyId != 0) ?
             profile.ProfileSettingPreference.PreSelectedPartyId : profile.PartyId;
 
             var claims = new List<Claim>();
