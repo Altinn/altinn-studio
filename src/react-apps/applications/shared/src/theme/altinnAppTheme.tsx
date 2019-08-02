@@ -37,7 +37,7 @@ declare module '@material-ui/core/styles/createMuiTheme' {
   }
 }
 
-const theme = {
+const AltinnAppTheme = {
   accessability: {
     focusVisible: {
       border: '2px solid #1eaef7',
@@ -101,6 +101,9 @@ const theme = {
       body2: {
         fontSize: 14,
       },
+      caption: {
+        fontSize:  14,
+      },
     },
   },
   palette: {
@@ -130,4 +133,4 @@ const theme = {
   },
 };
 
-export default theme;
+export default AltinnAppTheme;

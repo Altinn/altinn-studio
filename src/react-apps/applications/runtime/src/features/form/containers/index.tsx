@@ -6,7 +6,6 @@ import FormDataActions from '../data/actions';
 import FormDataModelActions from '../datamodell/actions';
 import FormDynamicActions from '../dynamics/actions';
 import FormLayoutActions from '../layout/actions';
-import FormResourceActions from '../resources/actions';
 import FormRuleActions from '../rules/actions';
 import FormWorkflowActions from '../workflow/actions';
 import FormFiller from './FormFiller';
@@ -50,9 +49,6 @@ export default (props) => {
 
     FormDynamicActions.fetchFormDynamics(
       `${window.location.origin}/${org}/${service}/api/resource/ServiceConfigurations.json`,
-    );
-    FormResourceActions.fetchFormResource(
-      `${window.location.origin}/${org}/${service}/api/textresources`,
     );
 
     ProfileActions.fetchProfile(
