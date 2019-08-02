@@ -4,6 +4,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 <button
   className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
   disabled={false}
+  id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
   onContextMenu={[Function]}
@@ -63,6 +64,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 <button
   className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
   disabled={false}
+  id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
   onContextMenu={[Function]}
@@ -122,6 +124,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 <button
   className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
   disabled={false}
+  id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
   onContextMenu={[Function]}
@@ -180,6 +183,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 <button
   className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
   disabled={false}
+  id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
   onContextMenu={[Function]}
@@ -243,6 +247,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 <button
   className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
   disabled={false}
+  id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
   onContextMenu={[Function]}
