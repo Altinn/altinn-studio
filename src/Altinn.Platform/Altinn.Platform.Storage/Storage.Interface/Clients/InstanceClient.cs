@@ -178,6 +178,28 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
+        /// Creates an instance
+        /// </summary>
+        /// <param name="appId">application id of the instance (must be registered in platform storage)</param>
+        /// <param name="instanceTemplate">the instance template to base the instance on</param>
+        /// <returns>the instance just created</returns>
+        public async Task<Instance> PostInstances(string appId, Instance instanceTemplate)
+        {
+            string requestUri = $"{versionPrefix}/instances?appId={appId}";
+
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, instanceTemplate.AsJson());
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
+
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                return instance;
+            }
+
+            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
+        }
+
+        /// <summary>
         /// Retrieves all instance events related to given instance, listed event types and given time frame from instanceEvent collection.
         /// </summary>
         /// <param name="instanceId"> Id of instance to retrieve events for. </param>

@@ -41,6 +41,15 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
             Client = testServer.CreateClient();
         }
 
+        /// <summary>
+        /// creates a new http client.
+        /// </summary>
+        /// <returns></returns>
+        public HttpClient CreateClient()
+        {
+            return testServer.CreateClient();
+        }
+
         private string GetContentRootPath()
         {
             var testProjectPath = AppContext.BaseDirectory;

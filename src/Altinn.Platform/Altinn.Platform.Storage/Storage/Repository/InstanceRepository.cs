@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -95,37 +96,12 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesOfOrg(string org)
-        {
-            List<Instance> instances = new List<Instance>();
-            FeedOptions feedOptions = new FeedOptions
-            {
-                EnableCrossPartitionQuery = true,
-            };
-
-            IDocumentQuery<Instance> query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                            .Where(i => i.Org == org)
-                            .AsDocumentQuery();
-            while (query.HasMoreResults)
-            {
-                foreach (Instance instance in await query.ExecuteNextAsync().ConfigureAwait(false))
-                {
-                    PostProcess(instance);
-                    instances.Add(instance);
-                }
-            }
-
-            return instances;
-        }
-
-        /// <inheritdoc/>
-        public async Task<QueryResponse> GetInstancesOfApplication(
-            string appId,
+        public async Task<InstanceQueryResponse> GetInstancesOfApplication(
             Dictionary<string, StringValues> queryParams,
             string continuationToken,
             int size)
         {
-            QueryResponse queryResponse = new QueryResponse();
+            InstanceQueryResponse queryResponse = new InstanceQueryResponse();
 
             FeedOptions feedOptions = new FeedOptions
             {
@@ -140,8 +116,6 @@ namespace Altinn.Platform.Storage.Repository
 
             IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
 
-            queryBuilder = queryBuilder.Where(i => i.AppId == appId);
-
             try
             {
                 queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
@@ -155,21 +129,28 @@ namespace Altinn.Platform.Storage.Repository
             try
             {                
                 IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
+                            
+                FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
 
-                // this migth be expensive
-                int matchingQuery = queryBuilder.Count();
-                queryResponse.TotalHits = matchingQuery;                               
-
-                if (queryResponse.TotalHits == 0)
+                if (feedResponse.Count() == 0)
                 {
+                    queryResponse.Count = 0;
+                    queryResponse.TotalHits = 0;
+
                     return queryResponse;
                 }
-               
-                FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
 
                 string nextContinuationToken = feedResponse.ResponseContinuation;
 
                 logger.LogInformation($"continuation token: {nextContinuationToken}");
+
+                // this migth be expensive
+                if (true)
+                {
+                    feedOptions.RequestContinuation = null;
+                    int totalHits = queryBuilder.Count();
+                    queryResponse.TotalHits = totalHits;
+                }
 
                 List<Instance> instances = feedResponse.ToList<Instance>();
 
@@ -199,6 +180,14 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     switch (queryParameter)
                     {
+                        case "appId":
+                            queryBuilder = queryBuilder.Where(i => i.AppId == queryValue);
+                            break;
+
+                        case "org":
+                            queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
+                            break;
+
                         case "lastChangeDateTime":
                             queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
                             break;
@@ -216,13 +205,21 @@ namespace Altinn.Platform.Storage.Repository
                             break;
 
                         case "process.currentTask":
-                            string currentTaskId = param.Value;
-                            queryBuilder = queryBuilder.Where(i => i.Workflow.CurrentStep == currentTaskId);
+                            string currentTaskId = queryValue;
+                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask == currentTaskId);
                             break;
 
                         case "process.isComplete":
-                            bool isComplete = bool.Parse(param.Value);
-                            queryBuilder = queryBuilder.Where(i => i.Workflow.IsComplete == isComplete);
+                            bool isComplete = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Process.IsComplete == isComplete);
+                            break;
+
+                        case "labels":
+                            foreach (string label in queryValue.Split(","))
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Labels.Contains(label));
+                            }
+
                             break;
                     }
                 }
@@ -237,35 +234,35 @@ namespace Altinn.Platform.Storage.Repository
 
             if (queryValue.StartsWith("gt:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.DueDateTime > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(4));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
                 return queryBuilder.Where(i => i.DueDateTime >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.DueDateTime < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(4));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
                 return queryBuilder.Where(i => i.DueDateTime <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.DueDateTime == dateValue);
             }
 
-            dateValue = DateTime.Parse(queryValue);
+            dateValue = ParseDateTimeIntoUtc(queryValue);
             return queryBuilder.Where(i => i.DueDateTime == dateValue); 
         }
 
@@ -275,35 +272,35 @@ namespace Altinn.Platform.Storage.Repository
 
             if (queryValue.StartsWith("gt:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.LastChangedDateTime > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(4));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
                 return queryBuilder.Where(i => i.LastChangedDateTime >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.LastChangedDateTime < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(4));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
                 return queryBuilder.Where(i => i.LastChangedDateTime <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
             }
 
-            dateValue = DateTime.Parse(queryValue);
+            dateValue = ParseDateTimeIntoUtc(queryValue);
             return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
         }
 
@@ -313,35 +310,35 @@ namespace Altinn.Platform.Storage.Repository
 
             if (queryValue.StartsWith("gt:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.CreatedDateTime > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(4));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
                 return queryBuilder.Where(i => i.CreatedDateTime >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.CreatedDateTime < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(4));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
                 return queryBuilder.Where(i => i.CreatedDateTime <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
             }
 
-            dateValue = DateTime.Parse(queryValue);
+            dateValue = ParseDateTimeIntoUtc(queryValue);
             return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
         }
 
@@ -351,36 +348,41 @@ namespace Altinn.Platform.Storage.Repository
 
             if (queryValue.StartsWith("gt:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.VisibleDateTime > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(4));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
                 return queryBuilder.Where(i => i.VisibleDateTime >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.VisibleDateTime < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(4));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
                 return queryBuilder.Where(i => i.VisibleDateTime <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
-                dateValue = DateTime.Parse(queryValue.Substring(3));
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
                 return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
             }
 
-            dateValue = DateTime.Parse(queryValue);
+            dateValue = ParseDateTimeIntoUtc(queryValue);
             return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+        }
+
+        private static DateTime ParseDateTimeIntoUtc(string queryValue)
+        {
+            return DateTime.Parse(queryValue, null, DateTimeStyles.AdjustToUniversal);
         }
 
         /// <inheritdoc/>

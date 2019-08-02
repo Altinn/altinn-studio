@@ -5,6 +5,7 @@ namespace Storage.Interface.Models
     /// <summary>
     /// Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ProcessState
     {
         /// <summary>

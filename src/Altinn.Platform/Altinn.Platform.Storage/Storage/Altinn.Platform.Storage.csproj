@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Halcyon.Mvc" Version="2.5.1" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.5-alpha" />
+    <!-- PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.5-alpha" / -->
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.2.2" />
@@ -40,6 +40,10 @@
     <AdditionalFiles Include="..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Storage.Interface\Storage.Interface.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

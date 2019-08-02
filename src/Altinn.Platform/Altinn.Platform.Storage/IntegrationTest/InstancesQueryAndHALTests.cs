@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Storage.Interface.Clients;
 using Storage.Interface.Models;
 using Xunit;
 
@@ -18,17 +16,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests dataservice REST api.
     /// </summary>
-    public class InstancesQueryAndHALTests : IClassFixture<PlatformStorageFixture>, IDisposable
+    public class InstancesQueryAndHALTests : IClassFixture<PlatformStorageFixture>
     {
         private readonly PlatformStorageFixture fixture;
-        private readonly HttpClient client;
-        private InstanceClient storageClient;
-        private string instanceId;
-        private readonly string testOrg = "tests";
-        private string testAppId = "tests/sailor";
-        private readonly int testInstanceOwnerId = 500;
-        private readonly string elementType = "default";
-
+        private readonly InstanceClient storageClient;
+        private readonly string testOrg = "tdd";
+        private readonly string testAppId = "tdd/m1000";
+        private readonly int testInstanceOwnerId = 1001;
         private readonly string versionPrefix = "/storage/api/v1";
 
         /// <summary>
@@ -38,149 +32,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         public InstancesQueryAndHALTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
-            this.client = this.fixture.Client;
-            this.storageClient = new InstanceClient(this.client);
+            this.storageClient = new InstanceClient(this.fixture.CreateClient());
 
             CreateTestApplication(testAppId);
-        }
-
-        /// <summary>
-        /// Make sure repository is cleaned after the tests is run.
-        /// </summary>
-        public void Dispose()
-        {
-            string requestUri = $"{versionPrefix}/instances?org={testOrg}";            
-
-            HttpResponseMessage response = client.GetAsync(requestUri).Result;
-            string content = response.Content.ReadAsStringAsync().Result;
-
-            if (response.StatusCode == HttpStatusCode.OK)
-            {
-                List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(content);
-
-                foreach (Instance instance in instances)
-                {
-                    string url = $"{versionPrefix}/instances/{instance.Id}";
-
-                    if (instance.Data != null)
-                    {
-                        foreach (DataElement element in instance.Data)
-                        {
-                            string filename = element.StorageUrl;
-                            string dataUrl = "/data/" + element.Id;
-
-                            string dataDeleteUrl = url + dataUrl;
-
-                            client.DeleteAsync(dataDeleteUrl);
-                        }
-                    }
-
-                    string instanceUrl = $"{versionPrefix}/instances/{instance.Id}?hard=true";
-                    client.DeleteAsync(instanceUrl);
-                }
-            }
-
-            DeleteApplicationMetadata();
-        }
-
-        /// <summary>
-        ///  Creates 1000 instances.
-        /// </summary>
-        [Fact]
-        public async Task<bool> CreateTestDataFor1000InstanceOwners()
-        {            
-            string testAppId = "tdd/m1000";
-            string testOrg = "tdd";
-
-            CreateTestApplication(testAppId);
-
-            string[] processTaskIds = { "FormFilling_1", "Submit_1", null };
-            string[] processEndStateIds = { "EndEvent_1", null };
-            
-            Random randomInt = new Random();
-            Random randomDay = new Random();
-            DateTime start = new DateTime(2019, 1, 1);
-
-            int taskCounter = 0;
-
-            for (int i = 0;  i < 1000; i++)
-            {
-                int taskId = 0;
-                bool isComplete = false;
-
-                if (taskCounter < 200)
-                {
-                    taskId = 0;
-                }
-                else if (taskCounter < 400)
-                {
-                    taskId = 1;
-                }
-                else 
-                {
-                    taskId = 2;
-                    isComplete = true;
-                }
-
-                taskCounter++;
-
-                DateTime dueDate = start.AddDays(randomDay.Next(0, 366));
-
-                Instance instance = new Instance
-                {
-                    Org = testOrg,
-                    AppId = testAppId,
-                    InstanceOwnerId = i.ToString(),
-                    Workflow = new WorkflowState
-                    {
-                        CurrentStep = processTaskIds[taskId],
-                        IsComplete = isComplete,
-                    },
-                    DueDateTime = dueDate,
-                    VisibleDateTime = dueDate.AddDays(-30),
-                    Labels = new List<string>(),
-                };
-
-                int labelCounter = 0;
-                string[] labelIds = { "zero", "one", "two" };
-
-                if (labelCounter < 100)
-                {
-                    instance.Labels = null;
-                }
-                else if (labelCounter < 300)
-                {
-                    instance.Labels.Add(labelIds[0]);
-                }
-                else if (labelCounter < 600)
-                {
-                    instance.Labels.Add(labelIds[1]);
-                }
-                else
-                {                                        
-                    instance.Labels.Add(labelIds[1]);
-                    instance.Labels.Add(labelIds[2]);
-                }
-
-                labelCounter++;
-
-                string requestUri = $"{versionPrefix}/instances?appId={testAppId}";
-
-                HttpResponseMessage response = await client.PostAsync(requestUri, instance.AsJson());
-                if (response.IsSuccessStatusCode)
-                {
-                    string json = await response.Content.ReadAsStringAsync();
-
-                    Instance instanceActual = JsonConvert.DeserializeObject<Instance>(json);
-                }
-                else
-                {
-                    throw new Exception(response.ReasonPhrase);
-                }
-            }
-
-            return true;
-        }
+        }        
 
         /// <summary>
         ///  Checks that multiple instances can be returned with query param.
@@ -188,7 +43,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessCurrentTaskSubmit()
         {
-            string testAppId = "tdd/m1000";
+            HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&process.currentTask=Submit_1";
 
@@ -210,7 +65,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessVisibleDateTimeGt()
         {
-            string testAppId = "tdd/m1000";
+            HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=gt:2019-05-01";
 
@@ -224,50 +79,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(585, totalHits);
+            Assert.Equal(636, totalHits);
         }
 
         /// <summary>
-        ///  Checks that wrong syntax is ignored
+        ///  Query with labels.
         /// </summary>
         [Fact]
-        public async void QueryProcessIllegalVisibleDateTime()
+        public async void QueryProcessLabels()
         {
-            string testAppId = "tdd/m1000";
+            HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=2019-50-01";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
-
-            HttpResponseMessage response = await client.GetAsync(url);
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode); 
-        }
-
-        /// <summary>
-        ///  Query with no result set
-        /// </summary>
-        [Fact]
-        public async void QueryProcessNoResult()
-        {
-            string testAppId = "tdd/m1000";
-
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=lt:2017-12-31";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
-
-            HttpResponseMessage response = await client.GetAsync(url);
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        /// <summary>
-        ///  Checks that multiple instances can be returned with query param.
-        /// </summary>
-        [Fact]
-        public async void QueryProcessVisibleDateTimeEq()
-        {
-            string testAppId = "tdd/m1000";
-
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=2019-07-19T00:00:00";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&labels=zero";
 
             client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
 
@@ -279,7 +102,130 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(4, totalHits);
+            Assert.Equal(200, totalHits);
+        }
+
+        /// <summary>
+        ///  Query with labels.
+        /// </summary>
+        [Fact]
+        public async void QueryProcessTwoLabels()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&labels=one&labels=two";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            int totalHits = jsonObject["totalHits"].Value<int>();
+
+            Assert.Equal(400, totalHits);
+        }
+
+        /// <summary>
+        ///  Query with labels.
+        /// </summary>
+        [Fact]
+        public async void QueryProcessOneLabelWithOne()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&labels=one";
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            int totalHits = jsonObject["totalHits"].Value<int>();
+
+            Assert.Equal(700, totalHits);
+        }
+
+        /// <summary>
+        ///  Query with labels.
+        /// </summary>
+        [Fact]
+        public async void QueryProcessOneLabelWithOneCommaTwo()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&labels=one,two";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            int totalHits = jsonObject["totalHits"].Value<int>();
+
+            Assert.Equal(400, totalHits);
+        }
+
+        /// <summary>
+        ///  Checks that wrong syntax is ignored
+        /// </summary>
+        [Fact]
+        public async void QueryProcessIllegalVisibleDateTime()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=2019-50-01";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        ///  Query with no result set
+        /// </summary>
+        [Fact]
+        public async void QueryProcessNoResult()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=lt:2017-12-31";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        /// <summary>
+        ///  Checks that multiple instances can be returned with query param.
+        /// </summary>
+        [Fact]
+        public async void QueryProcessVisibleDateTimeEq()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=2019-07-10T00:00:00Z";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            int totalHits = jsonObject["totalHits"].Value<int>();
+
+            Assert.Equal(1, totalHits);
         }
 
         /// <summary>
@@ -288,7 +234,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void QueryProcessVisibleDateTimeBetween()
         {
-            string testAppId = "tdd/m1000";
+            HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=gt:2019-07-01&visibleDateTime=lt:2019-08-01";
 
@@ -302,7 +248,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(89, totalHits);
+            Assert.Equal(83, totalHits);
         }
 
         /// <summary>
@@ -311,8 +257,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetInstancesForInstanceOwner()
         {
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
             HttpResponseMessage response = await client.GetAsync(url);
@@ -320,9 +265,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             response.EnsureSuccessStatusCode();
 
             string json = await response.Content.ReadAsStringAsync();
+
             List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
 
-            Assert.Equal(2, instances.Count);
+            Assert.Single(instances);
         }
 
         /// <summary>
@@ -331,27 +277,29 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void GetInstancesForOrg()
         {
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances?org={testOrg}";
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             string json = await response.Content.ReadAsStringAsync();
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
+            JObject jsonObject = JObject.Parse(json);
 
-            Assert.Equal(2, instances.Count);
+            int totalHits = jsonObject["totalHits"].Value<int>();
+            Assert.Equal(1000, totalHits);
+
+            List<Instance> instances = jsonObject["instances"].ToObject<List<Instance>>();
+            Assert.Equal(100, instances.Count);
         }
 
         /// <summary>
-        ///  Checks that multiple instances can be returned with query param.
+        ///  Checks that requested HAL return hal+json.
         /// </summary>
         [Fact]
-        public async void GetInstancesWithContinuationTokenAndHAL()
+        public async void GetInstancesWithAcceptHAL()
         {
-            Instance instance1 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            Instance instance2 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances?appId={testAppId}&size=1";
 
@@ -363,13 +311,29 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string contentType = response.Content.Headers.ContentType.ToString();
 
             Assert.Contains("application/hal+json", contentType);
+        }
+
+        /// <summary>
+        ///  Checks that multiple instances can be returned with query param.
+        /// </summary>
+        [Fact]
+        public async void GetInstancesWithContinuationTokenAndGetNext()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=500";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
 
             string jsonString = await response.Content.ReadAsStringAsync();
             JObject jsonObject = JObject.Parse(jsonString);
             var result = jsonObject["_embedded"]["instances"];
 
             List<Instance> instances = result.ToObject<List<Instance>>();
-            Assert.Single(instances);
+            Assert.Equal(500, instances.Count);
 
             var nextUrl = jsonObject["_links"]["next"]["href"].ToString();
 
@@ -381,14 +345,24 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             var result2 = jsonObject2["_embedded"]["instances"];
             List<Instance> instances2 = result2.ToObject<List<Instance>>();
-            Assert.Single(instances2);          
+            Assert.Equal(500, instances2.Count);
 
             var nextUrl2 = jsonObject2["_links"]["next"];
             Assert.Null(nextUrl2);
+            
+            var prevUrl2 = jsonObject2["_links"]["prev"];
+            Assert.NotNull(prevUrl2);
+
+            var prevUrl = jsonObject2["_links"]["prev"]["href"].ToString();
+
+            HttpResponseMessage response3 = await client.GetAsync(prevUrl);
+            response3.EnsureSuccessStatusCode();            
         }
 
         private Application CreateTestApplication(string testAppId)
         {
+            HttpClient client = fixture.CreateClient();
+
             ApplicationClient appClient = new ApplicationClient(client);
 
             try
@@ -410,47 +384,17 @@ namespace Altinn.Platform.Storage.IntegrationTest
             return appClient.CreateApplication(testAppId, title);
         }
 
-        private Application DeleteApplicationMetadata()
-        {
-            ApplicationClient appClient = new ApplicationClient(client);
-
-            Application existingApp = appClient.DeleteApplication(testAppId);
-
-            return existingApp;
-        }
-
-        /// <summary>
-        /// create two instances and check if they can be fetched for a given application owner.
-        /// </summary>
-        [Fact]
-        public async void QueryInstancesOnApplicationOwnerId()
-        {
-            Instance i1 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            Instance i2 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string requestUri = $"{versionPrefix}/instances?org={testOrg}";            
-
-            HttpResponseMessage response = await client.GetAsync(requestUri);
-
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.Equal(2, instances.Count);            
-        }
-
         /// <summary>
         ///  Checks that multiple instances can be returned with org query param.
         /// </summary>
         [Fact]
-        public async void GetInstancesAsJson()
+        public async void GetInstancesWithAcceptJson()
         {
-            Instance instance1 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            Instance instance2 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
+            HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances?appId={testAppId}";
 
+            // client.DefaultRequestHeaders.Clear();
             client.DefaultRequestHeaders.Add("Accept", "application/json");
 
             HttpResponseMessage response = await client.GetAsync(url);
@@ -461,8 +405,17 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.Contains("application/json", contentType);
 
             string jsonString = await response.Content.ReadAsStringAsync();
+        }
 
-            Assert.True(true);
+        /// <summary>
+        ///  Generate test data instances can be returned with query param.
+        /// </summary>
+        //[Fact]
+        public void GenTestdata()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            GenerateInstanceTestData.For1000InstanceOwners(client);
         }
     }
 }

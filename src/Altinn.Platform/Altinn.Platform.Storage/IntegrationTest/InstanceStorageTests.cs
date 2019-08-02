@@ -55,7 +55,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(content);
+                JObject jsonObject = JObject.Parse(content);
+                List<Instance> instances = jsonObject["instances"].ToObject<List<Instance>>();
 
                 foreach (Instance instance in instances)
                 {
@@ -277,27 +278,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     response.EnsureSuccessStatusCode();
                 }
             }
-        }
-
-        /// <summary>
-        /// create two instances and check if they can be fetched for a given application owner.
-        /// </summary>
-        [Fact]
-        public async void QueryInstancesOnApplicationOwnerId()
-        {
-            Instance i1 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            Instance i2 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string requestUri = $"{versionPrefix}/instances?org={testOrg}";            
-
-            HttpResponseMessage response = await client.GetAsync(requestUri);
-
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.Equal(2, instances.Count);            
         }
     }
 }

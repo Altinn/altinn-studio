@@ -49,12 +49,14 @@ namespace Altinn.Platform.Storage
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
 
+            // Add HAL support (Halcyon)
             services.AddMvc().AddMvcOptions(c =>
             {
                 c.OutputFormatters.RemoveType<JsonOutputFormatter>();
                 c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
             });
 
+            // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info

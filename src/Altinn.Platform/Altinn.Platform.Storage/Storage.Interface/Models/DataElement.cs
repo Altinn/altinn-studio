@@ -11,6 +11,7 @@ namespace Altinn.Platform.Storage.Models
     /// Model to hold a data element.
     /// </summary>
     [Serializable]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class DataElement
     {
         /// <summary>

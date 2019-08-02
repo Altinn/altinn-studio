@@ -69,7 +69,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="processIsComplete">is process complete</param>
         /// <param name="processIsInError">is process in error</param>
         /// <param name="processEndState">process end state</param>
-        /// <param name="label">labels</param>
+        /// <param name="labels">labels</param>
         /// <param name="lastChangedDateTime">last changed date</param>
         /// <param name="createdDateTime">created time</param>
         /// <param name="visibleDateTime">the visible date time</param>
@@ -86,7 +86,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
             [FromQuery(Name = "process.isInError")] bool? processIsInError,
             [FromQuery(Name = "process.endState")] string processEndState,
-            [FromQuery] string label,
+            [FromQuery] string labels,
             [FromQuery] string lastChangedDateTime,
             [FromQuery] string createdDateTime,
             [FromQuery] string visibleDateTime,
@@ -95,8 +95,11 @@ namespace Altinn.Platform.Storage.Controllers
             int? size)
         {
             int pageSize = size ?? 100;
+            string prevContinuationToken = null;
+
             if (!string.IsNullOrEmpty(continuationToken))
             {
+                prevContinuationToken = continuationToken;
                 continuationToken = HttpUtility.UrlDecode(continuationToken);
             }
            
@@ -107,60 +110,65 @@ namespace Altinn.Platform.Storage.Controllers
 
             logger.LogInformation($"uri = {url}{query}");
 
-            if (!string.IsNullOrEmpty(org))
+            try
             {
-                List<Instance> result = await _instanceRepository.GetInstancesOfOrg(org);
-                if (result == null || result.Count == 0)
+                InstanceQueryResponse result = await _instanceRepository.GetInstancesOfApplication(queryParams, continuationToken, pageSize);
+
+                if (result.TotalHits == 0)
                 {
-                    return NotFound($"Did not find any instances for application owner (org)={org}");
+                    return NotFound($"Did not find any instances");
                 }
 
-                return Ok(result);
-            }
-            else if (!string.IsNullOrEmpty(appId))
-            {
-                try
+                if (!string.IsNullOrEmpty(result.Exception))
                 {
-                    QueryResponse result = await _instanceRepository.GetInstancesOfApplication(appId, queryParams, continuationToken, pageSize);
-
-                    if (result.TotalHits == 0)
-                    {
-                        return NotFound($"Did not find any instances");
-                    }
-
-                    if (!string.IsNullOrEmpty(result.Exception))
-                    {
-                        return BadRequest(result.Exception);
-                    }
+                    return BadRequest(result.Exception);
+                }
           
-                    string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
-                    result.ContinuationToken = nextContinuationToken;
+                string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
+                result.ContinuationToken = nextContinuationToken;
 
-                    HALResponse response = new HALResponse(result);
+                HALResponse response = new HALResponse(result);
 
-                    Link selfLink = new Link("self", $"{url}{query}");
-                    response.AddLinks(selfLink);
+                Link selfLink = new Link("self", $"{url}{query}");
+                response.AddLinks(selfLink);
 
-                    if (nextContinuationToken != null)
-                    {
-                        string nextQueryString = NextQueryString(queryParams, "continuationToken", nextContinuationToken);
-                        
-                        Link nextLink = new Link("next", $"{url}{nextQueryString}");
-                        response.AddLinks(nextLink);
-                    }
-
-                    //response.AddEmbeddedCollection("instances", result.Instances);
-               
-                    return Ok(response);
-                }
-                catch (Exception e)
+                if (continuationToken != null)
                 {
-                    logger.LogError("exception", e);
-                    return BadRequest($"{e}");
-                }               
-            }
+                    string prevQueryString = NextQueryString(queryParams, "continuationToken", prevContinuationToken);
+                    string prevUrl = $"{url}{prevQueryString}";
 
-            return StatusCode(500, "Unable to perform query");
+                    result.Prev = prevUrl;
+
+                    Link prevLink = new Link("prev", prevUrl);
+                    response.AddLinks(prevLink);
+                }
+
+                if (nextContinuationToken != null)
+                {
+                    string nextQueryString = NextQueryString(queryParams, "continuationToken", nextContinuationToken);
+                    string nextUrl = $"{url}{nextQueryString}";
+
+                    result.Next = nextUrl;
+
+                    Link nextLink = new Link("next", $"{url}{nextQueryString}");
+                    response.AddLinks(nextLink);
+                }
+
+                StringValues acceptHeader = Request.Headers["Accept"];
+                if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
+                {
+                    // convert to HAL
+                    response.AddEmbeddedCollection("instances", result.Instances);
+                    result.Instances = null;
+                }
+
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                logger.LogError("exception", e);
+                return StatusCode(500, $"Unable to perform query due to: {e.Message}");
+            }                               
         }
 
         private static string NextQueryString(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
@@ -284,13 +292,13 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },                
             };
 
-            if (instanceTemplate.Workflow != null)
+            if (instanceTemplate.Process != null)
             {
-                createdInstance.Workflow = instanceTemplate.Workflow;
+                createdInstance.Process = instanceTemplate.Process;
             }
             else
             {
-                createdInstance.Workflow = new WorkflowState { CurrentStep = "FormFilling_1", IsComplete = false };
+                createdInstance.Process = new ProcessState { CurrentTask = "FormFilling_1", IsComplete = false };
             }
 
             try
@@ -331,7 +339,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             existingInstance.AppOwnerState = instance.AppOwnerState;
-            existingInstance.Workflow = instance.Workflow;
+            existingInstance.Process = instance.Process;
             existingInstance.InstanceState = instance.InstanceState;
 
             existingInstance.PresentationField = instance.PresentationField;
