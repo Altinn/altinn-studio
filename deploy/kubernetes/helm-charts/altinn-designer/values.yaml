@@ -15,6 +15,8 @@ environmentVariables:
       value: http://+:5000
     - name: GeneralSettings__HostName
       value: dev.altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -56,6 +58,8 @@ environmentVariables:
       value: http://+:5000
     - name: GeneralSettings__HostName
       value: altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint

@@ -20,12 +20,12 @@ namespace AltinnCore.ServiceLibrary.Models
         /// <summary>
         /// Gets or sets the user's preselected reportee
         /// </summary>
-        public int PreSelectedReporteeId { get; set; }
+        public int PreSelectedPartyId { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the users want 
         /// to be asked for the reportee on every form submission
         /// </summary>
-        public bool DoNotPromptForReportee { get; set; }
+        public bool DoNotPromptForParty { get; set; }
     }
 }
