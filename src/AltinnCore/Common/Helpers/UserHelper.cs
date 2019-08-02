@@ -65,31 +65,28 @@ namespace AltinnCore.Common.Helpers
 
             if (context.Request.Cookies["altinncorereportee"] != null)
             {
-                userContext.ReporteeId = Convert.ToInt32(context.Request.Cookies["altinncorereportee"]);
-            }
-            else
-            {
-                userContext.ReporteeId = userContext.PartyId;
+                userContext.PartyId = Convert.ToInt32(context.Request.Cookies["altinncorereportee"]);
             }
 
-            userContext.Reportee = await _registerService.GetParty(userContext.ReporteeId);
+            userContext.Party = await _registerService.GetParty(userContext.PartyId);
             return userContext;
         }
 
         /// <summary>
-        /// Returns the user context for a given reportee Id
+        /// Returns the user context for a given user and party Id
         /// </summary>
         /// <param name="context">The HttpContext</param>
-        /// <param name="reporteeId">The reportee id</param>
+        /// <param name="userId">The user id</param>
+        /// <param name="partyId">The party id</param>
         /// <returns>The UserContext</returns>
-        public async Task<UserContext> CreateUserContextBasedOnReportee(HttpContext context, int reporteeId)
+        public async Task<UserContext> CreateUserContextBasedOnUserAndParty(HttpContext context, int userId, int partyId)
         {
             UserContext userContext = new UserContext() { User = context.User };
-            userContext.PartyId = reporteeId;
-            userContext.UserParty = await _registerService.GetParty(userContext.PartyId);
-            userContext.UserId = reporteeId;
-            userContext.ReporteeId = reporteeId;
-            userContext.Reportee = await _registerService.GetParty(userContext.ReporteeId);
+            userContext.UserId = userId;
+            userContext.PartyId = partyId;
+            userContext.Party = await _registerService.GetParty(userContext.PartyId);
+
+            // userContext.UserParty = await _registerService.GetParty(userContext.PartyId); // this userPartyId is not available at this point.
             return userContext;
         }
     }
