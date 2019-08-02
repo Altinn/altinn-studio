@@ -773,6 +773,11 @@
             String Equal Matching Function
             </summary>
         </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes">
+            <summary>
+            Prefixed used in namespaces when writing to XML
+            </summary>
+        </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Policy">
             <summary>
             The XACML policy namespace prefix.
@@ -781,16 +786,6 @@
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Context">
             <summary>
             The XACML Context namespace prefix.
-            </summary>
-        </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Assertion">
-            <summary>
-            The XACML SAML2.0 assertion namespace prefix.
-            </summary>
-        </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Protocol">
-            <summary>
-            The XACML SAML2.0 protocol namespace prefix.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Xml">
@@ -870,7 +865,6 @@
             </summary>
             <param name="contextHandler">The configured contexthandler</param>
             <param name="prp">The Policy Retrieval Point</param>
-            <param name="pip">The Policy Information Point</param>
         </member>
         <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.AuthorizeAccess(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
             <summary>
@@ -885,6 +879,7 @@
             </summary>
             <param name="policy">The policy</param>
             <param name="request">The context request</param>
+            <param name="requiredAttributeMissing">Tels if a required attribute is missing</param>
             <returns></returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.Guard">
@@ -903,40 +898,40 @@
             The name of the argument.
             </param>
         </member>
-        <member name="T:Altinn.Authorization.ABAC.Utils.Xacml30Parser">
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser">
             <summary>
             Parser Responsible for parsing 
             </summary>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ParseXacmlPolicy(System.Xml.XmlReader)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ParseXacmlPolicy(System.Xml.XmlReader)">
             <summary>
             Parses a Xacml 3.0 XML Policy 
             </summary>
             <param name="reader">A XML Reader with the Policy loaded</param>
             <returns>The XACML Policy</returns>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadContextRequest(System.Xml.XmlReader)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextRequest(System.Xml.XmlReader)">
             <summary>
             Parses XML based Xacml Context Request
             </summary>
             <param name="reader">The XNL Reader</param>
             <returns></returns>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadContextResponse(System.Xml.XmlReader)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextResponse(System.Xml.XmlReader)">
             <summary>
             Parses XACML 3.0 Context Response XML documents
             </summary>
             <param name="reader">The XML Reader</param>
             <returns></returns>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadContextResult(System.Xml.XmlReader)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextResult(System.Xml.XmlReader)">
             <summary>
             Parses a XMLContextResult
             </summary>
             <param name="reader">The XML Reader</param>
             <returns></returns>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadChoiceElements(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadChoiceElements(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
             <summary>
             This method reads 
             </summary>
@@ -944,7 +939,7 @@
             <param name="readerActions">A dictionary with actions to be used on different element types</param>
             <param name="isRequired">Defines if it is a required parameter</param>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadChoiceElement(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadChoiceElement(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
             <summary>
             This method uses a dictionary with different actions to 
             </summary>
@@ -953,14 +948,14 @@
             <param name="isRequired">Defines if element is required</param>
             <returns></returns>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadAttributeSelector(System.Xml.XmlReader)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadAttributeSelector(System.Xml.XmlReader)">
             <summary>
             Reads Attribute Selector Elements from XACML 3.0 Policy
             </summary>
             <param name="reader">The xml Reader</param>
             <returns>A XacmlAttributeSelector</returns>
         </member>
-        <member name="T:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ReadElement`1">
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadElement`1">
             <summary>
             Delegate to make it possible to send different read methods in to metods
             </summary>
@@ -968,7 +963,7 @@
             <param name="reader">The xml reader</param>
             <returns></returns>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ValidateXacmlPolicyStartElement(System.Xml.XmlReader,System.String)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ValidateXacmlPolicyStartElement(System.Xml.XmlReader,System.String)">
             <summary>
             Validates if the next element Xacml XLM is of a given type.
             Throws exception if not
@@ -976,7 +971,7 @@
             <param name="reader">The XML Reader</param>
             <param name="elementName">The name of the element</param>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Utils.Xacml30Parser.ValidateNotMoreThanOneElement(System.Xml.XmlReader,System.Int32,System.String)">
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ValidateNotMoreThanOneElement(System.Xml.XmlReader,System.Int32,System.String)">
             <summary>
             Validates that the count of element is not more than 
             </summary>
@@ -984,11 +979,16 @@
             <param name="elementCount">The element count</param>
             <param name="elementName">The element name</param>
         </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlSerializer">
+            <summary>
+            Utility to parse XACM objects to XML or JSON
+            </summary>
+        </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlSerializer.WriteContextResponse(System.Xml.XmlWriter,Altinn.Authorization.ABAC.Xacml.XacmlContextResponse)">
             <summary>
             Method to serialize the XACML Response
             </summary>
-            <param name="writer">XML Wrihter</param>
+            <param name="writer">XML Writer</param>
             <param name="xacmlContextResponse">The responze</param>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.AttributeMatcher.MatchAttributes(System.String,System.String,System.String)">
@@ -1116,6 +1116,26 @@
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAllOf.Matches">
             <summary>
             Gets the matches.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement">
+            <summary>
+            Entity for any elements in XML
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement"/> class.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.Attributes">
+            <summary>
+            XML attributes.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.Elements">
+            <summary>
+            XML elements.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyOf">

@@ -44,9 +44,26 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpPost]
         public ActionResult Post([FromBody] XacmlRequestApiModel model)
         {
-            XacmlContextRequest request = ParseApiBody(model);
-            PolicyDecisionPoint pdp = new PolicyDecisionPoint(_contextHandler, _prp);
-            XacmlContextResponse xacmlContextResponse = pdp.AuthorizeAccess(request);
+            XacmlContextRequest request = null;
+            XacmlContextResponse xacmlContextResponse = null;
+            try
+            {
+                request = ParseApiBody(model);
+            }
+            catch (Exception ex)
+            {
+                XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
+                {
+                    Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
+                };
+                xacmlContextResponse = new XacmlContextResponse(result);
+            }
+
+            if (request != null)
+            {
+                PolicyDecisionPoint pdp = new PolicyDecisionPoint(_contextHandler, _prp);
+                xacmlContextResponse = pdp.AuthorizeAccess(request);
+            }
 
             StringBuilder builder = new StringBuilder();
             using (XmlWriter writer = XmlWriter.Create(builder))
@@ -55,7 +72,7 @@ namespace Altinn.Platform.Authorization.Controllers
             }
 
             string xml = builder.ToString();
-           
+
             return Content(xml);
         }
 

@@ -24,30 +24,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             string testID = GetTestId(_httpContextAccessor.HttpContext);
             if (!string.IsNullOrEmpty(testID) && testID.ToLower().Contains("altinnapps"))
             {
-                try
-                {
-
-                    return ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath());
-                }
-                catch (Exception)
-                {
-
-                }
+                return ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath());
+              
             }
             else
             {
-                try
-                {
-
-                    return ParsePolicy(testID + "Policy.xml", GetConformancePath());
-                }
-                catch (Exception)
-                {
-
-                }
+                return ParsePolicy(testID + "Policy.xml", GetConformancePath());
             }
-
-            return null;
         }
 
         private string GetTestId(HttpContext context)
@@ -57,13 +40,13 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 
         private string GetAltinnAppsPath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\AltinnApps");
         }
 
         private string GetConformancePath()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DecisionTests).Assembly.CodeBase).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\ConformanceTests");
         }
 
