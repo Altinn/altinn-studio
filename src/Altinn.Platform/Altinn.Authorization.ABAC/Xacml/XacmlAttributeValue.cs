@@ -16,7 +16,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// DataType[Required]
     /// The data-type of the attribute value.
     /// </summary>
-    public class XacmlAttributeValue : IXacmlExpression
+    public class XacmlAttributeValue : XacmlAnyElement, IXacmlExpression
     {
         private Uri dataType;
         private string value;

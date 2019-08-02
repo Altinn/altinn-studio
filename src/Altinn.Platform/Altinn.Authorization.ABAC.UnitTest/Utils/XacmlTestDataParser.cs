@@ -24,7 +24,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
             XacmlContextResponse contextResponeExpected;
             using (XmlReader reader = XmlReader.Create(new StringReader(responseDocument.OuterXml)))
             {
-                contextResponeExpected = Xacml30Parser.ReadContextResponse(reader);
+                contextResponeExpected = XacmlParser.ReadContextResponse(reader);
             }
 
             return contextResponeExpected;
@@ -37,7 +37,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
             XacmlContextRequest contextRequest;
             using (XmlReader reader = XmlReader.Create(new StringReader(requestDocument.OuterXml)))
             {
-                contextRequest = Xacml30Parser.ReadContextRequest(reader);
+                contextRequest = XacmlParser.ReadContextRequest(reader);
             }
 
             return contextRequest;
@@ -56,7 +56,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
             XacmlPolicy policy;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
             {
-                policy = Xacml30Parser.ParseXacmlPolicy(reader);
+                policy = XacmlParser.ParseXacmlPolicy(reader);
             }
 
             return policy;

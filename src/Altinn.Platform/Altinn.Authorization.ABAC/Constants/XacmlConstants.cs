@@ -764,5 +764,26 @@ namespace Altinn.Authorization.ABAC.Constants
             /// </summary>
             public const string Base64BinaryEqual = "urn:oasis:names:tc:xacml:1.0:function:base64Binary-equal";
         }
+
+        /// <summary>
+        /// Prefixed used in namespaces when writing to XML
+        /// </summary>
+        public sealed class Prefixes
+        {
+            /// <summary>
+            /// The XACML policy namespace prefix.
+            /// </summary>
+            public const string Policy = "xacml";
+
+            /// <summary>
+            /// The XACML Context namespace prefix.
+            /// </summary>
+            public const string Context = "xacml-context";
+
+            /// <summary>
+            /// The XML namespace prefix.
+            /// </summary>
+            public const string Xml = "xml";
+        }
     }
 }

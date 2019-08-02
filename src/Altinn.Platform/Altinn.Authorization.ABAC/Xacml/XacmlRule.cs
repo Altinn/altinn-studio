@@ -149,12 +149,19 @@ namespace Altinn.Authorization.ABAC.Xacml
 
                             if (requestAttributes.ContainsKey(xacmlMatch.AttributeDesignator.AttributeId.OriginalString))
                             {
+                                bool attributeValueMatched = false;
                                 foreach (XacmlAttributeValue attValue in requestAttributes[xacmlMatch.AttributeDesignator.AttributeId.OriginalString].AttributeValues)
                                 {
-                                    if (!xacmlMatch.IsMatch(attValue))
+                                    if (xacmlMatch.IsMatch(attValue))
                                     {
-                                        allAttributesInAllOfMatched = false;
+                                        attributeValueMatched = true;
+                                        break;
                                     }
+                                }
+
+                                if (!attributeValueMatched)
+                                {
+                                    allAttributesInAllOfMatched = false;
                                 }
                             }
                             else

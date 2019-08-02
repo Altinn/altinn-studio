@@ -773,6 +773,31 @@
             String Equal Matching Function
             </summary>
         </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Policy">
+            <summary>
+            The XACML policy namespace prefix.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Context">
+            <summary>
+            The XACML Context namespace prefix.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Assertion">
+            <summary>
+            The XACML SAML2.0 assertion namespace prefix.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Protocol">
+            <summary>
+            The XACML SAML2.0 protocol namespace prefix.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Xml">
+            <summary>
+            The XML namespace prefix.
+            </summary>
+        </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants">
             <summary>
             Constants for XML 
@@ -839,7 +864,7 @@
             This is the Policy Decision Point performing validation of request against policies
             </summary>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.#ctor(Altinn.Authorization.ABAC.Interface.IContextHandler,Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint,Altinn.Authorization.ABAC.Interface.IPolicyInformationPoint)">
+        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.#ctor(Altinn.Authorization.ABAC.Interface.IContextHandler,Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint)">
             <summary>
             Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.PolicyDecisionPoint"/> class.
             </summary>
@@ -958,6 +983,13 @@
             <param name="reader">The Xml Reader</param>
             <param name="elementCount">The element count</param>
             <param name="elementName">The element name</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlSerializer.WriteContextResponse(System.Xml.XmlWriter,Altinn.Authorization.ABAC.Xacml.XacmlContextResponse)">
+            <summary>
+            Method to serialize the XACML Response
+            </summary>
+            <param name="writer">XML Wrihter</param>
+            <param name="xacmlContextResponse">The responze</param>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.AttributeMatcher.MatchAttributes(System.String,System.String,System.String)">
             <summary>

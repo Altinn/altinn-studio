@@ -18,7 +18,7 @@ namespace Altinn.Authorization.ABAC.UnitTests
             XacmlPolicy result;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
             {
-               result = Xacml30Parser.ParseXacmlPolicy(reader);
+               result = XacmlParser.ParseXacmlPolicy(reader);
             }
 
             Assert.NotNull(result);

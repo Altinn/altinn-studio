@@ -14,9 +14,11 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Authorization.Interface", "Authorization.Interface\Authorization.Interface.csproj", "{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Authorization.ABAC", "..\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{115E86D1-991D-4C99-910E-374CA242BC1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "..\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{115E86D1-991D-4C99-910E-374CA242BC1B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Altinn.Authorization.ABAC.UnitTest", "..\Altinn.Authorization.ABAC.UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj", "{37C5C4E5-15F2-4022-9BC6-84881DC9123A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC.UnitTest", "..\Altinn.Authorization.ABAC.UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj", "{37C5C4E5-15F2-4022-9BC6-84881DC9123A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{7C92CDFD-F380-41B6-B6F0-F8451A6A63FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -44,6 +46,10 @@ Global
 		{37C5C4E5-15F2-4022-9BC6-84881DC9123A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37C5C4E5-15F2-4022-9BC6-84881DC9123A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37C5C4E5-15F2-4022-9BC6-84881DC9123A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C92CDFD-F380-41B6-B6F0-F8451A6A63FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C92CDFD-F380-41B6-B6F0-F8451A6A63FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C92CDFD-F380-41B6-B6F0-F8451A6A63FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C92CDFD-F380-41B6-B6F0-F8451A6A63FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

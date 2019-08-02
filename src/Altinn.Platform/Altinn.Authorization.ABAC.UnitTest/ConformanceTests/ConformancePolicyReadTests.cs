@@ -22,7 +22,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             XacmlPolicy result;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
             {
-                result = Xacml30Parser.ParseXacmlPolicy(reader);
+                result = XacmlParser.ParseXacmlPolicy(reader);
             }
 
             Assert.NotNull(result);
@@ -49,7 +49,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             XacmlContextRequest result;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
             {
-                result = Xacml30Parser.ReadContextRequest(reader);
+                result = XacmlParser.ReadContextRequest(reader);
             }
 
             Assert.NotNull(result);
@@ -65,7 +65,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             XacmlPolicy result;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
             {
-                result = Xacml30Parser.ParseXacmlPolicy(reader);
+                result = XacmlParser.ParseXacmlPolicy(reader);
             }
 
             Assert.NotNull(result);
@@ -92,7 +92,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             XacmlPolicy result;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
             {
-                result = Xacml30Parser.ParseXacmlPolicy(reader);
+                result = XacmlParser.ParseXacmlPolicy(reader);
             }
 
             Assert.NotNull(result);
@@ -126,7 +126,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             XacmlPolicy result;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
             {
-                result = Xacml30Parser.ParseXacmlPolicy(reader);
+                result = XacmlParser.ParseXacmlPolicy(reader);
             }
 
             Assert.NotNull(result);
@@ -153,7 +153,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.ConformanceTests
             XacmlPolicy result;
             using (XmlReader reader = XmlReader.Create(new StringReader(policyDocument.OuterXml)))
             {
-                result = Xacml30Parser.ParseXacmlPolicy(reader);
+                result = XacmlParser.ParseXacmlPolicy(reader);
             }
 
             Assert.NotNull(result);

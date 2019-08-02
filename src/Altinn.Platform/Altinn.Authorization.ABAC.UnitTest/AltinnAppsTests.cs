@@ -23,7 +23,7 @@ namespace Altinn.Authorization.ABAC.UnitTest
             string testCase = "AltinnApps0001";
 
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetAltinnAppsPath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetManagingDirectorPrincialForParty(1));
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
@@ -34,11 +34,8 @@ namespace Altinn.Authorization.ABAC.UnitTest
             bool contextRequstIsEnriched = true;
             string testCase = "AltinnApps0002";
 
-            List<string> roles = new List<string>();
-            roles.Add("REGNA");
-
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetAltinnAppsPath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithRoles(2, roles));
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
@@ -49,17 +46,14 @@ namespace Altinn.Authorization.ABAC.UnitTest
             bool contextRequstIsEnriched = true;
             string testCase = "AltinnApps0003";
 
-            List<string> roles = new List<string>();
-            roles.Add("REGNA");
-
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetAltinnAppsPath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithRoles(2, roles));
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
 
 
-        private XacmlContextResponse SetuUpPolicyDecisionPoint(string testCase, bool contextRequstIsEnriched, ClaimsPrincipal principal)
+        private XacmlContextResponse SetuUpPolicyDecisionPoint(string testCase, bool contextRequstIsEnriched)
         {
             XacmlContextRequest contextRequest = XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetAltinnAppsPath());
             XacmlContextRequest contextRequestEnriched = contextRequest;
@@ -73,13 +67,10 @@ namespace Altinn.Authorization.ABAC.UnitTest
             Moq.Mock<IContextHandler> moqContextHandler = new Mock<IContextHandler>();
             moqContextHandler.Setup(c => c.UpdateContextRequest(It.IsAny<XacmlContextRequest>())).Returns(contextRequestEnriched);
 
-            Moq.Mock<IPolicyInformationPoint> moqPip = new Mock<IPolicyInformationPoint>();
-            moqPip.Setup(m => m.GetClaimsPrincipal(It.IsAny<XacmlContextRequest>())).Returns(principal);
-
             Moq.Mock<IPolicyRetrievalPoint> moqPRP = new Mock<IPolicyRetrievalPoint>();
             moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Returns(policy);
 
-            PolicyDecisionPoint pdp = new PolicyDecisionPoint(moqContextHandler.Object, moqPRP.Object, moqPip.Object);
+            PolicyDecisionPoint pdp = new PolicyDecisionPoint(moqContextHandler.Object, moqPRP.Object);
 
             XacmlContextResponse xacmlResponse = pdp.AuthorizeAccess(contextRequest);
 

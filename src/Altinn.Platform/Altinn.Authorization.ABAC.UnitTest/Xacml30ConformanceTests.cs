@@ -23,7 +23,7 @@ namespace Altinn.Authorization.ABAC.UnitTest
             string testCase = "IIA001";
 
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, null);
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
@@ -31,14 +31,11 @@ namespace Altinn.Authorization.ABAC.UnitTest
         [Fact]
         public void PDP_AuthorizeAccess_IIA002()
         {
-            bool contextRequstIsEnriched = false;
+            bool contextRequstIsEnriched = true;
             string testCase = "IIA002";
 
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim("urn:oasis:names:tc:xacml:1.0:example:attribute:role", "Physician", ClaimValueTypes.String, "Altinn"));
-
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithClaims(1,claims));
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
@@ -49,10 +46,8 @@ namespace Altinn.Authorization.ABAC.UnitTest
             bool contextRequstIsEnriched = false;
             string testCase = "IIA003";
 
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim("urn:oasis:names:tc:xacml:1.0:example:attribute:role", "Physician", ClaimValueTypes.String, "Altinn"));
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithClaims(1, claims));
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
@@ -63,10 +58,8 @@ namespace Altinn.Authorization.ABAC.UnitTest
             bool contextRequstIsEnriched = false;
             string testCase = "IIA004";
 
-            List<Claim> claims = new List<Claim>();
-            claims.Add(new Claim("urn:oasis:names:tc:xacml:1.0:example:attribute:role", "Physician", ClaimValueTypes.String, "Altinn"));
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, ClaimsPrincipalUtil.GetUserWithClaims(1, claims));
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
@@ -78,7 +71,7 @@ namespace Altinn.Authorization.ABAC.UnitTest
             string testCase = "IIA006";
 
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, null);
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
@@ -90,14 +83,13 @@ namespace Altinn.Authorization.ABAC.UnitTest
             string testCase = "IIA007";
 
             XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched, null);
+            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
 
             AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
         }
 
 
-
-        private XacmlContextResponse SetuUpPolicyDecisionPoint(string testCase, bool contextRequstIsEnriched, ClaimsPrincipal principal)
+        private XacmlContextResponse SetuUpPolicyDecisionPoint(string testCase, bool contextRequstIsEnriched)
         {
             XacmlContextRequest contextRequest = XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetConformancePath());
             XacmlContextRequest contextRequestEnriched = contextRequest;
@@ -106,14 +98,9 @@ namespace Altinn.Authorization.ABAC.UnitTest
                 contextRequestEnriched = XacmlTestDataParser.ParseRequest(testCase + "Request_Enriched.xml", GetConformancePath());
             }
 
-            
-
             Moq.Mock<IContextHandler> moqContextHandler = new Mock<IContextHandler>();
             moqContextHandler.Setup(c => c.UpdateContextRequest(It.IsAny<XacmlContextRequest>())).Returns(contextRequestEnriched);
-
-            Moq.Mock<IPolicyInformationPoint> moqPip = new Mock<IPolicyInformationPoint>();
-            moqPip.Setup(m => m.GetClaimsPrincipal(It.IsAny<XacmlContextRequest>())).Returns(principal);
-
+            
             Moq.Mock<IPolicyRetrievalPoint> moqPRP = new Mock<IPolicyRetrievalPoint>();
 
             try
@@ -126,8 +113,7 @@ namespace Altinn.Authorization.ABAC.UnitTest
                 moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Throws(ex);
             }
 
-
-            PolicyDecisionPoint pdp = new PolicyDecisionPoint(moqContextHandler.Object, moqPRP.Object, moqPip.Object);
+            PolicyDecisionPoint pdp = new PolicyDecisionPoint(moqContextHandler.Object, moqPRP.Object);
 
             XacmlContextResponse xacmlResponse = pdp.AuthorizeAccess(contextRequest);
 
