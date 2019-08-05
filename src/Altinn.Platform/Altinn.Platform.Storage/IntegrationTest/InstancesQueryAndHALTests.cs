@@ -16,25 +16,28 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests dataservice REST api.
     /// </summary>
-    public class InstancesQueryAndHALTests : IClassFixture<PlatformStorageFixture>
+    public class InstancesQueryAndHALTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>
     {
         private readonly PlatformStorageFixture fixture;
         private readonly InstanceClient storageClient;
         private readonly string testOrg = "tdd";
         private readonly string testAppId = "tdd/m1000";
         private readonly int testInstanceOwnerId = 1001;
-        private readonly string versionPrefix = "/storage/api/v1";
+        private readonly string versionPrefix = "/storage/api/v1";       
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
+        /// <param name="collectionFixture">the fixture object that loads m1000 dataset into cosmos</param>
         public InstancesQueryAndHALTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
             this.storageClient = new InstanceClient(this.fixture.CreateClient());
 
             CreateTestApplication(testAppId);
+
+            //collectionFixture.LoadData(testAppId, this.storageClient);           
         }        
 
         /// <summary>
@@ -229,6 +232,29 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
+        ///  Checks that a local date performs ok.
+        /// </summary>
+        [Fact]
+        public async void QueryProcessVisibleLocalDate()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=2019-08-25T02:00:00%2B02:00";
+
+            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+            JObject jsonObject = JObject.Parse(jsonString);
+
+            int totalHits = jsonObject["totalHits"].Value<int>();
+
+            Assert.Equal(7, totalHits);
+        }
+
+        /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
         [Fact]
@@ -350,12 +376,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
             var nextUrl2 = jsonObject2["_links"]["next"];
             Assert.Null(nextUrl2);
             
-            var prevUrl2 = jsonObject2["_links"]["prev"];
-            Assert.NotNull(prevUrl2);
+            var selfUrl = jsonObject2["_links"]["self"];
+            Assert.NotNull(selfUrl);
 
-            var prevUrl = jsonObject2["_links"]["prev"]["href"].ToString();
+            var selfUrl2 = jsonObject2["_links"]["self"]["href"].ToString();
 
-            HttpResponseMessage response3 = await client.GetAsync(prevUrl);
+            HttpResponseMessage response3 = await client.GetAsync(selfUrl2);
             response3.EnsureSuccessStatusCode();            
         }
 
@@ -407,15 +433,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string jsonString = await response.Content.ReadAsStringAsync();
         }
 
-        /// <summary>
-        ///  Generate test data instances can be returned with query param.
-        /// </summary>
         //[Fact]
-        public void GenTestdata()
+        public void LoadData()
         {
-            HttpClient client = fixture.CreateClient();
-
-            GenerateInstanceTestData.For1000InstanceOwners(client);
+            DatabaseFixture.LoadData(testAppId, storageClient);
         }
     }
 }

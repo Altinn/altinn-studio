@@ -29,10 +29,10 @@ namespace Altinn.Platform.Storage.Repository
         public string Next { get; set; }
 
         /// <summary>
-        /// The url to the previous page. Null if no previous page exists.
+        /// The url to the query that created this page. 
         /// </summary>
-        [JsonProperty(PropertyName = "prev")]
-        public string Prev { get; set; }
+        [JsonProperty(PropertyName = "self")]
+        public string Self { get; set; }
 
         /// <summary>
         /// The url to the previous page. Null if no previous page exists.

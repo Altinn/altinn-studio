@@ -35,6 +35,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Update="data\m1000-instances.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="data\binary_file.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

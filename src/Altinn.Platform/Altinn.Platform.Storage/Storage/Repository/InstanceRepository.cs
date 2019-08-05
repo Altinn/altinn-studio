@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
@@ -382,7 +383,7 @@ namespace Altinn.Platform.Storage.Repository
 
         private static DateTime ParseDateTimeIntoUtc(string queryValue)
         {
-            return DateTime.Parse(queryValue, null, DateTimeStyles.AdjustToUniversal);
+            return DateTimeHelper.ParseAndConvertToUniversalTime(queryValue);
         }
 
         /// <inheritdoc/>

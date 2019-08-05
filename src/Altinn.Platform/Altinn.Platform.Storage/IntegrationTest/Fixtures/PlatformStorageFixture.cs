@@ -38,7 +38,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
                 .UseStartup<Altinn.Platform.Storage.Startup>();
 
             testServer = new TestServer(builder);
-            Client = testServer.CreateClient();
+            Client = testServer.CreateClient();            
         }
 
         /// <summary>

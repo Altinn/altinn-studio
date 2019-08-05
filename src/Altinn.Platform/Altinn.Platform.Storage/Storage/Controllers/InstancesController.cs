@@ -5,6 +5,7 @@ namespace Altinn.Platform.Storage.Controllers
     using System.Linq;
     using System.Threading.Tasks;
     using System.Web;
+    using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
     using global::Storage.Interface.Models;
@@ -95,16 +96,17 @@ namespace Altinn.Platform.Storage.Controllers
             int? size)
         {
             int pageSize = size ?? 100;
-            string prevContinuationToken = null;
+            string selfContinuationToken = null;
 
             if (!string.IsNullOrEmpty(continuationToken))
             {
-                prevContinuationToken = continuationToken;
+                selfContinuationToken = continuationToken;
                 continuationToken = HttpUtility.UrlDecode(continuationToken);
             }
            
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
+            string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
             string url = Request.Path;
             string query = Request.QueryString.Value;
 
@@ -126,33 +128,57 @@ namespace Altinn.Platform.Storage.Controllers
           
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = nextContinuationToken;
+                result.ContinuationToken = null;
 
                 HALResponse response = new HALResponse(result);
 
-                Link selfLink = new Link("self", $"{url}{query}");
-                response.AddLinks(selfLink);
-
-                if (continuationToken != null)
+                if (continuationToken == null)
                 {
-                    string prevQueryString = NextQueryString(queryParams, "continuationToken", prevContinuationToken);
-                    string prevUrl = $"{url}{prevQueryString}";
+                    string selfUrl = $"{host}{url}{query}";
 
-                    result.Prev = prevUrl;
+                    result.Self = selfUrl;
 
-                    Link prevLink = new Link("prev", prevUrl);
-                    response.AddLinks(prevLink);
+                    Link selfLink = new Link("self", selfUrl);
+                    response.AddLinks(selfLink);
+                }
+                else
+                {
+                    string selfQueryString = BuildQueryStringWithOneReplacedParameter(
+                        queryParams,
+                        "continuationToken",
+                        selfContinuationToken);
+
+                    string selfUrl = $"{host}{url}{selfQueryString}";
+
+                    result.Self = selfUrl;
+
+                    Link selfLink = new Link("self", selfUrl);
+                    response.AddLinks(selfLink);
                 }
 
                 if (nextContinuationToken != null)
                 {
-                    string nextQueryString = NextQueryString(queryParams, "continuationToken", nextContinuationToken);
-                    string nextUrl = $"{url}{nextQueryString}";
+                    string nextQueryString = BuildQueryStringWithOneReplacedParameter(
+                        queryParams,
+                        "continuationToken",
+                        nextContinuationToken);
+
+                    string nextUrl = $"{host}{url}{nextQueryString}";
 
                     result.Next = nextUrl;
 
-                    Link nextLink = new Link("next", $"{url}{nextQueryString}");
+                    Link nextLink = new Link("next", nextUrl);
                     response.AddLinks(nextLink);
                 }
+
+                // add self links to platform
+                result.Instances.ForEach(i =>
+                {
+                    i.SelfLinks = new ResourceLinks
+                    {
+                        Platform = $"{host}{url}/{i.Id}"
+                    };
+                });
 
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
@@ -171,9 +197,13 @@ namespace Altinn.Platform.Storage.Controllers
             }                               
         }
 
-        private static string NextQueryString(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
+        private static string BuildQueryStringWithOneReplacedParameter(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
         {
-            List<KeyValuePair<string, string>> items = q.SelectMany(x => x.Value, (col, value) => new KeyValuePair<string, string>(col.Key, value)).ToList();
+            List<KeyValuePair<string, string>> items = q.SelectMany(
+                x => x.Value,
+                (col, value) => new KeyValuePair<string, string>(col.Key, value))
+                .ToList();
+
             items.RemoveAll(x => x.Key == queryParamName);
 
             var qb = new QueryBuilder(items)
@@ -284,14 +314,14 @@ namespace Altinn.Platform.Storage.Controllers
                 AppId = appId,
                 Org = org,
 
-                VisibleDateTime = instanceTemplate.VisibleDateTime,
-                DueDateTime = instanceTemplate.DueDateTime,
+                VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
+                DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
                 Labels = instanceTemplate.Labels,
                 PresentationField = instanceTemplate.PresentationField,
 
                 InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },                
             };
-
+           
             if (instanceTemplate.Process != null)
             {
                 createdInstance.Process = instanceTemplate.Process;
@@ -343,8 +373,8 @@ namespace Altinn.Platform.Storage.Controllers
             existingInstance.InstanceState = instance.InstanceState;
 
             existingInstance.PresentationField = instance.PresentationField;
-            existingInstance.DueDateTime = instance.DueDateTime;
-            existingInstance.VisibleDateTime = instance.VisibleDateTime;
+            existingInstance.DueDateTime = DateTimeHelper.ConvertToUniversalTime(instance.DueDateTime);
+            existingInstance.VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instance.VisibleDateTime);
             existingInstance.Labels = instance.Labels;
 
             existingInstance.LastChangedBy = User.Identity.Name;
