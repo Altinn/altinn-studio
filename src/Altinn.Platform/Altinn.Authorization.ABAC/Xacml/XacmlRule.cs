@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -111,6 +112,27 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
+        /// Evauluat the condition
+        /// </summary>
+        /// <param name="request">The xacml context request</param>
+        public XacmlAttributeMatchResult EvaluateCondition(XacmlContextRequest request)
+        {
+            Type conditionType = Condition.Property.GetType();
+
+            if (conditionType == typeof(XacmlFunction))
+            {
+                return XacmlAttributeMatchResult.NoMatch;
+            }
+            else if (conditionType == typeof(XacmlApply))
+            {
+                XacmlApply xacmlApply = Condition.Property as XacmlApply;
+                return xacmlApply.Evalute(request);
+            }
+
+            return XacmlAttributeMatchResult.NoMatch;
+        }
+
+        /// <summary>
         /// A conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the PEP in conjunction with the
         /// authorization decision.See Section 7.18 for a description of how the set of advice to be returned by the PDP SHALL be determined.
         /// </summary>
@@ -184,61 +206,6 @@ namespace Altinn.Authorization.ABAC.Xacml
             }
 
             return xacmlAttributeMatchResult;
-        }
-
-        /// <summary>
-        /// Authorized a claims principal based on the subject rules and
-        /// </summary>
-        /// <param name="claimsPrincipal">The principal</param>
-        /// <returns></returns>
-        public XacmlContextDecision AuthorizeSubject(ClaimsPrincipal claimsPrincipal)
-        {
-            XacmlContextDecision decision = XacmlContextDecision.NotApplicable;
-
-            foreach (XacmlAnyOf anyOf in Target.AnyOf)
-            {
-                foreach (XacmlAllOf allOf in anyOf.AllOf)
-                {
-                    bool allSubjectAttributesMatched = true;
-
-                    foreach (XacmlMatch xacmlMatch in allOf.Matches)
-                    {
-                        bool matched = false;
-                        if (xacmlMatch.AttributeDesignator.Category.Equals(XacmlConstants.MatchAttributeCategory.Subject))
-                        {
-                            // Get all the claims that matches the rule
-                            IEnumerable<Claim> possibleMatchingClaims = claimsPrincipal.Claims.Where(c => c.Type.Equals(xacmlMatch.AttributeDesignator.AttributeId.OriginalString));
-                            foreach (Claim claim in possibleMatchingClaims)
-                            {
-                                if (xacmlMatch.IsMatch(claim.Value))
-                                {
-                                    matched = true;
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        if (!matched)
-                        {
-                            allSubjectAttributesMatched = false;
-                        }
-                    }
-
-                    if (allSubjectAttributesMatched)
-                    {
-                        if (Effect.Equals(XacmlEffectType.Deny))
-                        {
-                            decision = XacmlContextDecision.Deny;
-                        }
-                        else
-                        {
-                            decision = XacmlContextDecision.Permit;
-                        }
-                    }
-                }
-            }
-
-            return decision;
         }
 
         private Dictionary<string, XacmlAttribute> GetCategoryAttributes(XacmlContextRequest request, string category)

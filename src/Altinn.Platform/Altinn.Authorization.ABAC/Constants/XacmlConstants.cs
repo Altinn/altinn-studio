@@ -763,6 +763,11 @@ namespace Altinn.Authorization.ABAC.Constants
             /// String Equal Matching Function
             /// </summary>
             public const string Base64BinaryEqual = "urn:oasis:names:tc:xacml:1.0:function:base64Binary-equal";
+
+            /// <summary>
+            /// String is in bag of attributes
+            /// </summary>
+            public const string StringIsIn = "urn:oasis:names:tc:xacml:1.0:function:string-is-in";
         }
 
         /// <summary>

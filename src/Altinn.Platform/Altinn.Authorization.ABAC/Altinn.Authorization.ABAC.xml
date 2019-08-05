@@ -773,6 +773,11 @@
             String Equal Matching Function
             </summary>
         </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringIsIn">
+            <summary>
+            String is in bag of attributes
+            </summary>
+        </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes">
             <summary>
             Prefixed used in namespaces when writing to XML
@@ -1599,6 +1604,14 @@
             <summary>
             The elements
             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.MatchAttributeValues(System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue)">
+            <summary>
+            Match Attribute value against input attribute value
+            </summary>
+            <param name="matchFunction">The match function</param>
+            <param name="policyAttributeValue">The policy Attribute</param>
+            <returns></returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameter">
              <summary>
@@ -2716,6 +2729,12 @@
             See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations. 
             </summary>
         </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.EvaluateCondition(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+            <summary>
+            Evauluat the condition
+            </summary>
+            <param name="request">The xacml context request</param>
+        </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Advices">
             <summary>
             A conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the PEP in conjunction with the
@@ -2728,13 +2747,6 @@
             </summary>
             <param name="request">The request</param>
             <param name="category">The attribute category</param>
-            <returns></returns>
-        </member>
-        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.AuthorizeSubject(System.Security.Claims.ClaimsPrincipal)">
-            <summary>
-            Authorized a claims principal based on the subject rules and
-            </summary>
-            <param name="claimsPrincipal">The principal</param>
             <returns></returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlRuleCombinerParameters">

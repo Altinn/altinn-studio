@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 
 namespace Altinn.Authorization.ABAC.Xacml
@@ -68,6 +69,80 @@ namespace Altinn.Authorization.ABAC.Xacml
                 Guard.ArgumentNotNull(value, nameof(value));
                 this.functionId = value;
             }
+        }
+
+        public XacmlAttributeMatchResult Evalute(XacmlContextRequest request)
+        {
+            XacmlAttributeValue xacmlAttributeValue = null;
+            XacmlAttributeDesignator xacmlAttributeDesignator = null;
+
+            foreach (IXacmlExpression xacmlExpression in Parameters)
+           {
+                if (xacmlExpression.GetType() == typeof(XacmlAttributeValue))
+                {
+                    xacmlAttributeValue = xacmlExpression as XacmlAttributeValue;
+                }
+                else if (xacmlExpression.GetType() == typeof(XacmlAttributeDesignator))
+                {
+                    xacmlAttributeDesignator = xacmlExpression as XacmlAttributeDesignator;
+                }
+           }
+
+            return Evaluate(request, xacmlAttributeValue, xacmlAttributeDesignator);
+        }
+
+        private XacmlAttributeMatchResult Evaluate(XacmlContextRequest contextRequest, XacmlAttributeValue attributeValue, XacmlAttributeDesignator attributeDesignator)
+        {
+            XacmlContextAttributes xacmlContextAttributes = null;
+            foreach (XacmlContextAttributes attributes in contextRequest.Attributes)
+           {
+               if (attributes.Category.Equals(attributeDesignator.Category))
+                {
+                    xacmlContextAttributes = attributes;
+                    break;
+                }
+           }
+
+            if (xacmlContextAttributes == null)
+            {
+                // No match for the condition in the attributes
+                return XacmlAttributeMatchResult.RequiredAttributeMissing;
+            }
+
+            return Evalute(xacmlContextAttributes, attributeValue, attributeDesignator);
+        }
+
+        private XacmlAttributeMatchResult Evalute(XacmlContextAttributes contextAttributes, XacmlAttributeValue attributeValue, XacmlAttributeDesignator attributeDesignator)
+        {
+            foreach (XacmlAttribute attribute in contextAttributes.Attributes)
+            {
+                if (attribute.AttributeId.Equals(attributeDesignator.AttributeId))
+                {
+                    if (Match(FunctionId, attribute, attributeValue))
+                    {
+                        return XacmlAttributeMatchResult.Match;
+                    }
+                    else
+                    {
+                        return XacmlAttributeMatchResult.NoMatch;
+                    }
+                }
+            }
+
+            return XacmlAttributeMatchResult.RequiredAttributeMissing;
+        }
+
+        private bool Match(Uri matchFunction, XacmlAttribute contextAttribute, XacmlAttributeValue policyAttributeValue)
+        {
+            foreach (XacmlAttributeValue contextAttributeValue in contextAttribute.AttributeValues)
+            {
+                if (contextAttributeValue.MatchAttributeValues(matchFunction, policyAttributeValue))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

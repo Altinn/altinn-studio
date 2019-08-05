@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Xml.Linq;
+using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 
 namespace Altinn.Authorization.ABAC.Xacml
@@ -93,6 +94,22 @@ namespace Altinn.Authorization.ABAC.Xacml
         public ICollection<XElement> Elements
         {
             get { return this.elements; }
+        }
+
+        /// <summary>
+        /// Match Attribute value against input attribute value
+        /// </summary>
+        /// <param name="matchFunction">The match function</param>
+        /// <param name="policyAttributeValue">The policy Attribute</param>
+        /// <returns></returns>
+        public bool MatchAttributeValues(Uri matchFunction, XacmlAttributeValue policyAttributeValue)
+        {
+            if (matchFunction.OriginalString.Equals(XacmlConstants.MatchTypeIdentifiers.StringIsIn))
+            {
+                return value.Contains(policyAttributeValue.Value); 
+            }
+
+            throw new NotImplementedException();
         }
     }
 }

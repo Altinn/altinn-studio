@@ -104,6 +104,24 @@ namespace Altinn.Authorization.ABAC
                     decision = XacmlContextDecision.NotApplicable;
                 }
 
+                if ((decision.Equals(XacmlContextDecision.Deny) || decision.Equals(XacmlContextDecision.Permit)) && rule.Condition != null)
+                {
+                    XacmlAttributeMatchResult conditionDidEvaluate = rule.EvaluateCondition(request);
+
+                    if (conditionDidEvaluate.Equals(XacmlAttributeMatchResult.NoMatch))
+                    {
+                        decision = XacmlContextDecision.NotApplicable;
+                    }
+                    else if (conditionDidEvaluate.Equals(XacmlAttributeMatchResult.RequiredAttributeMissing))
+                    {
+                        contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate)
+                        {
+                            Status = new XacmlContextStatus(XacmlContextStatusCode.Success)
+                        };
+                        return new XacmlContextResponse(contextResult);
+                    }
+                }
+
                 if (!decision.Equals(XacmlContextDecision.NotApplicable))
                 {
                     if (policy.RuleCombiningAlgId.Equals(XacmlConstants.CombiningAlgorithms.RuleDenyOverrides)
@@ -124,7 +142,7 @@ namespace Altinn.Authorization.ABAC
                 Status = new XacmlContextStatus(XacmlContextStatusCode.Success)
             };
             AddObligations(policy, contextResult);
-
+          
             return new XacmlContextResponse(contextResult);
         }
 
