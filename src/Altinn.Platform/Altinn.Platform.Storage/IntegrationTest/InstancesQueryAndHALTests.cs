@@ -29,7 +29,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
-        /// <param name="collectionFixture">the fixture object that loads m1000 dataset into cosmos</param>
         public InstancesQueryAndHALTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
@@ -37,7 +36,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             CreateTestApplication(testAppId);
 
-            //collectionFixture.LoadData(testAppId, this.storageClient);           
+            // collectionFixture.LoadData(testAppId, this.storageClient);           
         }        
 
         /// <summary>
@@ -433,7 +432,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string jsonString = await response.Content.ReadAsStringAsync();
         }
 
-        //[Fact]
+#pragma warning disable xUnit1013
+        /// <summary>
+        /// Method to load data file with 1000 instances into cosmos db. Undocument the [Fact] line, run
+        /// the test once, make the fact a comment again and run tests. 
+        /// </summary>        
+        // [Fact]
         public void LoadData()
         {
             DatabaseFixture.LoadData(testAppId, storageClient);

@@ -10,28 +10,47 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
 {
+    /// <summary>
+    /// Attemt to create a database fixture which should load the data into the database. It should be called once by all unit test classes
+    /// which are annotated with [Database Collection]. But it requires a Testserver for the client which is genreated by the PlatformStorageFixture.
+    /// So this class does not work at the moment.
+    /// </summary>
     public class DatabaseFixture : IDisposable
     {
+        /// <summary>
+        /// Platform storage Instance client used to talk to storage.
+        /// </summary>
         public InstanceClient Client { get; set; }
 
+        /// <summary>
+        /// The app's identifier
+        /// </summary>
         public string App { get; set; }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         public DatabaseFixture()
         {
-            //LoadData("tdd/m1000", new InstanceClient(new HttpClient(), "http://localhost"));
+            // LoadData("tdd/m1000", new InstanceClient(new HttpClient(), "http://localhost"));
         }
 
-        public static void LoadData(string testAppId, InstanceClient client)
+        /// <summary>
+        /// Method that loads the m1000 dataset into cosmos db
+        /// </summary>
+        /// <param name="testApp">App id</param>
+        /// <param name="client">instance client</param>
+        public static void LoadData(string testApp, InstanceClient client)
         {            
             try
             {
-                List<Instance> ins = client.GetInstancesForOrg(testAppId.Split("/")[0], 1000).Result;
+                List<Instance> ins = client.GetInstancesForOrg(testApp.Split("/")[0], 1000).Result;
                 if (ins.Count == 1000)
                 {
                     return;
                 }
             }
-            catch (Exception e)
+            catch
             {
             }
                         
@@ -41,7 +60,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
 
             foreach (Instance instance in instances)
             {
-                Instance i = client.PostInstances(testAppId, instance).Result;
+                Instance i = client.PostInstances(testApp, instance).Result;
             }
         }
 
@@ -69,6 +88,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         }
     }
 
+    /// <summary>
+    /// provides the [Database Collection] annotation.
+    /// </summary>
     public class DatabaseCollection : ICollectionFixture<DatabaseFixture>
     {
     }
