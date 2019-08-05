@@ -1,3 +1,5 @@
+using System;
+
 namespace AltinnCore.Common.Configuration
 {
     /// <summary>
@@ -149,5 +151,22 @@ namespace AltinnCore.Common.Configuration
                 return TemplateLocation + "/.gitignore";
             }
         }
+
+               /// <summary>
+        /// Gets or sets the AltinnParty cookie name
+        /// </summary>
+        public string AltinnPartyCookieName { get; set; }
+
+        /// <summary>
+        /// Gets the altinnParty cookie from kubernetes environment variables and appsettings if environment variable is not set
+        /// </summary>
+        public string GetAltinnPartyCookieName
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__AltinnPartyCookieName") ?? AltinnPartyCookieName;
+            }
+        }
+
     }
 }

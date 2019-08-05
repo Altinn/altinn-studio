@@ -75,6 +75,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     <button
       className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 ShareChangesCompoenent-color_blueDark-173 ShareChangesCompoenent-btn-170 ShareChangesCompoenent-clickable-172"
       disabled={false}
+      id="share_changes_button"
       onBlur={[Function]}
       onClick={[Function]}
       onContextMenu={[Function]}

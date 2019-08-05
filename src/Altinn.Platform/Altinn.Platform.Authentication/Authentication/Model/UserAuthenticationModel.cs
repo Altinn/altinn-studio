@@ -24,7 +24,7 @@ namespace Altinn.Platform.Authentication.Model
         public string SSN { get; set; }
 
         /// <summary>
-        /// Gets or sets the partyID
+        /// Gets or sets the PartyId
         /// </summary>
         public int PartyID { get; set; }
 

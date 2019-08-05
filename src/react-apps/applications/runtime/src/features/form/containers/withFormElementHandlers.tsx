@@ -132,7 +132,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     const getComponentValidations = makeGetComponentValidationsSelector();
     const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
       language: state.language.language,
-      textResources: state.formResources.languageResource.resources,
+      textResources: state.textResources.resources,
       componentValidations: getComponentValidations(state, props),
       layout: getLayout(state),
       ...props,

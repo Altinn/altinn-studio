@@ -122,7 +122,7 @@ const makeMapStateToProps = () => {
       dataModel: state.formDataModel.dataModel,
       layoutElement: GetLayoutElement(state, props),
       isValid: isComponentValid(state.formValidations.validations[props.id]),
-      textResources: state.formResources.languageResource.resources,
+      textResources: state.textResources.resources,
       formData: GetFormDataSelector(state, props),
       unsavedChanges: state.formData.unsavedChanges,
       language: state.language.language,
