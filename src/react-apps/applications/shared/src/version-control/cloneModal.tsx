@@ -47,6 +47,14 @@ function CloneModal(props: ICloneModalProps) {
     document.execCommand('copy');
   };
 
+  const canCopy = () => {
+    if (document.queryCommandSupported) {
+      return document.queryCommandSupported('copy');
+    } else {
+      return false;
+    }
+  };
+
   React.useEffect(() => {
     checkIfDataModelExists();
   }, []);
@@ -109,7 +117,7 @@ function CloneModal(props: ICloneModalProps) {
         <Grid item={true} className={props.classes.itemSeparator}>
           <AltinnInputField inputValue={repositoryGitUrl} textFieldId={'repository-url'}/>
         </Grid>
-        {document.queryCommandSupported('copy') &&
+        {canCopy() &&
           <Grid item={true}>
             <AltinnButton
               onClickFunction={copyGitUrl}
