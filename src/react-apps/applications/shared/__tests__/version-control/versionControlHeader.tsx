@@ -5,6 +5,7 @@ import VersionControlHeader from '../../src/version-control/versionControlHeader
 
 describe('>>> components/base/versionControlHeader.tsx --- Snapshot', () => {
   let mockLanguage: any;
+  document.queryCommandSupported = jest.fn();
 
   beforeEach(() => {
     mockLanguage = {};

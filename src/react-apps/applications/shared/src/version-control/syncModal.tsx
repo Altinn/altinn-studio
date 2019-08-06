@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface ISyncModalComponentProvidedProps {
+export interface ISyncModalComponentProps {
   classes: any;
   anchorEl: any;
   header?: string;
@@ -14,10 +14,6 @@ export interface ISyncModalComponentProvidedProps {
   shouldShowCommitBox?: boolean;
   handleClose: any;
   btnClick?: any;
-}
-
-export interface ISyncModalComponentProps extends ISyncModalComponentProvidedProps {
-
 }
 
 export interface ISyncModalComponentState {

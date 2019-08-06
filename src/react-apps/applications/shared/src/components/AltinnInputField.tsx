@@ -23,6 +23,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   inputHeaderStyling?: object;
   inputDescriptionStyling?: object;
   type?: any;
+  textFieldId?: string;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -118,6 +119,7 @@ export class AltinnInputField extends React.Component<IAltinnInputFieldComponent
               classes: { root: classNames(classes.inputFieldText) },
             }}
             type={this.props.type}
+            id={this.props.textFieldId}
           />
 
         </FormControl>

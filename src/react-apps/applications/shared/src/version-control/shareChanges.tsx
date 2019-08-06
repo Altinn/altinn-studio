@@ -5,7 +5,7 @@ import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 
-export interface IShareChangesCompoenentProvidedProps {
+export interface IShareChangesComponentProps {
   buttonOnly?: boolean;
   changesInLocalRepo: boolean;
   classes: any;
@@ -47,7 +47,7 @@ const styles = createStyles({
   },
 });
 
-class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProvidedProps, any> {
+class ShareChangesComponent extends React.Component<IShareChangesComponentProps> {
   public shareChangesHandler = (event: any) => {
     if (this.props.changesInLocalRepo) {
       this.props.shareChanges(event.currentTarget);
@@ -149,4 +149,4 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
   }
 }
 
-export default withStyles(styles)(ShareChangesCompoenent);
+export default withStyles(styles)(ShareChangesComponent);
