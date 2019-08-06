@@ -100,30 +100,19 @@ namespace Altinn.Authorization.ABAC.Xacml
 
             if (xacmlAttributeDesignator == null && xacmlApply != null)
             {
-                return Evaluate(request, policyConditionAttributeValue, xacmlApply);
-            }
-            else
-            {
-                return Evaluate(request, policyConditionAttributeValue, xacmlAttributeDesignator);
-            }
-        }
-
-        private XacmlAttributeMatchResult Evaluate(XacmlContextRequest contextRequest, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply)
-        {
-            XacmlAttributeDesignator xacmlAttributeDesignator = null;
-
-            foreach (IXacmlExpression xacmlExpression in xacmlApply.Parameters)
-            {
-                if (xacmlExpression.GetType() == typeof(XacmlAttributeDesignator))
+                foreach (IXacmlExpression xacmlExpression in xacmlApply.Parameters)
                 {
-                    xacmlAttributeDesignator = xacmlExpression as XacmlAttributeDesignator;
+                    if (xacmlExpression.GetType() == typeof(XacmlAttributeDesignator))
+                    {
+                        xacmlAttributeDesignator = xacmlExpression as XacmlAttributeDesignator;
+                    }
                 }
             }
-
-            return Evaluate(contextRequest, policyConditionAttributeValue, xacmlAttributeDesignator);
+           
+            return Evaluate(request, policyConditionAttributeValue, xacmlAttributeDesignator, xacmlApply);
         }
 
-        private XacmlAttributeMatchResult Evaluate(XacmlContextRequest contextRequest, XacmlAttributeValue policyConditionAttributeValue, XacmlAttributeDesignator attributeDesignator)
+        private XacmlAttributeMatchResult Evaluate(XacmlContextRequest contextRequest, XacmlAttributeValue policyConditionAttributeValue, XacmlAttributeDesignator attributeDesignator, XacmlApply xacmlApply)
         {
             ICollection<XacmlContextAttributes> xacmlContextAttributes = new Collection<XacmlContextAttributes>();
 
@@ -141,7 +130,7 @@ namespace Altinn.Authorization.ABAC.Xacml
                 return XacmlAttributeMatchResult.RequiredAttributeMissing;
             }
 
-            if (!ValidateSingleElementCondition(xacmlContextAttributes, policyConditionAttributeValue))
+            if (!ValidateSingleElementCondition(xacmlContextAttributes, policyConditionAttributeValue, xacmlApply, attributeDesignator))
             {
                 return XacmlAttributeMatchResult.ToManyAttributes;
             }
@@ -175,10 +164,18 @@ namespace Altinn.Authorization.ABAC.Xacml
             return XacmlAttributeMatchResult.RequiredAttributeMissing;
         }
 
-        private bool ValidateSingleElementCondition(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue)
+        private bool ValidateSingleElementCondition(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply, XacmlAttributeDesignator attributeDesignator)
         {
             bool isSingleFunction = false;
-            switch (FunctionId.OriginalString)
+
+            string applyfunction = FunctionId.OriginalString;
+
+            if (xacmlApply != null)
+            {
+                applyfunction = xacmlApply.FunctionId.OriginalString;
+            }
+
+            switch (applyfunction)
             {
                 case XacmlConstants.MatchTypeIdentifiers.IntegerOneAndOnly:
                     isSingleFunction = true;
@@ -198,9 +195,15 @@ namespace Altinn.Authorization.ABAC.Xacml
             {
                 foreach (XacmlAttribute contextAttributeValue in contextAttribute.Attributes)
                 {
-                    foreach (XacmlAttributeValue xacmlAttributeValue in contextAttributeValue.AttributeValues)
+                    if (contextAttributeValue.AttributeId.Equals(attributeDesignator.AttributeId))
                     {
-                        attributeCount++;
+                        foreach (XacmlAttributeValue xacmlAttributeValue in contextAttributeValue.AttributeValues)
+                        {
+                            if (xacmlAttributeValue.DataType.OriginalString.Equals(attributeDesignator.DataType.OriginalString))
+                            {
+                                attributeCount++;
+                            }
+                        }
                     }
                 }
             }

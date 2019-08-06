@@ -152,7 +152,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <returns></returns>
         public XacmlAttributeMatchResult MatchAttributes(XacmlContextRequest request, string category)
         {
-            Dictionary<string, XacmlAttribute> requestAttributes = GetCategoryAttributes(request, category);
+            Dictionary<string, ICollection<XacmlAttribute>> requestAttributes = GetCategoryAttributes(request, category);
 
             XacmlAttributeMatchResult xacmlAttributeMatchResult = XacmlAttributeMatchResult.NoMatch;
 
@@ -178,12 +178,15 @@ namespace Altinn.Authorization.ABAC.Xacml
                             if (requestAttributes.ContainsKey(xacmlMatch.AttributeDesignator.AttributeId.OriginalString))
                             {
                                 bool attributeValueMatched = false;
-                                foreach (XacmlAttributeValue attValue in requestAttributes[xacmlMatch.AttributeDesignator.AttributeId.OriginalString].AttributeValues)
+                                foreach (XacmlAttribute xacmlAttribute in requestAttributes[xacmlMatch.AttributeDesignator.AttributeId.OriginalString])
                                 {
-                                    if (xacmlMatch.IsMatch(attValue))
+                                    foreach (XacmlAttributeValue attValue in xacmlAttribute.AttributeValues)
                                     {
-                                        attributeValueMatched = true;
-                                        break;
+                                        if (xacmlMatch.IsMatch(attValue))
+                                        {
+                                            attributeValueMatched = true;
+                                            break;
+                                        }
                                     }
                                 }
 
@@ -214,9 +217,9 @@ namespace Altinn.Authorization.ABAC.Xacml
             return xacmlAttributeMatchResult;
         }
 
-        private Dictionary<string, XacmlAttribute> GetCategoryAttributes(XacmlContextRequest request, string category)
+        private Dictionary<string, ICollection<XacmlAttribute>> GetCategoryAttributes(XacmlContextRequest request, string category)
         {
-            Dictionary<string, XacmlAttribute> categoryAttributes = new Dictionary<string, XacmlAttribute>();
+            Dictionary<string, ICollection<XacmlAttribute>> categoryAttributes = new Dictionary<string, ICollection<XacmlAttribute>>();
             foreach (XacmlContextAttributes attributes in request.Attributes)
             {
                 if (attributes.Category.Equals(category))
@@ -225,14 +228,14 @@ namespace Altinn.Authorization.ABAC.Xacml
                     {
                         if (categoryAttributes.Keys.Contains(attribute.AttributeId.OriginalString))
                         {
-                            foreach (XacmlAttributeValue xacmlAttributeValue in attribute.AttributeValues)
-                            {
-                                categoryAttributes[attribute.AttributeId.OriginalString].AttributeValues.Add(xacmlAttributeValue);
-                            }
+                            categoryAttributes[attribute.AttributeId.OriginalString].Add(attribute);
                         }
                         else
                         {
-                            categoryAttributes.Add(attribute.AttributeId.OriginalString, attribute);
+                            ICollection<XacmlAttribute> newCollection = new Collection<XacmlAttribute>();
+                            newCollection.Add(attribute);
+
+                            categoryAttributes.Add(attribute.AttributeId.OriginalString, newCollection);
                         }
                     }
                 }
