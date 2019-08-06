@@ -85,21 +85,36 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// This methods list the instances for a given reportee for a service. This can be looked
+        /// This methods list the instances for a given party for a service. This can be looked
         /// at as a simplified message box
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="partyId">The partyId</param>
+        /// <param name="partyId">The party id</param>
         /// <param name="userId">The user id</param>
         /// <returns>The test message box</returns>
         [Authorize]
         public async Task<IActionResult> Index(string org, string service, int partyId, int userId)
         {
-            if (partyId == 0)
+            if (userId == 0 || partyId == 0)
             {
                 return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
             }
+
+            bool? isValidSelection = await _authorization.ValidateSelectedParty(userId, partyId);
+
+            if (isValidSelection != true)
+            {
+                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+            }
+
+            Response.Cookies.Append(
+            _generalSettings.GetAltinnPartyCookieName,
+            partyId.ToString(),
+            new CookieOptions
+            {
+                Domain = _generalSettings.HostName
+            });
 
             CheckAndUpdateWorkflowFile(org, service);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
@@ -130,7 +145,6 @@ namespace AltinnCore.Designer.Controllers
                 requestContext.Party = await _register.GetParty(startServiceModel.PartyId);
                 requestContext.UserContext.PartyId = partyId;
                 requestContext.UserContext.Party = requestContext.Party;
-                HttpContext.Response.Cookies.Append(_generalSettings.GetAltinnPartyCookieName, startServiceModel.PartyId.ToString());
             }
 
             List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Party.PartyId, org, service);
@@ -239,7 +253,6 @@ namespace AltinnCore.Designer.Controllers
                     });
 
             HttpContext.Response.Cookies.Append("AltinnUserId", profile.UserId.ToString());
-            HttpContext.Response.Cookies.Append(_generalSettings.GetAltinnPartyCookieName, partyId.ToString());
 
             return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?userId={userId}&partyId={profile.PartyId}");
         }
