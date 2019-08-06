@@ -75,5 +75,28 @@ namespace AltinnCore.Common.Services.Implementation
                 return partyList;
             }
         }
+
+        /// <inheritdoc />
+        public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
+        {
+            bool? result = null;
+            string apiUrl = $"parties/{partyId}/validate?userid={userId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                string responseData = response.Content.ReadAsStringAsync().Result;
+                result = JsonConvert.DeserializeObject<bool>(responseData);
+            }
+            else
+            {
+                _logger.LogError($"Validating selected party {partyId} for user {userId} failed with statuscode {response.StatusCode}");
+            }
+
+            return result;
+        }
     }
 }

@@ -36,10 +36,10 @@ namespace Authorization.Interface.Models
         public Organization Organization { get; set; }
 
         /// <summary>
-        /// Gets or sets the PartyID
+        /// Gets or sets the PartyId
         /// </summary>
         [JsonProperty]
-        public int PartyID { get; set; }
+        public int PartyId { get; set; }
 
         /// <summary>
         /// Gets or sets the OrganizationNumber

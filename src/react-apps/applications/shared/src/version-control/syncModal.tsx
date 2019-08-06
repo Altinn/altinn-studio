@@ -174,7 +174,13 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
           }
 
           {this.props.btnText &&
-            <Button variant='contained' color='primary' className={classes.button} onClick={this.btnClickedHandler}>
+            <Button
+              variant='contained'
+              color='primary'
+              className={classes.button}
+              onClick={this.btnClickedHandler}
+              id={'share_changes_modal_button'}
+            >
               {this.props.btnText}
             </Button>
           }

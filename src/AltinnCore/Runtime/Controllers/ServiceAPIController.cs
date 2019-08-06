@@ -104,7 +104,7 @@ namespace AltinnCore.Runtime.Controllers
             _repository = repositoryService;
             _execution = executionService;
             _profile = profileService;
-            _userHelper = new UserHelper(_profile, _register);
+            _userHelper = new UserHelper(_profile, _register, generalSettings);
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
@@ -118,11 +118,12 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner.</param>
         /// <param name="service">The service code for the current service.</param>
+        /// <param name="partyId">reportee</param>
         /// <param name="instanceId">The instanceId.</param>
         /// <returns>The Service model as JSON or XML for the given instanceId.</returns>
-        [Authorize(Policy = "ServiceRead")]
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> Index(string org, string service, Guid instanceId)
+        public async Task<IActionResult> Gindex(string org, string service, int partyId, Guid instanceId)
         {
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
@@ -132,7 +133,7 @@ namespace AltinnCore.Runtime.Controllers
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
+            requestContext.Party = requestContext.UserContext.Party;
 
             // Get the serviceContext containing all metadata about current service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
@@ -154,7 +155,7 @@ namespace AltinnCore.Runtime.Controllers
 
             ViewBag.PlatformServices = _platformSI;
 
-            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.PartyId, instanceId);
             Guid dataId = Guid.Parse(instance.Data.Find(m => m.ElementType.Equals(FORM_ID)).Id);
 
             // Getting the Form Data from datastore
@@ -163,7 +164,7 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId,
+                requestContext.UserContext.PartyId,
                 dataId);
 
             // Assing the populated service model to the service implementation
@@ -209,7 +210,7 @@ namespace AltinnCore.Runtime.Controllers
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
+            requestContext.Party = requestContext.UserContext.Party;
 
             // Get the serviceContext containing all metadata about current service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
@@ -305,7 +306,7 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId);
+                requestContext.UserContext.PartyId);
 
             apiResult.InstanceId = instanceId;
             apiResult.Status = ApiStatusType.Ok;
@@ -338,7 +339,7 @@ namespace AltinnCore.Runtime.Controllers
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
+            requestContext.Party = requestContext.UserContext.Party;
             if (Request.Headers.Keys.Contains(VALIDATION_TRIGGER_FIELD))
             {
                 requestContext.ValidationTriggerField = Request.Headers[VALIDATION_TRIGGER_FIELD];
@@ -419,7 +420,7 @@ namespace AltinnCore.Runtime.Controllers
                 return Ok(apiResult);
             }
 
-            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.PartyId, instanceId);
             Guid dataId = Guid.Parse(instance.Data.Find(m => m.ElementType.Equals(FORM_ID)).Id);
 
             // Save Formdata to database
@@ -429,7 +430,7 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId,
+                requestContext.UserContext.PartyId,
                 dataId);
 
             // Create and store instance saved event
@@ -450,14 +451,14 @@ namespace AltinnCore.Runtime.Controllers
 
             if (apiMode.Equals(ApiMode.Complete))
             {
-                ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+                ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.PartyId);
                 instance.Workflow = new Storage.Interface.Models.WorkflowState()
                 {
                     CurrentStep = currentState.State.ToString(),
                     IsComplete = false,
                 };
                 
-                await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.ReporteeId, instanceId);
+                await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.PartyId, instanceId);
 
                 Response.StatusCode = 200;
                 apiResult.InstanceId = instanceId;
@@ -502,7 +503,7 @@ namespace AltinnCore.Runtime.Controllers
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
+            requestContext.Party = requestContext.UserContext.Party;
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
@@ -548,7 +549,7 @@ namespace AltinnCore.Runtime.Controllers
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
+            requestContext.Party = requestContext.UserContext.Party;
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views

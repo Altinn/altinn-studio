@@ -78,26 +78,20 @@ namespace AltinnCore.Common.Services.Implementation
             Party party = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
 
-            // To do : clean up use of client after issue 2009 is closed.
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-            using (HttpClient c = new HttpClient())
+            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string url = $"platform.at21.altinn.cloud/register/api/v1/parties/{partyId}";
-                HttpResponseMessage response = await c.GetAsync("https://" + url);
-                _logger.LogInformation($"// RUNTIME Request URL to platform parties: https://" + url);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    party = await response.Content.ReadAsAsync<Party>();
-                }
-                else
-                {
-                    _logger.LogError($"// RUNTIME Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
-                }
-
-                return party;
+                party = await response.Content.ReadAsAsync<Party>();
             }
+            else
+            {
+                _logger.LogError($"// Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
+            }
+
+            return party;
         }
     }
 }

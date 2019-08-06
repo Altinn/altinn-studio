@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Services.Interface;
 using Authorization.Interface.Models;
- using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
@@ -28,11 +30,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
         /// <inheritdoc />
         public async Task<List<Party>> GetParties(int userId)
-        {            
+        {
             List<Party> partiesList = null;
 
-            var request = $"parties?userid={userId}";            
-            var response = await _partyClient.Client.GetAsync(request);            
+            string endpointUrl = $"parties?userid={userId}";
+            HttpResponseMessage response = await _partyClient.Client.GetAsync(endpointUrl);
             string partiesDataList = await response.Content.ReadAsStringAsync();
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -40,6 +42,21 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return partiesList;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ValidateSelectedParty(int userId, int partyId)
+        {
+            bool result = false;
+
+            List<Party> partyList = await GetParties(userId);
+
+            if (partyList.Count > 0)
+            {
+                result = partyList.Any(p => p.PartyId == partyId);
+            }
+
+            return result;
         }
     }
 }

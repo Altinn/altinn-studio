@@ -23,9 +23,27 @@ export const customInput = {
   }),
 };
 
+export const disabledInput = {
+  control: (base: any) => ({
+    ...base,
+    borderRadius: '0 !important',
+    background: 'repeating-linear-gradient(135deg, #efefef, #efefef 2px, #fff 3px, #fff 5px)',
+  }),
+  placeholder: (base: any) => ({
+    ...base,
+    color: '#000',
+  }),
+};
+
 const styles = {
   gridItem: {
     marginTop: '24px',
+  },
+  inputHelper: {
+    marginTop: '2.4rem',
+    fontSize: '1.6rem',
+    lineHeight: 'auto',
+    color: '#000000',
   },
 };
 
@@ -358,11 +376,20 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       case 'Button': {
         return (
           <Grid item={true} xs={12}>
+            <Typography style={styles.inputHelper}>
+              {getLanguageFromKey('ux_editor.modal_properties_button_type_helper', this.props.language)}
+            </Typography>
+            <Select
+              styles={disabledInput}
+              value={getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)}
+              placeholder={getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)}
+              isDisabled={true}
+            />
             {renderSelectTextFromResources('modal_properties_button_helper',
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
+              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language))}
           </Grid>
         );
       }
@@ -556,8 +583,12 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
   }
 
   public getMinOccursFromDataModel = (dataBindingName: string): number => {
-    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) =>
-      e.DataBindingName === dataBindingName);
+    const parentComponent = dataBindingName.replace('.value', '');
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
+      const firstPeriod = e.ID.indexOf('.');
+      const elementDataBindingName = e.ID.substr(firstPeriod + 1, e.ID.length - (firstPeriod + 1));
+      return elementDataBindingName.toLowerCase() === parentComponent.toLowerCase();
+    });
     return element.MinOccurs;
   }
 
@@ -626,11 +657,11 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       dataModelBinding = {};
     }
     dataModelBinding[key] = selectedDataModelElement;
-    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 1) {
+    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 0) {
       this.setState({
         component: {
           ...this.state.component,
-          required: true,
+          required: false,
           dataModelBindings: dataModelBinding,
         },
       }, () => this.props.handleComponentUpdate(this.state.component));
@@ -638,6 +669,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
       this.setState({
         component: {
           ...this.state.component,
+          required: true,
           dataModelBindings: dataModelBinding,
         },
       }, () => this.props.handleComponentUpdate(this.state.component));

@@ -74,31 +74,21 @@ export const schemaComponents: IComponent[] = [
     Tag: InputComponent,
     Type: ComponentTypes.Input,
     customProperties: {
-      required: false,
+      required: true,
       readOnly: false,
     },
     Icon: componentIcons.Input,
   },
   {
-    name: 'Datepicker',
-    Tag: DatepickerComponent,
-    Type: ComponentTypes.Datepicker,
+    name: 'TextArea',
+    Tag: TextAreaComponent,
+    Type: ComponentTypes.TextArea,
     customProperties: {
+      required: true,
       readOnly: false,
     },
-    Icon: componentIcons.Datepicker,
+    Icon: componentIcons.TextArea,
   },
-  /* removed for now
-  {
-    name: 'Dropdown',
-    Tag: DropdownComponent,
-    Type: ComponentTypes.DropDown,
-    Icon: componentIcons.Dropdown,
-    customProperties: {
-      options: [],
-    },
-  },
-  */
   {
     name: 'Checkboxes',
     Tag: CheckboxContainerComponent,
@@ -106,7 +96,7 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.Checkboxes,
     customProperties: {
       options: [],
-      required: false,
+      required: true,
       readOnly: false,
     },
   },
@@ -117,20 +107,21 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.RadioButtons,
     customProperties: {
       options: [],
-      required: false,
+      required: true,
       readOnly: false,
     },
   },
-  {
-    name: 'TextArea',
-    Tag: TextAreaComponent,
-    Type: ComponentTypes.TextArea,
-    customProperties: {
-      required: false,
-      readOnly: false,
+    /* removed for now
+    {
+      name: 'Dropdown',
+      Tag: DropdownComponent,
+      Type: ComponentTypes.DropDown,
+      Icon: componentIcons.Dropdown,
+      customProperties: {
+        options: [],
+      },
     },
-    Icon: componentIcons.TextArea,
-  },
+    */
   {
     name: 'FileUpload',
     Tag: FileUploadComponent,
@@ -143,6 +134,15 @@ export const schemaComponents: IComponent[] = [
       displayMode: 'simple',
       required: true,
     },
+  },
+  {
+    name: 'Datepicker',
+    Tag: DatepickerComponent,
+    Type: ComponentTypes.Datepicker,
+    customProperties: {
+      readOnly: false,
+    },
+    Icon: componentIcons.Datepicker,
   },
   {
     name: 'Button',

@@ -49,7 +49,7 @@ namespace AltinnCore.Common.Services.Implementation
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IForm formService,
             IData data,
-            IWorkflow workflowSI)            
+            IWorkflow workflowSI)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -62,16 +62,17 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
-            Guid instanceId = Guid.NewGuid();
+            Guid instanceGuid = Guid.NewGuid();
             string appName = startServiceModel.Service;
             string org = startServiceModel.Org;
             int instanceOwnerId = startServiceModel.PartyId;
+            int userId = startServiceModel.UserId;
 
             ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
 
             Instance instance = new Instance
             {
-                Id = instanceId.ToString(),
+                Id = $"{instanceOwnerId}/{instanceGuid}",
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 AppId = $"{org}/{appName}",
                 Org = org,
@@ -90,20 +91,20 @@ namespace AltinnCore.Common.Services.Implementation
                 },
                 LastChangedDateTime = DateTime.UtcNow,
                 LastChangedBy = instanceOwnerId.ToString(),
-            };         
+            };
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}";
-            string folderForInstance = Path.Combine(testDataForParty, instanceId.ToString());
+            string folderForInstance = Path.Combine(testDataForParty, instanceGuid.ToString());
             Directory.CreateDirectory(folderForInstance);
-            string instanceFilePath = $"{testDataForParty}/{instanceId}/{instanceId}.json";
+            string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
 
             File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
 
             // Save instantiated form model
             instance = await _data.InsertData(
                 serviceModel,
-                instanceId,
+                instanceGuid,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 appName,
@@ -127,7 +128,7 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = (Instance)dataToSerialize;
             File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(dataToSerialize).ToString(), Encoding.UTF8);
 
-            return System.Threading.Tasks.Task.FromResult(instance);            
+            return System.Threading.Tasks.Task.FromResult(instance);
         }
 
         /// <inheritdoc/>
@@ -160,11 +161,18 @@ namespace AltinnCore.Common.Services.Implementation
                 string instanceFolderName = new DirectoryInfo(file).Name;
                 if (instanceFolderName != "Archive")
                 {
-                    string instanceFileName = $"{instanceFolderName}.json";
+                    try
+                    {
+                        string instanceFileName = $"{instanceFolderName}.json";
 
-                    string instanceData = File.ReadAllText($"{instancesPath}/{instanceFolderName}/{instanceFileName}");
-                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                    formInstances.Add(instance);
+                        string instanceData = File.ReadAllText($"{instancesPath}/{instanceFolderName}/{instanceFileName}");
+                        Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                        formInstances.Add(instance);
+                    }
+                    catch
+                    {
+                        /* Avoid problems with wrong directories that may have occured in previous testing sessions */
+                    }
                 }
             }
 
@@ -187,7 +195,7 @@ namespace AltinnCore.Common.Services.Implementation
                 XmlSerializer serializer = new XmlSerializer(type);
                 serializer.Serialize(stream, dataToSerialize);
             }
-            
+
             Instance instance = await GetInstance(appName, org, instanceOwnerId, instanceId);
 
             instance.Workflow = instance.Workflow ?? new Storage.Interface.Models.WorkflowState();
