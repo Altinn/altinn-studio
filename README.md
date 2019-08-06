@@ -114,7 +114,8 @@ docker stop altinn-runtime
 ```
 
 Navigate to the Runtime folder. Build and run the code.
-**Important:** You must first have run the Designer builds and runs in order to get successfull runs on the following commands for Runtime. 
+
+**Important:** First you must have executed the Designer commands in order to successfully execute both the following command sequences on the Runtime component.
 
 ```cmd
 cd src/AltinnCore/Runtime
