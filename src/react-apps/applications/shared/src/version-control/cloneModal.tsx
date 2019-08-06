@@ -33,7 +33,7 @@ export interface ICloneModalProps extends WithStyles<typeof styles> {
   language: any;
 }
 
-function CloneModal(props: ICloneModalProps) {
+export function CloneModal(props: ICloneModalProps) {
 
   const [hasDataModel, setHasDataModel] = React.useState(false);
 
@@ -123,6 +123,7 @@ function CloneModal(props: ICloneModalProps) {
             <AltinnButton
               onClickFunction={copyGitUrl}
               btnText={getLanguageFromKey('sync_header.clone_https_button', props.language)}
+              id={'copy-repository-url-button'}
             />
           </Grid>
         }

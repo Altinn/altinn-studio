@@ -35,6 +35,7 @@ const styles = createStyles({
   headerStyling: {
     background: theme.altinnPalette.primary.greyLight,
     paddingTop: 10,
+    marginLeft: 24,
   },
 });
 
