@@ -17,7 +17,7 @@ createTestCafe()
       .run({
         skipJsErrors: true,
         skipUncaughtErrors: true,
-        quarantineMode: false,
+        quarantineMode: true,
         selectorTimeout: 15000,
         assertionTimeout: 15000,
         pageLoadTimeout: 5000,
