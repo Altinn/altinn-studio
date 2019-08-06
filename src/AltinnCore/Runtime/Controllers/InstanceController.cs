@@ -54,7 +54,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly GeneralSettings _generalSettings;
 
         private const string FORM_ID = "default";
-        private const long REQUEST_SIZE_LIMIT = 500 * 1024 * 1024;
+        private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
