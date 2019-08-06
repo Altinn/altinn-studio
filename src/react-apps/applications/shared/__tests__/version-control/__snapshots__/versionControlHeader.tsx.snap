@@ -40,7 +40,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-item-3"
           >
             <i
-              className="fa fa-write"
+              className="fa fa-clone"
               style={
                 Object {
                   "color": "#0062BA",
