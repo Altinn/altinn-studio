@@ -412,7 +412,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     return (
       <React.Fragment>
         {type === 'header' ? (
-          <Grid container={true} direction='row' className={classes.headerStyling} justify='center'>
+          <Grid container={true} direction='row' className={classes.headerStyling} justify='flex-start'>
             <Grid item={true} style={{ marginRight: '24px' }}>
               <CloneButton
                 onClick={this.openCloneModal}

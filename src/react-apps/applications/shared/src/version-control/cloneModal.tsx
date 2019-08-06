@@ -13,6 +13,7 @@ const theme = createMuiTheme(AltinnAppTheme);
 const styles = createStyles({
   modalContainer: {
     padding: 24,
+    width: '319px',
   },
   itemSeparator: {
     paddingBottom: 12,
@@ -90,7 +91,7 @@ function CloneModal(props: ICloneModalProps) {
                 iconClass={'ai ai-circle-exclamation'}
                 iconColor={theme.altinnPalette.primary.blueDark}
                 iconSize={30}
-                padding={'0 0 2 0'}
+                padding={'0px 0px 3px 0px'}
               />
               {getLanguageFromKey('sync_header.data_model_missing', props.language)}
             </Typography>
@@ -115,7 +116,7 @@ function CloneModal(props: ICloneModalProps) {
           </Typography>
         </Grid>
         <Grid item={true} className={props.classes.itemSeparator}>
-          <AltinnInputField inputValue={repositoryGitUrl} textFieldId={'repository-url'}/>
+          <AltinnInputField inputValue={repositoryGitUrl} textFieldId={'repository-url'} fullWidth={true}/>
         </Grid>
         {canCopy() &&
           <Grid item={true}>

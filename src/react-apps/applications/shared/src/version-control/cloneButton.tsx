@@ -1,4 +1,4 @@
-import { Button, createMuiTheme, Grid, Typography, createStyles, WithStyles, withStyles } from '@material-ui/core';
+import { Button, createMuiTheme, createStyles, Grid, Typography, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -31,6 +31,8 @@ function CloneButton(props: ICloneButtonProps) {
           <AltinnIcon
                 iconClass='fa fa-clone'
                 iconColor={theme.altinnPalette.primary.blueDark}
+                iconSize={24}
+                padding={'0px 0px 4px 0px'}
           />
         </Grid>
         <Grid item={true}>

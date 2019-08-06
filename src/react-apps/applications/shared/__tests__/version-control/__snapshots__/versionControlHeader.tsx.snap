@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should match snapshot 1`] = `
 <div
-  className="MuiGrid-container-2 MuiGrid-justify-xs-center-19 VersionControlHeader-headerStyling-1"
+  className="MuiGrid-container-2 VersionControlHeader-headerStyling-1"
 >
   <div
     className="MuiGrid-item-3"
@@ -44,10 +44,10 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
               style={
                 Object {
                   "color": "#0062BA",
-                  "fontSize": null,
+                  "fontSize": 24,
                   "fontWeight": null,
                   "margin": null,
-                  "padding": null,
+                  "padding": "0px 0px 4px 0px",
                 }
               }
             />
