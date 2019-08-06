@@ -26,6 +26,11 @@ namespace AltinnCore.Authentication.Constants
         public const string PartyID = "PartyID";
 
         /// <summary>
+        /// The PartyId in register for the party the user is representing
+        /// </summary>
+        public const string RepresentingPartyId = "RepresentingPartyId";
+
+        /// <summary>
         /// Username defined in the profile
         /// </summary>
         public const string UserName = "UserName";
