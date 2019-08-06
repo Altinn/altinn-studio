@@ -50,7 +50,7 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 request = ParseApiBody(model);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {

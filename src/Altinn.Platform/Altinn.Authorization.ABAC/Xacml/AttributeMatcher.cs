@@ -4,6 +4,9 @@ using Altinn.Authorization.ABAC.Utils;
 
 namespace Altinn.Authorization.ABAC.Xacml
 {
+    /// <summary>
+    /// Utility to match attributes
+    /// </summary>
     public static class AttributeMatcher
     {
         /// <summary>
@@ -19,21 +22,27 @@ namespace Altinn.Authorization.ABAC.Xacml
             Guard.ArgumentNotNull(contextRequestAttribute, nameof(contextRequestAttribute));
             Guard.ArgumentNotNull(matchId, nameof(matchId));
 
-            bool isMatch = false;
+            bool isMatch;
             switch (matchId)
             {
                 case XacmlConstants.MatchTypeIdentifiers.StringEqual:
                     isMatch = MatchStrings(policyAttribute, contextRequestAttribute);
                     break;
                 case XacmlConstants.MatchTypeIdentifiers.StringEqualIgnoreCase:
-                    isMatch = MatchStrings(policyAttribute, contextRequestAttribute);
+                    isMatch = MatchStringsIgnoreCase(policyAttribute, contextRequestAttribute);
                     break;
                 case XacmlConstants.MatchTypeIdentifiers.AnyUriEqual:
                     isMatch = MatchAnyUri(policyAttribute, contextRequestAttribute);
                     break;
-                default:
-                    isMatch = false;
+                case XacmlConstants.MatchTypeIdentifiers.IntegerOneAndOnly:
+                case XacmlConstants.MatchTypeIdentifiers.IntegerEqual:
+                    isMatch = MatchInteger(policyAttribute, contextRequestAttribute);
                     break;
+                case XacmlConstants.MatchTypeIdentifiers.StringIsIn:
+                    isMatch = contextRequestAttribute.Contains(policyAttribute);
+                    break;
+                default:
+                    throw new NotImplementedException(); 
             }
 
             return isMatch;
@@ -55,6 +64,21 @@ namespace Altinn.Authorization.ABAC.Xacml
             Uri contextRequestUri = new Uri(contextRequestValue);
 
             return policyUri.Equals(contextRequestUri);
+        }
+
+        private static bool MatchInteger(string policyValue, string contextRequestValue)
+        {
+            if (!int.TryParse(policyValue, out int policyInteger))
+            {
+                return false;
+            }
+
+            if (!int.TryParse(contextRequestValue, out int contextInteger))
+            {
+                return false;
+            }
+
+            return policyInteger.Equals(contextInteger);
         }
     }
 }

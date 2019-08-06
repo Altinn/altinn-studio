@@ -18,6 +18,11 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <summary>
         /// All attributes matches
         /// </summary>
-        Match, 
+        Match,
+
+        /// <summary>
+        /// There are to many attributes with same id / datatype than allowed
+        /// </summary>
+        ToManyAttributes,
     }
 }

@@ -92,6 +92,5 @@ namespace Altinn.Authorization.ABAC.Xacml
                 return this.attributeValues;
             }
         }
-
     }
 }

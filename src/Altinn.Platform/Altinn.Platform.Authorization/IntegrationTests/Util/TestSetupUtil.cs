@@ -41,8 +41,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
             XacmlContextResponse contextResponse;
 
-            XmlReaderSettings settings = new XmlReaderSettings();
-            settings.DtdProcessing = DtdProcessing.Parse;
+            XmlReaderSettings settings = new XmlReaderSettings
+            {
+                DtdProcessing = DtdProcessing.Parse
+            };
             using (XmlReader reader2 = XmlReader.Create(new StringReader(responseContent), settings))
             {
                 contextResponse = XacmlParser.ReadContextResponse(reader2);

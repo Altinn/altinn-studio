@@ -71,72 +71,153 @@ namespace Altinn.Authorization.ABAC.Xacml
             }
         }
 
+        /// <summary>
+        /// Evauluate the Apply 
+        /// </summary>
+        /// <param name="request">The context request</param>
+        /// <returns></returns>
         public XacmlAttributeMatchResult Evalute(XacmlContextRequest request)
         {
-            XacmlAttributeValue xacmlAttributeValue = null;
+            XacmlAttributeValue policyConditionAttributeValue = null;
             XacmlAttributeDesignator xacmlAttributeDesignator = null;
+            XacmlApply xacmlApply = null;
 
             foreach (IXacmlExpression xacmlExpression in Parameters)
            {
                 if (xacmlExpression.GetType() == typeof(XacmlAttributeValue))
                 {
-                    xacmlAttributeValue = xacmlExpression as XacmlAttributeValue;
+                    policyConditionAttributeValue = xacmlExpression as XacmlAttributeValue;
                 }
                 else if (xacmlExpression.GetType() == typeof(XacmlAttributeDesignator))
                 {
                     xacmlAttributeDesignator = xacmlExpression as XacmlAttributeDesignator;
                 }
-           }
+                else if (xacmlExpression.GetType() == typeof(XacmlApply))
+                {
+                    xacmlApply = xacmlExpression as XacmlApply;
+                }
+            }
 
-            return Evaluate(request, xacmlAttributeValue, xacmlAttributeDesignator);
+            if (xacmlAttributeDesignator == null && xacmlApply != null)
+            {
+                return Evaluate(request, policyConditionAttributeValue, xacmlApply);
+            }
+            else
+            {
+                return Evaluate(request, policyConditionAttributeValue, xacmlAttributeDesignator);
+            }
         }
 
-        private XacmlAttributeMatchResult Evaluate(XacmlContextRequest contextRequest, XacmlAttributeValue attributeValue, XacmlAttributeDesignator attributeDesignator)
+        private XacmlAttributeMatchResult Evaluate(XacmlContextRequest contextRequest, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply)
         {
-            XacmlContextAttributes xacmlContextAttributes = null;
+            XacmlAttributeDesignator xacmlAttributeDesignator = null;
+
+            foreach (IXacmlExpression xacmlExpression in xacmlApply.Parameters)
+            {
+                if (xacmlExpression.GetType() == typeof(XacmlAttributeDesignator))
+                {
+                    xacmlAttributeDesignator = xacmlExpression as XacmlAttributeDesignator;
+                }
+            }
+
+            return Evaluate(contextRequest, policyConditionAttributeValue, xacmlAttributeDesignator);
+        }
+
+        private XacmlAttributeMatchResult Evaluate(XacmlContextRequest contextRequest, XacmlAttributeValue policyConditionAttributeValue, XacmlAttributeDesignator attributeDesignator)
+        {
+            ICollection<XacmlContextAttributes> xacmlContextAttributes = new Collection<XacmlContextAttributes>();
+
             foreach (XacmlContextAttributes attributes in contextRequest.Attributes)
            {
                if (attributes.Category.Equals(attributeDesignator.Category))
                 {
-                    xacmlContextAttributes = attributes;
-                    break;
+                    xacmlContextAttributes.Add(attributes);
                 }
            }
 
-            if (xacmlContextAttributes == null)
+            if (xacmlContextAttributes.Count == 0)
             {
                 // No match for the condition in the attributes
                 return XacmlAttributeMatchResult.RequiredAttributeMissing;
             }
 
-            return Evalute(xacmlContextAttributes, attributeValue, attributeDesignator);
+            if (!ValidateSingleElementCondition(xacmlContextAttributes, policyConditionAttributeValue))
+            {
+                return XacmlAttributeMatchResult.ToManyAttributes;
+            }
+
+            return Evalute(xacmlContextAttributes, policyConditionAttributeValue, attributeDesignator);
         }
 
-        private XacmlAttributeMatchResult Evalute(XacmlContextAttributes contextAttributes, XacmlAttributeValue attributeValue, XacmlAttributeDesignator attributeDesignator)
+        private XacmlAttributeMatchResult Evalute(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlAttributeDesignator attributeDesignator)
         {
-            foreach (XacmlAttribute attribute in contextAttributes.Attributes)
-            {
-                if (attribute.AttributeId.Equals(attributeDesignator.AttributeId))
+            bool attributeWithCorrectAttributeIdFound = false;
+            foreach (XacmlContextAttributes xacmlContextAttributes in contextAttributes)
+            { 
+                foreach (XacmlAttribute attribute in xacmlContextAttributes.Attributes)
                 {
-                    if (Match(FunctionId, attribute, attributeValue))
+                    if (attribute.AttributeId.Equals(attributeDesignator.AttributeId))
                     {
-                        return XacmlAttributeMatchResult.Match;
-                    }
-                    else
-                    {
-                        return XacmlAttributeMatchResult.NoMatch;
+                        attributeWithCorrectAttributeIdFound = true;
+                        if (Match(FunctionId, attribute, policyConditionAttributeValue))
+                        {
+                            return XacmlAttributeMatchResult.Match;
+                        }
                     }
                 }
+            }
+
+            if (attributeWithCorrectAttributeIdFound)
+            {
+                return XacmlAttributeMatchResult.NoMatch;
             }
 
             return XacmlAttributeMatchResult.RequiredAttributeMissing;
         }
 
-        private bool Match(Uri matchFunction, XacmlAttribute contextAttribute, XacmlAttributeValue policyAttributeValue)
+        private bool ValidateSingleElementCondition(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue)
+        {
+            bool isSingleFunction = false;
+            switch (FunctionId.OriginalString)
+            {
+                case XacmlConstants.MatchTypeIdentifiers.IntegerOneAndOnly:
+                    isSingleFunction = true;
+                    break;
+                default:
+                    break;
+            }
+
+            if (!isSingleFunction)
+            {
+                return true;
+            }
+
+            int attributeCount = 0;
+
+            foreach (XacmlContextAttributes contextAttribute in contextAttributes)
+            {
+                foreach (XacmlAttribute contextAttributeValue in contextAttribute.Attributes)
+                {
+                    foreach (XacmlAttributeValue xacmlAttributeValue in contextAttributeValue.AttributeValues)
+                    {
+                        attributeCount++;
+                    }
+                }
+            }
+
+            if (attributeCount > 1)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool Match(Uri matchFunction, XacmlAttribute contextAttribute, XacmlAttributeValue policyConditionAttributeValue)
         {
             foreach (XacmlAttributeValue contextAttributeValue in contextAttribute.AttributeValues)
             {
-                if (contextAttributeValue.MatchAttributeValues(matchFunction, policyAttributeValue))
+                if (contextAttributeValue.MatchAttributeValues(matchFunction, policyConditionAttributeValue))
                 {
                     return true;
                 }

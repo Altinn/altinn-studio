@@ -104,12 +104,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <returns></returns>
         public bool MatchAttributeValues(Uri matchFunction, XacmlAttributeValue policyAttributeValue)
         {
-            if (matchFunction.OriginalString.Equals(XacmlConstants.MatchTypeIdentifiers.StringIsIn))
-            {
-                return value.Contains(policyAttributeValue.Value); 
-            }
-
-            throw new NotImplementedException();
+            return AttributeMatcher.MatchAttributes(value, policyAttributeValue.Value, matchFunction.OriginalString);
         }
     }
 }

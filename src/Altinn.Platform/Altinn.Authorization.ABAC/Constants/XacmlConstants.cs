@@ -768,6 +768,11 @@ namespace Altinn.Authorization.ABAC.Constants
             /// String is in bag of attributes
             /// </summary>
             public const string StringIsIn = "urn:oasis:names:tc:xacml:1.0:function:string-is-in";
+
+            /// <summary>
+            /// Verify that one one integer of that value exist
+            /// </summary>
+            public const string IntegerOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:integer-one-and-only";
         }
 
         /// <summary>
@@ -789,6 +794,22 @@ namespace Altinn.Authorization.ABAC.Constants
             /// The XML namespace prefix.
             /// </summary>
             public const string Xml = "xml";
+        }
+
+        /// <summary>
+        /// The datatypes uses in XACML
+        /// </summary>
+        public sealed class DataTypes
+        {
+            /// <summary>
+            /// Datatype xml string
+            /// </summary>
+            public const string XML_String = "http://www.w3.org/2001/XMLSchema#string";
+
+            /// <summary>
+            /// Datatype XML integer
+            /// </summary>
+            public const string XML_Integer = "http://www.w3.org/2001/XMLSchema#integer";
         }
     }
 }

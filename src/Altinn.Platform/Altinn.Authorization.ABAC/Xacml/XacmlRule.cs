@@ -155,6 +155,12 @@ namespace Altinn.Authorization.ABAC.Xacml
             Dictionary<string, XacmlAttribute> requestAttributes = GetCategoryAttributes(request, category);
 
             XacmlAttributeMatchResult xacmlAttributeMatchResult = XacmlAttributeMatchResult.NoMatch;
+
+            if (Target == null)
+            {
+                // If the rules does not have any target, it is a match anyway
+                return XacmlAttributeMatchResult.Match;
+            }
          
             foreach (XacmlAnyOf anyOf in Target.AnyOf)
             {
@@ -217,7 +223,17 @@ namespace Altinn.Authorization.ABAC.Xacml
                 {
                     foreach (XacmlAttribute attribute in attributes.Attributes)
                     {
-                        categoryAttributes.Add(attribute.AttributeId.OriginalString, attribute);
+                        if (categoryAttributes.Keys.Contains(attribute.AttributeId.OriginalString))
+                        {
+                            foreach (XacmlAttributeValue xacmlAttributeValue in attribute.AttributeValues)
+                            {
+                                categoryAttributes[attribute.AttributeId.OriginalString].AttributeValues.Add(xacmlAttributeValue);
+                            }
+                        }
+                        else
+                        {
+                            categoryAttributes.Add(attribute.AttributeId.OriginalString, attribute);
+                        }
                     }
                 }
             }

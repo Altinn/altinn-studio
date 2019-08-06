@@ -120,6 +120,14 @@ namespace Altinn.Authorization.ABAC
                         };
                         return new XacmlContextResponse(contextResult);
                     }
+                    else if (conditionDidEvaluate.Equals(XacmlAttributeMatchResult.ToManyAttributes))
+                    {
+                        contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate)
+                        {
+                            Status = new XacmlContextStatus(XacmlContextStatusCode.ProcessingError)
+                        };
+                        return new XacmlContextResponse(contextResult);
+                    }
                 }
 
                 if (!decision.Equals(XacmlContextDecision.NotApplicable))
