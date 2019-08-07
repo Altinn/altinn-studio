@@ -1,6 +1,5 @@
 import { t, ClientFunction } from 'testcafe';
 import axeCheck from 'axe-testcafe';
-import { waitForReact } from 'testcafe-react-selectors';
 import DesignerPage from '../page-objects/designerPage';
 import { AutoTestUser } from '../TestData';
 import App from '../app';

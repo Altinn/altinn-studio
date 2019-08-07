@@ -94,6 +94,21 @@
 				},
 				{
 					"name": "persons",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9a29ae71-c668-4284-a10e-5fd12e5e1029",
+								"exec": [
+									"pm.test(\"Status code of GET Tickets is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -133,6 +148,21 @@
 			"item": [
 				{
 					"name": "Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bc718f86-1415-44c2-8911-124c1461456b",
+								"exec": [
+									"pm.test(\"Status code of GET Profile is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [],
@@ -160,6 +190,21 @@
 			"item": [
 				{
 					"name": "Tickets",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "13151bbe-93ff-4e54-88f2-9a04f9d996b4",
+								"exec": [
+									"pm.test(\"Status code of GET Tickets is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -178,9 +223,9 @@
 							"raw": "{\r\n    \"encryptedTicket\": \"CD4E027814113A483207C670A4\"\r\n}"
 						},
 						"url": {
-							"raw": "{{envUrl}}/authentication/api/v1/authentication?goto=http://www.vg.no",
+							"raw": "{{envURL}}/authentication/api/v1/authentication?goto=http://www.vg.no",
 							"host": [
-								"{{envUrl}}"
+								"{{envURL}}"
 							],
 							"path": [
 								"authentication",

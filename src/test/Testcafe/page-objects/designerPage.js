@@ -5,6 +5,7 @@ import App from '../app';
 
 export default class DesignerPage {
   constructor() {
+
     //editor elements #schema-components
     this.header = Selector("#schema-texts").withText("Header");
     this.inputBtn = Selector("#schema-components").withText("Input");
@@ -21,7 +22,6 @@ export default class DesignerPage {
     this.addConditionalRendering = Selector(".d-block").withText("Conditional Rendering").child(0);
 
     //editor canvas
-
     this.canvas = Selector('.div').withAttribute('draggable');
 
     //left drawer menu
@@ -125,10 +125,6 @@ export default class DesignerPage {
     for (let i = 0; i < numberToDelete && i < count; i++) {
       await t.click(deleteButtons.nth(i));
     }
-  }
-
-  async createMergeConflict() {
-
   }
 
   async whitePaperHeader(headerText) {

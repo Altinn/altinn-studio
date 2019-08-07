@@ -23,7 +23,7 @@ test('Drag and drop test', async () => {
     .expect(designer.inputComponent).ok()
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .dragToElement(designer.addressComponent, designer.dragToArea)
-})
+});
 
 test('Add one of each component to the designer using keyboard', async () => {
   await t
@@ -46,7 +46,7 @@ test('Add one of each component to the designer using keyboard', async () => {
     .pressKey('enter') //file upload
     .pressKey('tab')
     .pressKey('enter') //submit
-})
+});
 
 test('Sync a service with master', async () => {
   await t
@@ -97,7 +97,7 @@ test('About page items and editing', async () => {
     .pressKey('backspace')
     .typeText(designer.omKommentarer, 'Lorem ipsum dolor sit amet.')
     .expect(designer.omKommentarer.textContent).contains("Lorem")
-})
+});
 
 test("Fill out Access control information on a service", async () => {
   await t
@@ -106,24 +106,17 @@ test("Fill out Access control information on a service", async () => {
     .hover(designer.leftDrawerMenu)
     .click(designer.lageLeftMenuItems[4])
     .click(designer.virksomhet)
-    //.expect(designer.virksomhet.checked).ok()
     .click(designer.hookCheckBox)
     .expect(designer.tjenestekode.exists).ok()
     .typeText(designer.tjenestekode, '1234')
     .expect(designer.tjenesteutgavekode.exists).ok()
     .typeText(designer.tjenesteutgavekode, '1')
     .click(designer.virksomhet)
-    //.expect(designer.virksomhet.checked).notOk()
     .click(designer.hookCheckBox)
     .expect(designer.tjenestekode.exists).notOk()
     .expect(designer.tjenesteutgavekode.exists).notOk()
-})
+});
 
 test('Automated accessibility test for designer page', async t => {
   axeCheck(t);
-})
-
-test.skip('Repeating groups', async () => {
-  await t
-    .Click();
 });

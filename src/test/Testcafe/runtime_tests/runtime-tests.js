@@ -35,7 +35,7 @@ test('Instantiate a service in runtime', async () => {
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
-})
+});
 
 test('Direct link navigation to runtime', async () => {
   await t
@@ -43,10 +43,10 @@ test('Direct link navigation to runtime', async () => {
     .expect(runtime.fileDropComponent.exists).notOk()
     .navigateTo(app.baseUrl + 'runtime/AutoTest/runtime2#' + t.ctx.instanceID + '#/Preview')
     .expect(runtime.fileDropComponent.exists).notOk()
-})
+});
 
 
-test('Upload files using file component in SBL', async () => {
+test.only('Upload files using file component in SBL', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/file_component#/test')
     .switchToIframe(runtime.testBrukerIframe)
@@ -64,7 +64,7 @@ test('Upload files using file component in SBL', async () => {
     .expect(runtime.fileDropComponent.exists).ok()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileListBox.textContent).contains("Ferdig lastet")
-})
+});
 
 test('Validations when uploading file', async () => {
   await t
@@ -84,7 +84,7 @@ test('Validations when uploading file', async () => {
     .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_pdf.pdf')
     .expect(runtime.errorMessage).ok()
-})
+});
 
 
 test('Read-only components test in runtime', async () => {
@@ -96,7 +96,7 @@ test('Read-only components test in runtime', async () => {
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
-})
+});
 
 test('Fill out, save, and submit a form', async () => {
   await t
@@ -125,34 +125,11 @@ test('Fill out, save, and submit a form', async () => {
     .expect(runtime.workflowSubmit.visible).ok()
     .click(runtime.workflowSubmit)
     .expect(Selector("p").withText(t.ctx.formFillComplete).visible).ok({ timeout: 120000 })
-})
-
-test.skip('conditional rendering of component in runtime', async () => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/conditionalrender#/test')
-    .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
-    .click(runtime.startNewButton)
-    .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
-    .typeText(Selector("input"), "123456789") //This selector is brittle, but there is only one input component in this service
-    .doubleClick(runtime.serviceBody)
-    .wait(1000)
-    .expect(Selector('button').withText('Button').exists).ok()
-    .click(Selector("input"))
-    .pressKey("ctrl+a")
-    .pressKey("backspace")
-    .expect(Selector('button').withText('Button').exists).notOk()
-})
-
+});
 
 test('axe UI accessibility test for runtime', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
-    //.click(designer.testeNavigationTab)
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].exists).ok()
     .hover(runtime.testUsers[0])

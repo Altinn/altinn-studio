@@ -36,8 +36,8 @@
 									"    pm.expect(jsonData.id).to.eql(\"tdd/postmanapp\");\r",
 									"});\r",
 									"\r",
-									"pm.test(\"Posting app to storeage less than 200ms\", function () {\r",
-									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"pm.test(\"Posting app to storeage less than 600ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(600);\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -270,10 +270,10 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{    \n   \"instanceOwnerId\": \"123\",\n   \"instanceId\": \"20105050\",\n   \"eventType\": \"created\",\n   \"userId\": 3,\n   \"authenticationLevel\": 1,\n   \"workflowStep\": \"8\",\n   \"enduserSystemId\": 2\n}"
+							"raw": "{    \n   \"instanceOwnerId\": \"{{instanceOwnerId}}\",\n   \"instanceId\": \"{{instanceOwnerId}}/{{instanceId}}\",\n   \"eventType\": \"created\",\n   \"userId\": 3,\n   \"authenticationLevel\": 1,\n   \"workflowStep\": \"8\",\n   \"enduserSystemId\": 2\n}"
 						},
 						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceId}}/events",
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
 							"host": [
 								"{{envURL}}"
 							],
@@ -282,6 +282,7 @@
 								"api",
 								"v1",
 								"instances",
+								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"events"
 							]
@@ -327,7 +328,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceId}}/events",
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
 							"host": [
 								"{{envURL}}"
 							],
@@ -336,6 +337,7 @@
 								"api",
 								"v1",
 								"instances",
+								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"events"
 							]
@@ -380,7 +382,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceId}}/events/?eventTypes=created",
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?eventTypes=created",
 							"host": [
 								"{{envURL}}"
 							],
@@ -389,6 +391,7 @@
 								"api",
 								"v1",
 								"instances",
+								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"events",
 								""
@@ -445,7 +448,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
 							"host": [
 								"{{envURL}}"
 							],
@@ -454,6 +457,7 @@
 								"api",
 								"v1",
 								"instances",
+								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"events",
 								""
@@ -499,7 +503,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceId}}/events",
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
 							"host": [
 								"{{envURL}}"
 							],
@@ -508,6 +512,7 @@
 								"api",
 								"v1",
 								"instances",
+								"{{instanceOwnerId}}",
 								"{{instanceId}}",
 								"events"
 							]

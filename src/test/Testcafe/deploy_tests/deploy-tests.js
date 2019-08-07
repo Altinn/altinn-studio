@@ -34,13 +34,15 @@ fixture('Deploy of service to a test environment tests')
 
 test('Happy case; deploy a service to a test environment after a change', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
     .click(designer.omNavigationTab) //remove pop up
     .dragToElement(designer.inputComponent, designer.dragToArea)
-    .expect(designer.delEndringer.exists).ok()
+  await t.eval(() => location.reload(true))
+  await t
+    .expect(designer.delEndringer.exists).ok({ timeout: 120000 })
     .click(designer.delEndringer)
     .expect(designer.commitMessageBox.exists).ok()
     .click(designer.commitMessageBox)
@@ -57,8 +59,7 @@ test('Happy case; deploy a service to a test environment after a change', async 
     .click(designer.deployButton)
     .expect(Selector("p").withText(t.ctx.leggerUtTjenesten).exists).ok()
     .expect(Selector("h2").withText(t.ctx.tilgjengelig).exists).ok({ timeout: 120000 })
-
-})
+});
 
 test('Service cannot deploy due to compilation error', async () => {
   await t
@@ -72,17 +73,19 @@ test('Service cannot deploy due to compilation error', async () => {
     .click(designer.testeLeftMenuItems[1])
     .expect(designer.deployButton.getAttribute("disabled")).notOk()
     .expect(Selector("h2").withText(t.ctx.noCompile).exists).ok()
-})
+});
 
 test('Service cannot be deployed due to local changes', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
     .click(designer.omNavigationTab) //remove pop up
     .dragToElement(designer.radioButtonComponent, designer.dragToArea)
-    .expect(designer.delEndringer.exists).ok()
+  await t.eval(() => location.reload(true))
+  await t
+    .expect(designer.delEndringer.exists).ok({ timeout: 120000 })
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])
@@ -98,7 +101,7 @@ test('Service cannot be deployed due to local changes', async () => {
   await t.eval(() => location.reload(true));
   await t
     .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok({ timeout: 120000 })
-})
+});
 
 test('User does not have write access to service, and cannot deploy', async () => {
   await t
@@ -112,7 +115,7 @@ test('User does not have write access to service, and cannot deploy', async () =
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[1])
     .expect(Selector("h2").withText(t.ctx.ikkeTilgang).visible).ok()
-})
+});
 
 test('Accessibility testing for deployment to test environment page', async t => {
   await t

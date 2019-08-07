@@ -22,8 +22,4 @@ export default class DashBoard {
       .hover(this.homeButton)
       .click(this.logoutButton)
   }
-
-  async createNewService(serviceName) {
-    //New service button and dialogue selectors
-  }
 }

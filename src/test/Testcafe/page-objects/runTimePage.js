@@ -32,8 +32,6 @@ export default class RunTimePage {
     //file component error message
     this.errorMessage = Selector('.field-validation-error.a-message.a-message-error');
 
-    //read-only components
-    //this.readOnlyInput = readOnlySelectors('Navn');
     this.testUserHeader = [
       Selector('div').withAttribute('title', 'OLA PRIVATPERSON'),
       Selector('div').withText('Kari'),
