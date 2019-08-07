@@ -46,12 +46,12 @@ test('Direct link navigation to runtime', async () => {
 });
 
 
-test.only('Upload files using file component in SBL', async () => {
+test('Upload files using file component in SBL', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/file_component#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
+    .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.startSendingIn.exists).ok({ timeout: 120000 })
