@@ -1,6 +1,7 @@
 /* tslint:disable: max-line-length */
 const altinnWindow = window as any;
-const { origin, org, service } = altinnWindow;
+const { org, service } = altinnWindow;
+const origin = window.location.origin;
 
 export const getApplicationMetadataUrl = (): string => {
   return `${origin}/designer/api/v1/${org}/${service}`;
