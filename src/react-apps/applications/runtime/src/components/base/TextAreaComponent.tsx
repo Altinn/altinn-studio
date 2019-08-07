@@ -34,6 +34,7 @@ export class TextAreaComponent
   }
 
   public render() {
+    console.log('### textarea isValid: ', this.props.isValid);
     return (
       <div className={'a-form-group-items input-group p-0'} >
         <textarea
