@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should match snapshot 1`] = `
 <div
-  className="MuiGrid-container-2 MuiGrid-justify-xs-center-19 VersionControlHeader-headerStyling-1"
+  className="MuiGrid-container-2 VersionControlHeader-headerStyling-1"
 >
   <div
     className="MuiGrid-item-3"
@@ -13,7 +13,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     }
   >
     <button
-      className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 FetchChangesComponenet-clickable-101 FetchChangesComponenet-btn-100"
+      className="MuiButtonBase-root-126 MuiButton-root-100 MuiButton-text-102 MuiButton-flat-105 CloneButton-cloneButton-99"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
@@ -31,7 +31,76 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       type="button"
     >
       <span
-        className="MuiButton-label-104"
+        className="MuiButton-label-101"
+      >
+        <div
+          className="MuiGrid-container-2 MuiGrid-align-items-xs-center-10"
+        >
+          <div
+            className="MuiGrid-item-3"
+          >
+            <i
+              className="fa fa-clone"
+              style={
+                Object {
+                  "color": "#0062BA",
+                  "fontSize": 24,
+                  "fontWeight": null,
+                  "margin": null,
+                  "padding": "0px 0px 4px 0px",
+                }
+              }
+            />
+          </div>
+          <div
+            className="MuiGrid-item-3"
+          >
+            <p
+              className="MuiTypography-root-130 MuiTypography-body1-139"
+              style={
+                Object {
+                  "color": "#0062BA",
+                }
+              }
+            >
+              sync_header.clone
+            </p>
+          </div>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root-189"
+      />
+    </button>
+  </div>
+  <div
+    className="MuiGrid-item-3"
+    style={
+      Object {
+        "marginRight": "24px",
+      }
+    }
+  >
+    <button
+      className="MuiButtonBase-root-126 MuiButton-root-100 MuiButton-text-102 MuiButton-flat-105 FetchChangesComponent-clickable-168 FetchChangesComponent-btn-167"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onContextMenu={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex="0"
+      type="button"
+    >
+      <span
+        className="MuiButton-label-101"
       >
         <div
           className="MuiGrid-container-2 MuiGrid-align-items-xs-center-10"
@@ -56,7 +125,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-item-3"
           >
             <p
-              className="MuiTypography-root-133 MuiTypography-body1-142 FetchChangesComponenet-color_blueDark-102"
+              className="MuiTypography-root-130 MuiTypography-body1-139 FetchChangesComponent-color_blueDark-169"
               id="fetch_changes_btn"
             >
               sync_header.fetch_changes
@@ -65,7 +134,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
         </div>
       </span>
       <span
-        className="MuiTouchRipple-root-184"
+        className="MuiTouchRipple-root-189"
       />
     </button>
   </div>
@@ -73,7 +142,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     className="MuiGrid-item-3"
   >
     <button
-      className="MuiButtonBase-root-129 MuiButton-root-103 MuiButton-text-105 MuiButton-flat-108 ShareChangesCompoenent-color_blueDark-173 ShareChangesCompoenent-btn-170 ShareChangesCompoenent-clickable-172"
+      className="MuiButtonBase-root-126 MuiButton-root-100 MuiButton-text-102 MuiButton-flat-105 ShareChangesComponent-color_blueDark-174 ShareChangesComponent-btn-171 ShareChangesComponent-clickable-173"
       disabled={false}
       id="share_changes_button"
       onBlur={[Function]}
@@ -92,7 +161,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       type="button"
     >
       <span
-        className="MuiButton-label-104"
+        className="MuiButton-label-101"
       >
         <div
           className="MuiGrid-container-2 MuiGrid-align-items-xs-center-10"
@@ -101,7 +170,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-item-3"
           >
             <div
-              className="ShareChangesCompoenent-checkIconPositionFix-171"
+              className="ShareChangesComponent-checkIconPositionFix-172"
             >
               <i
                 className="ai ai-check"
@@ -121,7 +190,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-item-3"
           >
             <p
-              className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-173"
+              className="MuiTypography-root-130 MuiTypography-body1-139 ShareChangesComponent-color_blueDark-174"
               id="no_changes_to_share_btn"
             >
               sync_header.no_changes_to_share
@@ -130,7 +199,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
         </div>
       </span>
       <span
-        className="MuiTouchRipple-root-184"
+        className="MuiTouchRipple-root-189"
       />
     </button>
   </div>

@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when its less than an hour since last push and there are changes in the repo 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
+  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -46,7 +46,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-36"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5"
+          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5"
           id="changes_to_share_btn"
         >
           sync_header.changes_to_share
@@ -62,7 +62,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when its more than an hour since last push and there are changes in the repo 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
+  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -106,7 +106,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-36"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-bold-1"
+          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1"
           id="changes_to_share_btn"
         >
           sync_header.changes_to_share
@@ -122,7 +122,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user has a mergeconflict 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
+  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -166,7 +166,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-36"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-bold-1"
+          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1"
         >
           sync_header.merge_conflict
         </p>
@@ -181,7 +181,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user has no changes in local repo 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
+  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -209,7 +209,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-36"
       >
         <div
-          className="ShareChangesCompoenent-checkIconPositionFix-3"
+          className="ShareChangesComponent-checkIconPositionFix-3"
         >
           <i
             className="ai ai-check"
@@ -229,7 +229,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-36"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5"
+          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5"
           id="no_changes_to_share_btn"
         >
           sync_header.no_changes_to_share
@@ -245,7 +245,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user only has read access to service 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-btn-2 ShareChangesCompoenent-clickable-4"
+  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -276,7 +276,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-36"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesCompoenent-color_blueDark-5 ShareChangesCompoenent-bold-1"
+          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1"
           id="changes_to_share_btn"
         >
           sync_header.changes_to_share
