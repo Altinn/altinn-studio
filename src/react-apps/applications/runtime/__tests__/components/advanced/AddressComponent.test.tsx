@@ -334,7 +334,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
       />,
     );
     expect(mountedAddressComponent.find('h4').length).toBe(1);
-    expect(mountedAddressComponent.contains(<h4>test</h4>)).toBe(true);
+    expect(mountedAddressComponent.contains(<h4 className='mt-2'>test</h4>)).toBe(true);
   });
 
 });
