@@ -35,7 +35,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
             Object {
               "color": "#0062BA",
               "fontSize": 36,
-              "fontWeight": null,
+              "fontWeight": 600,
               "margin": "0px -5px 0px -5px",
               "padding": null,
             }
@@ -46,7 +46,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-36"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5"
+          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1"
           id="changes_to_share_btn"
         >
           sync_header.changes_to_share
@@ -208,22 +208,18 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       <div
         className="MuiGrid-item-36"
       >
-        <div
-          className="ShareChangesComponent-checkIconPositionFix-3"
-        >
-          <i
-            className="ai ai-check"
-            style={
-              Object {
-                "color": "#0062BA",
-                "fontSize": 36,
-                "fontWeight": null,
-                "margin": null,
-                "padding": null,
-              }
+        <i
+          className="fa fa-upload"
+          style={
+            Object {
+              "color": "#0062BA",
+              "fontSize": 36,
+              "fontWeight": null,
+              "margin": "0px -5px 0px -5px",
+              "padding": null,
             }
-          />
-        </div>
+          }
+        />
       </div>
       <div
         className="MuiGrid-item-36"

@@ -49,9 +49,8 @@ const styles = createStyles({
 
 class ShareChangesComponent extends React.Component<IShareChangesComponentProps> {
   public shareChangesHandler = (event: any) => {
-    if (this.props.changesInLocalRepo) {
-      this.props.shareChanges(event.currentTarget);
-    }
+    const noChanges = !this.props.changesInLocalRepo;
+    this.props.shareChanges(event.currentTarget, noChanges);
   }
 
   public renderCorrectText() {
@@ -89,7 +88,7 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
                 iconColor={theme.altinnPalette.primary.blueDark}
                 iconSize={36}
                 margin='0px -5px 0px -5px'
-                weight={this.props.moreThanAnHourSinceLastPush ? 600 : null}
+                weight={600}
               />
             }
           </Grid>
@@ -97,9 +96,7 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
             <Typography
               id='changes_to_share_btn'
               variant='body1'
-              className={classNames(classes.color_blueDark,
-                { [classes.bold]: this.props.moreThanAnHourSinceLastPush },
-              )}
+              className={classNames(classes.color_blueDark, classes.bold)}
             >
               {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
             </Typography>
@@ -110,14 +107,12 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
       return (
         <Grid container={true} alignItems='center'>
           <Grid item={true}>
-            <div className={classes.checkIconPositionFix}>
-              <AltinnIcon
-                iconClass='ai ai-check'
-                iconColor={theme.altinnPalette.primary.blueDark}
-                iconSize={36}
-              />
-            </div>
-
+            <AltinnIcon
+              iconClass='fa fa-upload'
+              iconColor={theme.altinnPalette.primary.blueDark}
+              iconSize={36}
+              margin='0px -5px 0px -5px'
+            />
           </Grid>
           <Grid item={true}>
             <Typography
