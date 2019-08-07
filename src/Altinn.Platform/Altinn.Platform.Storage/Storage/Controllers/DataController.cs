@@ -30,6 +30,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
+        private const long REQUEST_SIZE_LIMIT = 500 * 1024 * 1024;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
@@ -102,6 +103,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>If the request was successful or not</returns>
         // GET /instances/{instanceId}/data/{dataId}
         [HttpGet("{dataId:guid}")]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<IActionResult> Get(int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
@@ -200,6 +202,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <!-- POST /instances/{instanceOwnerId}/{instanceGuid}/data?elementType={elementType} -->
         [HttpPost]
         [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<IActionResult> CreateAndUploadData(int instanceOwnerId, Guid instanceGuid, string elementType)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";

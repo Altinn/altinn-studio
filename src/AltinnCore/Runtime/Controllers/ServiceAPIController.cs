@@ -104,7 +104,7 @@ namespace AltinnCore.Runtime.Controllers
             _repository = repositoryService;
             _execution = executionService;
             _profile = profileService;
-            _userHelper = new UserHelper(_profile, _register);
+            _userHelper = new UserHelper(_profile, _register, generalSettings);
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;

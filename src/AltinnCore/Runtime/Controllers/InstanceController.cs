@@ -51,8 +51,10 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
         private readonly ServiceRepositorySettings _settings;
+        private readonly GeneralSettings _generalSettings;
 
         private const string FORM_ID = "default";
+        private const long REQUEST_SIZE_LIMIT = 500 * 1024 * 1024;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -74,6 +76,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
         /// <param name="repositorySettings">the repository settings</param>
+        /// <param name="generalSettings">the general settings</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -91,7 +94,8 @@ namespace AltinnCore.Runtime.Controllers
             IInstanceEvent eventSI,
             IPlatformServices platformSI,
             IData dataSI,
-            IOptions<ServiceRepositorySettings> repositorySettings)
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -101,7 +105,7 @@ namespace AltinnCore.Runtime.Controllers
             _form = formService;
             _repository = repositoryService;
             _execution = serviceExecutionService;
-            _userHelper = new UserHelper(profileService, _register);
+            _userHelper = new UserHelper(profileService, _register, generalSettings);
             _archive = archiveService;
             _testdata = testDataService;
             _httpContextAccessor = httpContextAccessor;
@@ -111,6 +115,7 @@ namespace AltinnCore.Runtime.Controllers
             _platformSI = platformSI;
             _data = dataSI;
             _settings = repositorySettings.Value;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -306,9 +311,9 @@ namespace AltinnCore.Runtime.Controllers
 
             // Checks if the reportee is allowed to initiate the application
             Application application = _repository.GetApplication(startServiceModel.Org, startServiceModel.Service);
-            if (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Party, application.PartyTypesAllowed) )
+            if (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Party, application.PartyTypesAllowed))
             {
-                    return new StatusCodeResult(403);
+                return new StatusCodeResult(403);
             }
 
             // Create platform service and assign to service implementation making it possible for the service implementation
@@ -393,7 +398,7 @@ namespace AltinnCore.Runtime.Controllers
                    Value = x.PartyId.ToString(),
                }).ToList();
 
-            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.PartyId.ToString());
+            HttpContext.Response.Cookies.Append(_generalSettings.GetAltinnPartyCookieName, startServiceModel.PartyId.ToString());
 
             return JsonConvert.SerializeObject(
                 new
@@ -502,7 +507,7 @@ namespace AltinnCore.Runtime.Controllers
                    Value = x.PartyId.ToString(),
                }).ToList();
 
-            HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.PartyId.ToString());
+            HttpContext.Response.Cookies.Append(_generalSettings.GetAltinnPartyCookieName, startServiceModel.PartyId.ToString());
             return View(startServiceModel);
         }
 
@@ -602,6 +607,7 @@ namespace AltinnCore.Runtime.Controllers
         [HttpPost]
         [Authorize]
         [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, int partyId, Guid instanceGuid, string attachmentType, string attachmentName)
         {
             Guid guid = await _data.SaveFormAttachment(org, service, partyId, instanceGuid, attachmentType, attachmentName, Request);
@@ -639,6 +645,7 @@ namespace AltinnCore.Runtime.Controllers
         [HttpGet]
         [Authorize]
         [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<IActionResult> GetFormAttachments(string org, string service, int partyId, Guid instanceGuid)
         {
             List<AttachmentList> allAttachments = await _data.GetFormAttachments(org, service, partyId, instanceGuid);
