@@ -35,7 +35,6 @@ const styles = createStyles({
   headerStyling: {
     background: theme.altinnPalette.primary.greyLight,
     paddingTop: 10,
-    marginLeft: 24,
   },
 });
 
@@ -214,7 +213,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               descriptionText:
                 [getLanguageFromKey('sync_header.changes_made_samme_place_submessage', this.props.language),
                 getLanguageFromKey('sync_header.changes_made_samme_place_subsubmessage', this.props.language)],
-              btnText: getLanguageFromKey('sync_header.hent_endringer_btn', this.props.language),
+              btnText: getLanguageFromKey('sync_header.fetch_changes_btn', this.props.language),
               shouldShowCommitBox: true,
               btnMethod: this.commitChanges,
             },

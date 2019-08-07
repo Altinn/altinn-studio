@@ -87,7 +87,10 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           elevation={1}
           classes={{ paper: classes.paperStyle }}
         >
-          <MenuItem key='placeholder' style={{display: 'none'}} />
+          <MenuItem
+            key='placeholder'
+            style={{display: 'none'}}
+          />
           {// workaround for highlighted menu item not changing.
           // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
           }
