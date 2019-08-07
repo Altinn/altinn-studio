@@ -2,25 +2,23 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, RouteProps } from 'react-router';
+import { RouteProps } from 'react-router';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import Header from '../../../shared/components/altinnAppHeader';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
-import LanguageActions from '../../../shared/resources/language/languageActions';
+import { IApplicationMetadata } from '../../../shared/resources/applicationMetadata';
 import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
-import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 
 const styles = createStyles({
   partySelectionPage: {
-    backgroundColor: AltinnAppTheme.altinnPalette.primary.white,
     width: '100%',
-    height: '100%',
-    maxWidth: '780px',
+    maxWidth: '1056px',
+    backgroundColor: AltinnAppTheme.altinnPalette.primary.white,
     display: 'flex',
     flexDirection: 'column',
     alignSelf: 'center',
@@ -30,18 +28,15 @@ const styles = createStyles({
     fontSize: '3.5rem',
     fontWeight: 200,
     paddingBottom: 18,
-    padding: 12,
   },
   partySelectionError: {
-    padding: 12,
     fontSize: '1.75rem',
     fontWeight: 300,
     backgroundColor: AltinnAppTheme.altinnPalette.primary.redLight,
   },
   partySearchFieldContainer: {
-    padding: 12,
     paddingTop: 8,
-    width: '780px',
+    paddingLeft: 12,
   },
   partySelectionSubTitle: {
     fontSize: '1.75rem',
@@ -52,7 +47,6 @@ const styles = createStyles({
   },
   loadMoreButton: {
     padding: 5,
-    width: '100%',
     backgroundColor: AltinnAppTheme.altinnPalette.primary.white,
     border: `2px dotted ${AltinnAppTheme.altinnPalette.primary.blue}`,
   },
@@ -82,87 +76,132 @@ function PartySelection(props: IPartySelectionProps) {
 
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const selectedParty: IParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
+  const appMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) =>
+    state.applicationMetadata.applicationMetadata);
 
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
+  const [showSubUnits, setShowSubUnits] = React.useState(false);
+  const [showDeleted, setShowDeleted] = React.useState(true);
 
   React.useEffect(() => {
-    PartyActions.selectParty(null);
     const {org, service} = window as IAltinnWindow;
     PartyActions.getParties(`${window.location.origin}/${org}/${service}/api/v1/parties`);
-    if (!profile) {
-      ProfileActions.fetchProfile(
-        `${window.location.origin}/${org}/${service}/api/v1/profile/user`,
-      );
-    }
-    if (!language) {
-      LanguageActions.fetchLanguage(
-        `${window.location.origin}/${org}/${service}/api/Language/GetLanguageAsJSON`,
-        'nb',
-      );
-    }
   }, []);
 
   function onSelectParty(party: IParty) {
-    if (!selectedParty) {
-      PartyActions.selectParty(party);
-    }
+    PartyActions.selectParty(party);
   }
 
   function renderParties() {
-    if (!profile || !parties) {
+    if (!parties || !appMetadata) {
       return null;
     }
-    // Set the current selected party first in the array and concat rest (without the current)
-    let partiesElements: IParty[] = [];
-    let currentParty: IParty = null;
 
-    if (!location.state || !(location.state as IRedirectValidPartes).validParties) {
-      currentParty = parties.find((party) => party.partyId === profile.partyId);
-      partiesElements = [currentParty].concat(
-        parties.map(
-          (party: IParty) => party.partyId !== currentParty.partyId ? party : null,
-        ).filter(
-          (party: IParty) => party != null,
-        ),
-      );
-    } else {
-      partiesElements = (location.state as IRedirectValidPartes).validParties;
-    }
-    if (selectedParty !== null) {
-      if (!location.state || !(location.state as IRedirectValidPartes).validParties) {
-        return (
-          <Redirect to={'/instantiate'}/>
-        );
+    const validParties: IParty[] = parties.map((party) => {
+      if (!showDeleted) {
+        if ((party.ssn != null && appMetadata.partyTypesAllowed.person) && !party.isDeleted) {
+          return party;
+        }
+        if ((party.orgNumber != null && appMetadata.partyTypesAllowed.organization) && !party.isDeleted) {
+          return party;
+        }
       } else {
-        const { validParties } = (location.state as IRedirectValidPartes);
-        for (const party of validParties) {
-          if (selectedParty.partyId === party.partyId) {
-            return (
-              <Redirect to={'/instantiate'}/>
-            );
-          }
+        if ((party.ssn != null && appMetadata.partyTypesAllowed.person)) {
+          return party;
+        }
+        if ((party.orgNumber != null && appMetadata.partyTypesAllowed.organization)) {
+          return party;
         }
       }
-    }
+    }).filter((party) => !party ? null : party);
+
+    let numberOfPartiesRendered: number = 0;
+
     return (
       <>
-        {partiesElements.map((party: IParty, index: number) =>
-          index < numberOfPartiesShown ?
-            party.name.toUpperCase().includes(filterString.toUpperCase()) ?
-              <AltinnParty
-                key={index}
-                party={party}
-                isCurrent={currentParty !== null && party.partyId === currentParty.partyId}
-                onSelectParty={onSelectParty}
-              />
-              : null
-            : null,
+            {validParties.map((party: IParty, index: number) =>
+              party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
+                numberOfPartiesShown > numberOfPartiesRendered ?
+                  (() => {
+                    numberOfPartiesRendered += 1;
+                    return (
+                      <AltinnParty
+                        key={index}
+                        party={party}
+                        onSelectParty={onSelectParty}
+                      />
+                    );
+                  })()
+                : null
+              : null,
           )}
+        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < validParties.length ?
+          <Grid container={true}>
+            {renderShowMoreButton()}
+          </Grid>
+          : null
+        }
       </>
     );
+  }
+
+  function templatePartyTypesString() {
+    if (!language.instantiate) {
+      return null;
+    }
+    /*
+      This method we allways return the strings in an order of:
+      1. private person
+      2. organization
+      3. sub unit
+      4. bankruptcy state
+    */
+    const {partyTypesAllowed} = appMetadata;
+    const partyTypes: string[] = [];
+
+    let returnString: string = '';
+
+    if (partyTypesAllowed.person) {
+      partyTypes.push(language.instantiate.party_selection_unit_type_private_person);
+    }
+    if (partyTypesAllowed.organization) {
+      partyTypes.push(language.instantiate.party_selection_unit_type_company);
+    }
+    if (partyTypesAllowed.subUnit) {
+      partyTypes.push(language.instantiate.party_selection_unit_type_subunit);
+    }
+    if (partyTypesAllowed.bankruptcyEstate) {
+      partyTypes.push(language.instantiate.party_selection_unit_type_bankruptcy_state);
+    }
+
+    if (partyTypes.length === 1) {
+      return partyTypes[0];
+    }
+
+    for (let i = 0; i < partyTypes.length; i++) {
+      if (i === 0) {
+        returnString += partyTypes[i];
+      } else if (i === (partyTypes.length - 1)) {
+        returnString += ` ${language.instantiate.party_selection_error_binding_word} ${partyTypes[i]}`;
+      } else {
+        returnString += `, ${partyTypes[i]} `;
+      }
+    }
+
+    return returnString;
+  }
+
+  function templateErrorMessage() {
+    if (!language.instantiate) {
+      return null;
+    }
+    return `
+      ${language.instantiate.party_selection_error_first_part} ${profile.party.name}.
+      ${language.instantiate.party_selection_error_second_part} ${templatePartyTypesString()}.
+      ${language.instantiate.party_selection_error_third_part}
+    `;
   }
 
   function onFilterStringChange(filterStr: string) {
@@ -174,9 +213,6 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function renderShowMoreButton() {
-    if (!parties || numberOfPartiesShown >= parties.length) {
-      return null;
-    }
     return (
       <button
         className={classes.loadMoreButton}
@@ -196,29 +232,32 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   return (
-    <Grid container={true} className={classes.partySelectionPage}>
+    <Grid container={true} className={'container ' + classes.partySelectionPage}>
       <Header
         language={language}
         profile={profile}
         type={'normal'}
       />
-        <Grid container={true}>
-          <Typography className={classes.partySelectionTitle}>
-            {!language.instantiate ?
-              'instantiate.party_selection_header' :
-              language.instantiate.party_selection_header
-            }
-          </Typography>
-          {!location.state || !(location.state as IRedirectValidPartes).validParties.length ?
-            null :
-            <Typography className={classes.partySelectionError}>
-              {!language.instantiate ?
-                'instantiate.party_selection_error' :
-                language.instantiate.party_selection_error
-              }
-            </Typography>
+      <Grid
+        item={true}
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+        }}
+      >
+        <Typography className={classes.partySelectionTitle}>
+          {!language.instantiate ?
+            'instantiate.party_selection_header' :
+            language.instantiate.party_selection_header
           }
-        </Grid>
+        </Typography>
+        {!location.state || !(location.state as IRedirectValidPartes).validParties.length ?
+          null :
+          <Typography className={classes.partySelectionError}>
+            {templateErrorMessage()}
+          </Typography>
+        }
+      </Grid>
         <Grid container={true} className={classes.partySearchFieldContainer}>
           <AltinnPartySearch
             onSearchUpdated={onFilterStringChange}
@@ -232,9 +271,6 @@ function PartySelection(props: IPartySelectionProps) {
             }
           </Typography>
           {renderParties()}
-        </Grid>
-        <Grid container={true}>
-          {renderShowMoreButton()}
         </Grid>
     </Grid>
   );

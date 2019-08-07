@@ -5,6 +5,7 @@ import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/reducer';
 import { IValidationState } from '../features/form/validation/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
+import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import { IPartyState } from '../shared/resources/party/partyReducers';
@@ -24,6 +25,7 @@ export interface IRuntimeState {
   profile: IProfileState;
   formValidations: IValidationState;
   party: IPartyState;
+  applicationMetadata: IApplicationMetadataState;
 }
 
 export interface IAltinnWindow extends Window {

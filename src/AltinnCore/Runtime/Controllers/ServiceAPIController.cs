@@ -750,5 +750,18 @@ namespace AltinnCore.Runtime.Controllers
         {
             return _workflowSI.GetCurrentState(instanceId, org, service, partyId);
         }
+
+        /// <summary>
+        /// Method that get the application meta data
+        /// </summary>
+        /// <param name="org">The organization for the app</param>
+        /// <param name="appName">The name of the application</param>
+        /// <returns>Application meta data</returns>
+        [HttpGet]
+        [Authorize]
+        public Application GetApplication(string org, string appName)
+        {
+            return _repository.GetApplication(org, appName);
+        }
     }
 }

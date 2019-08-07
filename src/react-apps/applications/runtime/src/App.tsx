@@ -7,7 +7,15 @@ import Instantiate from './features/instantiate/containers';
 import PartySelection from './features/instantiate/containers/PartySelection';
 import { ServiceInfo } from './features/serviceInfo/containers';
 import StatefullAltinnError from './shared/container/StatefullAltinnError';
+import ApplicationMetadataActions from './shared/resources/applicationMetadata/actions';
+import LanguageActions from './shared/resources/language/languageActions';
+import ProfileActions from './shared/resources/profile/profileActions';
 import TextResourcesActions from './shared/resources/textResources/actions';
+
+import {
+  languageUrl,
+  profileApiUrl,
+} from './utils/urlHelper';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
@@ -15,6 +23,9 @@ export default function() {
 
   React.useEffect(() => {
     TextResourcesActions.fetchTextResources();
+    ProfileActions.fetchProfile(profileApiUrl);
+    LanguageActions.fetchLanguage(languageUrl, 'nb');
+    ApplicationMetadataActions.getApplicationMetadata();
   });
 
   return (

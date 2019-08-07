@@ -12,13 +12,14 @@ import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer
 import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
+import ApplicationMetadataReducer, { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import LanguageReducer, { ILanguageState } from '../shared/resources/language/languageReducers';
 import PartyReducer, { IPartyState } from '../shared/resources/party/partyReducers';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -32,6 +33,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T1
   profile: T11;
   formValidations: T12;
   party: T13;
+  applicationMetadata: T14;
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -47,7 +49,8 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<ITextResourcesState>,
   Reducer<IProfileState>,
   Reducer<IValidationState>,
-  Reducer<IPartyState>
+  Reducer<IPartyState>,
+  Reducer<IApplicationMetadataState>
   >,
   ReducersMapObject {
 }
@@ -66,6 +69,7 @@ const reducers: IRuntimeReducers = {
   profile: ProfileReducer,
   formValidations: ValidationReducer,
   party: PartyReducer,
+  applicationMetadata: ApplicationMetadataReducer,
 };
 
 export default combineReducers(reducers);

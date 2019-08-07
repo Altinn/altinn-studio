@@ -11,7 +11,7 @@ import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
-import { get, post } from '../../../utils/networking';
+import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
 
@@ -104,9 +104,9 @@ function ServiceInfo(props: IServiceInfoProps) {
           hideCloseIcon={true}
           headerText={'Instansierer'}
         >
-        <ContentLoader
+          <ContentLoader
             height={200}
-        >
+          >
             <rect x='25' y='20' rx='0' ry='0' width='100' height='5' />
             <rect x='25' y='30' rx='0' ry='0' width='350' height='5' />
             <rect x='25' y='40' rx='0' ry='0' width='350' height='25' />
@@ -118,9 +118,9 @@ function ServiceInfo(props: IServiceInfoProps) {
             <rect x='25' y='130' rx='0' ry='0' width='100' height='5' />
             <rect x='25' y='140' rx='0' ry='0' width='350' height='5' />
             <rect x='25' y='150' rx='0' ry='0' width='350' height='25' />
-        </ContentLoader>
+          </ContentLoader>
         </AltinnModal>
-    </>
+      </>
     );
   };
 

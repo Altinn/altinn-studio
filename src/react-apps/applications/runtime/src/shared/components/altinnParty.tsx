@@ -1,6 +1,8 @@
 import { createStyles, Grid, Paper, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
+import { useSelector } from 'react-redux';
 import altinnTheme from '../../../../shared/src/theme/altinnAppTheme';
+import { IRuntimeState } from '../../types';
 import { IParty } from '../resources/party';
 
 const styles = createStyles({
@@ -14,16 +16,8 @@ const styles = createStyles({
       cursor: 'pointer',
     },
   },
-  partyCurrent: {
-    'marginBottom': 12,
-    'borderRadius': 0,
-    'backgroundColor': altinnTheme.altinnPalette.primary.greyLight,
-    'boxShadow': altinnTheme.sharedStyles.boxShadow,
-    'width': '100%',
-    'cursor': 'point',
-    '&:hover': {
-      cursor: 'pointer',
-    },
+  partyWrapper: {
+
   },
   partyIcon: {
     padding: 12,
@@ -45,13 +39,13 @@ const styles = createStyles({
 
 export interface IAltinnPartyProps extends WithStyles<typeof styles> {
   party: IParty;
-  isCurrent: boolean;
   onSelectParty: (party: IParty) => void;
 }
 
 function AltinnParty(props: IAltinnPartyProps) {
-  const { classes, party, isCurrent, onSelectParty } = props;
+  const { classes, party, onSelectParty } = props;
   const isOrg: boolean = party.orgNumber != null;
+  const language = useSelector((state: IRuntimeState) => state.language.language);
 
   function onClickParty(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
     event.preventDefault();
@@ -59,17 +53,27 @@ function AltinnParty(props: IAltinnPartyProps) {
   }
 
   return (
-    <Paper className={isCurrent ? classes.partyCurrent : classes.partyPaper} onClick={onClickParty}>
+    <Paper className={classes.partyPaper} onClick={onClickParty}>
       <Grid container={true}>
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')}/>
         <Typography className={classes.partyName}>
-          {party.name + (party.isDeleted ? ' (slettet)' : '')}
+          {party.name + (party.isDeleted ? ` (
+            ${!language.instantiate ?
+              'instantiate.party_selection_unit_deleted' :
+              language.instantiate.party_selection_unit_deleted
+            }) ` : '')}
         </Typography>
         <Typography className={classes.partyInfo}>
           {
             isOrg ?
-            'org.nr. ' + party.orgNumber :
-            'personnr. ' + party.ssn
+            `${!language.instantiate ?
+              'instantiate.party_selection_unit_org_number' :
+              language.instantiate.party_selection_unit_org_number
+            } ` + party.orgNumber :
+            `${!language.instantiate ?
+              'instantiate.party_selection_unit_personal_number' :
+              language.instantiate.party_selection_unit_personal_number
+            } ` + party.ssn
           }
         </Typography>
       </Grid>
