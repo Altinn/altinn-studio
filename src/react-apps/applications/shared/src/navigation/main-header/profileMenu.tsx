@@ -57,12 +57,25 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
     return true;
   }
 
+  public shouldShowRepositoryLink = () => {
+    if (window) {
+      const {org, service} = (window as IAltinnWindow);
+      if (!org || !service) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
+
   public handleGiteaRepository = () => {
     this.setState({ anchorEl: null });
     if (window) {
-      window.location.href = repositoryUrl;
+      window.open(repositoryUrl, '_blank');
+      window.focus();
     }
-    return true;
   }
 
   public render() {
@@ -94,12 +107,18 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           {// workaround for highlighted menu item not changing.
           // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
           }
-          <MenuItem
-            onClick={this.handleGiteaRepository}
-            className={classes.menuItem}
-          >
-              Åpne gitea repository
-          </MenuItem>
+          {this.shouldShowRepositoryLink() &&
+            <MenuItem
+              className={classes.menuItem}
+            >
+              <a
+                href={repositoryUrl}
+                target={'_blank'}
+              >
+                Åpne gitea repository
+              </a>
+            </MenuItem>
+          }
           {showlogout && (
             <MenuItem
               onClick={this.handleLogout}

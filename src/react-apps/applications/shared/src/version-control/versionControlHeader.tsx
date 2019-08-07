@@ -223,7 +223,16 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
   }
 
-  public shareChanges = (currentTarget: any) => {
+  public shareChanges = (currentTarget: any, showNothingToPush: boolean) => {
+    if (showNothingToPush) {
+      return this.setState({
+        anchorEl: currentTarget,
+        modalState: {
+          shouldShowDoneIcon: true,
+          header: getLanguageFromKey('sync_header.nothing_to_push', this.props.language),
+        },
+      });
+    }
     if (this.state.hasPushRight === true) {
       this.setState({
         anchorEl: currentTarget,

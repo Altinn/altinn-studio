@@ -169,22 +169,18 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
           <div
             className="MuiGrid-item-3"
           >
-            <div
-              className="ShareChangesComponent-checkIconPositionFix-172"
-            >
-              <i
-                className="ai ai-check"
-                style={
-                  Object {
-                    "color": "#0062BA",
-                    "fontSize": 36,
-                    "fontWeight": null,
-                    "margin": null,
-                    "padding": null,
-                  }
+            <i
+              className="fa fa-upload"
+              style={
+                Object {
+                  "color": "#0062BA",
+                  "fontSize": 36,
+                  "fontWeight": null,
+                  "margin": "0px -5px 0px -5px",
+                  "padding": null,
                 }
-              />
-            </div>
+              }
+            />
           </div>
           <div
             className="MuiGrid-item-3"
