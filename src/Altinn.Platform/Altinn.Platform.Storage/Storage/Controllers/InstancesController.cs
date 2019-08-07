@@ -2,13 +2,20 @@ namespace Altinn.Platform.Storage.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
+    using System.Net;
+    using System.Net.Http;
+    using System.Text;
     using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
     using global::Storage.Interface.Models;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Handles operations for the application instance resource
@@ -19,6 +26,7 @@ namespace Altinn.Platform.Storage.Controllers
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly BridgeSettings bridgeSettings;
         private readonly ILogger logger;
 
         /// <summary>
@@ -30,10 +38,12 @@ namespace Altinn.Platform.Storage.Controllers
         public InstancesController(
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
+            IOptions<BridgeSettings> bridgeSettings,
             ILogger<InstancesController> logger)
         {
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
+            this.bridgeSettings = bridgeSettings.Value;
             this.logger = logger;
         }
 
@@ -121,50 +131,32 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]
-        public async Task<ActionResult> Post(string appId, int instanceOwnerId, [FromBody] Instance instanceTemplate)
-        {
-            if (instanceTemplate == null && instanceOwnerId == 0)
+        public async Task<ActionResult> Post(string appId, int? instanceOwnerId, [FromBody] Instance instanceTemplate)
+        {                       
+            // check if metadata exists
+            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoErrorResult);
+            if (appInfoErrorResult != null)
             {
-                return BadRequest("Missing parameter values: instanceOwnerId must be set");
-            }
-            else if (instanceOwnerId == 0 && (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))) 
-            {
-                return BadRequest("Missing parameter values: instanceOwnerId must be set");
+                return appInfoErrorResult;
             }
 
-            if (instanceOwnerId == 0 && instanceTemplate != null)
+            int ownerId = 0;
+            if (instanceOwnerId.HasValue)
             {
-                instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
+                ownerId = instanceOwnerId.Value;
             }
 
+            // get instanceOwnerId is provided either as query param (priority1), or in instanceTemplate.instanceOwnerId (priority2) or instanceTemplate.instanceOwnerLookup (priority3)
+            ownerId = GetOrLookupInstanceOwnerId(ownerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
+            if (instanceOwnerErrorResult != null)
+            {
+                return instanceOwnerErrorResult;
+            }            
+         
             if (instanceTemplate == null)
             {
                 instanceTemplate = new Instance();
-            }
-
-            // TODO - also check instanceOwnerLookup!!
-
-            // check if metadata exists
-            Application appInfo;
-            try
-            {
-                appInfo = GetApplicationInformation(appId);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
-                {
-                    return NotFound($"Did not find application with appId={appId}");
-                }
-                else
-                {
-                    return StatusCode(500, $"Document database error: {dce}");
-                }
-            }
-            catch (Exception e) 
-            {
-                return StatusCode(500, $"Unable to perform request: {e}");
-            }
+            }           
 
             DateTime creationTime = DateTime.UtcNow;
 
@@ -172,7 +164,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             Instance createdInstance = new Instance()
             {
-                InstanceOwnerId = instanceOwnerId.ToString(),
+                InstanceOwnerId = ownerId.ToString(),
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
                 LastChangedBy = User.Identity.Name,
@@ -196,9 +188,124 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to create {appId} instance for {instanceOwnerId} due to {e}");
-                return StatusCode(500, $"Unable to create {appId} instance for {instanceOwnerId} due to {e}");
+                logger.LogError($"Unable to create {appId} instance for {ownerId} due to {e}");
+                return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {e}");
             }
+        }
+
+        private Application GetApplicationOrError(string appId, out ActionResult errorResult)
+        {
+            errorResult = null;
+            Application appInfo = null;
+
+            try
+            {
+                string org = appId.Split("/")[0];
+
+                appInfo = _applicationRepository.FindOne(appId, org).Result;
+                
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    errorResult = NotFound($"Did not find application with appId={appId}");
+                }
+                else
+                {
+                    errorResult = StatusCode(500, $"Document database error: {dce}");
+                }
+            }
+            catch (Exception e)
+            {
+                errorResult = StatusCode(500, $"Unable to perform request: {e}");
+            }
+
+            return appInfo;
+        }
+
+        private int GetOrLookupInstanceOwnerId(int instanceOwnerId, Instance instanceTemplate, out ActionResult errorResult)
+        {
+            errorResult = null;
+
+            if (instanceOwnerId == 0)
+            {
+                if (instanceTemplate == null)
+                {
+                    errorResult = BadRequest("InstanceOwnerId must be set, either in query param or attached in instance object");
+                }
+                else
+                {
+                    if (instanceTemplate.InstanceOwnerId == null)
+                    {
+                        if (instanceTemplate.InstanceOwnerLookup == null)
+                        {
+                            errorResult = BadRequest("InstanceOwnerLookup cannot have null value. Cannot resolve instance owner id");
+                        }
+                        else
+                        {
+                            string instanceOwnerLookup = InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup).Result;
+                            if (instanceOwnerLookup == null)
+                            {
+                                errorResult = BadRequest("InstanceOwnerId lookup failed");
+                            }
+
+                            instanceOwnerId = int.Parse(instanceOwnerLookup);
+                        }
+                    }
+                    else
+                    {
+                        instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
+                    }
+                }
+            }
+
+            return instanceOwnerId;
+        }
+
+        private async Task<string> InstanceOwnerLookup(InstanceOwnerLookup lookup)
+        {             
+            string id;
+
+            if (!string.IsNullOrEmpty(lookup.PersonNumber))
+            {
+                id = lookup.PersonNumber;
+            }
+            else if (!string.IsNullOrEmpty(lookup.organisationNumber))
+            {
+                id = lookup.organisationNumber;
+            }
+            else
+            {
+                throw new ArgumentException("Instance owner lookup must have either PersonNumber or OrganisationNumber set.");
+            }
+
+            try
+            {
+                Uri bridgeUrl = new Uri($"{bridgeSettings.GetApiBaseUrl()}parties/lookup");
+
+                using (HttpClient client = new HttpClient())
+                {
+                    string idAsJson = JsonConvert.SerializeObject(id);
+
+                    HttpResponseMessage response = await client.PostAsync(
+                        bridgeUrl,
+                        new StringContent(idAsJson, Encoding.UTF8, "application/json"));
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        string partyIdString = await response.Content.ReadAsStringAsync();
+
+                        return JsonConvert.DeserializeObject<string>(partyIdString);
+                    }                    
+                }
+            }
+            catch (Exception e) 
+            {
+                logger.LogError($"Lookup of instance owner id failed! {e.Message}");
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -313,15 +420,6 @@ namespace Altinn.Platform.Storage.Controllers
                     return StatusCode(500, $"Unknown exception in delete: {e}");
                 }
             }
-        }
-
-        private Application GetApplicationInformation(string appId)
-        {
-            string org = appId.Split("/")[0];
-
-            Application application = _applicationRepository.FindOne(appId, org).Result;
-
-            return application;
         }
     }
 }
