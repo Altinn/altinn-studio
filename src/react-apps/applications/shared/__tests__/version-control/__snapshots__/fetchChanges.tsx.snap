@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot there are no changes in master 1`] = `
 <button
-  className="MuiButtonBase-root-31 MuiButton-root-5 MuiButton-text-7 MuiButton-flat-10 FetchChangesComponenet-clickable-3 FetchChangesComponenet-btn-2"
+  className="MuiButtonBase-root-31 MuiButton-root-5 MuiButton-text-7 MuiButton-flat-10 FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
@@ -45,7 +45,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-35"
       >
         <p
-          className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponenet-color_blueDark-4"
+          className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponent-color_blueDark-4"
           id="fetch_changes_btn"
         >
           sync_header.fetch_changes
@@ -61,7 +61,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot when changes in master 1`] = `
 <button
-  className="MuiButtonBase-root-31 MuiButton-root-5 MuiButton-text-7 MuiButton-flat-10 FetchChangesComponenet-clickable-3 FetchChangesComponenet-btn-2"
+  className="MuiButtonBase-root-31 MuiButton-root-5 MuiButton-text-7 MuiButton-flat-10 FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
@@ -104,7 +104,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
         className="MuiGrid-item-35"
       >
         <p
-          className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponenet-color_blueDark-4 FetchChangesComponenet-bold-1"
+          className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponent-color_blueDark-4 FetchChangesComponent-bold-1"
           id="fetch_changes_btn"
         >
           sync_header.fetch_changes
