@@ -4,6 +4,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import * as React from 'react';
+import { repositoryUrl } from '../../utils/urlHelper';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -56,6 +57,14 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
     return true;
   }
 
+  public handleGiteaRepository = () => {
+    this.setState({ anchorEl: null });
+    if (window) {
+      window.location.href = repositoryUrl;
+    }
+    return true;
+  }
+
   public render() {
     const { anchorEl } = this.state;
     const { classes, showlogout } = this.props;
@@ -78,8 +87,26 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           elevation={1}
           classes={{ paper: classes.paperStyle }}
         >
+          <MenuItem
+            key='placeholder'
+            style={{display: 'none'}}
+          />
+          {// workaround for highlighted menu item not changing.
+          // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
+          }
+          <MenuItem
+            onClick={this.handleGiteaRepository}
+            className={classes.menuItem}
+          >
+              Åpne gitea repository
+          </MenuItem>
           {showlogout && (
-            <MenuItem onClick={this.handleLogout} className={classes.menuItem}>Logout</MenuItem>
+            <MenuItem
+              onClick={this.handleLogout}
+              className={classes.menuItem}
+            >
+                Logout
+            </MenuItem>
           )}
         </Menu>
       </div>

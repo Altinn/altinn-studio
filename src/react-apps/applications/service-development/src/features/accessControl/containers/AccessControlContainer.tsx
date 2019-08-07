@@ -1,4 +1,4 @@
-import { createStyles, Paper, Typography, withStyles } from '@material-ui/core';
+import { createMuiTheme, createStyles, Paper, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
@@ -6,10 +6,13 @@ import AltinnCheckBoxGroup from '../../../../../shared/src/components/AltinnChec
 import AltinnColumnLayout from '../../../../../shared/src/components/AltinnColumnLayout';
 import AltinnFormControlLabel from '../../../../../shared/src/components/AltinnFormControlLabel';
 import AltinnInputField from '../../../../../shared/src/components/AltinnInputField';
+import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import VersionControlHeader from '../../../../../shared/src/version-control/versionControlHeader';
 import applicationMetadataDispatcher from '../../../sharedResources/applicationMetadata/applicationMetadataDispatcher';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
+
+const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
   sectionHeader: {
@@ -46,6 +49,14 @@ const styles = createStyles({
   },
   contentMargin: {
     marginBottom: 24,
+  },
+  versionControlHeaderMargin: {
+    marginLeft: 60,
+  },
+  [theme.breakpoints.up('md')]: {
+    versionControlHeaderMargin: {
+      marginLeft: theme.sharedStyles.leftDrawerMenuClosedWidth + 60,
+    },
   },
 });
 
@@ -128,7 +139,10 @@ export class AccessControlContainerClass extends React.Component<
   public render() {
     return (
       <AltinnColumnLayout
-        aboveColumnChildren={<VersionControlHeader language={this.props.language} />}
+        aboveColumnChildren={
+          <div className={this.props.classes.versionControlHeaderMargin}>
+            <VersionControlHeader language={this.props.language} />
+          </div>}
         children={this.renderMainContent()}
         sideMenuChildren={this.renderSideMenu()}
         header={getLanguageFromKey('access_control.header', this.props.language)}
