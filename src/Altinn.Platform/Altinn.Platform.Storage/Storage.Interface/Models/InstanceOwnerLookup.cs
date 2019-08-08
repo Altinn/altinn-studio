@@ -11,6 +11,7 @@ namespace Altinn.Platform.Storage.Models
     /// Model to hold a instance owner lookup element
     /// </summary>
     [Serializable]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class InstanceOwnerLookup
     {
         /// <summary>

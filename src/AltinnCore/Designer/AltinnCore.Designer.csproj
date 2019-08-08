@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.5-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.6-alpha" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />

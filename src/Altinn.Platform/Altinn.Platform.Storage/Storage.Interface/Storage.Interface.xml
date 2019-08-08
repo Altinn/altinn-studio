@@ -106,12 +106,28 @@
             <param name="instanceId">the instance id</param>
             <returns>the instance object</returns>
         </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.GetInstancesForOrg(System.String,System.Int32)">
+            <summary>
+            Get all instances for an org.
+            </summary>
+            <param name="org">the org id</param>
+            <param name="size">the size of the collection to return.</param>
+            <returns>the instance object</returns>
+        </member>
         <member name="M:Altinn.Platform.Storage.Client.InstanceClient.PostInstances(System.String,System.Int32)">
             <summary>
             Creates an instance
             </summary>
             <param name="appId">application id of the instance (must be registered in platform storage)</param>
             <param name="instanceOwnerId">the instance owner id</param>
+            <returns>the instance just created</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.PostInstances(System.String,Altinn.Platform.Storage.Models.Instance)">
+            <summary>
+            Creates an instance
+            </summary>
+            <param name="appId">application id of the instance (must be registered in platform storage)</param>
+            <param name="instanceTemplate">the instance template to base the instance on</param>
             <returns>the instance just created</returns>
         </member>
         <member name="M:Altinn.Platform.Storage.Client.InstanceClient.GetInstanceEvents(System.String,System.String[],System.String,System.String)">
@@ -130,6 +146,13 @@
             </summary>
             <param name="instanceEvent">Instance event to be stored. </param>
             <returns>The stored instance event.</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Client.InstanceClient.DeleteInstance(System.String)">
+            <summary>
+            Deletes an instance (for testing purposes)
+            </summary>
+            <param name="instanceId">the id of the instance.</param>
+            <returns>tru if deletion was successfull otherwise throws an exception</returns>
         </member>
         <member name="M:Altinn.Platform.Storage.Client.InstanceClient.DeleteInstanceEvents(System.String)">
             <summary>
@@ -412,7 +435,7 @@
             title of the instance
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.Instance.Workflow">
+        <member name="P:Altinn.Platform.Storage.Models.Instance.Process">
             <summary>
             Workflow state section
             </summary>
@@ -503,7 +526,7 @@
             Person number (national identification number)
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.organisationNumber">
+        <member name="P:Altinn.Platform.Storage.Models.InstanceOwnerLookup.OrganisationNumber">
             <summary>
             organisation number
             </summary>
@@ -673,6 +696,31 @@
             <param name="info">info</param>
             <param name="context">context</param>
         </member>
+        <member name="T:Storage.Interface.Models.ProcessState">
+            <summary>
+            Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.CurrentTask">
+            <summary>
+            Refers to the current task id of an ongoing process. If process is completed or is in error it will not have value. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.IsComplete">
+            <summary>
+            If process is completed and in a valid end state the value is true, otherwise false or not present. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.IsInError">
+            <summary>
+            If process has reached an error end event this value is true.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.EndState">
+            <summary>
+            Refers to the id of an end state of the process. If the process is completed it should be a valid end state. If process is in error it should be a valid error end event.
+            </summary>
+        </member>
         <member name="T:Storage.Interface.Models.ResourceLinks">
             <summary>
             represent actual links to resources in various enpoints
@@ -686,21 +734,6 @@
         <member name="P:Storage.Interface.Models.ResourceLinks.Platform">
             <summary>
             platform resource link
-            </summary>
-        </member>
-        <member name="T:Storage.Interface.Models.WorkflowState">
-            <summary>
-            Holds the workflow state. 
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.WorkflowState.CurrentStep">
-            <summary>
-            the current workflow step
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.WorkflowState.IsComplete">
-            <summary>
-            If workflow is completed the value should be true, otherwise false.
             </summary>
         </member>
     </members>

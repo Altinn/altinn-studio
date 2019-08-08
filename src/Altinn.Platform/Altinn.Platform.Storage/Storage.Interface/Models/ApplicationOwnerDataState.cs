@@ -8,6 +8,7 @@ namespace Storage.Interface.Models
     /// <summary>
     /// Model to hold application owner state for a specific data element
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ApplicationOwnerDataState
     {
         /// <summary>

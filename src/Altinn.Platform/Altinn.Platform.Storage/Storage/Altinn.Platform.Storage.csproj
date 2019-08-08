@@ -5,7 +5,7 @@
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <UserSecretsId>8c2ac76a-d8b4-498d-867a-0ac18639f275</UserSecretsId>
     <!-- SonarCloud needs this -->
-    <ProjectGuid>{3fbabdf5-c360-4366-b7f2-d376b713fa38}</ProjectGuid>
+    <ProjectGuid>{6E75FF22-28FE-4292-8616-8B60F8399FC5}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.5-alpha" />
+    <PackageReference Include="Halcyon.Mvc" Version="2.5.1" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.6-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.2.2" />

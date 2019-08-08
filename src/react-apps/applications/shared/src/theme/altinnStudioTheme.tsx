@@ -33,6 +33,7 @@ declare module '@material-ui/core/styles/createMuiTheme' {
       boxShadow: string,
       linkBorderBottom: string,
       mainPaddingLeft: number,
+      leftDrawerMenuClosedWidth: number,
     };
   }
 }
@@ -121,6 +122,7 @@ const theme = {
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
     linkBorderBottom: '1px solid #0062BA',
     mainPaddingLeft: 73,
+    leftDrawerMenuClosedWidth: 65,
   },
   typography: {
     htmlFontSize: 16,
