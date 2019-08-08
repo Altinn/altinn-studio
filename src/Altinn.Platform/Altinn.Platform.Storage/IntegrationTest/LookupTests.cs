@@ -38,7 +38,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 AppId = applicationId,
                 InstanceOwnerLookup = new InstanceOwnerLookup()
                 {
-                    PersonNumber = "1212201212433",
+                    PersonNumber = "01025180093",
                 },
             };
 
