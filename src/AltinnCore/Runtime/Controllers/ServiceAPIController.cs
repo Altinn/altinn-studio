@@ -443,7 +443,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Workflow.CurrentStep
+                    WorkflowStep = instance.Process.CurrentTask
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
@@ -452,9 +452,9 @@ namespace AltinnCore.Runtime.Controllers
             if (apiMode.Equals(ApiMode.Complete))
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.PartyId);
-                instance.Workflow = new Storage.Interface.Models.WorkflowState()
+                instance.Process = new Storage.Interface.Models.ProcessState()
                 {
-                    CurrentStep = currentState.State.ToString(),
+                    CurrentTask = currentState.State.ToString(),
                     IsComplete = false,
                 };
                 

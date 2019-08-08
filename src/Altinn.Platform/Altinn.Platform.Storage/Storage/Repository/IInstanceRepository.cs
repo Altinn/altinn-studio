@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
+using Microsoft.Extensions.Primitives;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -18,18 +19,13 @@ namespace Altinn.Platform.Storage.Repository
         Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerId);
 
         /// <summary>
-        /// Gets all the instances for an application owner
-        /// </summary>
-        /// <param name="org">the application owner</param>
-        /// <returns>The list of instances for a given organisation</returns>
-        Task<List<Instance>> GetInstancesOfOrg(string org);
-
-        /// <summary>
         /// Gets all the instances for an app
         /// </summary>
-        /// <param name="appId">the application identifier, e.g. org/app23</param>
-        /// <returns>The list of instances with for a given application</returns>
-        Task<List<Instance>> GetInstancesOfApplication(string appId);
+        /// <param name="queryParams">the query params</param>
+        /// <param name="continuationToken">a token to get the next page, more performant than using page</param>
+        /// <param name="size">The number of items per page</param>
+        /// <returns>The query response including the list of instances</returns>
+        Task<InstanceQueryResponse> GetInstancesOfApplication(Dictionary<string, StringValues> queryParams, string continuationToken, int size);
 
         /// <summary>
         /// Get an instance for a given instance id

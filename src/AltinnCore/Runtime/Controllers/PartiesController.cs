@@ -12,6 +12,7 @@ using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Common.Helpers;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -54,7 +55,8 @@ namespace AltinnCore.Runtime.Controllers
             _authorization = authorization;
             _userHelper = new UserHelper(profileService, registerService, settings);
             _repository = repository;
-            _profile = profileService;            
+            _profile = profileService;
+            _settings = settings.Value;
         }
 
         /// <summary>
@@ -134,6 +136,35 @@ namespace AltinnCore.Runtime.Controllers
             {
                 Valid = true,
             });
+        }
+
+        /// <summary>
+        /// Updates the party the user represents
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("{org}/{app}/api/v1/parties/{partyId}")]
+        public async Task<IActionResult> UpdateSelectedParty(int partyId)
+        {
+            UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
+            int userId = userContext.UserId;
+            bool? isValidSelection = await _authorization.ValidateSelectedParty(userId, partyId);
+
+            if (isValidSelection != true)
+            {
+                return BadRequest($"User {userId} cannot represent party {partyId}. ");
+            }
+
+            Response.Cookies.Append(
+            _settings.GetAltinnPartyCookieName,
+            partyId.ToString(),
+            new CookieOptions
+            {
+                Domain = _settings.HostName
+            });
+
+            // Update claims when running app mode
+
+            return Ok();
         }
     }
 }

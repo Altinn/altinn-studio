@@ -30,7 +30,7 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger _logger;
-        private const long REQUEST_SIZE_LIMIT = 500 * 1024 * 1024;
+        private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class

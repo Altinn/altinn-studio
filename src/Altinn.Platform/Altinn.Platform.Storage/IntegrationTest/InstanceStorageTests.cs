@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Storage.Interface.Clients;
 using Storage.Interface.Models;
 using Xunit;
@@ -54,7 +55,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(content);
+                JObject jsonObject = JObject.Parse(content);
+                List<Instance> instances = jsonObject["instances"].ToObject<List<Instance>>();
 
                 foreach (Instance instance in instances)
                 {
@@ -82,7 +84,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Creates an instance of a service and asks then asks the service to get the instance. Checks if returned object has
+        /// Creates an instance of a service and then asks the service to get the instance. Checks if returned object has
         /// same values as object which was sent in.
         /// </summary>
         [Fact]
@@ -131,45 +133,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             response.EnsureSuccessStatusCode();
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
-        }
-
-        /// <summary>
-        ///  Checks that the GET returns an instance owners codes
-        /// </summary>
-        [Fact]
-        public async void GetInstancesForInstanceOwner()
-        {
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string url = $"{versionPrefix}/instances/{testInstanceOwnerId}";
-            HttpResponseMessage response = await client.GetAsync(url);
-
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.Equal(2, instances.Count);
-        }
-
-        /// <summary>
-        ///  Checks that multiple instances can be returned with org query param.
-        /// </summary>
-        [Fact]
-        public async void GetInstancesForOrg()
-        {
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string url = $"{versionPrefix}/instances?org={testOrg}";
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.Equal(2, instances.Count);
         }
 
         /// <summary>
@@ -315,27 +278,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     response.EnsureSuccessStatusCode();
                 }
             }
-        }
-
-        /// <summary>
-        /// create two instances and check if they can be fetched for a given application owner.
-        /// </summary>
-        [Fact]
-        public async void QueryInstancesOnApplicationOwnerId()
-        {
-            Instance i1 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-            Instance i2 = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
-
-            string requestUri = $"{versionPrefix}/instances?org={testOrg}";            
-
-            HttpResponseMessage response = await client.GetAsync(requestUri);
-
-            response.EnsureSuccessStatusCode();
-
-            string json = await response.Content.ReadAsStringAsync();
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
-
-            Assert.Equal(2, instances.Count);            
         }
     }
 }

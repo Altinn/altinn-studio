@@ -103,9 +103,9 @@ namespace AltinnCore.Common.Services.Implementation
             ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
 
             // set initial workflow state
-            instance.Workflow = new Storage.Interface.Models.WorkflowState()
+            instance.Process = new Storage.Interface.Models.ProcessState()
             {
-                CurrentStep = currentState.State.ToString(),
+                CurrentTask = currentState.State.ToString(),
                 IsComplete = false,
             };
 
@@ -199,8 +199,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance = GetInstance(appName, org, instanceOwnerId, instanceId).Result;
 
-            instance.Workflow.IsComplete = true;
-            instance.Workflow.CurrentStep = WorkflowStep.Archived.ToString();
+            instance.Process.IsComplete = true;
+            instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
 
             instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
             return instance;

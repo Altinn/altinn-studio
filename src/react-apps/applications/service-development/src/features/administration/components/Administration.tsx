@@ -67,6 +67,14 @@ const styles = createStyles({
   marginBottom_24: {
     marginBottom: 24,
   },
+  versionControlHeaderMargin: {
+    marginLeft: 60,
+  },
+  [theme.breakpoints.up('md')]: {
+    versionControlHeaderMargin: {
+      marginLeft: theme.sharedStyles.leftDrawerMenuClosedWidth + 60,
+    },
+  },
 });
 
 export class AdministrationComponent extends
@@ -285,7 +293,10 @@ export class AdministrationComponent extends
         {this.props.service && this.props.serviceName !== null
           && this.props.serviceDescription !== null && this.props.serviceId !== null ?
             <AltinnColumnLayout
-              aboveColumnChildren={<VersionControlHeader language={this.props.language} />}
+              aboveColumnChildren={
+                <div className={this.props.classes.versionControlHeaderMargin}>
+                  <VersionControlHeader language={this.props.language} />
+                </div>}
               children={this.renderMainContent()}
               sideMenuChildren={this.renderSideMenuContent()}
               header={getLanguageFromKey('administration.administration', this.props.language)}

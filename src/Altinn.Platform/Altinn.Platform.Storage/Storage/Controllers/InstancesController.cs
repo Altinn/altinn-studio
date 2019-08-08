@@ -2,13 +2,20 @@ namespace Altinn.Platform.Storage.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
+    using System.Web;
+    using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
     using global::Storage.Interface.Models;
+    using Halcyon.HAL;
+    using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Primitives;
 
     /// <summary>
     /// Handles operations for the application instance resource
@@ -59,33 +66,158 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="org">application owner</param>
         /// <param name="appId">application id</param>
+        /// <param name="currentTaskId">running process current task id</param>
+        /// <param name="processIsComplete">is process complete</param>
+        /// <param name="processIsInError">is process in error</param>
+        /// <param name="processEndState">process end state</param>
+        /// <param name="labels">labels</param>
+        /// <param name="lastChangedDateTime">last changed date</param>
+        /// <param name="createdDateTime">created time</param>
+        /// <param name="visibleDateTime">the visible date time</param>
+        /// <param name="dueDateTime">the due date time</param>
+        /// <param name="continuationToken">continuation token</param>
+        /// <param name="size">the page size</param>
         /// <returns>list of all instances for given instanceowner</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
         [HttpGet]
-        public async Task<ActionResult> GetMany(string org, string appId)
+        public async Task<ActionResult> GetInstances(
+            string org,
+            string appId,
+            [FromQuery(Name = "process.currentTask")] string currentTaskId,
+            [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
+            [FromQuery(Name = "process.isInError")] bool? processIsInError,
+            [FromQuery(Name = "process.endState")] string processEndState,
+            [FromQuery] string labels,
+            [FromQuery] string lastChangedDateTime,
+            [FromQuery] string createdDateTime,
+            [FromQuery] string visibleDateTime,
+            [FromQuery] string dueDateTime,
+            string continuationToken,
+            int? size)
         {
-            if (!string.IsNullOrEmpty(org))
+            int pageSize = size ?? 100;
+            string selfContinuationToken = null;
+
+            if (!string.IsNullOrEmpty(continuationToken))
             {
-                List<Instance> result = await _instanceRepository.GetInstancesOfOrg(org);
-                if (result == null || result.Count == 0)
+                selfContinuationToken = continuationToken;
+                continuationToken = HttpUtility.UrlDecode(continuationToken);
+            }
+           
+            Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
+
+            string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
+            string url = Request.Path;
+            string query = Request.QueryString.Value;
+
+            logger.LogInformation($"uri = {url}{query}");
+
+            try
+            {
+                InstanceQueryResponse result = await _instanceRepository.GetInstancesOfApplication(queryParams, continuationToken, pageSize);
+
+                if (result.TotalHits == 0)
                 {
-                    return NotFound($"Did not find any instances for application owner (org)={org}");
+                    return NotFound($"Did not find any instances");
                 }
 
-                return Ok(result);
-            }
-            else if (!string.IsNullOrEmpty(appId))
-            {                
-                List<Instance> result = await _instanceRepository.GetInstancesOfApplication(appId);
-                if (result == null || result.Count == 0)
+                if (!string.IsNullOrEmpty(result.Exception))
                 {
-                    return NotFound($"Did not find any instances for applicationId={appId}");
+                    return BadRequest(result.Exception);
+                }
+          
+                string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
+                result.ContinuationToken = nextContinuationToken;
+                result.ContinuationToken = null;
+
+                HALResponse response = new HALResponse(result);
+
+                if (continuationToken == null)
+                {
+                    string selfUrl = $"{host}{url}{query}";
+
+                    result.Self = selfUrl;
+
+                    Link selfLink = new Link("self", selfUrl);
+                    response.AddLinks(selfLink);
+                }
+                else
+                {
+                    string selfQueryString = BuildQueryStringWithOneReplacedParameter(
+                        queryParams,
+                        "continuationToken",
+                        selfContinuationToken);
+
+                    string selfUrl = $"{host}{url}{selfQueryString}";
+
+                    result.Self = selfUrl;
+
+                    Link selfLink = new Link("self", selfUrl);
+                    response.AddLinks(selfLink);
                 }
 
-                return Ok(result);
-            }
+                if (nextContinuationToken != null)
+                {
+                    string nextQueryString = BuildQueryStringWithOneReplacedParameter(
+                        queryParams,
+                        "continuationToken",
+                        nextContinuationToken);
 
-            return BadRequest("Unable to perform query");
+                    string nextUrl = $"{host}{url}{nextQueryString}";
+
+                    result.Next = nextUrl;
+
+                    Link nextLink = new Link("next", nextUrl);
+                    response.AddLinks(nextLink);
+                }
+
+                // add self links to platform
+                result.Instances.ForEach(i =>
+                {
+                    i.SelfLinks = new ResourceLinks
+                    {
+                        Platform = $"{host}{url}/{i.Id}"
+                    };
+                });
+
+                StringValues acceptHeader = Request.Headers["Accept"];
+                if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
+                {
+                    /* Response object should be expressed as HAL (Hypertext Application Language) with _embedded and _links.
+                     * Thus we reset the response object's inline instances, next and self elements.*/
+
+                    response.AddEmbeddedCollection("instances", result.Instances);
+                    result.Instances = null;
+                    result.Next = null;
+                    result.Self = null;
+                }
+
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                logger.LogError("exception", e);
+                return StatusCode(500, $"Unable to perform query due to: {e.Message}");
+            }                               
+        }
+
+        private static string BuildQueryStringWithOneReplacedParameter(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
+        {
+            List<KeyValuePair<string, string>> items = q.SelectMany(
+                x => x.Value,
+                (col, value) => new KeyValuePair<string, string>(col.Key, value))
+                .ToList();
+
+            items.RemoveAll(x => x.Key == queryParamName);
+
+            var qb = new QueryBuilder(items)
+                        {
+                            { queryParamName, newParamValue }
+                        };
+
+            string nextQueryString = qb.ToQueryString().Value;
+
+            return nextQueryString;
         }
 
         /// <summary>
@@ -121,20 +253,26 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]
-        public async Task<ActionResult> Post(string appId, int instanceOwnerId, [FromBody] Instance instanceTemplate)
+        public async Task<ActionResult> Post(string appId, int? instanceOwnerId, [FromBody] Instance instanceTemplate)
         {
-            if (instanceTemplate == null && instanceOwnerId == 0)
+            if (instanceTemplate == null && !instanceOwnerId.HasValue)
             {
                 return BadRequest("Missing parameter values: instanceOwnerId must be set");
             }
-            else if (instanceOwnerId == 0 && (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))) 
+            else if (!instanceOwnerId.HasValue && (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))) 
             {
                 return BadRequest("Missing parameter values: instanceOwnerId must be set");
             }
 
-            if (instanceOwnerId == 0 && instanceTemplate != null)
+            string theInstanceOwnerId = null;
+
+            if (instanceOwnerId.HasValue)
             {
-                instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
+                theInstanceOwnerId = instanceOwnerId.Value.ToString();
+            }
+            else if (instanceTemplate != null)
+            {
+                theInstanceOwnerId = instanceTemplate.InstanceOwnerId;
             }
 
             if (instanceTemplate == null)
@@ -172,7 +310,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             Instance createdInstance = new Instance()
             {
-                InstanceOwnerId = instanceOwnerId.ToString(),
+                InstanceOwnerId = theInstanceOwnerId,
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
                 LastChangedBy = User.Identity.Name,
@@ -180,14 +318,22 @@ namespace Altinn.Platform.Storage.Controllers
                 AppId = appId,
                 Org = org,
 
-                VisibleDateTime = instanceTemplate.VisibleDateTime,
-                DueDateTime = instanceTemplate.DueDateTime,
+                VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
+                DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
                 Labels = instanceTemplate.Labels,
                 PresentationField = instanceTemplate.PresentationField,
 
-                Workflow = new WorkflowState { CurrentStep = "FormFilling", IsComplete = false },
                 InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },                
             };
+           
+            if (instanceTemplate.Process != null)
+            {
+                createdInstance.Process = instanceTemplate.Process;
+            }
+            else
+            {
+                createdInstance.Process = new ProcessState { CurrentTask = "FormFilling_1", IsComplete = false };
+            }
 
             try
             {
@@ -196,8 +342,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to create {appId} instance for {instanceOwnerId} due to {e}");
-                return StatusCode(500, $"Unable to create {appId} instance for {instanceOwnerId} due to {e}");
+                logger.LogError($"Unable to create {appId} instance for {theInstanceOwnerId} due to {e}");
+                return StatusCode(500, $"Unable to create {appId} instance for {theInstanceOwnerId} due to {e}");
             }
         }
 
@@ -227,12 +373,12 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             existingInstance.AppOwnerState = instance.AppOwnerState;
-            existingInstance.Workflow = instance.Workflow;
+            existingInstance.Process = instance.Process;
             existingInstance.InstanceState = instance.InstanceState;
 
             existingInstance.PresentationField = instance.PresentationField;
-            existingInstance.DueDateTime = instance.DueDateTime;
-            existingInstance.VisibleDateTime = instance.VisibleDateTime;
+            existingInstance.DueDateTime = DateTimeHelper.ConvertToUniversalTime(instance.DueDateTime);
+            existingInstance.VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instance.VisibleDateTime);
             existingInstance.Labels = instance.Labels;
 
             existingInstance.LastChangedBy = User.Identity.Name;
