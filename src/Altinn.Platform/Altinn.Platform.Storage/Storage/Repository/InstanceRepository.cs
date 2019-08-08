@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
@@ -226,6 +224,7 @@ namespace Altinn.Platform.Storage.Repository
             return queryBuilder;
         }
 
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
         private IQueryable<Instance> QueryBuilderForDueDateTime(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
@@ -264,6 +263,7 @@ namespace Altinn.Platform.Storage.Repository
             return queryBuilder.Where(i => i.DueDateTime == dateValue); 
         }
 
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
         private IQueryable<Instance> QueryBuilderForLastChangedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
@@ -302,6 +302,7 @@ namespace Altinn.Platform.Storage.Repository
             return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
         }
 
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
         private IQueryable<Instance> QueryBuilderForCreatedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
@@ -340,6 +341,7 @@ namespace Altinn.Platform.Storage.Repository
             return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
         }
 
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
         private IQueryable<Instance> QueryBuilderForVisibleDateTime(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
