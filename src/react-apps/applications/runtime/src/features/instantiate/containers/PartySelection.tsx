@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { RouteProps } from 'react-router';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
-import { IAltinnWindow, IRuntimeState } from 'src/types';
+import { IRuntimeState } from 'src/types';
 import Header from '../../../shared/components/altinnAppHeader';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
@@ -13,6 +13,7 @@ import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { partiesUrl } from '../../../utils/urlHelper';
 
 const styles = createStyles({
   partySelectionPage: {
@@ -28,11 +29,14 @@ const styles = createStyles({
     fontSize: '3.5rem',
     fontWeight: 200,
     paddingBottom: 18,
+    padding: 12,
   },
   partySelectionError: {
     fontSize: '1.75rem',
     fontWeight: 300,
     backgroundColor: AltinnAppTheme.altinnPalette.primary.redLight,
+    padding: 12,
+    margin: 12,
   },
   partySearchFieldContainer: {
     paddingTop: 8,
@@ -86,12 +90,11 @@ function PartySelection(props: IPartySelectionProps) {
   const [showDeleted, setShowDeleted] = React.useState(true);
 
   React.useEffect(() => {
-    const {org, service} = window as IAltinnWindow;
-    PartyActions.getParties(`${window.location.origin}/${org}/${service}/api/v1/parties`);
+    PartyActions.getParties(partiesUrl);
   }, []);
 
-  function onSelectParty(party: IParty) {
-    PartyActions.selectParty(party);
+  async function onSelectParty(party: IParty) {
+    PartyActions.selectParty(party, true);
   }
 
   function renderParties() {
@@ -121,22 +124,22 @@ function PartySelection(props: IPartySelectionProps) {
 
     return (
       <>
-            {validParties.map((party: IParty, index: number) =>
-              party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
-                numberOfPartiesShown > numberOfPartiesRendered ?
-                  (() => {
-                    numberOfPartiesRendered += 1;
-                    return (
-                      <AltinnParty
-                        key={index}
-                        party={party}
-                        onSelectParty={onSelectParty}
-                      />
-                    );
-                  })()
-                : null
-              : null,
-          )}
+        {validParties.map((party: IParty, index: number) =>
+          party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
+            numberOfPartiesShown > numberOfPartiesRendered ?
+              (() => {
+                numberOfPartiesRendered += 1;
+                return (
+                  <AltinnParty
+                    key={index}
+                    party={party}
+                    onSelectParty={onSelectParty}
+                  />
+                );
+              })()
+            : null
+          : null,
+        )}
         {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < validParties.length ?
           <Grid container={true}>
             {renderShowMoreButton()}
@@ -145,6 +148,17 @@ function PartySelection(props: IPartySelectionProps) {
         }
       </>
     );
+  }
+
+  function templateErrorMessage() {
+    if (!language.instantiate) {
+      return null;
+    }
+    return `
+      ${language.instantiate.party_selection_error_invalid_selection_first_part} ${profile.party.name}.
+      ${language.instantiate.party_selection_error_invalid_selection_second_part} ${templatePartyTypesString()}.
+      ${language.instantiate.party_selection_error_invalid_selection_third_part}
+    `;
   }
 
   function templatePartyTypesString() {
@@ -193,17 +207,6 @@ function PartySelection(props: IPartySelectionProps) {
     return returnString;
   }
 
-  function templateErrorMessage() {
-    if (!language.instantiate) {
-      return null;
-    }
-    return `
-      ${language.instantiate.party_selection_error_first_part} ${profile.party.name}.
-      ${language.instantiate.party_selection_error_second_part} ${templatePartyTypesString()}.
-      ${language.instantiate.party_selection_error_third_part}
-    `;
-  }
-
   function onFilterStringChange(filterStr: string) {
     setFilterString(filterStr);
   }
@@ -239,7 +242,7 @@ function PartySelection(props: IPartySelectionProps) {
         type={'normal'}
       />
       <Grid
-        item={true}
+        container={true}
         style={{
           display: 'flex',
           flexDirection: 'row',

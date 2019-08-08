@@ -1,14 +1,9 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
-import { IRuntimeState } from '../../../../types';
+import { call, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../../utils/networking';
-import { IParty } from '../../party';
-import PartyActions from '../../party/partyActions';
 import ProfileActions from '../profileActions';
 import { IFetchProfile } from './fetchProfileActions';
 import * as ProfileActionTypes from './fetchProfileActionTypes';
-
-const SelectedParty = ((state: IRuntimeState) => state.party.selectedParty);
 
 function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
   try {
@@ -17,10 +12,6 @@ function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
       ProfileActions.fetchProfileFulfilled,
       profile,
     );
-    const selectedParty: IParty = yield select(SelectedParty);
-    if (!selectedParty) {
-      PartyActions.selectParty(profile.party);
-    }
   } catch (err) {
     yield call(ProfileActions.fetchProfileRejected, err);
   }

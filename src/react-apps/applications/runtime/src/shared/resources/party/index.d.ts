@@ -35,7 +35,7 @@ export interface IOrganization {
 }
 
 export interface IParty {
-  partyId: number;
+  partyId: string;
   partyTypeName: number;
   orgNumber: number;
   ssn: string;

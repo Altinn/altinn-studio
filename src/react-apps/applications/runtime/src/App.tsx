@@ -9,11 +9,13 @@ import { ServiceInfo } from './features/serviceInfo/containers';
 import StatefullAltinnError from './shared/container/StatefullAltinnError';
 import ApplicationMetadataActions from './shared/resources/applicationMetadata/actions';
 import LanguageActions from './shared/resources/language/languageActions';
+import PartyActions from './shared/resources/party/partyActions';
 import ProfileActions from './shared/resources/profile/profileActions';
 import TextResourcesActions from './shared/resources/textResources/actions';
 
 import {
   languageUrl,
+  partiesUrl,
   profileApiUrl,
 } from './utils/urlHelper';
 
@@ -26,13 +28,14 @@ export default function() {
     ProfileActions.fetchProfile(profileApiUrl);
     LanguageActions.fetchLanguage(languageUrl, 'nb');
     ApplicationMetadataActions.getApplicationMetadata();
+    PartyActions.getParties(partiesUrl);
   });
 
   return (
     <MuiThemeProvider theme={theme}>
       <Route path={'/'} exact={true} component={ServiceInfo} />
       <Route path={'/instantiate'} exact={true} component={Instantiate} />
-      <Route path={'/partyselection'} component={PartySelection} />
+      <Route path={'/partyselection'} exact={true} component={PartySelection} />
       <Route path={'/instance/:partyId/:instanceGuid'} component={FormFiller} />
       <Route path={'/error'} component={StatefullAltinnError} />
     </MuiThemeProvider>

@@ -4,6 +4,7 @@ import * as ActionTypes from './selectPartyActionTypes';
 
 export interface ISelectParty extends Action {
   party: IParty;
+  redirect: boolean;
 }
 
 export interface ISelectPartyFulfilled extends Action {
@@ -14,10 +15,11 @@ export interface ISelectPartyRejected extends Action {
   error: Error;
 }
 
-export function selectParty(party: IParty): ISelectParty {
+export function selectParty(party: IParty, redirect: boolean): ISelectParty {
   return {
     type: ActionTypes.SELECT_PARTY,
     party,
+    redirect,
   };
 }
 

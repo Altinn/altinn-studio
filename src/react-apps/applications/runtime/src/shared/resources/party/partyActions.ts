@@ -8,7 +8,7 @@ export interface IPartyActions extends ActionCreatorsMapObject {
   getParties: (url: string) => GetPartiesActions.IGetParties;
   getPartiesFulfilled: (parties: IParty[]) => GetPartiesActions.IGetPartiesFulfilled;
   getPartiesRejected: (error: Error) => GetPartiesActions.IGetPartiesRejected;
-  selectParty: (party: IParty) => SelectPartyActions.ISelectParty;
+  selectParty: (party: IParty, redirect: boolean) => SelectPartyActions.ISelectParty;
   selectPartyFulfilled: (party: IParty) => SelectPartyActions.ISelectPartyFulfilled;
   selectPartyRejected: (error: Error) => SelectPartyActions.ISelectPartyRejected;
 }

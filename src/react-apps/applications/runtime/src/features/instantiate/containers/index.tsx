@@ -36,7 +36,7 @@ export interface IServiceInfoProps extends WithStyles<typeof styles> {
   // intentionally left empty
 }
 
-function ServiceInfo(props: IServiceInfoProps) {
+function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
   const { org, service } = window as IAltinnWindow;
 
@@ -73,7 +73,7 @@ function ServiceInfo(props: IServiceInfoProps) {
   const validatatePartySelection = async () => {
     try {
       if (!selectedParty) {
-        return;
+        window.location.replace(`${window.location.origin}/${org}/${service}#/partyselection`);
       }
       const { data } = await post(
         `${window.location.origin}/${org}/${service}` +
@@ -87,9 +87,12 @@ function ServiceInfo(props: IServiceInfoProps) {
   };
 
   const validateSubscriptionHook = async () => {
-    await verifySubscriptionHook().then((result: boolean) => {
+    try {
+      const result = await verifySubscriptionHook();
       setSubscriptionHookValid(result);
-    });
+    } catch (err) {
+      throw err;
+    }
   };
 
   const renderModalAndLoader = (): JSX.Element => {
@@ -128,11 +131,11 @@ function ServiceInfo(props: IServiceInfoProps) {
     if (!profile) {
       ProfileActions.fetchProfile(`${window.location.origin}/${org}/${service}/api/v1/profile/user`);
     }
-    if (!selectedParty) {
-      PartyActions.selectParty(profile.party);
-    }
     if (!partyValidation) {
       validatatePartySelection();
+    }
+    if (!selectedParty) {
+      window.location.replace(`${window.location.origin}/${org}/${service}#/partyselection`);
     }
 
     validateSubscriptionHook();
@@ -142,7 +145,7 @@ function ServiceInfo(props: IServiceInfoProps) {
         createNewInstance();
       }
     }
-  }, [profile, instanceId, partyValidation, selectedParty]);
+  }, [profile, instanceId, partyValidation]);
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
@@ -169,12 +172,6 @@ function ServiceInfo(props: IServiceInfoProps) {
       );
     }
   }
-
-  if (partyValidation !== null && !partyValidation.valid) {
-    return (
-      <Redirect to={'/partyselection'}/>
-    );
-  }
   if (instanceId) {
     return (
       <Redirect to={`/instance/${instanceId}`} />
@@ -190,4 +187,4 @@ function ServiceInfo(props: IServiceInfoProps) {
   }
 }
 
-export default withStyles(styles)(ServiceInfo);
+export default withStyles(styles)(InstantiateContainer);
