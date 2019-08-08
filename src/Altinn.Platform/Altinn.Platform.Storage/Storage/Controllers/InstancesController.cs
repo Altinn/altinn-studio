@@ -183,9 +183,13 @@ namespace Altinn.Platform.Storage.Controllers
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
                 {
-                    // convert to HAL
+                    /* Response object should be expressed as HAL (Hypertext Application Language) with _embedded and _links.
+                     * Thus we reset the response object's inline instances, next and self elements.*/
+
                     response.AddEmbeddedCollection("instances", result.Instances);
                     result.Instances = null;
+                    result.Next = null;
+                    result.Self = null;
                 }
 
                 return Ok(response);

@@ -133,7 +133,7 @@ namespace Altinn.Platform.Storage.Repository
                             
                 FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
 
-                if (feedResponse.Count() == 0)
+                if (!feedResponse.Any())
                 {
                     queryResponse.Count = 0;
                     queryResponse.TotalHits = 0;
@@ -145,13 +145,10 @@ namespace Altinn.Platform.Storage.Repository
 
                 logger.LogInformation($"continuation token: {nextContinuationToken}");
 
-                // this migth be expensive
-                if (true)
-                {
-                    feedOptions.RequestContinuation = null;
-                    int totalHits = queryBuilder.Count();
-                    queryResponse.TotalHits = totalHits;
-                }
+                // this migth be expensive              
+                feedOptions.RequestContinuation = null;
+                int totalHits = queryBuilder.Count();
+                queryResponse.TotalHits = totalHits;                
 
                 List<Instance> instances = feedResponse.ToList<Instance>();
 
@@ -159,7 +156,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 queryResponse.Instances = instances;
                 queryResponse.ContinuationToken = nextContinuationToken;
-                queryResponse.Count = instances.Count();
+                queryResponse.Count = instances.Count;
             }
             catch (Exception e)
             {

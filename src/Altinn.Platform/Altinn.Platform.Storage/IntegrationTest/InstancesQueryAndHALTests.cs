@@ -35,8 +35,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.storageClient = new InstanceClient(this.fixture.CreateClient());
 
             CreateTestApplication(testAppId);
-
-            // collectionFixture.LoadData(testAppId, this.storageClient);           
         }        
 
         /// <summary>
@@ -62,7 +60,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        ///  Checks that multiple instances can be returned with query param.
+        ///  Checks that multiple instances can be returned with query param. gt: - greater than, lt: - less than
         /// </summary>
         [Fact]
         public async void QueryProcessVisibleDateTimeGt()

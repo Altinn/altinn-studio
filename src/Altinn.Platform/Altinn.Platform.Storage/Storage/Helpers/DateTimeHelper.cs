@@ -9,7 +9,7 @@ namespace Altinn.Platform.Storage.Helpers
     /// <summary>
     /// Date time helper methods
     /// </summary>
-    public class DateTimeHelper
+    public static class DateTimeHelper
     {
         /// <summary>
         /// converts a date to universal time.

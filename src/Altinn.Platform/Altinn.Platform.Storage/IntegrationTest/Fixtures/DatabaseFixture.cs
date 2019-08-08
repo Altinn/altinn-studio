@@ -32,19 +32,18 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         /// </summary>
         public DatabaseFixture()
         {
-            // LoadData("tdd/m1000", new InstanceClient(new HttpClient(), "http://localhost"));
         }
 
         /// <summary>
         /// Method that loads the m1000 dataset into cosmos db
         /// </summary>
-        /// <param name="testApp">App id</param>
+        /// <param name="appId">App id</param>
         /// <param name="client">instance client</param>
-        public static void LoadData(string testApp, InstanceClient client)
+        public static void LoadData(string appId, InstanceClient client)
         {            
             try
             {
-                List<Instance> ins = client.GetInstancesForOrg(testApp.Split("/")[0], 1000).Result;
+                List<Instance> ins = client.GetInstancesForOrg(appId.Split("/")[0], 1000).Result;
                 if (ins.Count == 1000)
                 {
                     return;
@@ -60,7 +59,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
 
             foreach (Instance instance in instances)
             {
-                Instance i = client.PostInstances(testApp, instance).Result;
+                Instance i = client.PostInstances(appId, instance).Result;
             }
         }
 
@@ -77,14 +76,6 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         /// </summary>
         public void Dispose()
         {
-            /*
-            List<Instance> instances = Client.GetInstancesForOrg(App.Split("/")[0], 1000).Result;
-
-            foreach (Instance instance in instances)
-            {
-                bool ok = Client.DeleteInstance(instance.Id).Result;
-            }
-            */
         }
     }
 
