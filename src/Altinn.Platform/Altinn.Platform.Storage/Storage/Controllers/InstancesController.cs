@@ -34,6 +34,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="applicationRepository">the application repository handler</param>
+        /// <param name="bridgeSettings">the bridge settings to do lookup of instance owner</param>
         /// <param name="logger">the logger</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
@@ -140,14 +141,8 @@ namespace Altinn.Platform.Storage.Controllers
                 return appInfoErrorResult;
             }
 
-            int ownerId = 0;
-            if (instanceOwnerId.HasValue)
-            {
-                ownerId = instanceOwnerId.Value;
-            }
-
-            // get instanceOwnerId is provided either as query param (priority1), or in instanceTemplate.instanceOwnerId (priority2) or instanceTemplate.instanceOwnerLookup (priority3)
-            ownerId = GetOrLookupInstanceOwnerId(ownerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
+            // get instanceOwnerId 
+            int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
             if (instanceOwnerErrorResult != null)
             {
                 return instanceOwnerErrorResult;
@@ -202,8 +197,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 string org = appId.Split("/")[0];
 
-                appInfo = _applicationRepository.FindOne(appId, org).Result;
-                
+                appInfo = _applicationRepository.FindOne(appId, org).Result;                
             }
             catch (DocumentClientException dce)
             {
@@ -224,11 +218,22 @@ namespace Altinn.Platform.Storage.Controllers
             return appInfo;
         }
 
-        private int GetOrLookupInstanceOwnerId(int instanceOwnerId, Instance instanceTemplate, out ActionResult errorResult)
+        /// <summary>
+        /// InstanceOwner can be given in three different ways:
+        ///  - instanceOwnerId is provided as query param (priority1),
+        ///  - in instanceTemplate.instanceOwnerId (priority2),
+        ///  - or instanceTemplate.instanceOwnerLookup (priority3)
+        /// </summary>
+        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceTemplate">the instance template</param>
+        /// <param name="errorResult">the errorResult. null if successful otherwise an action result</param>
+        /// <returns></returns>
+        private int GetOrLookupInstanceOwnerId(int? instanceOwnerId, Instance instanceTemplate, out ActionResult errorResult)
         {
             errorResult = null;
+            int ownerId = instanceOwnerId ?? 0;           
 
-            if (instanceOwnerId == 0)
+            if (ownerId == 0)
             {
                 if (instanceTemplate == null)
                 {
@@ -247,20 +252,22 @@ namespace Altinn.Platform.Storage.Controllers
                             string instanceOwnerLookup = InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup).Result;
                             if (instanceOwnerLookup == null)
                             {
-                                errorResult = BadRequest("InstanceOwnerId lookup failed");
+                                errorResult = BadRequest("Instance owner lookup failed.");
                             }
-
-                            instanceOwnerId = int.Parse(instanceOwnerLookup);
+                            else
+                            {
+                                ownerId = int.Parse(instanceOwnerLookup);
+                            }                            
                         }
                     }
                     else
                     {
-                        instanceOwnerId = int.Parse(instanceTemplate.InstanceOwnerId);
+                        ownerId = int.Parse(instanceTemplate.InstanceOwnerId);
                     }
                 }
             }
 
-            return instanceOwnerId;
+            return ownerId;
         }
 
         private async Task<string> InstanceOwnerLookup(InstanceOwnerLookup lookup)
