@@ -33,6 +33,7 @@ declare module '@material-ui/core/styles/createMuiTheme' {
       boxShadow: string,
       linkBorderBottom: string,
       mainPaddingLeft: number,
+      leftDrawerMenuClosedWidth: number,
     };
   }
 }

@@ -1,5 +1,6 @@
 const altinnWindow = window as any;
-const { origin, org, service, reportee } = altinnWindow;
+const { org, service, reportee } = altinnWindow;
+const origin = window.location.origin;
 
 export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${service}/verifySubscription?partyId=${reportee}`;
 
