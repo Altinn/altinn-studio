@@ -32,26 +32,31 @@ namespace Altinn.Platform.Storage.Controllers
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly PlatformSettings platformSettings;
+        private readonly BridgeSettings bridgeSettings;
         private readonly ILogger logger;
+        private readonly HttpClient bridgeClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="applicationRepository">the application repository handler</param>
-        /// <param name="platformSettings">the platform settings which has the url to the registry</param>
+        /// <param name="bridgeSettings">the platform settings which has the url to the registry</param>
         /// <param name="logger">the logger</param>
+        /// <param name="bridgeClient">the client to call bridge service</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
-            IOptions<PlatformSettings> platformSettings,
-            ILogger<InstancesController> logger)
+            IOptions<BridgeSettings> bridgeSettings,
+            ILogger<InstancesController> logger,
+            HttpClient bridgeClient)
         {
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
-            this.platformSettings = platformSettings.Value;
+            this.bridgeSettings = bridgeSettings.Value;
             this.logger = logger;
+            this.bridgeClient = bridgeClient;
+            this.bridgeClient.BaseAddress = new Uri(this.bridgeSettings.GetBridgeEndpoint());
         }
 
         /// <summary>
@@ -388,14 +393,14 @@ namespace Altinn.Platform.Storage.Controllers
                         }
                         else
                         {
-                            string instanceOwnerLookup = InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup).Result;
+                            int? instanceOwnerLookup = InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup).Result;
                             if (instanceOwnerLookup == null)
                             {
                                 errorResult = BadRequest("Instance owner lookup failed.");
                             }
                             else
                             {
-                                ownerId = int.Parse(instanceOwnerLookup);
+                                ownerId = instanceOwnerLookup.Value;
                             }                            
                         }
                     }
@@ -409,7 +414,7 @@ namespace Altinn.Platform.Storage.Controllers
             return ownerId;
         }
 
-        private async Task<string> InstanceOwnerLookup(InstanceOwnerLookup lookup)
+        private async Task<int?> InstanceOwnerLookup(InstanceOwnerLookup lookup)
         {             
             string id;
 
@@ -428,23 +433,20 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                Uri platformUrl = new Uri($"{platformSettings.GetRegistryApiBaseUrl()}parties/lookup");
+                Uri bridgeUri = new Uri($"parties/lookup", UriKind.Relative);
 
-                using (HttpClient client = GetClient())
+                string idAsJson = JsonConvert.SerializeObject(id);
+
+                HttpResponseMessage response = await bridgeClient.PostAsync(
+                    bridgeUri,
+                    new StringContent(idAsJson, Encoding.UTF8, "application/json"));
+
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    string idAsJson = JsonConvert.SerializeObject(id);
+                    string partyIdString = await response.Content.ReadAsStringAsync();
 
-                    HttpResponseMessage response = await client.PostAsync(
-                        platformUrl,
-                        new StringContent(idAsJson, Encoding.UTF8, "application/json"));
-
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        string partyIdString = await response.Content.ReadAsStringAsync();
-
-                        return JsonConvert.DeserializeObject<string>(partyIdString);
-                    }                    
-                }
+                    return JsonConvert.DeserializeObject<int>(partyIdString);
+                }                                    
             }
             catch (Exception e) 
             {
@@ -452,11 +454,6 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return null;
-        }
-
-        private HttpClient GetClient()
-        {
-            return new HttpClient();
         }
 
         /// <summary>
