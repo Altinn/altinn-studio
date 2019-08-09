@@ -1,11 +1,13 @@
 import { t, ClientFunction } from 'testcafe';
 import axeCheck from 'axe-testcafe';
 import DesignerPage from '../page-objects/designerPage';
+import HeaderPage from '../page-objects/headerPage'
 import { AutoTestUser } from '../TestData';
 import App from '../app';
 
 let app = new App();
 let designerPage = new DesignerPage();
+let headerPage = new HeaderPage();
 
 const getLocation = ClientFunction(() => document.location.href);
 
@@ -69,4 +71,14 @@ test('Publisere tab navigation', async () => {
 
 test('Automated accesibility testing', async t => {
   axeCheck(t);
+});
+
+test('Open Gitea repository Navigation', async () => {
+  await t
+    .hover(headerPage.userMenu)
+    .click(headerPage.userMenu)
+    .expect(headerPage.openGiteaRepo.exists).ok()
+    .click(headerPage.openGiteaRepo)
+    .switchToMainWindow()
+    .expect(getLocation()).contains('repos/AutoTest/auto_test');
 });
