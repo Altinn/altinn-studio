@@ -32,7 +32,7 @@ namespace Altinn.Platform.Storage.Controllers
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly BridgeSettings bridgeSettings;
+        private readonly PlatformSettings platformSettings;
         private readonly ILogger logger;
 
         /// <summary>
@@ -40,17 +40,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="applicationRepository">the application repository handler</param>
-        /// <param name="bridgeSettings">the bridge settings to do lookup of instance owner</param>
+        /// <param name="platformSettings">the platform settings which has the url to the registry</param>
         /// <param name="logger">the logger</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
-            IOptions<BridgeSettings> bridgeSettings,
+            IOptions<PlatformSettings> platformSettings,
             ILogger<InstancesController> logger)
         {
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
-            this.bridgeSettings = bridgeSettings.Value;
+            this.platformSettings = platformSettings.Value;
             this.logger = logger;
         }
 
@@ -137,7 +137,6 @@ namespace Altinn.Platform.Storage.Controllers
                 }
           
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
-                result.ContinuationToken = nextContinuationToken;
                 result.ContinuationToken = null;
 
                 HALResponse response = new HALResponse(result);
@@ -272,7 +271,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return appInfoErrorResult;
             }
 
-            // get instanceOwnerId 
+            // get instanceOwnerId from three possible places
             int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
             if (instanceOwnerErrorResult != null)
             {
@@ -429,14 +428,14 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                Uri bridgeUrl = new Uri($"{bridgeSettings.GetApiBaseUrl()}parties/lookup");
+                Uri platformUrl = new Uri($"{platformSettings.GetRegistryApiBaseUrl()}parties/lookup");
 
-                using (HttpClient client = new HttpClient())
+                using (HttpClient client = GetClient())
                 {
                     string idAsJson = JsonConvert.SerializeObject(id);
 
                     HttpResponseMessage response = await client.PostAsync(
-                        bridgeUrl,
+                        platformUrl,
                         new StringContent(idAsJson, Encoding.UTF8, "application/json"));
 
                     if (response.StatusCode == HttpStatusCode.OK)
@@ -453,6 +452,11 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return null;
+        }
+
+        private HttpClient GetClient()
+        {
+            return new HttpClient();
         }
 
         /// <summary>
