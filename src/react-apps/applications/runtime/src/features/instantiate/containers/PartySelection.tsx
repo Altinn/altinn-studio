@@ -2,7 +2,7 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { RouteProps } from 'react-router';
+import { RouteProps, Redirect } from 'react-router';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IRuntimeState } from 'src/types';
 import Header from '../../../shared/components/altinnAppHeader';
@@ -124,7 +124,16 @@ function PartySelection(props: IPartySelectionProps) {
 
     return (
       <>
-        {validParties.map((party: IParty, index: number) =>
+        {parties.length > 0 && validParties.length === 0 ?
+        <Redirect
+          to={{
+            pathname: '/error',
+            state: {
+              message: 'No valid parties',
+            },
+          }}
+        /> :
+        validParties.map((party: IParty, index: number) =>
           party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
             numberOfPartiesShown > numberOfPartiesRendered ?
               (() => {

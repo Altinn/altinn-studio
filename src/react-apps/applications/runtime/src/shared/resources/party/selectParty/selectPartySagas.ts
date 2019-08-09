@@ -14,7 +14,7 @@ function* selectPartySaga({party, redirect}: ISelectParty): SagaIterator {
     yield call(PartyActions.selectPartyFulfilled, party);
     if (redirect) {
       const { org, service } = window as IAltinnWindow;
-      window.location.replace(`${window.location.origin}/${org}/${service}#/instantiate`);
+      window.location.replace(`${window.location.origin}/${org}/${service}#/`);
     }
   } catch (err) {
     yield call(PartyActions.selectPartyRejected, err);
