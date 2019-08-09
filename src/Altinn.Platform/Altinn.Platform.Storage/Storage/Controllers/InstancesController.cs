@@ -32,31 +32,31 @@ namespace Altinn.Platform.Storage.Controllers
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly BridgeSettings bridgeSettings;
+        private readonly GeneralSettings generalSettings;
         private readonly ILogger logger;
-        private readonly HttpClient bridgeClient;
+        private readonly HttpClient bridgeRegistryClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="applicationRepository">the application repository handler</param>
-        /// <param name="bridgeSettings">the platform settings which has the url to the registry</param>
+        /// <param name="generalSettings">the platform settings which has the url to the registry</param>
         /// <param name="logger">the logger</param>
         /// <param name="bridgeClient">the client to call bridge service</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
-            IOptions<BridgeSettings> bridgeSettings,
+            IOptions<GeneralSettings> generalSettings,
             ILogger<InstancesController> logger,
             HttpClient bridgeClient)
         {
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
-            this.bridgeSettings = bridgeSettings.Value;
+            this.generalSettings = generalSettings.Value;
             this.logger = logger;
-            this.bridgeClient = bridgeClient;
-            this.bridgeClient.BaseAddress = new Uri(this.bridgeSettings.GetBridgeEndpoint());
+            this.bridgeRegistryClient = bridgeClient;
+            this.bridgeRegistryClient.BaseAddress = new Uri(this.generalSettings.GetBridgeRegisterApiEndpoint());
         }
 
         /// <summary>
@@ -385,37 +385,75 @@ namespace Altinn.Platform.Storage.Controllers
                 }
                 else
                 {
-                    if (instanceTemplate.InstanceOwnerId == null)
-                    {
-                        if (instanceTemplate.InstanceOwnerLookup == null)
-                        {
-                            errorResult = BadRequest("InstanceOwnerLookup cannot have null value. Cannot resolve instance owner id");
-                        }
-                        else
-                        {
-                            int? instanceOwnerLookup = InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup).Result;
-                            if (instanceOwnerLookup == null)
-                            {
-                                errorResult = BadRequest("Instance owner lookup failed.");
-                            }
-                            else
-                            {
-                                ownerId = instanceOwnerLookup.Value;
-                            }                            
-                        }
-                    }
-                    else
-                    {
-                        ownerId = int.Parse(instanceTemplate.InstanceOwnerId);
-                    }
+                    HandleInstanceLookup(instanceTemplate, ref errorResult, ref ownerId);
                 }
             }
 
             return ownerId;
         }
 
-        private async Task<int?> InstanceOwnerLookup(InstanceOwnerLookup lookup)
-        {             
+        private void HandleInstanceLookup(Instance instanceTemplate, ref ActionResult errorResult, ref int ownerId)
+        {
+            if (instanceTemplate.InstanceOwnerId == null)
+            {
+                if (instanceTemplate.InstanceOwnerLookup == null)
+                {
+                    errorResult = BadRequest("InstanceOwnerLookup cannot have null value. Cannot resolve instance owner id");
+                }
+                else
+                {
+                    int? instanceOwnerLookup = DoInstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup).Result;
+                    if (instanceOwnerLookup == null)
+                    {
+                        errorResult = BadRequest("Instance owner lookup failed.");
+                    }
+                    else
+                    {
+                        ownerId = instanceOwnerLookup.Value;
+                    }
+                }
+            }
+            else
+            {
+                ownerId = int.Parse(instanceTemplate.InstanceOwnerId);
+            }
+        }
+
+        private async Task<int?> DoInstanceOwnerLookup(InstanceOwnerLookup lookup)
+        {
+            string id = CollectIdFromLookup(lookup);
+            return await LookupIdFromBridgeRegistry(id);
+        }
+
+        private async Task<int?> LookupIdFromBridgeRegistry(string id)
+        {
+            try
+            {
+                Uri bridgeRegistryLookupUri = new Uri("parties/lookup", UriKind.Relative);
+
+                string idAsJson = JsonConvert.SerializeObject(id);
+
+                HttpResponseMessage response = await bridgeRegistryClient.PostAsync(
+                    bridgeRegistryLookupUri,
+                    new StringContent(idAsJson, Encoding.UTF8, "application/json"));
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string partyIdString = await response.Content.ReadAsStringAsync();
+
+                    return JsonConvert.DeserializeObject<int>(partyIdString);
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Lookup of instance owner id failed! {e.Message}");
+            }
+
+            return null;
+        }
+
+        private static string CollectIdFromLookup(InstanceOwnerLookup lookup)
+        {
             string id;
 
             if (!string.IsNullOrEmpty(lookup.PersonNumber))
@@ -431,29 +469,7 @@ namespace Altinn.Platform.Storage.Controllers
                 throw new ArgumentException("Instance owner lookup must have either PersonNumber or OrganisationNumber set.");
             }
 
-            try
-            {
-                Uri bridgeUri = new Uri($"parties/lookup", UriKind.Relative);
-
-                string idAsJson = JsonConvert.SerializeObject(id);
-
-                HttpResponseMessage response = await bridgeClient.PostAsync(
-                    bridgeUri,
-                    new StringContent(idAsJson, Encoding.UTF8, "application/json"));
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string partyIdString = await response.Content.ReadAsStringAsync();
-
-                    return JsonConvert.DeserializeObject<int>(partyIdString);
-                }                                    
-            }
-            catch (Exception e) 
-            {
-                logger.LogError($"Lookup of instance owner id failed! {e.Message}");
-            }
-
-            return null;
+            return id;
         }
 
         /// <summary>

@@ -8,20 +8,20 @@ namespace Altinn.Platform.Storage.Configuration
     /// <summary>
     /// Settings for accessing bridge functionality
     /// </summary>
-    public class BridgeSettings
+    public class GeneralSettings
     {
         /// <summary>
         /// The endpoint for the bridge
         /// </summary>
-        public string BridgeEndpoint { get; set; }
+        public string BridgeRegisterApiEndpoint { get; set; }
 
         /// <summary>
         /// Returns the api base url for the bridge.
         /// </summary>
         /// <returns></returns>
-        public string GetBridgeEndpoint()
+        public string GetBridgeRegisterApiEndpoint()
         {
-            return Environment.GetEnvironmentVariable("BridgeSettings__BridgeApiEndpoint") ?? BridgeEndpoint;
+            return Environment.GetEnvironmentVariable("GeneralSettings__BridgeRegisterApiEndpoint") ?? BridgeRegisterApiEndpoint;
         }
     }
 }
