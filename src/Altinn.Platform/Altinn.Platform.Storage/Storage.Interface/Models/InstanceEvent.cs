@@ -8,6 +8,7 @@ namespace Altinn.Platform.Storage.Models
     /// <summary>
     /// Model for the instance event.
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class InstanceEvent
     {
         /// <summary>

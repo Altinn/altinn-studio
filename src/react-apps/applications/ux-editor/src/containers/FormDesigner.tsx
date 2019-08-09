@@ -121,6 +121,9 @@ const styles = ((theme: Theme) => createStyles({
   rightDrawerWrapper: {
     position: 'relative',
   },
+  versionControlHeaderMargin: {
+    marginLeft: 24,
+  },
 }));
 export enum LayoutItemType {
   Container = 'CONTAINER',
@@ -212,7 +215,9 @@ class FormDesigner extends React.Component<
             <Toolbar />
           </Grid>
           <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
-            <VersionControlHeader language={this.props.language} />
+            <div className={classes.versionControlHeaderMargin}>
+              <VersionControlHeader language={this.props.language} />
+            </div>
             <div
               style={{
                 width: 'calc(100% - 48px)',

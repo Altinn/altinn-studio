@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Helpers;
 using Altinn.Platform.Profile.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

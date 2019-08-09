@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Storage.Interface.Clients;
 
 namespace Altinn.Platform.Storage.Client
@@ -156,6 +157,30 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
+        /// Get all instances for an org.
+        /// </summary>
+        /// <param name="org">the org id</param>
+        /// <param name="size">the size of the collection to return.</param>
+        /// <returns>the instance object</returns>
+        public async Task<List<Instance>> GetInstancesForOrg(string org, int size = 100)
+        {
+            string requestUri = $"{versionPrefix}/instances?org={org}&size={size}";
+
+            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string instanceData = await response.Content.ReadAsStringAsync();
+                JObject jsonObject = JObject.Parse(instanceData);
+
+                List<Instance> instances = jsonObject["instances"].ToObject<List<Instance>>();
+                return instances;
+            }
+
+            throw new StorageClientException($"GET error: {response.ReasonPhrase}");
+        }
+
+        /// <summary>
         /// Creates an instance
         /// </summary>
         /// <param name="appId">application id of the instance (must be registered in platform storage)</param>
@@ -166,6 +191,28 @@ namespace Altinn.Platform.Storage.Client
             string requestUri = $"{versionPrefix}/instances?appId={appId}&instanceOwnerId={instanceOwnerId}";
 
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new Instance().AsJson());
+            if (response.IsSuccessStatusCode)
+            {
+                string json = await response.Content.ReadAsStringAsync();
+
+                Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+                return instance;
+            }
+
+            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
+        }
+
+        /// <summary>
+        /// Creates an instance
+        /// </summary>
+        /// <param name="appId">application id of the instance (must be registered in platform storage)</param>
+        /// <param name="instanceTemplate">the instance template to base the instance on</param>
+        /// <returns>the instance just created</returns>
+        public async Task<Instance> PostInstances(string appId, Instance instanceTemplate)
+        {
+            string requestUri = $"{versionPrefix}/instances?appId={appId}";
+
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, instanceTemplate.AsJson());
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();
@@ -238,6 +285,25 @@ namespace Altinn.Platform.Storage.Client
 
             throw new StorageClientException($"POST error: {response.ReasonPhrase}");
         
+        }
+
+        /// <summary>
+        /// Deletes an instance (for testing purposes)
+        /// </summary>
+        /// <param name="instanceId">the id of the instance.</param>
+        /// <returns>tru if deletion was successfull otherwise throws an exception</returns>
+        public async Task<bool> DeleteInstance(string instanceId)
+        {
+            string requestUri = $"{versionPrefix}/instances/{instanceId}?hard";
+
+            HttpResponseMessage response = await client.DeleteAsync(requestUri);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+
+            throw new StorageClientException($"DELETE error: {response.ReasonPhrase}");
         }
 
         /// <summary>

@@ -27,6 +27,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
   let mockDataBinding: any;
   let mockReadOnly: boolean;
   let mockLanguage: any;
+  let mocktextResourceBindings: any;
 
   mockId = 'mock-id';
   mockFormData = { address: 'adresse 1' };
@@ -40,10 +41,11 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     zipCode: null,
     houseNumber: null,
   };
+  mocktextResourceBindings = {};
   mockLanguage = {
     ux_editor: {
       modal_configure_address_component_address: 'Adresse',
-      modal_configure_address_component_address_text_binding: 'Søk etter ledetekst for Adresse-feltet',
+      modal_configure_address_component_title_text_binding: 'Søk etter ledetekst for Adresse-komponenten',
       modal_configure_address_component_care_of: 'C/O eller annen tilleggsadresse',
       modal_configure_address_component_house_number: 'Bolignummer',
       modal_configure_address_component_house_number_helper: 'Om addressen er felles for flere boenhenter må du oppgi' +
@@ -67,6 +69,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     expect(rendered).toMatchSnapshot();
@@ -84,6 +87,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     const instance = shallowAddressComponent.instance() as AddressComponent;
@@ -103,6 +107,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     expect(shallowAddressComponent.find('input').length).toBe(3);
@@ -120,6 +125,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     const instance = mountedAddressComponent.instance() as AddressComponent;
@@ -143,6 +149,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     expect(shallowAddressComponent.find('.address-component-small-inputs').hasClass('disabled')).toBe(false);
@@ -160,6 +167,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={true}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     shallowAddressComponent.find('input').forEach((node: any) => {
@@ -179,6 +187,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={true}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     shallowAddressComponent.find('input').forEach((node: any) => {
@@ -199,6 +208,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     const instance = mountedAddressComponent.instance() as AddressComponent;
@@ -228,6 +238,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     const instance = mountedAddressComponent.instance() as AddressComponent;
@@ -272,6 +283,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         readOnly={mockReadOnly}
         language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
       />,
     );
     const instance = mountedAddressComponent.instance() as AddressComponent;
@@ -283,6 +295,46 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     });
     const result = instance.joinValidationMessages();
     expect(result).toEqual(mockResult);
+  });
+
+  it('+++ It should *not* show a component title if title is not set', () => {
+    const mountedAddressComponent = mount(
+      <AddressComponent
+        id={mockId}
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        getTextResource={mockGetTextResource}
+        isValid={mockIsValid}
+        simplified={mockSimplified}
+        dataModelBindings={mockDataBinding}
+        validationMessages={mockValidationMessages}
+        readOnly={mockReadOnly}
+        language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
+      />,
+    );
+    expect(mountedAddressComponent.find('h4').length).toBe(0);
+  });
+
+  it('+++ It should show a component title if title is set', () => {
+    mocktextResourceBindings.title = 'test';
+    const mountedAddressComponent = mount(
+      <AddressComponent
+        id={mockId}
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        getTextResource={mockGetTextResource}
+        isValid={mockIsValid}
+        simplified={mockSimplified}
+        dataModelBindings={mockDataBinding}
+        validationMessages={mockValidationMessages}
+        readOnly={mockReadOnly}
+        language={mockLanguage}
+        textResourceBindings={mocktextResourceBindings}
+      />,
+    );
+    expect(mountedAddressComponent.find('h4').length).toBe(1);
+    expect(mountedAddressComponent.contains(<h4 className='mt-2'>test</h4>)).toBe(true);
   });
 
 });

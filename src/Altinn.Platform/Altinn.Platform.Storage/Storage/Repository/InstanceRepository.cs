@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
@@ -23,13 +26,17 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string collectionId;
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
+        private readonly ILogger<InstanceRepository> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings)
+        /// <param name="logger">the logger</param>
+        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<InstanceRepository> logger)
         {
+            this.logger = logger;
+
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
 
@@ -88,51 +95,294 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesOfOrg(string org)
+        public async Task<InstanceQueryResponse> GetInstancesOfApplication(
+            Dictionary<string, StringValues> queryParams,
+            string continuationToken,
+            int size)
         {
-            List<Instance> instances = new List<Instance>();
+            InstanceQueryResponse queryResponse = new InstanceQueryResponse();
+
             FeedOptions feedOptions = new FeedOptions
             {
                 EnableCrossPartitionQuery = true,
+                MaxItemCount = size,
             };
 
-            IDocumentQuery<Instance> query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                            .Where(i => i.Org == org)
-                            .AsDocumentQuery();
-            while (query.HasMoreResults)
+            if (continuationToken != null)
             {
-                foreach (Instance instance in await query.ExecuteNextAsync().ConfigureAwait(false))
+                feedOptions.RequestContinuation = continuationToken;
+            }
+
+            IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
+
+            try
+            {
+                queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
+            }
+            catch (Exception e)
+            {
+                queryResponse.Exception = e.Message;
+                return queryResponse;
+            }
+
+            try
+            {                
+                IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
+                            
+                FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
+
+                if (!feedResponse.Any())
                 {
-                    PostProcess(instance);
-                    instances.Add(instance);
+                    queryResponse.Count = 0;
+                    queryResponse.TotalHits = 0;
+
+                    return queryResponse;
+                }
+
+                string nextContinuationToken = feedResponse.ResponseContinuation;
+
+                logger.LogInformation($"continuation token: {nextContinuationToken}");
+
+                // this migth be expensive              
+                feedOptions.RequestContinuation = null;
+                int totalHits = queryBuilder.Count();
+                queryResponse.TotalHits = totalHits;                
+
+                List<Instance> instances = feedResponse.ToList<Instance>();
+
+                PostProcess(instances);
+
+                queryResponse.Instances = instances;
+                queryResponse.ContinuationToken = nextContinuationToken;
+                queryResponse.Count = instances.Count;
+            }
+            catch (Exception e)
+            {
+                logger.LogError("error: {e}");
+                queryResponse.Exception = e.Message;
+            }
+
+            return queryResponse;
+        }
+
+        private IQueryable<Instance> BuildQueryFromParameters(Dictionary<string, StringValues> queryParams, IQueryable<Instance> queryBuilder)
+        {
+            foreach (KeyValuePair<string, StringValues> param in queryParams)
+            {
+                string queryParameter = param.Key;
+                StringValues queryValues = param.Value;
+
+                foreach (string queryValue in queryValues)
+                {
+                    switch (queryParameter)
+                    {
+                        case "appId":
+                            queryBuilder = queryBuilder.Where(i => i.AppId == queryValue);
+                            break;
+
+                        case "org":
+                            queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
+                            break;
+
+                        case "lastChangeDateTime":
+                            queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "dueDateTime":
+                            queryBuilder = QueryBuilderForDueDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "visibleDateTime":
+                            queryBuilder = QueryBuilderForVisibleDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "createdDateTime":
+                            queryBuilder = QueryBuilderForCreatedDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "process.currentTask":
+                            string currentTaskId = queryValue;
+                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask == currentTaskId);
+                            break;
+
+                        case "process.isComplete":
+                            bool isComplete = bool.Parse(queryValue);
+                            queryBuilder = queryBuilder.Where(i => i.Process.IsComplete == isComplete);
+                            break;
+
+                        case "labels":
+                            foreach (string label in queryValue.Split(","))
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Labels.Contains(label));
+                            }
+
+                            break;
+                    }
                 }
             }
 
-            return instances;
+            return queryBuilder;
         }
 
-        /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesOfApplication(string appId)
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForDueDateTime(IQueryable<Instance> queryBuilder, string queryValue)
         {
-            // string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationId = '{applicationId}'";
-            FeedOptions feedOptions = new FeedOptions
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
             {
-                EnableCrossPartitionQuery = true,
-                MaxItemCount = 100,
-            };
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime > dateValue);
+            }
 
-            IDocumentQuery<Instance> query = _client
-                .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                .Where(i => i.AppId == appId)
-                .AsDocumentQuery();
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.DueDateTime >= dateValue);
+            }
 
-            FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime < dateValue);
+            }
 
-            List<Instance> instances = result.ToList<Instance>();
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.DueDateTime <= dateValue);
+            }
 
-            PostProcess(instances);
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime == dateValue);
+            }
 
-            return instances;
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.DueDateTime == dateValue); 
+        }
+
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForLastChangedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.LastChangedDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.LastChangedDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+            }
+
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+        }
+
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForCreatedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.CreatedDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.CreatedDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+            }
+
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+        }
+
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForVisibleDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.VisibleDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.VisibleDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+            }
+
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+        }
+
+        private static DateTime ParseDateTimeIntoUtc(string queryValue)
+        {
+            return DateTimeHelper.ParseAndConvertToUniversalTime(queryValue);
         }
 
         /// <inheritdoc/>
