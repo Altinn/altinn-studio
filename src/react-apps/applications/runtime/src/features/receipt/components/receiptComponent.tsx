@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 // import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
 
-import { Grid, Typography } from '@material-ui/core';
+import { Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles } from '@material-ui/core/styles';
 import altinnTheme from '../../../../../shared/src/theme/altinnAppTheme';
 
