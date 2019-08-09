@@ -107,14 +107,7 @@ namespace Altinn.Platform.Authentication.Controllers
                             {
                                 Response.Cookies.Append(_generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
                             }
-                            
-                            Response.Cookies.Append(
-                                _generalSettings.GetAltinnPartyCookieName,
-                                userAuthentication.PartyID.ToString(),
-                                new CookieOptions
-                                {
-                                    Domain = _generalSettings.HostName
-                                });
+
                             return Redirect(goTo);
                         }
                         else
