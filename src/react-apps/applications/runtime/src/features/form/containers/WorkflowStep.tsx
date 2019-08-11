@@ -6,7 +6,7 @@ import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IProfile } from '../../../shared/resources/profile';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { IValidations } from '../../../types/global';
-import ReceiptComponent from '../../receipt/components/receiptComponent';
+import ReceiptContainer from '../../receipt/containers/receiptContainer';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
@@ -190,7 +190,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                           this.renderSubmit()
                         }
                         {this.props.step === WorkflowSteps.Archived &&
-                          <ReceiptComponent />
+                          <ReceiptContainer />
                         }
                       </div>
                     </div>
