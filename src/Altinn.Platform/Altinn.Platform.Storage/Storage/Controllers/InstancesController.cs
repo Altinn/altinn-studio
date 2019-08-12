@@ -5,6 +5,7 @@ namespace Altinn.Platform.Storage.Controllers
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Security.Claims;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -291,25 +292,26 @@ namespace Altinn.Platform.Storage.Controllers
             DateTime creationTime = DateTime.UtcNow;
 
             string org = appInfo.Org;
+            string userName = GetUser(User);
 
-            Instance createdInstance = new Instance()
-            {
-                InstanceOwnerId = ownerId.ToString(),
+            Instance createdInstance = createdInstance = new Instance()
+                {
+                    InstanceOwnerId = ownerId.ToString(),
 
-                CreatedBy = User.Identity.Name,
-                CreatedDateTime = creationTime,
-                LastChangedBy = User.Identity.Name,
-                LastChangedDateTime = creationTime,
-                AppId = appId,
-                Org = org,
+                    CreatedBy = userName,
+                    CreatedDateTime = creationTime,
+                    LastChangedBy = userName,
+                    LastChangedDateTime = creationTime,
+                    AppId = appId,
+                    Org = org,
 
-                VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
-                DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
-                Labels = instanceTemplate.Labels,
-                PresentationField = instanceTemplate.PresentationField,
+                    VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
+                    DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
+                    Labels = instanceTemplate.Labels,
+                    PresentationField = instanceTemplate.PresentationField,
 
-                InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },                
-            };
+                    InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },
+                };
            
             if (instanceTemplate.Process != null)
             {
@@ -330,6 +332,16 @@ namespace Altinn.Platform.Storage.Controllers
                 logger.LogError($"Unable to create {appId} instance for {ownerId} due to {e}");
                 return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {e}");
             }
+        }
+
+        private string GetUser(ClaimsPrincipal user)
+        {
+            if (user != null && User.Identity != null)
+            {
+                return User.Identity.Name;
+            }
+
+            return null;
         }
 
         private Application GetApplicationOrError(string appId, out ActionResult errorResult)
