@@ -17,7 +17,6 @@ namespace Altinn.Platform.Storage.UnitTests
 {
     public class InstanceOwnerLookupTest
     {
-        Instance createdInstance;
         InstancesController instanceController;
 
         public InstanceOwnerLookupTest()
@@ -25,9 +24,16 @@ namespace Altinn.Platform.Storage.UnitTests
         }
 
         [Fact]
-        public async void InstanceLookupTest()
+        public async void InstanceLookupPersonNumberTest()
         {
-            PrepareMock(HttpStatusCode.OK, "1001");
+            Instance instanceToCreate = new Instance()
+            {
+                Id = "1001/5650b227-5f79-41d8-a901-abed492c6fd4",
+                AppId = "test/lookup",
+                Org = "test"
+            };
+
+            PrepareLookupMock(HttpStatusCode.OK, "1001", instanceToCreate);
 
             Instance instanceTemplate = new Instance()
             {
@@ -44,14 +50,15 @@ namespace Altinn.Platform.Storage.UnitTests
             Instance resultInstance = (Instance)okresult.Value;
 
             Assert.NotNull(resultInstance);
-            Assert.Equal(createdInstance.Id, resultInstance.Id);
+            Assert.Equal(instanceToCreate.Id, resultInstance.Id);
             Assert.Null(resultInstance.InstanceOwnerLookup);
         }
 
         [Fact]
-        public async void InstanceLookupFails()
+        public async void InstanceLookupPersonNumberFails()
         {
-            PrepareMock(HttpStatusCode.BadRequest, "fails");
+
+            PrepareLookupMock(HttpStatusCode.BadRequest, "fails", null);
 
             Instance instanceTemplate = new Instance()
             {
@@ -68,18 +75,45 @@ namespace Altinn.Platform.Storage.UnitTests
             Assert.NotNull(badResult);
         }
 
-        private void PrepareMock(HttpStatusCode code, string contentToReturn)
+
+        [Fact]
+        public async void InstanceOrganisationNumberrTest()
         {
-            createdInstance = new Instance()
+            Instance instanceToCreate = new Instance()
             {
-                Id = "1001/5650b227-5f79-41d8-a901-abed492c6fd4",
+                Id = "500004690/5650b227-5f79-41d8-a901-abed492c6fd4",
                 AppId = "test/lookup",
                 Org = "test"
             };
-            Mock<IInstanceRepository> mockInstanceRepository = new Mock<IInstanceRepository>();
-            mockInstanceRepository.Setup(ir => ir.Create(It.IsAny<Instance>())).Returns(Task.FromResult(createdInstance));
-            Mock<IApplicationRepository> mockApplicationRepository = new Mock<IApplicationRepository>();
 
+            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate);
+
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwnerLookup = new InstanceOwnerLookup()
+                {
+                    OrganisationNumber = "910434462",
+                }
+            };
+
+            ActionResult result = await instanceController.Post("test/appid", null, instanceTemplate);
+
+            OkObjectResult okresult = result as OkObjectResult;
+
+            Instance resultInstance = (Instance)okresult.Value;
+
+            Assert.NotNull(resultInstance);
+            Assert.Equal(instanceToCreate.Id, resultInstance.Id);
+            Assert.Null(resultInstance.InstanceOwnerLookup);
+        }
+
+        private void PrepareLookupMock(HttpStatusCode statusCode, string lookupReturnContent, Instance instanceToCreate)
+        {
+           
+            Mock<IInstanceRepository> mockInstanceRepository = new Mock<IInstanceRepository>();
+            mockInstanceRepository.Setup(ir => ir.Create(It.IsAny<Instance>())).Returns(Task.FromResult(instanceToCreate));
+
+            Mock<IApplicationRepository> mockApplicationRepository = new Mock<IApplicationRepository>();
             mockApplicationRepository.Setup(ar => ar.FindOne(It.IsAny<string>(), It.IsAny<string>())).Returns(
                 Task.FromResult(new Application()
                 {
@@ -105,8 +139,8 @@ namespace Altinn.Platform.Storage.UnitTests
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(new HttpResponseMessage()
                 {
-                    StatusCode = code,
-                    Content = new StringContent(contentToReturn),
+                    StatusCode = statusCode,
+                    Content = new StringContent(lookupReturnContent),
                 })
                 .Verifiable();
 
