@@ -126,8 +126,7 @@ test('Accessibility testing for deployment to test environment page', async t =>
   axeCheck(t);
 });
 
-test.only('Clone modal functionality', async () => {
-  await overwriteCopyCommand();
+test('Clone modal functionality', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
@@ -136,4 +135,14 @@ test.only('Clone modal functionality', async () => {
     .expect(designer.readMoreAltinnDocs.exists).ok()
     .expect(designer.copyUrlRepoButton.exists).ok()
     .click(designer.copyUrlRepoButton)
+});
+
+test('Validation of missing datamodel in clone modal', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/withoutdatamodel#/uieditor')
+    .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
+    .hover(designer.cloneButton)
+    .click(designer.cloneButton)
+    .expect(designer.dataModellLink.exists).ok()
+    .click(designer.dataModellLink)
 });

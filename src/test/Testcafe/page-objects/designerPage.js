@@ -121,6 +121,7 @@ export default class DesignerPage {
     this.cloneButton = Selector('button').withExactText('Clone');
     this.copyUrlRepoButton = Selector('#copy-repository-url-button')
     this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
+    this.dataModellLink = Selector('a').withExactText('Gå til datamodell side');
   }
 
   async deleteDataModelTexts(numberToDelete) {
