@@ -33,7 +33,6 @@ namespace Altinn.Platform.Storage.Controllers
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private readonly GeneralSettings generalSettings;
         private readonly ILogger logger;
         private readonly HttpClient bridgeRegistryClient;
 
@@ -54,10 +53,9 @@ namespace Altinn.Platform.Storage.Controllers
         {
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
-            this.generalSettings = generalSettings.Value;
             this.logger = logger;
             this.bridgeRegistryClient = bridgeClient;
-            this.bridgeRegistryClient.BaseAddress = new Uri(this.generalSettings.GetBridgeRegisterApiEndpoint());
+            this.bridgeRegistryClient.BaseAddress = new Uri(generalSettings.Value.GetBridgeRegisterApiEndpoint());
         }
 
         /// <summary>
@@ -386,8 +384,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns></returns>
         private int GetOrLookupInstanceOwnerId(int? instanceOwnerId, Instance instanceTemplate, out ActionResult errorResult)
         {
-            errorResult = null;
-            int ownerId = instanceOwnerId ?? 0;           
+            errorResult = null;          
 
             if (instanceOwnerId.HasValue)
             {
