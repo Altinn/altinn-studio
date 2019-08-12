@@ -7,6 +7,7 @@ import TableRow from '@material-ui/core/TableRow';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnAppTheme';
+import AltinnAttachments from '../molecules/AltinnAttachments';
 
 // import { getLanguageFromKey } from '../../utils/language';
 
@@ -93,6 +94,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Typography variant='h3' style={{ paddingTop: '4.1rem' }}>
           Følgende er sendt:
         </Typography>
+        <AltinnAttachments />
       </MuiThemeProvider>
     </React.Fragment>
   );
