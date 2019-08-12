@@ -126,7 +126,7 @@ test('Accessibility testing for deployment to test environment page', async t =>
   axeCheck(t);
 });
 
-test.only('Clone modal functionality', async () => {
+test('Clone modal functionality', async () => {
   await overwriteCopyCommand();
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')

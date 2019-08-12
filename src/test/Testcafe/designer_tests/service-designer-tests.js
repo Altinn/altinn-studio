@@ -123,7 +123,7 @@ test("User cannot clone a service that does not have a data model", async () => 
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
 })
 
-test.only("Instantiation of an access controlled service not possible", async () => {
+test.skip("Instantiation of an access controlled service not possible", async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
     click(designer.lageNavigationTab)
