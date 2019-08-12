@@ -18,4 +18,4 @@ services:
       - "5060:5060"
     build:
       context: .
-      dockerfile: Config/Dockerfile
+      dockerfile: Receipt/Dockerfile

@@ -2,10 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Altinn.Platform.Config.Clients;
-using Altinn.Platform.Config.Configuration;
-using Altinn.Platform.Config.Services.Implementation;
-using Altinn.Platform.Config.Services.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Altinn.Platform.Config
+namespace Altinn.Platform.Receipt
 {
     /// <summary>
     /// Config startup.
@@ -43,10 +39,6 @@ namespace Altinn.Platform.Config
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
-            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.AddSingleton<ISubscriptions, SubscriptionsWrapper>();
-            services.AddHttpClient<SubscriptionsClient>();
-
         }
 
         /// <summary>
@@ -64,7 +56,7 @@ namespace Altinn.Platform.Config
             {
                 app.UseExceptionHandler("/Error");
             }
-
+            app.UseStaticFiles();
             app.UseMvc();
         }
     }

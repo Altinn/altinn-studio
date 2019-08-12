@@ -6,7 +6,7 @@
     <ProjectGuid>dfd11a0e-fc6d-4979-87a4-7a7b5dc66695</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>http://localhost:{ServicePort}</DockerServiceUrl>
-    <DockerServiceName>altinn_platform_storage</DockerServiceName>
+    <DockerServiceName>altinn_platform_receipt</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.yml" />

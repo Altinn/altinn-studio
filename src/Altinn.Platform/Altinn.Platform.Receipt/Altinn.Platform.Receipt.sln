@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Config", "Config\Altinn.Platform.Config.csproj", "{3E337964-095D-467D-ABD3-964798848144}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Receipt", "Receipt\Altinn.Platform.Receipt.csproj", "{3E337964-095D-467D-ABD3-964798848144}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{50ECB4A9-429E-4E37-9AE9-1DD829B67FB1}"
 	ProjectSection(SolutionItems) = preProject

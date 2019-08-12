@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Extensions.Logging;
 
-namespace Altinn.Platform.Config
+namespace Altinn.Platform.Receipt
 {
     /// <summary>
     /// This is the main method for running this asp.net core application
