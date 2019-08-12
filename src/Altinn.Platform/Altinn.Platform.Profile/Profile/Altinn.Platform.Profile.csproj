@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AltinnCore.ServiceLibrary" Version="3.0.0" />
+    <PackageReference Include="AltinnCore.ServiceLibrary" Version="8.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="2.0.0" />
