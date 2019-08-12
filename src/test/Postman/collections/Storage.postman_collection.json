@@ -521,6 +521,269 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Instances",
+			"item": [
+				{
+					"name": "POST App instance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"exec": [
+									"pm.test(\"Status code of creating an instance is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+						},
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances?appId={{appId}}&instanceOwnerId={{instanceOwnerId}}",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "appId",
+									"value": "{{appId}}"
+								},
+								{
+									"key": "instanceOwnerId",
+									"value": "{{instanceOwnerId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Instances",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"exec": [
+									"pm.test(\"Status code of retrieving instances is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Get All Instances - Get values to environment variables\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData.instances[0].instanceOwnerId).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instances[0].instanceOwnerId);\r",
+									"        pm.environment.set('appId',jsonData.instances[0].appId);\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "",
+								"value": "",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Instances by InstanceOwnerID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"exec": [
+									"pm.test(\"Status code of retrieving instances by ownerID is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/hal+json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Instances with process filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"exec": [
+									"pm.test(\"Status code of retrieving instances by ownerID is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances?appId={{appId}}&process.isComplete=false&process.currentTask=FormFilling_1",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "appId",
+									"value": "{{appId}}"
+								},
+								{
+									"key": "process.isComplete",
+									"value": "false"
+								},
+								{
+									"key": "process.currentTask",
+									"value": "FormFilling_1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Instances with date filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"exec": [
+									"pm.test(\"Status code of retrieving instances by ownerID is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances?appId={{appId}}&createdDateTime=gt:{{current_timestamp}}",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "appId",
+									"value": "{{appId}}"
+								},
+								{
+									"key": "createdDateTime",
+									"value": "gt:{{current_timestamp}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"event": [
