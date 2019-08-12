@@ -77,7 +77,7 @@ namespace Altinn.Platform.Storage.UnitTests
 
 
         [Fact]
-        public async void InstanceOrganisationNumberrTest()
+        public async void InstanceOrganisationNumberTest()
         {
             Instance instanceToCreate = new Instance()
             {
@@ -105,6 +105,63 @@ namespace Altinn.Platform.Storage.UnitTests
             Assert.NotNull(resultInstance);
             Assert.Equal(instanceToCreate.Id, resultInstance.Id);
             Assert.Null(resultInstance.InstanceOwnerLookup);
+        }
+
+
+        [Fact]
+        public async void InstanceLookupWithNoNumberFailsTest()
+        {
+            Instance instanceToCreate = new Instance()
+            {
+                Id = "500004690/5650b227-5f79-41d8-a901-abed492c6fd4",
+                AppId = "test/lookup",
+                Org = "test"
+            };
+
+            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate);
+
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwnerLookup = new InstanceOwnerLookup()
+                {
+                }
+            };
+
+            ActionResult result = await instanceController.Post("test/appid", null, instanceTemplate);
+
+            BadRequestObjectResult badResult = result as BadRequestObjectResult;
+            
+            Assert.NotNull(badResult);            
+        }
+
+
+
+        [Fact]
+        public async void InstanceLookupWithBothPersonAndOrganisationNumberFailsTest()
+        {
+            Instance instanceToCreate = new Instance()
+            {
+                Id = "500004690/5650b227-5f79-41d8-a901-abed492c6fd4",
+                AppId = "test/lookup",
+                Org = "test"
+            };
+
+            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate);
+
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwnerLookup = new InstanceOwnerLookup()
+                {
+                    PersonNumber = "24",
+                    OrganisationNumber = "35"
+                }
+            };
+
+            ActionResult result = await instanceController.Post("test/appid", null, instanceTemplate);
+
+            BadRequestObjectResult badResult = result as BadRequestObjectResult;
+
+            Assert.NotNull(badResult);
         }
 
         private void PrepareLookupMock(HttpStatusCode statusCode, string lookupReturnContent, Instance instanceToCreate)

@@ -389,52 +389,62 @@ namespace Altinn.Platform.Storage.Controllers
             errorResult = null;
             int ownerId = instanceOwnerId ?? 0;           
 
-            if (ownerId == 0)
+            if (instanceOwnerId.HasValue)
             {
-                if (instanceTemplate == null)
-                {
-                    errorResult = BadRequest("InstanceOwnerId must be set, either in query param or attached in instance object");
-                }
-                else
-                {
-                    HandleInstanceLookup(instanceTemplate, ref errorResult, ref ownerId);
-                }
-            }
-
-            return ownerId;
-        }
-
-        private void HandleInstanceLookup(Instance instanceTemplate, ref ActionResult errorResult, ref int ownerId)
-        {
-            if (instanceTemplate.InstanceOwnerId == null)
-            {
-                if (instanceTemplate.InstanceOwnerLookup == null)
-                {
-                    errorResult = BadRequest("InstanceOwnerLookup cannot have null value. Cannot resolve instance owner id");
-                }
-                else
-                {
-                    int? instanceOwnerLookup = DoInstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup).Result;
-                    if (instanceOwnerLookup == null)
-                    {
-                        errorResult = BadRequest("Instance owner lookup failed.");
-                    }
-                    else
-                    {
-                        ownerId = instanceOwnerLookup.Value;
-                    }
-                }
+                return instanceOwnerId.Value;
             }
             else
             {
-                ownerId = int.Parse(instanceTemplate.InstanceOwnerId);
+                if (instanceTemplate != null)
+                {
+                    if (!string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))
+                    {
+                        return int.Parse(instanceTemplate.InstanceOwnerId);
+                    }
+                    else
+                    {                        
+                        return InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup, ref errorResult);                        
+                    }
+                }
+                else
+                {
+                    errorResult = BadRequest("InstanceOwnerId must be set, either in query param or attached in instance template object");
+                }
             }
+
+            return 0;
         }
 
-        private async Task<int?> DoInstanceOwnerLookup(InstanceOwnerLookup lookup)
+        private int InstanceOwnerLookup(InstanceOwnerLookup lookup, ref ActionResult errorResult)
         {
-            string id = CollectIdFromLookup(lookup);
-            return await LookupIdFromBridgeRegistry(id);
+            if (lookup != null)
+            {
+                try
+                {
+                    string personOrOrganisationNumber = CollectIdFromLookup(lookup);
+
+                    int? instanceOwnerLookup = LookupIdFromBridgeRegistry(personOrOrganisationNumber).Result;
+
+                    if (instanceOwnerLookup.HasValue)
+                    {
+                        return instanceOwnerLookup.Value;
+                    }
+                    else
+                    {
+                        errorResult = BadRequest("Instance owner lookup failed.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    errorResult = BadRequest(e.Message);
+                }                
+            }
+            else
+            {
+                errorResult = BadRequest("InstanceOwnerLookup cannot have null value if instanceOwnerId is not set. Cannot resolve instance owner id");
+            }
+
+            return 0;
         }
 
         private async Task<int?> LookupIdFromBridgeRegistry(string id)
@@ -466,7 +476,12 @@ namespace Altinn.Platform.Storage.Controllers
 
         private static string CollectIdFromLookup(InstanceOwnerLookup lookup)
         {
-            string id;
+            string id = null;
+
+            if (!string.IsNullOrEmpty(lookup.PersonNumber) && !string.IsNullOrEmpty(lookup.OrganisationNumber))
+            {
+                throw new ArgumentException("InstanceOwnerLookup cannot have both PersonNumber and OrganisationNumber set.");
+            }
 
             if (!string.IsNullOrEmpty(lookup.PersonNumber))
             {
@@ -478,7 +493,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                throw new ArgumentException("Instance owner lookup must have either PersonNumber or OrganisationNumber set.");
+                throw new ArgumentException("InstanceOwnerLookup must have either PersonNumber or OrganisationNumber set.");
             }
 
             return id;
