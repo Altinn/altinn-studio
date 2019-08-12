@@ -3,9 +3,11 @@ import axeCheck from 'axe-testcafe';
 import App from '../app';
 import { AutoTestUser } from '../TestData';
 import DesignerPage from '../page-objects/designerPage';
+import RuntimePage from '../page-objects/runTimePage';
 
 let app = new App();
 let designer = new DesignerPage();
+let runtime = new RuntimePage();
 
 fixture('GUI service designer tests')
   .page(app.baseUrl)
@@ -123,28 +125,10 @@ test("User cannot clone a service that does not have a data model", async () => 
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
 })
 
-test.skip("Instantiation of an access controlled service not possible", async () => {
+test("Instantiation of an access controlled service not possible", async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
-    click(designer.lageNavigationTab)
-    .hover(designer.leftDrawerMenu)
-    .click(designer.lageLeftMenuItems[4])
-    .click(designer.virksomhet)
-    .click(designer.konkursBo)
-    .click(designer.underenhet)
-    .expect(designer.delEndringer.exists).ok()
-    .click(designer.delEndringer)
-    .expect(designer.commitMessageBox.exists).ok()
-    .click(designer.commitMessageBox)
-    .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
-    .expect(designer.validerEndringer.exists).ok()
-    .click(designer.validerEndringer)
-    .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
-    .click(designer.delEndringerBlueButton)
-    .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
     .click(designer.testeNavigationTab)
-    .click(designer.leftDrawerMenu)
-    .click(designer.testeLeftMenuItems[1])
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].exists).ok()
     .hover(runtime.testUsers[0])
@@ -152,10 +136,11 @@ test.skip("Instantiation of an access controlled service not possible", async ()
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
     .expect(runtime.startSendingIn.exists).ok({ timeout: 120000 })
-    .click(runtime.startSendingIn)
-    .expect(dia)
+    .setNativeDialogHandler((type,text,url) => {
+      return false;
+    })
+    .click(runtime.startSendingIn);
 })
 
 test('Automated accessibility test for designer page', async t => {
