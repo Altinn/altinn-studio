@@ -125,3 +125,15 @@ test('Accessibility testing for deployment to test environment page', async t =>
     .click(designer.testeLeftMenuItems[1])
   axeCheck(t);
 });
+
+test.only('Clone modal functionality', async () => {
+  await overwriteCopyCommand();
+  await t
+    .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
+    .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
+    .hover(designer.cloneButton)
+    .click(designer.cloneButton)
+    .expect(designer.readMoreAltinnDocs.exists).ok()
+    .expect(designer.copyUrlRepoButton.exists).ok()
+    .click(designer.copyUrlRepoButton)
+});

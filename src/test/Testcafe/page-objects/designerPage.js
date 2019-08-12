@@ -116,6 +116,11 @@ export default class DesignerPage {
     this.ingenEndringer = Selector("#no_changes_to_share_btn");
     this.delEndringerBlueButton = Selector("#share_changes_modal_button");
     this.commitMessageBox = Selector("#test");
+
+    //Clone modal
+    this.cloneButton = Selector('button').withExactText('Clone');
+    this.copyUrlRepoButton = Selector('#copy-repository-url-button')
+    this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
   }
 
   async deleteDataModelTexts(numberToDelete) {
