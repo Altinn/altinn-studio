@@ -13,11 +13,11 @@
     <bpmn2:startEvent id="StartEvent_1">
       <bpmn2:outgoing>SequenceFlow_1</bpmn2:outgoing>
     </bpmn2:startEvent>
-    <bpmn2:task id="FormFilling_1" name="Fyll ut" altinn:steptype="formfilling" altinn:egenskap1="egenskap1" altinn:egenskap2="egenskap2">
+    <bpmn2:task id="FormFilling_1" name="FormFilling" altinn:steptype="formfilling" altinn:egenskap1="egenskap1" altinn:egenskap2="egenskap2">
       <bpmn2:incoming>SequenceFlow_1</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_2</bpmn2:outgoing>
     </bpmn2:task>
-    <bpmn2:task id="Submit_1" name="Send inn" altinn:steptype="submit" tjeneste:egenskap1="egenskap1" tjeneste:egenskap2="egenskap2">
+    <bpmn2:task id="Submit_1" name="Submit" altinn:steptype="submit" tjeneste:egenskap1="egenskap1" tjeneste:egenskap2="egenskap2">
       <bpmn2:incoming>SequenceFlow_2</bpmn2:incoming>
       <bpmn2:outgoing>SequenceFlow_3</bpmn2:outgoing>
     </bpmn2:task>
