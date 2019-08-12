@@ -117,6 +117,47 @@ test("Fill out Access control information on a service", async () => {
     .expect(designer.tjenesteutgavekode.exists).notOk()
 });
 
+
+test("User cannot clone a service that does not have a data model", async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+})
+
+test.skip("Instantiation of an access controlled service not possible", async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+    click(designer.lageNavigationTab)
+    .hover(designer.leftDrawerMenu)
+    .click(designer.lageLeftMenuItems[4])
+    .click(designer.virksomhet)
+    .click(designer.konkursBo)
+    .click(designer.underenhet)
+    .expect(designer.delEndringer.exists).ok()
+    .click(designer.delEndringer)
+    .expect(designer.commitMessageBox.exists).ok()
+    .click(designer.commitMessageBox)
+    .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
+    .expect(designer.validerEndringer.exists).ok()
+    .click(designer.validerEndringer)
+    .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
+    .click(designer.delEndringerBlueButton)
+    .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
+    .click(designer.testeNavigationTab)
+    .click(designer.leftDrawerMenu)
+    .click(designer.testeLeftMenuItems[1])
+    .switchToIframe(runtime.testBrukerIframe)
+    .expect(runtime.testUsers[0].exists).ok()
+    .hover(runtime.testUsers[0])
+    .click(runtime.testUsers[0])
+    .expect(runtime.startNewButton.exists).ok()
+    .click(runtime.startNewButton)
+    .switchToMainWindow()
+    .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.startSendingIn.exists).ok({ timeout: 120000 })
+    .click(runtime.startSendingIn)
+    .expect(dia)
+})
+
 test('Automated accessibility test for designer page', async t => {
   axeCheck(t);
 });
