@@ -63,4 +63,3 @@ const partyReducer: Reducer<IPartyState> = (
 };
 
 export default partyReducer;
-

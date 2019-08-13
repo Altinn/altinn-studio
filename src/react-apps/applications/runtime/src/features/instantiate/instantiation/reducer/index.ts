@@ -55,6 +55,6 @@ const InstantiationReducer: Reducer<IInstantiationState> = (
       return state;
     }
   }
-}
+};
 
 export default InstantiationReducer;

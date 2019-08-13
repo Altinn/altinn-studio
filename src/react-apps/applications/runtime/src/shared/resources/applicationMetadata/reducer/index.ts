@@ -48,6 +48,6 @@ const applicationMetadataReducer: Reducer<IApplicationMetadataState> = (
       return state;
     }
   }
-}
+};
 
 export default applicationMetadataReducer;

@@ -12,7 +12,7 @@ export function instantiate(org: string, service: string): IInstantiate {
     org,
     service,
   };
-};
+}
 
 export interface IInstantiateFulfilled extends Action {
   instanceId: string;

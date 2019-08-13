@@ -3,6 +3,7 @@ import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { Redirect, RouteProps } from 'react-router';
+import AltinnCheckBox from 'Shared/components/AltinnCheckBox';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IRuntimeState } from 'src/types';
 import Header from '../../../shared/components/altinnAppHeader';
@@ -62,6 +63,9 @@ const styles = createStyles({
     fontSize: '1.75rem',
     marginLeft: '1.2rem',
     fontWeight: 500,
+  },
+  partySelectionCheckbox: {
+    padding: 12,
   },
 });
 
@@ -124,30 +128,30 @@ function PartySelection(props: IPartySelectionProps) {
     return (
       <>
         {parties.length > 0 && validParties.length === 0 ?
-        <Redirect
-          to={{
-            pathname: '/error',
-            state: {
-              message: 'No valid parties',
-            },
-          }}
-        /> :
-        validParties.map((party: IParty, index: number) =>
-          party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
-            numberOfPartiesShown > numberOfPartiesRendered ?
-              (() => {
-                numberOfPartiesRendered += 1;
-                return (
-                  <AltinnParty
-                    key={index}
-                    party={party}
-                    onSelectParty={onSelectParty}
-                  />
-                );
-              })()
-            : null
-          : null,
-        )}
+          <Redirect
+            to={{
+              pathname: '/error',
+              state: {
+                message: 'No valid parties',
+              },
+            }}
+          /> :
+          validParties.map((party: IParty, index: number) =>
+            party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
+              numberOfPartiesShown > numberOfPartiesRendered ?
+                (() => {
+                  numberOfPartiesRendered += 1;
+                  return (
+                    <AltinnParty
+                      key={index}
+                      party={party}
+                      onSelectParty={onSelectParty}
+                    />
+                  );
+                })()
+                : null
+              : null,
+          )}
         {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < validParties.length ?
           <Grid container={true}>
             {renderShowMoreButton()}
@@ -180,7 +184,7 @@ function PartySelection(props: IPartySelectionProps) {
       3. sub unit
       4. bankruptcy state
     */
-    const {partyTypesAllowed} = appMetadata;
+    const { partyTypesAllowed } = appMetadata;
     const partyTypes: string[] = [];
 
     let returnString: string = '';
@@ -230,16 +234,24 @@ function PartySelection(props: IPartySelectionProps) {
         onClick={increaseNumberOfShownParties}
       >
         <Grid container={true}>
-            <AddIcon className={classes.loadMoreButtonIcon}/>
-            <Typography className={classes.loadMoreButtonText}>
-              {!language.party_selection ?
-                'party_selection.load_more' :
-                language.party_selection.load_more
-              }
-            </Typography>
+          <AddIcon className={classes.loadMoreButtonIcon} />
+          <Typography className={classes.loadMoreButtonText}>
+            {!language.party_selection ?
+              'party_selection.load_more' :
+              language.party_selection.load_more
+            }
+          </Typography>
         </Grid>
       </button>
     );
+  }
+
+  function toggleShowDeleted() {
+    setShowDeleted(!showDeleted);
+  }
+
+  function toggleShowSubUnits() {
+    setShowSubUnits(!showSubUnits)
   }
 
   return (
@@ -269,20 +281,60 @@ function PartySelection(props: IPartySelectionProps) {
           </Typography>
         }
       </Grid>
-        <Grid container={true} className={classes.partySearchFieldContainer}>
-          <AltinnPartySearch
-            onSearchUpdated={onFilterStringChange}
-          />
+      <Grid container={true} className={classes.partySearchFieldContainer}>
+        <AltinnPartySearch
+          onSearchUpdated={onFilterStringChange}
+        />
+      </Grid>
+      <Grid container={true}>
+        <Grid container={true} justify={'space-between'}>
+          <Grid item={true}>
+            <Typography className={classes.partySelectionSubTitle}>
+              {!language.party_selection ?
+                'party_selection.subheader' :
+                language.party_selection.subheader
+              }
+            </Typography>
+          </Grid>
+
+          <Grid item={true}>
+            <Grid container={true}>
+              <Grid item={true} className={classes.partySelectionCheckbox}>
+                <Grid container={true}>
+                  <AltinnCheckBox
+                    checked={showDeleted}
+                    onChangeFunction={toggleShowDeleted}
+                  />
+                  <Typography>
+                    {
+                      !language.party_selection ?
+                        'party_selection.show_deleted' :
+                        language.party_selection.show_deleted
+                    }
+                  </Typography>
+                </Grid>
+              </Grid>
+              <Grid item={true} direction={'row'} className={classes.partySelectionCheckbox}>
+                <Grid container={true}>
+                  <AltinnCheckBox
+                    checked={showSubUnits}
+                    onChangeFunction={toggleShowSubUnits}
+                  />
+                  <Typography>
+                    {
+                      !language.party_selection ?
+                        'party_selection.show_sub_unit' :
+                        language.party_selection.show_sub_unit
+                    }
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Grid>
+
+          </Grid>
         </Grid>
-        <Grid container={true}>
-          <Typography className={classes.partySelectionSubTitle}>
-            {!language.party_selection ?
-              'party_selection.subheader' :
-              language.party_selection.subheader
-            }
-          </Typography>
-          {renderParties()}
-        </Grid>
+        {renderParties()}
+      </Grid>
     </Grid>
   );
 }

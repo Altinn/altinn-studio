@@ -50,7 +50,7 @@ export async function putWithoutConfig<ReturnType>(
     const response = await axios.put(url);
     return response.data ? response.data : null;
   } catch (err) {
-    throw err;
+    throw new Error('HTTP Call failed: ' + err.message);
   }
 }
 

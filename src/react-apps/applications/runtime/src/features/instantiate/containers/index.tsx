@@ -75,7 +75,8 @@ function InstantiateContainer(props: IServiceInfoProps) {
       const result = await verifySubscriptionHook();
       setSubscriptionHookValid(result);
     } catch (err) {
-      throw err;
+      console.error(err);
+      throw new Error('Subscription hook failed: ' + err.message);
     }
   };
 
@@ -164,7 +165,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
           },
       }}
       />
-    )
+    );
   }
   if (instantiation.instanceId !== null && !instantiation.instantiating) {
     return (
