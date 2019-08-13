@@ -11,6 +11,7 @@ namespace Altinn.Platform.Storage.Models
     /// Model for application metadata.
     /// </summary>
     [Serializable]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Application
     {
         /// <summary>

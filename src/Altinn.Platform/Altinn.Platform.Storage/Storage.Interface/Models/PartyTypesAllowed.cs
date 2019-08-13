@@ -8,6 +8,7 @@ namespace Altinn.Platform.Storage.Models
     /// <summary>
     /// Model for the different party types which are allowed to instantiate an application
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class PartyTypesAllowed
     {
         /// <summary>

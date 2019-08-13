@@ -30,9 +30,10 @@ declare module '@material-ui/core/styles/createMuiTheme' {
       },
     };
     sharedStyles: {
-      boxShadow: string;
-      linkBorderBottom: string;
-      mainPaddingLeft: number;
+      boxShadow: string,
+      linkBorderBottom: string,
+      mainPaddingLeft: number,
+      leftDrawerMenuClosedWidth: number,
     };
   }
 }

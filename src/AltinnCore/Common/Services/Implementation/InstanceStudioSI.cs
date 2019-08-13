@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
@@ -68,7 +64,7 @@ namespace AltinnCore.Common.Services.Implementation
             int instanceOwnerId = startServiceModel.PartyId;
             int userId = startServiceModel.UserId;
 
-            ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
+            ServiceState currentTask = _workflow.GetInitialServiceState(org, appName);
 
             Instance instance = new Instance
             {
@@ -78,9 +74,9 @@ namespace AltinnCore.Common.Services.Implementation
                 Org = org,
                 CreatedBy = instanceOwnerId.ToString(),
                 CreatedDateTime = DateTime.UtcNow,
-                Workflow = new Storage.Interface.Models.WorkflowState()
+                Process = new Storage.Interface.Models.ProcessState()
                 {
-                    CurrentStep = currentState.State.ToString(),
+                    CurrentTask = currentTask.State.ToString(),
                     IsComplete = false,
                 },
                 InstanceState = new Storage.Interface.Models.InstanceState()
@@ -198,9 +194,9 @@ namespace AltinnCore.Common.Services.Implementation
 
             Instance instance = await GetInstance(appName, org, instanceOwnerId, instanceId);
 
-            instance.Workflow = instance.Workflow ?? new Storage.Interface.Models.WorkflowState();
-            instance.Workflow.IsComplete = true;
-            instance.Workflow.CurrentStep = WorkflowStep.Archived.ToString();
+            instance.Process = instance.Process ?? new Storage.Interface.Models.ProcessState();
+            instance.Process.IsComplete = true;
+            instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
 
             instance.InstanceState = instance.InstanceState ?? new Storage.Interface.Models.InstanceState();
             instance.InstanceState.IsArchived = true;

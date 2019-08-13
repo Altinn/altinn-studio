@@ -8,6 +8,7 @@ namespace Storage.Interface.Models
     /// <summary>
     /// Holds the state of an instance
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class InstanceState
     {
         /// <summary>

@@ -408,6 +408,16 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               />
               {this.props.language.ux_editor.modal_configure_address_component_simplified}
             </Grid>
+            {
+              renderSelectTextFromResources(
+                'modal_configure_address_component_helper',
+                this.handleTitleChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings.title,
+              )
+            }
+
             {Object.keys(AddressKeys).map((value: AddressKeys) => {
               const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
               if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
@@ -424,16 +434,6 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                 )
               );
             })}
-            {
-              renderSelectTextFromResources(
-                'modal_configure_address_component_address_text_binding',
-                this.handleTextResourceBindingChange,
-                this.props.textResources,
-                this.props.language,
-                this.props.component.textResourceBindings[AddressKeys.address],
-                AddressKeys.address,
-              )
-            }
           </Grid >
         );
       }
