@@ -27,7 +27,7 @@ export default function() {
     ProfileActions.fetchProfile(profileApiUrl);
     LanguageActions.fetchLanguage(languageUrl, 'nb');
     ApplicationMetadataActions.getApplicationMetadata();
-    PartyActions.getParties(partiesUrl);
+    PartyActions.getParties();
   });
 
   return (
