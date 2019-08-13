@@ -251,7 +251,7 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function toggleShowSubUnits() {
-    setShowSubUnits(!showSubUnits)
+    setShowSubUnits(!showSubUnits);
   }
 
   return (
