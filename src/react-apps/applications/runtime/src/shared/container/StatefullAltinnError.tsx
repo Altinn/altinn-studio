@@ -46,24 +46,24 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
 
   function templateErrorMessageContent(): React.ReactNode {
-    const { instantiate } = language;
+    const { party_selection } = language;
     return (
       <>
-        {`${instantiate.party_selection_error_no_valid_selection_second_part} ${(window as IAltinnWindow).service}. `}
-        {`${instantiate.party_selection_error_no_valid_selection_third_part} ${templatePartyTypeString()}.`}
+        {`${party_selection.error_no_valid_selection_second_part} ${(window as IAltinnWindow).service}. `}
+        {`${party_selection.error_no_valid_selection_third_part} ${templatePartyTypeString()}.`}
         <br />
         <br />
         <a href={'https://altinn.no/help/profil/roller-og-rettigheter/'}>
-          {`${instantiate.party_selection_error_read_more_roles_link}`}
+          {`${party_selection.error_read_more_roles_link}`}
         </a>
-        {`. ${instantiate.party_selection_error_contact_support}`}
+        {`. ${party_selection.error_contact_support}`}
       </>
     );
   }
 
   function templateErrorMessageTitle(): string {
-    const { instantiate } = language;
-    return `${instantiate.party_selection_error_no_valid_selection_first_part} ${templatePartyTypeString()}`;
+    const { party_selection } = language;
+    return `${party_selection.error_no_valid_selection_first_part} ${templatePartyTypeString()}`;
   }
 
   function templatePartyTypeString(): string {
@@ -73,23 +73,23 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
     const { partyTypesAllowed } = appMetadata;
 
     if (partyTypesAllowed.person) {
-      partyTypes.push(language.instantiate.party_selection_unit_type_private_person);
+      partyTypes.push(language.party_selection.unit_type_private_person);
     }
     if (partyTypesAllowed.organization) {
-      partyTypes.push(language.instantiate.party_selection_unit_type_company);
+      partyTypes.push(language.party_selection.unit_type_company);
     }
     if (partyTypesAllowed.subUnit) {
-      partyTypes.push(language.instantiate.party_selection_unit_type_subunit);
+      partyTypes.push(language.party_selection.unit_type_subunit);
     }
     if (partyTypesAllowed.bankruptcyEstate) {
-      partyTypes.push(language.instantiate.party_selection_unit_type_bankruptcy_state);
+      partyTypes.push(language.party_selection.unit_type_bankruptcy_state);
     }
 
     for (let i = 0; i < partyTypes.length; i++) {
       if (i === 0) {
         returnString += partyTypes[i];
       } else if (i === (partyTypes.length - 1)) {
-        returnString += ` ${language.instantiate.party_selection_error_binding_word} ${partyTypes[i]}`;
+        returnString += ` ${language.party_selection.error_binding_word} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
       }
@@ -115,7 +115,7 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
             <AltinnError
               title={templateErrorMessageTitle()}
               content={templateErrorMessageContent()}
-              statusCode={`${language.instantiate.party_selection_error_caption_prefix} 403`}
+              statusCode={`${language.party_selection.error_caption_prefix} 403`}
             />
           </Grid>
         </Grid>
@@ -125,11 +125,3 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
 }
 
 export default withStyles(styles)(StatefulAltinnError);
-
-/*
-party_selection_error_no_valid_selection_first_part: "Dette er en tjeneste for"
-party_selection_error_no_valid_selection_second_part:
-  "Det ser ut som du ikke har tilgang til en aktør som har lov til å starte"
-party_selection_error_no_valid_selection_third_part:
-  "For å starte denne tjenesten må du ha tilganger som knytter deg til en"
-*/

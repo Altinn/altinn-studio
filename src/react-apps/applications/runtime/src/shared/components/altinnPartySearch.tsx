@@ -41,9 +41,9 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
         id={'altinn-party-search'}
         onChangeFunction={onChangeSearchString}
         placeholder={
-          !language.instantiate ?
-            'instantiate.party_selection_search_placeholder' :
-            language.instantiate.party_selection_search_placeholder
+          !language.party_selection ?
+            'party_selection.search_placeholder' :
+            language.party_selection.search_placeholder
         }
         iconString={'fa fa-others'}
       />

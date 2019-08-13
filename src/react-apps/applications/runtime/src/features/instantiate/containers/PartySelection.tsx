@@ -160,18 +160,18 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function templateErrorMessage() {
-    if (!language.instantiate) {
+    if (!language.party_selection) {
       return null;
     }
     return `
-      ${language.instantiate.party_selection_error_invalid_selection_first_part} ${profile.party.name}.
-      ${language.instantiate.party_selection_error_invalid_selection_second_part} ${templatePartyTypesString()}.
-      ${language.instantiate.party_selection_error_invalid_selection_third_part}
+      ${language.party_selection.invalid_selection_first_part} ${profile.party.name}.
+      ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
+      ${language.party_selection.invalid_selection_third_part}
     `;
   }
 
   function templatePartyTypesString() {
-    if (!language.instantiate) {
+    if (!language.party_selection) {
       return null;
     }
     /*
@@ -187,16 +187,16 @@ function PartySelection(props: IPartySelectionProps) {
     let returnString: string = '';
 
     if (partyTypesAllowed.person) {
-      partyTypes.push(language.instantiate.party_selection_unit_type_private_person);
+      partyTypes.push(language.party_selection.unit_type_private_person);
     }
     if (partyTypesAllowed.organization) {
-      partyTypes.push(language.instantiate.party_selection_unit_type_company);
+      partyTypes.push(language.party_selection.unit_type_company);
     }
     if (partyTypesAllowed.subUnit) {
-      partyTypes.push(language.instantiate.party_selection_unit_type_subunit);
+      partyTypes.push(language.party_selection.unit_type_subunit);
     }
     if (partyTypesAllowed.bankruptcyEstate) {
-      partyTypes.push(language.instantiate.party_selection_unit_type_bankruptcy_state);
+      partyTypes.push(language.party_selection.unit_type_bankruptcy_state);
     }
 
     if (partyTypes.length === 1) {
@@ -207,7 +207,7 @@ function PartySelection(props: IPartySelectionProps) {
       if (i === 0) {
         returnString += partyTypes[i];
       } else if (i === (partyTypes.length - 1)) {
-        returnString += ` ${language.instantiate.party_selection_error_binding_word} ${partyTypes[i]}`;
+        returnString += ` ${language.party_selection.binding_word} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
       }
@@ -233,9 +233,9 @@ function PartySelection(props: IPartySelectionProps) {
         <Grid container={true}>
             <AddIcon className={classes.loadMoreButtonIcon}/>
             <Typography className={classes.loadMoreButtonText}>
-              {!language.instantiate ?
-                'instantiate.party_selection_load_more' :
-                language.instantiate.party_selection_load_more
+              {!language.party_selection ?
+                'party_selection.load_more' :
+                language.party_selection.load_more
               }
             </Typography>
         </Grid>
@@ -258,9 +258,9 @@ function PartySelection(props: IPartySelectionProps) {
         }}
       >
         <Typography className={classes.partySelectionTitle}>
-          {!language.instantiate ?
-            'instantiate.party_selection_header' :
-            language.instantiate.party_selection_header
+          {!language.party_selection ?
+            'party_selection.header' :
+            language.party_selection.header
           }
         </Typography>
         {!location.state || !(location.state as IRedirectValidPartes).validParties.length ?
@@ -277,9 +277,9 @@ function PartySelection(props: IPartySelectionProps) {
         </Grid>
         <Grid container={true}>
           <Typography className={classes.partySelectionSubTitle}>
-            {!language.instantiate ?
-              'instantiate.party_selection_subheader' :
-              language.instantiate.party_selection_subheader
+            {!language.party_selection ?
+              'party_selection.subheader' :
+              language.party_selection.subheader
             }
           </Typography>
           {renderParties()}

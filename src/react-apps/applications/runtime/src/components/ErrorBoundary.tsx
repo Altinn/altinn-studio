@@ -33,7 +33,7 @@ class ErrorBoundary extends React.Component<any, IErrorBoundary> {
           content={error}
           url={`${window.location.host}`}
           urlText={'Altinn Runtime'}
-          urlTextSuffix={'wtf?'}
+          urlTextSuffix={'Altinn Runtime'}
         />
       );
     }

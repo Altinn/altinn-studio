@@ -58,21 +58,21 @@ function AltinnParty(props: IAltinnPartyProps) {
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')}/>
         <Typography className={classes.partyName}>
           {party.name + (party.isDeleted ? ` (
-            ${!language.instantiate ?
-              'instantiate.party_selection_unit_deleted' :
-              language.instantiate.party_selection_unit_deleted
+            ${!language.party_selection ?
+              'party_selection.unit_deleted' :
+              language.party_selection.unit_deleted
             }) ` : '')}
         </Typography>
         <Typography className={classes.partyInfo}>
           {
             isOrg ?
-            `${!language.instantiate ?
-              'instantiate.party_selection_unit_org_number' :
-              language.instantiate.party_selection_unit_org_number
+            `${!language.party_selection ?
+              'party_selection.unit_org_number' :
+              language.party_selection.unit_org_number
             } ` + party.orgNumber :
-            `${!language.instantiate ?
-              'instantiate.party_selection_unit_personal_number' :
-              language.instantiate.party_selection_unit_personal_number
+            `${!language.party_selection ?
+              'party_selection.unit_personal_number' :
+              language.party_selection.unit_personal_number
             } ` + party.ssn
           }
         </Typography>
