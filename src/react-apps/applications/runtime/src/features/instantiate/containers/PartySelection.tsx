@@ -2,7 +2,7 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { RouteProps, Redirect } from 'react-router';
+import { Redirect, RouteProps } from 'react-router';
 import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IRuntimeState } from 'src/types';
 import Header from '../../../shared/components/altinnAppHeader';
@@ -13,7 +13,6 @@ import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
-import { partiesUrl } from '../../../utils/urlHelper';
 
 const styles = createStyles({
   partySelectionPage: {
@@ -90,7 +89,7 @@ function PartySelection(props: IPartySelectionProps) {
   const [showDeleted, setShowDeleted] = React.useState(true);
 
   React.useEffect(() => {
-    PartyActions.getParties(partiesUrl);
+    PartyActions.getParties();
   }, []);
 
   async function onSelectParty(party: IParty) {

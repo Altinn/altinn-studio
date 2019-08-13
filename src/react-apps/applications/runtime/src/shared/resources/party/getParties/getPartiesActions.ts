@@ -2,10 +2,6 @@ import { Action } from 'redux';
 import { IParty } from '..';
 import * as ActionTypes from './getPartiesActionTypes';
 
-export interface IGetParties extends Action {
-  url: string;
-}
-
 export interface IGetPartiesFulfilled extends Action {
   parties: IParty[];
 }
@@ -14,10 +10,9 @@ export interface IGetPartiesRejected extends Action {
   error: Error;
 }
 
-export function getParties(url: string): IGetParties {
+export function getParties(): Action {
   return {
     type: ActionTypes.GET_PARTIES,
-    url,
   };
 }
 

@@ -3,15 +3,15 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { IParty } from '../';
 import { get } from '../../../../utils/networking';
+import { partiesUrl } from '../../../../utils/urlHelper';
 import PartyActions from '../partyActions';
-import { IGetParties } from './getPartiesActions';
 import * as GetPartyActionTypes from './getPartiesActionTypes';
 
 const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedParty);
 
-function* getPartiesSaga({ url }: IGetParties): SagaIterator {
+function* getPartiesSaga(): SagaIterator {
   try {
-    const parties: IParty[] = yield call(get, url);
+    const parties: IParty[] = yield call(get, partiesUrl);
 
     const selectedParty = yield select(SelectedPartySelector);
     if (!selectedParty) {

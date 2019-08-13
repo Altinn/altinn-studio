@@ -1,11 +1,11 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../store';
 import { IParty } from './';
 import * as GetPartiesActions from './getParties/getPartiesActions';
 import * as SelectPartyActions from './selectParty/selectPartyActions';
 
 export interface IPartyActions extends ActionCreatorsMapObject {
-  getParties: (url: string) => GetPartiesActions.IGetParties;
+  getParties: () => Action;
   getPartiesFulfilled: (parties: IParty[]) => GetPartiesActions.IGetPartiesFulfilled;
   getPartiesRejected: (error: Error) => GetPartiesActions.IGetPartiesRejected;
   selectParty: (party: IParty, redirect: boolean) => SelectPartyActions.ISelectParty;
