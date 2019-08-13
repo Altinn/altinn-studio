@@ -183,6 +183,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                                 string dataLink = $"storage/api/v1/instances/{instanceTemplate.Id}/data/{dataId}";
 
+                                /*
                                 // create new data element, store data in blob
                                 DataElement newData = new DataElement
                                 {
@@ -209,8 +210,8 @@ namespace Altinn.Platform.Storage.Controllers
 
                                 // update instance
                                 Instance result = await _instanceRepository.Update(instance);
-
-                                return Ok(result);
+                                
+                                return Ok(result);*/
                             }
                             catch (Exception e)
                             {
@@ -225,37 +226,6 @@ namespace Altinn.Platform.Storage.Controllers
                     // reads the headers for the next section.
                     section = await reader.ReadNextSectionAsync();
                 }
-
-                /*
-                theStream = section.Body;
-                contentType = section.ContentType;
-
-                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(
-                    section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-
-                if (hasContentDisposition)
-                {
-                    contentFileName = contentDisposition.FileName.ToString();
-                }
-
-                // For å kjøre en loop med evt flere filer å lagre i databasen:
-                // while (reader.ReadNextSectionAsync() != null)
-
-                // Check if multipart content is "instance" and ContentType is "application/json".
-                if (section.ContentDisposition.ToString().Contains("instance")
-                    && section.ContentType.ToString().Contains("application/json"))
-                {
-                    instanceTemplate = JsonConvert.DeserializeObject<Instance>(section.Body.ToString());
-
-                }
-
-                // Check if multipart content is "default" and ContentType is "application/xml".
-                if (section.ContentDisposition.ToString().Contains("default")
-                    && section.ContentType.Contains("application/xml"))
-                {
-                    // Upload XML file to Blob Storage
-                    section.Body
-                }*/
             }
 
             if (instanceTemplate == null && instanceOwnerId == 0)
@@ -300,8 +270,6 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return StatusCode(500, $"Unable to perform request: {e}");
             }
-
-            DateTime creationTime = DateTime.UtcNow;
 
             string org = appInfo.Org;
 
