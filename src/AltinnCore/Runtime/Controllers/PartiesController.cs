@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
@@ -141,17 +142,29 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Updates the party the user represents
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Status code</returns>
         [HttpPut("{org}/{app}/api/v1/parties/{partyId}")]
         public async Task<IActionResult> UpdateSelectedParty(int partyId)
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             int userId = userContext.UserId;
             bool? isValidSelection = await _authorization.ValidateSelectedParty(userId, partyId);
+            bool sblNotifiedOk = false;
 
             if (isValidSelection != true)
             {
                 return BadRequest($"User {userId} cannot represent party {partyId}. ");
+            }
+
+            // Notify SBL of change when running in App mode
+            if (_settings.RuntimeMode.Equals("ServiceContainer"))
+            {
+                sblNotifiedOk = await _authorization.UpdateSelectedParty(partyId);
+            }
+
+            if (!sblNotifiedOk)
+            {
+                return StatusCode(500, "Something went wrong when updating party in SBL.");
             }
 
             Response.Cookies.Append(
@@ -161,8 +174,6 @@ namespace AltinnCore.Runtime.Controllers
             {
                 Domain = _settings.HostName
             });
-
-            // Update claims when running app mode
 
             return Ok();
         }

@@ -44,6 +44,12 @@ namespace AltinnCore.Common.Services.Implementation
             return partyList;
         }
 
+        /// <inheritdoc />
+        public Task<bool> UpdateSelectedParty(int partyId)
+        {
+            throw new System.NotImplementedException();
+        }
+
         /// <summary>
         /// Verifies that the user can represent the party based on test data on disk
         /// </summary>

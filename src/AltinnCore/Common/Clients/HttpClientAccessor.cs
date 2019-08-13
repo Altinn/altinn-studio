@@ -14,18 +14,22 @@ namespace AltinnCore.Common.Clients
     public class HttpClientAccessor : IHttpClientAccessor
     {
         private readonly PlatformSettings _platformSettings;
+        private readonly GeneralSettings _generalSettings;
         private HttpClient _storageClient;
         private HttpClient _registerClient;
         private HttpClient _profileClient;
         private HttpClient _authorizationClient;
+        private HttpClient _sblClient;
 
         /// <summary>
-        /// Initializes a new HttpClient accessor of the <see cref="HttpClientAccessor"/> class.
+        /// Initializes a new instance of the <see cref="HttpClientAccessor"/> class.
         /// <param name="platformSettings">the platform settings</param>
+        /// <param name="generalSettings">The general settings</param>
         /// </summary>
-        public HttpClientAccessor(IOptions<PlatformSettings> platformSettings)
+        public HttpClientAccessor(IOptions<PlatformSettings> platformSettings, IOptions<GeneralSettings> generalSettings)
         {
             _platformSettings = platformSettings.Value;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <inheritdoc />
@@ -91,6 +95,22 @@ namespace AltinnCore.Common.Clients
                 }
 
                 return _authorizationClient;
+            }
+        }
+
+        /// <inheritdoc />
+        public HttpClient SBLClient
+        {
+            get
+            {
+                if (_sblClient == null)
+                {
+                    _sblClient = new HttpClient();
+                    _sblClient.BaseAddress = new Uri($"{_generalSettings.GetSBLBaseAdress}");
+                    _sblClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                }
+
+                return _sblClient;
             }
         }
     }

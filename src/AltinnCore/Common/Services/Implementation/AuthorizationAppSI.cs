@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AltinnCore.Authentication.JwtCookie;
@@ -21,7 +22,8 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
-        private readonly HttpClient _client;
+        private readonly HttpClient _authClient;
+        private readonly HttpClient _sblClient;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -38,7 +40,8 @@ namespace AltinnCore.Common.Services.Implementation
                 ILogger<AuthorizationAppSI> logger)
         {
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.AuthorizationClient;
+            _authClient = httpClientAccessor.AuthorizationClient;
+            _sblClient = httpClientAccessor.SBLClient;
             _cookieOptions = cookieOptions.Value;
             _logger = logger;
         }
@@ -49,10 +52,10 @@ namespace AltinnCore.Common.Services.Implementation
             List<Party> partyList = null;
             string apiUrl = $"parties?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
             try
             {
-                HttpResponseMessage response = _client.PostAsync(apiUrl, null).Result;
+                HttpResponseMessage response = _authClient.PostAsync(apiUrl, null).Result;
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
@@ -77,14 +80,39 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
+        public async Task<bool> UpdateSelectedParty(int partyId)
+        {
+            string apiUrl = $"ui/Reportee/ChangeReportee/?R={partyId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_sblClient, token);
+
+            try
+            {
+                HttpResponseMessage response = await _sblClient.GetAsync(apiUrl);
+                string message = response.Content.ToString();
+
+                if (response.StatusCode == HttpStatusCode.OK && message.Equals("Reportee successfully updated."))
+                {
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc />
         public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
         {
             bool? result = null;
             string apiUrl = $"parties/{partyId}/validate?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = await _authClient.GetAsync(apiUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
