@@ -759,7 +759,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances?appId={{appId}}&createdDateTime=gt:{{current_timestamp}}",
+							"raw": "{{envURL}}/storage/api/v1/instances?appId={{appId}}&createdDateTime=gt:{{current_timestamp}}&lastChangedDateTime=gte:2019-08-12T11:20:10.2003387Z",
 							"host": [
 								"{{envURL}}"
 							],
@@ -777,6 +777,10 @@
 								{
 									"key": "createdDateTime",
 									"value": "gt:{{current_timestamp}}"
+								},
+								{
+									"key": "lastChangedDateTime",
+									"value": "gte:2019-08-12T11:20:10.2003387Z"
 								}
 							]
 						}
