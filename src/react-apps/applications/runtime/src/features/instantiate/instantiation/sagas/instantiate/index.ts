@@ -22,7 +22,6 @@ function* instantiationSaga({
     if (!instantitationState.instantiating) {
       yield put(InstantiationActions.instantiateToggle());
 
-
       const selectedParty: IParty = yield select(SelectedPartySelector);
       const formData = new FormData();
 

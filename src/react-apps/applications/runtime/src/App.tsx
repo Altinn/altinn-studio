@@ -14,7 +14,6 @@ import TextResourcesActions from './shared/resources/textResources/actions';
 
 import {
   languageUrl,
-  partiesUrl,
   profileApiUrl,
 } from './utils/urlHelper';
 
