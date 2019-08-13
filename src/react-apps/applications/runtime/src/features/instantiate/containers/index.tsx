@@ -8,11 +8,10 @@ import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IParty } from '../../../shared/resources/party';
-import PartyActions from '../../../shared/resources/party/partyActions';
-import ProfileActions from '../../../shared/resources/profile/profileActions';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
+import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
 
 const styles = () => createStyles({
@@ -40,44 +39,29 @@ function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
   const { org, service } = window as IAltinnWindow;
 
-  const [instanceId, setInstanceId] = React.useState(null);
-  const [instantiationError, setInstantiationError] = React.useState(null);
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(false);
   const [partyValidation, setPartyValidation] = React.useState(null);
 
+  const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
   const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
 
-  const createNewInstance = async () => {
-    try {
-      const formData: FormData = new FormData();
-      formData.append('PartyId', selectedParty.partyId.toString());
-      formData.append('Org', org);
-      formData.append('Service', service);
-      const url = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
-      const response = await post(url, null, formData);
-
-      if (response.data.instanceId) {
-        setInstanceId(response.data.instanceId);
-        (window as IAltinnWindow).instanceId = response.data.instanceId;
-      } else {
-        throw new Error('Server did not respond with new instance');
-      }
-    } catch (err) {
-      throw new Error('Server did not respond with new instance');
+  const createNewInstance = () => {
+    if (!instantiation.instanceId && !instantiation.error) {
+      InstantiationActions.instantiate(org, service);
     }
   };
 
   const validatatePartySelection = async () => {
     try {
       if (!selectedParty) {
-        window.location.replace(`${window.location.origin}/${org}/${service}#/partyselection`);
+        return;
       }
       const { data } = await post(
-        `${window.location.origin}/${org}/${service}` +
-        `/api/v1/parties/validateInstantiation?partyId=${selectedParty.partyId}`,
+        `${window.location.origin}/${org}/${service}/api/v1/parties/` +
+        `validateInstantiation?partyId=${selectedParty.partyId}`,
       );
       setPartyValidation(data);
     } catch (err) {
@@ -128,24 +112,22 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   React.useEffect(() => {
-    if (!profile) {
-      ProfileActions.fetchProfile(`${window.location.origin}/${org}/${service}/api/v1/profile/user`);
-    }
-    if (!partyValidation) {
+    if (selectedParty !== null) {
       validatatePartySelection();
     }
-    if (!selectedParty) {
-      window.location.replace(`${window.location.origin}/${org}/${service}#/partyselection`);
-    }
+  }, [selectedParty]);
 
-    validateSubscriptionHook();
-
-    if (!instanceId && instantiationError === null && partyValidation !== null) {
-      if (subscriptionHookValid === true) {
-        createNewInstance();
-      }
+  React.useEffect(() => {
+    if (partyValidation !== null) {
+      validateSubscriptionHook();
     }
-  }, [profile, instanceId, partyValidation]);
+  }, [partyValidation]);
+
+  React.useEffect(() => {
+    if (subscriptionHookValid !== null && subscriptionHookValid) {
+      createNewInstance();
+    }
+  }, [subscriptionHookValid]);
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
@@ -172,16 +154,28 @@ function InstantiateContainer(props: IServiceInfoProps) {
       );
     }
   }
-  if (instanceId) {
+  if (instantiation.error !== null) {
     return (
-      <Redirect to={`/instance/${instanceId}`} />
+      <Redirect
+        to={{
+          pathname: '/error',
+          state: {
+            message: instantiation.error,
+          },
+      }}
+      />
+    )
+  }
+  if (instantiation.instanceId !== null && !instantiation.instantiating) {
+    return (
+      <Redirect to={`/instance/${instantiation.instanceId}`} />
     );
   } else {
     return (
       <>
-      <AltinnAppHeader profile={profile} language={language}/>
-      {subscriptionHookValid && renderModalAndLoader()}
-      {!subscriptionHookValid && <SubscriptionHookError textResources={textResources}/>}
+        <AltinnAppHeader profile={profile} language={language}/>
+        {subscriptionHookValid && renderModalAndLoader()}
+        {!subscriptionHookValid && <SubscriptionHookError textResources={textResources}/>}
       </>
     );
   }
