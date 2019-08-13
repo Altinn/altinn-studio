@@ -2,13 +2,21 @@ namespace Altinn.Platform.Storage.Controllers
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
+    using System.Net.Http;
+    using System.Text;
     using System.Threading.Tasks;
+    using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
     using global::Storage.Interface.Models;
+    using Microsoft.AspNetCore.Http.Features;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Net.Http.Headers;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Handles operations for the application instance resource
@@ -17,9 +25,12 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class InstancesController : Controller
     {
+        // private static readonly FormOptions _defaultFormOptions = new FormOptions(); // Added by TK
+        private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger logger;
+        private static readonly FormOptions _defaultFormOptions = new FormOptions();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -117,12 +128,136 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="appId">the applicationid</param>
         /// <param name="instanceOwnerId">instance owner id</param>
-        /// <param name="instanceTemplate">The instance template to base the new instance on</param>
+        /* /// <param name="instanceTemplate">The instance template to base the new instance on</param> */
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]
-        public async Task<ActionResult> Post(string appId, int instanceOwnerId, [FromBody] Instance instanceTemplate)
+        [DisableFormValueModelBinding]
+        public async Task<ActionResult> Post(string appId, int instanceOwnerId)
         {
+            DateTime creationTime = DateTime.UtcNow;
+
+            Instance instanceTemplate = null;
+            Stream theStream = null;
+            string contentType = null;
+            string contentFileName = null;
+            long fileSize = 0;
+
+            // Check if request has content type multipart.
+            if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+            {
+                // Get the boundary.
+                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
+                string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+                
+                // Read the first part of the Multipart content.
+                MultipartReader reader = new MultipartReader(boundary, Request.Body);
+                MultipartSection section = reader.ReadNextSectionAsync().Result;
+                
+                // While the MultipartSection has content.
+                while (section != null)
+                {
+                    bool hasContentDispositionHeader =
+                        ContentDispositionHeaderValue.
+                        TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+
+                    if (hasContentDispositionHeader)
+                    {
+                        // FLYTT denne til utenfor løkken, instance skal alltid være med. Deretter iterer gjennom de andre elementene i multipart-en.
+                        if (section.ContentDisposition.ToString().Contains("instance")
+                            && section.ContentType.ToString().Contains("application/json"))
+                        {
+                            instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
+                        }
+
+                        if (section.ContentDisposition.ToString().Contains("default")
+                            && section.ContentType.ToString().Contains("application/xml"))
+                        {
+                            string body = await section.ReadAsStringAsync();
+                            try
+                            {
+                                contentFileName = contentDisposition.FileName.ToString();
+                                fileSize = contentDisposition.Size ?? 0;
+
+                                string dataId = Guid.NewGuid().ToString();
+
+                                string dataLink = $"storage/api/v1/instances/{instanceTemplate.Id}/data/{dataId}";
+
+                                // create new data element, store data in blob
+                                DataElement newData = new DataElement
+                                {
+                                    // update data record
+                                    Id = dataId,
+                                    ElementType = elementType,
+                                    ContentType = contentType,
+                                    CreatedBy = User.Identity.Name,
+                                    CreatedDateTime = creationTime,
+                                    FileName = contentFileName ?? $"{dataId}.xml",
+                                    LastChangedBy = User.Identity.Name,
+                                    LastChangedDateTime = creationTime,
+
+                                    DataLinks = new ResourceLinks()
+                                    {
+                                        Apps = dataLink,
+                                    },
+
+                                    FileSize = fileSize,
+                                };
+
+                                // store file as blob
+                                await _dataRepository.CreateDataInStorage(section.ReadAsStringAsync(), newData.StorageUrl);
+
+                                // update instance
+                                Instance result = await _instanceRepository.Update(instance);
+
+                                return Ok(result);
+                            }
+                            catch (Exception e)
+                            {
+                                return StatusCode(500, $"Unable to create instance data in storage: {e}");
+                            }
+
+                            // Save XML to Blob Storage.
+                        }
+                    }
+
+                    // Drains any remaining section body that has not been consumed and
+                    // reads the headers for the next section.
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+                /*
+                theStream = section.Body;
+                contentType = section.ContentType;
+
+                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(
+                    section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+
+                if (hasContentDisposition)
+                {
+                    contentFileName = contentDisposition.FileName.ToString();
+                }
+
+                // For å kjøre en loop med evt flere filer å lagre i databasen:
+                // while (reader.ReadNextSectionAsync() != null)
+
+                // Check if multipart content is "instance" and ContentType is "application/json".
+                if (section.ContentDisposition.ToString().Contains("instance")
+                    && section.ContentType.ToString().Contains("application/json"))
+                {
+                    instanceTemplate = JsonConvert.DeserializeObject<Instance>(section.Body.ToString());
+
+                }
+
+                // Check if multipart content is "default" and ContentType is "application/xml".
+                if (section.ContentDisposition.ToString().Contains("default")
+                    && section.ContentType.Contains("application/xml"))
+                {
+                    // Upload XML file to Blob Storage
+                    section.Body
+                }*/
+            }
+
             if (instanceTemplate == null && instanceOwnerId == 0)
             {
                 return BadRequest("Missing parameter values: instanceOwnerId must be set");
