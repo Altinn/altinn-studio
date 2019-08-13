@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Xml.XPath;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Repository;
 using Halcyon.Web.HAL.Json;
 using Microsoft.AspNetCore.Builder;
@@ -41,6 +42,7 @@ namespace Altinn.Platform.Storage
         {
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
+            services.Configure<GeneralSettings>(Configuration.GetSection("BridgeSettings"));
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
@@ -48,6 +50,8 @@ namespace Altinn.Platform.Storage
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
+
+            services.AddHttpClient<InstancesController>();
 
             // Add HAL support (Halcyon)
             services.AddMvc().AddMvcOptions(c =>

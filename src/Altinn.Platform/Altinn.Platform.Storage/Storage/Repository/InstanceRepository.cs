@@ -184,7 +184,7 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
                             break;
 
-                        case "lastChangeDateTime":
+                        case "lastChangedDateTime":
                             queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
                             break;
 
