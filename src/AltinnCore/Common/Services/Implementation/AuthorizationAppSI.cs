@@ -115,7 +115,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
         {
-            bool result;
+            bool? result;
             string apiUrl = $"parties/{partyId}/validate?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
@@ -130,7 +130,7 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 _logger.LogError($"Validating selected party {partyId} for user {userId} failed with statuscode {response.StatusCode}");
-                return null;
+                result = null;
             }
 
             return result;
