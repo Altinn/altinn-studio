@@ -9,7 +9,9 @@ function* fetchProfileSaga({ url }: IFetchProfile): SagaIterator {
   try {
     const profile = yield call(get, url);
     yield call(
-      ProfileActions.fetchProfileFulfilled, profile);
+      ProfileActions.fetchProfileFulfilled,
+      profile,
+    );
   } catch (err) {
     yield call(ProfileActions.fetchProfileRejected, err);
   }
