@@ -310,7 +310,7 @@ namespace AltinnCore.Runtime.Controllers
             Application application = _repository.GetApplication(startServiceModel.Org, startServiceModel.Service);
             if (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Party, application.PartyTypesAllowed))
             {
-                return new StatusCodeResult(403);
+                 return new StatusCodeResult(403);
             }
 
             // Create platform service and assign to service implementation making it possible for the service implementation

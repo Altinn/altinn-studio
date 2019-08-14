@@ -89,6 +89,8 @@ const styles = createStyles({
       marginTop: '0 !important',
       marginLeft: '2.4rem',
     },
+    'paddingLeft': '0',
+    'paddingRight': '0',
   },
 });
 
