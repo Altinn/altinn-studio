@@ -62,21 +62,13 @@ namespace AltinnCore.Common.Services.Implementation
                     string partyListData = response.Content.ReadAsStringAsync().Result;
                     partyList = JsonConvert.DeserializeObject<List<Party>>(partyListData);
                 }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return partyList;
-                }
-                else
-                {
-                    _logger.LogError("Unable to fetch party list");
-                }
-
-                return null;
             }
-            catch
+            catch (Exception e)
             {
-                return partyList;
+                _logger.LogError($"Unable to retrieve party list. An error occured {e.Message}");
             }
+
+            return partyList;
         }
 
         /// <inheritdoc />
