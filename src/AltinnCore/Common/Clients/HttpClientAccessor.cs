@@ -96,22 +96,6 @@ namespace AltinnCore.Common.Clients
 
                 return _authorizationClient;
             }
-        }
-
-        /// <inheritdoc />
-        public HttpClient SBLClient
-        {
-            get
-            {
-                if (_sblClient == null)
-                {
-                    _sblClient = new HttpClient();
-                    _sblClient.BaseAddress = new Uri($"{_generalSettings.GetSBLBaseAdress}");
-                    _sblClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                }
-
-                return _sblClient;
-            }
-        }
+        }      
     }
 }

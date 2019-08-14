@@ -148,23 +148,16 @@ namespace AltinnCore.Runtime.Controllers
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             int userId = userContext.UserId;
-            bool? isValidSelection = await _authorization.ValidateSelectedParty(userId, partyId);
-            bool sblNotifiedOk = false;
 
-            if (isValidSelection != true)
+            StatusCodeResult partyUpdatedStatus = await _authorization.UpdateSelectedParty(userId, partyId);
+
+            if (partyUpdatedStatus.StatusCode == 400)
             {
-                return BadRequest($"User {userId} cannot represent party {partyId}. ");
+                return BadRequest($"User {userId} cannot represent party { partyId}.");
             }
-
-            // Notify SBL of change when running in App mode
-            if (_settings.RuntimeMode.Equals("ServiceContainer"))
+            else if (partyUpdatedStatus.StatusCode == 500)
             {
-                sblNotifiedOk = await _authorization.UpdateSelectedParty(partyId);
-            }
-
-            if (!sblNotifiedOk)
-            {
-                return StatusCode(500, "Something went wrong when updating party in SBL.");
+                return StatusCode(500, "Something went wrong when trying to update selectedparty.");
             }
 
             Response.Cookies.Append(
@@ -175,7 +168,7 @@ namespace AltinnCore.Runtime.Controllers
                 Domain = _settings.HostName
             });
 
-            return Ok();
+            return Ok("Party successfully updated");
         }
     }
 }

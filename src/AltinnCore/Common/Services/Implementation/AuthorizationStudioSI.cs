@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -44,10 +45,24 @@ namespace AltinnCore.Common.Services.Implementation
             return partyList;
         }
 
-        /// <inheritdoc />
-        public Task<bool> UpdateSelectedParty(int partyId)
+        /// <summary>
+        /// Calls ValidateSelectedParty with the provided input parameters.
+        /// </summary>
+        /// <param name="userId">The userId</param>
+        /// <param name="partyId">The partyId</param>
+        /// <returns>Http status code</returns>
+        public async Task<StatusCodeResult> UpdateSelectedParty(int userId, int partyId)
         {
-            throw new System.NotImplementedException();
+            bool? isValid = await ValidateSelectedParty(userId, partyId);
+
+            if (isValid == false)
+            {
+                return new StatusCodeResult(400);
+            }
+            else
+            {
+                return new StatusCodeResult(200);
+            }
         }
 
         /// <summary>
@@ -60,13 +75,13 @@ namespace AltinnCore.Common.Services.Implementation
         {
             bool result = false;
             List<Party> partyList = GetPartyList(userId);
-           
+
             if (partyList.Count > 0)
             {
                 result = partyList.Any(p => p.PartyId == partyId);
             }
 
-            return await Task.FromResult(result);            
+            return await Task.FromResult(result);
         }
     }
 }

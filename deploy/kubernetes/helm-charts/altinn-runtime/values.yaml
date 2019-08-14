@@ -14,8 +14,6 @@ environmentVariables:
       value: http://+:5005
     - name: GeneralSettings__HostName
       value: dev.altinn.studio
-    - name: GeneralSettings_SBLBaseAdress
-      value: https://at21.altinn.cloud/
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
     - name: ServiceRepositorySettings__ApiEndPointHost
@@ -61,8 +59,6 @@ environmentVariables:
       value: http://+:5005
     - name: GeneralSettings__HostName
       value: altinn.studio
-    - name: GeneralSettings_SBLBaseAdress
-      value: https://at21.altinn.cloud/
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
     - name: ServiceRepositorySettings__ApiEndPointHost

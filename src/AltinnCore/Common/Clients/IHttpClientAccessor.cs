@@ -29,10 +29,5 @@ namespace AltinnCore.Common.Clients
         /// An Http Authorization client that communicates with the Altinn Platform Authorization component.
         /// </summary>
         HttpClient AuthorizationClient { get; }
-
-        /// <summary>
-        /// An Http SBLClient that communicates with SBL in Altinn II. 
-        /// </summary>
-        HttpClient SBLClient { get; }
     }
 }
