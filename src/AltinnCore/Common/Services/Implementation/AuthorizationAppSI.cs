@@ -63,8 +63,9 @@ namespace AltinnCore.Common.Services.Implementation
                     partyList = JsonConvert.DeserializeObject<List<Party>>(partyListData);
                 }
             }
-            catch
+            catch (Exception e)
             {
+                _logger.LogError($"Unable to retrieve party list. An error occured {e.Message}");
             }
 
             return partyList;
