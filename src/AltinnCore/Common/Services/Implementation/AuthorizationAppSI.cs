@@ -62,27 +62,19 @@ namespace AltinnCore.Common.Services.Implementation
                     string partyListData = response.Content.ReadAsStringAsync().Result;
                     partyList = JsonConvert.DeserializeObject<List<Party>>(partyListData);
                 }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return partyList;
-                }
-                else
-                {
-                    _logger.LogError("Unable to fetch party list");
-                }
-
-                return null;
             }
             catch
             {
-                return partyList;
+
             }
+
+            return partyList;
         }
 
         /// <inheritdoc />
         public async Task<StatusCodeResult> UpdateSelectedParty(int userId, int partyId)
         {
-            // Commenting out and returning 200 to enable further testing of party selection in app.
+                  // Commenting out and returning 200 to enable further testing of party selection in app.
             /*
             string apiUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
@@ -110,7 +102,7 @@ namespace AltinnCore.Common.Services.Implementation
             */
 
             return new StatusCodeResult(200);
-        }
+             }
 
         /// <inheritdoc />
         public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
