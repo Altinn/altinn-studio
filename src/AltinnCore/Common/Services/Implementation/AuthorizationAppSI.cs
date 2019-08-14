@@ -55,7 +55,7 @@ namespace AltinnCore.Common.Services.Implementation
             JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
             try
             {
-                HttpResponseMessage response = _authClient.PostAsync(apiUrl, null).Result;
+                HttpResponseMessage response = _authClient.GetAsync(apiUrl).Result;
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
