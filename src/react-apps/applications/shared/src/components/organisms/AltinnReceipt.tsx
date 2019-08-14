@@ -7,15 +7,21 @@ import TableRow from '@material-ui/core/TableRow';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnAppTheme';
-import AltinnAttachments from '../molecules/AltinnAttachments';
-
-// import { getLanguageFromKey } from '../../utils/language';
+import { IAttachment } from '../../types/index.d';
+import { getLanguageFromKey } from '../../utils/language';
+import AltinnAttachment from '../atoms/AltinnAttachment';
+import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
-  attachments: any;
+  attachments?: IAttachment[];
+  body: string;
   instanceMetaDataObject: any;
   language: any;
-  appName: any;
+  pdf?: IAttachment[];
+  subtitle?: boolean;
+  subtitleurl?: string;
+  title: string;
+  titleSubmitted: string;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -38,7 +44,7 @@ const styles = createStyles({
 
 export function ReceiptComponent(props: IReceiptComponentProps) {
 
-  const returnInstanceMetaDataGridRow = (name: string, prop: string, classes: any, index: number, language: any) => {
+  const returnInstanceMetaDataGridRow = (name: string, prop: string, classes: any, index: number) => {
     return (
       <TableRow
         key={index}
@@ -74,27 +80,38 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
     <React.Fragment>
       <MuiThemeProvider theme={theme}>
         <Typography variant='h2'>
-          {props.appName} er sendt inn
+          {props.title}
         </Typography>
         <Table style={{ height: 'auto', width: 'auto' }} padding='none' className={props.classes.instanceMetaData}>
           <TableBody>
             {Object.keys(props.instanceMetaDataObject).map((name, i) => (
-              returnInstanceMetaDataGridRow(name, props.instanceMetaDataObject[name], props.classes, i, props.language)
+              returnInstanceMetaDataGridRow(name, props.instanceMetaDataObject[name], props.classes, i)
             ))}
           </TableBody>
         </Table>
+        {props.subtitle && (
+          <Typography variant='body1' className={props.classes.paddingTop24}>
+            <a href={props.subtitleurl}>{props.subtitle}</a>
+          </Typography>
+        )}
+
         <Typography variant='body1' className={props.classes.paddingTop24}>
-          Kopi av din kvittering er sendt til <a href=''>din innboks</a>
+          {props.body}
         </Typography>
-        <Typography variant='body1' className={props.classes.paddingTop24}>
-          Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli
-          oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi
-          referansenummer ved eventuelle henvendelser til etaten.
+        <Typography variant='h3' style={{ paddingTop: '4.1rem', paddingBottom: '0.5rem', fontWeight: 600 }}>
+          {props.titleSubmitted}
         </Typography>
-        <Typography variant='h3' style={{ paddingTop: '4.1rem' }}>
-          Følgende er sendt:
-        </Typography>
-        <AltinnAttachments />
+        <AltinnAttachment
+          attachments={props.pdf}
+        />
+        {props.attachments && (
+          <AltinnCollapsibleAttachments
+            attachments={props.attachments}
+            collapsible={props.attachments.length > 4 ? true : false}
+            title={getLanguageFromKey('shared_altinnreceipt.attachments', props.language)}
+          />
+        )}
+
       </MuiThemeProvider>
     </React.Fragment>
   );

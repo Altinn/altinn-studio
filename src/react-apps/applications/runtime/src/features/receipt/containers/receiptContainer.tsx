@@ -1,13 +1,12 @@
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
-import altinnTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
 
-export interface IReceiptContainerProvidedProps {
+interface IReceiptContainerProvidedProps {
   classes: any;
 }
 
@@ -15,11 +14,9 @@ export interface IReceiptContainerProps extends IReceiptContainerProvidedProps {
   attachments: any;
   formConfig: any;
   language: any;
-  route: any;
   profile: any;
+  route: any;
 }
-
-const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
 
@@ -34,9 +31,9 @@ const ReceiptContainer = (props: IReceiptContainerProps & RouteChildrenProps) =>
     instanceGuid: string,
     ): {} => {
 
-    const obj: {} = {};
+    const obj: any = {};
 
-    obj[getLanguageFromKey('receipt.date_sendt', language)] = '01.01.2020 / 12:21';
+    obj[getLanguageFromKey('receipt_container.date_sendt', language)] = '01.01.2020 / 12:21';
 
     let sender: string = '';
     if (profile && profile.party.person.ssn) {
@@ -44,26 +41,71 @@ const ReceiptContainer = (props: IReceiptContainerProps & RouteChildrenProps) =>
     } else if (profile) {
       sender = `${profile.party.orgNumber}-${profile.party.name}`;
     }
-    obj[getLanguageFromKey('receipt.sender', language)] = sender;
+    obj[getLanguageFromKey('receipt_container.sender', language)] = sender;
 
-    obj[getLanguageFromKey('receipt.receiver', language)] = formConfig.org;
+    obj[getLanguageFromKey('receipt_container.receiver', language)] = formConfig.org;
 
-    obj[getLanguageFromKey('receipt.ref_num', language)] = instanceGuid;
+    obj[getLanguageFromKey('receipt_container.ref_num', language)] = instanceGuid;
 
     return obj;
   };
 
+  const attachments = [
+    {
+      name: 'fila.fil',
+      iconClass: 'reg reg-attachment',
+      url: 'http://some.place',
+    },
+    {
+      name: 'fila2.fil',
+      iconClass: 'reg reg-attachment',
+      url: 'http://some.place2',
+    },
+    {
+      name: 'fila.fil',
+      iconClass: 'reg reg-attachment',
+      url: 'http://some.place',
+    },
+    {
+      name: 'fila2.fil',
+      iconClass: 'reg reg-attachment',
+      url: 'http://some.place2',
+    },
+    {
+      name: 'fila.fil',
+      iconClass: 'reg reg-attachment',
+      url: 'http://some.place',
+    },
+    {
+      name: 'fila2.fil',
+      iconClass: 'reg reg-attachment',
+      url: 'http://some.place2',
+    },
+  ];
+
+  const pdf = [{
+    name: 'InnsendtSkjema.pdf',
+    iconClass: 'reg reg-attachment',
+    url: 'http://url.til.skjema/fil.pdf',
+  }];
+
   return (
     <ReceiptComponent
-      attachments={props.attachments}
-      language={props.language}
+      // tslint:disable-next-line:max-line-length
+      title={`${props.formConfig.serviceName} ${getLanguageFromKey('receipt_container.title_part_is_submitted', props.language)}`}
+      attachments={attachments}
       instanceMetaDataObject={instanceMetaDataObject(
         props.formConfig,
         props.language,
         props.profile,
         props.route.instanceGuid,
         )}
-      appName={props.formConfig.serviceName}
+      subtitle={getLanguageFromKey('receipt_container.subtitle', props.language)}
+      subtitleurl='http://some.link'
+      pdf={pdf}
+      body={getLanguageFromKey('receipt_container.body', props.language)}
+      titleSubmitted={getLanguageFromKey('receipt_container.title_submitted', props.language)}
+      language={props.language}
     />
   );
 
