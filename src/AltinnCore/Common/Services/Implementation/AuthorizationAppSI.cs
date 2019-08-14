@@ -65,7 +65,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch
             {
-
             }
 
             return partyList;
