@@ -9,7 +9,8 @@ import * as React from 'react';
 import altinnTheme from '../../theme/altinnAppTheme';
 import { IAttachment } from '../../types/index.d';
 import { getLanguageFromKey } from '../../utils/language';
-import AltinnAttachments from '../molecules/AltinnCollapsibleAttachments';
+import AltinnAttachment from '../atoms/AltinnAttachment';
+import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
@@ -97,17 +98,17 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         <Typography variant='body1' className={props.classes.paddingTop24}>
           {props.body}
         </Typography>
-        <Typography variant='h3' style={{ paddingTop: '4.1rem', fontWeight: 600 }}>
+        <Typography variant='h3' style={{ paddingTop: '4.1rem', paddingBottom: '0.5rem', fontWeight: 600 }}>
           {props.titleSubmitted}
         </Typography>
-        <AltinnAttachments
+        <AltinnAttachment
           attachments={props.pdf}
         />
         {props.attachments && (
-          <AltinnAttachments
+          <AltinnCollapsibleAttachments
             attachments={props.attachments}
             collapsible={props.attachments.length > 4 ? true : false}
-            collapsibleTitle={getLanguageFromKey('shared_altinnreceipt.attachments', props.language)}
+            title={getLanguageFromKey('shared_altinnreceipt.attachments', props.language)}
           />
         )}
 

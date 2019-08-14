@@ -1,4 +1,5 @@
 /* tslint:disable:max-line-length */
+import { Typography } from '@material-ui/core';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -24,13 +25,13 @@ const styles = createStyles({
   },
 });
 
-interface IAltinnAttachmentsProps extends WithStyles<typeof styles> {
+interface IAltinnCollapsibleAttachmentsProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
   collapsible?: boolean;
-  collapsibleTitle?: string;
+  title?: string;
 }
 
-export function AltinnAttachments(props: IAltinnAttachmentsProps) {
+export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachmentsProps) {
   const [open, setOpen] = React.useState(true);
 
   function handleOpenClose() {
@@ -59,7 +60,7 @@ export function AltinnAttachments(props: IAltinnAttachmentsProps) {
               />
             </ListItemIcon>
             <ListItemText
-              primary={`${props.collapsibleTitle && props.collapsibleTitle} (${props.attachments && props.attachments.length})`}
+              primary={`${props.title && props.title} (${props.attachments && props.attachments.length})`}
               classes={{
                 root: classNames(props.classes.listItemTextPadding),
               }}
@@ -69,20 +70,26 @@ export function AltinnAttachments(props: IAltinnAttachmentsProps) {
             <AltinnAttachment
               attachments={props.attachments}
               nested={true}
-              listDisablePadding={true}
+              listDisableVerticalPadding={true}
             />
           </Collapse>
         </List>
       ) : (
-        <AltinnAttachment
-          attachments={props.attachments}
-          nested={false}
-          listDisablePadding={false}
-        />
+        <>
+          <Typography style={{ fontSize: 18, fontWeight: 600 }}>
+            {`${props.title && props.title} (${props.attachments && props.attachments.length})`}
+          </Typography>
+          <AltinnAttachment
+            attachments={props.attachments}
+            nested={false}
+            listDisableVerticalPadding={false}
+          />
+        </>
+
       )}
     </>
   );
 
 }
 
-export default withStyles(styles)(AltinnAttachments);
+export default withStyles(styles)(AltinnCollapsibleAttachments);

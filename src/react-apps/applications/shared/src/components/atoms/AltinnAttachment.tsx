@@ -44,7 +44,7 @@ const styles = createStyles({
 
 interface IAltinnAttachmentProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
-  listDisablePadding: boolean;
+  listDisableVerticalPadding?: boolean;
   nested?: boolean;
 }
 
@@ -61,7 +61,7 @@ function ListItemLink(props: any) {
 export function AltinnAttachment(props: IAltinnAttachmentProps) {
   return(
     <>
-      <List disablePadding={props.listDisablePadding}>
+      <List disablePadding={props.listDisableVerticalPadding ? true : false}>
         {props.attachments && props.attachments.map((attachment, index) => (
           <ListItemLink
             className={classNames(

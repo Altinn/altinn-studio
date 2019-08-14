@@ -28,11 +28,39 @@ module.exports = {
   styleguideComponents: {
     Wrapper: path.join(__dirname, '/styleguide/wrapper.tsx'),
   },
-  sections: [{
-    name: 'Components',
-    content: 'styleguide/components.md',
-    components: 'src/components/*.tsx',
-    exampleMode: 'expand',
-    usageMode: 'expand'
-  }]
+  pagePerSection: true,
+  sections: [
+    {
+      name: "Introduction",
+      content: 'styleguide/introduction.md',
+    },
+    {
+      name: "Atoms",
+      content: 'styleguide/atoms.md',
+      components: 'src/components/atoms/*.tsx',
+      exampleMode: 'expand',
+      usageMode: 'expand'
+    },
+    {
+      name: "Molecules",
+      content: 'styleguide/molecules.md',
+      components: 'src/components/molecules/*.tsx',
+      exampleMode: 'expand',
+      usageMode: 'expand'
+    },
+    {
+      name: "Organisms",
+      content: 'styleguide/organisms.md',
+      components: 'src/components/organisms/*.tsx',
+      exampleMode: 'expand',
+      usageMode: 'expand'
+    },
+    {
+      name: 'Shared Components',
+      content: 'styleguide/components.md',
+      components: 'src/components/*.tsx',
+      exampleMode: 'expand',
+      usageMode: 'expand'
+    }
+  ]
 }
