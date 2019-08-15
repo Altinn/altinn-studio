@@ -3,7 +3,17 @@ const path = require('path');
 module.exports = {
   components: 'src/components/**/*.tsx',
   webpackConfig: require('./styleguide.webpack.config'),
-  propsParser: require('react-docgen-typescript').parse,
+  propsParser: require('react-docgen-typescript').withDefaultConfig({propFilter: {skipPropsWithName: 'classes'}}).parse,
+  styles: {
+    StyleGuide: {
+      '@global html': {
+        fontSize: '10px',
+      },
+      '@global body': {
+        fontSize: '16px',
+      },
+    },
+  },
   template: {
     head: {
       links: [
@@ -63,4 +73,4 @@ module.exports = {
       usageMode: 'expand'
     }
   ]
-}
+};

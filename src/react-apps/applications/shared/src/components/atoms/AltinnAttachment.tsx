@@ -43,8 +43,11 @@ const styles = createStyles({
 });
 
 interface IAltinnAttachmentProps extends WithStyles<typeof styles> {
+  /** Attachments array with objects. See code example. */
   attachments?: IAttachment[];
+  /** Disables vertical padding (does not currently work in Styleguidist) */
   listDisableVerticalPadding?: boolean;
+  /** Adds 2rem paddingLeft */
   nested?: boolean;
 }
 
