@@ -60,7 +60,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
               />
             </ListItemIcon>
             <ListItemText
-              primary={`${props.title && props.title} (${props.attachments && props.attachments.length})`}
+              primary={`${props.title} (${props.attachments && props.attachments.length})`}
               classes={{
                 root: classNames(props.classes.listItemTextPadding),
               }}
@@ -77,7 +77,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
       ) : (
         <>
           <Typography style={{ fontSize: 18, fontWeight: 600 }}>
-            {`${props.title && props.title} (${props.attachments && props.attachments.length})`}
+            {`${props.title} (${props.attachments && props.attachments.length})`}
           </Typography>
           <AltinnAttachment
             attachments={props.attachments}

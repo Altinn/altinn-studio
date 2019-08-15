@@ -107,7 +107,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         {props.attachments && (
           <AltinnCollapsibleAttachments
             attachments={props.attachments}
-            collapsible={props.attachments.length > 4 ? true : false}
+            collapsible={Boolean(props.attachments.length > 4)}
             title={getLanguageFromKey('shared_altinnreceipt.attachments', props.language)}
           />
         )}
