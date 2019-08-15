@@ -1,5 +1,5 @@
 import App from '../app';
-import { Selector, t } from 'testcafe';
+import { Selector, t, ClientFunction } from 'testcafe';
 import axeCheck from 'axe-testcafe';
 import RunTimePage from '../page-objects/runTimePage';
 import DesignerPage from '../page-objects/designerPage';
@@ -9,6 +9,9 @@ import { AutoTestUser } from '../TestData';
 let app = new App();
 let runtime = new RunTimePage();
 let designer = new DesignerPage();
+
+
+const getCookie = ClientFunction(() => document.cookie);
 
 fixture('Regression tests of services in runtime')
   .page(app.baseUrl)
@@ -125,6 +128,21 @@ test('Fill out, save, and submit a form', async () => {
     .expect(runtime.workflowSubmit.visible).ok()
     .click(runtime.workflowSubmit)
     .expect(Selector("p").withText(t.ctx.formFillComplete).visible).ok({ timeout: 120000 })
+});
+
+
+test.only('Check that cookie for Altinn Party is set correctly', async () => {
+
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/test')
+    .switchToIframe(runtime.testBrukerIframe)
+    .expect(runtime.testUsers[0].exists).ok()
+    .hover(runtime.testUsers[0])
+    .click(runtime.testUsers[0]);
+
+  const cookies = await getCookie();
+
+  await t.expect(JSON.stringify(cookies).includes("AltinnPartyId")).ok();
 });
 
 test('axe UI accessibility test for runtime', async t => {
