@@ -1,0 +1,114 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Text;
+using Altinn.Authorization.ABAC.Constants;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+
+namespace Altinn.Authorization.ABAC.Utils
+{
+    /// <summary>
+    /// Utility that converts between JSON objects and XML objects
+    /// </summary>
+    public class XacmlJsonXmlConverter
+    {
+        /// <summary>
+        /// Converts JSON request 
+        /// </summary>
+        /// <param name="xacmlJsonRequest">The JSON Request</param>
+        /// <returns></returns>
+        public static XacmlContextRequest ConvertRequest(XacmlJsonRequest xacmlJsonRequest)
+        {
+            Guard.ArgumentNotNull(xacmlJsonRequest, nameof(xacmlJsonRequest));
+
+            ICollection<XacmlContextAttributes> contextAttributes = new Collection<XacmlContextAttributes>();
+
+            ConvertCategoryAttributes(xacmlJsonRequest.AccessSubject, XacmlConstants.MatchAttributeCategory.Subject, contextAttributes);
+            ConvertCategoryAttributes(xacmlJsonRequest.Action, XacmlConstants.MatchAttributeCategory.Action, contextAttributes);
+            ConvertCategoryAttributes(xacmlJsonRequest.Resource, XacmlConstants.MatchAttributeCategory.Resource, contextAttributes);
+            ConvertCategoryAttributes(xacmlJsonRequest.Category, null, contextAttributes);
+
+            XacmlContextRequest xacmlContextRequest = new XacmlContextRequest(false, false, contextAttributes);
+
+            return xacmlContextRequest;
+        }
+
+        /// <summary>
+        ///  Converts a Xacml XML response to a JSON object response
+        /// </summary>
+        /// <param name="xacmlContextResponse">The context response</param>
+        /// <returns></returns>
+        public static XacmlJsonResponse ConvertResponse(XacmlContextResponse xacmlContextResponse)
+        {
+            XacmlJsonResponse response = new XacmlJsonResponse();
+            response.Response = new List<XacmlJsonResult>();
+
+            foreach (XacmlContextResult xacmlResult in xacmlContextResponse.Results)
+            {
+                XacmlJsonResult jsonResult = new XacmlJsonResult();
+                jsonResult.Decision = xacmlResult.Decision.ToString();
+                jsonResult.Status = new XacmlJsonStatus();
+                jsonResult.Status.StatusCode = new XacmlJsonStatusCode();
+                jsonResult.Status.StatusCode.Value = xacmlResult.Status.StatusCode.Value.OriginalString;
+                response.Response.Add(jsonResult);
+            }
+
+            return response;
+        }
+
+        private static void ConvertCategoryAttributes(List<XacmlJsonCategory> categoryList, string categoryId, ICollection<XacmlContextAttributes> contextAttributes)
+        {
+            if (categoryList == null)
+            {
+                return;
+            }
+
+            foreach (XacmlJsonCategory subjectCategory in categoryList)
+            {
+                if (!string.IsNullOrEmpty(subjectCategory.CategoryId))
+                {
+                    categoryId = subjectCategory.CategoryId;
+                }
+
+                XacmlContextAttributes xacmlContextAttributes = new XacmlContextAttributes(new Uri(categoryId));
+
+                XacmlAttribute xacmlAttribute = null;
+
+                ICollection<XacmlAttributeValue> attributeValues = new Collection<XacmlAttributeValue>();
+
+                foreach (XacmlJsonAttribute jsonAttribute in subjectCategory.Attribute)
+                {
+                    if (xacmlAttribute == null)
+                    {
+                        xacmlAttribute = new XacmlAttribute(new Uri(jsonAttribute.AttributeId), jsonAttribute.IncludeInResult);
+                    }
+
+                    XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(ConvertDataType(jsonAttribute)), jsonAttribute.Value);
+                    xacmlAttribute.AttributeValues.Add(xacmlAttributeValue);
+                    xacmlContextAttributes.Attributes.Add(xacmlAttribute);
+            }
+
+                contextAttributes.Add(xacmlContextAttributes);
+            }
+        }
+
+        private static string ConvertDataType(XacmlJsonAttribute jsonAttribute)
+        {
+            if (string.IsNullOrEmpty(jsonAttribute.DataType))
+            {
+                return XacmlConstants.DataTypes.XML_String;
+            }
+
+            switch (jsonAttribute.DataType)
+            {
+                case "string":
+                    return XacmlConstants.DataTypes.XML_String;
+                case XacmlConstants.DataTypes.XML_String:
+                    return XacmlConstants.DataTypes.XML_String;
+                default:
+                    throw new Exception("Not supported");
+            }
+        }
+    }
+}

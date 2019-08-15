@@ -9,9 +9,11 @@ using Altinn.Authorization.ABAC;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.ModelBinding;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authorization.Controllers
 {
@@ -50,7 +52,7 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 request = ParseApiBody(model);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
@@ -65,6 +67,13 @@ namespace Altinn.Platform.Authorization.Controllers
                 xacmlContextResponse = pdp.AuthorizeAccess(request);
             }
 
+            string accept = HttpContext.Request.Headers["Accept"];
+            if (!string.IsNullOrEmpty(accept) && accept.Equals("application/json"))
+            {
+               XacmlJsonResponse jsonReponse = XacmlJsonXmlConverter.ConvertResponse(xacmlContextResponse);
+               return Ok(jsonReponse);
+            }
+                
             StringBuilder builder = new StringBuilder();
             using (XmlWriter writer = XmlWriter.Create(builder))
             {
@@ -82,6 +91,9 @@ namespace Altinn.Platform.Authorization.Controllers
 
             if (Request.ContentType.Contains("application/json"))
             {
+                XacmlJsonRequestRoot jsonRequest;
+                jsonRequest = (XacmlJsonRequestRoot) JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
+                request = XacmlJsonXmlConverter.ConvertRequest(jsonRequest.Request);
             }
             else if (Request.ContentType.Contains("application/xml"))
             {

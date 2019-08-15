@@ -923,6 +923,25 @@
             The name of the argument.
             </param>
         </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter">
+            <summary>
+            Utility that converts between JSON objects and XML objects
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter.ConvertRequest(Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest)">
+            <summary>
+            Converts JSON request 
+            </summary>
+            <param name="xacmlJsonRequest">The JSON Request</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter.ConvertResponse(Altinn.Authorization.ABAC.Xacml.XacmlContextResponse)">
+            <summary>
+             Converts a Xacml XML response to a JSON object response
+            </summary>
+            <param name="xacmlContextResponse">The context response</param>
+            <returns></returns>
+        </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser">
             <summary>
             Parser Responsible for parsing 
@@ -1041,6 +1060,62 @@
             
              This interface is implemtend by the above types to make it possible to have a generic property on the XacmlExpression type
              </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory">
+            <summary>
+            The Category object corresponds to the XML <Attributes /> element. Just like the <Attributes /> element is specific to a given XACML
+            attribute category, the Category object in JSON is specific to a given XACML attribute category.
+            http://docs.oasis-open.org/xacml/xacml-json-http/v1.1/csprd01/xacml-json-http-v1.1-csprd01.html
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.CategoryId">
+            <summary>
+            Sets or gets the CategoryId.
+            Mandatory for a Category object in the "Category" member array; otherwise, optional. See section 4.2.2.2.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Id">
+            <summary>
+            The Id of the category, mappes to attributeId in xml version of ContextRequest 
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Content">
+            <summary>
+            Optional XML conten
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Attribute">
+            <summary>
+            A list over all attributes for a given attribute Id mappes to the 
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest">
+            <summary>
+            4.2 Representation of the XACML request in JSON
+            An XACML request is represented as an object with a single member named "Request". The value of the "Request" member is a Request object.
+            http://docs.oasis-open.org/xacml/xacml-json-http/v1.1/csprd01/xacml-json-http-v1.1-csprd01.html
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.ReturnPolicyIdList">
+            <summary>
+            Gets or sets the ReturnPolicyIdList. Optional. Default false
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.CombinedDecision">
+            <summary>
+            Sets or gets the combined decision
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.Category">
+            <summary>
+            The Category object corresponds to the XML <Attributes/> element. Just like the <Attributes/> element is
+            specific to a given XACML attribute category, the Category object in JSON is specific to a given XACML attribute category.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResponse">
+            <summary>
+            The JSON Response
+            </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAdvice">
              <summary>
@@ -1961,7 +2036,7 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.XPathVersion">
             <summary>
-            The XPATH version uses
+            The XPATH version used
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.Attributes">

@@ -1,4 +1,5 @@
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,24 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 AssertEqual(expected.Results.First(), actual.Results.First());
             }
        }
+
+        public static void AssertEqual(XacmlJsonResponse expected, XacmlJsonResponse actual)
+        {
+            Assert.NotNull(actual);
+            Assert.NotNull(expected);
+            Assert.Equal(expected.Response.Count, actual.Response.Count);
+
+            if (expected.Response.Count > 0)
+            {
+                AssertEqual(expected.Response.First(), actual.Response.First());
+            }
+        }
+
+        private static void AssertEqual(XacmlJsonResult expected, XacmlJsonResult actual)
+        {
+            Assert.Equal(expected.Decision, actual.Decision);
+            Assert.Equal(expected.Status.StatusCode.Value, actual.Status.StatusCode.Value);
+        }
 
 
         private static void AssertEqual(XacmlContextResult expected, XacmlContextResult actual)

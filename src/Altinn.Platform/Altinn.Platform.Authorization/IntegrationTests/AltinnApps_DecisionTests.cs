@@ -1,6 +1,7 @@
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -36,6 +37,21 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+            // Assert
+            AssertionUtil.AssertEqual(expected, contextResponse);
+        }
+
+        [Fact]
+        public async Task PDP_Decision_JsonProfile_AltinnApps0001()
+        {
+            string testCase = "AltinnApps0001";
+            HttpClient client = GetTestClient();
+            HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateJsonProfileXacmlRequest(testCase);
+            XacmlJsonResponse expected = TestSetupUtil.ReadExpectedJsonProfileResponse(testCase);
+
+            // Act
+            XacmlJsonResponse contextResponse = await TestSetupUtil.GetXacmlJsonProfileContextResponseAsync(client, httpRequestMessage);
+
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }

@@ -88,7 +88,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         public bool CombinedDecision { get; set; }
 
         /// <summary>
-        /// The XPATH version uses
+        /// The XPATH version used
         /// </summary>
         public Uri XPathVersion { get; set; }
 
