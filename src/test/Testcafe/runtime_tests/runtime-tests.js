@@ -131,7 +131,7 @@ test('Fill out, save, and submit a form', async () => {
 });
 
 
-test.only('Check that cookie for Altinn Party is set correctly', async () => {
+test('Check that cookie for Altinn Party is set correctly', async () => {
 
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/test')
