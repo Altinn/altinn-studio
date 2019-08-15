@@ -29,7 +29,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// </summary>
     [Route("storage/api/v1/instances")]
     [ApiController]
-    public class InstancesController : Controller
+    public class InstancesController : ControllerBase
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
@@ -55,7 +55,7 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             this.logger = logger;
             this.bridgeRegistryClient = bridgeClient;
-            this.bridgeRegistryClient.BaseAddress = new Uri(generalSettings.Value.GetBridgeRegisterApiEndpoint());
+            this.bridgeRegistryClient.BaseAddress = new Uri(generalSettings.Value.GetBridgeRegisterApiEndpoint() ?? "http://bridge/");
         }
 
         /// <summary>
@@ -266,6 +266,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]
+        [Consumes("application/json", otherContentTypes: new string[] { "multipart/form-data" })]
+        [Produces("application/json")]
         public async Task<ActionResult> Post(string appId, int? instanceOwnerId, [FromBody] Instance instanceTemplate)
         {                       
             // check if metadata exists
