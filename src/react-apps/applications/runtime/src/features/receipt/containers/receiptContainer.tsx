@@ -24,12 +24,7 @@ const styles = () => createStyles({
 
 const ReceiptContainer = (props: IReceiptContainerProps & RouteChildrenProps) => {
 
-  const instanceMetaDataObject = (
-    formConfig: any,
-    language: any,
-    profile: any,
-    instanceGuid: string,
-    ): {} => {
+  const instanceMetaDataObject = (formConfig: any, language: any, profile: any, instanceGuid: string): {} => {
 
     const obj: any = {};
 
@@ -94,6 +89,7 @@ const ReceiptContainer = (props: IReceiptContainerProps & RouteChildrenProps) =>
       // tslint:disable-next-line:max-line-length
       title={`${props.formConfig.serviceName} ${getLanguageFromKey('receipt_container.title_part_is_submitted', props.language)}`}
       attachments={attachments}
+      collapsibleTitle={getLanguageFromKey('receipt_container.attachments', props.language)}
       instanceMetaDataObject={instanceMetaDataObject(
         props.formConfig,
         props.language,
@@ -105,7 +101,6 @@ const ReceiptContainer = (props: IReceiptContainerProps & RouteChildrenProps) =>
       pdf={pdf}
       body={getLanguageFromKey('receipt_container.body', props.language)}
       titleSubmitted={getLanguageFromKey('receipt_container.title_submitted', props.language)}
-      language={props.language}
     />
   );
 

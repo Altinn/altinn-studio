@@ -8,15 +8,14 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnAppTheme';
 import { IAttachment } from '../../types/index.d';
-import { getLanguageFromKey } from '../../utils/language';
 import AltinnAttachment from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
   body: string;
+  collapsibleTitle: string;
   instanceMetaDataObject: any;
-  language: any;
   pdf?: IAttachment[];
   subtitle?: boolean;
   subtitleurl?: string;
@@ -108,7 +107,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
           <AltinnCollapsibleAttachments
             attachments={props.attachments}
             collapsible={Boolean(props.attachments.length > 4)}
-            title={getLanguageFromKey('shared_altinnreceipt.attachments', props.language)}
+            title={props.collapsibleTitle}
           />
         )}
 
