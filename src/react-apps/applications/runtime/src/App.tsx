@@ -22,10 +22,15 @@ const theme = createMuiTheme(AltinnAppTheme);
 export default function() {
 
   React.useEffect(() => {
+    console.log('fetching text resources');
     TextResourcesActions.fetchTextResources();
+    console.log('fetching profile');
     ProfileActions.fetchProfile(profileApiUrl);
+    console.log('fetching language');
     LanguageActions.fetchLanguage(languageUrl, 'nb');
+    console.log('fetching applicationMetadata');
     ApplicationMetadataActions.getApplicationMetadata();
+    console.log('fetching parties');
     PartyActions.getParties();
   });
 

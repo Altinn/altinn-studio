@@ -12,13 +12,18 @@ const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedPar
 function* getPartiesSaga(): SagaIterator {
   try {
     const parties: IParty[] = yield call(get, partiesUrl);
+    console.log('getPartiesSaga -> parties', parties);
 
     const selectedParty = yield select(SelectedPartySelector);
+    console.log('getPartiesSaga -> selectedParty', selectedParty);
     if (!selectedParty) {
+      console.log('getPartiesSaga -> no selectedParty');
       const altinnPartyId = document.cookie.split(';')
         .find((cookie: string) => cookie.indexOf('AltinnPartyId=') > -1)
         .split('=')[1];
+      console.log('getPartiesSaga -> AltinnPartyId cookie = ', altinnPartyId);
       const activeParty = parties.find((party: IParty) => party.partyId.toString() === altinnPartyId);
+      console.log('getPartiesSaga -> selectingParty', activeParty);
       yield call(PartyActions.selectParty, activeParty, false);
     }
 

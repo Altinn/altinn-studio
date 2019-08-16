@@ -49,20 +49,28 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
 
   const createNewInstance = () => {
+    console.log('creating new instance');
     if (!instantiation.instanceId && !instantiation.error) {
       InstantiationActions.instantiate(org, service);
+    } else {
+      console.log(
+        'Did not call InstantionationActions, since either have an id or an instantiation-error',
+        instantiation,
+      );
     }
   };
 
   const validatatePartySelection = async () => {
     try {
       if (!selectedParty) {
+        console.log('validate party selection with no selected party doesnt work');
         return;
       }
       const { data } = await post(
         `${window.location.origin}/${org}/${service}/api/v1/parties/` +
         `validateInstantiation?partyId=${selectedParty.partyId}`,
       );
+      console.log('result from validateInstantiation-api call', data);
       setPartyValidation(data);
     } catch (err) {
       console.error(err);
@@ -72,7 +80,9 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   const validateSubscriptionHook = async () => {
     try {
+      console.log('validating subscription hook');
       const result = await verifySubscriptionHook();
+      console.log('result from validate subscription hook api call', result);
       setSubscriptionHookValid(result);
     } catch (err) {
       console.error(err);
@@ -82,6 +92,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   const renderModalAndLoader = (): JSX.Element => {
     const {classes} = props;
+    console.log('rendering modal and loader');
     return (
       <>
         <AltinnModal
@@ -113,25 +124,39 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   React.useEffect(() => {
+    console.log('instantiate.index.useEffect[selectedParty]');
     if (selectedParty !== null) {
+      console.log('instantiate.index.useEffect[selectedParty].selectedParty not null', selectedParty);
       validatatePartySelection();
     }
   }, [selectedParty]);
 
   React.useEffect(() => {
+    console.log('instantiate.index.useEffect[partyValidation]');
     if (partyValidation !== null) {
+      console.log('instantiate.index.useEffect[selectedParty].partyValidation not null', partyValidation);
       validateSubscriptionHook();
     }
   }, [partyValidation]);
 
   React.useEffect(() => {
+    console.log('instantiate.index.useEffect[subscriptionHookValid]');
     if (subscriptionHookValid !== null && subscriptionHookValid) {
+      console.log('subscriptionHook is valid. Creating instance.');
       createNewInstance();
     }
   }, [subscriptionHookValid]);
 
+  React.useEffect(() => {
+    console.log('Console log everything');
+    console.log('SelectedParty', selectedParty);
+    console.log('PartyValidation', partyValidation);
+    console.log('subscriptionHookValid', subscriptionHookValid);
+  });
+
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
+      console.log('redirecting to /error. No valid parties.');
       return (
         <Redirect
           to={{
@@ -143,6 +168,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
         />
       );
     } else {
+      console.log('redirecting to /partySelection. Has other valid parties');
       return (
         <Redirect
           to={{
@@ -156,6 +182,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
     }
   }
   if (instantiation.error !== null) {
+    console.log('redirection to /error. Instantiation-error', instantiation.error);
     return (
       <Redirect
         to={{
@@ -168,10 +195,12 @@ function InstantiateContainer(props: IServiceInfoProps) {
     );
   }
   if (instantiation.instanceId !== null && !instantiation.instantiating) {
+    console.log(`redirecting to /instance/${instantiation.instanceId}`);
     return (
       <Redirect to={`/instance/${instantiation.instanceId}`} />
     );
   } else {
+    console.log('rendering error for subscription hook');
     return (
       <>
         <AltinnAppHeader profile={profile} language={language}/>
