@@ -818,6 +818,11 @@
             Datatype XML integer
             </summary>
         </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XML_AnyURI">
+            <summary>
+            Datatype Any uri
+            </summary>
+        </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants">
             <summary>
             Constants for XML 

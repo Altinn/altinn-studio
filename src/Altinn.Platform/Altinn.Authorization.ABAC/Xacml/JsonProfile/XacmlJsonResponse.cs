@@ -9,6 +9,9 @@ namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
     /// </summary>
     public class XacmlJsonResponse
     {
+        /// <summary>
+        /// A list over JSON XACML results
+        /// </summary>
         public List<XacmlJsonResult> Response { get; set; }
     }
 }

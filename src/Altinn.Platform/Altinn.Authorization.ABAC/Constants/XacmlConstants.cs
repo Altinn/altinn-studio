@@ -810,6 +810,11 @@ namespace Altinn.Authorization.ABAC.Constants
             /// Datatype XML integer
             /// </summary>
             public const string XML_Integer = "http://www.w3.org/2001/XMLSchema#integer";
+
+            /// <summary>
+            /// Datatype Any uri
+            /// </summary>
+            public const string XML_AnyURI = "http://www.w3.org/2001/XMLSchema#anyURI";
         }
     }
 }

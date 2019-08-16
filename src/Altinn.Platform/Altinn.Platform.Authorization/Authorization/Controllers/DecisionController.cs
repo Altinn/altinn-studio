@@ -92,7 +92,7 @@ namespace Altinn.Platform.Authorization.Controllers
             if (Request.ContentType.Contains("application/json"))
             {
                 XacmlJsonRequestRoot jsonRequest;
-                jsonRequest = (XacmlJsonRequestRoot) JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
+                jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
                 request = XacmlJsonXmlConverter.ConvertRequest(jsonRequest.Request);
             }
             else if (Request.ContentType.Contains("application/xml"))

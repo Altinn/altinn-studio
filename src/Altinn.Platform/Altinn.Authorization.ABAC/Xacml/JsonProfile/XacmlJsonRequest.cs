@@ -21,6 +21,9 @@ namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
         /// </summary>
         public bool CombinedDecision { get; set; }
 
+        /// <summary>
+        /// The xpath version
+        /// </summary>
         public string XPathVersion { get; set; }
 
         /// <summary>
@@ -29,18 +32,39 @@ namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
         /// </summary>
         public List<XacmlJsonCategory> Category { get; set; }
 
+        /// <summary>
+        /// The resource attributes
+        /// </summary>
         public List<XacmlJsonCategory> Resource { get; set; }
 
+        /// <summary>
+        /// The action attributes
+        /// </summary>
         public List<XacmlJsonCategory> Action { get; set; }
 
+        /// <summary>
+        /// The subject attributes
+        /// </summary>
         public List<XacmlJsonCategory> AccessSubject { get; set; }
 
+        /// <summary>
+        /// The recipent subjet
+        /// </summary>
         public List<XacmlJsonCategory> RecipientSubject { get; set; }
 
+        /// <summary>
+        /// The intermediary subjects attributes
+        /// </summary>
         public List<XacmlJsonCategory> IntermediarySubject { get; set; }
 
+        /// <summary>
+        /// Attributes about requsting machine
+        /// </summary>
         public List<XacmlJsonCategory> RequestingMachine { get; set; }
 
+        /// <summary>
+        /// References to multiple requests
+        /// </summary>
         public XacmlJsonMultiRequests MultiRequests { get; set; }
     }
 }
