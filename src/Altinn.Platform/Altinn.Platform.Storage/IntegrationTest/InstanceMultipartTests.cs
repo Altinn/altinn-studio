@@ -8,6 +8,7 @@ using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Storage.Interface.Clients;
 using Storage.Interface.Models;
 using Xunit;
@@ -22,11 +23,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         private InstanceClient storageClient;
-        private string instanceId;
         private readonly string testOrg = "tests";
         private string testAppId = "tests/sailor";
-        private readonly int testInstanceOwnerId = 500;
-        private readonly string elementType = "default";
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -55,8 +53,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(content);
-
+                JObject jsonObject = JObject.Parse(content);
+                List<Instance> instances = jsonObject["instances"].ToObject<List<Instance>>();
+                
                 foreach (Instance instance in instances)
                 {
                     string url = $"{versionPrefix}/instances/{instance.Id}";
@@ -115,13 +114,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Store a multipart file in one post operation (metadata in cosmos and file in storage)
+        /// Store a multipart file in one post operation
         /// </summary>
         [Fact]
         public async void StoreMultiPartFileInOnePostOperation()
         {
             Instance instance = new Instance()
             {
+                Id = Guid.NewGuid().ToString(),
                 InstanceOwnerId = "1000",
                 AppId = "tests/sailor",
                 Labels = new List<string>()
@@ -130,7 +130,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 },
                 DueDateTime = DateTime.Parse("2019-10-01")
             };
-
+            
             MultipartFormDataContent form = new MultipartFormDataContent();
 
             form.Add(instance.AsJson(), "instance");
@@ -150,6 +150,31 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             // Assert
             Assert.Equal("1000", instanceResult.InstanceOwnerId);
+        }
+
+        /// <summary>
+        /// Store a json file in a post operation where it checks multipart.
+        /// </summary>
+        [Fact]
+        public async void StoreJsonInOnePostOperation()
+        {
+            Instance instance = new Instance()
+            {
+                Id = Guid.NewGuid().ToString(),
+                InstanceOwnerId = "1000",
+                AppId = "tests/sailor",
+                Labels = new List<string>()
+                {
+                    "Hei"
+                },
+                DueDateTime = DateTime.Parse("2019-10-01")
+            };
+
+            string requestUri = $"{versionPrefix}/instances?appId={instance.AppId}&instanceOwnerId={instance.InstanceOwnerId}";
+            
+            HttpResponseMessage postResponse = await client.PostAsync(requestUri, instance.AsJson());
+
+            postResponse.EnsureSuccessStatusCode();
         }
     }
 }

@@ -4,6 +4,7 @@ namespace Altinn.Platform.Storage.Controllers
     using System.Collections.Generic;
     using System.IO;
     using System.Net;
+    using System.Security.Claims;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
@@ -187,7 +188,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Formats a filename for blob storage.
         /// </summary>
-        private static string DataFileName(string appId, string instanceGuid, string dataId)
+        internal string DataFileName(string appId, string instanceGuid, string dataId)
         {
             return $"{appId}/{instanceGuid}/data/{dataId}";
         }
@@ -298,22 +299,34 @@ namespace Altinn.Platform.Storage.Controllers
                 theStream = request.Body;
                 contentType = request.ContentType;
             }
+            
+            DataElement newData = CreateDataElementHelper(elementType, instance, instanceGuid, creationTime, contentType, contentFileName, fileSize);
 
+            return newData;
+        }
+
+        /// <summary>
+        /// Creates a data element (helper method)
+        /// </summary>
+        /// <returns></returns>
+        internal DataElement CreateDataElementHelper(string elementType, Instance instance, Guid instanceGuid, DateTime creationTime, string contentType, string contentFileName, long fileSize)
+        {
             string dataId = Guid.NewGuid().ToString();
 
             string dataLink = $"{prefix}/instances/{instance.Id}/data/{dataId}";
 
-            // create new data element, store data in blob
+            string user = GetUser(User);
+
             DataElement newData = new DataElement
             {
                 // update data record
                 Id = dataId,
                 ElementType = elementType,
                 ContentType = contentType,
-                CreatedBy = User.Identity.Name,
+                CreatedBy = user,
                 CreatedDateTime = creationTime,
                 FileName = contentFileName ?? $"{dataId}.xml",
-                LastChangedBy = User.Identity.Name,
+                LastChangedBy = user,
                 LastChangedDateTime = creationTime,
 
                 DataLinks = new ResourceLinks()
@@ -326,7 +339,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             string filePath = DataFileName(instance.AppId, instanceGuid.ToString(), newData.Id.ToString());
             newData.StorageUrl = filePath;
-
             return newData;
         }
 
@@ -438,7 +450,7 @@ namespace Altinn.Platform.Storage.Controllers
             return BadRequest("Cannot update data element that is not registered");
         }
 
-        private Application GetApplication(string appId, string org, out ActionResult errorMessage)
+        protected Application GetApplication(string appId, string org, out ActionResult errorMessage)
         {
             errorMessage = null;
 
@@ -491,6 +503,16 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 errorMessage = StatusCode(500, $"Unable to get instance {instanceId}: {e}");
+            }
+
+            return null;
+        }
+
+        internal string GetUser(ClaimsPrincipal user)
+        {
+            if (user != null && User.Identity != null)
+            {
+                return User.Identity.Name;
             }
 
             return null;
