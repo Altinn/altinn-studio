@@ -41,7 +41,7 @@ const styles = createStyles({
     outline: 'none',
     marginRight: 'auto',
     marginLeft: 'auto',
-    marginTop: '10%',
+    marginTop: '9.68rem',
     marginBottom: '10%',
   },
   header: {

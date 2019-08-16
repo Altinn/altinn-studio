@@ -9,7 +9,6 @@ namespace Altinn.Platform.Receipt
     [ApiController]
     public class ReceiptController : Controller
     {
-
         [HttpGet]
         [Route("receipt/{instanceOwnerId}/{instanceId}")]
         public IActionResult Index()

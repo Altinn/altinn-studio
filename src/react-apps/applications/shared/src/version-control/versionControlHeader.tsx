@@ -10,6 +10,7 @@ import ShareChangesComponent from '../version-control/shareChanges';
 import CloneButton from './cloneButton';
 import CloneModal from './cloneModal';
 import SyncModalComponent from './syncModal';
+import { IAltinnWindow } from '../types';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;

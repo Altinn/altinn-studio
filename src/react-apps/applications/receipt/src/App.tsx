@@ -1,12 +1,17 @@
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
+import AltinnReceiptTheme from '../../shared/src/theme/altinnReceiptTheme';
 import './App.css';
+import Receipt from './features/receipt/containers/Receipt';
+
+const theme = createMuiTheme(AltinnReceiptTheme);
 
 class App extends React.Component {
   public render() {
     return (
-      <div>
-        Here comes that receipt app
-      </div>
+      <MuiThemeProvider theme={theme}>
+        <Receipt/>
+      </MuiThemeProvider>
     );
   }
 }
