@@ -52,16 +52,21 @@ namespace AltinnCore.Runtime
         /// <param name="instanceGuid">the instance guid</param>
         /// <returns></returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        [Authorize]
+
+        // [Authorize]
+        [Produces("application/json")]
         public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
-            Uri storageUrl = new Uri($"instances/{instanceId}");
+            Uri storageUrl = new Uri($"instances/{instanceId}", UriKind.Relative);
 
             HttpResponseMessage httpResponse = await storageClient.GetAsync(storageUrl);
             if (httpResponse.IsSuccessStatusCode)
             {
-                return Ok(httpResponse.Content);
+                string jsonContent = await httpResponse.Content.ReadAsStringAsync();
+                Instance instance = JsonConvert.DeserializeObject<Instance>(jsonContent);
+
+                return Ok(instance);
             }
 
             return StatusCode((int)httpResponse.StatusCode, httpResponse.ReasonPhrase);
@@ -79,8 +84,7 @@ namespace AltinnCore.Runtime
         /// <param name="app">the application name</param>
         /// <param name="instanceOwnerId">the instance owner id</param>
         [HttpPost]
-
-       // [Authorize]
+        [Authorize]
         [DisableFormValueModelBinding]
         [Consumes("application/json", otherContentTypes: new string[] { "multipart/form-data", })]
         [Produces("application/json")]
@@ -120,13 +124,13 @@ namespace AltinnCore.Runtime
 
             if (instance != null)
             {
-                return Created(GetAppSelfLink(instance), instance);
+                return Created(GetAndSetAppSelfLink(instance), instance);
             }
 
             return StatusCode(500, "Unknown error!");
         }
 
-        private string GetAppSelfLink(Instance instance)
+        private string GetAndSetAppSelfLink(Instance instance)
         {
             string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
             string url = Request.Path;
@@ -198,7 +202,6 @@ namespace AltinnCore.Runtime
             dispatchError = StatusCode((int)httpResponse.StatusCode, httpResponse.ReasonPhrase);
 
             return null;
-        }
-        
+        }        
     }
 }
