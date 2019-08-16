@@ -39,7 +39,7 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Person person = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Person));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/persons");
+            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}persons");
 
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
