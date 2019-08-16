@@ -3,8 +3,13 @@ namespace Altinn.Platform.Storage.Controllers
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
+    using System.Net.Http;
+    using System.Security.Claims;
+    using System.Text;
     using System.Threading.Tasks;
     using System.Web;
+    using Altinn.Platform.Storage.Configuration;
     using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
@@ -15,7 +20,9 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Options;
     using Microsoft.Extensions.Primitives;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Handles operations for the application instance resource
@@ -27,21 +34,28 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly ILogger logger;
+        private readonly HttpClient bridgeRegistryClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="applicationRepository">the application repository handler</param>
+        /// <param name="generalSettings">the platform settings which has the url to the registry</param>
         /// <param name="logger">the logger</param>
+        /// <param name="bridgeClient">the client to call bridge service</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
-            ILogger<InstancesController> logger)
+            IOptions<GeneralSettings> generalSettings,
+            ILogger<InstancesController> logger,
+            HttpClient bridgeClient)
         {
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
             this.logger = logger;
+            this.bridgeRegistryClient = bridgeClient;
+            this.bridgeRegistryClient.BaseAddress = new Uri(generalSettings.Value.GetBridgeRegisterApiEndpoint());
         }
 
         /// <summary>
@@ -127,7 +141,6 @@ namespace Altinn.Platform.Storage.Controllers
                 }
           
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
-                result.ContinuationToken = nextContinuationToken;
                 result.ContinuationToken = null;
 
                 HALResponse response = new HALResponse(result);
@@ -254,77 +267,49 @@ namespace Altinn.Platform.Storage.Controllers
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]
         public async Task<ActionResult> Post(string appId, int? instanceOwnerId, [FromBody] Instance instanceTemplate)
-        {
-            if (instanceTemplate == null && !instanceOwnerId.HasValue)
+        {                       
+            // check if metadata exists
+            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoErrorResult);
+            if (appInfoErrorResult != null)
             {
-                return BadRequest("Missing parameter values: instanceOwnerId must be set");
-            }
-            else if (!instanceOwnerId.HasValue && (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))) 
-            {
-                return BadRequest("Missing parameter values: instanceOwnerId must be set");
+                return appInfoErrorResult;
             }
 
-            string theInstanceOwnerId = null;
-
-            if (instanceOwnerId.HasValue)
+            // get instanceOwnerId from three possible places
+            int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
+            if (instanceOwnerErrorResult != null)
             {
-                theInstanceOwnerId = instanceOwnerId.Value.ToString();
-            }
-            else if (instanceTemplate != null)
-            {
-                theInstanceOwnerId = instanceTemplate.InstanceOwnerId;
-            }
+                return instanceOwnerErrorResult;
+            }            
 
             if (instanceTemplate == null)
             {
                 instanceTemplate = new Instance();
-            }
-
-            // TODO - also check instanceOwnerLookup!!
-
-            // check if metadata exists
-            Application appInfo;
-            try
-            {
-                appInfo = GetApplicationInformation(appId);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
-                {
-                    return NotFound($"Did not find application with appId={appId}");
-                }
-                else
-                {
-                    return StatusCode(500, $"Document database error: {dce}");
-                }
-            }
-            catch (Exception e) 
-            {
-                return StatusCode(500, $"Unable to perform request: {e}");
-            }
+            }           
 
             DateTime creationTime = DateTime.UtcNow;
 
             string org = appInfo.Org;
+            string userName = GetUser(User);
 
-            Instance createdInstance = new Instance()
-            {
-                InstanceOwnerId = theInstanceOwnerId,
-                CreatedBy = User.Identity.Name,
-                CreatedDateTime = creationTime,
-                LastChangedBy = User.Identity.Name,
-                LastChangedDateTime = creationTime,
-                AppId = appId,
-                Org = org,
+            Instance createdInstance = createdInstance = new Instance()
+                {
+                    InstanceOwnerId = ownerId.ToString(),
 
-                VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
-                DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
-                Labels = instanceTemplate.Labels,
-                PresentationField = instanceTemplate.PresentationField,
+                    CreatedBy = userName,
+                    CreatedDateTime = creationTime,
+                    LastChangedBy = userName,
+                    LastChangedDateTime = creationTime,
+                    AppId = appId,
+                    Org = org,
 
-                InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },                
-            };
+                    VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
+                    DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
+                    Labels = instanceTemplate.Labels,
+                    PresentationField = instanceTemplate.PresentationField,
+
+                    InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },
+                };
            
             if (instanceTemplate.Process != null)
             {
@@ -342,9 +327,173 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError($"Unable to create {appId} instance for {theInstanceOwnerId} due to {e}");
-                return StatusCode(500, $"Unable to create {appId} instance for {theInstanceOwnerId} due to {e}");
+                logger.LogError($"Unable to create {appId} instance for {ownerId} due to {e}");
+                return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {e}");
             }
+        }
+
+        private string GetUser(ClaimsPrincipal user)
+        {
+            if (user != null && User.Identity != null)
+            {
+                return User.Identity.Name;
+            }
+
+            return null;
+        }
+
+        private Application GetApplicationOrError(string appId, out ActionResult errorResult)
+        {
+            errorResult = null;
+            Application appInfo = null;
+
+            try
+            {
+                string org = appId.Split("/")[0];
+
+                appInfo = _applicationRepository.FindOne(appId, org).Result;                
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    errorResult = NotFound($"Did not find application with appId={appId}");
+                }
+                else
+                {
+                    errorResult = StatusCode(500, $"Document database error: {dce}");
+                }
+            }
+            catch (Exception e)
+            {
+                errorResult = StatusCode(500, $"Unable to perform request: {e}");
+            }
+
+            return appInfo;
+        }
+
+        /// <summary>
+        /// InstanceOwner can be given in three different ways:
+        ///  - instanceOwnerId is provided as query param (priority1),
+        ///  - in instanceTemplate.instanceOwnerId (priority2),
+        ///  - or instanceTemplate.instanceOwnerLookup (priority3)
+        /// </summary>
+        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceTemplate">the instance template</param>
+        /// <param name="errorResult">the errorResult. null if successful otherwise an action result</param>
+        /// <returns></returns>
+        private int GetOrLookupInstanceOwnerId(int? instanceOwnerId, Instance instanceTemplate, out ActionResult errorResult)
+        {
+            errorResult = null;          
+
+            if (instanceOwnerId.HasValue)
+            {
+                return instanceOwnerId.Value;
+            }
+            else
+            {
+                if (instanceTemplate != null)
+                {
+                    if (!string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))
+                    {
+                        return int.Parse(instanceTemplate.InstanceOwnerId);
+                    }
+                    else
+                    {                        
+                        return InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup, ref errorResult);                        
+                    }
+                }
+                else
+                {
+                    errorResult = BadRequest("InstanceOwnerId must be set, either in query param or attached in instance template object");
+                }
+            }
+
+            return 0;
+        }
+
+        private int InstanceOwnerLookup(InstanceOwnerLookup lookup, ref ActionResult errorResult)
+        {
+            if (lookup != null)
+            {
+                try
+                {
+                    string personOrOrganisationNumber = CollectIdFromLookup(lookup);
+
+                    int? instanceOwnerLookup = LookupIdFromBridgeRegistry(personOrOrganisationNumber).Result;
+
+                    if (instanceOwnerLookup.HasValue)
+                    {
+                        return instanceOwnerLookup.Value;
+                    }
+                    else
+                    {
+                        errorResult = BadRequest("Instance owner lookup failed.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    errorResult = BadRequest(e.Message);
+                }                
+            }
+            else
+            {
+                errorResult = BadRequest("InstanceOwnerLookup cannot have null value if instanceOwnerId is not set. Cannot resolve instance owner id");
+            }
+
+            return 0;
+        }
+
+        private async Task<int?> LookupIdFromBridgeRegistry(string id)
+        {
+            try
+            {
+                Uri bridgeRegistryLookupUri = new Uri("parties/lookup", UriKind.Relative);
+
+                string idAsJson = JsonConvert.SerializeObject(id);
+
+                HttpResponseMessage response = await bridgeRegistryClient.PostAsync(
+                    bridgeRegistryLookupUri,
+                    new StringContent(idAsJson, Encoding.UTF8, "application/json"));
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string partyIdString = await response.Content.ReadAsStringAsync();
+
+                    return JsonConvert.DeserializeObject<int>(partyIdString);
+                }
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Lookup of instance owner id failed! {e.Message}");
+            }
+
+            return null;
+        }
+
+        private static string CollectIdFromLookup(InstanceOwnerLookup lookup)
+        {
+            string id = null;
+
+            if (!string.IsNullOrEmpty(lookup.PersonNumber) && !string.IsNullOrEmpty(lookup.OrganisationNumber))
+            {
+                throw new ArgumentException("InstanceOwnerLookup cannot have both PersonNumber and OrganisationNumber set.");
+            }
+
+            if (!string.IsNullOrEmpty(lookup.PersonNumber))
+            {
+                id = lookup.PersonNumber;
+            }
+            else if (!string.IsNullOrEmpty(lookup.OrganisationNumber))
+            {
+                id = lookup.OrganisationNumber;
+            }
+            else
+            {
+                throw new ArgumentException("InstanceOwnerLookup must have either PersonNumber or OrganisationNumber set.");
+            }
+
+            return id;
         }
 
         /// <summary>
@@ -459,15 +608,6 @@ namespace Altinn.Platform.Storage.Controllers
                     return StatusCode(500, $"Unknown exception in delete: {e}");
                 }
             }
-        }
-
-        private Application GetApplicationInformation(string appId)
-        {
-            string org = appId.Split("/")[0];
-
-            Application application = _applicationRepository.FindOne(appId, org).Result;
-
-            return application;
         }
     }
 }

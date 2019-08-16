@@ -41,3 +41,9 @@ export interface IProfile extends IParty {
   party: IParty;
   userType: number;
 }
+
+export interface IAttachment {
+  name: string;
+  iconClass: string;
+  url: string;
+}

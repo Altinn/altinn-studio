@@ -94,6 +94,49 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud/authorization/api/v1/
     - name: PlatformSettings__ApiAuthorizationEndpointHost
       value: https://platform.at21.altinn.cloud
+  staging:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: staging.altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://staging.altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: https://platform.at21.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
 
 volumeMounts:
   - name: altinn-repo-storage

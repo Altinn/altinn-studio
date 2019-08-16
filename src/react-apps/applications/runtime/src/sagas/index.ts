@@ -10,8 +10,11 @@ import FormLayoutSagas from '../features/form/layout/sagas';
 import FormRulesSagas from '../features/form/rules/sagas';
 import FormValidationSagas from '../features/form/validation/sagas';
 import FormWorkflowSagas from '../features/form/workflow/sagas';
+import InstantiationSagas from '../features/instantiate/instantiation/sagas';
+import ApplicationMetadataSagas from '../shared/resources/applicationMetadata/sagas';
 import Attachments from '../shared/resources/attachments/attachmentSagas';
-import LanguageSagas from '../shared/resources/language/langaugeSagas';
+import LanguageSagas from '../shared/resources/language/languageSagas';
+import PartySagas from '../shared/resources/party/partySagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
 import TextResourcesSagas from '../shared/resources/textResources/sagas';
 
@@ -28,6 +31,9 @@ function* root(): SagaIterator {
   yield fork(TextResourcesSagas);
   yield fork(ProfileSagas);
   yield fork(FormValidationSagas);
+  yield fork(PartySagas);
+  yield fork(ApplicationMetadataSagas);
+  yield fork(InstantiationSagas);
 }
 
 export const initSagas: () => Task = () => sagaMiddleware.run(root);
