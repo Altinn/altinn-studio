@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Altinn.Platform.Storage.Helpers
 {
@@ -11,8 +8,11 @@ namespace Altinn.Platform.Storage.Helpers
     /// </summary>
     public static class DateTimeHelper
     {
+        public static readonly string Iso8601Format = "yyyy-MM-ddTHH:mm:ss.sss";
+        public static readonly string Iso8601UtcFormat = Iso8601Format + "Z";
+
         /// <summary>
-        /// converts a date to universal time.
+        /// Converts a date to universal time. If unspecified timezone we want to interpret it as Utc time and not the local culture of the microservice.
         /// </summary>
         /// <param name="date">the date to convert</param>
         /// <returns>the converted date or null if no input</returns>
@@ -20,7 +20,23 @@ namespace Altinn.Platform.Storage.Helpers
         {
             if (date.HasValue)
             {
-                return date.Value.ToUniversalTime();
+                DateTime timestamp = date.Value;
+
+                if (timestamp.Kind == DateTimeKind.Utc)
+                {
+                    return timestamp;
+                }
+                else if (timestamp.Kind == DateTimeKind.Local)
+                {
+                    return timestamp.ToUniversalTime();
+                }
+                else if (timestamp.Kind == DateTimeKind.Unspecified)
+                {
+                    // force unspecified timezone to be interpreted as UTC
+                    string unspecifiedTimezoneDateTime = timestamp.ToString(Iso8601Format, CultureInfo.InvariantCulture);
+                    DateTime utc = DateTime.ParseExact(unspecifiedTimezoneDateTime + "Z", Iso8601UtcFormat, CultureInfo.InvariantCulture);
+                    return utc.ToUniversalTime();
+                }
             }
 
             return null;
@@ -33,7 +49,17 @@ namespace Altinn.Platform.Storage.Helpers
         /// <returns></returns>
         public static DateTime ParseAndConvertToUniversalTime(string dateTimeString)
         {
-            return DateTime.Parse(dateTimeString, null, DateTimeStyles.AdjustToUniversal);
-        }        
+            return DateTime.Parse(dateTimeString, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
+        }
+
+        /// <summary>
+        /// Formats date time to string according to Iso8691 utc.
+        /// </summary>
+        /// <param name="date">the date to format</param>
+        /// <returns></returns>
+        public static string RepresentAsIso8601Utc(DateTime date)
+        {
+            return date.ToString(Iso8601UtcFormat, CultureInfo.InvariantCulture);
+        }
     }
 }
