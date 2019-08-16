@@ -122,6 +122,27 @@ export default class DesignerPage {
     this.copyUrlRepoButton = Selector('#copy-repository-url-button')
     this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
     this.dataModellLink = Selector('a').withExactText('Gå til datamodell side');
+
+    //serviceLogicmenu
+    this.openserviceLogicmenu = Selector('#serviceLogicmenu').find('button');
+    this.connectRulesButton = Selector('p').withExactText('Regler').nextSibling('button');
+    this.connectConditionalRendering = Selector('p').withExactText('Betingede renderingstilkoblinger').nextSibling('button');
+    this.addedRules = Selector('.a-topTasks').find('button')
+    this.editValidations = Selector('span').withExactText('Rediger valideringer');
+    this.editDynamic = Selector('span').withExactText('Rediger dynamikk');
+    this.editCalculations = Selector('span').withExactText('Rediger kalkuleringer');
+
+    //rulesmodal
+    this.rulesConnectionModal = Selector('span').withExactText('Konfigurer regler');
+    this.rulesDropDown = Selector('select').withAttribute('name', 'selectRule');
+    this.rulesList = this.rulesDropDown.find('option');
+    this.saveRulesButton = Selector('button').withExactText('Lagre');
+    this.deleteRulesButton = Selector('button').withExactText('Slett');
+
+    //Rendering connections modal
+    this.renderingConnectionModal = Selector('span').withExactText('Konfigurer betingede renderingsregler');
+    this.conditionalRulesDropDown = Selector('select').withAttribute('name', 'selectConditionalRule');
+    this.conditionalRulesList = this.conditionalRulesDropDown.find('option');
   }
 
   async deleteDataModelTexts(numberToDelete) {
