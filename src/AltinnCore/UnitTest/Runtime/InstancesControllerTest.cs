@@ -66,7 +66,7 @@ namespace AltinnCore.UnitTest.Runtime
                 },
             };
 
-            ActionResult<Instance> result = controller.Post("test/app", 20000004);
+            ActionResult<Instance> result = controller.Post("test", "app", 20000004);
 
             Instance instance = (Instance)((CreatedResult)result.Result).Value;
 
@@ -147,7 +147,7 @@ namespace AltinnCore.UnitTest.Runtime
                 },
             };
 
-            ActionResult<Instance> actionResult = controller.Post("tdd/apptest", null);
+            ActionResult<Instance> actionResult = controller.Post("tdd", "apptest", null);
 
             Assert.IsType<CreatedResult>(actionResult.Result);
             Instance createdInstance = (Instance)((CreatedResult)actionResult.Result).Value;

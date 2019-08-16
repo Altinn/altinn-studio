@@ -52,8 +52,7 @@ namespace AltinnCore.Runtime
         /// <param name="instanceGuid">the instance guid</param>
         /// <returns></returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-
-        // [Authorize]
+        [Authorize]
         [Produces("application/json")]
         public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid)
         {
@@ -65,6 +64,7 @@ namespace AltinnCore.Runtime
             {
                 string jsonContent = await httpResponse.Content.ReadAsStringAsync();
                 Instance instance = JsonConvert.DeserializeObject<Instance>(jsonContent);
+                GetAndSetAppSelfLink(instance);
 
                 return Ok(instance);
             }
@@ -189,8 +189,11 @@ namespace AltinnCore.Runtime
         {
             dispatchError = null;
             StreamContent content = new StreamContent(request.Body);
-            content.Headers.Add("Content-Type", request.ContentType);
-           
+            if (!string.IsNullOrEmpty(request.ContentType))
+            {
+                content.Headers.Add("Content-Type", request.ContentType);
+            }
+
             HttpResponseMessage httpResponse = storageClient.PostAsync(storageUri, content).Result;
 
             if (httpResponse.IsSuccessStatusCode)
