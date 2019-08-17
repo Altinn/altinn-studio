@@ -51,10 +51,75 @@ namespace Altinn.Authorization.ABAC.Utils
                 jsonResult.Status = new XacmlJsonStatus();
                 jsonResult.Status.StatusCode = new XacmlJsonStatusCode();
                 jsonResult.Status.StatusCode.Value = xacmlResult.Status.StatusCode.Value.OriginalString;
+
+                jsonResult.Obligations = ConvertObligations(xacmlResult.Obligations);
+
                 response.Response.Add(jsonResult);
             }
 
             return response;
+        }
+
+        private static List<XacmlJsonObligationOrAdvice> ConvertObligations(ICollection<XacmlObligation> obligations)
+        {
+            if (obligations == null && obligations.Count == 0)
+            {
+                return null;
+            }
+
+            List<XacmlJsonObligationOrAdvice> jsonObligations = new List<XacmlJsonObligationOrAdvice>();
+
+            foreach (XacmlObligation obligation in obligations)
+            {
+                jsonObligations.Add(ConvertObligation(obligation));
+            }
+
+            return jsonObligations;
+        }
+
+        private static XacmlJsonObligationOrAdvice ConvertObligation(XacmlObligation obligation)
+        {
+            XacmlJsonObligationOrAdvice xacmlJsonObligationOrAdvice = new XacmlJsonObligationOrAdvice();
+            xacmlJsonObligationOrAdvice.Id = obligation.ObligationId.OriginalString;
+            xacmlJsonObligationOrAdvice.AttributeAssignment = ConvertToAttributeAssignments(obligation.AttributeAssignment);
+
+            return xacmlJsonObligationOrAdvice;
+        }
+
+        private static List<XacmlJsonAttributeAssignment> ConvertToAttributeAssignments(ICollection<XacmlAttributeAssignment> attributeAssignments)
+        {
+            if (attributeAssignments == null || attributeAssignments.Count == 0)
+            {
+                return null;
+            }
+
+            List<XacmlJsonAttributeAssignment> jsonAttributeAssignments = new List<XacmlJsonAttributeAssignment>();
+
+            foreach (XacmlAttributeAssignment attributeAssignment in attributeAssignments)
+            {
+                jsonAttributeAssignments.Add(ConvertAttributeAssignment(attributeAssignment));
+            }
+
+            return jsonAttributeAssignments;
+        }
+
+        private static XacmlJsonAttributeAssignment ConvertAttributeAssignment(XacmlAttributeAssignment attributeAssignment)
+        {
+            if (attributeAssignment == null)
+            {
+                return null;
+            }
+
+            XacmlJsonAttributeAssignment xacmlJsonAttributeAssignment = new XacmlJsonAttributeAssignment()
+            {
+                AttributeId = attributeAssignment.AttributeId.OriginalString,
+                Category = attributeAssignment.Category.OriginalString,
+                DataType = attributeAssignment.DataType.OriginalString,
+                Issuer = attributeAssignment.Issuer,
+                Value = attributeAssignment.Value,
+            };
+
+            return xacmlJsonAttributeAssignment;
         }
 
         private static void ConvertCategoryAttributes(List<XacmlJsonCategory> categoryList, string categoryId, ICollection<XacmlContextAttributes> contextAttributes)

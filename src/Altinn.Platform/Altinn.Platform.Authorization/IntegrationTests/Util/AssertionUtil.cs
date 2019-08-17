@@ -38,6 +38,36 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
         {
             Assert.Equal(expected.Decision, actual.Decision);
             Assert.Equal(expected.Status.StatusCode.Value, actual.Status.StatusCode.Value);
+            AssertEqual(expected.Obligations, actual.Obligations);
+        }
+
+        private static void AssertEqual(List<XacmlJsonObligationOrAdvice> expected, List<XacmlJsonObligationOrAdvice> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+
+            AssertEqual(expected.FirstOrDefault(), actual.FirstOrDefault());
+        }
+
+        private static void AssertEqual(XacmlJsonObligationOrAdvice expected, XacmlJsonObligationOrAdvice actual)
+        {
+            Assert.Equal(expected.AttributeAssignment.Count, actual.AttributeAssignment.Count);
+
+            AssertEqual(expected.AttributeAssignment.FirstOrDefault(), actual.AttributeAssignment.FirstOrDefault());
+        }
+
+        private static void AssertEqual(XacmlJsonAttributeAssignment expected, XacmlJsonAttributeAssignment actual)
+        {
+            Assert.Equal(expected.AttributeId, actual.AttributeId);
+            Assert.Equal(expected.Category, actual.Category);
+            Assert.Equal(expected.DataType, actual.DataType);
+            Assert.Equal(expected.Issuer, actual.Issuer);
+            Assert.Equal(expected.Value, actual.Value);
         }
 
 
