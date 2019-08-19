@@ -63,7 +63,16 @@ namespace AltinnCore.Runtime.Controllers
                 }
             }
 
-            return Ok(userContext.PartyId);       
+            // Setting cookie to partyID of logged in user.
+            Response.Cookies.Append(
+            _settings.GetAltinnPartyCookieName,
+            userContext.PartyId.ToString(),
+            new CookieOptions
+            {
+                Domain = _settings.HostName
+            });
+
+            return Ok(userContext.PartyId);
         }
 
         /// <summary>
