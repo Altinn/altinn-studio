@@ -62,7 +62,7 @@ namespace Altinn.Authorization.ABAC.Utils
 
         private static List<XacmlJsonObligationOrAdvice> ConvertObligations(ICollection<XacmlObligation> obligations)
         {
-            if (obligations == null && obligations.Count == 0)
+            if (obligations == null || obligations.Count == 0)
             {
                 return null;
             }

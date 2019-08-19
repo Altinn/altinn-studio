@@ -773,6 +773,11 @@ namespace Altinn.Authorization.ABAC.Constants
             /// Verify that one one integer of that value exist
             /// </summary>
             public const string IntegerOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:integer-one-and-only";
+
+            /// <summary>
+            /// Verify that time bag size is 1
+            /// </summary>
+            public const string TimeBagSize = "urn:oasis:names:tc:xacml:1.0:function:time-bag-size";
         }
 
         /// <summary>

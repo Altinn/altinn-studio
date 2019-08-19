@@ -783,6 +783,11 @@
             Verify that one one integer of that value exist
             </summary>
         </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.TimeBagSize">
+            <summary>
+            Verify that time bag size is 1
+            </summary>
+        </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes">
             <summary>
             Prefixed used in namespaces when writing to XML

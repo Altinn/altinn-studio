@@ -135,6 +135,11 @@ namespace Altinn.Authorization.ABAC.Xacml
                 return XacmlAttributeMatchResult.ToManyAttributes;
             }
 
+            if (!ValidateBagFunction(xacmlContextAttributes, policyConditionAttributeValue, xacmlApply, attributeDesignator))
+            {
+                return XacmlAttributeMatchResult.ToManyAttributes;
+            }
+
             return Evalute(xacmlContextAttributes, policyConditionAttributeValue, attributeDesignator);
         }
 
@@ -162,6 +167,57 @@ namespace Altinn.Authorization.ABAC.Xacml
             }
 
             return XacmlAttributeMatchResult.RequiredAttributeMissing;
+        }
+
+        private bool ValidateBagFunction(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply, XacmlAttributeDesignator attributeDesignator)
+        {
+            if (xacmlApply == null)
+            {
+                // If there is noe xacmlApply there is no bag function. (at least my understanding now)
+                return true;
+            }
+
+            string applyfunction = xacmlApply.FunctionId.OriginalString;
+
+            switch (applyfunction)
+            {
+                case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
+                    int bagSize = GetBagSize(contextAttributes, attributeDesignator);
+                    if (int.Parse(policyConditionAttributeValue.Value).Equals(bagSize))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                default:
+                    break;
+            }
+
+            return true;
+        }
+
+        private int GetBagSize(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeDesignator attributeDesignator)
+        {
+            int attributeCount = 0;
+
+            foreach (XacmlContextAttributes contextAttribute in contextAttributes)
+            {
+                foreach (XacmlAttribute contextAttributeValue in contextAttribute.Attributes)
+                {
+                    if (contextAttributeValue.AttributeId.Equals(attributeDesignator.AttributeId))
+                    {
+                        foreach (XacmlAttributeValue xacmlAttributeValue in contextAttributeValue.AttributeValues)
+                        {
+                            if (xacmlAttributeValue.DataType.OriginalString.Equals(attributeDesignator.DataType.OriginalString))
+                            {
+                                attributeCount++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return attributeCount;
         }
 
         private bool ValidateSingleElementCondition(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply, XacmlAttributeDesignator attributeDesignator)

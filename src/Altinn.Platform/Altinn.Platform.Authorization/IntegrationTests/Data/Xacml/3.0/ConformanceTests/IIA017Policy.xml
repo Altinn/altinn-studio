@@ -8,6 +8,8 @@
         <Description>
             Anyone can perform any action on any resource if
             there is a current-time attribute.
+            Altinn Comment. This scenario cant be right. The request is missing this.
+            We have changed the expected response
         </Description>
         <Condition>
 <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:integer-equal">

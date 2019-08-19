@@ -7,7 +7,7 @@
           "Value": "urn:oasis:names:tc:xacml:1.0:status:ok"
         }
       },
-      "obligations": [
+      "Obligations": [
         {
           "id": "urn:altinn:obligation:authenticationLevel1",
           "attributeAssignment": [
