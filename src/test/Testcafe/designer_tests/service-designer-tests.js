@@ -137,7 +137,7 @@ test("Instantiation of an access controlled service not possible", async () => {
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.startSendingIn.exists).ok({ timeout: 120000 })
-    .setNativeDialogHandler((type,text,url) => {
+    .setNativeDialogHandler((type, text, url) => {
       return false;
     })
     .click(runtime.startSendingIn);
@@ -145,4 +145,50 @@ test("Instantiation of an access controlled service not possible", async () => {
 
 test('Automated accessibility test for designer page', async t => {
   axeCheck(t);
+});
+
+test('Configure and delete rules', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/uieditor')
+    .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
+    .click(designer.openserviceLogicmenu)
+    .expect(designer.connectRulesButton.exists).ok()
+    .click(designer.connectRulesButton)
+    .expect(designer.rulesConnectionModal.exists).ok({ timeout: 10000 })
+    .expect(designer.rulesDropDown.exists).ok()
+    .click(designer.rulesDropDown)
+    .click(designer.rulesList.withText('sum'))
+    .click(designer.saveRulesButton)
+    .expect(designer.addedRules.withExactText('sum').exists).ok()
+    .click(designer.addedRules.withExactText('sum'))
+    .expect(designer.deleteRulesButton.exists).ok()
+    .click(designer.deleteRulesButton)
+});
+
+test('Links in Service Logic menu', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/uieditor')
+    .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
+    .click(designer.openserviceLogicmenu)
+    .expect(designer.editValidations.exists).ok()
+    .expect(designer.editDynamic.exists).ok()
+    .expect(designer.editCalculations.exists).ok()
+});
+
+test('Add and delete conditional rendering connections', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/uieditor')
+    .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })
+    .click(designer.openserviceLogicmenu)
+    .expect(designer.connectConditionalRendering.exists).ok()
+    .click(designer.connectConditionalRendering)
+    .expect(designer.renderingConnectionModal.exists).ok({ timeout: 10000 })
+    .expect(designer.conditionalRulesDropDown.exists).ok()
+    .click(designer.conditionalRulesDropDown)
+    .click(designer.conditionalRulesList.withText('biggerThan10'))
+    .click(designer.saveRulesButton)
+    .expect(designer.addedRules.withExactText('biggerThan10').exists).ok()
+    .click(designer.addedRules.withExactText('biggerThan10'))
+    .expect(designer.deleteRulesButton.exists).ok()
+    .click(designer.deleteRulesButton)
 });
