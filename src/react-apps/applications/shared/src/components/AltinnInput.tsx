@@ -1,4 +1,4 @@
-import { createMuiTheme, FormControl, TextField } from '@material-ui/core';
+import { createMuiTheme, FormControl, Grid, TextField } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -12,6 +12,7 @@ export interface IAltinnInputCompontentProvidedProps {
   fullWidth?: boolean;
   width?: number;
   disabled?: boolean;
+  iconString?: string;
 }
 
 export interface IAltinnInputComponentState {
@@ -37,15 +38,16 @@ const styles = {
   },
   altinnInputIcon: {
     color: theme.altinnPalette.primary.black,
-    fontSize: '30px',
-    marginRight: '10px',
+    fontSize: '25px',
+    marginLeft: '5px',
+    padding: 6,
   },
 };
 
 // tslint:disable-next-line:max-line-length
 export class AltinnInput extends React.Component<IAltinnInputCompontentProvidedProps, IAltinnInputComponentState> {
   public render() {
-    const { classes } = this.props;
+    const { classes, iconString } = this.props;
     return (
       <FormControl
         classes={{
@@ -59,16 +61,21 @@ export class AltinnInput extends React.Component<IAltinnInputCompontentProvidedP
           width: this.props.width ? this.props.width : null,
         }}
       >
-        <TextField
-          disabled={this.props.disabled}
-          id={this.props.id}
-          placeholder={this.props.placeholder}
-          onChange={this.props.onChangeFunction}
-          InputProps={{
-            disableUnderline: true,
-            classes: { root: classNames(classes.altinnInput) },
-          }}
-        />
+        <Grid item={true}>
+          {!iconString !== null &&
+            <i className={`${classes.altinnInputIcon} ${iconString}`} />
+          }
+          <TextField
+            disabled={this.props.disabled}
+            id={this.props.id}
+            placeholder={this.props.placeholder}
+            onChange={this.props.onChangeFunction}
+            InputProps={{
+              disableUnderline: true,
+              classes: { root: classNames(classes.altinnInput) },
+            }}
+          />
+        </Grid>
       </FormControl>
     );
   }

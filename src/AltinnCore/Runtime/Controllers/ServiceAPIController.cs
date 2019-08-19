@@ -452,7 +452,7 @@ namespace AltinnCore.Runtime.Controllers
                     CurrentTask = currentState.State.ToString(),
                     IsComplete = false,
                 };
-                
+         
                 Instance updatedInstance = await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.PartyId, instanceId);
 
                 Response.StatusCode = 200;

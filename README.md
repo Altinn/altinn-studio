@@ -82,7 +82,7 @@ Navigate to the Designer folder. The first time running, or after any package ch
 
 ```cmd
 cd src/AltinnCore/Designer
-npm install
+npm ci
 npm run gulp-install-deps
 ```
 
@@ -98,7 +98,7 @@ If you are not going to edit the designer react app you can use
 
 ```cmd
 cd src\AltinnCore\Designer
-npm install
+npm ci
 npm run gulp
 dotnet run
 ```
@@ -116,7 +116,7 @@ Navigate to the Runtime folder. Build and run the code.
 
 ```cmd
 cd src/AltinnCore/Runtime
-npm install
+npm ci
 npm run gulp # first time only
 npm run gulp-develop
 ```
@@ -125,7 +125,7 @@ If you are not going to edit the runtime react app you can use
 
 ```cmd
 cd src/AltinnCore/Runtime
-npm install
+npm ci
 npm run gulp
 dotnet run
 ```

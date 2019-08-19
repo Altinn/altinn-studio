@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AltinnCore.Authentication.JwtCookie;
@@ -8,6 +10,7 @@ using AltinnCore.Common.Clients;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -21,7 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
-        private readonly HttpClient _client;
+        private readonly HttpClient _authClient;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -38,7 +41,7 @@ namespace AltinnCore.Common.Services.Implementation
                 ILogger<AuthorizationAppSI> logger)
         {
             _httpContextAccessor = httpContextAccessor;
-            _client = httpClientAccessor.AuthorizationClient;
+            _authClient = httpClientAccessor.AuthorizationClient;
             _cookieOptions = cookieOptions.Value;
             _logger = logger;
         }
@@ -49,42 +52,67 @@ namespace AltinnCore.Common.Services.Implementation
             List<Party> partyList = null;
             string apiUrl = $"parties?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
             try
             {
-                HttpResponseMessage response = _client.PostAsync(apiUrl, null).Result;
+                HttpResponseMessage response = _authClient.GetAsync(apiUrl).Result;
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string partyListData = response.Content.ReadAsStringAsync().Result;
                     partyList = JsonConvert.DeserializeObject<List<Party>>(partyListData);
                 }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return partyList;
-                }
-                else
-                {
-                    _logger.LogError("Unable to fetch party list");
-                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unable to retrieve party list. An error occured {e.Message}");
+            }
 
-                return null;
+            return partyList;
+        }
+
+        /// <inheritdoc />
+        public async Task<StatusCodeResult> UpdateSelectedParty(int userId, int partyId)
+        {
+            // Commenting out and returning 200 to enable further testing of party selection in app.
+            /*
+            string apiUrl = $"parties/{partyId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
+            StatusCodeResult result = null;
+
+            try
+            {
+                HttpResponseMessage response = await _authClient.PutAsync(apiUrl, null);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    result = new StatusCodeResult(200);
+                }
+                else if (response.StatusCode == HttpStatusCode.BadRequest)
+                {
+                    result = new StatusCodeResult(400);
+                }
             }
             catch
             {
-                return partyList;
+                result = new StatusCodeResult(500);
             }
+
+            return result;
+            */
+
+            return new StatusCodeResult(200);
         }
 
         /// <inheritdoc />
         public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
         {
-            bool? result = null;
+            bool? result;
             string apiUrl = $"parties/{partyId}/validate?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
 
-            HttpResponseMessage response = await _client.GetAsync(apiUrl);
+            HttpResponseMessage response = await _authClient.GetAsync(apiUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
@@ -94,6 +122,7 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 _logger.LogError($"Validating selected party {partyId} for user {userId} failed with statuscode {response.StatusCode}");
+                result = null;
             }
 
             return result;

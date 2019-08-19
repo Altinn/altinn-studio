@@ -230,12 +230,11 @@ namespace AltinnCore.Common.Services.Implementation
                 File.WriteAllText(filePath, applicationMetadataAsJson, Encoding.UTF8);
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError("Something went wrong when trying to update application metadata ", ex);
                 return false;
             }
-
         }
 
         /// <summary>
