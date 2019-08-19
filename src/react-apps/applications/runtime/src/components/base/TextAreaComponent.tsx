@@ -42,7 +42,7 @@ export class TextAreaComponent
           onChange={this.onDataChanged}
           disabled={this.props.readOnly}
           style={{ resize: 'none' }} // This is prone to change soon, implemented inline until then. See issue #1116
-          className={(this.props.isValid ? 'form-control a-textarea ' : 'form-control validation-error')
+          className={(this.props.isValid ? 'form-control a-textarea ' : 'form-control a-textarea validation-error')
             + (this.props.readOnly ? ' disabled' : '')}
           value={this.state.formData}
         />

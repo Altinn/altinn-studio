@@ -60,7 +60,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
   }
 
   public isOptionSelected = (option: string) => {
-    return this.state.selected.includes(option);
+    return this.state.selected.indexOf(option) > -1;
   }
 
   public emptyFunction = (): string => {

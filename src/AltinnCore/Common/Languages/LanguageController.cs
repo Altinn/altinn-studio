@@ -72,6 +72,7 @@ namespace AltinnCore.Designer.Controllers
                 }
 
                 outerDict.Add(section.SectionName, objDict);
+                objDict = new Dictionary<string, string>();
             }
 
             watch.Stop();

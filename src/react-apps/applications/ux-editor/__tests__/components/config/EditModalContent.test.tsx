@@ -156,4 +156,25 @@ describe('>>> containers/EditModalContent', () => {
     expect(spy).toHaveBeenCalledWith('min');
     expect(instance.state.component.required).toBe(false);
   });
+  it('+++ should return button spesific content when type button', () => {
+    mockComponent = {
+      dataModelBindings: {},
+      readOnly: false,
+      required: false,
+      textResourceBindings: {
+        title: 'Button',
+      },
+      type: 'Button',
+    };
+    const mountedEditModalContent = mount(
+      <Provider store={mockStore}>
+        <EditModalContent
+          component={mockComponent}
+          language={mockLanguage}
+          handleComponentUpdate={mockHandleComponentUpdate}
+        />
+      </Provider>,
+    );
+    expect(mountedEditModalContent.find('input').length).toBe(2);
+  });
 });

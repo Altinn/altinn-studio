@@ -43,13 +43,13 @@ namespace Altinn.Platform.Authorization.Helpers
                 }
             }
 
-            if (context.Request.Cookies["altinncorereportee"] != null)
+            if (context.Request.Cookies["AltinnStudioRuntime"] != null)
             {
-                userContext.ReporteeId = Convert.ToInt32(context.Request.Cookies["altinncorereportee"]);
+                userContext.PartyId = Convert.ToInt32(context.Request.Cookies["AltinnStudioRuntime"]);
             }
             else
             {
-                userContext.ReporteeId = userContext.PartyId;
+                userContext.PartyId = userContext.PartyId;
             }
 
             return userContext;

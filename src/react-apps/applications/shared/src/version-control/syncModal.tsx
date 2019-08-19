@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface ISyncModalComponentProvidedProps {
+export interface ISyncModalComponentProps {
   classes: any;
   anchorEl: any;
   header?: string;
@@ -14,10 +14,6 @@ export interface ISyncModalComponentProvidedProps {
   shouldShowCommitBox?: boolean;
   handleClose: any;
   btnClick?: any;
-}
-
-export interface ISyncModalComponentProps extends ISyncModalComponentProvidedProps {
-
 }
 
 export interface ISyncModalComponentState {
@@ -174,7 +170,13 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
           }
 
           {this.props.btnText &&
-            <Button variant='contained' color='primary' className={classes.button} onClick={this.btnClickedHandler}>
+            <Button
+              variant='contained'
+              color='primary'
+              className={classes.button}
+              onClick={this.btnClickedHandler}
+              id={'share_changes_modal_button'}
+            >
               {this.props.btnText}
             </Button>
           }

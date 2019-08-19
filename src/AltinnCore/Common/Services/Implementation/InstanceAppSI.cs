@@ -74,7 +74,7 @@ namespace AltinnCore.Common.Services.Implementation
             string org = startServiceModel.Org;
             string appId = ApplicationHelper.GetFormattedApplicationId(org, startServiceModel.Service);
             string appName = startServiceModel.Service;
-            int instanceOwnerId = startServiceModel.ReporteeID;
+            int instanceOwnerId = startServiceModel.PartyId;
 
             string apiUrl = $"instances/?appId={appId}&instanceOwnerId={instanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
@@ -82,7 +82,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             try
             {
-                HttpResponseMessage response = await _client.PostAsync(apiUrl, null);
+                HttpResponseMessage response = await _client.PostAsync(apiUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
                 Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
                 instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
             }
@@ -103,9 +103,9 @@ namespace AltinnCore.Common.Services.Implementation
             ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
 
             // set initial workflow state
-            instance.Workflow = new Storage.Interface.Models.WorkflowState()
+            instance.Process = new Storage.Interface.Models.ProcessState()
             {
-                CurrentStep = currentState.State.ToString(),
+                CurrentTask = currentState.State.ToString(),
                 IsComplete = false,
             };
 
@@ -199,8 +199,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance = GetInstance(appName, org, instanceOwnerId, instanceId).Result;
 
-            instance.Workflow.IsComplete = true;
-            instance.Workflow.CurrentStep = WorkflowStep.Archived.ToString();
+            instance.Process.IsComplete = true;
+            instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
 
             instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
             return instance;

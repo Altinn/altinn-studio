@@ -54,6 +54,17 @@ docker-compose up -d --build
 
 The solution is now available locally at [altinn3.no](http://altinn3.no)
 
+If you make changes and want to rebuild a specific project using docker-compose this can be done using
+
+```cmd
+docker-compose up -d --build <container>
+```
+
+Example
+```cmd
+docker-compose up -d --build altinn_designer
+```
+
 #### Running Designer and/or Runtime component locally
 
 The Designer and Runtime components can be run locally when developing/debugging. The rest of the solution (Repository and LoadBalancer) will still have to be running in containers.
@@ -71,7 +82,7 @@ Navigate to the Designer folder. The first time running, or after any package ch
 
 ```cmd
 cd src/AltinnCore/Designer
-npm install
+npm ci
 npm run gulp-install-deps
 ```
 
@@ -79,6 +90,7 @@ Build and run the code.
 
 ```cmd
 dotnet build
+npm run gulp # first time only
 npm run gulp-develop
 ```
 
@@ -86,7 +98,7 @@ If you are not going to edit the designer react app you can use
 
 ```cmd
 cd src\AltinnCore\Designer
-npm install
+npm ci
 npm run gulp
 dotnet run
 ```
@@ -104,7 +116,8 @@ Navigate to the Runtime folder. Build and run the code.
 
 ```cmd
 cd src/AltinnCore/Runtime
-npm install
+npm ci
+npm run gulp # first time only
 npm run gulp-develop
 ```
 
@@ -112,7 +125,7 @@ If you are not going to edit the runtime react app you can use
 
 ```cmd
 cd src/AltinnCore/Runtime
-npm install
+npm ci
 npm run gulp
 dotnet run
 ```

@@ -15,7 +15,7 @@ export function* fetchDeploymentsSaga({
   try {
     const result = yield call(get,
       // tslint:disable-next-line:max-line-length
-      `https://${org}.apps.${env}.${urls.hostname.apps.test}/kuberneteswrapper/deployments?labelSelector=release=${org}-${repo}`);
+      `https://${org}.apps.${env}.${urls.hostname.apps.test}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${repo}`);
 
     yield call(DeployDispatchers.fetchDeploymentsFulfilled, result, env);
   } catch (err) {

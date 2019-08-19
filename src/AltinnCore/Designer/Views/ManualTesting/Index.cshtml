@@ -12,14 +12,15 @@
 
 @await Component.InvokeAsync("ServiceStatus", new { org, service })
 
-@if (Model.ReporteeList.Count > 1)
+@if (Model.PartyList.Count > 1)
 {
     <form asp-action="Index" asp-controller="ManualTesting">
         <input type="hidden" asp-for="ServiceID" />
+        <input name="UserId" type="hidden" value="2" /> 
         <div class="form-group">
-            <label asp-for="ReporteeID">Velg avgiver</label>
-            <select asp-for="ReporteeID" asp-items="@Model.ReporteeList" class="form-control"></select>
-            <span asp-validation-for="ReporteeID" class="text-danger"></span>
+            <label asp-for="PartyId">Velg avgiver</label>
+            <select asp-for="PartyId" asp-items="@Model.PartyList" class="form-control"></select>
+            <span asp-validation-for="PartyId" class="text-danger"></span>
         </div>
         <div class="form-group">
             <input class="btn btn-outline-primary" type="submit" value="Bytt profil" />
@@ -29,7 +30,7 @@
 
     <form asp-action="SetLanguage" asp-controller="ManualTesting">
       <div class="form-group">
-        <input type="hidden" value="@Context.Request.Path?reporteeId=@Model.ReporteeList[0].Value" name="returnUrl"/>
+        <input type="hidden" value="@Context.Request.Path?reporteeId=@Model.PartyList[0].Value" name="returnUrl"/>
         <label for="reporteeLanguageSelect">Velg språk for instans</label>
         <select id="reporteeLanguageSelect" class="form-control" name="culture">
           <!-- Can this be done more elegantly? -->
@@ -58,7 +59,19 @@
       </div>
     </form>
 
-    <form id="startService" method="post" action="/runtime/Instance/StartService" target="_blank">
+
+    <button id="btnStartNewService" class="btn btn-primary" value="@org/@service">Instansier i ny fane</button>
+    <script>
+      var startServiceButton = document.getElementById('btnStartNewService');
+      startServiceButton.addEventListener('click', function (event) {
+        const [org, service] = event.target.value.split('/');
+        var win = window.open(`${window.location.origin}/${org}/${service}`, '_blank');
+        win.focus();
+      });
+    </script>
+
+    <!--
+    <form id="startService" method="post" action="/Instance/StartService" target="_blank">
       <input type="hidden" asp-for="ServiceID" />
       <div class="form-group">
         <input type="hidden" asp-for="ReporteeID" />
@@ -69,9 +82,10 @@
         <span asp-validation-for="PrefillList" class="text-danger"></span>
       </div>
       <div class="form-group">
-        <input class="btn btn-primary" type="submit" value="Start ny" />
+        <input class="btn btn-primary" type="submit" value="Instansier med gammel visning" />
       </div>
     </form>
+    -->
 
 
 @if (instanceList.Count > 0)
@@ -90,11 +104,11 @@
                 <td>
                     @if (instance.IsArchived)
                     {
-                        <a href="@Url.Action("RedirectToCorrectState", "ManualTesting", new { org = org, service = service, instanceId = instance.ServiceInstanceID })" target="_blank">@instance.ServiceInstanceID (Arkivert)</a>
+                        <a href="/@org/@service#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID (Arktivert)</a>
                     }
                     else
                     {
-                        <a href="@Url.Action("RedirectToCorrectState", "ManualTesting", new { org = org, service = service, instanceId = instance.ServiceInstanceID })" target="_blank">@instance.ServiceInstanceID</a>
+                        <a href="/@org/@service#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID</a>
                     }
                 </td>
                 <td>

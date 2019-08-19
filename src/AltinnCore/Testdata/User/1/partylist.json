@@ -1,0 +1,16 @@
+[
+	{
+		"partyTypeName": "Person",
+		"orgNumber": null,
+		"person": null,
+		"organization": null,
+		"partyID": "50001",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "01017512345",
+		"name": "Ola PrivatPerson",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	}
+]

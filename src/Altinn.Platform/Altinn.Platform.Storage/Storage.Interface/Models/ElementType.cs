@@ -10,6 +10,7 @@ namespace Altinn.Platform.Storage.Models
     /// Model for application element type.
     /// </summary>
     [Serializable]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ElementType
     {
         /// <summary>

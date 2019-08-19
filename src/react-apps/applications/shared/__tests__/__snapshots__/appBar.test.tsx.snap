@@ -29,7 +29,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
-                src="/designer/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
           </div>
@@ -194,7 +194,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
-                src="/designer/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
           </div>
@@ -296,7 +296,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
-                src="/designer/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
           </div>
@@ -398,7 +398,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
-                src="/designer/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
           </div>
@@ -500,7 +500,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
-                src="/designer/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
           </div>
@@ -665,7 +665,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
               href="/"
             >
               <img
-                src="/designer/img/altinn_logo_header.png"
+                src="https://altinncdn.no/img/altinn_logo_header.png"
               />
             </a>
           </div>

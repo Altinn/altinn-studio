@@ -68,7 +68,7 @@ namespace AltinnCore.Common.Helpers
                 case WorkflowStep.FormFilling:
                 case WorkflowStep.Submit:
                 case WorkflowStep.Archived:
-                    return $"/runtime/{org}/{appName}/{instanceId}/#Preview";
+                    return $"/{org}/{appName}/#/instance/{instanceId}";
                 default:
                     // TODO: figure out what should be here and update.
                     return $"/designer/{org}/{appName}/ManualTesting";
