@@ -1,13 +1,10 @@
 using System;
-using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Runtime.ModelBinding;
 using AltinnCore.Runtime.RestControllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -15,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Storage.Interface.Clients;
 
 namespace AltinnCore.Runtime
 {
@@ -22,6 +20,7 @@ namespace AltinnCore.Runtime
     /// Handles and dispatches operations to platform storage for the application instance resources
     /// </summary>
     [Route("{org}/{app}/instances")]
+    [Authorize]
     [ApiController]
     public class InstancesController : ControllerBase
     {
@@ -50,10 +49,12 @@ namespace AltinnCore.Runtime
         /// </summary>
         /// <param name="instanceOwnerId">the instance owner id (partyId)</param>
         /// <param name="instanceGuid">the instance guid</param>
-        /// <returns></returns>
+        /// <returns>the instance</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        [Authorize]
         [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        
         public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
@@ -73,18 +74,54 @@ namespace AltinnCore.Runtime
         }
 
         /// <summary>
-        /// creates a new instance of an application in platform storage.
-        ///   1) dispatch to storage
-        ///   2) get data and do calculate and validate
-        ///   3) if error delete instance/data
-        ///   4) return instance ok
+        ///  Updates an application instance in platform storage.
+        /// </summary>
+        /// <param name="org">the organisation id, the owner of the app</param>
+        /// <param name="app">the app name</param>
+        /// <param name="instanceOwnerId">the instance owner id (partyId)</param>
+        /// <param name="instanceGuid">the instance guid</param>
+        /// <param name="instance">the instance with attributes that should be updated</param>
+        /// <returns>the updated instance</returns>
+        [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
+        [Produces("application/json")]
+        [Consumes("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> Put(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid,
+            [FromBody] Instance instance)
+        {
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            Uri storageUrl = new Uri($"instances/{instanceId}", UriKind.Relative);
+
+            HttpResponseMessage httpResponse = await storageClient.PutAsync(storageUrl, instance.AsJson());
+            if (httpResponse.IsSuccessStatusCode)
+            {
+                string jsonContent = await httpResponse.Content.ReadAsStringAsync();
+                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(jsonContent);
+                GetAndSetAppSelfLink(updatedInstance);
+
+                return Ok(updatedInstance);
+            }
+
+            return StatusCode((int)httpResponse.StatusCode, httpResponse.ReasonPhrase);
+        }
+
+        /// <summary>
+        /// Creates a new instance of an application in platform storage. Clients can send a instance as a json or send a
+        /// multipart form-data with the instance in the first part named "instance" and the prefill data in the next parts, with
+        /// names that corresponds to the element types defined in the application metadata.
+        /// The content is dispatched to storage. Currently calculate and validate is not implemented. 
         /// 
         /// </summary>
         /// <param name="org">the organisation id</param>
         /// <param name="app">the application name</param>
         /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <returns>the created instance</returns>
         [HttpPost]
-        [Authorize]
         [DisableFormValueModelBinding]
         [Consumes("application/json", otherContentTypes: new string[] { "multipart/form-data", })]
         [Produces("application/json")]
