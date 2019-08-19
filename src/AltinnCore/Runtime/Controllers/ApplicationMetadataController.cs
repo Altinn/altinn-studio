@@ -47,8 +47,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Get the application metadata
         /// </summary>
-        /// <param name="org">The organization<param>
-        /// <param name="app">The application<param>
+        /// <param name="org">The organization</param>
+        /// <param name="app">The application</param>
         /// <returns>Application metadata</returns>
         [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
         public IActionResult GetAction(string org, string app)

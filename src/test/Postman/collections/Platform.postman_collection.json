@@ -1,0 +1,249 @@
+{
+	"info": {
+		"_postman_id": "91d09939-9330-4f72-9786-8d162ce7f42a",
+		"name": "Platform",
+		"description": "Collection that tests the full integration between current Altinn platform and SBL bridge",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "register",
+			"item": [
+				{
+					"name": "organizations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8129a9e2-4653-4bf7-81c8-f5834064c30f",
+								"exec": [
+									"pm.test(\"GET organization returns 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct organization name is returned\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"REINE OG KORSHAMN\");",
+									"});",
+									"",
+									"pm.test(\"Correct unit type is returned\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"ANS\");",
+									"})",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{at21}}/register/api/v1/organizations/{{orgNr}}",
+							"host": [
+								"{{at21}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"organizations",
+								"{{orgNr}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "parties",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3dc27b90-5c04-4fc8-a5d4-8157c75b8842",
+								"exec": [
+									"pm.test(\"GET organization returns 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Correct organization name is returned\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"01066660040\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{at21}}/register/api/v1/parties/{{partyID}}",
+							"host": [
+								"{{at21}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"{{partyID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "persons",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9a29ae71-c668-4284-a10e-5fd12e5e1029",
+								"exec": [
+									"pm.test(\"Status code of GET Tickets is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\"01023102389\""
+						},
+						"url": {
+							"raw": "{{at21}}/register/api/v1/persons",
+							"host": [
+								"{{at21}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"persons"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "profile",
+			"item": [
+				{
+					"name": "Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bc718f86-1415-44c2-8911-124c1461456b",
+								"exec": [
+									"pm.test(\"Status code of GET Profile is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{at21}}/profile/api/v1/users/{{userID}}",
+							"host": [
+								"{{at21}}"
+							],
+							"path": [
+								"profile",
+								"api",
+								"v1",
+								"users",
+								"{{userID}}"
+							]
+						},
+						"description": "Get information about a user"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Tickets",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "13151bbe-93ff-4e54-88f2-9a04f9d996b4",
+								"exec": [
+									"pm.test(\"Status code of GET Tickets is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"encryptedTicket\": \"CD4E027814113A483207C670A4\"\r\n}"
+						},
+						"url": {
+							"raw": "{{envURL}}/authentication/api/v1/authentication?goto=http://www.vg.no",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"authentication",
+								"api",
+								"v1",
+								"authentication"
+							],
+							"query": [
+								{
+									"key": "goto",
+									"value": "http://www.vg.no"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

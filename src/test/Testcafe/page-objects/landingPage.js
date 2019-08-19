@@ -14,5 +14,4 @@ export default class LandingPage {
       .click(this.repoTitleText.withText(repoName))
   }
 
-
 }

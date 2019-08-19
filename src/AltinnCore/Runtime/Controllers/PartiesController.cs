@@ -75,9 +75,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Validates party and profile settings before the end user is allowed to instantiate a new app instance
         /// </summary>
-        /// <param name="org">The organization<param>
-        /// <param name="app">The application<param>
-        /// <param name="partyId">The selected partyId<param>
+        /// <param name="org">The organization</param>
+        /// <param name="app">The application</param>
+        /// <param name="partyId">The selected partyId</param>
         /// <returns>A validation status</returns>
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
         public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
@@ -153,7 +153,7 @@ namespace AltinnCore.Runtime.Controllers
 
             if (partyUpdatedStatus.StatusCode == 400)
             {
-                return BadRequest($"User {userId} cannot represent party { partyId}.");
+                return BadRequest($"User {userId} cannot represent party {partyId}.");
             }
             else if (partyUpdatedStatus.StatusCode == 500)
             {

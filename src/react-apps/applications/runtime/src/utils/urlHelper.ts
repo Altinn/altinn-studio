@@ -12,3 +12,4 @@ export const updateCookieUrl: (partyId: string) => string = (partyId: string) =>
 `;
 export const partiesUrl: string = `${window.location.origin}/${org}/${service}/api/v1/parties`;
 export const instantiateUrl: string = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
+export const currentPartyUrl: string = `${window.location.origin}/${org}/${service}/api/authorization/parties/current`;
