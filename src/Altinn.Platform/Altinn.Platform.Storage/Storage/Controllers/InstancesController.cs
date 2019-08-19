@@ -76,7 +76,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
             }
 
-            result.ForEach(i => SetSelfLink(i));
+            result.ForEach(i => SetSelfLinks(i));
 
             return Ok(result);
         }
@@ -191,7 +191,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 // add self links to platform
-                result.Instances.ForEach(i => SetSelfLink(i));
+                result.Instances.ForEach(i => SetSelfLinks(i));
                 
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
@@ -214,12 +214,23 @@ namespace Altinn.Platform.Storage.Controllers
             }                               
         }
 
-        private void SetSelfLink(Instance instance)
+        /// <summary>
+        ///   Annotate instance with self links to platform for the instance and each of its data elements.
+        /// </summary>
+        /// <param name="instance">the instance to annotate</param>
+        private void SetSelfLinks(Instance instance)
         {
-            string selfLink = $"{ Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{instance.Id}";
+            string selfLink = $"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{instance.Id}";
             
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Platform = selfLink;
+
+            foreach (DataElement dataElement in instance.Data)
+            {
+                dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
+
+                dataElement.DataLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
+            }
         }
 
         private static string BuildQueryStringWithOneReplacedParameter(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
@@ -257,7 +268,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 result = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
 
-                SetSelfLink(result);
+                SetSelfLinks(result);
 
                 return Ok(result);
             }
@@ -335,7 +346,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 Instance result = await _instanceRepository.Create(createdInstance);
-                SetSelfLink(result);
+                SetSelfLinks(result);
 
                 return Ok(result);
             }
@@ -551,7 +562,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                SetSelfLink(result);
+                SetSelfLinks(result);
             }
             catch (Exception e) 
             {
