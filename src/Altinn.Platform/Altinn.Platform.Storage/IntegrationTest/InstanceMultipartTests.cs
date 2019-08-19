@@ -121,7 +121,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             Instance instance = new Instance()
             {
-                Id = Guid.NewGuid().ToString(),
                 InstanceOwnerId = "1000",
                 AppId = "tests/sailor",
                 Labels = new List<string>()
@@ -149,18 +148,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Instance instanceResult = JsonConvert.DeserializeObject<Instance>(result);
 
             // Assert
+            Assert.NotEmpty(instanceResult.Data);
             Assert.Equal("1000", instanceResult.InstanceOwnerId);
         }
 
         /// <summary>
-        /// Store a json file in a post operation where it checks multipart.
+        /// Store a Json file.
         /// </summary>
         [Fact]
-        public async void StoreJsonInOnePostOperation()
+        public async void StoreAJsonFile()
         {
             Instance instance = new Instance()
             {
-                Id = Guid.NewGuid().ToString(),
                 InstanceOwnerId = "1000",
                 AppId = "tests/sailor",
                 Labels = new List<string>()
@@ -173,8 +172,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string requestUri = $"{versionPrefix}/instances?appId={instance.AppId}&instanceOwnerId={instance.InstanceOwnerId}";
             
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, instance.AsJson());
-
+            
             postResponse.EnsureSuccessStatusCode();
+
+            string result = await postResponse.Content.ReadAsStringAsync();
+
+            Instance instanceResult = JsonConvert.DeserializeObject<Instance>(result);
+
+            Assert.Empty(instanceResult.Data);
         }
     }
 }

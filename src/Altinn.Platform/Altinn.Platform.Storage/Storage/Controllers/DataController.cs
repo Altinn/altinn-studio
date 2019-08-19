@@ -77,7 +77,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (instance.Data.Exists(m => m.Id == dataIdString))
             {
-                string storageFileName = DataFileName(instance.AppId, instanceGuid.ToString(), dataId.ToString());
+                string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataId.ToString());
                 bool result = await _dataRepository.DeleteDataInStorage(storageFileName);
 
                 if (result)
@@ -121,7 +121,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return errorResult;
             }
 
-            string storageFileName = DataFileName(instance.AppId, instanceGuid.ToString(), dataId.ToString());
+            string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataId.ToString());
             string dataIdString = dataId.ToString();
 
             // check if dataId exists in instance
@@ -186,14 +186,6 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Formats a filename for blob storage.
-        /// </summary>
-        internal string DataFileName(string appId, string instanceGuid, string dataId)
-        {
-            return $"{appId}/{instanceGuid}/data/{dataId}";
-        }
-
-        /// <summary>
         /// Create and save the data element
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
@@ -232,7 +224,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Requested element type is not declared in application metadata");
             }
 
-            DataElement newData = CreateDataElement(Request, elementType, instance, instanceGuid, out Stream theStream);
+            DataElement newData = GetDataElementFromRequest(Request, elementType, instance, out Stream theStream);
 
             if (theStream == null)
             {
@@ -263,9 +255,9 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Creates a data element by reading the first multipart element or the body of the request.
+        /// Creates a data element by reading the first multipart element or body of the request.
         /// </summary>
-        private DataElement CreateDataElement(HttpRequest request, string elementType, Instance instance, Guid instanceGuid, out Stream theStream)
+        private DataElement GetDataElementFromRequest(HttpRequest request, string elementType, Instance instance, out Stream theStream)
         {
             DateTime creationTime = DateTime.UtcNow;
 
@@ -299,46 +291,11 @@ namespace Altinn.Platform.Storage.Controllers
                 theStream = request.Body;
                 contentType = request.ContentType;
             }
-            
-            DataElement newData = CreateDataElementHelper(elementType, instance, instanceGuid, creationTime, contentType, contentFileName, fileSize);
 
-            return newData;
-        }
+            string userName = GetNameOfUser(User);
 
-        /// <summary>
-        /// Creates a data element (helper method)
-        /// </summary>
-        /// <returns></returns>
-        internal DataElement CreateDataElementHelper(string elementType, Instance instance, Guid instanceGuid, DateTime creationTime, string contentType, string contentFileName, long fileSize)
-        {
-            string dataId = Guid.NewGuid().ToString();
+            DataElement newData = DataElementHelper.CreateDataElement(elementType, instance, creationTime, contentType, contentFileName, fileSize, userName);
 
-            string dataLink = $"{prefix}/instances/{instance.Id}/data/{dataId}";
-
-            string user = GetUser(User);
-
-            DataElement newData = new DataElement
-            {
-                // update data record
-                Id = dataId,
-                ElementType = elementType,
-                ContentType = contentType,
-                CreatedBy = user,
-                CreatedDateTime = creationTime,
-                FileName = contentFileName ?? $"{dataId}.xml",
-                LastChangedBy = user,
-                LastChangedDateTime = creationTime,
-
-                DataLinks = new ResourceLinks()
-                {
-                    Apps = dataLink,
-                },
-
-                FileSize = fileSize,
-            };
-
-            string filePath = DataFileName(instance.AppId, instanceGuid.ToString(), newData.Id.ToString());
-            newData.StorageUrl = filePath;
             return newData;
         }
 
@@ -380,7 +337,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound("Dataid is not registered in instance");
                 }
 
-                string storageFileName = DataFileName(instance.AppId.ToString(), instanceGuid.ToString(), dataIdString);
+                string storageFileName = DataElementHelper.DataFileName(instance.AppId.ToString(), instanceGuid.ToString(), dataIdString);
 
                 if (string.Equals(data.StorageUrl, storageFileName))
                 {
@@ -508,7 +465,7 @@ namespace Altinn.Platform.Storage.Controllers
             return null;
         }
 
-        internal string GetUser(ClaimsPrincipal user)
+        internal string GetNameOfUser(ClaimsPrincipal user)
         {
             if (user != null && User.Identity != null)
             {
