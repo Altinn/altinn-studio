@@ -8,7 +8,14 @@ namespace Altinn.Platform.Storage.Helpers
     /// </summary>
     public static class DateTimeHelper
     {
+        /// <summary>
+        /// The standard date format to excpect in input data.
+        /// </summary>
         public static readonly string Iso8601Format = "yyyy-MM-ddTHH:mm:ss.sss";
+
+        /// <summary>
+        /// The standard date format with UTC timezone (Zulu)
+        /// </summary>
         public static readonly string Iso8601UtcFormat = Iso8601Format + "Z";
 
         /// <summary>

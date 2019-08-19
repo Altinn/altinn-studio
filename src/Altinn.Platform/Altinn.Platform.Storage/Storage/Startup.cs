@@ -75,6 +75,7 @@ namespace Altinn.Platform.Storage
                 }
                 catch
                 {
+                    // Catch swashbuckle exception if it doesn't find the generated XML documentation file
                 }                
             });
         }
