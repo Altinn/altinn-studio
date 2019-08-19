@@ -1,0 +1,30 @@
+[
+	{
+		"partyTypeName": "Person",
+		"orgNumber": null,
+		"person": null,
+		"organization": null,
+		"partyID": "50002",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "02017512345",
+		"name": "Kari Selvstendig",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000001",
+		"person": null,
+		"organization": null,
+		"partyID": "10001",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "02017512345",
+		"name": "Kari Consulting",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	}
+]

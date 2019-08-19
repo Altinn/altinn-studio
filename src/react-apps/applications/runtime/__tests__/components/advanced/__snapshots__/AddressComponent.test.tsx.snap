@@ -25,7 +25,7 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
       <label
         className="address-component-label"
       >
-        Postnummer
+        Postnr
       </label>
       <input
         className="address-component-small-inputs form-control"

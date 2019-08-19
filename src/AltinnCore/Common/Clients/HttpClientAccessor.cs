@@ -14,17 +14,22 @@ namespace AltinnCore.Common.Clients
     public class HttpClientAccessor : IHttpClientAccessor
     {
         private readonly PlatformSettings _platformSettings;
+        private readonly GeneralSettings _generalSettings;
         private HttpClient _storageClient;
         private HttpClient _registerClient;
         private HttpClient _profileClient;
+        private HttpClient _authorizationClient;
+        private HttpClient _sblClient;
 
         /// <summary>
-        /// Initializes a new HttpClient accessor of the <see cref="HttpClientAccessor"/> class.
+        /// Initializes a new instance of the <see cref="HttpClientAccessor"/> class.
         /// <param name="platformSettings">the platform settings</param>
+        /// <param name="generalSettings">The general settings</param>
         /// </summary>
-        public HttpClientAccessor(IOptions<PlatformSettings> platformSettings)
+        public HttpClientAccessor(IOptions<PlatformSettings> platformSettings, IOptions<GeneralSettings> generalSettings)
         {
             _platformSettings = platformSettings.Value;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <inheritdoc />
@@ -69,12 +74,28 @@ namespace AltinnCore.Common.Clients
                 {
                     _storageClient = new HttpClient();
                     _storageClient.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
-                    _storageClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
                 }
 
                 return _storageClient;
             }
         }
+
+        /// <inheritdoc />
+        public HttpClient AuthorizationClient
+        {
+            get
+            {
+                if (_authorizationClient == null)
+                {
+                    _authorizationClient = new HttpClient();
+                    _authorizationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");
+                    _authorizationClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                }
+
+                return _authorizationClient;
+            }
+        }      
     }
 }

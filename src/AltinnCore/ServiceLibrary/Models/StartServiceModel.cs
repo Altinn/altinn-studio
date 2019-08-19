@@ -9,15 +9,15 @@ namespace AltinnCore.ServiceLibrary.Models
     public class StartServiceModel
     {
         /// <summary>
-        /// Gets or sets the ID of the reportee that the service should be instantiated on behalf of
+        /// Gets or sets the ID of the party that the service should be instantiated on behalf of
         /// </summary>
-        public int ReporteeID { get; set; }
-        
+        public int PartyId { get; set; }
+
         /// <summary>
         /// Gets or sets the ID of the user that is instantiating the service
         /// </summary>
-        public int UserID { get; set; }
-        
+        public int UserId { get; set; }
+
         /// <summary>
         /// Gets or sets the ID of the service that should be instantiated
         /// </summary>
@@ -31,7 +31,7 @@ namespace AltinnCore.ServiceLibrary.Models
         /// <summary>
         /// Gets or sets a list of reportees that are available when instantiating
         /// </summary>
-        public List<SelectListItem> ReporteeList { get; set; }
+        public List<SelectListItem> PartyList { get; set; }
 
         /// <summary>
         /// Gets or sets a list of available prefill for the active service

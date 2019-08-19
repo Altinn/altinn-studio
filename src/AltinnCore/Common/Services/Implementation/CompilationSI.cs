@@ -125,7 +125,6 @@ namespace AltinnCore.Common.Services.Implementation
         {
             CodeCompilationResult compilationResult = new CodeCompilationResult() { CompileStarted = DateTime.Now };
             string assemblykey = org + "_" + CompileHelper.GetCSharpValidAppId(service);
-
             List<AltinnCoreFile> implementationFiles = _repository.GetImplementationFiles(org, service);
 
             DateTime lastChanged = new DateTime(2000, 01, 01);
@@ -135,13 +134,6 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     lastChanged = file.LastChanged;
                 }
-            }
-
-            if (_assemblyNames.ContainsKey(assemblykey) && _assemblyNames[assemblykey].CompileStarted > lastChanged && string.IsNullOrWhiteSpace(outputLocation)
-                && !startServiceFlag)
-            {
-                compilationResult = _assemblyNames[assemblykey];
-                return compilationResult;
             }
 
             SyntaxTree[] syntaxTrees = GetSyntaxTrees(org, service);

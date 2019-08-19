@@ -14,7 +14,7 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
         className="Connect-Edit--noOutline-14"
       >
         <li
-          className="MuiListItem-root-117 MuiListItem-default-120 MuiListItem-gutters-125 Connect-Edit--formComponent-4"
+          className="MuiListItem-root-117 MuiListItem-default-120 MuiListItem-gutters-125 Connect-Edit--active-1"
           disabled={false}
           onClick={[Function]}
           onKeyPress={[Function]}
@@ -39,10 +39,70 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
       >
         <div
           className="MuiGrid-item-21 MuiGrid-grid-xs-12-60"
-        />
+        >
+          <button
+            className="MuiButtonBase-root-135 MuiIconButton-root-129 Connect-Edit--formComponentsBtn-5 Connect-Edit--specialBtn-15"
+            disabled={false}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onContextMenu={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            tabIndex={0}
+            type="button"
+          >
+            <span
+              className="MuiIconButton-label-134"
+            >
+              <i
+                className="fa fa-circletrash"
+              />
+            </span>
+            <span
+              className="MuiTouchRipple-root-138"
+            />
+          </button>
+        </div>
         <div
           className="MuiGrid-item-21 MuiGrid-grid-xs-12-60"
-        />
+        >
+          <button
+            className="MuiButtonBase-root-135 MuiIconButton-root-129 Connect-Edit--formComponentsBtn-5"
+            disabled={false}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onContextMenu={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            tabIndex={0}
+            type="button"
+          >
+            <span
+              className="MuiIconButton-label-134"
+            >
+              <i
+                className="fa fa-edit"
+              />
+            </span>
+            <span
+              className="MuiTouchRipple-root-138"
+            />
+          </button>
+        </div>
       </div>
     </div>
   </div>

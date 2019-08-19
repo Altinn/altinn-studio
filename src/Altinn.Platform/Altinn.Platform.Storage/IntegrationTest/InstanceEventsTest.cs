@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
@@ -48,7 +45,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         private async Task CleanDB()
         {
-            await storage.DeleteInstanceEvents(testInstanceId);
+            try
+            {
+                await storage.DeleteInstanceEvents(testInstanceId);
+            }
+            catch
+            {
+            }            
         }
 
         /// <summary>
@@ -101,8 +104,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             // Act
             await CleanDB();
-            await PopulateDatabase();
+
             string from = DateTime.UtcNow.AddMinutes(-1.5).ToString("s", CultureInfo.InvariantCulture);
+
+            await PopulateDatabase();
+
             string to = DateTime.UtcNow.AddMinutes(1.5).ToString("s", CultureInfo.InvariantCulture);
             List<InstanceEvent> instanceEvents = await storage.GetInstanceEvents(testInstanceId, null, from, to);
 

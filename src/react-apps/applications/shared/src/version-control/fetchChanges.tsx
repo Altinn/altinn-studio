@@ -5,19 +5,11 @@ import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 
-export interface IFetchChangesCompoenentProvidedProps {
+export interface IFetchChangesComponentProps {
   changesInMaster: boolean;
   classes: any;
   fetchChanges: any;
   language: any;
-}
-
-export interface IFetchChangesComponenetProps extends IFetchChangesCompoenentProvidedProps {
-
-}
-
-export interface IFetchChangesComponenetState {
-
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -44,7 +36,7 @@ const styles = createStyles({
   },
 });
 
-class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProps, IFetchChangesComponenetState> {
+class FetchChangesComponent extends React.Component<IFetchChangesComponentProps> {
 
   public fetchChangesHandler = (event: any) => {
     this.props.fetchChanges(event.currentTarget);
@@ -84,4 +76,4 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
   }
 }
 
-export default withStyles(styles)(FetchChangesComponenet);
+export default withStyles(styles)(FetchChangesComponent);

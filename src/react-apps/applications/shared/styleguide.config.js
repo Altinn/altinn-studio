@@ -6,6 +6,13 @@ module.exports = {
   propsParser: require('react-docgen-typescript').parse,
   template: {
     head: {
+      links: [
+        {
+          rel: 'stylesheet',
+          href:
+            'https://fonts.googleapis.com/css?family=Roboto&display=swap'
+        },
+      ],
       scripts: [{
           src: 'https://use.fortawesome.com/ed31cded.js'
         },

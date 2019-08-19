@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
@@ -49,7 +45,7 @@ namespace AltinnCore.Common.Services.Implementation
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IForm formService,
             IData data,
-            IWorkflow workflowSI)            
+            IWorkflow workflowSI)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -62,24 +58,25 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
-            Guid instanceId = Guid.NewGuid();
+            Guid instanceGuid = Guid.NewGuid();
             string appName = startServiceModel.Service;
             string org = startServiceModel.Org;
-            int instanceOwnerId = startServiceModel.ReporteeID;
+            int instanceOwnerId = startServiceModel.PartyId;
+            int userId = startServiceModel.UserId;
 
-            ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
+            ServiceState currentTask = _workflow.GetInitialServiceState(org, appName);
 
             Instance instance = new Instance
             {
-                Id = instanceId.ToString(),
+                Id = $"{instanceOwnerId}/{instanceGuid}",
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 AppId = $"{org}/{appName}",
                 Org = org,
                 CreatedBy = instanceOwnerId.ToString(),
                 CreatedDateTime = DateTime.UtcNow,
-                Workflow = new Storage.Interface.Models.WorkflowState()
+                Process = new Storage.Interface.Models.ProcessState()
                 {
-                    CurrentStep = currentState.State.ToString(),
+                    CurrentTask = currentTask.State.ToString(),
                     IsComplete = false,
                 },
                 InstanceState = new Storage.Interface.Models.InstanceState()
@@ -90,20 +87,20 @@ namespace AltinnCore.Common.Services.Implementation
                 },
                 LastChangedDateTime = DateTime.UtcNow,
                 LastChangedBy = instanceOwnerId.ToString(),
-            };         
+            };
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}";
-            string folderForInstance = Path.Combine(testDataForParty, instanceId.ToString());
+            string folderForInstance = Path.Combine(testDataForParty, instanceGuid.ToString());
             Directory.CreateDirectory(folderForInstance);
-            string instanceFilePath = $"{testDataForParty}/{instanceId}/{instanceId}.json";
+            string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
 
             File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
 
             // Save instantiated form model
             instance = await _data.InsertData(
                 serviceModel,
-                instanceId,
+                instanceGuid,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 appName,
@@ -127,7 +124,7 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = (Instance)dataToSerialize;
             File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(dataToSerialize).ToString(), Encoding.UTF8);
 
-            return System.Threading.Tasks.Task.FromResult(instance);            
+            return System.Threading.Tasks.Task.FromResult(instance);
         }
 
         /// <inheritdoc/>
@@ -160,11 +157,18 @@ namespace AltinnCore.Common.Services.Implementation
                 string instanceFolderName = new DirectoryInfo(file).Name;
                 if (instanceFolderName != "Archive")
                 {
-                    string instanceFileName = $"{instanceFolderName}.json";
+                    try
+                    {
+                        string instanceFileName = $"{instanceFolderName}.json";
 
-                    string instanceData = File.ReadAllText($"{instancesPath}/{instanceFolderName}/{instanceFileName}");
-                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                    formInstances.Add(instance);
+                        string instanceData = File.ReadAllText($"{instancesPath}/{instanceFolderName}/{instanceFileName}");
+                        Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                        formInstances.Add(instance);
+                    }
+                    catch
+                    {
+                        /* Avoid problems with wrong directories that may have occured in previous testing sessions */
+                    }
                 }
             }
 
@@ -187,12 +191,12 @@ namespace AltinnCore.Common.Services.Implementation
                 XmlSerializer serializer = new XmlSerializer(type);
                 serializer.Serialize(stream, dataToSerialize);
             }
-            
+
             Instance instance = await GetInstance(appName, org, instanceOwnerId, instanceId);
 
-            instance.Workflow = instance.Workflow ?? new Storage.Interface.Models.WorkflowState();
-            instance.Workflow.IsComplete = true;
-            instance.Workflow.CurrentStep = WorkflowStep.Archived.ToString();
+            instance.Process = instance.Process ?? new Storage.Interface.Models.ProcessState();
+            instance.Process.IsComplete = true;
+            instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
 
             instance.InstanceState = instance.InstanceState ?? new Storage.Interface.Models.InstanceState();
             instance.InstanceState.IsArchived = true;

@@ -2,10 +2,10 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "install-deps": "lerna bootstrap --hoist",
+    "install-deps": "lerna bootstrap --hoist --ci",
     "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
     "test": "lerna exec --concurrency 1 -- npm test",
-    "install-all": "lerna exec -- npm i",
+    "install-all": "lerna exec -- npm ci",
     "clean-lock": "lerna exec -- rm package-lock.json"
   },
   "devDependencies": {

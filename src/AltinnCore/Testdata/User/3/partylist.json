@@ -1,0 +1,58 @@
+[
+	{
+		"partyTypeName": "Person",
+		"orgNumber": null,
+		"person": null,
+		"organization": null,
+		"partyID": "50003",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "01039012345",
+		"name": "Anne Sophie Næringsdrivende",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000002",
+		"person": null,
+		"organization": null,
+		"partyID": "10002",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Oslo",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000003",
+		"person": null,
+		"organization": null,
+		"partyID": "10003",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Bergen",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000004",
+		"person": null,
+		"organization": null,
+		"partyID": "10004",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Trondheim",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	}
+]

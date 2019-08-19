@@ -2,11 +2,14 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.RepositoryClient.Model;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Helpers
 {
@@ -17,16 +20,19 @@ namespace AltinnCore.Common.Helpers
     {
         private readonly IProfile _profileService;
         private readonly IRegister _registerService;
+        private readonly GeneralSettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UserHelper"/> class
         /// </summary>
         /// <param name="profileService">The ProfileService (defined in Startup.cs)</param>
         /// <param name="registerService">The RegisterService (defined in Startup.cs)</param>
-        public UserHelper(IProfile profileService, IRegister registerService)
+        /// <param name="settings">The general settings</param>
+        public UserHelper(IProfile profileService, IRegister registerService, IOptions<GeneralSettings> settings)
         {
-            this._profileService = profileService;
-            this._registerService = registerService;
+            _profileService = profileService;
+            _registerService = registerService;
+            _settings = settings.Value;
         }
 
         /// <summary>
@@ -61,35 +67,33 @@ namespace AltinnCore.Common.Helpers
                 }
             }
 
-            userContext.UserParty = await _registerService.GetParty(userContext.PartyId);
+            UserProfile userProfile = await _profileService.GetUserProfile(userContext.UserId);
+            userContext.UserParty = await _registerService.GetParty(userProfile.PartyId);
 
-            if (context.Request.Cookies["altinncorereportee"] != null)
+            if (context.Request.Cookies[_settings.GetAltinnPartyCookieName] != null)
             {
-                userContext.ReporteeId = Convert.ToInt32(context.Request.Cookies["altinncorereportee"]);
-            }
-            else
-            {
-                userContext.ReporteeId = userContext.PartyId;
+                userContext.PartyId = Convert.ToInt32(context.Request.Cookies[_settings.GetAltinnPartyCookieName]);
             }
 
-            userContext.Reportee = await _registerService.GetParty(userContext.ReporteeId);
+            userContext.Party = await _registerService.GetParty(userContext.PartyId);
             return userContext;
         }
 
         /// <summary>
-        /// Returns the user context for a given reportee Id
+        /// Returns the user context for a given user and party Id
         /// </summary>
         /// <param name="context">The HttpContext</param>
-        /// <param name="reporteeId">The reportee id</param>
+        /// <param name="userId">The user id</param>
+        /// <param name="partyId">The party id</param>
         /// <returns>The UserContext</returns>
-        public async Task<UserContext> CreateUserContextBasedOnReportee(HttpContext context, int reporteeId)
+        public async Task<UserContext> CreateUserContextBasedOnUserAndParty(HttpContext context, int userId, int partyId)
         {
             UserContext userContext = new UserContext() { User = context.User };
-            userContext.PartyId = reporteeId;
-            userContext.UserParty = await _registerService.GetParty(userContext.PartyId);
-            userContext.UserId = reporteeId;
-            userContext.ReporteeId = reporteeId;
-            userContext.Reportee = await _registerService.GetParty(userContext.ReporteeId);
+            userContext.UserId = userId;
+            userContext.PartyId = partyId;
+            userContext.Party = await _registerService.GetParty(userContext.PartyId);
+
+            // userContext.UserParty = await _registerService.GetParty(userContext.PartyId); // this userPartyId is not available at this point.
             return userContext;
         }
     }

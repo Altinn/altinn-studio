@@ -8,6 +8,7 @@ namespace Storage.Interface.Models
     /// <summary>
     /// Various fields that application owner can set. Some can be displayed to the user. Others dictate beahviour.
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ApplicationOwnerState
     {
         /// <summary>

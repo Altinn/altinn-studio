@@ -111,20 +111,4 @@ describe('>>> components/base/shareChanges.tsx --- Snapshot', () => {
     shareChangesComp.find('button').simulate('click');
     expect(mockShareChanges).toHaveBeenCalled();
   });
-
-  it('+++ Should not call mock function when no changes in local repo on click button', () => {
-    mockChangesInLocalRepo = false;
-    const shareChangesComp = mount(
-      <ShareChangesComponent
-        language={mockLanguage}
-        shareChanges={mockShareChanges}
-        changesInLocalRepo={mockChangesInLocalRepo}
-        moreThanAnHourSinceLastPush={mockMoreThanAnHourSinceLastPush}
-        hasPushRight={mockHasPushRight}
-        hasMergeConflict={mockHasMergeConflict}
-      />,
-    );
-    shareChangesComp.find('button').simulate('click');
-    expect(mockShareChanges).toBeCalledTimes(0);
-  });
 });

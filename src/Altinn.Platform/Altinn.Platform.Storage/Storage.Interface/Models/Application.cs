@@ -11,6 +11,7 @@ namespace Altinn.Platform.Storage.Models
     /// Model for application metadata.
     /// </summary>
     [Serializable]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Application
     {
         /// <summary>
@@ -20,7 +21,7 @@ namespace Altinn.Platform.Storage.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// the application build version 
+        /// the application build version
         /// </summary>
         [JsonProperty(PropertyName = "versionId")]
         public string VersionId { get; set; }
@@ -56,7 +57,7 @@ namespace Altinn.Platform.Storage.Models
         public string LastChangedBy { get; set; }
 
         /// <summary>
-        /// Title of the application with language codes. 
+        /// Title of the application with language codes.
         /// </summary>
         [JsonProperty(PropertyName = "title")]
         public Dictionary<string, string> Title { get; set; }
@@ -91,6 +92,18 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "elementTypes")]
         public List<ElementType> ElementTypes { get; set; }
+
+        /// <summary>
+        /// Gets of sets the different party types allowed to instantiate the application
+        /// </summary>
+        [JsonProperty(PropertyName = "partyTypesAllowed")]
+        public PartyTypesAllowed PartyTypesAllowed { get; set; }
+
+        /// <summary>
+        /// Gets or sets the subscription hook attached to the application
+        /// </summary>
+        [JsonProperty(PropertyName = "subscriptionHook")]
+        public SubscriptionHook SubscriptionHook {get; set;}
 
         /// <inheritdoc/>
         public override string ToString()
