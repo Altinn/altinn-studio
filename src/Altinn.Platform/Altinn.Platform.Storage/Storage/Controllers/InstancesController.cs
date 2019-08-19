@@ -55,7 +55,11 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             this.logger = logger;
             this.bridgeRegistryClient = bridgeClient;
-            this.bridgeRegistryClient.BaseAddress = new Uri(generalSettings.Value.GetBridgeRegisterApiEndpoint() ?? "http://bridge/");
+            string bridgeUri = generalSettings.Value.GetBridgeRegisterApiEndpoint();
+            if (bridgeUri != null)
+            {
+                this.bridgeRegistryClient.BaseAddress = new Uri(bridgeUri);
+            }            
         }
 
         /// <summary>
@@ -71,6 +75,8 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
             }
+
+            result.ForEach(i => SetSelfLink(i));
 
             return Ok(result);
         }
@@ -185,14 +191,8 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 // add self links to platform
-                result.Instances.ForEach(i =>
-                {
-                    i.SelfLinks = new ResourceLinks
-                    {
-                        Platform = $"{host}{url}/{i.Id}"
-                    };
-                });
-
+                result.Instances.ForEach(i => SetSelfLink(i));
+                
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
                 {
@@ -212,6 +212,14 @@ namespace Altinn.Platform.Storage.Controllers
                 logger.LogError("exception", e);
                 return StatusCode(500, $"Unable to perform query due to: {e.Message}");
             }                               
+        }
+
+        private void SetSelfLink(Instance instance)
+        {
+            string selfLink = $"{ Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{instance.Id}";
+            
+            instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
+            instance.SelfLinks.Platform = selfLink;
         }
 
         private static string BuildQueryStringWithOneReplacedParameter(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
@@ -248,6 +256,8 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+
+                SetSelfLink(result);
 
                 return Ok(result);
             }
@@ -325,6 +335,8 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 Instance result = await _instanceRepository.Create(createdInstance);
+                SetSelfLink(result);
+
                 return Ok(result);
             }
             catch (Exception e)
@@ -539,6 +551,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
+                SetSelfLink(result);
             }
             catch (Exception e) 
             {
