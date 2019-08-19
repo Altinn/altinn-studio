@@ -36,7 +36,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
         {
             UserProfile user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/users/{userId}");
+            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}users/{userId}");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
