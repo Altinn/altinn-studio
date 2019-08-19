@@ -1,49 +1,63 @@
-import { createStyles, withStyles } from '@material-ui/core/styles';
+import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { RouteChildrenProps, withRouter } from 'react-router';
+import { useState } from 'react';
+import { connect, useSelector } from 'react-redux';
+import { RouteChildrenProps, RouteProps, withRouter, WithRouterProps } from 'react-router';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
 
-interface IReceiptContainerProvidedProps {
-  classes: any;
-}
+import OrgsActions from './../../../shared/resources/orgs/orgsActions';
 
-export interface IReceiptContainerProps extends IReceiptContainerProvidedProps {
-  attachments: any;
-  formConfig: any;
-  language: any;
-  profile: any;
-  route: any;
+export interface IReceiptContainerProps extends WithStyles<typeof styles>, RouteChildrenProps {
 }
 
 const styles = () => createStyles({
 
 });
 
-const ReceiptContainer = (props: IReceiptContainerProps & RouteChildrenProps) => {
+const ReceiptContainer = (props: IReceiptContainerProps ) => {
 
-  const instanceMetaDataObject = (formConfig: any, language: any, profile: any, instanceGuid: string): {} => {
+  const [instanceObject, setInstanceObject] = useState({});
+  // const attachments: any = useSelector((state: IRuntimeState) => state.attachments);
+  const allOrgs: any = useSelector((state: IRuntimeState) => state.organizationMetaData.allOrgs);
+  const profile: any = useSelector((state: IRuntimeState) => state.profile);
+  const language: any = useSelector((state: IRuntimeState) => state.language.language);
+  const { classes } = props;
+  const routeParams: any = props.match.params;
+  const formConfig: any = useSelector((state: IRuntimeState) => state.formConfig);
 
+  const instanceMetaDataObject = (orgsData: any, languageData: any, profileData: any, instanceGuid: string): {} => {
     const obj: any = {};
 
-    obj[getLanguageFromKey('receipt_container.date_sendt', language)] = '01.01.2020 / 12:21';
+    obj[getLanguageFromKey('receipt_container.date_sendt', languageData)] = '01.01.2020 / 12:21';
 
     let sender: string = '';
-    if (profile && profile.party.person.ssn) {
-      sender = `${profile.party.person.ssn}-${profile.party.name}`;
+    if (profileData.profile && profile.profile.party.person.ssn) {
+      sender = `${profileData.profile.party.person.ssn}-${profileData.profile.party.name}`;
     } else if (profile) {
-      sender = `${profile.party.orgNumber}-${profile.party.name}`;
+      sender = `${profileData.profile.party.orgNumber}-${profileData.profile.party.name}`;
     }
-    obj[getLanguageFromKey('receipt_container.sender', language)] = sender;
+    obj[getLanguageFromKey('receipt_container.sender', languageData)] = sender;
 
-    obj[getLanguageFromKey('receipt_container.receiver', language)] = formConfig.org;
+    const receiver: string = 'tdd';
+    obj[getLanguageFromKey('receipt_container.receiver', languageData)] = orgsData[receiver].name.nb;
 
-    obj[getLanguageFromKey('receipt_container.ref_num', language)] = instanceGuid;
+    obj[getLanguageFromKey('receipt_container.ref_num', languageData)] = instanceGuid;
 
     return obj;
   };
+
+  React.useEffect(() => {
+    OrgsActions.fetchOrgs();
+  }, []);
+
+  React.useEffect(() => {
+    if (allOrgs != null && profile.profile) {
+      const obj = instanceMetaDataObject(allOrgs, language, profile, routeParams.instanceGuid);
+      setInstanceObject(obj);
+    }
+  }, [allOrgs, profile]);
 
   const attachments = [
     {
@@ -87,37 +101,18 @@ const ReceiptContainer = (props: IReceiptContainerProps & RouteChildrenProps) =>
   return (
     <ReceiptComponent
       // tslint:disable-next-line:max-line-length
-      title={`${props.formConfig.serviceName} ${getLanguageFromKey('receipt_container.title_part_is_submitted', props.language)}`}
+      title={`${formConfig.serviceName} ${getLanguageFromKey('receipt_container.title_part_is_submitted', language)}`}
       attachments={attachments}
-      collapsibleTitle={getLanguageFromKey('receipt_container.attachments', props.language)}
-      instanceMetaDataObject={instanceMetaDataObject(
-        props.formConfig,
-        props.language,
-        props.profile,
-        props.route.instanceGuid,
-        )}
-      subtitle={getLanguageFromKey('receipt_container.subtitle', props.language)}
+      collapsibleTitle={getLanguageFromKey('receipt_container.attachments', language)}
+      instanceMetaDataObject={instanceObject}
+      subtitle={getLanguageFromKey('receipt_container.subtitle', language)}
       subtitleurl='http://some.link'
       pdf={pdf}
-      body={getLanguageFromKey('receipt_container.body', props.language)}
-      titleSubmitted={getLanguageFromKey('receipt_container.title_submitted', props.language)}
+      body={getLanguageFromKey('receipt_container.body', language)}
+      titleSubmitted={getLanguageFromKey('receipt_container.title_submitted', language)}
     />
   );
 
 };
 
-const mapStateToProps: (
-  state: IRuntimeState,
-  props: IReceiptContainerProvidedProps,
-) => IReceiptContainerProps = (state: IRuntimeState, props: IReceiptContainerProvidedProps & RouteChildrenProps) => ({
-  attachments: state.attachments,
-  classes: props.classes,
-  formConfig: state.formConfig,
-  language: state.language.language,
-  profile: state.profile.profile,
-  route: props.match.params,
-});
-
-export default withRouter(
-  withStyles(styles)(connect(mapStateToProps)(ReceiptContainer)),
-  );
+export default withRouter(withStyles(styles)(ReceiptContainer));

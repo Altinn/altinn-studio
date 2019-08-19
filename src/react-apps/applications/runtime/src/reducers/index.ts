@@ -16,11 +16,12 @@ import InstantiationReducer, { IInstantiationState } from '../features/instantia
 import ApplicationMetadataReducer, { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import LanguageReducer, { ILanguageState } from '../shared/resources/language/languageReducers';
+import Orgsreducer, { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import PartyReducer, { IPartyState } from '../shared/resources/party/partyReducers';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -36,6 +37,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T1
   party: T13;
   applicationMetadata: T14;
   instantiation: T15;
+  organizationMetaData: T16;
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -53,7 +55,8 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IValidationState>,
   Reducer<IPartyState>,
   Reducer<IApplicationMetadataState>,
-  Reducer<IInstantiationState>
+  Reducer<IInstantiationState>,
+  Reducer<IOrgsState>
   >,
   ReducersMapObject {
 }
@@ -74,6 +77,7 @@ const reducers: IRuntimeReducers = {
   party: PartyReducer,
   applicationMetadata: ApplicationMetadataReducer,
   instantiation: InstantiationReducer,
+  organizationMetaData: Orgsreducer,
 };
 
 export default combineReducers(reducers);

@@ -9,6 +9,7 @@ import { IInstantiationState } from '../features/instantiate/instantiation/reduc
 import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
+import { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import { IPartyState } from '../shared/resources/party/partyReducers';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { ITextResourcesState } from '../shared/resources/textResources/reducer';
@@ -28,6 +29,7 @@ export interface IRuntimeState {
   party: IPartyState;
   applicationMetadata: IApplicationMetadataState;
   instantiation: IInstantiationState;
+  organizationMetaData: IOrgsState;
 }
 
 export interface IAltinnWindow extends Window {
