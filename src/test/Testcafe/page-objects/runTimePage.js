@@ -14,7 +14,6 @@ export default class RunTimePage {
     this.changeLanguageButton = Selector('.btn.btn-primary').withAttribute('value', 'Oppdater språk');
     this.prefillData = Selector('#PrefillList');
     this.startNewButton = Selector('#btnStartNewService');
-    this.startSendingIn = Selector('button');
     this.backToAltinnStudio = Selector('.btn.btn-primary').withAttribute('value', 'Tilbake til Altinn Studio');
 
     //SBL components
