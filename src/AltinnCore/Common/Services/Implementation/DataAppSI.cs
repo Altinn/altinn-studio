@@ -240,10 +240,7 @@ namespace AltinnCore.Common.Services.Implementation
                     using (MultipartFormDataContent formData = new MultipartFormDataContent())
                     {
                         fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-                        ContentDispositionHeaderValue header = new ContentDispositionHeaderValue("form-data");
-                        header.FileName = attachmentName;
-                        header.Size = attachment.ContentLength;
-                        formData.Headers.ContentDisposition = header;
+
                         formData.Add(fileStreamContent, attachmentType, attachmentName);
                         HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
 
