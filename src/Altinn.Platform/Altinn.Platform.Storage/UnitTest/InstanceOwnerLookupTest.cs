@@ -2,6 +2,7 @@ using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -201,6 +202,15 @@ namespace Altinn.Platform.Storage.UnitTests
                 })
                 .Verifiable();
 
+            Mock<HttpRequest> request = new Mock<HttpRequest>();
+            request.SetupGet(x => x.Headers["Accept"]).Returns("application/json");
+            request.SetupGet(x => x.Scheme).Returns("http");
+            request.SetupGet(x => x.Host).Returns(new HostString("platform.storage.at21.altinn.cloud"));
+            request.SetupGet(x => x.Path).Returns(new PathString("/instances/"));
+
+            Mock<HttpContext> context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+
             HttpClient httpClient = new HttpClient(handlerMock.Object);
 
             instanceController = new InstancesController(
@@ -208,7 +218,13 @@ namespace Altinn.Platform.Storage.UnitTests
                 mockApplicationRepository.Object,
                 mockGeneralSettings.Object,
                 mockLogger.Object,
-                httpClient);
+                httpClient)
+            {
+                ControllerContext = new ControllerContext()
+                {
+                    HttpContext = context.Object,
+                },
+            };
         }
     }
 }

@@ -1,18 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.ModelBinding;
 using AltinnCore.ServiceLibrary.Api;
@@ -24,7 +19,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -300,7 +294,7 @@ namespace AltinnCore.Runtime.Controllers
             Guid instanceId = _execution.GetNewServiceInstanceID();
 
             // Save Formdata to database
-            this._data.InsertData(
+            Instance instance = this._data.InsertData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
@@ -309,6 +303,7 @@ namespace AltinnCore.Runtime.Controllers
                 requestContext.UserContext.PartyId);
 
             apiResult.InstanceId = instanceId;
+            apiResult.Instance = instance;
             apiResult.Status = ApiStatusType.Ok;
             return Ok(apiResult);
         }
@@ -457,11 +452,12 @@ namespace AltinnCore.Runtime.Controllers
                     CurrentTask = currentState.State.ToString(),
                     IsComplete = false,
                 };
-
-                await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.PartyId, instanceId);
+         
+                Instance updatedInstance = await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.PartyId, instanceId);
 
                 Response.StatusCode = 200;
                 apiResult.InstanceId = instanceId;
+                apiResult.Instance = updatedInstance;
                 apiResult.Status = ApiStatusType.Ok;
                 apiResult.NextStepUrl = _workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State);
                 apiResult.NextState = currentState.State;

@@ -29,7 +29,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// </summary>
     [Route("storage/api/v1/instances")]
     [ApiController]
-    public class InstancesController : Controller
+    public class InstancesController : ControllerBase
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
@@ -55,7 +55,11 @@ namespace Altinn.Platform.Storage.Controllers
             _applicationRepository = applicationRepository;
             this.logger = logger;
             this.bridgeRegistryClient = bridgeClient;
-            this.bridgeRegistryClient.BaseAddress = new Uri(generalSettings.Value.GetBridgeRegisterApiEndpoint());
+            string bridgeUri = generalSettings.Value.GetBridgeRegisterApiEndpoint();
+            if (bridgeUri != null)
+            {
+                this.bridgeRegistryClient.BaseAddress = new Uri(bridgeUri);
+            }            
         }
 
         /// <summary>
@@ -71,6 +75,8 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
             }
+
+            result.ForEach(i => SetSelfLinks(i));
 
             return Ok(result);
         }
@@ -185,14 +191,8 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 // add self links to platform
-                result.Instances.ForEach(i =>
-                {
-                    i.SelfLinks = new ResourceLinks
-                    {
-                        Platform = $"{host}{url}/{i.Id}"
-                    };
-                });
-
+                result.Instances.ForEach(i => SetSelfLinks(i));
+                
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
                 {
@@ -212,6 +212,28 @@ namespace Altinn.Platform.Storage.Controllers
                 logger.LogError("exception", e);
                 return StatusCode(500, $"Unable to perform query due to: {e.Message}");
             }                               
+        }
+
+        /// <summary>
+        ///   Annotate instance with self links to platform for the instance and each of its data elements.
+        /// </summary>
+        /// <param name="instance">the instance to annotate</param>
+        private void SetSelfLinks(Instance instance)
+        {
+            string selfLink = $"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{instance.Id}";
+            
+            instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
+            instance.SelfLinks.Platform = selfLink;
+
+            if (instance.Data != null)
+            {
+                foreach (DataElement dataElement in instance.Data)
+                {
+                    dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
+
+                    dataElement.DataLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
+                }
+            }
         }
 
         private static string BuildQueryStringWithOneReplacedParameter(Dictionary<string, StringValues> q, string queryParamName, string newParamValue)
@@ -249,6 +271,8 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 result = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
 
+                SetSelfLinks(result);
+
                 return Ok(result);
             }
             catch (Exception e)
@@ -266,6 +290,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]
+        [Consumes("application/json", otherContentTypes: new string[] { "multipart/form-data" })]
+        [Produces("application/json")]
         public async Task<ActionResult> Post(string appId, int? instanceOwnerId, [FromBody] Instance instanceTemplate)
         {                       
             // check if metadata exists
@@ -323,6 +349,8 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 Instance result = await _instanceRepository.Create(createdInstance);
+                SetSelfLinks(result);
+
                 return Ok(result);
             }
             catch (Exception e)
@@ -537,6 +565,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
+                SetSelfLinks(result);
             }
             catch (Exception e) 
             {
