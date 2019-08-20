@@ -14,7 +14,7 @@ import TabletDrawerMenu from '../drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from './profileMenu';
 
-import theme from '../../theme/altinnStudioTheme';
+import altinnStudioTheme from '../../theme/altinnStudioTheme';
 
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   activeSubHeaderSelection?: string;
@@ -32,7 +32,7 @@ export interface IAppBarComponentState {
   tabletDrawerOpen: boolean;
 }
 
-const altinnTheme = theme;
+const altinnTheme = altinnStudioTheme;
 
 const styles = createStyles({
   root: {

@@ -11,7 +11,7 @@ import { EditModalContent } from '../components/config/EditModalContent';
 import { makeGetLayoutComponentsSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
-import { getTextResource, truncate } from '../utils/language';
+import { getComponentTitleByComponentType, getTextResource, truncate } from '../utils/language';
 import { componentIcons } from './../components';
 
 const styles = createStyles({
@@ -163,7 +163,7 @@ export interface IEditContainerState {
   activeList: any;
 }
 
-class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
+export class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   constructor(_props: IEditContainerProps, _state: IEditContainerState) {
     super(_props, _state);
     if (!_props.component.textResourceBindings) {
@@ -198,7 +198,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleComponentDelete = (e: any): void => {
-    if (this.props.activeList.length > 1) {
+    const activeListLength = this.props.activeList.length;
+    if (activeListLength > 1) {
       this.props.activeList.forEach((component: any) => {
         FormDesignerActionDispatchers.deleteFormComponent(component.id);
       });
@@ -261,7 +262,11 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         inEditMode: false,
       },
     }, () => {
-      this.handleSaveChange(this.state.component);
+      const {required: requiredState, ...restState} = this.state.component;
+      const {required: requiredProps, ...restProps} = this.props.component;
+      if (JSON.stringify(restState) !== JSON.stringify(restProps)) {
+        this.handleSaveChange(this.state.component);
+      }
       this.props.sendItemToParent(this.state.listItem);
       FormDesignerActionDispatchers.deleteActiveListAction();
     });
@@ -433,7 +438,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
                             this.props.textResources), 80)
-                        : this.props.component.type}
+                        : getComponentTitleByComponentType(this.state.component.componentType, this.props.language)}
                     </div>
                   }
                 </ListItem>

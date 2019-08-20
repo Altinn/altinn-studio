@@ -55,6 +55,7 @@ namespace Altinn.Platform.Authorization
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.AddHttpClient<PartyClient>();
             services.AddHttpClient<RolesClient>();
+            services.AddHttpClient<SBLClient>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);

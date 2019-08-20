@@ -106,14 +106,16 @@ namespace AltinnCore.Common.Services.Implementation
 
         /// <inheritdoc/>
         public Task<string> SaveInstanceEvent(object dataToSerialize, string org, string appName)
-        {
+        {            
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.Id = Guid.NewGuid();
             instanceEvent.CreatedDateTime = DateTime.UtcNow;
 
+            string instanceGuid = instanceEvent.InstanceId.Split("/")[1];
+
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
-            string folderForEvents = $"{testDataForParty}{instanceEvent.InstanceOwnerId}/{instanceEvent.InstanceId}/events";
+            string folderForEvents = $"{testDataForParty}{instanceEvent.InstanceOwnerId}/{instanceGuid}/events";
             Directory.CreateDirectory(folderForEvents);
             string eventFilePath = $"{folderForEvents}/{instanceEvent.Id}.json";
 

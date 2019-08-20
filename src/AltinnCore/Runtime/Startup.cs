@@ -231,19 +231,21 @@ namespace AltinnCore.Runtime
             // app.UseHsts();
             // app.UseHttpsRedirection();
             app.UseAuthentication();
-         /*   app.UseStatusCodePages(async context =>
-            {
-                var request = context.HttpContext.Request;
-                var response = context.HttpContext.Response;
-                string url = $"{request.Host.ToString()}{request.Path.ToString()}";
 
-                // you may also check requests path to do this only for specific methods
-                // && request.Path.Value.StartsWith("/specificPath")
-                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
-                {
-                    response.Redirect($"/account/login?gotoUrl={url}");
-                }
-            });*/
+            app.UseStatusCodePages(async context =>
+               {
+                   var request = context.HttpContext.Request;
+                   var response = context.HttpContext.Response;
+                   string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
+
+                    // you may also check requests path to do this only for specific methods
+                    // && request.Path.Value.StartsWith("/specificPath")
+                   if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                   {
+                       response.Redirect($"account/login?gotoUrl={url}");
+                   }
+               });
+
             app.UseResponseCompression();
             app.UseRequestLocalization();
             app.UseStaticFiles(new StaticFileOptions()
@@ -277,14 +279,14 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "uiRoute",
-                    template: "{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",
+                    template: "{org}/{service}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
                         action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                        instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -318,6 +320,17 @@ namespace AltinnCore.Runtime
                    {
                        action = "InstantiateApp",
                        controller = "Instance",
+                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                   });
+
+                routes.MapRoute(
+                   name: "authentication",
+                   template: "{org}/{service}/{controller}/{action}/{goToUrl?}",
+                   defaults: new { action = "Login", controller = "Account" },
+                   constraints: new
+                   {
+                       action = "Login",
+                       controller = "Account",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
@@ -373,13 +386,13 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiAttachmentRoute",
-                    template: "{org}/{service}/api/attachment/{partyId}/{instanceId}/{action}",
+                    template: "{org}/{service}/api/attachment/{partyId}/{instanceGuid}/{action}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                        instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -394,12 +407,14 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "apiWorkflowRoute",
-                    template: "{org}/{service}/api/workflow/{partyId}/{action}/{instanceId?}",
+                    template: "{org}/{service}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
                     defaults: new { controller = "ServiceAPI" },
                     constraints: new
                     {
                         controller = "ServiceAPI",
+                        partyId = "[0-9]+",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -414,12 +429,14 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiRoute",
-                    template: "{org}/{service}/api/{reportee}/{action=Index}/{instanceId?}",
-                    defaults: new { controller = "ServiceAPI" },
+                    template: "{org}/{service}/api/{partyId}/{instanceId}",
+                    defaults: new { action = "Gindex", controller = "ServiceAPI" },
                     constraints: new
                     {
                         controller = "ServiceAPI",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        partyId = "[0-9]{1,20}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -440,15 +457,26 @@ namespace AltinnCore.Runtime
                     {
                         controller = "Language",
                     });
+                
+                routes.MapRoute(
+                  name: "authorization",
+                  template: "{org}/{service}/api/{controller}/parties/{partyId}/validate",
+                  defaults: new { action = "ValidateSelectedParty", controller = "Authorization" },
+                  constraints: new
+                  {
+                      action = "ValidateSelectedParty",
+                      controller = "Authorization",
+                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                  });
 
-               /* routes.MapRoute(
-                    name: "authenticationRoute",
-                    template: "{controller}/{action}/{gotourl?}",
-                    defaults: new { controller = "Account" },
-                    constraints: new
-                    {
-                        controller = "Account",
-                    }); */
+                /* routes.MapRoute(
+                     name: "authenticationRoute",
+                     template: "{controller}/{action}/{gotourl?}",
+                     defaults: new { controller = "Account" },
+                     constraints: new
+                     {
+                         controller = "Account",
+                     }); */
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(

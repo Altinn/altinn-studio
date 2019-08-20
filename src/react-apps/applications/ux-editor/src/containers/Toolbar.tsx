@@ -3,6 +3,7 @@ import List from '@material-ui/core/List';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
@@ -10,7 +11,7 @@ import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuC
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-
+import { getComponentTitleByComponentType } from '../utils/language';
 import { ToolbarItem } from './ToolbarItem';
 
 import '../styles/toolBar.css';
@@ -97,9 +98,12 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       actionMethod: (containerId: string, position: number) => {
         FormDesignerActionDispatchers.addFormComponent({
           type: c.name,
+          componentType: c.Type,
           itemType: LayoutItemType.Component,
           textResourceBindings: {
-            title: c.name,
+            title: c.name === 'Button' ?
+            getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)
+            : getComponentTitleByComponentType(c.Type, this.props.language),
           },
           dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),
@@ -291,7 +295,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             >
               {this.components.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
-                  text={component.label}
+                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                    || component.label}
                   icon={component.icon}
                   componentType={component.componentType}
                   onDropAction={component.actionMethod}
@@ -341,7 +346,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             <List dense={false} id={'schema-texts'}>
               {this.textComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
-                  text={component.label}
+                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                    || component.label}
                   icon={component.icon}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
@@ -368,7 +374,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             <List dense={false} id={'advanced-components'}>
               {this.advancedComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
-                  text={component.label}
+                  text={getComponentTitleByComponentType(component.componentType, this.props.language)
+                    || component.label}
                   icon={component.icon}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}

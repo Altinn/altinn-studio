@@ -5,7 +5,7 @@ FROM node:10.13.0  AS generate-runtime-app
 COPY ./src/react-apps/lerna.json .
 COPY ./src/react-apps/package.json .
 COPY ./src/react-apps/package-lock.json .
-RUN npm install
+RUN npm ci
 
 # Copy shared and runtime
 COPY ./src/react-apps/applications/shared/ /applications/shared/

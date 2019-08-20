@@ -26,7 +26,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string partitionKey = "/org";
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class

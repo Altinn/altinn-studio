@@ -3,12 +3,15 @@ import { IFormDataState } from '../features/form/data/reducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/reducer';
-import { IResourceState } from '../features/form/resources/reducer';
 import { IValidationState } from '../features/form/validation/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
+import { IInstantiationState } from '../features/instantiate/instantiation/reducer';
+import { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
+import { IPartyState } from '../shared/resources/party/partyReducers';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
+import { ITextResourcesState } from '../shared/resources/textResources/reducer';
 
 export interface IRuntimeState {
   formLayout: ILayoutState;
@@ -19,9 +22,12 @@ export interface IRuntimeState {
   attachments: IAttachmentState;
   formDynamics: IFormDynamicState;
   language: ILanguageState;
-  formResources: IResourceState;
+  textResources: ITextResourcesState;
   profile: IProfileState;
   formValidations: IValidationState;
+  party: IPartyState;
+  applicationMetadata: IApplicationMetadataState;
+  instantiation: IInstantiationState;
 }
 
 export interface IAltinnWindow extends Window {

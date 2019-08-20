@@ -8,6 +8,7 @@ using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -19,16 +20,19 @@ namespace AltinnCore.Runtime.Controllers
     {
         private readonly IProfile _profile;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileController"/> class
         /// </summary>
         /// <param name="profile">The profile service</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
-        public ProfileController(IProfile profile, IHttpContextAccessor httpContextAccessor)
+        /// <param name="logger">the logger</param>
+        public ProfileController(IProfile profile, IHttpContextAccessor httpContextAccessor, ILogger<ProfileController> logger)
         {
             _profile = profile;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         /// <summary>
@@ -40,15 +44,24 @@ namespace AltinnCore.Runtime.Controllers
             UserProfile user = null;
             if (userId != 0)
             {
-                user = await _profile.GetUserProfile(userId);
+                try
+                {
+                    user = await _profile.GetUserProfile(userId);
+
+                    if (user == null)
+                    {
+                        return NotFound();
+                    }
+
+                    return Ok(user);
+                }
+                catch (Exception e)
+                {
+                    return StatusCode(500, e.Message); 
+                }                
             }
 
-            if (userId == 0 || user == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(user);
+            return BadRequest("The userId is not proviced in the context.");
         }
     }
 }

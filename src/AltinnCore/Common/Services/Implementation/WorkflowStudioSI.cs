@@ -71,7 +71,7 @@ namespace AltinnCore.Common.Services.Implementation
             string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/{instanceId}/{instanceId}.json";
             string currentStateAsString = File.ReadAllText(serviceStatePath, Encoding.UTF8);
             Instance instance = JsonConvert.DeserializeObject<Instance>(currentStateAsString);
-            Enum.TryParse<WorkflowStep>(instance.Workflow.CurrentStep, out WorkflowStep current);
+            Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask, out WorkflowStep current);
             return new ServiceState
             {
                 State = current,

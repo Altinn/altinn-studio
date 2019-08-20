@@ -10,6 +10,7 @@ namespace Altinn.Platform.Storage.Models
     /// <summary>
     /// Holds metadata of an application instance for a particular instance owner.
     /// </summary>
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class Instance
     {
         /// <summary>
@@ -99,8 +100,8 @@ namespace Altinn.Platform.Storage.Models
         /// <summary>
         /// Workflow state section
         /// </summary>
-        [JsonProperty(PropertyName = "workflow")]
-        public WorkflowState Workflow { get; set; }
+        [JsonProperty(PropertyName = "process")]
+        public ProcessState Process { get; set; }
 
         /// <summary>
         /// Section for instance state properties

@@ -11,6 +11,7 @@ namespace Altinn.Platform.Storage.Models
     /// Model to hold a instance owner lookup element
     /// </summary>
     [Serializable]
+    [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class InstanceOwnerLookup
     {
         /// <summary>
@@ -23,7 +24,7 @@ namespace Altinn.Platform.Storage.Models
         /// organisation number
         /// </summary>
         [JsonProperty(PropertyName = "organisationNumber")]
-        public string organisationNumber { get; set; }
+        public string OrganisationNumber { get; set; }
 
         /// <summary>
         /// user name

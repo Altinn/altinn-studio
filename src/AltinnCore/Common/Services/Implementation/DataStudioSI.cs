@@ -55,17 +55,17 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId)
+        public Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
-            string dataPath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/data";
+            string dataPath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/data";
             if (!Directory.Exists(dataPath))
             {
                 Directory.CreateDirectory(dataPath);
             }
 
-            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
             string instanceData = File.ReadAllText(instanceFilePath);
             Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             string dataId = Guid.NewGuid().ToString();
@@ -75,7 +75,7 @@ namespace AltinnCore.Common.Services.Implementation
                 ElementType = FORM_ID,
                 ContentType = "application/Xml",
                 FileName = $"{dataId}.xml",
-                StorageUrl = $"{appName}/{instanceId}/data/{dataId}",
+                StorageUrl = $"{appName}/{instanceGuid}/data/{dataId}",
                 CreatedBy = instanceOwnerId.ToString(),
                 CreatedDateTime = DateTime.UtcNow,
                 LastChangedBy = instanceOwnerId.ToString(),
@@ -104,10 +104,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
+        public void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string dataPath = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/{instanceId}/data";
+            string dataPath = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/{instanceGuid}/data";
             string formDataFilePath = $"{dataPath}/{dataId}";
             try
             {
@@ -124,10 +124,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public object GetFormData(Guid instanceId, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
+        public object GetFormData(Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
             string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/data/{dataId}";
+            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/data/{dataId}";
             XmlSerializer serializer = new XmlSerializer(type);
             try
             {
@@ -143,7 +143,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<List<AttachmentList>> GetFormAttachments(string org, string appName, int instanceOwnerId, Guid instanceId)
+        public Task<List<AttachmentList>> GetFormAttachments(string org, string appName, int instanceOwnerId, Guid instanceGuid)
         {
             Instance instance;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
@@ -151,13 +151,13 @@ namespace AltinnCore.Common.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
-            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
             string instanceData = File.ReadAllText(formDataFilePath, Encoding.UTF8);
             instance = JsonConvert.DeserializeObject<Instance>(instanceData);
 
             if (instance == null)
             {
-                _logger.Log(LogLevel.Error, "Instance not found for instanceid {0}", instanceId);
+                _logger.Log(LogLevel.Error, "Instance not found for instanceGuid {0}", instanceGuid);
                 return Task.FromResult(attachmentList);
             }
 

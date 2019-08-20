@@ -45,7 +45,7 @@ const makeMapStateToProps = () => {
   const mapStateToProps = (state: IRuntimeState): IRenderProps => {
     return {
       layout: getLayout(state),
-      textResources: state.formResources.languageResource.resources,
+      textResources: state.textResources.resources,
     };
   };
   return mapStateToProps;
