@@ -1228,7 +1228,7 @@ namespace Altinn.Authorization.ABAC.Utils
 
             if (!reader.IsStartElement(elementName, elementNamespace))
             {
-                return default;
+                return default(T);
             }
             else
             {
@@ -1267,7 +1267,7 @@ namespace Altinn.Authorization.ABAC.Utils
 
             if (string.IsNullOrEmpty(attributeResult))
             {
-                return default;
+                return default(T);
             }
 
             object val;
