@@ -189,6 +189,14 @@ namespace Altinn.Authorization.ABAC.Xacml
                     }
 
                     return false;
+                case XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly:
+                    bagSize = GetBagSize(contextAttributes, attributeDesignator);
+                    if (bagSize == 1)
+                    {
+                        return true;
+                    }
+
+                    return false;
                 default:
                     break;
             }

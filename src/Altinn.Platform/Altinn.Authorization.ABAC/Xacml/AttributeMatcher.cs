@@ -44,6 +44,9 @@ namespace Altinn.Authorization.ABAC.Xacml
                 case XacmlConstants.MatchTypeIdentifiers.TimeEqual:
                     isMatch = MatchTime(policyAttribute, contextRequestAttribute);
                     break;
+                case XacmlConstants.MatchTypeIdentifiers.DateEqual:
+                    isMatch = MatchDate(policyAttribute, contextRequestAttribute);
+                    break;
                 default:
                     throw new NotImplementedException(); 
             }
@@ -62,6 +65,19 @@ namespace Altinn.Authorization.ABAC.Xacml
             DateTime requestValue = DateTime.Parse(contextRequestAttribute);
 
             return policyValue.Equals(requestValue);
+        }
+
+        private static bool MatchDate(string policyAttribute, string contextRequestAttribute)
+        {
+            DateTime policyValue = DateTime.Parse(policyAttribute);
+            DateTime requestValue = DateTime.Parse(contextRequestAttribute);
+
+            if (policyValue.Date == requestValue.Date)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static bool MatchStringsIgnoreCase(string policyAttribute, string contextRequestAttribute)

@@ -778,6 +778,11 @@ namespace Altinn.Authorization.ABAC.Constants
             /// Verify that time bag size is 1
             /// </summary>
             public const string TimeBagSize = "urn:oasis:names:tc:xacml:1.0:function:time-bag-size";
+
+            /// <summary>
+            /// Verify that the bag only contains one Date attribute withe the given attribute ID
+            /// </summary>
+            public const string DateOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:date-one-and-only";
         }
 
         /// <summary>

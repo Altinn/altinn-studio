@@ -788,6 +788,11 @@
             Verify that time bag size is 1
             </summary>
         </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly">
+            <summary>
+            Verify that the bag only contains one Date attribute withe the given attribute ID
+            </summary>
+        </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes">
             <summary>
             Prefixed used in namespaces when writing to XML
