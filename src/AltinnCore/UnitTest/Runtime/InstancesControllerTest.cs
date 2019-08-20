@@ -55,9 +55,7 @@ namespace AltinnCore.UnitTest.Runtime
             context.SetupGet(x => x.Request).Returns(request.Object);
 
             InstancesController controller = new InstancesController(
-                authorizationService.Object,
                 logger.Object,
-                platformSettings.Object,
                 httpClientAccessor.Object)
             {
                 ControllerContext = new ControllerContext()
@@ -136,9 +134,7 @@ namespace AltinnCore.UnitTest.Runtime
             context.SetupGet(x => x.Request).Returns(request.Object);
 
             InstancesController controller = new InstancesController(
-                authorizationService.Object,
                 logger.Object,
-                platformSettings.Object,
                 httpClientAccessor.Object)
             {                
                 ControllerContext = new ControllerContext()

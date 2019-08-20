@@ -24,23 +24,17 @@ namespace AltinnCore.Runtime
     [ApiController]
     public class InstancesController : ControllerBase
     {
-        private readonly IAuthorization authorization;
         private readonly ILogger<InstancesController> logger;
-        private readonly PlatformSettings platformSettings;
         private readonly HttpClient storageClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         public InstancesController(
-            IAuthorization authorizationService,
             ILogger<InstancesController> logger,
-            IOptions<PlatformSettings> platformSettings,
             IHttpClientAccessor httpClientAccessor)
         {
-            this.authorization = authorizationService;
             this.logger = logger;
-            this.platformSettings = platformSettings.Value;
             this.storageClient = httpClientAccessor.StorageClient;
         }
 
@@ -192,13 +186,13 @@ namespace AltinnCore.Runtime
                 Uri dataUri = new Uri($"instances/{instance.Id}/data/{dataElement.Id}", UriKind.Relative);
 
                 // Get data element
-                // Todo - Calulate
-                // Todo - Validate
+                // Todo - Calulate and Validate
+                logger.LogInformation($"calculate: {dataUri}");
+
                 bool validationOk = true;
                 if (validationOk)
                 {
-                    // update data object if changed by calculation - dispatch to storage
-                    // Todo - set lastChangedInstance
+                    // update data object if changed by calculation - dispatch to storage, set lastChangedInstance
                 }
                 else
                 {
