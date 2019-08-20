@@ -3,15 +3,15 @@ using Altinn.Authorization.ABAC.Xacml;
 namespace Altinn.Authorization.ABAC.Interface
 {
     /// <summary>
-    /// Interface for Context Handler
+    /// Defines Interface for Context Handler
     /// </summary>
     public interface IContextHandler
     {
         /// <summary>
-        /// Updates the Context
+        /// Enrich the DecisionRequest with needed attributes so PDP can evaluate decision request for a policy/policyset
         /// </summary>
-        /// <param name="request">The XacmlContextRequest</param>
+        /// <param name="decisionRequest">The XacmlContextRequest</param>
         /// <returns></returns>
-        XacmlContextRequest UpdateContextRequest(XacmlContextRequest request);
+        XacmlContextRequest Enrich(XacmlContextRequest decisionRequest);
     }
 }

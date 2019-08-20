@@ -34,18 +34,18 @@ namespace Altinn.Authorization.ABAC
         /// <summary>
         /// Method that validated if the subject is allwoed to perform the requested operation on a given resource
         /// </summary>
-        /// <param name="request">The Xacml Context request</param>
+        /// <param name="decisionRequest">The Xacml Context request</param>
         /// <returns></returns>
-        public XacmlContextResponse AuthorizeAccess(XacmlContextRequest request)
+        public XacmlContextResponse Authorize(XacmlContextRequest decisionRequest)
         {
             XacmlContextResult contextResult;
-            request = contextHandler.UpdateContextRequest(request);
+            decisionRequest = contextHandler.Enrich(decisionRequest);
 
             XacmlPolicy policy;
 
             try
             {
-                policy = prp.GetPolicy(request);
+                policy = prp.GetPolicy(decisionRequest);
             }
             catch (XmlException)
             {
@@ -56,7 +56,7 @@ namespace Altinn.Authorization.ABAC
                 return new XacmlContextResponse(result);
             }
 
-            ICollection<XacmlRule> matchingRules = GetMatchingRules(policy, request, out bool requiredAttributesMissingFromContextRequest);
+            ICollection<XacmlRule> matchingRules = GetMatchingRules(policy, decisionRequest, out bool requiredAttributesMissingFromContextRequest);
 
             if (requiredAttributesMissingFromContextRequest)
             {
@@ -79,7 +79,7 @@ namespace Altinn.Authorization.ABAC
                 XacmlContextDecision decision;
 
                 // Need to authorize based on the information in the Xacml context request
-                XacmlAttributeMatchResult subjectMatchResult = rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Subject);
+                XacmlAttributeMatchResult subjectMatchResult = rule.MatchAttributes(decisionRequest, XacmlConstants.MatchAttributeCategory.Subject);
                 if (subjectMatchResult.Equals(XacmlAttributeMatchResult.Match))
                 {
                     if (rule.Effect.Equals(XacmlEffectType.Permit))
@@ -106,7 +106,7 @@ namespace Altinn.Authorization.ABAC
 
                 if ((decision.Equals(XacmlContextDecision.Deny) || decision.Equals(XacmlContextDecision.Permit)) && rule.Condition != null)
                 {
-                    XacmlAttributeMatchResult conditionDidEvaluate = rule.EvaluateCondition(request);
+                    XacmlAttributeMatchResult conditionDidEvaluate = rule.EvaluateCondition(decisionRequest);
 
                     if (conditionDidEvaluate.Equals(XacmlAttributeMatchResult.NoMatch))
                     {
@@ -158,10 +158,10 @@ namespace Altinn.Authorization.ABAC
         /// Returns the list of rules that matched the ContextRequest
         /// </summary>
         /// <param name="policy">The policy</param>
-        /// <param name="request">The context request</param>
+        /// <param name="decisionRequest">The decision request</param>
         /// <param name="requiredAttributeMissing">Tels if a required attribute is missing</param>
         /// <returns></returns>
-        private ICollection<XacmlRule> GetMatchingRules(XacmlPolicy policy, XacmlContextRequest request, out bool requiredAttributeMissing)
+        private ICollection<XacmlRule> GetMatchingRules(XacmlPolicy policy, XacmlContextRequest decisionRequest, out bool requiredAttributeMissing)
         {
             ICollection<XacmlRule> matchingRules = new Collection<XacmlRule>();
 
@@ -169,8 +169,8 @@ namespace Altinn.Authorization.ABAC
 
             foreach (XacmlRule rule in policy.Rules)
             {
-                XacmlAttributeMatchResult resourceMatch = rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Resource);
-                XacmlAttributeMatchResult actionMatch = rule.MatchAttributes(request, XacmlConstants.MatchAttributeCategory.Action);
+                XacmlAttributeMatchResult resourceMatch = rule.MatchAttributes(decisionRequest, XacmlConstants.MatchAttributeCategory.Resource);
+                XacmlAttributeMatchResult actionMatch = rule.MatchAttributes(decisionRequest, XacmlConstants.MatchAttributeCategory.Action);
 
                 if (resourceMatch.Equals(XacmlAttributeMatchResult.Match) && actionMatch.Equals(XacmlAttributeMatchResult.Match))
                 {

@@ -52,7 +52,7 @@ namespace Altinn.Platform.Authorization.Controllers
             {
                 request = ParseApiBody(model);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
@@ -64,7 +64,7 @@ namespace Altinn.Platform.Authorization.Controllers
             if (request != null)
             {
                 PolicyDecisionPoint pdp = new PolicyDecisionPoint(_contextHandler, _prp);
-                xacmlContextResponse = pdp.AuthorizeAccess(request);
+                xacmlContextResponse = pdp.Authorize(request);
             }
 
             string accept = HttpContext.Request.Headers["Accept"];

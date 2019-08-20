@@ -99,7 +99,7 @@ namespace Altinn.Authorization.ABAC.UnitTest
             }
 
             Moq.Mock<IContextHandler> moqContextHandler = new Mock<IContextHandler>();
-            moqContextHandler.Setup(c => c.UpdateContextRequest(It.IsAny<XacmlContextRequest>())).Returns(contextRequestEnriched);
+            moqContextHandler.Setup(c => c.Enrich(It.IsAny<XacmlContextRequest>())).Returns(contextRequestEnriched);
             
             Moq.Mock<IPolicyRetrievalPoint> moqPRP = new Mock<IPolicyRetrievalPoint>();
 
@@ -115,7 +115,7 @@ namespace Altinn.Authorization.ABAC.UnitTest
 
             PolicyDecisionPoint pdp = new PolicyDecisionPoint(moqContextHandler.Object, moqPRP.Object);
 
-            XacmlContextResponse xacmlResponse = pdp.AuthorizeAccess(contextRequest);
+            XacmlContextResponse xacmlResponse = pdp.Authorize(contextRequest);
 
             return xacmlResponse;
         }
