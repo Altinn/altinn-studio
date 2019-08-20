@@ -3,7 +3,7 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { IParty } from '../';
 import { get } from '../../../../utils/networking';
-import { partiesUrl } from '../../../../utils/urlHelper';
+import { currentPartyUrl, partiesUrl } from '../../../../utils/urlHelper';
 import PartyActions from '../partyActions';
 import * as GetPartyActionTypes from './getPartiesActionTypes';
 
@@ -12,14 +12,13 @@ const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedPar
 function* getPartiesSaga(): SagaIterator {
   try {
     const parties: IParty[] = yield call(get, partiesUrl);
-
     const selectedParty = yield select(SelectedPartySelector);
     if (!selectedParty) {
-      const altinnPartyId = document.cookie.split(';')
-        .find((cookie: string) => cookie.indexOf('AltinnPartyId=') > -1)
-        .split('=')[1];
-      const activeParty = parties.find((party: IParty) => party.partyId.toString() === altinnPartyId);
-      yield call(PartyActions.selectParty, activeParty, false);
+      const selectedPartyId: string = yield call(get, currentPartyUrl);
+      const activeParty: IParty = parties.find((party: IParty) => party.partyId === selectedPartyId);
+      // We call the successfull action here because we don't want to update the
+      // backend with the same party after selecting it
+      yield call(PartyActions.selectPartyFulfilled, activeParty, false);
     }
 
     yield call(PartyActions.getPartiesFulfilled, parties);
