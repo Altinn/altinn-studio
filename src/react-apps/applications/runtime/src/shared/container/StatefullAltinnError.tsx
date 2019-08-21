@@ -109,9 +109,9 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
         <Grid container={true} className={classes.statefulErrorPage}>
           <Grid item={true}>
             <AltinnError
-              title={'Unknown error occurred'}
-              content={'So sorry, but an unknown error occurred. Please try again later'}
-              statusCode={`${language.party_selection.error_caption_prefix} unkown`}
+              title={`${language.instantiation.unknown_error_title}`}
+              content={`${language.instantiation.unknown_error_text}`}
+              statusCode={`${language.instantiation.unknown_error_status}`}
             />
           </Grid>
         </Grid>
