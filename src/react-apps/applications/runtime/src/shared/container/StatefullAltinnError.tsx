@@ -100,7 +100,22 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
 
   if (!props.location || !props.location.state || !props.location.state.message) {
     return (
-      <Redirect to={'/'}/>
+      <div className={'container'}>
+        <AltinnAppHeader
+          language={language}
+          profile={profile}
+          type={'normal'}
+        />
+        <Grid container={true} className={classes.statefulErrorPage}>
+          <Grid item={true}>
+            <AltinnError
+              title={'Unknown error occurred'}
+              content={'So sorry, but an unknown error occurred. Please try again later'}
+              statusCode={`${language.party_selection.error_caption_prefix} unkown`}
+            />
+          </Grid>
+        </Grid>
+      </div>
     );
   } else {
     return (

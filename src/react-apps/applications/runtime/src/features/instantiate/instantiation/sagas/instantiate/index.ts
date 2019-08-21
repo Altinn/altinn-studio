@@ -32,14 +32,13 @@ function* instantiationSaga({
 
       if (response.data.instanceId) {
         yield put(InstantiationActions.instantiateFulfilled(response.data.instanceId));
-        window.location.replace(`${window.location.origin}/${org}/${service}#/error`);
       } else {
-        throw new Error('Server did not respond with new instance');
+        const error: Error =  new Error('Server did not respond with new instance');
+        yield call(InstantiationActions.instantiateRejected, error);
       }
     }
   } catch (err) {
     yield call(InstantiationActions.instantiateRejected, err);
-    window.location.replace(`${window.location.origin}/${org}/${service}#/error`);
   }
 }
 
