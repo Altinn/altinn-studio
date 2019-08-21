@@ -14,6 +14,7 @@ import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { capitalizeName } from '../../../utils/stringHelper';
 
 const styles = createStyles({
   partySelectionPage: {
@@ -162,12 +163,19 @@ function PartySelection(props: IPartySelectionProps) {
     );
   }
 
+  function getRepresentedPartyName(): string {
+    if (profile.party.name === null) {
+      return '';
+    }
+    return capitalizeName(profile.party.name);
+  }
+
   function templateErrorMessage() {
     if (!language.party_selection) {
       return null;
     }
     return `
-      ${language.party_selection.invalid_selection_first_part} ${profile.party.name}.
+      ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
       ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
       ${language.party_selection.invalid_selection_third_part}
     `;
