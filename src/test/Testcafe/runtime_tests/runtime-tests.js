@@ -100,7 +100,7 @@ test('Read-only components test in runtime', async () => {
 
 test('Fill out, save, and submit a form', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/formfill#/test')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/formfilling#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].exists).ok()
     .hover(runtime.testUsers[0])
@@ -118,7 +118,7 @@ test('Fill out, save, and submit a form', async () => {
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.saveButton)
-    .wait(40000)
+    .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
     .click(runtime.sendInnButton)
     .expect(runtime.workflowSubmit.exists).ok({ timeout: 120000 })
     .expect(runtime.workflowSubmit.visible).ok()
