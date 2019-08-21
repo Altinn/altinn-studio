@@ -291,9 +291,9 @@ namespace Altinn.Platform.Storage.Controllers
                 contentType = request.ContentType;
             }
 
-            string userName = GetNameOfUser(User);
+            string user = null;
 
-            DataElement newData = DataElementHelper.CreateDataElement(elementType, instance, creationTime, contentType, contentFileName, fileSize, userName);
+            DataElement newData = DataElementHelper.CreateDataElement(elementType, instance, creationTime, contentType, contentFileName, fileSize, user);
 
             return newData;
         }
@@ -459,16 +459,6 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 errorMessage = StatusCode(500, $"Unable to get instance {instanceId}: {e}");
-            }
-
-            return null;
-        }
-
-        internal string GetNameOfUser(ClaimsPrincipal user)
-        {
-            if (user != null && User.Identity != null)
-            {
-                return User.Identity.Name;
             }
 
             return null;
