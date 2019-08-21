@@ -76,7 +76,8 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
-
+      const validations = this.getAdressComponentValidations();
+      validations ? passThroughProps['addressComponentValidations'] = validations : null;
       return (
         <>
           {this.renderLabel()}
@@ -90,6 +91,14 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
           {this.errorMessage()}
         </>
       );
+    }
+
+    public getAdressComponentValidations = () => {
+      if (this.props.type === 'AddressComponent') {
+        return this.props.componentValidations;
+      } else {
+        return null;
+      }
     }
 
     private hasValidationMessages = () => {
