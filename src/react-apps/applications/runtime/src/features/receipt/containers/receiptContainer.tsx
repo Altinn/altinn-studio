@@ -1,10 +1,10 @@
 import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { useState } from 'react';
-import { connect, useSelector } from 'react-redux';
-import { RouteChildrenProps, RouteProps, withRouter, WithRouterProps } from 'react-router';
+import { useSelector } from 'react-redux';
+import { RouteChildrenProps, withRouter } from 'react-router';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
-import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
 
 import OrgsActions from './../../../shared/resources/orgs/orgsActions';
@@ -17,17 +17,24 @@ const styles = () => createStyles({
 });
 
 const ReceiptContainer = (props: IReceiptContainerProps ) => {
-
+  const [userLanguage, setUserLanguage] = React.useState('nb');
+  const [appName, setAppName] = React.useState('');
   const [instanceObject, setInstanceObject] = useState({});
   // const attachments: any = useSelector((state: IRuntimeState) => state.attachments);
   const allOrgs: any = useSelector((state: IRuntimeState) => state.organizationMetaData.allOrgs);
+  const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const profile: any = useSelector((state: IRuntimeState) => state.profile);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
-  const { classes } = props;
+  // const { classes } = props;
   const routeParams: any = props.match.params;
-  const formConfig: any = useSelector((state: IRuntimeState) => state.formConfig);
 
-  const instanceMetaDataObject = (orgsData: any, languageData: any, profileData: any, instanceGuid: string): {} => {
+  const instanceMetaDataObject = (
+      orgsData: any,
+      languageData: any,
+      profileData: any,
+      instanceGuid: string,
+      userLanguageString: string,
+    ): {} => {
     const obj: any = {};
 
     obj[getLanguageFromKey('receipt_container.date_sendt', languageData)] = '01.01.2020 / 12:21';
@@ -41,7 +48,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
     obj[getLanguageFromKey('receipt_container.sender', languageData)] = sender;
 
     const receiver: string = 'tdd';
-    obj[getLanguageFromKey('receipt_container.receiver', languageData)] = orgsData[receiver].name.nb;
+    obj[getLanguageFromKey('receipt_container.receiver', languageData)] = orgsData[receiver].name[userLanguageString];
 
     obj[getLanguageFromKey('receipt_container.ref_num', languageData)] = instanceGuid;
 
@@ -49,15 +56,22 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   };
 
   React.useEffect(() => {
+    setUserLanguage(getUserLanguage());
     OrgsActions.fetchOrgs();
   }, []);
 
   React.useEffect(() => {
     if (allOrgs != null && profile.profile) {
-      const obj = instanceMetaDataObject(allOrgs, language, profile, routeParams.instanceGuid);
+      const obj = instanceMetaDataObject(allOrgs, language, profile, routeParams.instanceGuid, userLanguage);
       setInstanceObject(obj);
     }
   }, [allOrgs, profile]);
+
+  React.useEffect(() => {
+    if (applicationMetadata && applicationMetadata.title) {
+      setAppName(applicationMetadata.title[userLanguage]);
+    }
+  }, [applicationMetadata, userLanguage]);
 
   const attachments = [
     {
@@ -101,7 +115,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   return (
     <ReceiptComponent
       // tslint:disable-next-line:max-line-length
-      title={`${formConfig.serviceName} ${getLanguageFromKey('receipt_container.title_part_is_submitted', language)}`}
+      title={`${appName} ${getLanguageFromKey('receipt_container.title_part_is_submitted', language)}`}
       attachments={attachments}
       collapsibleTitle={getLanguageFromKey('receipt_container.attachments', language)}
       instanceMetaDataObject={instanceObject}

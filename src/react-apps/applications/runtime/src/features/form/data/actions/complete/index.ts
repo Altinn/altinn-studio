@@ -12,9 +12,14 @@ export function completeAndSendInForm(url: string): ICompleteAndSendInForm {
   };
 }
 
-export function completeAndSendInFormFulfilled(): Action {
+export interface ICompleteAndSendInFormFulfilled extends Action {
+  response: any;
+}
+
+export function completeAndSendInFormFulfilled(response: any): ICompleteAndSendInFormFulfilled {
   return {
     type: actionTypes.COMPLETE_AND_SEND_IN_FORM_FULFILLED,
+    response,
   };
 }
 

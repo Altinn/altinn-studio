@@ -16,7 +16,7 @@ import InstantiationReducer, { IInstantiationState } from '../features/instantia
 import ApplicationMetadataReducer, { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import LanguageReducer, { ILanguageState } from '../shared/resources/language/languageReducers';
-import Orgsreducer, { IOrgsState } from '../shared/resources/orgs/orgsReducers';
+import OrgsReducer, { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import PartyReducer, { IPartyState } from '../shared/resources/party/partyReducers';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
@@ -77,7 +77,7 @@ const reducers: IRuntimeReducers = {
   party: PartyReducer,
   applicationMetadata: ApplicationMetadataReducer,
   instantiation: InstantiationReducer,
-  organizationMetaData: Orgsreducer,
+  organizationMetaData: OrgsReducer,
 };
 
 export default combineReducers(reducers);

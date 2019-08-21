@@ -11,9 +11,7 @@ import {
 
 export function* fetchOrgsSaga(): SagaIterator {
   try {
-    console.log('action!');
     const result = yield call(get, orgsListUrl);
-    console.log('result', result);
     const orgObject = result.orgs;
     yield call(OrgsActions.fetchOrgsFulfilled, orgObject);
   } catch (err) {

@@ -16,7 +16,7 @@ export interface IFormDataActions extends ActionCreatorsMapObject {
   fetchFormDataFulfilled: (formData: any) => FetchFormData.IFetchFormDataFulfilled;
   fetchFormDataRejected: (error: Error) => FetchFormData.IFetchFormDataRejected;
   completeAndSendInForm: (url: string) => CompleteForm.ICompleteAndSendInForm;
-  completeAndSendInFormFulfilled: () => Action;
+  completeAndSendInFormFulfilled: (reponse: any) => Action;
   completeAndSendInFormRejected: (error: Error) => CompleteForm.ICompleteAndSendInFormRejected;
 }
 
