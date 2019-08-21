@@ -83,3 +83,26 @@ export interface IProfile {
   profileSettingPreference: IProfileSettingPreference;
 }
 
+export interface IElementType {
+  id: string;
+  allowedContentType: string[];
+  maxCount: number;
+  shouldSign: boolean;
+  shouldEncrypt: boolean;
+}
+
+export interface IApplication {
+  id: string;
+  versionId: string;
+  org: string;
+  createdDateTime: Date;
+  lastChangedDateTime: Date;
+  title: ITitle;
+  validFrom: Date;
+  elementTypes: IElementType[];
+}
+
+export interface ITitle {
+  nb: string;
+}
+

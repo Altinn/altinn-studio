@@ -23,23 +23,34 @@ export interface IPerson {
   addressCity: string;
 }
 
-export interface IParty extends IPerson {
-  partyId: number;
-  partyTypeName: number;
-  orgNumber: number;
-  ssn: string;
-  person: IPerson;
-  organization: string;
+export interface IOrganization {
+  orgNumber: string;
+  name: string;
+  unitType: string;
+  telephoneNumber: string;
+  mobileNumber: string;
+  faxNumber: string;
+  eMailAddress?: string;
+  internetAddress?: string;
+  mailingAddress?: string;
+  mailingPostalCode: string;
+  mailingPostalCity: string;
+  businessAddress?: string;
+  businessPostalCode: string;
+  businessPostalCity: string;
 }
 
-export interface IProfile extends IParty {
-  userId: number;
-  userName: string;
-  phoneNumber: string;
-  email: string;
+export interface IParty {
   partyId: number;
-  party: IParty;
-  userType: number;
+  partyTypeName: number;
+  orgNumber: string;
+  ssn: string;
+  unitType?: any;
+  name?: any;
+  isDeleted: boolean;
+  onlyHiearhyElementWithNoAccess: boolean;
+  person: IPerson;
+  organization?: IOrganization;
 }
 
 export interface IAttachment {

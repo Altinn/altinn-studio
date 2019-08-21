@@ -52,7 +52,7 @@ const styles = createStyles({
     paddingBottom: 30,
   },
   headerText: {
-    fontSize: '1.75rem',
+    fontSize: '2.8rem',
     color: altinnTheme.altinnPalette.primary.white,
   },
   body: {

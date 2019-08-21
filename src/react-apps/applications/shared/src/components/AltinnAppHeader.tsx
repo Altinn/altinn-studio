@@ -1,185 +1,97 @@
-import { AppBar, Grid, Toolbar } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { AppBar, createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
-import altinnStudioTheme from '../theme/altinnStudioTheme';
-import { IProfile } from '../types/index';
-import { getLanguageFromKey } from '../utils/language';
-import { renderParty } from '../utils/party';
+import { IParty } from '../types';
+import { renderPartyName } from '../utils/party';
+import AltinnIcon from './AltinnIcon';
 import AltinnLogo from './AltinnLogo';
 
-export interface IHeaderProps {
-  classes: any;
-  language: any;
-  profile: IProfile;
-  type?: 'partyChoice' | null;
+export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
+  party: IParty;
+  userParty: IParty;
+  logoColor: string;
+  headerColor: string;
 }
 
-const theme = createMuiTheme(altinnStudioTheme);
-
 const styles = createStyles({
-  appBarWrapper: {
-    'flexGrow': 1,
-    '& header': {
-      boxShadow: 'none',
-    },
+  altinnAppHeader: {
+    marginTop: 33,
+    boxShadow: 'none',
+    WebkitBoxShadow: 'none',
+    MozBoxShadow: 'none',
   },
-  blueDark: {
-    color: altinnStudioTheme.altinnPalette.primary.blueDark,
-  },
-  blueDarker: {
-    color: altinnStudioTheme.altinnPalette.primary.blueDarker,
-  },
-  default: {
-    backgroundColor: 'transparent',
-  },
-  headerLink: {
-    'color': altinnStudioTheme.altinnPalette.primary.blueDark,
-    'fontSize': '2.4rem',
-    'lineHeight': '1.5',
-    'marginLeft': '3.6rem',
-    'paddingBottom': '3px',
-    [theme.breakpoints.down('sm')]: {
-      fontSize: '1.8rem',
-    },
-    '&:hover': {
-      padding: 0,
-    },
-    '& a': {
-      color: altinnStudioTheme.altinnPalette.primary.blueDark,
-      borderBottom: 0,
-    },
-    '& a:hover': {
-      color: altinnStudioTheme.altinnPalette.primary.blueDark,
-      borderBottom: '3px solid ' + altinnStudioTheme.altinnPalette.primary.blueDark,
-    },
-  },
-  headerLinkList: {
-    'flexGrow': 1,
-    'listStyle': 'none',
-    'float': 'left',
-    '& li': {
-      display: 'inline',
-    },
-  },
-  headerProfile: {
-    float: 'right',
-  },
-  partyChoice: {
-    backgroundColor: '#F5F5F5',
-  },
-  languageDropdown: {
-    fontSize: '1.4rem',
-  },
-  logo: {
-    marginRight: '1.2rem',
-  },
-  menuButton: {
-    [theme.breakpoints.up('xs')]: {
-      display: 'none !important',
-    },
-  },
-  partyIcon: {
-    fontSize: '3.1rem !important',
-    marginLeft: '5px',
-  },
-  toolbarContainer: {
-    'paddingTop': '3rem !important',
-    'marginBottom': '3.6rem',
-    '& .a-personSwitcher': {
-      marginTop: '0 !important',
-      marginLeft: '2.4rem',
-    },
+  mainContent: {
+    marginLeft: '10%',
+    marginRight: '10%',
+    width: 'auto',
   },
 });
 
-const AltinnAppHeader = (props: IHeaderProps) => {
-  const { classes, type } = props;
-  const party = props.profile ? props.profile.party : null;
+function AltinnAppHeader(props: IAltinnAppHeaderProps) {
+  const {classes, logoColor, headerColor, party, userParty} = props;
   return (
-    <div className={classes.appBarWrapper}>
-    <AppBar
-      position='static'
-      className={type === 'partyChoice' ? classes.partyChoice : classes.default}
-    >
-      <Toolbar className={'container ' + classes.toolbarContainer}>
+    <AppBar classes={{root: classes.altinnAppHeader}} style={{backgroundColor: headerColor}}>
+      <Grid
+        container={true}
+        className={classes.mainContent}
+        alignItems={'center'}
+      >
         <Grid
-          item={true}
-          className={classes.logo}
-          style={!type ? {flexGrow: 1} : {}}
+          container={true}
+          xs={6}
         >
-          <AltinnLogo
-            color={
-              type === 'partyChoice' ? altinnStudioTheme.altinnPalette.primary.blueDark :
-              altinnStudioTheme.altinnPalette.primary.blueDarker}
-          />
+          <Grid item={true}>
+            <AltinnLogo color={logoColor}/>
+          </Grid>
         </Grid>
-            {
-              type &&
-              <ul
-                className={classes.headerLinkList}
-              >
-                <li
-                  className={classes.headerLink}
-                >
-                  <a href='https://altinn.no/ui/messagebox'>
-                    {getLanguageFromKey('instantiate.inbox', props.language)}
-                  </a>
-                </li>
-                <li
-                  className={classes.headerLink}
-                >
-                  <a href='https://altinn.no/nn/skjemaoversikt/'>
-                    {getLanguageFromKey('instantiate.all_forms', props.language)}
-                  </a>
-                </li>
-                <li
-                  className={classes.headerLink}
-                >
-                  <a href='https://altinn.no/ui/profile'>
-                    {getLanguageFromKey('instantiate.profile', props.language)}
-                  </a>
-                </li>
-              </ul>
-            }
-        <div
-          className={'a-personSwitcher'}
-          title={renderParty(props.profile)}
+        <Grid
+          container={true}
+          justify={'flex-end'}
+          alignItems={'center'}
+          xs={6}
         >
-          <span className='a-personSwitcher-name' style={{ marginBottom: '10px' }}>
-            { !type &&
-            <>
-              <span className={'d-block ' + (type ? classes.blueDark : classes.blueDarker)}>
-                {renderParty(props.profile)}
-              </span>
-              <span className={type ? classes.blueDark : classes.blueDarker}>
-                {
-                  party && party.organization &&
-                  getLanguageFromKey('general.for', props.language) + ' ' +
-                  party.organization.toUpperCase()
-                }
-              </span>
-            </>
+          <Grid item={true}>
+            {(party.partyId === userParty.partyId) &&
+              <Typography>
+                {renderPartyName(userParty)}
+              </Typography>
             }
-            <span className='d-block' />
-          </span>
-          {party && party.organization ?
-            <i
-              className={'fa fa-corp-circle-big ' + classes.partyIcon + ' ' +
-                (type ? classes.blueDark : classes.blueDarker)}
-              aria-hidden='true'
-            />
-            :
-            <i
-              className={'fa fa-private-circle-big ' + classes.partyIcon + ' ' +
-                (type ? classes.blueDark : classes.blueDarker)}
-              aria-hidden='true'
-            />
-          }
-        </div>
-      </Toolbar>
+            {(party.partyId !== userParty.partyId) &&
+              <Grid container={true} direction={'column'} alignItems={'flex-end'}>
+                <Grid item={true}>
+                  <Typography>
+                    {renderPartyName(userParty)}
+                  </Typography>
+                </Grid>
+                <Grid item={true}>
+                  <Typography>
+                    for {renderPartyName(party)}
+                  </Typography>
+                </Grid>
+              </Grid>
+            }
+          </Grid>
+          <Grid item={true}>
+            {party.ssn &&
+              <AltinnIcon
+                iconClass={'fa fa-private-circle-big'}
+                iconColor={logoColor}
+                iconSize={46}
+                margin={'0px 0px 0px 5px'}
+              />
+            }
+            {party.orgNumber &&
+              <AltinnIcon
+                iconClass={'fa fa-corp-circle-big'}
+                iconColor={logoColor}
+                iconSize={46}
+                margin={'0px 0px 0px 5px'}
+              />
+            }
+          </Grid>
+        </Grid>
+      </Grid>
     </AppBar>
-    </div>
   );
-};
+}
 
 export default withStyles(styles)(AltinnAppHeader);
