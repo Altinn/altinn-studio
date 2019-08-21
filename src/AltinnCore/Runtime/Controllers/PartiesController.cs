@@ -149,13 +149,13 @@ namespace AltinnCore.Runtime.Controllers
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             int userId = userContext.UserId;
 
-            StatusCodeResult partyUpdatedStatus = await _authorization.UpdateSelectedParty(userId, partyId);
+            bool? isValid = await _authorization.ValidateSelectedParty(userId, partyId);
 
-            if (partyUpdatedStatus.StatusCode == 400)
+            if (isValid == false)
             {
                 return BadRequest($"User {userId} cannot represent party {partyId}.");
             }
-            else if (partyUpdatedStatus.StatusCode == 500)
+            else if (isValid == null)
             {
                 return StatusCode(500, "Something went wrong when trying to update selectedparty.");
             }

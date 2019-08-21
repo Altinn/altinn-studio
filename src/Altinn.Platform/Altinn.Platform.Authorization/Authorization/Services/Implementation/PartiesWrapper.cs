@@ -51,32 +51,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<bool?> UpdateSelectedParty(int userId, int partyId)
-        {
-            bool isValid = await ValidateSelectedParty(userId, partyId);
-
-            if (!isValid)
-            {
-                return null;
-            }
-
-            // TODO: set all required cookies.
-
-            string apiUrl = $"ui/Reportee/ChangeReportee/?R={partyId}";
-            HttpResponseMessage response = await _sblClient.Client.GetAsync(apiUrl);
-            string message = response.Content.ToString();
-
-            if (response.StatusCode == HttpStatusCode.OK && message.Equals("Reportee successfully updated."))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        /// <inheritdoc />
         public async Task<bool> ValidateSelectedParty(int userId, int partyId)
         {
             bool result = false;
