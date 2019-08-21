@@ -12,35 +12,25 @@ namespace Altinn.Platform.Storage.Helpers
     /// </summary>
     public static class DataElementHelper
     {
-        private static readonly string Prefix = "storage/api/v1";
-
         /// <summary>
         /// Creates a data element based on element type, instance id, content type, content file name and file size. 
         /// </summary>
         /// <returns>DataElement</returns>
-        public static DataElement CreateDataElement(string elementType, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string userName)
+        public static DataElement CreateDataElement(string elementType, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user)
         {
             string dataId = Guid.NewGuid().ToString();
-
-            string dataLink = $"{Prefix}/instances/{instance.Id}/data/{dataId}";
-
+            
             DataElement newData = new DataElement
             {
                 // update data record
                 Id = dataId,
                 ElementType = elementType,
                 ContentType = contentType,
-                CreatedBy = userName,
+                CreatedBy = user,
                 CreatedDateTime = creationTime,
                 FileName = contentFileName ?? $"{dataId}.xml",
-                LastChangedBy = userName,
+                LastChangedBy = user,
                 LastChangedDateTime = creationTime,
-
-                DataLinks = new ResourceLinks()
-                {
-                    Apps = dataLink,
-                },
-
                 FileSize = fileSize,
             };
 

@@ -21,10 +21,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
     public class InstanceMultipartTests : IClassFixture<PlatformStorageFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
+        private readonly ApplicationClient applicationClient;
         private readonly HttpClient client;
         private InstanceClient storageClient;
-        private readonly string testOrg = "tests";
-        private string testAppId = "tests/sailor";
+        private readonly string testOrg = "testing";
+        private string testAppId = "testing/golfer06";
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -37,6 +38,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.fixture = fixture;
             this.client = this.fixture.Client;
             this.storageClient = new InstanceClient(this.client);
+            this.applicationClient = new ApplicationClient(client);
 
             CreateTestApplication();
         }
@@ -101,7 +103,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 { "en", "Test application" }
             };
 
-            return appClient.CreateApplication(testAppId, title);
+            Application newApp = appClient.CreateApplication(testAppId, title);
+            return newApp;
+
+            // return appClient.CreateApplication(testAppId, title);
         }
 
         private Application DeleteApplicationMetadata()
@@ -119,10 +124,50 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void StoreMultiPartFileInOnePostOperation()
         {
+            Application application = new Application()
+            {
+                Id = "testing/golfer06",
+                VersionId = "1.2.0",
+                Org = "testing",
+                Title = new LanguageString
+                {
+                    { "nb", "test application" },
+                },
+                ValidFrom = new DateTime(2019, 07, 01),
+                ValidTo = new DateTime(2020, 06, 30),
+                ElementTypes = new List<ElementType>()
+            };
+
+            ElementType elementTypes = new ElementType()
+            {
+                Id = "default",
+                AllowedContentType = new List<string>(),
+            };
+            elementTypes.AllowedContentType.Add("text/xml");
+            elementTypes.AllowedContentType.Add("application/xml");
+
+            application.ElementTypes.Add(elementTypes);
+
+            Application app = new Application();
+
+            try
+            {
+                app = applicationClient.GetApplication(application.Id);
+            }
+            catch (Exception)
+            {
+                // do nothing.
+            }
+
+            if (app == null)
+            {
+                app = applicationClient.CreateApplication(application);
+            }
+
             Instance instance = new Instance()
             {
                 InstanceOwnerId = "1000",
-                AppId = "tests/sailor",
+                AppId = "testing/golfer06",
                 Labels = new List<string>()
                 {
                     "Hei"
@@ -133,10 +178,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             MultipartFormDataContent form = new MultipartFormDataContent();
 
             form.Add(instance.AsJson(), "instance");
-            string xmlText = File.ReadAllText("data/example.xml");
 
+            string xmlText = File.ReadAllText("data/example.xml");
             form.Add(new StringContent(xmlText, Encoding.UTF8, "application/xml"), "default");
-        
+
+            string xmlText2 = File.ReadAllText("data/xmlfile.xml");
+            form.Add(new StringContent(xmlText2, Encoding.UTF8, "text/xml"), "default");
+
             string requestUri = $"{versionPrefix}/instances?appId={instance.AppId}&instanceOwnerId={instance.InstanceOwnerId}";
 
             HttpResponseMessage response = await client.PostAsync(requestUri, form);
@@ -146,12 +194,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string result = await response.Content.ReadAsStringAsync();
 
             Instance instanceResult = JsonConvert.DeserializeObject<Instance>(result);
-
-            // Assert
+            
             Assert.NotEmpty(instanceResult.Data);
+
+            foreach (DataElement data in instanceResult.Data)
+            {
+                Assert.Contains("default", data.ElementType);
+                Assert.NotEmpty(data.StorageUrl);
+            }
+
             Assert.Equal("1000", instanceResult.InstanceOwnerId);
         }
-
+        
         /// <summary>
         /// Store a Json file.
         /// </summary>
@@ -170,9 +224,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             };
 
             string requestUri = $"{versionPrefix}/instances?appId={instance.AppId}&instanceOwnerId={instance.InstanceOwnerId}";
-            
+
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, instance.AsJson());
-            
+
             postResponse.EnsureSuccessStatusCode();
 
             string result = await postResponse.Content.ReadAsStringAsync();

@@ -8,7 +8,6 @@ namespace Altinn.Platform.Storage.Controllers
     using System.Net.Http;
     using System.Security.Claims;
     using System.Text;
-    using System.Threading;
     using System.Threading.Tasks;
     using System.Web;
     using Altinn.Platform.Storage.Configuration;
@@ -20,6 +19,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Http.Features;
+    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
@@ -36,11 +36,9 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class InstancesController : Controller
     {
-        private readonly string prefix = "storage/api/v1";
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IDataRepository _dataRepository;
-        private readonly DataController _dataController;
         private readonly ILogger logger;
         private static readonly FormOptions _defaultFormOptions = new FormOptions();
         private readonly HttpClient bridgeRegistryClient;
@@ -51,7 +49,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="dataRepository">the data repository handler</param>
-        /// <param name="dataController">the data controller handler</param>
         /// <param name="generalSettings">the platform settings which has the url to the registry</param>
         /// <param name="logger">the logger</param>
         /// <param name="bridgeClient">the client to call bridge service</param>
@@ -59,7 +56,6 @@ namespace Altinn.Platform.Storage.Controllers
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
             IDataRepository dataRepository,
-            DataController dataController,
             IOptions<GeneralSettings> generalSettings,
             ILogger<InstancesController> logger,
             HttpClient bridgeClient)
@@ -67,7 +63,6 @@ namespace Altinn.Platform.Storage.Controllers
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
             _dataRepository = dataRepository;
-            _dataController = dataController;
             this.logger = logger;
             this.bridgeRegistryClient = bridgeClient;
 
@@ -308,14 +303,14 @@ namespace Altinn.Platform.Storage.Controllers
 
             DateTime creationTime = DateTime.UtcNow;
             string org = appInfo.Org;
-            string userName = GetNameOfUser(User);
+            string user = null;
 
             Instance createdInstance = new Instance()
             {
                 InstanceOwnerId = ownerId.ToString(),
-                CreatedBy = userName,
+                CreatedBy = user,
                 CreatedDateTime = creationTime,
-                LastChangedBy = userName,
+                LastChangedBy = user,
                 LastChangedDateTime = creationTime,
                 AppId = appId,
                 Org = org,
@@ -354,8 +349,8 @@ namespace Altinn.Platform.Storage.Controllers
             
             if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
             {
-                storedInstance = ReadhMultipartAndStoreFilesToBlob(Request, storedInstance, appInfo.ElementTypes, creationTime, userName, out ActionResult errorResult);
-
+                storedInstance = ReadMultipartAndStoreFilesToBlob(storedInstance, appInfo.ElementTypes, creationTime, user, out ActionResult errorResult);
+                
                 if (errorResult != null)
                 {
                     return errorResult;
@@ -368,14 +363,13 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Loop through multipart content and save file(s) to blob
         /// </summary>
-        /// <param name="request">The Http Request</param>
         /// <param name="storedInstance">The Instance object to connect stored files</param>
         /// <param name="appInfoElementTypes">The element types from the application info</param>
         /// <param name="creationTime">The DateTime varialbe on which the storedInstance was created</param>
-        /// <param name="userName">The username of the ClaimsPrincipal</param>
+        /// <param name="user">The user</param>
         /// <param name="errorResult">The possible error message</param>
         /// <returns></returns>
-        private Instance ReadhMultipartAndStoreFilesToBlob(HttpRequest request, Instance storedInstance, List<ElementType> appInfoElementTypes, DateTime creationTime, string userName, out ActionResult errorResult)
+        private Instance ReadMultipartAndStoreFilesToBlob(Instance storedInstance, List<ElementType> appInfoElementTypes, DateTime creationTime, string user, out ActionResult errorResult)
         {
             errorResult = null;
 
@@ -383,67 +377,75 @@ namespace Altinn.Platform.Storage.Controllers
             string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
 
             MultipartReader reader = new MultipartReader(boundary, Request.Body);
-
-            // Execute ReadNextSectionAsync() twice, to expose the second part of the Multipart content,
-            // first part has already been handled in ReadInstanceTemplateFromBody(HttpRequest req).
             MultipartSection section = reader.ReadNextSectionAsync().Result;
-            section = reader.ReadNextSectionAsync().Result;
-
+            
             while (section != null)
             {
-                Stream theStream = null;
-                string contentFileName = null;
-                string contentType = null;
-                long fileSize = 0;
-
-                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-
-                if (hasContentDisposition)
-                {
-                    contentFileName = contentDisposition.FileName.ToString();
-                    fileSize = contentDisposition.Size ?? 0;
-                }
-
+                bool hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+                
                 string contentDispositionName = contentDisposition.Name.Value;
 
-                ElementType elementTypeTemp = appInfoElementTypes.Find(e => e.Id == contentDispositionName);
-
-                // Check if the content disposition name is declared for the application (e.g. "default").
-                if (!appInfoElementTypes.Exists(e => e.Id == contentDispositionName))
+                if (contentDispositionName != "instance")
                 {
-                    errorResult = BadRequest("Requested element type is not declared in application metadata");
-                }
+                    Stream theStream = null;
+                    string contentFileName = null;
+                    string contentType = null;
+                    long fileSize = 0;
 
-                contentType = section.ContentType.Split(";")[0];
+                    if (hasContentDispositionHeader)
+                    {
+                        contentFileName = contentDisposition.FileName.ToString();
+                        fileSize = contentDisposition.Size ?? 0;
+                    }
 
-                // Check if the content type of the multipart section is declared for the application (e.g. "application/xml").
-                if (!appInfoElementTypes.Exists(e => e.AllowedContentType.Contains(contentType)))
-                {
-                    errorResult = BadRequest("Requested content type is not declared in application metadata");
-                }
+                    ElementType elementTypeTemp = appInfoElementTypes.Find(e => e.Id == contentDispositionName);
 
-                theStream = section.Body;
+                    // Check if the content disposition name is declared for the application (e.g. "default").
+                    if (elementTypeTemp == null)
+                    {
+                        errorResult = BadRequest($"Requested content disposition name, '{contentDispositionName}' is not declared in application metadata");
+                        return null;
+                    }
 
-                // Create a new DataElement to be stored in blob (and added in the Data List of the Instance object).
-                DataElement newDataElement = DataElementHelper.CreateDataElement(contentDispositionName, storedInstance, creationTime, contentType, contentFileName, fileSize, userName);
+                    contentType = section.ContentType.Split(";")[0];
 
-                try
-                {
-                    // Store file as blob.
-                    _dataRepository.CreateDataInStorage(theStream, newDataElement.StorageUrl);
+                    // Check if the content type of the multipart section is declared for the element type (e.g. "application/xml").
+                    if (!elementTypeTemp.AllowedContentType.Contains(contentType))
+                    {
+                        errorResult = BadRequest($"Requested content type, '{contentType}', is not declared in this application element type '{elementTypeTemp}'");
+                        return null;
+                    }
 
-                    // Add file to instance.
-                    storedInstance.Data.Add(newDataElement);
+                    theStream = section.Body;
 
-                    // Update instance.
-                    storedInstance = _instanceRepository.Update(storedInstance).Result;
-                }
-                catch (Exception e)
-                {
-                    errorResult = StatusCode(500, $"Unable to create instance data in storage: {e}");
+                    // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
+                    DataElement newDataElement = DataElementHelper.CreateDataElement(contentDispositionName, storedInstance, creationTime, contentType, contentFileName, fileSize, user);
+
+                    try
+                    {
+                        // Store file as blob.
+                        _dataRepository.CreateDataInStorage(theStream, newDataElement.StorageUrl);
+
+                        // Add file to instance.
+                        storedInstance.Data.Add(newDataElement);
+                    }
+                    catch (Exception e)
+                    {
+                        errorResult = StatusCode(500, $"Unable to create instance data in storage: {e}");
+                    }
                 }
 
                 section = reader.ReadNextSectionAsync().Result;
+            }
+
+            try
+            {
+                // Update instance with the data element(s).
+                storedInstance = _instanceRepository.Update(storedInstance).Result;
+            }
+            catch (Exception e)
+            {
+                errorResult = StatusCode(500, $"Unable to update instance with the new data, reason being {e}");
             }
 
             return storedInstance;
@@ -458,10 +460,11 @@ namespace Altinn.Platform.Storage.Controllers
         private async Task<Instance> ReadInstanceTemplateFromBody(HttpRequest request, Application appInfo)
         {
             Instance instanceTemplate = null;
+            string contentType = null;
 
             if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
             {
-                // Only read the first section of the mulitpart message.
+                // Only read the first section of the mulitpart message, to get the instance.
                 MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
                 string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
 
@@ -477,28 +480,27 @@ namespace Altinn.Platform.Storage.Controllers
                     // Check if the content disposition name is "instance".
                     if (contentDisposition.Name.Value == "instance")
                     {
-                        string contentType = section.ContentType.Split(";")[0];
+                        contentType = section.ContentType.Split(";")[0];
 
-                        // Check if the content type of the multipart section is declared for the application (for example "application/json").
-                        if (!appInfo.ElementTypes.Exists(e => e.AllowedContentType.Contains(contentType)))
+                        // Check if the content type is of type "application/json".
+                        if (contentType == "application/json")
                         {
                             instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
-                            request.Body.Position = 0;
-                            return instanceTemplate;
                         }
                     }
                 }
             }
             else
             {
-                // Check if the content type of the multipart section is declared for the application (for example "application/json").
-                if (appInfo.ElementTypes.Exists(e => e.AllowedContentType.Contains(request.ContentType)))
+                contentType = request.ContentType.Split(";")[0];
+
+                if (contentType == "application/json")
                 {
                     instanceTemplate = JsonConvert.DeserializeObject<Instance>(await ReadBodyAsync(request));
-                    return instanceTemplate;
                 }
             }
 
+            request.Body.Position = 0;
             return instanceTemplate;
         }
 
@@ -508,25 +510,10 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns></returns>
         private async Task<string> ReadBodyAsync(HttpRequest req)
         {
-            StreamReader streamReader = new StreamReader(req.Body);
+            StreamReader streamReader = new StreamReader(req.Body, Encoding.UTF8);
             return await streamReader.ReadToEndAsync();
         }
-
-        /// <summary>
-        /// Get the name of the ClaimsPrincipal user
-        /// </summary>
-        /// <param name="user">The ClaimsPrincipal user object</param>
-        /// <returns></returns>
-        internal string GetNameOfUser(ClaimsPrincipal user)
-        {
-            if (user != null && User.Identity != null)
-            {
-                return User.Identity.Name;
-            }
-
-            return null;
-        }
-
+        
         private Application GetApplicationOrError(string appId, out ActionResult errorResult)
         {
             errorResult = null;
