@@ -115,9 +115,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
   }
 
   public validate: () => IAddressValidationErrors = () => {
-    const { address, zipCode, houseNumber } = this.state;
+    const { zipCode, houseNumber } = this.state;
     const validationErrors: IAddressValidationErrors = {
-      address: null,
       zipCode: null,
       houseNumber: null,
     };
