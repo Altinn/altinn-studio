@@ -266,7 +266,7 @@ gulp.task('build-ux-editor', gulp.series(
 ));
 
 gulp.task('install-react-app-dependencies', gulp.series(
-  run('lerna bootstrap --hoist', {
+  run('lerna bootstrap --hoist --ci', {
     cwd: '../../react-apps',
   })
 ));

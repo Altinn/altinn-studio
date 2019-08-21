@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Attributes;
@@ -10,7 +8,6 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
-using AltinnCore.Common.Services;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Api;
 using AltinnCore.ServiceLibrary.Enums;
@@ -54,7 +51,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly GeneralSettings _generalSettings;
 
         private const string FORM_ID = "default";
-        private const long REQUEST_SIZE_LIMIT = 500 * 1024 * 1024;
+        private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -199,7 +196,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Workflow.CurrentStep,
+                    WorkflowStep = instance.Process.CurrentTask,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
@@ -313,7 +310,7 @@ namespace AltinnCore.Runtime.Controllers
             Application application = _repository.GetApplication(startServiceModel.Org, startServiceModel.Service);
             if (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Party, application.PartyTypesAllowed))
             {
-                return new StatusCodeResult(403);
+                 return new StatusCodeResult(403);
             }
 
             // Create platform service and assign to service implementation making it possible for the service implementation
@@ -377,12 +374,12 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Workflow.CurrentStep
+                    WorkflowStep = instance.Process.CurrentTask
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
 
-                Enum.TryParse<WorkflowStep>(instance.Workflow.CurrentStep, out WorkflowStep currentStep);
+                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask, out WorkflowStep currentStep);
 
                 return JsonConvert.SerializeObject(
                     new
@@ -490,11 +487,11 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Workflow.CurrentStep
+                    WorkflowStep = instance.Process.CurrentTask
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
-                Enum.TryParse<WorkflowStep>(instance.Workflow.CurrentStep, out WorkflowStep currentStep);
+                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask, out WorkflowStep currentStep);
 
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
                 return Redirect(redirectUrl);

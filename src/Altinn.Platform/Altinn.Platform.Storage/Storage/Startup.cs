@@ -3,10 +3,13 @@ using System.IO;
 using System.Reflection;
 using System.Xml.XPath;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Repository;
+using Halcyon.Web.HAL.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -39,6 +42,7 @@ namespace Altinn.Platform.Storage
         {
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
+            services.Configure<GeneralSettings>(Configuration.GetSection("BridgeSettings"));
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
@@ -47,6 +51,16 @@ namespace Altinn.Platform.Storage
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
 
+            services.AddHttpClient<InstancesController>();
+
+            // Add HAL support (Halcyon)
+            services.AddMvc().AddMvcOptions(c =>
+            {
+                c.OutputFormatters.RemoveType<JsonOutputFormatter>();
+                c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
+            });
+
+            // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
@@ -55,9 +69,14 @@ namespace Altinn.Platform.Storage
                     Version = "v1"
                 });
 
-                /*c.IncludeXmlComments(GetXmlCommentsPathForControllers());
-                 add path to nuget package. xml file is not copied does not work:
-                 * c.IncludeXmlComments("..\\Storage.Interface\\Storage.Interface.xml");*/
+                try
+                {
+                    c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                }
+                catch
+                {
+                    // Catch swashbuckle exception if it doesn't find the generated XML documentation file
+                }                
             });
         }
 

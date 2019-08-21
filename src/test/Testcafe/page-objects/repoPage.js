@@ -15,7 +15,6 @@ export default class RepoPage {
   }
 
   async deleteRepository(repo, repoName) {
-    // console.log('attempting to delete  repo "' + await repo().textContent + '"');
     await t
       .click(repo)
       .expect(Selector('#repo-clone-url').exists).ok({ timeout: 2500 })

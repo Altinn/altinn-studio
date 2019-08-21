@@ -10,14 +10,16 @@
   "author": "",
   "license": "3-Clause BSD",
   "devDependencies": {
+    "axe-testcafe": "^1.1.0",
     "cross-env": "^5.2.0",
     "minimist": "^1.2.0",
     "process": "^0.11.10",
     "testcafe": "^0.22.0",
-    "tslint": "^5.11.0"
+    "testcafe-browser-provider-puppeteer": "^1.4.0",
+    "tslint": "^5.17.0"
   },
   "dependencies": {
-    "testcafe-react-selectors": "^3.0.3",
+    "testcafe-react-selectors": "^3.1.0",
     "testcafe-reporter-junit": "^3.0.0"
   }
 }
