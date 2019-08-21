@@ -45,7 +45,7 @@ namespace Altinn.Platform.Profile.Controllers
         /// Gets the current user based on the request context
         /// </summary>
         /// <returns>User profile of current user</returns>
-        [HttpGet]
+        [HttpGet("current")]
         public async Task<ActionResult> Get()
         {
             string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
