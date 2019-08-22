@@ -26,6 +26,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
   let mockValidationMessages: any;
   let mockDataBinding: any;
   let mockReadOnly: boolean;
+  let mockRequired: boolean;
   let mockLanguage: any;
   let mocktextResourceBindings: any;
 
@@ -36,6 +37,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
   mockIsValid = true;
   mockSimplified = true;
   mockReadOnly = false;
+  mockRequired = false;
   mockDataBinding = {};
   mockValidationMessages = {
     zipCode: null,
@@ -68,6 +70,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -86,6 +89,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -106,6 +110,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -124,6 +129,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -148,6 +154,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -166,6 +173,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={true}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -186,6 +194,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={true}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -207,6 +216,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -237,6 +247,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -282,6 +293,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         simplified={mockSimplified}
         dataModelBindings={mockDataBinding}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -309,6 +321,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
@@ -329,6 +342,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         dataModelBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
+        required={mockRequired}
         language={mockLanguage}
         textResourceBindings={mocktextResourceBindings}
       />,
