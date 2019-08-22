@@ -13,7 +13,8 @@ namespace Altinn.Platform.Storage.Controllers
     /// API for managing the instance event element
     /// </summary>
     [Route("storage/api/v1/instances/{instanceOwnerId}/{instanceGuid}/events")]
-    public class InstanceEventsController : Controller
+    [ApiController]
+    public class InstanceEventsController : ControllerBase
     {
         private readonly IInstanceEventRepository _repository;
 

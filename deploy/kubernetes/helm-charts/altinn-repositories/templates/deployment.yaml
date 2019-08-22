@@ -20,6 +20,9 @@ spec:
           {{- if eq (required ".Values.environment not set" .Values.environment) "production" }}
           image: "{{ .Values.image.repositoryProd }}:{{ .Values.image.tag }}"
           {{- end }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "staging" }}
+          image: "{{ .Values.image.repositoryStaging }}:{{ .Values.image.tag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.image.containerPorts.port }}

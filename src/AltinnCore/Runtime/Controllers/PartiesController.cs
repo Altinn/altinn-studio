@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
@@ -74,9 +75,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Validates party and profile settings before the end user is allowed to instantiate a new app instance
         /// </summary>
-        /// <param name="org">The organization<param>
-        /// <param name="app">The application<param>
-        /// <param name="partyId">The selected partyId<param>
+        /// <param name="org">The organization</param>
+        /// <param name="app">The application</param>
+        /// <param name="partyId">The selected partyId</param>
         /// <returns>A validation status</returns>
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
         public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
@@ -141,17 +142,22 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Updates the party the user represents
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Status code</returns>
         [HttpPut("{org}/{app}/api/v1/parties/{partyId}")]
         public async Task<IActionResult> UpdateSelectedParty(int partyId)
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             int userId = userContext.UserId;
-            bool? isValidSelection = await _authorization.ValidateSelectedParty(userId, partyId);
 
-            if (isValidSelection != true)
+            StatusCodeResult partyUpdatedStatus = await _authorization.UpdateSelectedParty(userId, partyId);
+
+            if (partyUpdatedStatus.StatusCode == 400)
             {
-                return BadRequest($"User {userId} cannot represent party {partyId}. ");
+                return BadRequest($"User {userId} cannot represent party {partyId}.");
+            }
+            else if (partyUpdatedStatus.StatusCode == 500)
+            {
+                return StatusCode(500, "Something went wrong when trying to update selectedparty.");
             }
 
             Response.Cookies.Append(
@@ -162,9 +168,7 @@ namespace AltinnCore.Runtime.Controllers
                 Domain = _settings.HostName
             });
 
-            // Update claims when running app mode
-
-            return Ok();
+            return Ok("Party successfully updated");
         }
     }
 }

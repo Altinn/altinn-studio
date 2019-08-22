@@ -1,14 +1,14 @@
-import {  createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
+import { createStyles, Grid, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from '../../../../shared/src/utils/urlHelper';
 
-export interface IAltinnErrorProps extends WithStyles<typeof styles>  {
+export interface IAltinnErrorProps extends WithStyles<typeof styles> {
   statusCode: string;
   title: string;
-  content: string;
-  url: string;
-  urlText: string;
-  urlTextSuffix: string;
+  content: string | React.ReactNode;
+  url?: string;
+  urlText?: string;
+  urlTextSuffix?: string;
   imageUrl?: string;
   imageAlt?: string;
 }
@@ -29,8 +29,8 @@ const styles = createStyles({
   },
 });
 
-const AltinnError = (props: IAltinnErrorProps ): JSX.Element => {
-  const { classes }  = props;
+const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
+  const { classes } = props;
   return (
     <Grid container={true} className={classes.gridContainer}>
       <Grid item={true} md={8}>
@@ -45,7 +45,7 @@ const AltinnError = (props: IAltinnErrorProps ): JSX.Element => {
           </Typography>
         </div>
         <div className={classes.contentMargin}>
-        <Typography classes={{root: classes.articleText}}>
+          <Typography classes={{ root: classes.articleText }}>
             {props.content}
           </Typography>
         </div>
@@ -56,7 +56,7 @@ const AltinnError = (props: IAltinnErrorProps ): JSX.Element => {
         </div>
         <div>
           <Typography variant={'body1'}>
-              {props.urlTextSuffix}
+            {props.urlTextSuffix}
           </Typography>
         </div>
       </Grid>

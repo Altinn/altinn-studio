@@ -1,6 +1,6 @@
 ﻿{
   "PartyId": "50001",
-  "PartyType": "Person",
+  "PartyTypeName": "Person",
   "Name": "Ola Privatperson",
   "Person": {
     "PersonId": "1",

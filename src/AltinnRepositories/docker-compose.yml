@@ -29,3 +29,13 @@ services:
     ports:
       - "3000:3000"
       - "222:22"
+
+  staging:
+    container_name: altinn-repositories
+    build:
+      context: .
+      dockerfile: Dockerfile.staging
+    restart: always
+    ports:
+      - "3000:3000"
+      - "222:22"

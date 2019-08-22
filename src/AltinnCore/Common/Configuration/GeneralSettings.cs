@@ -23,27 +23,27 @@ namespace AltinnCore.Common.Configuration
         public string LanguageFilesLocation { get; set; }
 
         /// <summary>
-        /// Gets or sets the runtime mode
+        /// Gets or sets the runtime mode.
         /// </summary>
         public string RuntimeMode { get; set; }
 
         /// <summary>
-        /// Gets or sets the soft validation prefix
+        /// Gets or sets the soft validation prefix.
         /// </summary>
         public string SoftValidationPrefix { get; set; }
 
         /// <summary>
-        /// Gets or sets the altinn studio endpoint
+        /// Gets or sets the altinn studio endpoint.
         /// </summary>
         public string AltinnStudioEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets the host name
+        /// Gets or sets the host name.
         /// </summary>
         public string HostName { get; set; }
 
         /// <summary>
-        /// Gets the path to the service implementation template
+        /// Gets the path to the service implementation template.
         /// </summary>
         public string ServiceImplementationTemplate
         {
@@ -54,7 +54,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the workflow template
+        /// Gets the path to the workflow template.
         /// </summary>
         public string WorkflowTemplate
         {
@@ -65,7 +65,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the calculation handler template
+        /// Gets the path to the calculation handler template.
         /// </summary>
         public string CalculateHandlerTemplate
         {
@@ -76,7 +76,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the rule handler template
+        /// Gets the path to the rule handler template.
         /// </summary>
         public string RuleHandlerTemplate
         {
@@ -87,7 +87,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the validation handler template
+        /// Gets the path to the validation handler template.
         /// </summary>
         public string ValidationHandlerTemplate
         {
@@ -98,7 +98,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the instantiation handler template
+        /// Gets the path to the instantiation handler template.
         /// </summary>
         public string InstantiationHandlerTemplate
         {
@@ -109,7 +109,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the generated methods template
+        /// Gets the path to the generated methods template.
         /// </summary>
         public string GeneratedMethodsTemplate
         {
@@ -120,7 +120,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the default Dockerfile file
+        /// Gets the path to the default Dockerfile file.
         /// </summary>
         public string DefaultRepoDockerfile
         {
@@ -131,7 +131,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the default project file
+        /// Gets the path to the default project file.
         /// </summary>
         public string DefaultProjectFile
         {
@@ -142,7 +142,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the default gitIgnore file
+        /// Gets the path to the default gitIgnore file.
         /// </summary>
         public string DefaultGitIgnoreFile
         {
@@ -152,19 +152,35 @@ namespace AltinnCore.Common.Configuration
             }
         }
 
-               /// <summary>
-        /// Gets or sets the AltinnParty cookie name
+        /// <summary>
+        /// Gets or sets the AltinnParty cookie name.
         /// </summary>
         public string AltinnPartyCookieName { get; set; }
 
         /// <summary>
-        /// Gets the altinnParty cookie from kubernetes environment variables and appsettings if environment variable is not set
+        /// Gets the altinnParty cookie from kubernetes environment variables and appsettings if environment variable is not set.
         /// </summary>
         public string GetAltinnPartyCookieName
         {
             get
             {
                 return Environment.GetEnvironmentVariable("GeneralSettings__AltinnPartyCookieName") ?? AltinnPartyCookieName;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the base adress for SBL.
+        /// </summary>
+        public string SBLBaseAdress { get; set; }
+
+        /// <summary>
+        /// Get the base adress for SBL from kubernetes environment variables and appsettings is environment variable is not set. 
+        /// </summary>
+        public string GetSBLBaseAdress
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings_SBLBaseAdress") ?? SBLBaseAdress;
             }
         }
 

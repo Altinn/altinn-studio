@@ -23,7 +23,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// </summary>
     [Route("storage/api/v1/instances/{instanceOwnerId:int}/{instanceGuid:guid}/data")]
     [ApiController]
-    public class DataController : Controller
+    public class DataController : ControllerBase
     {
         private static readonly FormOptions _defaultFormOptions = new FormOptions();
         private readonly IDataRepository _dataRepository;

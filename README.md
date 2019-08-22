@@ -82,7 +82,7 @@ Navigate to the Designer folder. The first time running, or after any package ch
 
 ```cmd
 cd src/AltinnCore/Designer
-npm install
+npm ci
 npm run gulp-install-deps
 ```
 
@@ -98,12 +98,13 @@ If you are not going to edit the designer react app you can use
 
 ```cmd
 cd src\AltinnCore\Designer
-npm install
+npm ci
 npm run gulp
 dotnet run
 ```
 
 Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
+
 **Runtime**
 
 Stop the container running Runtime.
@@ -114,9 +115,11 @@ docker stop altinn-runtime
 
 Navigate to the Runtime folder. Build and run the code.
 
+**Important:** First you must have executed the Designer commands in order to successfully execute both the following command sequences on the Runtime component.
+
 ```cmd
 cd src/AltinnCore/Runtime
-npm install
+npm ci
 npm run gulp # first time only
 npm run gulp-develop
 ```
@@ -125,7 +128,7 @@ If you are not going to edit the runtime react app you can use
 
 ```cmd
 cd src/AltinnCore/Runtime
-npm install
+npm ci
 npm run gulp
 dotnet run
 ```

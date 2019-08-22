@@ -25,5 +25,21 @@ namespace Altinn.Platform.Authorization.Configuration
                 return Environment.GetEnvironmentVariable("GeneralSettings__BridgeApiEndpoint") ?? BridgeApiEndpoint;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the SBL base adress
+        /// </summary>
+        public string SBLBaseAdress { get; set; }
+
+        /// <summary>
+        /// Gets the SBL base adress from kubernetes environment variables and appsettings if environment variable is not set
+        /// </summary>
+        public string GetSBLBaseAdress
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__SBLBaseAdress") ?? SBLBaseAdress;
+            }
+        }
     }
 }

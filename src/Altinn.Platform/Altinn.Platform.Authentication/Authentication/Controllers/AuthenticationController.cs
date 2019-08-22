@@ -65,7 +65,7 @@ namespace Altinn.Platform.Authentication.Controllers
             {
                 UserAuthenticationModel userAuthentication = null;
                 DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
-                Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}/tickets");
+                Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}tickets");
                 using (HttpClient client = new HttpClient())
                 {
                     string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] });

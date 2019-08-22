@@ -1,6 +1,6 @@
 ﻿{
   "PartyId": "50002",
-  "PartyType": "Person",
+  "PartyTypeName": "Person",
   "Name" :  "Kari Selvstendig",
   "Person": {
     "PersonId": "2",
