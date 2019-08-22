@@ -220,7 +220,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instance">the instance to annotate</param>
         private void SetSelfLinks(Instance instance)
         {
-            string selfLink = $"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}/{instance.Id}";
+            string selfLink = $"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}";
             
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Platform = selfLink;
