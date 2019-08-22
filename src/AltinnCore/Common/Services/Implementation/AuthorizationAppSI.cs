@@ -72,39 +72,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<StatusCodeResult> UpdateSelectedParty(int userId, int partyId)
-        {
-            // Commenting out and returning 200 to enable further testing of party selection in app.
-            /*
-            string apiUrl = $"parties/{partyId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            JwtTokenUtil.AddTokenToRequestHeader(_authClient, token);
-            StatusCodeResult result = null;
-
-            try
-            {
-                HttpResponseMessage response = await _authClient.PutAsync(apiUrl, null);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    result = new StatusCodeResult(200);
-                }
-                else if (response.StatusCode == HttpStatusCode.BadRequest)
-                {
-                    result = new StatusCodeResult(400);
-                }
-            }
-            catch
-            {
-                result = new StatusCodeResult(500);
-            }
-
-            return result;
-            */
-
-            return new StatusCodeResult(200);
-        }
-
-        /// <inheritdoc />
         public async Task<bool?> ValidateSelectedParty(int userId, int partyId)
         {
             bool? result;
