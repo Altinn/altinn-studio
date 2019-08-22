@@ -1,3 +1,6 @@
+import { Typography } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
@@ -44,9 +47,11 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public renderHeader = () => {
     return (
       <div
-        className={'modal-header a-modal-header ' +
-          ((this.props.step === WorkflowSteps.Archived) ? 'a-modal-background-success' : '')
-        }
+        className={classNames(
+          'modal-header',
+          'a-modal-header',
+          {['a-modal-background-success']: this.props.step === WorkflowSteps.Archived},
+        )}
       >
         <div className='a-iconText a-iconText-background a-iconText-large'>
           <div className='a-iconText-icon'>
@@ -165,40 +170,50 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public render() {
-    const backgroundColor = (this.props.step === WorkflowSteps.Archived) ? '#D4F9E4' : '#1EAEF7';
+    // const backgroundColor = (this.props.step === WorkflowSteps.Archived) ? '#D4F9E4' : '#1EAEF7';
+    const isWorkflowStepsArchived = this.props.step === WorkflowSteps.Archived ? true : false;
+
     return (
-      <div id='workflowContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
+      <div id='workflowContainer'>
         <div className='container'>
           <AltinnAppHeader
             language={this.props.language}
             profile={this.props.profile}
           />
-          <div className='row'>
-            <div className='col-xl-10 offset-xl-1 a-p-static'>
-              {this.renderErrorReport()}
-              {this.renderNavBar()}
-              <div className='a-modal-content-target'>
-                <div className='a-page a-current-page'>
-                  <div className='modalPage'>
-                    <div className='modal-content'>
-                      {this.renderHeader()}
-                      <div className='modal-body a-modal-body'>
-                        {this.props.step === WorkflowSteps.FormFilling &&
-                          this.renderFormFiller()
-                        }
-                        {this.props.step === WorkflowSteps.Submit &&
-                          this.renderSubmit()
-                        }
-                        {this.props.step === WorkflowSteps.Archived &&
-                          <ReceiptContainer />
-                        }
+            <div className={classNames('row', {['d-print-none']: isWorkflowStepsArchived})}>
+              <div className='col-xl-10 offset-xl-1 a-p-static'>
+                {this.renderErrorReport()}
+                {this.renderNavBar()}
+                <div className='a-modal-content-target'>
+                  <div className='a-page a-current-page'>
+                    <div className='modalPage'>
+                      <div className='modal-content'>
+                        {this.renderHeader()}
+                        <div className='modal-body a-modal-body'>
+                          {this.props.step === WorkflowSteps.FormFilling &&
+                            this.renderFormFiller()
+                          }
+                          {this.props.step === WorkflowSteps.Submit &&
+                            this.renderSubmit()
+                          }
+                          {this.props.step === WorkflowSteps.Archived &&
+                            <ReceiptContainer />
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+            {this.props.step === WorkflowSteps.Archived &&
+              <Box display='none' displayPrint='block'>
+                <Typography variant='h2' style={{marginBottom: '2.1rem'}}>
+                  Kvittering
+                </Typography>
+                <ReceiptContainer />
+              </Box>
+            }
         </div>
       </div>
     );

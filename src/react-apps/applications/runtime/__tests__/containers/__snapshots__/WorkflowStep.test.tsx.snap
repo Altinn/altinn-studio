@@ -17,13 +17,13 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
       className="AltinnAppHeader-appBarWrapper-1"
     >
       <header
-        className="MuiPaper-root-23 MuiPaper-elevation4-29 MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 AltinnAppHeader-default-4"
+        className="MuiPaper-root MuiPaper-elevation4 MuiAppBar-root MuiAppBar-positionStatic AltinnAppHeader-default-4 MuiAppBar-colorPrimary"
       >
         <div
-          className="MuiToolbar-root-50 MuiToolbar-regular-52 MuiToolbar-gutters-51 container AltinnAppHeader-toolbarContainer-13"
+          className="MuiToolbar-root MuiToolbar-regular container AltinnAppHeader-toolbarContainer-13 MuiToolbar-gutters"
         >
           <div
-            className="MuiGrid-item-55 AltinnAppHeader-logo-10"
+            className="MuiGrid-root AltinnAppHeader-logo-10 MuiGrid-item"
             style={
               Object {
                 "flexGrow": 1,
@@ -199,96 +199,594 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
       </header>
     </div>
     <div
-      className="row"
+      className="MuiBox-root MuiBox-root-158"
     >
       <div
-        className="col-xl-10 offset-xl-1 a-p-static"
+        className="row"
       >
         <div
-          className="a-modal-navbar"
-        >
-          <button
-            aria-label="Tilbake"
-            className="a-modal-back a-js-tabable-popover"
-            type="button"
-          >
-            <span
-              className="ai-stack"
-            >
-              <i
-                aria-hidden="true"
-                className="ai ai-stack-1x ai-plain-circle-big"
-              />
-              <i
-                aria-hidden="true"
-                className="ai-stack-1x ai ai-back"
-              />
-            </span>
-          </button>
-          <button
-            aria-label="Lukk"
-            className="a-modal-close a-js-tabable-popover"
-            type="button"
-          >
-            <span
-              className="ai-stack"
-            >
-              <i
-                aria-hidden="true"
-                className="ai ai-stack-1x ai-plain-circle-big"
-              />
-              <i
-                aria-hidden="true"
-                className="ai-stack-1x ai ai-exit  a-modal-close-icon"
-              />
-            </span>
-          </button>
-        </div>
-        <div
-          className="a-modal-content-target"
+          className="col-xl-10 offset-xl-1 a-p-static"
         >
           <div
-            className="a-page a-current-page"
+            className="a-modal-navbar"
+          >
+            <button
+              aria-label="Tilbake"
+              className="a-modal-back a-js-tabable-popover"
+              type="button"
+            >
+              <span
+                className="ai-stack"
+              >
+                <i
+                  aria-hidden="true"
+                  className="ai ai-stack-1x ai-plain-circle-big"
+                />
+                <i
+                  aria-hidden="true"
+                  className="ai-stack-1x ai ai-back"
+                />
+              </span>
+            </button>
+            <button
+              aria-label="Lukk"
+              className="a-modal-close a-js-tabable-popover"
+              type="button"
+            >
+              <span
+                className="ai-stack"
+              >
+                <i
+                  aria-hidden="true"
+                  className="ai ai-stack-1x ai-plain-circle-big"
+                />
+                <i
+                  aria-hidden="true"
+                  className="ai-stack-1x ai ai-exit  a-modal-close-icon"
+                />
+              </span>
+            </button>
+          </div>
+          <div
+            className="a-modal-content-target"
           >
             <div
-              className="modalPage"
+              className="a-page a-current-page"
             >
               <div
-                className="modal-content"
+                className="modalPage"
               >
                 <div
-                  className="modal-header a-modal-header "
+                  className="modal-content"
                 >
                   <div
-                    className="a-iconText a-iconText-background a-iconText-large"
+                    className="modal-header a-modal-header"
                   >
                     <div
-                      className="a-iconText-icon"
+                      className="a-iconText a-iconText-background a-iconText-large"
                     >
-                      <i
-                        aria-hidden="true"
-                        className="fa fa-corp a-icon"
-                      />
-                    </div>
-                    <h1
-                      className="a-iconText-text mb-0"
-                    >
-                      <span
-                        className="a-iconText-text-large"
+                      <div
+                        className="a-iconText-icon"
                       >
-                        mock-service-name
-                      </span>
-                    </h1>
+                        <i
+                          aria-hidden="true"
+                          className="fa fa-corp a-icon"
+                        />
+                      </div>
+                      <h1
+                        className="a-iconText-text mb-0"
+                      >
+                        <span
+                          className="a-iconText-text-large"
+                        >
+                          mock-service-name
+                        </span>
+                      </h1>
+                    </div>
                   </div>
+                  <div
+                    className="modal-body a-modal-body"
+                  />
                 </div>
-                <div
-                  className="modal-body a-modal-body"
-                />
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    <div
+      className="MuiBox-root MuiBox-root-159"
+    >
+      <h2
+        className="MuiTypography-root MuiTypography-h2"
+        style={
+          Object {
+            "marginBottom": "2.1rem",
+          }
+        }
+      >
+        Kvittering
+      </h2>
+      <h2
+        className="MuiTypography-root-5 MuiTypography-h2-18"
+      >
+         receipt_container.title_part_is_submitted
+      </h2>
+      <table
+        className="MuiTable-root-41 ReceiptComponent-instanceMetaData-1"
+        style={
+          Object {
+            "height": "auto",
+            "width": "auto",
+          }
+        }
+      >
+        <tbody
+          className="MuiTableBody-root-42"
+        />
+      </table>
+      <p
+        className="MuiTypography-root-5 MuiTypography-body1-14 ReceiptComponent-paddingTop24-4"
+      >
+        <a
+          href="http://some.link"
+        >
+          receipt_container.subtitle
+        </a>
+      </p>
+      <p
+        className="MuiTypography-root-5 MuiTypography-body1-14 ReceiptComponent-paddingTop24-4"
+      >
+        receipt_container.body
+      </p>
+      <h3
+        className="MuiTypography-root-5 MuiTypography-h3-19"
+        style={
+          Object {
+            "fontWeight": 600,
+            "paddingBottom": "0.5rem",
+            "paddingTop": "4.1rem",
+          }
+        }
+      >
+        receipt_container.title_submitted
+      </h3>
+      <ul
+        className="MuiList-root-49 MuiList-padding-50"
+      >
+        <a
+          className="MuiButtonBase-root-65 MuiListItem-root-53 MuiListItem-default-56 MuiListItem-gutters-61 MuiListItem-button-62 AltinnAttachment-listItemPaddingNone-45 AltinnAttachment-a-43"
+          href="http://url.til.skjema/fil.pdf"
+          onBlur={[Function]}
+          onContextMenu={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          role="button"
+          tabIndex="0"
+        >
+          <div
+            className="MuiListItemIcon-root-68"
+          >
+            <i
+              className="reg reg-attachment"
+              style={
+                Object {
+                  "color": "#000000",
+                  "fontSize": "5rem",
+                  "fontWeight": null,
+                  "margin": null,
+                  "padding": null,
+                }
+              }
+            />
+          </div>
+          <div
+            className="MuiListItemText-root-69 AltinnAttachment-listItemTextPadding-46"
+          >
+            <span
+              className="MuiTypography-root-5 MuiTypography-body1-14 MuiListItemText-primary-72"
+            >
+              <p
+                className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47 AltinnAttachment-primaryText-48"
+              >
+                InnsendtSkjema.pdf
+              </p>
+              <p
+                className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47"
+              >
+                 (last ned)
+              </p>
+            </span>
+          </div>
+        </a>
+      </ul>
+      <nav
+        className="MuiList-root-49 MuiList-padding-50"
+      >
+        <div
+          className="MuiButtonBase-root-65 MuiListItem-root-53 MuiListItem-default-56 MuiListItem-button-62"
+          onBlur={[Function]}
+          onClick={[Function]}
+          onContextMenu={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          role="button"
+          tabIndex="0"
+        >
+          <div
+            className="MuiListItemIcon-root-68 AltinnCollapsibleAttachments-transition-77"
+          >
+            <i
+              className="ai ai-arrow-down"
+              style={
+                Object {
+                  "color": "#1EADF7",
+                  "fontSize": "1.6rem",
+                  "fontWeight": null,
+                  "margin": null,
+                  "padding": null,
+                }
+              }
+            />
+          </div>
+          <div
+            className="MuiListItemText-root-69 AltinnCollapsibleAttachments-listItemTextPadding-75"
+          >
+            <span
+              className="MuiTypography-root-5 MuiTypography-body1-14 MuiListItemText-primary-72 AltinnCollapsibleAttachments-collapsedTitle-78"
+            >
+              receipt_container.attachments (6)
+            </span>
+          </div>
+        </div>
+        <div
+          className="MuiCollapse-container-79 MuiCollapse-entered-80"
+          style={
+            Object {
+              "minHeight": "0px",
+            }
+          }
+        >
+          <div
+            className="MuiCollapse-wrapper-81"
+          >
+            <div
+              className="MuiCollapse-wrapperInner-82"
+            >
+              <ul
+                className="MuiList-root-49"
+              >
+                <a
+                  className="MuiButtonBase-root-65 MuiListItem-root-53 MuiListItem-default-56 MuiListItem-gutters-61 MuiListItem-button-62 AltinnAttachment-listItemPadding-44 AltinnAttachment-a-43"
+                  href="http://some.place"
+                  onBlur={[Function]}
+                  onContextMenu={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  role="button"
+                  tabIndex="0"
+                >
+                  <div
+                    className="MuiListItemIcon-root-68"
+                  >
+                    <i
+                      className="reg reg-attachment"
+                      style={
+                        Object {
+                          "color": "#000000",
+                          "fontSize": "5rem",
+                          "fontWeight": null,
+                          "margin": null,
+                          "padding": null,
+                        }
+                      }
+                    />
+                  </div>
+                  <div
+                    className="MuiListItemText-root-69 AltinnAttachment-listItemTextPadding-46"
+                  >
+                    <span
+                      className="MuiTypography-root-5 MuiTypography-body1-14 MuiListItemText-primary-72"
+                    >
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47 AltinnAttachment-primaryText-48"
+                      >
+                        fila.fil
+                      </p>
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47"
+                      >
+                         (last ned)
+                      </p>
+                    </span>
+                  </div>
+                </a>
+                <a
+                  className="MuiButtonBase-root-65 MuiListItem-root-53 MuiListItem-default-56 MuiListItem-gutters-61 MuiListItem-button-62 AltinnAttachment-listItemPadding-44 AltinnAttachment-a-43"
+                  href="http://some.place2"
+                  onBlur={[Function]}
+                  onContextMenu={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  role="button"
+                  tabIndex="0"
+                >
+                  <div
+                    className="MuiListItemIcon-root-68"
+                  >
+                    <i
+                      className="reg reg-attachment"
+                      style={
+                        Object {
+                          "color": "#000000",
+                          "fontSize": "5rem",
+                          "fontWeight": null,
+                          "margin": null,
+                          "padding": null,
+                        }
+                      }
+                    />
+                  </div>
+                  <div
+                    className="MuiListItemText-root-69 AltinnAttachment-listItemTextPadding-46"
+                  >
+                    <span
+                      className="MuiTypography-root-5 MuiTypography-body1-14 MuiListItemText-primary-72"
+                    >
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47 AltinnAttachment-primaryText-48"
+                      >
+                        fila2.fil
+                      </p>
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47"
+                      >
+                         (last ned)
+                      </p>
+                    </span>
+                  </div>
+                </a>
+                <a
+                  className="MuiButtonBase-root-65 MuiListItem-root-53 MuiListItem-default-56 MuiListItem-gutters-61 MuiListItem-button-62 AltinnAttachment-listItemPadding-44 AltinnAttachment-a-43"
+                  href="http://some.place"
+                  onBlur={[Function]}
+                  onContextMenu={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  role="button"
+                  tabIndex="0"
+                >
+                  <div
+                    className="MuiListItemIcon-root-68"
+                  >
+                    <i
+                      className="reg reg-attachment"
+                      style={
+                        Object {
+                          "color": "#000000",
+                          "fontSize": "5rem",
+                          "fontWeight": null,
+                          "margin": null,
+                          "padding": null,
+                        }
+                      }
+                    />
+                  </div>
+                  <div
+                    className="MuiListItemText-root-69 AltinnAttachment-listItemTextPadding-46"
+                  >
+                    <span
+                      className="MuiTypography-root-5 MuiTypography-body1-14 MuiListItemText-primary-72"
+                    >
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47 AltinnAttachment-primaryText-48"
+                      >
+                        fila.fil
+                      </p>
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47"
+                      >
+                         (last ned)
+                      </p>
+                    </span>
+                  </div>
+                </a>
+                <a
+                  className="MuiButtonBase-root-65 MuiListItem-root-53 MuiListItem-default-56 MuiListItem-gutters-61 MuiListItem-button-62 AltinnAttachment-listItemPadding-44 AltinnAttachment-a-43"
+                  href="http://some.place2"
+                  onBlur={[Function]}
+                  onContextMenu={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  role="button"
+                  tabIndex="0"
+                >
+                  <div
+                    className="MuiListItemIcon-root-68"
+                  >
+                    <i
+                      className="reg reg-attachment"
+                      style={
+                        Object {
+                          "color": "#000000",
+                          "fontSize": "5rem",
+                          "fontWeight": null,
+                          "margin": null,
+                          "padding": null,
+                        }
+                      }
+                    />
+                  </div>
+                  <div
+                    className="MuiListItemText-root-69 AltinnAttachment-listItemTextPadding-46"
+                  >
+                    <span
+                      className="MuiTypography-root-5 MuiTypography-body1-14 MuiListItemText-primary-72"
+                    >
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47 AltinnAttachment-primaryText-48"
+                      >
+                        fila2.fil
+                      </p>
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47"
+                      >
+                         (last ned)
+                      </p>
+                    </span>
+                  </div>
+                </a>
+                <a
+                  className="MuiButtonBase-root-65 MuiListItem-root-53 MuiListItem-default-56 MuiListItem-gutters-61 MuiListItem-button-62 AltinnAttachment-listItemPadding-44 AltinnAttachment-a-43"
+                  href="http://some.place"
+                  onBlur={[Function]}
+                  onContextMenu={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  role="button"
+                  tabIndex="0"
+                >
+                  <div
+                    className="MuiListItemIcon-root-68"
+                  >
+                    <i
+                      className="reg reg-attachment"
+                      style={
+                        Object {
+                          "color": "#000000",
+                          "fontSize": "5rem",
+                          "fontWeight": null,
+                          "margin": null,
+                          "padding": null,
+                        }
+                      }
+                    />
+                  </div>
+                  <div
+                    className="MuiListItemText-root-69 AltinnAttachment-listItemTextPadding-46"
+                  >
+                    <span
+                      className="MuiTypography-root-5 MuiTypography-body1-14 MuiListItemText-primary-72"
+                    >
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47 AltinnAttachment-primaryText-48"
+                      >
+                        fila.fil
+                      </p>
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47"
+                      >
+                         (last ned)
+                      </p>
+                    </span>
+                  </div>
+                </a>
+                <a
+                  className="MuiButtonBase-root-65 MuiListItem-root-53 MuiListItem-default-56 MuiListItem-gutters-61 MuiListItem-button-62 AltinnAttachment-listItemPadding-44 AltinnAttachment-a-43"
+                  href="http://some.place2"
+                  onBlur={[Function]}
+                  onContextMenu={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onKeyUp={[Function]}
+                  onMouseDown={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseUp={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchMove={[Function]}
+                  onTouchStart={[Function]}
+                  role="button"
+                  tabIndex="0"
+                >
+                  <div
+                    className="MuiListItemIcon-root-68"
+                  >
+                    <i
+                      className="reg reg-attachment"
+                      style={
+                        Object {
+                          "color": "#000000",
+                          "fontSize": "5rem",
+                          "fontWeight": null,
+                          "margin": null,
+                          "padding": null,
+                        }
+                      }
+                    />
+                  </div>
+                  <div
+                    className="MuiListItemText-root-69 AltinnAttachment-listItemTextPadding-46"
+                  >
+                    <span
+                      className="MuiTypography-root-5 MuiTypography-body1-14 MuiListItemText-primary-72"
+                    >
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47 AltinnAttachment-primaryText-48"
+                      >
+                        fila2.fil
+                      </p>
+                      <p
+                        className="MuiTypography-root-5 MuiTypography-body1-14 AltinnAttachment-inline-47"
+                      >
+                         (last ned)
+                      </p>
+                    </span>
+                  </div>
+                </a>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </nav>
     </div>
   </div>
 </div>

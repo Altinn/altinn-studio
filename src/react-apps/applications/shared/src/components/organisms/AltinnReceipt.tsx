@@ -11,6 +11,9 @@ import { IAttachment } from '../../types/index.d';
 import AltinnAttachment from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
 
+// TODO: Fix when upgrading to Material-UI v4
+import { unstable_useMediaQuery } from '@material-ui/core/useMediaQuery';
+
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
   body: string;
@@ -106,7 +109,7 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         {props.attachments && (
           <AltinnCollapsibleAttachments
             attachments={props.attachments}
-            collapsible={Boolean(props.attachments.length > 4)}
+            collapsible={unstable_useMediaQuery('print') ? false : Boolean(props.attachments.length > 4)}
             title={props.collapsibleTitle}
           />
         )}
