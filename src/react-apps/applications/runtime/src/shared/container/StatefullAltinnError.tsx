@@ -100,7 +100,22 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
 
   if (!props.location || !props.location.state || !props.location.state.message) {
     return (
-      <Redirect to={'/'}/>
+      <div className={'container'}>
+        <AltinnAppHeader
+          language={language}
+          profile={profile}
+          type={'normal'}
+        />
+        <Grid container={true} className={classes.statefulErrorPage}>
+          <Grid item={true}>
+            <AltinnError
+              title={`${language.instantiation.unknown_error_title}`}
+              content={`${language.instantiation.unknown_error_text}`}
+              statusCode={`${language.instantiation.unknown_error_status}`}
+            />
+          </Grid>
+        </Grid>
+      </div>
     );
   } else {
     return (

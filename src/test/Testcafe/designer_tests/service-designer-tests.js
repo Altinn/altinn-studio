@@ -136,11 +136,7 @@ test("Instantiation of an access controlled service not possible", async () => {
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.startSendingIn.exists).ok({ timeout: 120000 })
-    .setNativeDialogHandler((type, text, url) => {
-      return false;
-    })
-    .click(runtime.startSendingIn);
+    .expect(Selector('span').withText('403'))
 })
 
 test('Automated accessibility test for designer page', async t => {
