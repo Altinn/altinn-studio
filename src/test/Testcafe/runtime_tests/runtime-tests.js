@@ -51,15 +51,13 @@ test('Direct link navigation to runtime', async () => {
 
 test('Upload files using file component in SBL', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component#/test')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/filecomponent#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
     .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
     .click(runtime.startNewButton)
-    .switchToMainWindow()
-    .expect(runtime.startSendingIn.exists).ok({ timeout: 120000 })
-    .click(runtime.startSendingIn)
-    .expect(runtime.testUserHeader[0].exists).ok()
+    .switchToMainWindow()    
+    .expect(runtime.testUserHeader[0].exists).ok({ timeout: 120000 })
     .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
@@ -71,14 +69,13 @@ test('Upload files using file component in SBL', async () => {
 
 test('Validations when uploading file', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/test')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/filecomponentvalidations#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
-    .click(runtime.startSendingIn)
+    .expect(runtime.testUserHeader[0].exists).ok()    
     .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
     .expect(runtime.errorMessage).ok();
@@ -103,7 +100,7 @@ test('Read-only components test in runtime', async () => {
 
 test('Fill out, save, and submit a form', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/formfill#/test')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/formfilling#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].exists).ok()
     .hover(runtime.testUsers[0])
@@ -111,10 +108,9 @@ test('Fill out, save, and submit a form', async () => {
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
-    .expect(runtime.startSendingIn.exists).ok()
-    .click(runtime.startSendingIn)
+    .expect(runtime.testUserHeader[0].exists).ok()    
     .expect(runtime.inputButton.exists).ok({ timeout: 120000 })
+    .click(runtime.inputButton)
     .typeText(runtime.inputButton, "10101010101") //fødselsnummer input
     .pressKey("tab")
     .pressKey("tab")
@@ -122,7 +118,7 @@ test('Fill out, save, and submit a form', async () => {
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.saveButton)
-    .wait(30000)
+    .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
     .click(runtime.sendInnButton)
     .expect(runtime.workflowSubmit.exists).ok({ timeout: 120000 })
     .expect(runtime.workflowSubmit.visible).ok()

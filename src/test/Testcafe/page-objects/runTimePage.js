@@ -14,7 +14,6 @@ export default class RunTimePage {
     this.changeLanguageButton = Selector('.btn.btn-primary').withAttribute('value', 'Oppdater språk');
     this.prefillData = Selector('#PrefillList');
     this.startNewButton = Selector('#btnStartNewService');
-    this.startSendingIn = Selector('button');
     this.backToAltinnStudio = Selector('.btn.btn-primary').withAttribute('value', 'Tilbake til Altinn Studio');
 
     //SBL components
@@ -27,7 +26,7 @@ export default class RunTimePage {
     this.addressComponent = Selector('input').withAttribute('type', 'text');
     this.inputButton = Selector('input').withAttribute('type', 'Input');
     this.saveButton = Selector("#saveBtn");
-    this.sendInnButton = Selector("#cf94bf1d-e680-43ff-8a4b-dfdc3f7d7f99"); //unique uuid
+    this.sendInnButton = Selector('button').withAttribute('type','submit').withExactText('Send inn');
     this.workflowSubmit = Selector("#workflowSubmitStepButton");
     //file component error message
     this.errorMessage = Selector('.field-validation-error.a-message.a-message-error');
