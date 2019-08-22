@@ -126,7 +126,6 @@ export function validateComponentFormData(
   const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
     component.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
 
-
   const componentValidations: IComponentValidations = !existingValidationErrors ?
     {
       [fieldKey]: {
