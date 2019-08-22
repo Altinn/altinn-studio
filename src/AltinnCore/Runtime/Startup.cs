@@ -89,6 +89,9 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IProfile, ProfileStudioSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
                 services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
+
+                // need this to get InstancesController to work. 
+                services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             }
             else
             {
