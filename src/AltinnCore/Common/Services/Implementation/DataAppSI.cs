@@ -111,6 +111,24 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
+        public Task<Stream> GetData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response.Content.ReadAsStreamAsync();
+            }
+
+            return null;            
+        }
+
+        /// <inheritdoc />
         public object GetFormData(Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";

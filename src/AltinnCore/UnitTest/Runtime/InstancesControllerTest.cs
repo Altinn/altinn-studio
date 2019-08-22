@@ -56,7 +56,9 @@ namespace AltinnCore.UnitTest.Runtime
 
             InstancesController controller = new InstancesController(
                 logger.Object,
-                httpClientAccessor.Object)
+                httpClientAccessor.Object,
+                null,
+                null)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -135,7 +137,9 @@ namespace AltinnCore.UnitTest.Runtime
 
             InstancesController controller = new InstancesController(
                 logger.Object,
-                httpClientAccessor.Object)
+                httpClientAccessor.Object,
+                null,
+                null)
             {                
                 ControllerContext = new ControllerContext()
                 {
