@@ -14,7 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Altinn.Platform.Storage.UnitTests
+namespace Altinn.Platform.Storage.UnitTest
 {
     public class InstanceOwnerLookupTest
     {

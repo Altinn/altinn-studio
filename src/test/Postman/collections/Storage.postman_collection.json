@@ -233,296 +233,6 @@
 			]
 		},
 		{
-			"name": "Events",
-			"item": [
-				{
-					"name": "Add instance event",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "59eb307d-9e00-43b3-a209-0b3b02ead6a8",
-								"exec": [
-									"pm.test(\"Add Instance event - Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Add Instance event - New instance is created\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    if(pm.expect(jsonData.id).not.eql(null))",
-									"    {",
-									"        pm.environment.set('EventId', jsonData.id);",
-									"    }",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{    \n   \"instanceOwnerId\": \"{{instanceOwnerId}}\",\n   \"instanceId\": \"{{instanceOwnerId}}/{{instanceId}}\",\n   \"eventType\": \"created\",\n   \"userId\": 3,\n   \"authenticationLevel\": 1,\n   \"workflowStep\": \"8\",\n   \"enduserSystemId\": 2\n}"
-						},
-						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
-							"host": [
-								"{{envURL}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"events"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET All Events",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "357288ce-372f-4b00-9b7a-42dc94990430",
-								"exec": [
-									"pm.test(\"Get All Events - Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"Get All Events - Newly created instance is retrieved\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    var eventIdFound = 'false';",
-									"    for(var i =0; i<jsonData.length; i++)",
-									"    {",
-									"        var createdEventId = pm.environment.get(\"EventId\");",
-									"        if(jsonData[i].id == createdEventId)",
-									"        {",
-									"            eventIdFound = 'true';",
-									"            break;",
-									"        }",
-									"    }",
-									"    if(eventIdFound != 'true')",
-									"    {",
-									"        pm.expect(eventIdFound).to.equal(true);",
-									"    }",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
-							"host": [
-								"{{envURL}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"events"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET Events with type",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "04584cdf-bdf6-45e3-85f2-e5768b49208a",
-								"exec": [
-									"pm.test(\"Get Events with type - Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\" Get Events with type - Events of type created are fetched\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    var eventTypeCreated = 'true';",
-									"    for(var i =0; i<jsonData.length; i++)",
-									"    {",
-									"        if(jsonData[i].eventType != 'created')",
-									"        {",
-									"            eventTypeCreated = 'false';",
-									"            break;    ",
-									"        }",
-									"    }",
-									"    if(eventTypeCreated != 'true')",
-									"    {",
-									"        pm.expect(eventIdFound).to.equal(true);",
-									"    }",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?eventTypes=created",
-							"host": [
-								"{{envURL}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"events",
-								""
-							],
-							"query": [
-								{
-									"key": "eventTypes",
-									"value": "created"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Events not retrieved by wrong time",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "546d0678-0ca9-44bd-a160-ebfc385882e7",
-								"exec": [
-									"pm.test(\"Events not retrieved by wrong time - Status code is 404\", function () {",
-									"    pm.response.to.have.status(404);",
-									"});",
-									"",
-									"pm.test(\"Events not retrieved by wrong time - Body matches string\", function () {",
-									"    pm.expect(pm.response.text()).to.include(\"Did not find any instance events\");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"id": "8aa76d9e-95b4-4db6-a5d0-4b13afe1339d",
-								"exec": [
-									"var currentDate = new Date();",
-									"var hoursToMinus = currentDate.getHours() - 1;",
-									"currentDate.setHours(hoursToMinus);",
-									"pm.environment.set(\"fromDate\", currentDate);",
-									"var currentDate1 = new Date();",
-									"var hoursToAdd = currentDate1.getHours() + 5;",
-									"console.log(hoursToAdd);",
-									"currentDate1.setHours(hoursToAdd);",
-									"pm.environment.set(\"toDate\", currentDate1);"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
-							"host": [
-								"{{envURL}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"events",
-								""
-							],
-							"query": [
-								{
-									"key": "from",
-									"value": "2018-05-22T08:42:53"
-								},
-								{
-									"key": "to",
-									"value": "2018-06-22T08:42:53"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "DELETE events",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "686160fc-c6de-4c3f-904a-fe9528f346a7",
-								"exec": [
-									"pm.test(\"DELETE Events - Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"pm.test(\"DELETE Events - Body matches string - deleted\", function () {",
-									"    pm.expect(pm.response.text()).to.include(\"succesfully deleted\");",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
-							"host": [
-								"{{envURL}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"events"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "Instances",
 			"item": [
 				{
@@ -535,6 +245,17 @@
 								"exec": [
 									"pm.test(\"Status code of creating an instance is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+									"        pm.environment.set('appId',jsonData.appId);\r",
+									"        var instanceId = jsonData.id;\r",
+									"        instanceId = instanceId.toString();\r",
+									"        instanceId = instanceId.split('/');\r",
+									"        instanceId = instanceId[1];\r",
+									"        pm.environment.set('instanceId',instanceId);\r",
+									"    }\r",
 									"});\r",
 									""
 								],
@@ -591,22 +312,7 @@
 								"exec": [
 									"pm.test(\"Status code of retrieving instances is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Get All Instances - Get values to environment variables\", function () {\r",
-									"    var jsonData = pm.response.json();\r",
-									"    if(pm.expect(jsonData.instances[0].instanceOwnerId).not.eql(null))\r",
-									"    {\r",
-									"        pm.environment.set('instanceOwnerId', jsonData.instances[0].instanceOwnerId);\r",
-									"        pm.environment.set('appId',jsonData.instances[0].appId);\r",
-									"        var instanceId = jsonData.instances[0].id;\r",
-									"        instanceId = instanceId.toString();\r",
-									"        instanceId = instanceId.split('/');\r",
-									"        instanceId = instanceId[1];\r",
-									"        pm.environment.set('instanceId',instanceId);\r",
-									"    }\r",
-									"});\r",
-									""
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -997,6 +703,296 @@
 								"{{instanceId}}",
 								"data",
 								"{{dataId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Events",
+			"item": [
+				{
+					"name": "Add instance event",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "59eb307d-9e00-43b3-a209-0b3b02ead6a8",
+								"exec": [
+									"pm.test(\"Add Instance event - Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Add Instance event - New instance is created\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if(pm.expect(jsonData.id).not.eql(null))",
+									"    {",
+									"        pm.environment.set('EventId', jsonData.id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \n   \"instanceOwnerId\": \"{{instanceOwnerId}}\",\n   \"instanceId\": \"{{instanceOwnerId}}/{{instanceId}}\",\n   \"eventType\": \"created\",\n   \"userId\": 3,\n   \"authenticationLevel\": 1,\n   \"workflowStep\": \"8\",\n   \"enduserSystemId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET All Events",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "357288ce-372f-4b00-9b7a-42dc94990430",
+								"exec": [
+									"pm.test(\"Get All Events - Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"Get All Events - Newly created instance is retrieved\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var eventIdFound = 'false';",
+									"    for(var i =0; i<jsonData.length; i++)",
+									"    {",
+									"        var createdEventId = pm.environment.get(\"EventId\");",
+									"        if(jsonData[i].id == createdEventId)",
+									"        {",
+									"            eventIdFound = 'true';",
+									"            break;",
+									"        }",
+									"    }",
+									"    if(eventIdFound != 'true')",
+									"    {",
+									"        pm.expect(eventIdFound).to.equal(true);",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"events"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Events with type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "04584cdf-bdf6-45e3-85f2-e5768b49208a",
+								"exec": [
+									"pm.test(\"Get Events with type - Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\" Get Events with type - Events of type created are fetched\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var eventTypeCreated = 'true';",
+									"    for(var i =0; i<jsonData.length; i++)",
+									"    {",
+									"        if(jsonData[i].eventType != 'created')",
+									"        {",
+									"            eventTypeCreated = 'false';",
+									"            break;    ",
+									"        }",
+									"    }",
+									"    if(eventTypeCreated != 'true')",
+									"    {",
+									"        pm.expect(eventIdFound).to.equal(true);",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?eventTypes=created",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"events",
+								""
+							],
+							"query": [
+								{
+									"key": "eventTypes",
+									"value": "created"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Events not retrieved by wrong time",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "546d0678-0ca9-44bd-a160-ebfc385882e7",
+								"exec": [
+									"pm.test(\"Events not retrieved by wrong time - Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Events not retrieved by wrong time - Body matches string\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"Did not find any instance events\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "8aa76d9e-95b4-4db6-a5d0-4b13afe1339d",
+								"exec": [
+									"var currentDate = new Date();",
+									"var hoursToMinus = currentDate.getHours() - 1;",
+									"currentDate.setHours(hoursToMinus);",
+									"pm.environment.set(\"fromDate\", currentDate);",
+									"var currentDate1 = new Date();",
+									"var hoursToAdd = currentDate1.getHours() + 5;",
+									"console.log(hoursToAdd);",
+									"currentDate1.setHours(hoursToAdd);",
+									"pm.environment.set(\"toDate\", currentDate1);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"events",
+								""
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "2018-05-22T08:42:53"
+								},
+								{
+									"key": "to",
+									"value": "2018-06-22T08:42:53"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE events",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "686160fc-c6de-4c3f-904a-fe9528f346a7",
+								"exec": [
+									"pm.test(\"DELETE Events - Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"pm.test(\"DELETE Events - Body matches string - deleted\", function () {",
+									"    pm.expect(pm.response.text()).to.include(\"succesfully deleted\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{envURL}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+							"host": [
+								"{{envURL}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"events"
 							]
 						}
 					},

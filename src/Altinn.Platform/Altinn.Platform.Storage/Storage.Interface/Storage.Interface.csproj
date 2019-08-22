@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.1.6-alpha</Version>
+    <Version>1.1.7-alpha</Version>
     <Description>Altinn.Platform.Storage.Interface is a package for models, httpclient methods for altinn platform storage</Description>
     <PackageTags>altinn studio, altinn.platform, Altinn.Platform.Storage.Interface</PackageTags>
     <PackageId>Altinn.Platform.Storage.Interface</PackageId>
