@@ -228,8 +228,13 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
 
     const inputFields = mountedAddressComponent.find('input');
     inputFields.forEach((input) => {
-      input.simulate('blur');
-      expect(spyOnBlurField).toHaveBeenCalled();
+      if(!input.hasClass('disabled')) {
+        input.simulate('blur');
+        expect(spyOnBlurField).toHaveBeenCalled();
+      }
+    });
+    instance.setState({
+      zipCode: '2080',
     });
     mountedAddressComponent.find('.address-component-zipCode').find('input').simulate('blur');
     expect(spyFetchPostPlace).toHaveBeenCalled();
