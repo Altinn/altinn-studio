@@ -104,6 +104,7 @@ dotnet run
 ```
 
 Which will build the Designer .net backend and the designer react app, but not listen to changes to the react app.
+
 **Runtime**
 
 Stop the container running Runtime.
@@ -113,6 +114,8 @@ docker stop altinn-runtime
 ```
 
 Navigate to the Runtime folder. Build and run the code.
+
+**Important:** First you must have executed the Designer commands in order to successfully execute both the following command sequences on the Runtime component.
 
 ```cmd
 cd src/AltinnCore/Runtime

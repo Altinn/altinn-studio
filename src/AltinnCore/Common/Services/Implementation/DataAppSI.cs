@@ -233,22 +233,38 @@ namespace AltinnCore.Common.Services.Implementation
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
                 JwtTokenUtil.AddTokenToRequestHeader(client, token);
 
-                using (Stream input = attachment.Body)
+                if (attachment.ContentType.StartsWith("multipart"))
                 {
-                    HttpContent fileStreamContent = new StreamContent(input);
+                    StreamContent content = new StreamContent(attachment.Body);
+                    content.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.ContentType);
 
-                    using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                    HttpResponseMessage response = client.PostAsync(apiUrl, content).Result;
+
+                    response.EnsureSuccessStatusCode();
+
+                    string instancedata = await response.Content.ReadAsStringAsync();
+                    instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+                    return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                }
+                else
+                {
+                    using (Stream input = attachment.Body)
                     {
-                        fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+                        HttpContent fileStreamContent = new StreamContent(input);
 
-                        formData.Add(fileStreamContent, attachmentType, attachmentName);
-                        HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
+                        using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                        {
+                            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
 
-                        response.EnsureSuccessStatusCode();
+                            formData.Add(fileStreamContent, attachmentType, attachmentName);
+                            HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
 
-                        string instancedata = await response.Content.ReadAsStringAsync();
-                        instance = JsonConvert.DeserializeObject<Instance>(instancedata);
-                        return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                            response.EnsureSuccessStatusCode();
+
+                            string instancedata = await response.Content.ReadAsStringAsync();
+                            instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+                            return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                        }
                     }
                 }
             }
