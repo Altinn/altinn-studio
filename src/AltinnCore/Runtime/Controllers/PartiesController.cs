@@ -151,13 +151,13 @@ namespace AltinnCore.Runtime.Controllers
 
             bool? isValid = await _authorization.ValidateSelectedParty(userId, partyId);
 
-            if (isValid == false)
-            {
-                return BadRequest($"User {userId} cannot represent party {partyId}.");
-            }
-            else if (isValid == null)
+            if (!isValid.HasValue)
             {
                 return StatusCode(500, "Something went wrong when trying to update selectedparty.");
+            }
+            else if (isValid.Value == false)
+            {
+                return BadRequest($"User {userId} cannot represent party {partyId}.");
             }
 
             Response.Cookies.Append(
