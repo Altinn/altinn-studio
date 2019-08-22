@@ -214,6 +214,7 @@ namespace Altinn.Platform.Storage.UnitTest
             request.SetupGet(x => x.Host).Returns(new HostString("platform.storage.at21.altinn.cloud"));
             request.SetupGet(x => x.Path).Returns(new PathString("/instances/"));
             request.SetupGet(x => x.Body).Returns(new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(instanceTemplate))));
+            request.SetupGet(x => x.ContentType).Returns("application/json");
 
             Mock<HttpContext> context = new Mock<HttpContext>();
             context.SetupGet(x => x.Request).Returns(request.Object);

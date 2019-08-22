@@ -508,10 +508,10 @@ namespace Altinn.Platform.Storage.Controllers
                     // Check if the content disposition name is "instance".
                     if (contentDisposition.Name.Value == "instance")
                     {
-                        contentType = section.ContentType.Split(";")[0];
+                        contentType = section.ContentType;
 
                         // Check if the content type is of type "application/json".
-                        if (contentType == "application/json")
+                        if (contentType != null && contentType.StartsWith("application/json"))
                         {
                             instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
                         }
@@ -520,9 +520,9 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                contentType = request.ContentType.Split(";")[0];
+                contentType = request.ContentType;
 
-                if (contentType == "application/json")
+                if (contentType != null && contentType.StartsWith("application/json"))
                 {
                     instanceTemplate = JsonConvert.DeserializeObject<Instance>(await ReadBodyAsync(request));
                 }
