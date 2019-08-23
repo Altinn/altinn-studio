@@ -170,7 +170,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public render() {
-    const isWorkflowStepsArchived = this.props.step === WorkflowSteps.Archived ? true : false;
+    const isWorkflowStepsArchived = Boolean(this.props.step === WorkflowSteps.Archived);
     const backgroundColor = isWorkflowStepsArchived ? '#D4F9E4' : '#1EAEF7';
 
     return (
