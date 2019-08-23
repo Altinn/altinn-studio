@@ -124,7 +124,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void StoreMultiPartFileInOnePostOperation()
         {
-            Application application = new Application()
+            Application testApplication = new Application()
             {
                 Id = "testing/golfer06",
                 VersionId = "1.2.0",
@@ -146,22 +146,25 @@ namespace Altinn.Platform.Storage.IntegrationTest
             elementTypes.AllowedContentType.Add("text/xml");
             elementTypes.AllowedContentType.Add("application/xml");
 
-            application.ElementTypes.Add(elementTypes);
+            testApplication.ElementTypes.Add(elementTypes);
 
             Application app = new Application();
 
             try
             {
-                app = applicationClient.GetApplication(application.Id);
+                app = applicationClient.GetApplication(testApplication.Id);
+                if (app != null)
+                {
+                    app = applicationClient.UpdateApplication(testApplication);
+                }
+                else
+                {
+                    app = applicationClient.CreateApplication(testApplication);
+                }
             }
             catch (Exception)
             {
                 // do nothing.
-            }
-
-            if (app == null)
-            {
-                app = applicationClient.CreateApplication(application);
             }
 
             Instance instance = new Instance()
