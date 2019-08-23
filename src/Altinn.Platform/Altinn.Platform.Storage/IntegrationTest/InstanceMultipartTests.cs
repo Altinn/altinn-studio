@@ -182,10 +182,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             form.Add(instance.AsJson(), "instance");
 
-            string xmlText = File.ReadAllText("data/example.xml");
+            string xmlText = File.ReadAllText("data/example.xml", Encoding.UTF8);
             form.Add(new StringContent(xmlText, Encoding.UTF8, "application/xml"), "default");
 
-            string xmlText2 = File.ReadAllText("data/xmlfile.xml");
+            string xmlText2 = File.ReadAllText("data/xmlfile.xml", Encoding.UTF8);
             form.Add(new StringContent(xmlText2, Encoding.UTF8, "text/xml"), "default");
 
             string requestUri = $"{versionPrefix}/instances?appId={instance.AppId}&instanceOwnerId={instance.InstanceOwnerId}";
