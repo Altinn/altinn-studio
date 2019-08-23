@@ -410,44 +410,55 @@ namespace Altinn.Platform.Storage.Controllers
             while (section != null)
             {
                 bool hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-                
-                string contentDispositionName = contentDisposition.Name.Value;
 
-                if (contentDispositionName != "instance")
+                if (!hasContentDispositionHeader)
+                {
+                    errorResult = BadRequest("Multipart section must have content disposition header");
+                    return null;
+                }
+
+                string sectionName = contentDisposition.Name.Value;
+
+                if (!"instance".Equals(sectionName))
                 {
                     Stream theStream = null;
                     string contentFileName = null;
                     string contentType = null;
                     long fileSize = 0;
-
-                    if (hasContentDispositionHeader)
-                    {
-                        contentFileName = contentDisposition.FileName.ToString();
-                        fileSize = contentDisposition.Size ?? 0;
-                    }
-
-                    ElementType elementTypeTemp = appInfoElementTypes.Find(e => e.Id == contentDispositionName);
+                    
+                    contentFileName = contentDisposition.FileName.ToString();
+                    fileSize = contentDisposition.Size ?? 0;
 
                     // Check if the content disposition name is declared for the application (e.g. "default").
-                    if (elementTypeTemp == null)
+                    ElementType elementType = appInfoElementTypes.Find(e => e.Id == sectionName);
+                    
+                    if (elementType == null)
                     {
-                        errorResult = BadRequest($"Requested content disposition name, '{contentDispositionName}' is not declared in application metadata");
+                        errorResult = BadRequest($"Multipart section's content disposition name, '{sectionName}' is not declared in application metadata");
+                        return null;
+                    }
+
+                    if (section.ContentType == null)
+                    {
+                        errorResult = BadRequest($"The multipart section named {sectionName} is missing Content-Type.");
                         return null;
                     }
 
                     contentType = section.ContentType.Split(";")[0];
 
                     // Check if the content type of the multipart section is declared for the element type (e.g. "application/xml").
-                    if (!elementTypeTemp.AllowedContentType.Contains(contentType))
+                    if (!elementType.AllowedContentType.Contains(contentType))
                     {
-                        errorResult = BadRequest($"Requested content type, '{contentType}', is not declared in this application element type '{elementTypeTemp}'");
+                        errorResult = BadRequest($"The multipart section named {sectionName}'s Content-Type '{contentType}', is not declared in this application element type '{elementType}'");
                         return null;
                     }
+
+                    contentType = section.ContentType;
 
                     theStream = section.Body;
 
                     // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
-                    DataElement newDataElement = DataElementHelper.CreateDataElement(contentDispositionName, storedInstance, creationTime, contentType, contentFileName, fileSize, user);
+                    DataElement newDataElement = DataElementHelper.CreateDataElement(sectionName, storedInstance, creationTime, contentType, contentFileName, fileSize, user);
 
                     try
                     {
