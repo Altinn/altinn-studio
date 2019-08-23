@@ -409,7 +409,9 @@ namespace Altinn.Platform.Storage.Controllers
             
             while (section != null)
             {
-                bool hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+                bool hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(
+                    section.ContentDisposition,
+                    out ContentDispositionHeaderValue contentDisposition);
 
                 if (!hasContentDispositionHeader)
                 {
@@ -440,7 +442,7 @@ namespace Altinn.Platform.Storage.Controllers
                     
                     if (elementType == null)
                     {
-                        errorResult = BadRequest($"Multipart section's content disposition name, '{sectionName}' is not declared in application metadata");
+                        errorResult = BadRequest($"Multipart section named, '{sectionName}' does not correspond to an element type in application metadata");
                         return null;
                     }
 
@@ -479,20 +481,21 @@ namespace Altinn.Platform.Storage.Controllers
                         errorResult = StatusCode(500, $"Unable to store data element in storage for section naemed {sectionName}. Reason {e.Message}");
                         return null;
                     }
+
+                    try
+                    {
+                        // Update instance with the data element.
+                        storedInstance = _instanceRepository.Update(storedInstance).Result;
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError($"Unable to update instance file. {e}");
+                        errorResult = StatusCode(500, $"Unable to update instance with the new data, reason being {e}");
+                        return null;
+                    }
                 }
 
                 section = reader.ReadNextSectionAsync().Result;
-            }
-
-            try
-            {
-                // Update instance with the data element(s).
-                storedInstance = _instanceRepository.Update(storedInstance).Result;
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"Unable to update instance file. {e}");
-                errorResult = StatusCode(500, $"Unable to update instance with the new data, reason being {e}");
             }
 
             return storedInstance;
