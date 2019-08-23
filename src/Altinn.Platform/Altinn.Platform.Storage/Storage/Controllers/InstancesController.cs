@@ -295,7 +295,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Inserts new instance into the instance collection. 
         /// </summary>
-        /// <param name="appId">the applicationid</param>
+        /// <param name="appId">the application id</param>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
@@ -312,7 +312,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return appInfoErrorResult;
             }
 
-            Instance instanceTemplate = await ReadInstanceTemplateFromBody(Request, appInfo);
+            Instance instanceTemplate = await ReadInstanceTemplateFromBody(Request);
             
             // get instanceOwnerId from three possible places
             int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
@@ -417,17 +417,23 @@ namespace Altinn.Platform.Storage.Controllers
                     return null;
                 }
 
+                if (contentDisposition.Name == null)
+                {
+                    errorResult = BadRequest("Multipart section has no name. It must have a name that corresponds to elementTypes defined in Application metadat");
+                    return null;                
+                }
+
                 string sectionName = contentDisposition.Name.Value;
 
                 if (!"instance".Equals(sectionName))
                 {
-                    Stream theStream = null;
-                    string contentFileName = null;
-                    string contentType = null;
-                    long fileSize = 0;
+                    string contentFileName = null;                                      
+                    if (contentDisposition.FileName != null)
+                    {
+                        contentFileName = contentDisposition.FileName.ToString();
+                    }
                     
-                    contentFileName = contentDisposition.FileName.ToString();
-                    fileSize = contentDisposition.Size ?? 0;
+                    long fileSize = contentDisposition.Size ?? 0;
 
                     // Check if the content disposition name is declared for the application (e.g. "default").
                     ElementType elementType = appInfoElementTypes.Find(e => e.Id == sectionName);
@@ -444,18 +450,17 @@ namespace Altinn.Platform.Storage.Controllers
                         return null;
                     }
 
-                    contentType = section.ContentType.Split(";")[0];
+                    string contentType = section.ContentType;
+                    string contentTypeWithoutEncoding = contentType.Split(";")[0];                    
 
                     // Check if the content type of the multipart section is declared for the element type (e.g. "application/xml").
-                    if (!elementType.AllowedContentType.Contains(contentType))
+                    if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
                     {
-                        errorResult = BadRequest($"The multipart section named {sectionName}'s Content-Type '{contentType}', is not declared in this application element type '{elementType}'");
+                        errorResult = BadRequest($"The multipart section named {sectionName} has a Content-Type '{contentType}' which is not declared in this application element type '{elementType}'");
                         return null;
                     }
 
-                    contentType = section.ContentType;
-
-                    theStream = section.Body;
+                    Stream theStream = section.Body;
 
                     // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
                     DataElement newDataElement = DataElementHelper.CreateDataElement(sectionName, storedInstance, creationTime, contentType, contentFileName, fileSize, user);
@@ -463,14 +468,16 @@ namespace Altinn.Platform.Storage.Controllers
                     try
                     {
                         // Store file as blob.
-                        _dataRepository.CreateDataInStorage(theStream, newDataElement.StorageUrl);
+                        bool blobCreated = _dataRepository.CreateDataInStorage(theStream, newDataElement.StorageUrl).Result;
 
                         // Add file to instance.
                         storedInstance.Data.Add(newDataElement);
                     }
                     catch (Exception e)
                     {
-                        errorResult = StatusCode(500, $"Unable to create instance data in storage: {e}");
+                        logger.LogError($"Unable to store blob data for section named '{sectionName}. Due to {e}");
+                        errorResult = StatusCode(500, $"Unable to store data element in storage for section naemed {sectionName}. Reason {e.Message}");
+                        return null;
                     }
                 }
 
@@ -484,6 +491,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
+                logger.LogError($"Unable to update instance file. {e}");
                 errorResult = StatusCode(500, $"Unable to update instance with the new data, reason being {e}");
             }
 
@@ -494,9 +502,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// Method to read the instance object from the HttpRequest body. 
         /// </summary>
         /// <param name="request">The HttpRequest</param>
-        /// <param name="appInfo">The application information</param>
         /// <returns>The instance object</returns>
-        private async Task<Instance> ReadInstanceTemplateFromBody(HttpRequest request, Application appInfo)
+        private async Task<Instance> ReadInstanceTemplateFromBody(HttpRequest request)
         {
             Instance instanceTemplate = null;
             string contentType = null;
@@ -513,19 +520,15 @@ namespace Altinn.Platform.Storage.Controllers
                 bool hasContentDispositionHeader =
                         ContentDispositionHeaderValue.
                         TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-
-                if (hasContentDispositionHeader)
+                
+                if (hasContentDispositionHeader && contentDisposition.Name.Value.Equals("instance"))
                 {
-                    // Check if the content disposition name is "instance".
-                    if (contentDisposition.Name.Value == "instance")
-                    {
-                        contentType = section.ContentType;
+                    contentType = section.ContentType;
 
-                        // Check if the content type is of type "application/json".
-                        if (contentType != null && contentType.StartsWith("application/json"))
-                        {
-                            instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
-                        }
+                    // Check if the content type is of type "application/json".
+                    if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
+                    {
+                        instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
                     }
                 }
             }
@@ -533,7 +536,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 contentType = request.ContentType;
 
-                if (contentType != null && contentType.StartsWith("application/json"))
+                if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
                 {
                     instanceTemplate = JsonConvert.DeserializeObject<Instance>(await ReadBodyAsync(request));
                 }
