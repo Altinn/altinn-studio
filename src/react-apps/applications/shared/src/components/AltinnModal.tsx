@@ -43,6 +43,9 @@ const styles = createStyles({
     marginLeft: 'auto',
     marginTop: '9.68rem',
     marginBottom: '10%',
+    ['@media only print']: {
+      boxShadow: '0 0 0 0 !important',
+    },
   },
   header: {
     backgroundColor: altinnTheme.altinnPalette.primary.blueDarker,
@@ -60,6 +63,9 @@ const styles = createStyles({
     paddingRight: 243,
     paddingTop: 45,
     paddingBottom: 34,
+    ['@media only print']: {
+      paddingLeft: 48,
+    },
   },
   iconBtn: {
     float: 'right' as 'right',

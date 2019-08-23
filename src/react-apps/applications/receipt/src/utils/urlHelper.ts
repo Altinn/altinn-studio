@@ -1,6 +1,7 @@
 import { getInstanceId, getInstanceOwnerId } from './instance';
 
-export const altinnAt21CloudUrl = 'https://platform.at21.altinn.cloud/';
+export const altinnAt21PlatformUrl = 'https://platform.at21.altinn.cloud/';
+export const altinnAt21Url = 'https://at21.altinn.cloud/';
 export const altinnUrl = 'http://altinn.no/';
 export const altinnOrganisationsUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
 
@@ -13,9 +14,9 @@ export function getPartyUrl(): string {
 }
 
 export function getAltinnCloudUrl(): string {
-  if(window.location.hostname === 'localhost') {
-    // if we are developing locally, point to test data in at21 for now
-    return altinnAt21CloudUrl;
+  if (window.location.hostname === 'localhost') {
+    // if we are developing locally, point to test data in at21
+    return altinnAt21PlatformUrl;
   } else {
     // in prod => point to origin. Can be multiple environments.
     return window.location.origin + '/';
@@ -32,5 +33,17 @@ export function getApplicationMetadataUrl(org: string, app: string): string {
 }
 
 export function getUserUrl(): string {
-  return `${getAltinnCloudUrl()}TODO`;
+  return `${getAltinnCloudUrl()}profile/api/v1/users/current`;
+}
+
+export function getAltinnUrl(): string {
+  if (window.location.hostname === 'localhost') {
+    return altinnAt21Url;
+  } else {
+    return window.location.origin + '/';
+  }
+}
+
+export function getMessageBoxUrl(): string {
+  return `${getAltinnUrl()}ui/Messagebox/`;
 }

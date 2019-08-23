@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.IdentityModel.Tokens;
+using AltinnCore.Authentication.JwtCookie;
+
 
 namespace Altinn.Platform.Receipt
 {
@@ -36,6 +40,27 @@ namespace Altinn.Platform.Receipt
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configure Authentication
+            // Use [Authorize] to require login on MVC Controller Actions
+            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            SecurityKey key = new X509SecurityKey(cert);
+
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+                .AddJwtCookie(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = key,
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        RequireExpirationTime = true,
+                        ValidateLifetime = true
+                    };
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Name = "AltinnStudioRuntime";
+                });
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
@@ -48,6 +73,7 @@ namespace Altinn.Platform.Receipt
         /// <param name="env">the hosting environment.</param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseAuthentication();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
