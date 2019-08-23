@@ -2,7 +2,6 @@ import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../../utils/networking';
 import OrgsActions from './../orgsActions';
-import { IFetchOrgs } from './fetchOrgsActions';
 import * as OrgsActionTypes from './fetchOrgsActionTypes';
 
 import {

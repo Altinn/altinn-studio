@@ -170,11 +170,11 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public render() {
-    // const backgroundColor = (this.props.step === WorkflowSteps.Archived) ? '#D4F9E4' : '#1EAEF7';
     const isWorkflowStepsArchived = this.props.step === WorkflowSteps.Archived ? true : false;
+    const backgroundColor = isWorkflowStepsArchived ? '#D4F9E4' : '#1EAEF7';
 
     return (
-      <div id='workflowContainer'>
+      <div id='workflowContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
         <div className='container'>
           <AltinnAppHeader
             language={this.props.language}
