@@ -295,7 +295,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Inserts new instance into the instance collection. 
         /// </summary>
-        /// <param name="appId">the applicationid</param>
+        /// <param name="appId">the application id</param>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <returns>instance object</returns>
         /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
@@ -312,7 +312,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return appInfoErrorResult;
             }
 
-            Instance instanceTemplate = await ReadInstanceTemplateFromBody(Request, appInfo);
+            Instance instanceTemplate = await ReadInstanceTemplateFromBody(Request);
             
             // get instanceOwnerId from three possible places
             int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
@@ -413,7 +413,7 @@ namespace Altinn.Platform.Storage.Controllers
                 
                 string contentDispositionName = contentDisposition.Name.Value;
 
-                if (contentDispositionName != "instance")
+                if (!contentDispositionName.Equals("instance"))
                 {
                     Stream theStream = null;
                     string contentFileName = null;
@@ -483,9 +483,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// Method to read the instance object from the HttpRequest body. 
         /// </summary>
         /// <param name="request">The HttpRequest</param>
-        /// <param name="appInfo">The application information</param>
         /// <returns>The instance object</returns>
-        private async Task<Instance> ReadInstanceTemplateFromBody(HttpRequest request, Application appInfo)
+        private async Task<Instance> ReadInstanceTemplateFromBody(HttpRequest request)
         {
             Instance instanceTemplate = null;
             string contentType = null;
@@ -502,19 +501,15 @@ namespace Altinn.Platform.Storage.Controllers
                 bool hasContentDispositionHeader =
                         ContentDispositionHeaderValue.
                         TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-
-                if (hasContentDispositionHeader)
+                
+                if (hasContentDispositionHeader && contentDisposition.Name.Value.Equals("instance"))
                 {
-                    // Check if the content disposition name is "instance".
-                    if (contentDisposition.Name.Value == "instance")
-                    {
-                        contentType = section.ContentType;
+                    contentType = section.ContentType;
 
-                        // Check if the content type is of type "application/json".
-                        if (contentType != null && contentType.StartsWith("application/json"))
-                        {
-                            instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
-                        }
+                    // Check if the content type is of type "application/json".
+                    if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
+                    {
+                        instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
                     }
                 }
             }
@@ -522,7 +517,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 contentType = request.ContentType;
 
-                if (contentType != null && contentType.StartsWith("application/json"))
+                if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
                 {
                     instanceTemplate = JsonConvert.DeserializeObject<Instance>(await ReadBodyAsync(request));
                 }
