@@ -1316,7 +1316,7 @@ namespace Altinn.Authorization.ABAC.Utils
         /// </summary>
         /// <param name="reader">The XML Reader</param>
         /// <param name="elementName">The name of the element</param>
-        private static void ValidateXacmlPolicyStartElement(XmlReader reader, string elementName )
+        private static void ValidateXacmlPolicyStartElement(XmlReader reader, string elementName)
         {
             if (!reader.IsStartElement(elementName, Xacml30Constants.NameSpaces.Policy))
             {

@@ -162,6 +162,8 @@ namespace Altinn.Authorization.ABAC.Xacml
             {
                 case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
                     return true;
+                case XacmlConstants.MatchTypeIdentifiers.DateBagSize:
+                    return true;
                 default:
                     return false;
             }
@@ -200,6 +202,7 @@ namespace Altinn.Authorization.ABAC.Xacml
             switch (applyfunction)
             {
                 case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
+                case XacmlConstants.MatchTypeIdentifiers.DateBagSize:
                     int bagSize = this.GetBagSize(contextAttributes, attributeDesignator);
                     if (int.Parse(policyConditionAttributeValue.Value).Equals(bagSize))
                     {

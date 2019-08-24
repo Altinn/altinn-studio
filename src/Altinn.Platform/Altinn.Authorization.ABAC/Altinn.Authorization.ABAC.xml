@@ -125,7 +125,7 @@
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Content">
-            <summary> 
+            <summary>
             Content Xacml 3.0 element name.
             </summary>
         </member>
@@ -335,7 +335,7 @@
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.EarliestVersion">
-            <summary> 
+            <summary>
             EarliestVersion Xacml 3.0 attribute name.
             </summary>
         </member>
@@ -395,7 +395,7 @@
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ReferenceId">
-            <summary> 
+            <summary>
             ReferenceId Xacml 3.0 attribute name.
             </summary>
         </member>
@@ -785,7 +785,12 @@
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.TimeBagSize">
             <summary>
-            Verify that time bag size is 1
+            Verify that time bag size.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateBagSize">
+            <summary>
+            Verify the date bag size.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly">
@@ -835,27 +840,27 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants">
             <summary>
-            Constants for XML 
+            Constants for XML.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants.AttributeNames">
             <summary>
-            XML Attributes
+            XML Attributes.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XmlConstants.AttributeNames.XmlNameSpacePrefix">
             <summary>
-            XML namespace prefix
+            XML namespace prefix.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants.Namespaces">
             <summary>
-            XML Namespaces
+            XML Namespaces.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XmlConstants.Namespaces.XmlNamespace">
             <summary>
-            The XML namespace
+            The XML namespace.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Interface.IContextHandler">
@@ -872,15 +877,15 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Interface.IPolicyInformationPoint">
             <summary>
-            The Interface that defines the Policy Information Point
+            The Interface that defines the Policy Information Point.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Interface.IPolicyInformationPoint.GetClaimsPrincipal(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
             <summary>
-            Returns a Claims Princial based on the Context Request
+            Returns a Claims Princial based on the Context Request.
             </summary>
-            <param name="request">The Context Request</param>
-            <returns></returns>
+            <param name="request">The Context Request.</param>
+            <returns>The claims principal.</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint">
             <summary>
@@ -896,31 +901,31 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.PolicyDecisionPoint">
             <summary>
-            This is the Policy Decision Point performing validation of request against policies
+            This is the Policy Decision Point performing validation of request against policies.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.#ctor(Altinn.Authorization.ABAC.Interface.IContextHandler,Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint)">
             <summary>
             Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.PolicyDecisionPoint"/> class.
             </summary>
-            <param name="contextHandler">The configured contexthandler</param>
-            <param name="prp">The Policy Retrieval Point</param>
+            <param name="contextHandler">The configured contexthandler.</param>
+            <param name="prp">The Policy Retrieval Point.</param>
         </member>
         <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.Authorize(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
             <summary>
-            Method that validated if the subject is allwoed to perform the requested operation on a given resource
+            Method that validated if the subject is allwoed to perform the requested operation on a given resource.
             </summary>
-            <param name="decisionRequest">The Xacml Context request</param>
-            <returns></returns>
+            <param name="decisionRequest">The Xacml Context request.</param>
+            <returns>The decision reponse.</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.GetMatchingRules(Altinn.Authorization.ABAC.Xacml.XacmlPolicy,Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,System.Boolean@)">
             <summary>
-            Returns the list of rules that matched the ContextRequest
+            Returns the list of rules that matched the ContextRequest.
             </summary>
-            <param name="policy">The policy</param>
-            <param name="decisionRequest">The decision request</param>
-            <param name="requiredAttributeMissing">Tels if a required attribute is missing</param>
-            <returns></returns>
+            <param name="policy">The policy.</param>
+            <param name="decisionRequest">The decision request.</param>
+            <param name="requiredAttributeMissing">Tels if a required attribute is missing.</param>
+            <returns>All rules that are matching.</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.Guard">
             <summary>
@@ -1611,6 +1616,14 @@
             </summary>
             <param name="request">The context request</param>
             <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlApply.IsBagSizeCondition(Altinn.Authorization.ABAC.Xacml.XacmlApply)">
+            <summary>
+            This verifies it the XacmlApply is only a bag size function and
+            does not compare the attribute value only the attribute count.
+            </summary>
+            <param name="xacmlApply">The xacmlApply.</param>
+            <returns>A boolean value telling if it is a baq size only function.</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttribute">
              <summary>

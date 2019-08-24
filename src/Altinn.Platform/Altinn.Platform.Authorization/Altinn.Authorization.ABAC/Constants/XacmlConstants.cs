@@ -105,7 +105,7 @@ namespace Altinn.Authorization.ABAC.Constants
             /// </summary>
             public const string Condition = "Condition";
 
-            /// <summary> 
+            /// <summary>
             /// Content Xacml 3.0 element name.
             /// </summary>
             public const string Content = "Content";
@@ -316,7 +316,7 @@ namespace Altinn.Authorization.ABAC.Constants
             /// </summary>
             public const string DataType = "DataType";
 
-            /// <summary> 
+            /// <summary>
             /// EarliestVersion Xacml 3.0 attribute name.
             /// </summary>
             public const string EarliestVersion = "EarliestVersion";
@@ -376,7 +376,7 @@ namespace Altinn.Authorization.ABAC.Constants
             /// </summary>
             public const string PolicyId = "PolicyId";
 
-            /// <summary> 
+            /// <summary>
             /// ReferenceId Xacml 3.0 attribute name.
             /// </summary>
             public const string ReferenceId = "ReferenceId";
@@ -663,7 +663,7 @@ namespace Altinn.Authorization.ABAC.Constants
             /// Attribute Matching Identity.
             /// </summary>
             public const string ResourceId = "urn:oasis:names:tc:xacml:1.0:resource:resource-id";
-    
+
             /// <summary>
             /// Attribute Matching Identity.
             /// </summary>
@@ -771,9 +771,14 @@ namespace Altinn.Authorization.ABAC.Constants
             public const string IntegerOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:integer-one-and-only";
 
             /// <summary>
-            /// Verify that time bag size is 1
+            /// Verify that time bag size.
             /// </summary>
             public const string TimeBagSize = "urn:oasis:names:tc:xacml:1.0:function:time-bag-size";
+
+            /// <summary>
+            /// Verify the date bag size.
+            /// </summary>
+            public const string DateBagSize = "urn:oasis:names:tc:xacml:1.0:function:date-bag-size";
 
             /// <summary>
             /// Verify that the bag only contains one Date attribute withe the given attribute ID

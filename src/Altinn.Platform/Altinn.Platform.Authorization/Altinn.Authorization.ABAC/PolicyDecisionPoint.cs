@@ -1,19 +1,16 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Security.Claims;
-using System.Xml;
-using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Interface;
-using Altinn.Authorization.ABAC.Utils;
-using Altinn.Authorization.ABAC.Xacml;
-
 namespace Altinn.Authorization.ABAC
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Xml;
+    using Altinn.Authorization.ABAC.Constants;
+    using Altinn.Authorization.ABAC.Interface;
+    using Altinn.Authorization.ABAC.Xacml;
+
     /// <summary>
-    /// This is the Policy Decision Point performing validation of request against policies
+    /// This is the Policy Decision Point performing validation of request against policies.
     /// </summary>
     public class PolicyDecisionPoint
     {
@@ -23,8 +20,8 @@ namespace Altinn.Authorization.ABAC
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyDecisionPoint"/> class.
         /// </summary>
-        /// <param name="contextHandler">The configured contexthandler</param>
-        /// <param name="prp">The Policy Retrieval Point</param>
+        /// <param name="contextHandler">The configured contexthandler.</param>
+        /// <param name="prp">The Policy Retrieval Point.</param>
         public PolicyDecisionPoint(IContextHandler contextHandler, IPolicyRetrievalPoint prp)
         {
             this.contextHandler = contextHandler;
@@ -32,20 +29,20 @@ namespace Altinn.Authorization.ABAC
          }
 
         /// <summary>
-        /// Method that validated if the subject is allwoed to perform the requested operation on a given resource
+        /// Method that validated if the subject is allwoed to perform the requested operation on a given resource.
         /// </summary>
-        /// <param name="decisionRequest">The Xacml Context request</param>
-        /// <returns></returns>
+        /// <param name="decisionRequest">The Xacml Context request.</param>
+        /// <returns>The decision reponse.</returns>
         public XacmlContextResponse Authorize(XacmlContextRequest decisionRequest)
         {
             XacmlContextResult contextResult;
-            decisionRequest = contextHandler.Enrich(decisionRequest);
+            decisionRequest = this.contextHandler.Enrich(decisionRequest);
 
             XacmlPolicy policy;
 
             try
             {
-                policy = prp.GetPolicy(decisionRequest);
+                policy = this.prp.GetPolicy(decisionRequest);
             }
             catch (XmlException)
             {
@@ -86,7 +83,7 @@ namespace Altinn.Authorization.ABAC
                     {
                         decision = XacmlContextDecision.Permit;
                     }
-                    else 
+                    else
                     {
                         decision = XacmlContextDecision.Deny;
                     }
@@ -163,12 +160,12 @@ namespace Altinn.Authorization.ABAC
         }
 
         /// <summary>
-        /// Returns the list of rules that matched the ContextRequest
+        /// Returns the list of rules that matched the ContextRequest.
         /// </summary>
-        /// <param name="policy">The policy</param>
-        /// <param name="decisionRequest">The decision request</param>
-        /// <param name="requiredAttributeMissing">Tels if a required attribute is missing</param>
-        /// <returns></returns>
+        /// <param name="policy">The policy.</param>
+        /// <param name="decisionRequest">The decision request.</param>
+        /// <param name="requiredAttributeMissing">Tels if a required attribute is missing.</param>
+        /// <returns>All rules that are matching.</returns>
         private ICollection<XacmlRule> GetMatchingRules(XacmlPolicy policy, XacmlContextRequest decisionRequest, out bool requiredAttributeMissing)
         {
             ICollection<XacmlRule> matchingRules = new Collection<XacmlRule>();
@@ -223,7 +220,7 @@ namespace Altinn.Authorization.ABAC
 
                         XacmlObligation obligation = new XacmlObligation(expression.ObligationId, attributeAssignments)
                         {
-                            FulfillOn = XacmlEffectType.Permit
+                            FulfillOn = XacmlEffectType.Permit,
                         };
 
                         result.Obligations.Add(obligation);
