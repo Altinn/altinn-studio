@@ -94,14 +94,14 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Gets or set Rule effect.The value of this attribute is either “Permit” or “Deny”.
+        /// Gets or sets Rule effect.The value of this attribute is either “Permit” or “Deny”.
         /// </summary>
         public XacmlEffectType Effect { get; set; }
 
         /// <summary>
-        /// A conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the PEP in
+        /// Gets a conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the PEP in
         /// conjunction with the authorization decision.
-        /// See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations. 
+        /// See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations.
         /// </summary>
         public ICollection<XacmlObligationExpression> Obligations
         {

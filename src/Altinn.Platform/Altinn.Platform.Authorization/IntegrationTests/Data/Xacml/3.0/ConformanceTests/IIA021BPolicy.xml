@@ -8,7 +8,6 @@
         <Description>
             Anyone can perform any action on any resource if
             there is a current-time attribute.
-            Altinn Comment: This cant be a correct conformation test. Attributes are missing. Updated expect response and added B scenario with attribute
         </Description>
         <Condition>
 <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:integer-equal">

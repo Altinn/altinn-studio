@@ -13,7 +13,7 @@ namespace Altinn.Authorization.ABAC.Utils
     public static class XacmlParser
     {
         /// <summary>
-        /// Parses a Xacml 3.0 XML Policy. 
+        /// Parses a Xacml 3.0 XML Policy.
         /// </summary>
         /// <param name="reader">A XML Reader with the Policy loaded</param>
         /// <returns>The XACML Policy</returns>

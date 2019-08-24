@@ -11,9 +11,9 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// A<Policy/> element may be evaluated, in which case the evaluation procedure defined in Section 7.12 SHALL be used.
     /// The main components of this element are the<Target/>, <Rule/>, <CombinerParameters/>, <RuleCombinerParameters/>, <ObligationExpressions/> and<AdviceExpressions/>
     /// elements and the RuleCombiningAlgId attribute.
-    /// 
+    ///
     /// A<Policy/> element MAY contain a<PolicyIssuer/> element. The interpretation of the <PolicyIssuer/> element is explained in the separate administrative policy profile[XACMLAdmin].
-    /// 
+    ///
     /// The<Target/> element defines the applicability of the<Policy/> element to a set of decision requests.  If the <Target/> element within the<Policy/> element matches the
     /// request context, then the <Policy/> element MAY be used by the PDP in making its authorization decision.  See Section 7.12.
     ///
@@ -22,7 +22,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// The<ObligationExpressions/> element contains a set of obligation expressions that MUST be evaluated into obligations by the PDP and the resulting
     /// obligations MUST be fulfilled by the PEP in conjunction with the authorization decision.If the PEP does not understand, or cannot fulfill,
     /// any of the obligations, then it MUST act according to the PEP bias.See Section 7.2 and 7.18.
-    /// 
+    ///
     /// The<AdviceExpressions/> element contains a set of advice expressions that MUST be evaluated into advice by the PDP.The resulting
     /// advice MAY be safely ignored by the PEP in conjunction with the authorization decision.See Section 7.18.
     ///
@@ -105,7 +105,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// Initializes a new instance of the <see cref="XacmlPolicy"/> class.
         /// </summary>
         /// <param name="policyId">Policy identifier.It is the responsibility of the PAP to ensure that no two policies visible to the PDP have the same identifier.</param>
-        /// <param name="ruleCombiningAlgId">The identifier of the rule-combining algorithm by which the<Policy/>, <CombinerParameters/> and<RuleCombinerParameters/> components MUST be combined</param>
+        /// <param name="ruleCombiningAlgId">The identifier of the rule-combining algorithm by which the<Policy/>, <CombinerParameters/> and<RuleCombinerParameters/> components MUST be combined.</param>
         /// <param name="target">The <Target/> element defines the applicability of a<Policy/> to a set of decision requests.</param>
         public XacmlPolicy(Uri policyId, Uri ruleCombiningAlgId, XacmlTarget target)
         {

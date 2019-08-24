@@ -691,82 +691,82 @@ namespace Altinn.Authorization.ABAC.Constants
             public const string StringEqual = "urn:oasis:names:tc:xacml:1.0:function:string-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// String Equal Ignore Case Matching Function.
             /// </summary>
             public const string StringEqualIgnoreCase = "urn:oasis:names:tc:xacml:3.0:function:string-equal-ignore-case";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// Boolean Equal Matching Function.
             /// </summary>
             public const string BooleanEqual = "urn:oasis:names:tc:xacml:1.0:function:boolean-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// Integer Equal Matching Function.
             /// </summary>
             public const string IntegerEqual = "urn:oasis:names:tc:xacml:1.0:function:integer-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// Double Equal Matching Function.
             /// </summary>
             public const string DoubleEqual = "urn:oasis:names:tc:xacml:1.0:function:double-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// Date Equal Matching Function.
             /// </summary>
             public const string DateEqual = "urn:oasis:names:tc:xacml:1.0:function:date-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// Time Equal Matching Function.
             /// </summary>
             public const string TimeEqual = "urn:oasis:names:tc:xacml:1.0:function:time-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// DateTime Equal Matching Function.
             /// </summary>
             public const string DateTimeEqual = "urn:oasis:names:tc:xacml:1.0:function:dateTime-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// DayTimeDuration Equal Matching Function.
             /// </summary>
             public const string DayTimeDurationEqual = "urn:oasis:names:tc:xacml:1.0:function:dayTimeDuration-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// YearMonthDuration Equal Matching Function.
             /// </summary>
             public const string YearMonthDurationEqual = "urn:oasis:names:tc:xacml:1.0:function:yearMonthDuration-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// AnyUri Equal Matching Function.
             /// </summary>
             public const string AnyUriEqual = "urn:oasis:names:tc:xacml:1.0:function:anyURI-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// X500Name Equal Matching Function.
             /// </summary>
             public const string X500NameEqual = "urn:oasis:names:tc:xacml:1.0:function:x500Name-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// Rfc822Name Equal Matching Function.
             /// </summary>
             public const string Rfc822NameEqual = "urn:oasis:names:tc:xacml:1.0:function:rfc822Name-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// HexBinary Equal Matching Function.
             /// </summary>
             public const string HexBinaryEqual = "urn:oasis:names:tc:xacml:1.0:function:hexBinary-equal";
 
             /// <summary>
-            /// String Equal Matching Function
+            /// Base64Binary Equal Matching Function.
             /// </summary>
             public const string Base64BinaryEqual = "urn:oasis:names:tc:xacml:1.0:function:base64Binary-equal";
 
             /// <summary>
-            /// String is in bag of attributes
+            /// String is in bag of attributes.
             /// </summary>
             public const string StringIsIn = "urn:oasis:names:tc:xacml:1.0:function:string-is-in";
 
             /// <summary>
-            /// Verify that one one integer of that value exist
+            /// Verify that one one integer of that value exist.
             /// </summary>
             public const string IntegerOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:integer-one-and-only";
 
@@ -781,6 +781,11 @@ namespace Altinn.Authorization.ABAC.Constants
             public const string DateBagSize = "urn:oasis:names:tc:xacml:1.0:function:date-bag-size";
 
             /// <summary>
+            /// Verify the date bag size.
+            /// </summary>
+            public const string DateTimeBagSize = "urn:oasis:names:tc:xacml:1.0:function:dateTime-bag-size";
+
+            /// <summary>
             /// Verify that the bag only contains one Date attribute withe the given attribute ID.
             /// </summary>
             public const string DateOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:date-one-and-only";
@@ -792,7 +797,7 @@ namespace Altinn.Authorization.ABAC.Constants
         }
 
         /// <summary>
-        /// Prefixed used in namespaces when writing to XML
+        /// Prefixed used in namespaces when writing to XML.
         /// </summary>
         public sealed class Prefixes
         {

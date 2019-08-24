@@ -793,6 +793,11 @@
             Verify the date bag size.
             </summary>
         </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateTimeBagSize">
+            <summary>
+            Verify the date bag size.
+            </summary>
+        </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly">
             <summary>
             Verify that the bag only contains one Date attribute withe the given attribute ID.
@@ -950,14 +955,14 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter">
             <summary>
-            Utility that converts between JSON objects and XML objects
+            Utility that converts between JSON objects and XML objects.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter.ConvertRequest(Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest)">
             <summary>
-            Converts JSON request 
+            Converts JSON request.
             </summary>
-            <param name="xacmlJsonRequest">The JSON Request</param>
+            <param name="xacmlJsonRequest">The JSON Request.</param>
             <returns></returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter.ConvertResponse(Altinn.Authorization.ABAC.Xacml.XacmlContextResponse)">
@@ -969,12 +974,12 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser">
             <summary>
-            Parser Responsible for parsing 
+            Parser Responsible for parsing.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ParseXacmlPolicy(System.Xml.XmlReader)">
             <summary>
-            Parses a Xacml 3.0 XML Policy 
+            Parses a Xacml 3.0 XML Policy.
             </summary>
             <param name="reader">A XML Reader with the Policy loaded</param>
             <returns>The XACML Policy</returns>
@@ -1150,28 +1155,28 @@
             <summary>
             The Category object corresponds to the XML <Attributes /> element. Just like the <Attributes /> element is specific to a given XACML
             attribute category, the Category object in JSON is specific to a given XACML attribute category.
-            http://docs.oasis-open.org/xacml/xacml-json-http/v1.1/csprd01/xacml-json-http-v1.1-csprd01.html
+            http://docs.oasis-open.org/xacml/xacml-json-http/v1.1/csprd01/xacml-json-http-v1.1-csprd01.html.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.CategoryId">
             <summary>
-            Sets or gets the CategoryId.
+            Gets or sets CategoryId.
             Mandatory for a Category object in the "Category" member array; otherwise, optional. See section 4.2.2.2.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Id">
             <summary>
-            The Id of the category, mappes to attributeId in xml version of ContextRequest 
+            Gets or sets the Id of the category, mappes to attributeId in xml version of ContextRequest.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Content">
             <summary>
-            Optional XML conten
+            Gets or sets optional XML content.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Attribute">
             <summary>
-            A list over all attributes for a given attribute Id mappes to the 
+            Gets or sets a list over all attributes for a given attribute Id mappes to the.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonIdReference">
@@ -2887,9 +2892,9 @@
              A<Policy/> element may be evaluated, in which case the evaluation procedure defined in Section 7.12 SHALL be used.
              The main components of this element are the<Target/>, <Rule/>, <CombinerParameters/>, <RuleCombinerParameters/>, <ObligationExpressions/> and<AdviceExpressions/>
              elements and the RuleCombiningAlgId attribute.
-             
+            
              A<Policy/> element MAY contain a<PolicyIssuer/> element. The interpretation of the <PolicyIssuer/> element is explained in the separate administrative policy profile[XACMLAdmin].
-             
+            
              The<Target/> element defines the applicability of the<Policy/> element to a set of decision requests.  If the <Target/> element within the<Policy/> element matches the
              request context, then the <Policy/> element MAY be used by the PDP in making its authorization decision.  See Section 7.12.
             
@@ -2898,7 +2903,7 @@
              The<ObligationExpressions/> element contains a set of obligation expressions that MUST be evaluated into obligations by the PDP and the resulting
              obligations MUST be fulfilled by the PEP in conjunction with the authorization decision.If the PEP does not understand, or cannot fulfill,
              any of the obligations, then it MUST act according to the PEP bias.See Section 7.2 and 7.18.
-             
+            
              The<AdviceExpressions/> element contains a set of advice expressions that MUST be evaluated into advice by the PDP.The resulting
              advice MAY be safely ignored by the PEP in conjunction with the authorization decision.See Section 7.18.
             
@@ -2963,7 +2968,7 @@
             Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlPolicy"/> class.
             </summary>
             <param name="policyId">Policy identifier.It is the responsibility of the PAP to ensure that no two policies visible to the PDP have the same identifier.</param>
-            <param name="ruleCombiningAlgId">The identifier of the rule-combining algorithm by which the<Policy/>, <CombinerParameters/> and<RuleCombinerParameters/> components MUST be combined</param>
+            <param name="ruleCombiningAlgId">The identifier of the rule-combining algorithm by which the<Policy/>, <CombinerParameters/> and<RuleCombinerParameters/> components MUST be combined.</param>
             <param name="target">The <Target/> element defines the applicability of a<Policy/> to a set of decision requests.</param>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.Description">

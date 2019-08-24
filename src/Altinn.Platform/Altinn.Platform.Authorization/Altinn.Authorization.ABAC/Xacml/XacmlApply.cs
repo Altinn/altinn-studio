@@ -82,7 +82,7 @@ namespace Altinn.Authorization.ABAC.Xacml
             XacmlAttributeDesignator xacmlAttributeDesignator = null;
             XacmlApply xacmlApply = null;
 
-            foreach (IXacmlExpression xacmlExpression in Parameters)
+            foreach (IXacmlExpression xacmlExpression in this.Parameters)
            {
                 if (xacmlExpression.GetType() == typeof(XacmlAttributeValue))
                 {
@@ -161,8 +161,8 @@ namespace Altinn.Authorization.ABAC.Xacml
             switch (applyfunction)
             {
                 case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
-                    return true;
                 case XacmlConstants.MatchTypeIdentifiers.DateBagSize:
+                case XacmlConstants.MatchTypeIdentifiers.DateTimeBagSize:
                     return true;
                 default:
                     return false;
@@ -203,6 +203,7 @@ namespace Altinn.Authorization.ABAC.Xacml
             {
                 case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
                 case XacmlConstants.MatchTypeIdentifiers.DateBagSize:
+                case XacmlConstants.MatchTypeIdentifiers.DateTimeBagSize:
                     int bagSize = this.GetBagSize(contextAttributes, attributeDesignator);
                     if (int.Parse(policyConditionAttributeValue.Value).Equals(bagSize))
                     {
