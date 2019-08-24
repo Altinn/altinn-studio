@@ -8,12 +8,12 @@ using Altinn.Authorization.ABAC.Xacml;
 namespace Altinn.Authorization.ABAC.Utils
 {
     /// <summary>
-    /// Parser Responsible for parsing 
+    /// Parser Responsible for parsing.
     /// </summary>
     public static class XacmlParser
     {
         /// <summary>
-        /// Parses a Xacml 3.0 XML Policy 
+        /// Parses a Xacml 3.0 XML Policy. 
         /// </summary>
         /// <param name="reader">A XML Reader with the Policy loaded</param>
         /// <returns>The XACML Policy</returns>
@@ -22,7 +22,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(reader, nameof(reader));
             ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Policy);
 
-            // IDentify the xml namespaces used in xacml policy document. Iterate over all attributes in document root 
+            // IDentify the xml namespaces used in xacml policy document. Iterate over all attributes in document root.
             IDictionary<string, string> xmlNameSpaces = new Dictionary<string, string>();
             for (int i = 0; i < reader.AttributeCount; i++)
             {

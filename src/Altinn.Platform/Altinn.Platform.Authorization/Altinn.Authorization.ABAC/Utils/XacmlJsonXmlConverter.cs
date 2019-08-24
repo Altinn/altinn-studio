@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
@@ -9,14 +8,14 @@ using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 namespace Altinn.Authorization.ABAC.Utils
 {
     /// <summary>
-    /// Utility that converts between JSON objects and XML objects
+    /// Utility that converts between JSON objects and XML objects.
     /// </summary>
     public class XacmlJsonXmlConverter
     {
         /// <summary>
-        /// Converts JSON request 
+        /// Converts JSON request.
         /// </summary>
-        /// <param name="xacmlJsonRequest">The JSON Request</param>
+        /// <param name="xacmlJsonRequest">The JSON Request.</param>
         /// <returns></returns>
         public static XacmlContextRequest ConvertRequest(XacmlJsonRequest xacmlJsonRequest)
         {

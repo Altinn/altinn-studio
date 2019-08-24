@@ -781,9 +781,14 @@ namespace Altinn.Authorization.ABAC.Constants
             public const string DateBagSize = "urn:oasis:names:tc:xacml:1.0:function:date-bag-size";
 
             /// <summary>
-            /// Verify that the bag only contains one Date attribute withe the given attribute ID
+            /// Verify that the bag only contains one Date attribute withe the given attribute ID.
             /// </summary>
             public const string DateOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:date-one-and-only";
+
+            /// <summary>
+            /// Verify that the bag only contains one DateTime attribute withe the given attribute ID.
+            /// </summary>
+            public const string DateTimeOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:dateTime-one-and-only";
         }
 
         /// <summary>

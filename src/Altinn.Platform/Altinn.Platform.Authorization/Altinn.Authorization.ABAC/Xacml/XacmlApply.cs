@@ -260,6 +260,9 @@ namespace Altinn.Authorization.ABAC.Xacml
                 case XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly:
                     isSingleFunction = true;
                     break;
+                case XacmlConstants.MatchTypeIdentifiers.DateTimeOneAndOnly:
+                    isSingleFunction = true;
+                    break;
                 default:
                     break;
             }
