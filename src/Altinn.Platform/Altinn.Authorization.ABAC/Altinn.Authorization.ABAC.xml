@@ -6,562 +6,562 @@
     <members>
         <member name="T:Altinn.Authorization.ABAC.Constants.Xacml30Constants">
             <summary>
-            Constants for XACML 3.0 Constants
+            Constants for XACML 3.0 Constants.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.Xacml30Constants.NameSpaces">
             <summary>
-            Namespace constants
+            Namespace constants.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.Xacml30Constants.NameSpaces.Policy">
             <summary>
-            Namespace for policy in XACML 3.0
+            Namespace for policy in XACML 3.0.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants">
             <summary>
-            Constants for XACML 
+            Constants for XACML.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames">
             <summary>
-            Element names in XACML 
+            Element names in XACML.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.ActionAttributeDesignator">
             <summary>
-            ActionAttributeDesignator Xacml 3.0 element name
+            ActionAttributeDesignator Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AdviceExpression">
             <summary>
-            AdviceExpression Xacml 3.0 element name
+            AdviceExpression Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AdviceExpressions">
             <summary>
-            AdviceExpressions Xacml 3.0 element name
+            AdviceExpressions Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AnyOf">
             <summary>
-            AnyOf Xacml 3.0 element name
+            AnyOf Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AllOf">
             <summary>
-            AllOf Xacml 3.0 element name
+            AllOf Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Apply">
             <summary>
-            Apply Xacml 3.0 element name
+            Apply Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Advice">
             <summary>
-            Advice Xacml 3.0 element name
+            Advice Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AssociatedAdvice">
             <summary>
-            AssociatedAdvice Xacml 3.0 element name
+            AssociatedAdvice Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Attribute">
             <summary>
-            Attribute Xacml 3.0 element name
+            Attribute Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Attributes">
             <summary>
-            Attributes Xacml 3.0 element name
+            Attributes Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeAssignment">
             <summary>
-            AttributeAssignment Xacml 3.0 element name
+            AttributeAssignment Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeAssignmentExpression">
             <summary>
-            AttributeAssignmentExpression Xacml 3.0 element name
+            AttributeAssignmentExpression Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeDesignator">
             <summary>
-            AttributeDesignator Xacml 3.0 element name
+            AttributeDesignator Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributesReference">
             <summary>
-            AttributesReference Xacml 3.0 element name
+            AttributesReference Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeSelector">
             <summary>
-            AttributeSelector Xacml 3.0 element name
+            AttributeSelector Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeValue">
             <summary>
-            AttributeValue Xacml 3.0 element name
+            AttributeValue Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.CombinerParameter">
             <summary>
-            CombinerParameter 
+            CombinerParameter.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.CombinerParameters">
             <summary>
-            CombinerParameters Xacml 3.0 element name
+            CombinerParameters Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Condition">
             <summary>
-            Condition Xacml 3.0 element name
+            Condition Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Content">
             <summary> 
-            Content Xacml 3.0 element name
+            Content Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Decision">
             <summary>
-            Decision Xacml 3.0 element name
+            Decision Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Description">
             <summary>
-            Description Xacml 3.0 element name
+            Description Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.EnvironmentAttributeDesignator">
             <summary>
-            EnvironmentAttributeDesignator Xacml 3.0 element name
+            EnvironmentAttributeDesignator Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Function">
             <summary>
-            Function Xacml 3.0 element name
+            Function Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Match">
             <summary>
-            Match Xacml 3.0 element name
+            Match Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.MultiRequests">
             <summary>
-            MultiRequests Xacml 3.0 element name
+            MultiRequests Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Obligation">
             <summary>
-            Obligation Xacml 3.0 element name
+            Obligation Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Obligations">
             <summary>
-            Obligations Xacml 3.0 element name
+            Obligations Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.ObligationExpressions">
             <summary>
-            ObligationExpressions Xacml 3.0 element name
+            ObligationExpressions Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.ObligationExpression">
             <summary>
-            ObligationExpression Xacml 3.0 element name
+            ObligationExpression Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Policy">
             <summary>
-            Policy Xacml 3.0 element name
+            Policy Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicyDefaults">
             <summary>
-            PolicyDefaults Xacml 3.0 element name
+            PolicyDefaults Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicyIdentifierList">
             <summary>
-            PolicyIdentifierList Xacml 3.0 element name
+            PolicyIdentifierList Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicySetIdReference">
             <summary>
-            PolicySetIdReference Xacml 3.0 element name
+            PolicySetIdReference Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicyIdReference">
             <summary>
-            PolicyIdReference Xacml 3.0 element name
+            PolicyIdReference Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicyIssuer">
             <summary>
-            PolicyIssuer Xacml 3.0 element name
+            PolicyIssuer Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicySet">
             <summary>
-            PolicySet Xacml 3.0 element name
+            PolicySet Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Request">
             <summary>
-            Context Requext Xacml 3.0 element name
+            Context Requext Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.RequestDefaults">
             <summary>
-            RequestDefaults Xacml 3.0 element name
+            RequestDefaults Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.RequestReference">
             <summary>
-            RequestReference Xacml 3.0 element name
+            RequestReference Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.ResourceAttributeDesignator">
             <summary>
-            ResourceAttributeDesignator Xacml 3.0 element name
+            ResourceAttributeDesignator Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Response">
             <summary>
-            Response Xacml 3.0 element name
+            Response Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Result">
             <summary>
-            Result Xacml 3.0 element name
+            Result Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Rule">
             <summary>
-            Rule Xacml 3.0 element name
+            Rule Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.RuleCombinerParameters">
             <summary>
-            RuleCombinerParameters Xacml 3.0 element name
+            RuleCombinerParameters Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Status">
             <summary>
-            Status Xacml 3.0 element name
+            Status Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.StatusCode">
             <summary>
-            StatusCode Xacml 3.0 element name
+            StatusCode Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.StatusDetail">
             <summary>
-            StatusDetail Xacml 3.0 element name
+            StatusDetail Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.StatusMessage">
             <summary>
-            StatusMessage Xacml 3.0 element name
+            StatusMessage Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.SubjectAttributeDesignator">
             <summary>
-            SubjectAttributeDesignator Xacml 3.0 element name
+            SubjectAttributeDesignator Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Target">
             <summary>
-            Target Xacml 3.0 element name
+            Target Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.VariableDefinition">
             <summary>
-            VariableDefinition Xacml 3.0 element name
+            VariableDefinition Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.VariableReference">
             <summary>
-            VariableReference Xacml 3.0 element name
+            VariableReference Xacml 3.0 element name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.XPathVersion">
             <summary>
-            XPathVersion Xacml 3.0 element name
+            XPathVersion Xacml 3.0 element name.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames">
             <summary>
-            Attribute names constant
+            Attribute names constant.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.AdviceId">
             <summary>
-            AdviceId Xacml 3.0 attribute name
+            AdviceId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.AppliesTo">
             <summary>
-            AppliesTo Xacml 3.0 attribute name
+            AppliesTo Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.AttributeId">
             <summary>
-            AttributeId Xacml 3.0 attribute name
+            AttributeId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Category">
             <summary>
-            Category Xacml 3.0 attribute name
+            Category Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.CombinedDecision">
             <summary>
-            CombinedDecision Xacml 3.0 attribute name
+            CombinedDecision Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.DataType">
             <summary>
-            DataType Xacml 3.0 attribute name
+            DataType Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.EarliestVersion">
             <summary> 
-            EarliestVersion Xacml 3.0 attribute name
+            EarliestVersion Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Effect">
             <summary>
-            Effect Xacml 3.0 attribute name
+            Effect Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.FulfillOn">
             <summary>
-            FulfillOn Xacml 3.0 attribute name
+            FulfillOn Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.FunctionId">
             <summary>
-            FunctionId Xacml 3.0 attribute name
+            FunctionId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Id">
             <summary>
-            id Xacml 3.0 attribute name
+            id Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.IncludeInResult">
             <summary>
-            IncludeInResult Xacml 3.0 attribute name
+            IncludeInResult Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Issuer">
             <summary>
-            Issuer Xacml 3.0 attribute name
+            Issuer Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.LatestVersion">
             <summary>
-            LatestVersion Xacml 3.0 attribute name
+            LatestVersion Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ObligationId">
             <summary>
-            ObligationId Xacml 3.0 attribute name
+            ObligationId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ParameterName">
             <summary>
-            ParameterName Xacml 3.0 attribute name
+            ParameterName Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Path">
             <summary>
-            Path Xacml 3.0 attribute name
+            Path Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.PolicyId">
             <summary>
-            PolicyId Xacml 3.0 attribute name
+            PolicyId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ReferenceId">
             <summary> 
-            ReferenceId Xacml 3.0 attribute name
+            ReferenceId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ResourceId">
             <summary>
-            ResourceId Xacml 3.0 attribute name
+            ResourceId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ReturnPolicyIdList">
             <summary>
-            ReturnPolicyIdList Xacml 3.0 attribute name
+            ReturnPolicyIdList Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.RequestContextPath">
             <summary>
-            RequestContextPath Xacml 3.0 attribute name
+            RequestContextPath Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.RuleCombiningAlgId">
             <summary>
-            RuleCombiningAlgId Xacml 3.0 attribute name
+            RuleCombiningAlgId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.RuleId">
             <summary>
-            RuleId Xacml 3.0 attribute name
+            RuleId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.RuleIdRef">
             <summary>
-            RuleIdRef Xacml 3.0 attribute name
+            RuleIdRef Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.MaxDelegationDepth">
             <summary>
-            MaxDelegationDepth Xacml 3.0 attribute name
+            MaxDelegationDepth Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.MatchId">
             <summary>
-            MatchId Xacml 3.0 attribute name
+            MatchId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.MustBePresent">
             <summary>
-            MustBePresent Xacml 3.0 attribute name
+            MustBePresent Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Value">
             <summary>
-            Value Xacml 3.0 attribute name
+            Value Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.VariableId">
             <summary>
-            VariableId Xacml 3.0 attribute name
+            VariableId Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Version">
             <summary>
-            Version Xacml 3.0 attribute name
+            Version Xacml 3.0 attribute name.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory">
             <summary>
-            The Attribute categories
+            The Attribute categories.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory.Resource">
             <summary>
-            The Resource Category
+            The Resource Category.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory.Action">
             <summary>
-            The action category
+            The action category.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory.Environement">
             <summary>
-            The environment category
+            The environment category.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory.Subject">
             <summary>
-            The subject category
+            The subject category.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms">
             <summary>
-            Combining algorithms used when there are more than one rule or policy that matches request
+            Combining algorithms used when there are more than one rule or policy that matches request.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleDenyOverrides">
             <summary>
-            The deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            The deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyDenyOverrides">
             <summary>
-            The deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RulePermitOverrides">
             <summary>
-            The permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            The permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyPermidOverrides">
             <summary>
-            The permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleFirstApplicable">
             <summary>
-            The first-applicable rule-combining algorithm has the following value for the ruleCombiningAlgId attribute: 
+            The first-applicable rule-combining algorithm has the following value for the ruleCombiningAlgId attribute: .
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyFirstApplicable">
             <summary>
-            The first-applicable policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The first-applicable policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyOnlyOneApplicable">
             <summary>
-            The only-one-applicable-policy policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The only-one-applicable-policy policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleOrderedDenyOverrides">
             <summary>
-            The ordered-deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            The ordered-deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyOrderedDenyOverrided">
             <summary>
-            The ordered-deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The ordered-deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleOrderedPermitOverrides">
             <summary>
-            The ordered-permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            The ordered-permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyOrderedPermitOverrides">
             <summary>
-            The ordered-permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The ordered-permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleDenyUnlessPermit">
             <summary>
-            The deny-unless-permit rule-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The deny-unless-permit rule-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RulePermittUnlessDeny">
             <summary>
-            The permit-unless-deny rule-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The permit-unless-deny rule-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyDenyUnlessPermit">
             <summary>
-            The deny-unless-permit policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The deny-unless-permit policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyPermitUnlessDeny">
             <summary>
-            The permit-unless-deny policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            The permit-unless-deny policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.StatusCodes">
@@ -600,37 +600,37 @@
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.DnsName">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.IpAdress">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.AuthenticationMethod">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.AuthenticationTime">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.KeyInfo">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.RequestTime">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.SessionStartTime">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.SubjectId">
@@ -640,12 +640,12 @@
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.SubjectIdQualifier">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.AccessSubject">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.CodeBase">
@@ -655,52 +655,52 @@
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.IntermediarySubject">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.RecipientSubject">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.RequestingMachine">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.ResourceLocation">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.ResourceId">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.SimpleFileName">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.ActionId">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.ImpliedAction">
             <summary>
-            Attribute Matching Identity
+            Attribute Matching Identity.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers">
             <summary>
-            The match type identifier
+            The match type identifier.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringEqual">
             <summary>
-            String Equal Matching Function
+            String Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringEqualIgnoreCase">
@@ -815,22 +815,22 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes">
             <summary>
-            The datatypes uses in XACML
+            The datatypes used in XACML.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XML_String">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XMLString">
             <summary>
-            Datatype xml string
+            Datatype xml string.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XML_Integer">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XMLInteger">
             <summary>
-            Datatype XML integer
+            Datatype XML integer.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XML_AnyURI">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XMLAnyURI">
             <summary>
-            Datatype Any uri
+            Datatype Any uri.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants">
@@ -1888,6 +1888,11 @@
         <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.ToManyAttributes">
             <summary>
             There are to many attributes with same id / datatype than allowed
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.BagSizeConditionFailed">
+            <summary>
+            The number of attributes in bag failed
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector">

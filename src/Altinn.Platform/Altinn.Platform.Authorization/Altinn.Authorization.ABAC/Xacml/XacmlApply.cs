@@ -108,8 +108,8 @@ namespace Altinn.Authorization.ABAC.Xacml
                     }
                 }
             }
-           
-            return Evaluate(request, policyConditionAttributeValue, xacmlAttributeDesignator, xacmlApply);
+
+            return this.Evaluate(request, policyConditionAttributeValue, xacmlAttributeDesignator, xacmlApply);
         }
 
         private XacmlAttributeMatchResult Evaluate(XacmlContextRequest contextRequest, XacmlAttributeValue policyConditionAttributeValue, XacmlAttributeDesignator attributeDesignator, XacmlApply xacmlApply)
@@ -130,30 +130,54 @@ namespace Altinn.Authorization.ABAC.Xacml
                 return XacmlAttributeMatchResult.RequiredAttributeMissing;
             }
 
-            if (!ValidateSingleElementCondition(xacmlContextAttributes, policyConditionAttributeValue, xacmlApply, attributeDesignator))
+            if (!this.ValidateSingleElementInBagCondition(xacmlContextAttributes, policyConditionAttributeValue, xacmlApply, attributeDesignator))
             {
                 return XacmlAttributeMatchResult.ToManyAttributes;
             }
 
-            if (!ValidateBagFunction(xacmlContextAttributes, policyConditionAttributeValue, xacmlApply, attributeDesignator))
+            if (this.IsBagSizeCondition(xacmlApply))
             {
-                return XacmlAttributeMatchResult.ToManyAttributes;
+                return this.EvaluateBagSize(xacmlContextAttributes, policyConditionAttributeValue, xacmlApply, attributeDesignator);
             }
 
-            return Evalute(xacmlContextAttributes, policyConditionAttributeValue, attributeDesignator);
+            return this.Evalute(xacmlContextAttributes, policyConditionAttributeValue, attributeDesignator);
+        }
+
+        /// <summary>
+        /// This verifies it the XacmlApply is only a bag size function and
+        /// does not compare the attribute value only the attribute count.
+        /// </summary>
+        /// <param name="xacmlApply">The xacmlApply.</param>
+        /// <returns>A boolean value telling if it is a baq size only function.</returns>
+        private bool IsBagSizeCondition(XacmlApply xacmlApply)
+        {
+            if (xacmlApply == null)
+            {
+                return false;
+            }
+
+            string applyfunction = xacmlApply.FunctionId.OriginalString;
+
+            switch (applyfunction)
+            {
+                case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private XacmlAttributeMatchResult Evalute(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlAttributeDesignator attributeDesignator)
         {
             bool attributeWithCorrectAttributeIdFound = false;
             foreach (XacmlContextAttributes xacmlContextAttributes in contextAttributes)
-            { 
+            {
                 foreach (XacmlAttribute attribute in xacmlContextAttributes.Attributes)
                 {
                     if (attribute.AttributeId.Equals(attributeDesignator.AttributeId))
                     {
                         attributeWithCorrectAttributeIdFound = true;
-                        if (Match(FunctionId, attribute, policyConditionAttributeValue))
+                        if (this.Match(this.FunctionId, attribute, policyConditionAttributeValue))
                         {
                             return XacmlAttributeMatchResult.Match;
                         }
@@ -169,39 +193,25 @@ namespace Altinn.Authorization.ABAC.Xacml
             return XacmlAttributeMatchResult.RequiredAttributeMissing;
         }
 
-        private bool ValidateBagFunction(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply, XacmlAttributeDesignator attributeDesignator)
+        private XacmlAttributeMatchResult EvaluateBagSize(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply, XacmlAttributeDesignator attributeDesignator)
         {
-            if (xacmlApply == null)
-            {
-                // If there is noe xacmlApply there is no bag function. (at least my understanding now)
-                return true;
-            }
-
             string applyfunction = xacmlApply.FunctionId.OriginalString;
 
             switch (applyfunction)
             {
                 case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
-                    int bagSize = GetBagSize(contextAttributes, attributeDesignator);
+                    int bagSize = this.GetBagSize(contextAttributes, attributeDesignator);
                     if (int.Parse(policyConditionAttributeValue.Value).Equals(bagSize))
                     {
-                        return true;
+                        return XacmlAttributeMatchResult.Match;
                     }
 
-                    return false;
-                case XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly:
-                    bagSize = GetBagSize(contextAttributes, attributeDesignator);
-                    if (bagSize == 1)
-                    {
-                        return true;
-                    }
-
-                    return false;
+                    return XacmlAttributeMatchResult.BagSizeConditionFailed;
                 default:
                     break;
             }
 
-            return true;
+            return XacmlAttributeMatchResult.BagSizeConditionFailed;
         }
 
         private int GetBagSize(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeDesignator attributeDesignator)
@@ -228,11 +238,11 @@ namespace Altinn.Authorization.ABAC.Xacml
             return attributeCount;
         }
 
-        private bool ValidateSingleElementCondition(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply, XacmlAttributeDesignator attributeDesignator)
+        private bool ValidateSingleElementInBagCondition(ICollection<XacmlContextAttributes> contextAttributes, XacmlAttributeValue policyConditionAttributeValue, XacmlApply xacmlApply, XacmlAttributeDesignator attributeDesignator)
         {
             bool isSingleFunction = false;
 
-            string applyfunction = FunctionId.OriginalString;
+            string applyfunction = this.FunctionId.OriginalString;
 
             if (xacmlApply != null)
             {
@@ -244,6 +254,9 @@ namespace Altinn.Authorization.ABAC.Xacml
                 case XacmlConstants.MatchTypeIdentifiers.IntegerOneAndOnly:
                     isSingleFunction = true;
                     break;
+                case XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly:
+                    isSingleFunction = true;
+                    break;
                 default:
                     break;
             }
@@ -253,24 +266,7 @@ namespace Altinn.Authorization.ABAC.Xacml
                 return true;
             }
 
-            int attributeCount = 0;
-
-            foreach (XacmlContextAttributes contextAttribute in contextAttributes)
-            {
-                foreach (XacmlAttribute contextAttributeValue in contextAttribute.Attributes)
-                {
-                    if (contextAttributeValue.AttributeId.Equals(attributeDesignator.AttributeId))
-                    {
-                        foreach (XacmlAttributeValue xacmlAttributeValue in contextAttributeValue.AttributeValues)
-                        {
-                            if (xacmlAttributeValue.DataType.OriginalString.Equals(attributeDesignator.DataType.OriginalString))
-                            {
-                                attributeCount++;
-                            }
-                        }
-                    }
-                }
-            }
+            int attributeCount = this.GetBagSize(contextAttributes, attributeDesignator);
 
             if (attributeCount > 1)
             {

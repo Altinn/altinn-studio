@@ -275,6 +275,20 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         [Fact]
+        public async Task PDP_Decision_IIA017B()
+        {
+            string testCase = "IIA017B";
+            HttpClient client = GetTestClient();
+            HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateXacmlRequest(testCase);
+            XacmlContextResponse expected = TestSetupUtil.ReadExpectedResponse(testCase);
+
+            // Act
+            XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+            // Assert
+            AssertionUtil.AssertEqual(expected, contextResponse);
+        }
+
+        [Fact]
         public async Task PDP_Decision_IIA018()
         {
             string testCase = "IIA018";

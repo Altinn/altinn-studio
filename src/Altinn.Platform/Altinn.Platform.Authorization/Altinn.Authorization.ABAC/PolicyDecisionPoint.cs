@@ -51,18 +51,18 @@ namespace Altinn.Authorization.ABAC
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
-                    Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
+                    Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError),
                 };
                 return new XacmlContextResponse(result);
             }
 
-            ICollection<XacmlRule> matchingRules = GetMatchingRules(policy, decisionRequest, out bool requiredAttributesMissingFromContextRequest);
+            ICollection<XacmlRule> matchingRules = this.GetMatchingRules(policy, decisionRequest, out bool requiredAttributesMissingFromContextRequest);
 
             if (requiredAttributesMissingFromContextRequest)
             {
                 contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {
-                    Status = new XacmlContextStatus(XacmlContextStatusCode.MissingAttribute)
+                    Status = new XacmlContextStatus(XacmlContextStatusCode.MissingAttribute),
                 };
                 return new XacmlContextResponse(contextResult);
             }
@@ -95,7 +95,7 @@ namespace Altinn.Authorization.ABAC
                 {
                     contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                     {
-                        Status = new XacmlContextStatus(XacmlContextStatusCode.Success)
+                        Status = new XacmlContextStatus(XacmlContextStatusCode.Success),
                     };
                     return new XacmlContextResponse(contextResult);
                 }
@@ -116,7 +116,15 @@ namespace Altinn.Authorization.ABAC
                     {
                         contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                         {
-                            Status = new XacmlContextStatus(XacmlContextStatusCode.Success)
+                            Status = new XacmlContextStatus(XacmlContextStatusCode.Success),
+                        };
+                        return new XacmlContextResponse(contextResult);
+                    }
+                    else if (conditionDidEvaluate.Equals(XacmlAttributeMatchResult.BagSizeConditionFailed))
+                    {
+                        contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate)
+                        {
+                            Status = new XacmlContextStatus(XacmlContextStatusCode.Success),
                         };
                         return new XacmlContextResponse(contextResult);
                     }
@@ -124,7 +132,7 @@ namespace Altinn.Authorization.ABAC
                     {
                         contextResult = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                         {
-                            Status = new XacmlContextStatus(XacmlContextStatusCode.ProcessingError)
+                            Status = new XacmlContextStatus(XacmlContextStatusCode.ProcessingError),
                         };
                         return new XacmlContextResponse(contextResult);
                     }
@@ -147,10 +155,10 @@ namespace Altinn.Authorization.ABAC
 
             contextResult = new XacmlContextResult(overallDecision)
             {
-                Status = new XacmlContextStatus(XacmlContextStatusCode.Success)
+                Status = new XacmlContextStatus(XacmlContextStatusCode.Success),
             };
-            AddObligations(policy, contextResult);
-          
+            this.AddObligations(policy, contextResult);
+
             return new XacmlContextResponse(contextResult);
         }
 

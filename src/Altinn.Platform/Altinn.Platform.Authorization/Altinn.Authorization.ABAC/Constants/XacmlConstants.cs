@@ -1,554 +1,550 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Altinn.Authorization.ABAC.Constants
 {
     /// <summary>
-    /// Constants for XACML 
+    /// Constants for XACML.
     /// </summary>
     public sealed class XacmlConstants
     {
         /// <summary>
-        /// Element names in XACML 
+        /// Element names in XACML.
         /// </summary>
         public sealed class ElementNames
         {
             /// <summary>
-            /// ActionAttributeDesignator Xacml 3.0 element name
+            /// ActionAttributeDesignator Xacml 3.0 element name.
             /// </summary>
             public const string ActionAttributeDesignator = "ActionAttributeDesignator";
 
             /// <summary>
-            /// AdviceExpression Xacml 3.0 element name
+            /// AdviceExpression Xacml 3.0 element name.
             /// </summary>
             public const string AdviceExpression = "AdviceExpression";
 
             /// <summary>
-            /// AdviceExpressions Xacml 3.0 element name
+            /// AdviceExpressions Xacml 3.0 element name.
             /// </summary>
             public const string AdviceExpressions = "AdviceExpressions";
 
             /// <summary>
-            /// AnyOf Xacml 3.0 element name
+            /// AnyOf Xacml 3.0 element name.
             /// </summary>
             public const string AnyOf = "AnyOf";
 
             /// <summary>
-            /// AllOf Xacml 3.0 element name
+            /// AllOf Xacml 3.0 element name.
             /// </summary>
             public const string AllOf = "AllOf";
 
             /// <summary>
-            /// Apply Xacml 3.0 element name
+            /// Apply Xacml 3.0 element name.
             /// </summary>
             public const string Apply = "Apply";
 
             /// <summary>
-            /// Advice Xacml 3.0 element name
+            /// Advice Xacml 3.0 element name.
             /// </summary>
             public const string Advice = "Advice";
 
             /// <summary>
-            /// AssociatedAdvice Xacml 3.0 element name
+            /// AssociatedAdvice Xacml 3.0 element name.
             /// </summary>
             public const string AssociatedAdvice = "AssociatedAdvice";
 
             /// <summary>
-            /// Attribute Xacml 3.0 element name
+            /// Attribute Xacml 3.0 element name.
             /// </summary>
             public const string Attribute = "Attribute";
 
             /// <summary>
-            /// Attributes Xacml 3.0 element name
+            /// Attributes Xacml 3.0 element name.
             /// </summary>
             public const string Attributes = "Attributes";
 
             /// <summary>
-            /// AttributeAssignment Xacml 3.0 element name
+            /// AttributeAssignment Xacml 3.0 element name.
             /// </summary>
             public const string AttributeAssignment = "AttributeAssignment";
-            
+
             /// <summary>
-            /// AttributeAssignmentExpression Xacml 3.0 element name
+            /// AttributeAssignmentExpression Xacml 3.0 element name.
             /// </summary>
             public const string AttributeAssignmentExpression = "AttributeAssignmentExpression";
 
             /// <summary>
-            /// AttributeDesignator Xacml 3.0 element name
+            /// AttributeDesignator Xacml 3.0 element name.
             /// </summary>
             public const string AttributeDesignator = "AttributeDesignator";
 
             /// <summary>
-            /// AttributesReference Xacml 3.0 element name
+            /// AttributesReference Xacml 3.0 element name.
             /// </summary>
             public const string AttributesReference = "AttributesReference";
 
             /// <summary>
-            /// AttributeSelector Xacml 3.0 element name
+            /// AttributeSelector Xacml 3.0 element name.
             /// </summary>
             public const string AttributeSelector = "AttributeSelector";
 
             /// <summary>
-            /// AttributeValue Xacml 3.0 element name
+            /// AttributeValue Xacml 3.0 element name.
             /// </summary>
             public const string AttributeValue = "AttributeValue";
 
             /// <summary>
-            /// CombinerParameter 
+            /// CombinerParameter.
             /// </summary>
             public const string CombinerParameter = "CombinerParameter";
 
             /// <summary>
-            /// CombinerParameters Xacml 3.0 element name
+            /// CombinerParameters Xacml 3.0 element name.
             /// </summary>
             public const string CombinerParameters = "CombinerParameters";
 
             /// <summary>
-            /// Condition Xacml 3.0 element name
+            /// Condition Xacml 3.0 element name.
             /// </summary>
             public const string Condition = "Condition";
 
             /// <summary> 
-            /// Content Xacml 3.0 element name
+            /// Content Xacml 3.0 element name.
             /// </summary>
             public const string Content = "Content";
 
             /// <summary>
-            /// Decision Xacml 3.0 element name
+            /// Decision Xacml 3.0 element name.
             /// </summary>
             public const string Decision = "Decision";
 
             /// <summary>
-            /// Description Xacml 3.0 element name
+            /// Description Xacml 3.0 element name.
             /// </summary>
             public const string Description = "Description";
 
             /// <summary>
-            /// EnvironmentAttributeDesignator Xacml 3.0 element name
+            /// EnvironmentAttributeDesignator Xacml 3.0 element name.
             /// </summary>
             public const string EnvironmentAttributeDesignator = "EnvironmentAttributeDesignator";
 
             /// <summary>
-            /// Function Xacml 3.0 element name
+            /// Function Xacml 3.0 element name.
             /// </summary>
             public const string Function = "Function";
 
             /// <summary>
-            /// Match Xacml 3.0 element name
+            /// Match Xacml 3.0 element name.
             /// </summary>
             public const string Match = "Match";
 
             /// <summary>
-            /// MultiRequests Xacml 3.0 element name
+            /// MultiRequests Xacml 3.0 element name.
             /// </summary>
             public const string MultiRequests = "MultiRequests";
 
             /// <summary>
-            /// Obligation Xacml 3.0 element name
+            /// Obligation Xacml 3.0 element name.
             /// </summary>
             public const string Obligation = "Obligation";
 
             /// <summary>
-            /// Obligations Xacml 3.0 element name
+            /// Obligations Xacml 3.0 element name.
             /// </summary>
             public const string Obligations = "Obligations";
 
             /// <summary>
-            /// ObligationExpressions Xacml 3.0 element name
+            /// ObligationExpressions Xacml 3.0 element name.
             /// </summary>
             public const string ObligationExpressions = "ObligationExpressions";
 
             /// <summary>
-            /// ObligationExpression Xacml 3.0 element name
+            /// ObligationExpression Xacml 3.0 element name.
             /// </summary>
             public const string ObligationExpression = "ObligationExpression";
 
             /// <summary>
-            /// Policy Xacml 3.0 element name
+            /// Policy Xacml 3.0 element name.
             /// </summary>
             public const string Policy = "Policy";
 
             /// <summary>
-            /// PolicyDefaults Xacml 3.0 element name
+            /// PolicyDefaults Xacml 3.0 element name.
             /// </summary>
             public const string PolicyDefaults = "PolicyDefaults";
 
             /// <summary>
-            /// PolicyIdentifierList Xacml 3.0 element name
+            /// PolicyIdentifierList Xacml 3.0 element name.
             /// </summary>
             public const string PolicyIdentifierList = "PolicyIdentifierList";
 
             /// <summary>
-            /// PolicySetIdReference Xacml 3.0 element name
+            /// PolicySetIdReference Xacml 3.0 element name.
             /// </summary>
             public const string PolicySetIdReference = "PolicySetIdReference";
 
             /// <summary>
-            /// PolicyIdReference Xacml 3.0 element name
+            /// PolicyIdReference Xacml 3.0 element name.
             /// </summary>
             public const string PolicyIdReference = "PolicyIdReference";
 
             /// <summary>
-            /// PolicyIssuer Xacml 3.0 element name
+            /// PolicyIssuer Xacml 3.0 element name.
             /// </summary>
             public const string PolicyIssuer = "PolicyIssuer";
 
             /// <summary>
-            /// PolicySet Xacml 3.0 element name
+            /// PolicySet Xacml 3.0 element name.
             /// </summary>
             public const string PolicySet = "PolicySet";
 
             /// <summary>
-            /// Context Requext Xacml 3.0 element name
+            /// Context Requext Xacml 3.0 element name.
             /// </summary>
             public const string Request = "Request";
 
             /// <summary>
-            /// RequestDefaults Xacml 3.0 element name
+            /// RequestDefaults Xacml 3.0 element name.
             /// </summary>
             public const string RequestDefaults = "RequestDefaults";
 
             /// <summary>
-            /// RequestReference Xacml 3.0 element name
+            /// RequestReference Xacml 3.0 element name.
             /// </summary>
             public const string RequestReference = "RequestReference";
 
             /// <summary>
-            /// ResourceAttributeDesignator Xacml 3.0 element name
+            /// ResourceAttributeDesignator Xacml 3.0 element name.
             /// </summary>
             public const string ResourceAttributeDesignator = "ResourceAttributeDesignator";
 
             /// <summary>
-            /// Response Xacml 3.0 element name
+            /// Response Xacml 3.0 element name.
             /// </summary>
             public const string Response = "Response";
 
             /// <summary>
-            /// Result Xacml 3.0 element name
+            /// Result Xacml 3.0 element name.
             /// </summary>
             public const string Result = "Result";
 
             /// <summary>
-            /// Rule Xacml 3.0 element name
+            /// Rule Xacml 3.0 element name.
             /// </summary>
             public const string Rule = "Rule";
 
             /// <summary>
-            /// RuleCombinerParameters Xacml 3.0 element name
+            /// RuleCombinerParameters Xacml 3.0 element name.
             /// </summary>
             public const string RuleCombinerParameters = "RuleCombinerParameters";
 
             /// <summary>
-            /// Status Xacml 3.0 element name
+            /// Status Xacml 3.0 element name.
             /// </summary>
             public const string Status = "Status";
 
             /// <summary>
-            /// StatusCode Xacml 3.0 element name
+            /// StatusCode Xacml 3.0 element name.
             /// </summary>
             public const string StatusCode = "StatusCode";
 
             /// <summary>
-            /// StatusDetail Xacml 3.0 element name
+            /// StatusDetail Xacml 3.0 element name.
             /// </summary>
             public const string StatusDetail = "StatusDetail";
 
             /// <summary>
-            /// StatusMessage Xacml 3.0 element name
+            /// StatusMessage Xacml 3.0 element name.
             /// </summary>
             public const string StatusMessage = "StatusMessage";
 
             /// <summary>
-            /// SubjectAttributeDesignator Xacml 3.0 element name
+            /// SubjectAttributeDesignator Xacml 3.0 element name.
             /// </summary>
             public const string SubjectAttributeDesignator = "SubjectAttributeDesignator";
 
             /// <summary>
-            /// Target Xacml 3.0 element name
+            /// Target Xacml 3.0 element name.
             /// </summary>
             public const string Target = "Target";
 
             /// <summary>
-            /// VariableDefinition Xacml 3.0 element name
+            /// VariableDefinition Xacml 3.0 element name.
             /// </summary>
             public const string VariableDefinition = "VariableDefinition";
 
             /// <summary>
-            /// VariableReference Xacml 3.0 element name
+            /// VariableReference Xacml 3.0 element name.
             /// </summary>
             public const string VariableReference = "VariableReference";
 
             /// <summary>
-            /// XPathVersion Xacml 3.0 element name
+            /// XPathVersion Xacml 3.0 element name.
             /// </summary>
             public const string XPathVersion = "XPathVersion";
         }
 
         /// <summary>
-        /// Attribute names constant
+        /// Attribute names constant.
         /// </summary>
         public sealed class AttributeNames
         {
             /// <summary>
-            /// AdviceId Xacml 3.0 attribute name
+            /// AdviceId Xacml 3.0 attribute name.
             /// </summary>
             public const string AdviceId = "AdviceId";
 
             /// <summary>
-            /// AppliesTo Xacml 3.0 attribute name
+            /// AppliesTo Xacml 3.0 attribute name.
             /// </summary>
             public const string AppliesTo = "AppliesTo";
 
             /// <summary>
-            /// AttributeId Xacml 3.0 attribute name
+            /// AttributeId Xacml 3.0 attribute name.
             /// </summary>
             public const string AttributeId = "AttributeId";
 
             /// <summary>
-            /// Category Xacml 3.0 attribute name
+            /// Category Xacml 3.0 attribute name.
             /// </summary>
             public const string Category = "Category";
 
             /// <summary>
-            /// CombinedDecision Xacml 3.0 attribute name
+            /// CombinedDecision Xacml 3.0 attribute name.
             /// </summary>
             public const string CombinedDecision = "CombinedDecision";
 
             /// <summary>
-            /// DataType Xacml 3.0 attribute name
+            /// DataType Xacml 3.0 attribute name.
             /// </summary>
             public const string DataType = "DataType";
 
             /// <summary> 
-            /// EarliestVersion Xacml 3.0 attribute name
+            /// EarliestVersion Xacml 3.0 attribute name.
             /// </summary>
             public const string EarliestVersion = "EarliestVersion";
 
             /// <summary>
-            /// Effect Xacml 3.0 attribute name
+            /// Effect Xacml 3.0 attribute name.
             /// </summary>
             public const string Effect = "Effect";
 
             /// <summary>
-            /// FulfillOn Xacml 3.0 attribute name
+            /// FulfillOn Xacml 3.0 attribute name.
             /// </summary>
             public const string FulfillOn = "FulfillOn";
 
             /// <summary>
-            /// FunctionId Xacml 3.0 attribute name
+            /// FunctionId Xacml 3.0 attribute name.
             /// </summary>
             public const string FunctionId = "FunctionId";
 
             /// <summary>
-            /// id Xacml 3.0 attribute name
+            /// id Xacml 3.0 attribute name.
             /// </summary>
             public const string Id = "id";
 
             /// <summary>
-            /// IncludeInResult Xacml 3.0 attribute name
+            /// IncludeInResult Xacml 3.0 attribute name.
             /// </summary>
             public const string IncludeInResult = "IncludeInResult";
 
             /// <summary>
-            /// Issuer Xacml 3.0 attribute name
+            /// Issuer Xacml 3.0 attribute name.
             /// </summary>
             public const string Issuer = "Issuer";
 
             /// <summary>
-            /// LatestVersion Xacml 3.0 attribute name
+            /// LatestVersion Xacml 3.0 attribute name.
             /// </summary>
             public const string LatestVersion = "LatestVersion";
 
             /// <summary>
-            /// ObligationId Xacml 3.0 attribute name
+            /// ObligationId Xacml 3.0 attribute name.
             /// </summary>
             public const string ObligationId = "ObligationId";
 
             /// <summary>
-            /// ParameterName Xacml 3.0 attribute name
+            /// ParameterName Xacml 3.0 attribute name.
             /// </summary>
             public const string ParameterName = "ParameterName";
 
             /// <summary>
-            /// Path Xacml 3.0 attribute name
+            /// Path Xacml 3.0 attribute name.
             /// </summary>
             public const string Path = "Path";
 
             /// <summary>
-            /// PolicyId Xacml 3.0 attribute name
+            /// PolicyId Xacml 3.0 attribute name.
             /// </summary>
             public const string PolicyId = "PolicyId";
 
             /// <summary> 
-            /// ReferenceId Xacml 3.0 attribute name
+            /// ReferenceId Xacml 3.0 attribute name.
             /// </summary>
             public const string ReferenceId = "ReferenceId";
 
             /// <summary>
-            /// ResourceId Xacml 3.0 attribute name
+            /// ResourceId Xacml 3.0 attribute name.
             /// </summary>
             public const string ResourceId = "ResourceId";
 
             /// <summary>
-            /// ReturnPolicyIdList Xacml 3.0 attribute name
+            /// ReturnPolicyIdList Xacml 3.0 attribute name.
             /// </summary>
             public const string ReturnPolicyIdList = "ReturnPolicyIdList";
 
             /// <summary>
-            /// RequestContextPath Xacml 3.0 attribute name
+            /// RequestContextPath Xacml 3.0 attribute name.
             /// </summary>
             public const string RequestContextPath = "RequestContextPath";
 
             /// <summary>
-            /// RuleCombiningAlgId Xacml 3.0 attribute name
+            /// RuleCombiningAlgId Xacml 3.0 attribute name.
             /// </summary>
             public const string RuleCombiningAlgId = "RuleCombiningAlgId";
 
             /// <summary>
-            /// RuleId Xacml 3.0 attribute name
+            /// RuleId Xacml 3.0 attribute name.
             /// </summary>
             public const string RuleId = "RuleId";
 
             /// <summary>
-            /// RuleIdRef Xacml 3.0 attribute name
+            /// RuleIdRef Xacml 3.0 attribute name.
             /// </summary>
             public const string RuleIdRef = "RuleIdRef";
 
             /// <summary>
-            /// MaxDelegationDepth Xacml 3.0 attribute name
+            /// MaxDelegationDepth Xacml 3.0 attribute name.
             /// </summary>
             public const string MaxDelegationDepth = "MaxDelegationDepth";
 
             /// <summary>
-            /// MatchId Xacml 3.0 attribute name
+            /// MatchId Xacml 3.0 attribute name.
             /// </summary>
             public const string MatchId = "MatchId";
 
             /// <summary>
-            /// MustBePresent Xacml 3.0 attribute name
+            /// MustBePresent Xacml 3.0 attribute name.
             /// </summary>
             public const string MustBePresent = "MustBePresent";
 
             /// <summary>
-            /// Value Xacml 3.0 attribute name
+            /// Value Xacml 3.0 attribute name.
             /// </summary>
             public const string Value = "Value";
 
             /// <summary>
-            /// VariableId Xacml 3.0 attribute name
+            /// VariableId Xacml 3.0 attribute name.
             /// </summary>
             public const string VariableId = "VariableId";
 
             /// <summary>
-            /// Version Xacml 3.0 attribute name
+            /// Version Xacml 3.0 attribute name.
             /// </summary>
             public const string Version = "Version";
         }
 
         /// <summary>
-        /// The Attribute categories
+        /// The Attribute categories.
         /// </summary>
         public sealed class MatchAttributeCategory
         {
             /// <summary>
-            /// The Resource Category
+            /// The Resource Category.
             /// </summary>
             public const string Resource = "urn:oasis:names:tc:xacml:3.0:attribute-category:resource";
 
             /// <summary>
-            /// The action category
+            /// The action category.
             /// </summary>
             public const string Action = "urn:oasis:names:tc:xacml:3.0:attribute-category:action";
 
             /// <summary>
-            /// The environment category
+            /// The environment category.
             /// </summary>
             public const string Environement = "urn:oasis:names:tc:xacml:3.0:attribute-category:environment";
 
             /// <summary>
-            /// The subject category
+            /// The subject category.
             /// </summary>
             public const string Subject = "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject";
         }
 
         /// <summary>
-        /// Combining algorithms used when there are more than one rule or policy that matches request
+        /// Combining algorithms used when there are more than one rule or policy that matches request.
         /// </summary>
         public sealed class CombiningAlgorithms
         {
             /// <summary>
-            /// The deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            /// The deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:.
             /// </summary>
             public const string RuleDenyOverrides = "urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides";
 
             /// <summary>
-            /// The deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string PolicyDenyOverrides = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides";
 
             /// <summary>
-            /// The permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            /// The permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:.
             /// </summary>
             public const string RulePermitOverrides = "urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-overrides";
 
             /// <summary>
-            /// The permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string PolicyPermidOverrides = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:permit-overrides";
 
             /// <summary>
-            /// The first-applicable rule-combining algorithm has the following value for the ruleCombiningAlgId attribute: 
+            /// The first-applicable rule-combining algorithm has the following value for the ruleCombiningAlgId attribute: .
             /// </summary>
             public const string RuleFirstApplicable = "urn:oasis:names:tc:xacml:1.0:rule-combining-algorithm:first-applicable";
 
             /// <summary>
-            /// The first-applicable policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The first-applicable policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string PolicyFirstApplicable = "urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:first-applicable";
 
             /// <summary>
-            /// The only-one-applicable-policy policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The only-one-applicable-policy policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string PolicyOnlyOneApplicable = "urn:oasis:names:tc:xacml:1.0:policy-combining-algorithm:only-one-applicable";
 
             /// <summary>
-            /// The ordered-deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            /// The ordered-deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:.
             /// </summary>
             public const string RuleOrderedDenyOverrides = "urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:ordered-deny-overrides";
 
             /// <summary>
-            /// The ordered-deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The ordered-deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string PolicyOrderedDenyOverrided = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:ordered-deny-overrides";
 
             /// <summary>
-            /// The ordered-permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            /// The ordered-permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:.
             /// </summary>
             public const string RuleOrderedPermitOverrides = "urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:ordered-permit-overrides";
 
             /// <summary>
-            /// The ordered-permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The ordered-permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string PolicyOrderedPermitOverrides = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:ordered-permit-overrides";
 
             /// <summary>
-            /// The deny-unless-permit rule-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The deny-unless-permit rule-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string RuleDenyUnlessPermit = "urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-unless-permit";
 
             /// <summary>
-            /// The permit-unless-deny rule-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The permit-unless-deny rule-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string RulePermittUnlessDeny = "urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:permit-unless-deny";
 
             /// <summary>
-            /// The deny-unless-permit policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The deny-unless-permit policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string PolicyDenyUnlessPermit = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-unless-permit";
 
             /// <summary>
-            /// The permit-unless-deny policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            /// The permit-unless-deny policy-combining algorithm has the following value for the policyCombiningAlgId attribute:.
             /// </summary>
             public const string PolicyPermitUnlessDeny = "urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:permit-unless-deny";
         }
@@ -589,37 +585,37 @@ namespace Altinn.Authorization.ABAC.Constants
         public sealed class MatchAttributeIdentifiers
         {
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string DnsName = "urn:oasis:names:tc:xacml:1.0:subject:authn-locality:dns-name";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string IpAdress = "urn:oasis:names:tc:xacml:1.0:subject:authn-locality:ip-address";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string AuthenticationMethod = "urn:oasis:names:tc:xacml:1.0:subject:authentication-method";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string AuthenticationTime = "urn:oasis:names:tc:xacml:1.0:subject:authentication-time";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string KeyInfo = "urn:oasis:names:tc:xacml:1.0:subject:key-info";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string RequestTime = "urn:oasis:names:tc:xacml:1.0:subject:request-time";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string SessionStartTime = "urn:oasis:names:tc:xacml:1.0:subject:session-start-time";
 
@@ -629,12 +625,12 @@ namespace Altinn.Authorization.ABAC.Constants
             public const string SubjectId = "urn:oasis:names:tc:xacml:1.0:subject:subject-id";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string SubjectIdQualifier = "urn:oasis:names:tc:xacml:1.0:subject:subject-id-qualifier";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string AccessSubject = "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject";
 
@@ -644,53 +640,53 @@ namespace Altinn.Authorization.ABAC.Constants
             public const string CodeBase = "urn:oasis:names:tc:xacml:1.0:subject-category:codebase";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string IntermediarySubject = "urn:oasis:names:tc:xacml:1.0:subject-category:intermediary-subject";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string RecipientSubject = "urn:oasis:names:tc:xacml:1.0:subject-category:recipient-subject";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string RequestingMachine = "urn:oasis:names:tc:xacml:1.0:subject-category:requesting-machine";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string ResourceLocation = "urn:oasis:names:tc:xacml:1.0:resource:resource-location";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string ResourceId = "urn:oasis:names:tc:xacml:1.0:resource:resource-id";
     
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string SimpleFileName = "urn:oasis:names:tc:xacml:1.0:resource:simple-file-name";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string ActionId = "urn:oasis:names:tc:xacml:1.0:action:action-id";
 
             /// <summary>
-            /// Attribute Matching Identity
+            /// Attribute Matching Identity.
             /// </summary>
             public const string ImpliedAction = "urn:oasis:names:tc:xacml:1.0:action:implied-action";
         }
 
         /// <summary>
-        /// The match type identifier
+        /// The match type identifier.
         /// </summary>
         public sealed class MatchTypeIdentifiers
         {
             /// <summary>
-            /// String Equal Matching Function
+            /// String Equal Matching Function.
             /// </summary>
             public const string StringEqual = "urn:oasis:names:tc:xacml:1.0:function:string-equal";
 
@@ -807,24 +803,24 @@ namespace Altinn.Authorization.ABAC.Constants
         }
 
         /// <summary>
-        /// The datatypes uses in XACML
+        /// The datatypes used in XACML.
         /// </summary>
         public sealed class DataTypes
         {
             /// <summary>
-            /// Datatype xml string
+            /// Datatype xml string.
             /// </summary>
-            public const string XML_String = "http://www.w3.org/2001/XMLSchema#string";
+            public const string XMLString = "http://www.w3.org/2001/XMLSchema#string";
 
             /// <summary>
-            /// Datatype XML integer
+            /// Datatype XML integer.
             /// </summary>
-            public const string XML_Integer = "http://www.w3.org/2001/XMLSchema#integer";
+            public const string XMLInteger = "http://www.w3.org/2001/XMLSchema#integer";
 
             /// <summary>
-            /// Datatype Any uri
+            /// Datatype Any uri.
             /// </summary>
-            public const string XML_AnyURI = "http://www.w3.org/2001/XMLSchema#anyURI";
+            public const string XMLAnyURI = "http://www.w3.org/2001/XMLSchema#anyURI";
         }
     }
 }

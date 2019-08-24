@@ -162,18 +162,18 @@ namespace Altinn.Authorization.ABAC.Utils
         {
             if (string.IsNullOrEmpty(jsonAttribute.DataType))
             {
-                return XacmlConstants.DataTypes.XML_String;
+                return XacmlConstants.DataTypes.XMLString;
             }
 
             switch (jsonAttribute.DataType)
             {
                 case "string":
-                    return XacmlConstants.DataTypes.XML_String;
-                case XacmlConstants.DataTypes.XML_String:
-                    return XacmlConstants.DataTypes.XML_String;
+                    return XacmlConstants.DataTypes.XMLString;
+                case XacmlConstants.DataTypes.XMLString:
+                    return XacmlConstants.DataTypes.XMLString;
                 case "anyURI":
-                case XacmlConstants.DataTypes.XML_AnyURI:
-                    return XacmlConstants.DataTypes.XML_AnyURI;
+                case XacmlConstants.DataTypes.XMLAnyURI:
+                    return XacmlConstants.DataTypes.XMLAnyURI;
                 default:
                     throw new Exception("Not supported");
             }

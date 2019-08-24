@@ -24,5 +24,10 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// There are to many attributes with same id / datatype than allowed
         /// </summary>
         ToManyAttributes,
+
+        /// <summary>
+        /// The number of attributes in bag failed
+        /// </summary>
+        BagSizeConditionFailed,
     }
 }
