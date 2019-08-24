@@ -41,6 +41,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
+  const [instantiating, setInstantiating] = React.useState(false);
 
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const language = useSelector((state: IRuntimeState) => state.language.language);
@@ -49,16 +50,12 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
 
   const createNewInstance = () => {
-    if (!instantiation.instanceId && !instantiation.error) {
-      InstantiationActions.instantiate(org, service);
-    }
+    setInstantiating(true);
+    InstantiationActions.instantiate(org, service);
   };
 
   const validatatePartySelection = async () => {
     try {
-      if (!selectedParty) {
-        return;
-      }
       const { data } = await post(
         `${window.location.origin}/${org}/${service}/api/v1/parties/` +
         `validateInstantiation?partyId=${selectedParty.partyId}`,
@@ -113,22 +110,31 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   React.useEffect(() => {
-    if (selectedParty !== null) {
+    if (selectedParty !== null && !instantiating) {
       validatatePartySelection();
     }
   }, [selectedParty]);
 
   React.useEffect(() => {
-    if (partyValidation !== null) {
+    if (partyValidation !== null && !instantiating) {
       validateSubscriptionHook();
     }
   }, [partyValidation]);
 
   React.useEffect(() => {
-    if (subscriptionHookValid !== null && subscriptionHookValid) {
+    if (
+      selectedParty !== null &&
+      partyValidation !== null &&
+      partyValidation.valid &&
+      subscriptionHookValid !== null &&
+      subscriptionHookValid &&
+      !instantiating &&
+      !instantiation.instanceId &&
+      !instantiation.error
+    ) {
       createNewInstance();
     }
-  }, [subscriptionHookValid]);
+  }, [selectedParty, partyValidation, subscriptionHookValid, instantiating]);
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
@@ -167,7 +173,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
       />
     );
   }
-  if (instantiation.instanceId !== null && !instantiation.instantiating) {
+  if (instantiation.instanceId !== null && instantiation.error === null) {
     return (
       <Redirect to={`/instance/${instantiation.instanceId}`} />
     );

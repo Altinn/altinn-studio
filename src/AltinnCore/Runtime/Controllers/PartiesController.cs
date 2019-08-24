@@ -75,9 +75,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Validates party and profile settings before the end user is allowed to instantiate a new app instance
         /// </summary>
-        /// <param name="org">The organization<param>
-        /// <param name="app">The application<param>
-        /// <param name="partyId">The selected partyId<param>
+        /// <param name="org">The organization</param>
+        /// <param name="app">The application</param>
+        /// <param name="partyId">The selected partyId</param>
         /// <returns>A validation status</returns>
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
         public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
@@ -149,15 +149,15 @@ namespace AltinnCore.Runtime.Controllers
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             int userId = userContext.UserId;
 
-            StatusCodeResult partyUpdatedStatus = await _authorization.UpdateSelectedParty(userId, partyId);
+            bool? isValid = await _authorization.ValidateSelectedParty(userId, partyId);
 
-            if (partyUpdatedStatus.StatusCode == 400)
-            {
-                return BadRequest($"User {userId} cannot represent party { partyId}.");
-            }
-            else if (partyUpdatedStatus.StatusCode == 500)
+            if (!isValid.HasValue)
             {
                 return StatusCode(500, "Something went wrong when trying to update selectedparty.");
+            }
+            else if (isValid.Value == false)
+            {
+                return BadRequest($"User {userId} cannot represent party {partyId}.");
             }
 
             Response.Cookies.Append(
