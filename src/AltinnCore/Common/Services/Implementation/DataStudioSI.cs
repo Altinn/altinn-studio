@@ -123,7 +123,16 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
+        public Task<Stream> GetData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        {
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/data/{dataId}";
+
+            return Task.FromResult<Stream>(File.OpenRead(formDataFilePath));           
+        }
+
+            /// <inheritdoc/>
         public object GetFormData(Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
             string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));

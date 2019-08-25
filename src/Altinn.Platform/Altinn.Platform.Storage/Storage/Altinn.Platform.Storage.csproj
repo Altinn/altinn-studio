@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Halcyon.Mvc" Version="2.5.1" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.6-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.7-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.2.2" />
@@ -46,13 +46,9 @@
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\Altinn.Platform.Storage.xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp2.2\Altinn.Platform.Storage.xml</DocumentationFile>
-    <OutputPath>bin\Release\</OutputPath>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 </Project>
 

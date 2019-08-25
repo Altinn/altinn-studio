@@ -72,7 +72,7 @@ namespace AltinnCore.Common.Services.Implementation
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 AppId = $"{org}/{appName}",
                 Org = org,
-                CreatedBy = instanceOwnerId.ToString(),
+                CreatedBy = userId.ToString(),
                 CreatedDateTime = DateTime.UtcNow,
                 Process = new Storage.Interface.Models.ProcessState()
                 {
@@ -86,7 +86,7 @@ namespace AltinnCore.Common.Services.Implementation
                     IsMarkedForHardDelete = false,
                 },
                 LastChangedDateTime = DateTime.UtcNow,
-                LastChangedBy = instanceOwnerId.ToString(),
+                LastChangedBy = userId.ToString(),
             };
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
