@@ -24,7 +24,6 @@ namespace AltinnCore.UnitTest.Common
                 var sanitizedName = invalidFileName.ToFileName(throwExceptionOnInvalidCharacters: false);
                 Assert.Equal("-test-", sanitizedName);
             }
-
         }
 
         /// <summary>
