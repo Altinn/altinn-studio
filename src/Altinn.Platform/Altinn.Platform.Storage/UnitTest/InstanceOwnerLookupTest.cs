@@ -8,8 +8,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
+using Newtonsoft.Json;
+using Storage.Interface.Clients;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -34,8 +38,6 @@ namespace Altinn.Platform.Storage.UnitTest
                 Org = "test"
             };
 
-            PrepareLookupMock(HttpStatusCode.OK, "1001", instanceToCreate);
-
             Instance instanceTemplate = new Instance()
             {
                 InstanceOwnerLookup = new InstanceOwnerLookup()
@@ -44,7 +46,9 @@ namespace Altinn.Platform.Storage.UnitTest
                 }
             };
 
-            ActionResult result = await instanceController.Post("test/appid", null, instanceTemplate);
+            PrepareLookupMock(HttpStatusCode.OK, "1001", instanceToCreate, instanceTemplate);
+
+            ActionResult result = await instanceController.Post("test/appid", null);
 
             OkObjectResult okresult = result as OkObjectResult;
 
@@ -58,9 +62,6 @@ namespace Altinn.Platform.Storage.UnitTest
         [Fact]
         public async void InstanceLookupPersonNumberFails()
         {
-
-            PrepareLookupMock(HttpStatusCode.BadRequest, "fails", null);
-
             Instance instanceTemplate = new Instance()
             {
                 InstanceOwnerLookup = new InstanceOwnerLookup()
@@ -69,7 +70,9 @@ namespace Altinn.Platform.Storage.UnitTest
                 }
             };
 
-            ActionResult result = await instanceController.Post("test/appid", null, instanceTemplate);
+            PrepareLookupMock(HttpStatusCode.BadRequest, "fails", null, instanceTemplate);
+
+            ActionResult result = await instanceController.Post("test/appid", null);
 
             BadRequestObjectResult badResult = result as BadRequestObjectResult;
 
@@ -87,8 +90,6 @@ namespace Altinn.Platform.Storage.UnitTest
                 Org = "test"
             };
 
-            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate);
-
             Instance instanceTemplate = new Instance()
             {
                 InstanceOwnerLookup = new InstanceOwnerLookup()
@@ -97,7 +98,9 @@ namespace Altinn.Platform.Storage.UnitTest
                 }
             };
 
-            ActionResult result = await instanceController.Post("test/appid", null, instanceTemplate);
+            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate, instanceTemplate);
+
+            ActionResult result = await instanceController.Post("test/appid", null);
 
             OkObjectResult okresult = result as OkObjectResult;
 
@@ -119,8 +122,6 @@ namespace Altinn.Platform.Storage.UnitTest
                 Org = "test"
             };
 
-            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate);
-
             Instance instanceTemplate = new Instance()
             {
                 InstanceOwnerLookup = new InstanceOwnerLookup()
@@ -128,11 +129,13 @@ namespace Altinn.Platform.Storage.UnitTest
                 }
             };
 
-            ActionResult result = await instanceController.Post("test/appid", null, instanceTemplate);
+            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate, instanceTemplate);
+
+            ActionResult result = await instanceController.Post("test/appid", null);
 
             BadRequestObjectResult badResult = result as BadRequestObjectResult;
-            
-            Assert.NotNull(badResult);            
+
+            Assert.NotNull(badResult);
         }
 
 
@@ -147,8 +150,6 @@ namespace Altinn.Platform.Storage.UnitTest
                 Org = "test"
             };
 
-            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate);
-
             Instance instanceTemplate = new Instance()
             {
                 InstanceOwnerLookup = new InstanceOwnerLookup()
@@ -158,14 +159,16 @@ namespace Altinn.Platform.Storage.UnitTest
                 }
             };
 
-            ActionResult result = await instanceController.Post("test/appid", null, instanceTemplate);
+            PrepareLookupMock(HttpStatusCode.OK, "50004690", instanceToCreate, instanceTemplate);
+
+            ActionResult result = await instanceController.Post("test/appid", null);
 
             BadRequestObjectResult badResult = result as BadRequestObjectResult;
 
             Assert.NotNull(badResult);
         }
 
-        private void PrepareLookupMock(HttpStatusCode statusCode, string lookupReturnContent, Instance instanceToCreate)
+        private void PrepareLookupMock(HttpStatusCode statusCode, string lookupReturnContent, Instance instanceToCreate, Instance instanceTemplate)
         {
            
             Mock<IInstanceRepository> mockInstanceRepository = new Mock<IInstanceRepository>();
@@ -178,6 +181,9 @@ namespace Altinn.Platform.Storage.UnitTest
                     Id = "test/lookup",
                     Org = "test",
                 }));
+            
+            Mock<IDataRepository> mockDataRepository = new Mock<IDataRepository>();
+            mockDataRepository.Setup(dr => dr.CreateDataInStorage(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.FromResult(true));
 
             Mock<ILogger<InstancesController>> mockLogger = new Mock<ILogger<InstancesController>>();
             Mock<IOptions<GeneralSettings>> mockGeneralSettings = new Mock<IOptions<GeneralSettings>>();
@@ -207,6 +213,8 @@ namespace Altinn.Platform.Storage.UnitTest
             request.SetupGet(x => x.Scheme).Returns("http");
             request.SetupGet(x => x.Host).Returns(new HostString("platform.storage.at21.altinn.cloud"));
             request.SetupGet(x => x.Path).Returns(new PathString("/instances/"));
+            request.SetupGet(x => x.Body).Returns(new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(instanceTemplate))));
+            request.SetupGet(x => x.ContentType).Returns("application/json");
 
             Mock<HttpContext> context = new Mock<HttpContext>();
             context.SetupGet(x => x.Request).Returns(request.Object);
@@ -216,6 +224,7 @@ namespace Altinn.Platform.Storage.UnitTest
             instanceController = new InstancesController(
                 mockInstanceRepository.Object,
                 mockApplicationRepository.Object,
+                mockDataRepository.Object,
                 mockGeneralSettings.Object,
                 mockLogger.Object,
                 httpClient)

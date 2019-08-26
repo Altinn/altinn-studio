@@ -15,6 +15,9 @@ export default class RunTimePage {
     this.prefillData = Selector('#PrefillList');
     this.startNewButton = Selector('#btnStartNewService');
     this.backToAltinnStudio = Selector('.btn.btn-primary').withAttribute('value', 'Tilbake til Altinn Studio');
+    this.partyList = Selector('#PartyId');
+    this.partiesInTheList = this.partyList.find('option');
+    this.changeProfileButton = Selector('input').withAttribute('value','Bytt profil');
 
     //SBL components
     this.serviceBody = Selector(".modal-body.a-modal-body");

@@ -24,7 +24,7 @@ fixture('Creating/Reading/Updating/Deleting services')
     //await dash.logout();
   })
 
-test('Cannot create new service, as service name already exists', async () => {
+test('Cannot create new app, as app name already exists', async () => {
   await t
     .click(dash.newServiceButton)
     .click(dash.tjenesteEier)
@@ -38,7 +38,7 @@ test('Cannot create new service, as service name already exists', async () => {
     .expect(dash.serviceExistsDialogue.exists).ok()
 });
 
-test('Search for only my users services', async () => {
+test('Search for only my users app', async () => {
   await t
     .click(dash.serviceSearch)
     .typeText(dash.serviceSearch, "autotest")
