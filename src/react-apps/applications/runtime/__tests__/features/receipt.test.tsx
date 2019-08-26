@@ -78,7 +78,7 @@ describe('Testing functions in ReceiptContainer', () => {
     };
 
     const expected = {
-      'receipt_container.date_sendt': '22.08.2019 / 09:08',
+      'receipt_container.date_sent': '22.08.2019 / 09:08',
       'receipt_container.receiver': 'Testdepartementet',
       'receipt_container.ref_num': '6697de17-18c7-4fb9-a428-d6a414a797ae',
       'receipt_container.sender': '01017512345-Ola Privatperson',

@@ -1,5 +1,6 @@
 import { Action } from 'redux';
 import * as actionTypes from '../types';
+import { IInstance } from './../../../../../shared/resources/instanceData/index.d';
 
 export interface ICompleteAndSendInForm extends Action {
   url: string;
@@ -13,7 +14,12 @@ export function completeAndSendInForm(url: string): ICompleteAndSendInForm {
 }
 
 export interface ICompleteAndSendInFormFulfilled extends Action {
-  response: any;
+  response: IResponse;
+}
+
+export interface IResponse {
+  data: IInstance;
+  error: Error;
 }
 
 export function completeAndSendInFormFulfilled(response: any): ICompleteAndSendInFormFulfilled {

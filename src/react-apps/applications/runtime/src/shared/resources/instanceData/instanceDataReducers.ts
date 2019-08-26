@@ -2,10 +2,11 @@ import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import { IGetInstanceDataFulfilled, IGetInstanceDataRejected } from './get/getInstanceDataActions';
 import * as InstanceDataActionTypes from './get/getInstanceDataActionTypes';
+import { IInstance } from './index.d';
 
 export interface IInstanceDataState {
-  instance: any;
-  error: any;
+  instance: IInstance;
+  error: Error;
 }
 
 const initialState: IInstanceDataState = {

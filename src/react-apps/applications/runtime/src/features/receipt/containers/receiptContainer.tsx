@@ -1,6 +1,6 @@
 import * as moment from 'moment';
-import * as React from 'react';
 import { useState } from 'react';
+import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
@@ -8,6 +8,7 @@ import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/u
 import { IRuntimeState } from '../../../types';
 import returnInstanceAttachments from './../../../../../shared/src/utils/returnInstanceAttachments';
 import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
+import { IInstance } from './../../../shared/resources/instanceData/index.d';
 import InstanceDataActions from './../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from './../../../shared/resources/orgs/orgsActions';
 
@@ -25,7 +26,7 @@ export const returnInstanceMetaDataObject = (
   ): {} => {
   const obj: any = {};
 
-  obj[getLanguageFromKey('receipt_container.date_sendt', languageData)] = lastChangedDateTime;
+  obj[getLanguageFromKey('receipt_container.date_sent', languageData)] = lastChangedDateTime;
 
   let sender: string = '';
   if (profileData.profile && profileData.profile.party.person.ssn) {
@@ -56,7 +57,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
 
   const allOrgs: any = useSelector((state: IRuntimeState) => state.organizationMetaData.allOrgs);
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
-  const instance: any = useSelector((state: IRuntimeState) => state.instanceData.instance);
+  const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const profile: any = useSelector((state: IRuntimeState) => state.profile);
 
