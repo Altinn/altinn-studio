@@ -11,7 +11,7 @@ let headerPage = new HeaderPage();
 
 const getLocation = ClientFunction(() => document.location.href);
 
-fixture('Navigating the Service designer')
+fixture('Navigating the App designer')
   .page(app.baseUrl)
   .before(async () => {
   })

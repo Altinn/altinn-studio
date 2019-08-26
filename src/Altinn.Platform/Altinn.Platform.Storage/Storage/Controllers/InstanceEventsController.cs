@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -53,6 +52,35 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Get one event.
+        /// </summary>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceGuid">instance guid</param>
+        /// <param name="eventGuid">event guid</param>
+        /// <returns>the event</returns>
+        [HttpGet("{eventGuid:guid}")]
+        public async Task<ActionResult> GetOne(int instanceOwnerId, Guid instanceGuid, Guid eventGuid)
+        {
+            try
+            {
+                string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+                InstanceEvent theEvent = await _repository.GetOneEvent(instanceId, eventGuid);
+                if (theEvent != null)
+                {
+                    return Ok(theEvent);
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Exception {e.Message}");
+            }                       
+        }
+
+        /// <summary>
         /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
@@ -68,7 +96,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23&eventTypes=deleted,submited
         /// -->
         [HttpGet]
-        public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid, string[] eventTypes, string from, string to)
+        public async Task<ActionResult> Get(
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid,
+            [FromQuery] string[] eventTypes,
+            [FromQuery] string from,
+            [FromQuery] string to)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
@@ -83,8 +116,8 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 try
                 {
-                    fromDateTime = DateTime.ParseExact(from, "s", CultureInfo.InvariantCulture);
-                    toDateTime = DateTime.ParseExact(to, "s", CultureInfo.InvariantCulture);
+                    fromDateTime = DateTimeHelper.ParseAndConvertToUniversalTime(from);
+                    toDateTime = DateTimeHelper.ParseAndConvertToUniversalTime(to);
                 }
                 catch
                 {
