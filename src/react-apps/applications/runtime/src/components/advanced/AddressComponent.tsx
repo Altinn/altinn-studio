@@ -88,7 +88,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               zipCode: null,
             },
           }, () => {
-            this.props.handleDataChange(zipCode, 'zipCode');
+            this.props.handleDataChange(zipCode, AddressKeys.zipCode);
             this.onBlurField(AddressKeys.postPlace);
           });
         } else {
