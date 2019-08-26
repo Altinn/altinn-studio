@@ -125,20 +125,6 @@ test("User cannot clone a service that does not have a data model", async () => 
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
 })
 
-test("Instantiation of an access controlled service not possible", async () => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
-    .click(designer.testeNavigationTab)
-    .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
-    .click(runtime.startNewButton)
-    .switchToMainWindow()
-    .expect(Selector('span').withText('403'))
-})
-
 test('Automated accessibility test for designer page', async t => {
   axeCheck(t);
 });
