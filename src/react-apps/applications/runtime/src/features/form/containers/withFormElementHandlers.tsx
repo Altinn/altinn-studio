@@ -78,8 +78,10 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       const { id, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
       const validations = this.getAdressComponentValidations();
-      // tslint:disable-next-line:no-unused-expression
-      validations ? passThroughProps.addressComponentValidations = validations : null;
+      if (validations !== null) {
+        passThroughProps.addressComponentValidations = validations;
+      }
+
       return (
         <>
           {this.renderLabel()}
