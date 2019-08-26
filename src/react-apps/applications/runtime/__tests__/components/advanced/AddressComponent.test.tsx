@@ -228,7 +228,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
 
     const inputFields = mountedAddressComponent.find('input');
     inputFields.forEach((input) => {
-      if(!input.hasClass('disabled')) {
+      if (!input.hasClass('disabled')) {
         input.simulate('blur');
         expect(spyOnBlurField).toHaveBeenCalled();
       }
