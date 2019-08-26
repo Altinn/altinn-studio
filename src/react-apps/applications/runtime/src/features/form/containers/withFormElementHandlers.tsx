@@ -17,6 +17,7 @@ export interface IProvidedProps {
   required: boolean;
   type: string;
   layout: ILayout;
+  addressComponentValidations?: any;
 }
 
 export interface IProps extends IProvidedProps {
@@ -77,7 +78,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       const { id, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
       const validations = this.getAdressComponentValidations();
-      validations ? passThroughProps['addressComponentValidations'] = validations : null;
+      validations ? passThroughProps.addressComponentValidations = validations : null;
       return (
         <>
           {this.renderLabel()}
