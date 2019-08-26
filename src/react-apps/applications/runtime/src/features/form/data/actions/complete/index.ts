@@ -1,6 +1,6 @@
 import { Action } from 'redux';
 import * as actionTypes from '../types';
-import { IInstance } from './../../../../../shared/resources/instanceData/index.d';
+import { IInstance } from './../../../../../../../shared/src/types/index.d';
 
 export interface ICompleteAndSendInForm extends Action {
   url: string;

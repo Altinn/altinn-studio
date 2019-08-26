@@ -1,14 +1,14 @@
 import * as moment from 'moment';
-import { useState } from 'react';
 import * as React from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
+import { IInstance } from './../../../../../shared/src/types/index.d';
 import returnInstanceAttachments from './../../../../../shared/src/utils/returnInstanceAttachments';
 import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
-import { IInstance } from './../../../shared/resources/instanceData/index.d';
 import InstanceDataActions from './../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from './../../../shared/resources/orgs/orgsActions';
 

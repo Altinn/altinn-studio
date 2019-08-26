@@ -1,8 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { IInstance } from './../../../../../shared/src/types/index.d';
 import { IGetInstanceDataFulfilled, IGetInstanceDataRejected } from './get/getInstanceDataActions';
 import * as InstanceDataActionTypes from './get/getInstanceDataActionTypes';
-import { IInstance } from './index.d';
 
 export interface IInstanceDataState {
   instance: IInstance;
