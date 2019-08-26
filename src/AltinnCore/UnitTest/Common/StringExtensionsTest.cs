@@ -15,7 +15,7 @@ namespace AltinnCore.UnitTest.Common
         /// Proper santization when using ToFileName without exceptions.
         /// </summary>
         [Fact]
-        public void ToFileNameReplaceSlashWithDash()
+        public void AsFileNameReplaceSlashWithDash()
         {
             var invalidFileNames = new string[] { "/test/", "\\test\\" };
 
@@ -30,7 +30,7 @@ namespace AltinnCore.UnitTest.Common
         /// Throws exception when an invalid character is encountered.
         /// </summary>
         [Fact]
-        public void ToFileNameThrowsException()
+        public void AsFileNameThrowsException()
         {
             var invalidFileNames = new string[] { "/test/", "\\test\\" };
 
