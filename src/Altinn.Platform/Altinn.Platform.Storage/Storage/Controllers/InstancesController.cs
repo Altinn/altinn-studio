@@ -313,10 +313,9 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             Instance instanceTemplate = await ReadInstanceTemplateFromBody(Request);
-            
+
             // get instanceOwnerId from three possible places
             int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
-
             if (instanceOwnerErrorResult != null)
             {
                 return instanceOwnerErrorResult;
@@ -327,19 +326,47 @@ namespace Altinn.Platform.Storage.Controllers
                 instanceTemplate = new Instance();
             }
 
-            DateTime creationTime = DateTime.UtcNow;
-            string org = appInfo.Org;
-            string user = null;
+            try
+            {
+                DateTime creationTime = DateTime.UtcNow;
+                string userId = null;
 
+                Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instanceTemplate, ownerId, creationTime, userId);
+
+                Instance storedInstance = await _instanceRepository.Create(instanceToCreate);
+
+                if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+                {
+                    storedInstance = ReadMultipartAndStoreFilesToBlob(storedInstance, appInfo.ElementTypes, creationTime, userId, out ActionResult errorResult);
+
+                    if (errorResult != null)
+                    {
+                        return errorResult;
+                    }
+                }
+
+                SetSelfLinks(storedInstance);
+
+                return Ok(storedInstance);
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Unable to create {appId} instance for {ownerId} due to {e}");
+                return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {e.Message}");
+            }        
+        }
+
+        private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, int ownerId, DateTime creationTime, string userId)
+        {
             Instance createdInstance = new Instance()
             {
                 InstanceOwnerId = ownerId.ToString(),
-                CreatedBy = user,
+                CreatedBy = userId,
                 CreatedDateTime = creationTime,
-                LastChangedBy = user,
+                LastChangedBy = userId,
                 LastChangedDateTime = creationTime,
-                AppId = appId,
-                Org = org,
+                AppId = appInfo.Id,
+                Org = appInfo.Org,
                 VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
                 DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
                 Labels = instanceTemplate.Labels,
@@ -347,11 +374,24 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },
             };
 
+            // copy applications title to presentation field if not set by instance template
+            if (createdInstance.PresentationField == null && appInfo.Title != null)
+            {
+                LanguageString presentation = new LanguageString();
+
+                foreach (KeyValuePair<string, string> title in appInfo.Title)
+                {
+                    presentation.Add(title.Key, title.Value);
+                }
+
+                createdInstance.PresentationField = presentation;
+            }
+
             if (createdInstance.Data == null)
             {
                 createdInstance.Data = new List<DataElement>();
             }
-            
+
             if (instanceTemplate.Process != null)
             {
                 createdInstance.Process = instanceTemplate.Process;
@@ -361,31 +401,7 @@ namespace Altinn.Platform.Storage.Controllers
                 createdInstance.Process = new ProcessState { CurrentTask = "FormFilling_1", IsComplete = false };
             }
 
-            Instance storedInstance;
-
-            try
-            {
-                storedInstance = await _instanceRepository.Create(createdInstance);
-            }
-            catch (Exception e)
-            {
-                logger.LogError($"Unable to create {appId} instance for {ownerId} due to {e}");
-                return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {e}");
-            }
-            
-            if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
-            {
-                storedInstance = ReadMultipartAndStoreFilesToBlob(storedInstance, appInfo.ElementTypes, creationTime, user, out ActionResult errorResult);
-                
-                if (errorResult != null)
-                {
-                    return errorResult;
-                }
-            }
-
-            SetSelfLinks(storedInstance);
-
-            return Ok(storedInstance);
+            return createdInstance;
         }
 
         /// <summary>
@@ -466,33 +482,15 @@ namespace Altinn.Platform.Storage.Controllers
 
                     // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
                     DataElement newDataElement = DataElementHelper.CreateDataElement(sectionName, storedInstance, creationTime, contentType, contentFileName, fileSize, user);
+ 
+                    // Store file as blob.
+                    bool blobCreated = _dataRepository.CreateDataInStorage(theStream, newDataElement.StorageUrl).Result;
 
-                    try
-                    {
-                        // Store file as blob.
-                        bool blobCreated = _dataRepository.CreateDataInStorage(theStream, newDataElement.StorageUrl).Result;
+                    // Add file to instance.
+                    storedInstance.Data.Add(newDataElement);
 
-                        // Add file to instance.
-                        storedInstance.Data.Add(newDataElement);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError($"Unable to store blob data for section named '{sectionName}. Due to {e}");
-                        errorResult = StatusCode(500, $"Unable to store data element in storage for section naemed {sectionName}. Reason {e.Message}");
-                        return null;
-                    }
-
-                    try
-                    {
-                        // Update instance with the data element.
-                        storedInstance = _instanceRepository.Update(storedInstance).Result;
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError($"Unable to update instance file. {e}");
-                        errorResult = StatusCode(500, $"Unable to update instance with the new data, reason being {e}");
-                        return null;
-                    }
+                    // Update instance with the data element.
+                    storedInstance = _instanceRepository.Update(storedInstance).Result;                                   
                 }
 
                 section = reader.ReadNextSectionAsync().Result;

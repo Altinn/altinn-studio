@@ -44,6 +44,9 @@
     <None Update="data\binary_file.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="data\cat.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="data\example.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
@@ -85,28 +86,55 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
         private Application CreateTestApplication()
         {
-            ApplicationClient appClient = new ApplicationClient(client);
+            Application testApplication = new Application()
+            {
+                Id = testAppId,
+                VersionId = "1.2.0",
+                Org = "testing",
+                Title = new LanguageString
+                {
+                    { "nb", "test multipart instantiation" },
+                },
+                ValidFrom = new DateTime(2019, 07, 01),
+                ValidTo = new DateTime(2020, 06, 30),
+                ElementTypes = new List<ElementType>()
+            };
+
+            testApplication.ElementTypes.Add(new ElementType()
+            {
+                Id = "default",
+                AllowedContentType = new List<string>()
+                {
+                    "text/xml", "application/xml"
+                },
+            });
+            
+            testApplication.ElementTypes.Add(new ElementType()
+            {
+                Id = "picture",
+                AllowedContentType = new List<string>()
+                {
+                    "image/png", "image/jpg"
+                }
+            });
+            
+            Application app = new Application();
 
             try
             {
-                Application existingApp = appClient.GetApplication(testAppId);
-                return existingApp;
+                app = applicationClient.GetApplication(testApplication.Id);
+
+                if (app != null)
+                {
+                    app = applicationClient.UpdateApplication(testApplication);
+                }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                // do nothing.
-            }
-
-            LanguageString title = new LanguageString
-            {
-                { "nb", "Testapplikasjon" },
-                { "en", "Test application" }
-            };
-
-            Application newApp = appClient.CreateApplication(testAppId, title);
-            return newApp;
-
-            // return appClient.CreateApplication(testAppId, title);
+                app = applicationClient.CreateApplication(testApplication);
+            }             
+    
+            return app;
         }
 
         private Application DeleteApplicationMetadata()
@@ -124,53 +152,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public async void StoreMultiPartFileInOnePostOperation()
         {
-            Application testApplication = new Application()
-            {
-                Id = "testing/golfer06",
-                VersionId = "1.2.0",
-                Org = "testing",
-                Title = new LanguageString
-                {
-                    { "nb", "test application" },
-                },
-                ValidFrom = new DateTime(2019, 07, 01),
-                ValidTo = new DateTime(2020, 06, 30),
-                ElementTypes = new List<ElementType>()
-            };
-
-            ElementType elementTypes = new ElementType()
-            {
-                Id = "default",
-                AllowedContentType = new List<string>(),
-            };
-            elementTypes.AllowedContentType.Add("text/xml");
-            elementTypes.AllowedContentType.Add("application/xml");
-
-            testApplication.ElementTypes.Add(elementTypes);
-
-            Application app = new Application();
-
-            try
-            {
-                app = applicationClient.GetApplication(testApplication.Id);
-                if (app != null)
-                {
-                    app = applicationClient.UpdateApplication(testApplication);
-                }
-                else
-                {
-                    app = applicationClient.CreateApplication(testApplication);
-                }
-            }
-            catch (Exception)
-            {
-                // do nothing.
-            }
-
             Instance instance = new Instance()
             {
                 InstanceOwnerId = "1000",
-                AppId = "testing/golfer06",
+                AppId = testAppId,
                 Labels = new List<string>()
                 {
                     "Hei"
@@ -188,6 +173,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string xmlText2 = File.ReadAllText("data/xmlfile.xml", Encoding.UTF8);
             form.Add(new StringContent(xmlText2, Encoding.UTF8, "text/xml"), "default");
 
+            FileStream image = new FileStream("data/cat.jpg", FileMode.Open);
+            
+            StreamContent content = new StreamContent(image);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("image/jpg");
+            form.Add(content, "picture");            
+
             string requestUri = $"{versionPrefix}/instances?appId={instance.AppId}&instanceOwnerId={instance.InstanceOwnerId}";
 
             HttpResponseMessage response = await client.PostAsync(requestUri, form);
@@ -200,11 +191,16 @@ namespace Altinn.Platform.Storage.IntegrationTest
             
             Assert.NotEmpty(instanceResult.Data);
 
+            Assert.Equal(3, instanceResult.Data.Count);
+
             foreach (DataElement data in instanceResult.Data)
             {
-                Assert.Contains("default", data.ElementType);
                 Assert.NotEmpty(data.StorageUrl);
             }
+
+            Assert.Equal("default", instanceResult.Data[0].ElementType);
+            Assert.Equal("default", instanceResult.Data[1].ElementType);
+            Assert.Equal("picture", instanceResult.Data[2].ElementType);
 
             Assert.Equal("1000", instanceResult.InstanceOwnerId);
         }
@@ -218,7 +214,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Instance instance = new Instance()
             {
                 InstanceOwnerId = "1000",
-                AppId = "tests/sailor",
+                AppId = testAppId,
                 Labels = new List<string>()
                 {
                     "Hei"
