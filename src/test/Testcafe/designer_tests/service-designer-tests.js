@@ -101,7 +101,7 @@ test('About page items and editing', async () => {
     .expect(designer.omKommentarer.textContent).contains("Lorem")
 });
 
-test("Fill out Access control information on a service", async () => {
+test("Fill out Access control information on an app", async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
     .click(designer.lageNavigationTab)

@@ -9,11 +9,9 @@ let app = new App();
 let designer = new DesignerPage();
 let runtime = new RunTimePage();
 
-fixture('GUI service designer tests')
+fixture('Instantiation tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
-    t.ctx.deltMessage = "Du har delt dine endringer";
-    t.ctx.syncMessage = "Endringene er validert";
     await t
       .useRole(AutoTestUser)
       .resizeWindow(1280, 610)
