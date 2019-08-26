@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Storage.Interface.Clients;
+using Storage.Interface.Models;
 
 namespace AltinnCore.Runtime
 {
@@ -26,21 +27,33 @@ namespace AltinnCore.Runtime
     {
         private readonly ILogger<InstancesController> logger;
         private readonly HttpClient storageClient;
+        private readonly IInstance instanceService;        
+        private readonly IData dataService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         public InstancesController(
             ILogger<InstancesController> logger,
-            IHttpClientAccessor httpClientAccessor)
+            IHttpClientAccessor httpClientAccessor,
+            IInstance instanceService,
+            IData dataService)
         {
             this.logger = logger;
-            this.storageClient = httpClientAccessor.StorageClient;
+            if (httpClientAccessor != null)
+            {
+                this.storageClient = httpClientAccessor.StorageClient;
+            }
+
+            this.instanceService = instanceService;
+            this.dataService = dataService;
         }
 
         /// <summary>
         ///  Gets one application instance from platform storage.
         /// </summary>
+        /// <param name="org">the org</param>
+        /// <param name="app">the app name</param>
         /// <param name="instanceOwnerId">the instance owner id (partyId)</param>
         /// <param name="instanceGuid">the instance guid</param>
         /// <returns>the instance</returns>
@@ -48,23 +61,18 @@ namespace AltinnCore.Runtime
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]        
-        public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid)
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> Get(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
-            Uri storageUrl = new Uri($"instances/{instanceId}", UriKind.Relative);
-
-            HttpResponseMessage httpResponse = await storageClient.GetAsync(storageUrl);
-            if (httpResponse.IsSuccessStatusCode)
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            if (instance == null)
             {
-                string jsonContent = await httpResponse.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(jsonContent);
-                GetAndSetAppSelfLink(instance);
-
-                return Ok(instance);
+                return NotFound();
             }
 
-            return StatusCode((int)httpResponse.StatusCode, httpResponse.ReasonPhrase);
+            GetAndSetAppSelfLink(instance);
+
+            return Ok(instance);
         }
 
         /// <summary>
@@ -88,20 +96,16 @@ namespace AltinnCore.Runtime
             [FromRoute] Guid instanceGuid,
             [FromBody] Instance instance)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
-            Uri storageUrl = new Uri($"instances/{instanceId}", UriKind.Relative);
+            Instance updatedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceGuid);
 
-            HttpResponseMessage httpResponse = await storageClient.PutAsync(storageUrl, instance.AsJson());
-            if (httpResponse.IsSuccessStatusCode)
+            if (instance == null)
             {
-                string jsonContent = await httpResponse.Content.ReadAsStringAsync();
-                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(jsonContent);
-                GetAndSetAppSelfLink(updatedInstance);
-
-                return Ok(updatedInstance);
+                return NotFound();
             }
 
-            return StatusCode((int)httpResponse.StatusCode, httpResponse.ReasonPhrase);
+            GetAndSetAppSelfLink(instance);
+
+            return Ok(instance);
         }
 
         /// <summary>
@@ -166,10 +170,20 @@ namespace AltinnCore.Runtime
             string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
             string url = Request.Path;
 
-            string appSelfLink = $"{host}{url}/{instance.Id}";
+            string appSelfLink = $"{host}{url}";
 
             instance.SelfLinks = instance.SelfLinks ?? new Storage.Interface.Models.ResourceLinks();
             instance.SelfLinks.Apps = appSelfLink;
+
+            if (instance.Data != null)
+            {
+                foreach (DataElement dataElement in instance.Data)
+                {
+                    dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
+
+                    dataElement.DataLinks.Apps = $"{appSelfLink}/data/{dataElement.Id}";
+                }
+            }
 
             return appSelfLink;
         }

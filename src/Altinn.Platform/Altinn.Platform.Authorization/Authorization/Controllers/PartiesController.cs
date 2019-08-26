@@ -68,31 +68,5 @@ namespace Altinn.Platform.Authorization.Controllers
 
             return Ok(isValidParty);
         }
-
-        /// <summary>
-        /// Validates selected party and notifies SBL of the update
-        /// </summary>
-        /// <param name="partyId">aefghr</param>
-        [HttpPut("{partyId}")]
-        public async Task<ActionResult> UpdateSelectedParty(int partyId)
-        {
-            string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
-                .Select(c => c.Value).SingleOrDefault();
-            int userId = int.Parse(userIdString);
-
-            bool? result = await _partiesWrapper.UpdateSelectedParty(userId, partyId);
-
-            if (result == null)
-            {
-                return BadRequest($"User {userId} cannot represent party { partyId}.");
-            }
-
-            if (result == false)
-            {
-               return StatusCode(500, "Something went wrong when trying to update selectedparty.");
-            }
-
-            return Ok("Party successfully updated.");
-        }
     }
 }
