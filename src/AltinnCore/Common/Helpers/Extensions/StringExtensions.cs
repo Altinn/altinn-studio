@@ -17,7 +17,7 @@ namespace AltinnCore.Common.Helpers.Extensions
         /// <param name="input">The input variable to be sanitized</param>
         /// <param name="throwExceptionOnInvalidCharacters">Throw exception if invalid characters are found</param>
         /// <returns></returns>
-        public static string ToFileName(this string input, bool throwExceptionOnInvalidCharacters = true)
+        public static string AsFileName(this string input, bool throwExceptionOnInvalidCharacters = true)
         {
             if (string.IsNullOrWhiteSpace(input))
             {

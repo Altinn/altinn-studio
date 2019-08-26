@@ -21,7 +21,7 @@ namespace AltinnCore.UnitTest.Common
 
             foreach (var invalidFileName in invalidFileNames)
             {
-                var sanitizedName = invalidFileName.ToFileName(throwExceptionOnInvalidCharacters: false);
+                var sanitizedName = invalidFileName.AsFileName(throwExceptionOnInvalidCharacters: false);
                 Assert.Equal("-test-", sanitizedName);
             }
         }
@@ -36,7 +36,7 @@ namespace AltinnCore.UnitTest.Common
 
             foreach (var invalidFileName in invalidFileNames)
             {
-                Assert.Throws<ArgumentOutOfRangeException>(() => invalidFileName.ToFileName());
+                Assert.Throws<ArgumentOutOfRangeException>(() => invalidFileName.AsFileName());
             }
         }
     }
