@@ -1,36 +1,51 @@
 import * as moment from 'moment';
-import { useState } from 'react';
 import * as React from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
-import { IAttachment } from './../../../../../shared/src/types/index';
+import returnInstanceAttachments from './../../../../../shared/src/utils/returnInstanceAttachments';
+import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
 import InstanceDataActions from './../../../shared/resources/instanceData/instanceDataActions';
 import OrgsActions from './../../../shared/resources/orgs/orgsActions';
-
-import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
 
 export interface IReceiptContainerProps extends RouteChildrenProps {
 }
 
-interface IData {
-  id: string;
-  elementType: string;
-  fileName: string;
-  contentType: string;
-  storageUrl: string;
-  dataLinks: IDataLinks;
-  fileSize: number;
-  isLocked: boolean;
-  createdDateTime: Date;
-  lastChangedDateTime: Date;
-}
+export const returnInstanceMetaDataObject = (
+  orgsData: any,
+  languageData: any,
+  profileData: any,
+  instanceGuid: string,
+  userLanguageString: string,
+  lastChangedDateTime: string,
+  org: any,
+  ): {} => {
+  const obj: any = {};
 
-interface IDataLinks {
-  apps: string;
-}
+  obj[getLanguageFromKey('receipt_container.date_sendt', languageData)] = lastChangedDateTime;
+
+  let sender: string = '';
+  if (profileData.profile && profileData.profile.party.person.ssn) {
+    sender = `${profileData.profile.party.person.ssn}-${profileData.profile.party.name}`;
+  } else if (profileData) {
+    sender = `${profileData.profile.party.orgNumber}-${profileData.profile.party.name}`;
+  }
+  obj[getLanguageFromKey('receipt_container.sender', languageData)] = sender;
+
+  if (orgsData[org]) {
+    obj[getLanguageFromKey('receipt_container.receiver', languageData)] = orgsData[org].name[userLanguageString];
+  } else {
+    // This is only related to testing in Altinn Studio Dev
+    obj[getLanguageFromKey('receipt_container.receiver', languageData)] = 'Error: Receiver org not found';
+  }
+
+  obj[getLanguageFromKey('receipt_container.ref_num', languageData)] = instanceGuid;
+
+  return obj;
+};
 
 const ReceiptContainer = (props: IReceiptContainerProps ) => {
   const [appName, setAppName] = React.useState('');
@@ -48,51 +63,6 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   const origin = window.location.origin;
   const routeParams: any = props.match.params;
 
-  const instanceMetaDataObject = (
-      orgsData: any,
-      languageData: any,
-      profileData: any,
-      instanceGuid: string,
-      userLanguageString: string,
-      lastChangedDateTime: string,
-    ): {} => {
-    const obj: any = {};
-
-    obj[getLanguageFromKey('receipt_container.date_sendt', languageData)] = lastChangedDateTime;
-
-    let sender: string = '';
-    if (profileData.profile && profile.profile.party.person.ssn) {
-      sender = `${profileData.profile.party.person.ssn}-${profileData.profile.party.name}`;
-    } else if (profile) {
-      sender = `${profileData.profile.party.orgNumber}-${profileData.profile.party.name}`;
-    }
-    obj[getLanguageFromKey('receipt_container.sender', languageData)] = sender;
-
-    const receiver: string = 'tdd';
-    obj[getLanguageFromKey('receipt_container.receiver', languageData)] = orgsData[receiver].name[userLanguageString];
-
-    obj[getLanguageFromKey('receipt_container.ref_num', languageData)] = instanceGuid;
-
-    return obj;
-  };
-
-  const returnAttachments = (): IAttachment[] => {
-    if (!instance) {
-      return [];
-    } else {
-      const tempAttachments: IAttachment[] = [];
-      instance.data.forEach((dataElement: IData) => {
-        if (dataElement.elementType !== 'default') {
-          tempAttachments.push({
-          name: dataElement.fileName,
-          url: dataElement.dataLinks.apps,
-          iconClass: 'reg reg-attachment' });
-        }
-      });
-      return tempAttachments;
-    }
-  };
-
   React.useEffect(() => {
     setUserLanguage(getUserLanguage());
     OrgsActions.fetchOrgs();
@@ -100,13 +70,13 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   }, []);
 
   React.useEffect(() => {
-    if (allOrgs != null && profile.profile) {
-      const obj = instanceMetaDataObject(
-        allOrgs, language, profile, routeParams.instanceGuid, userLanguage, instanceLastChangedDateTime,
+    if (allOrgs != null && profile.profile && instance && instance.org && allOrgs) {
+      const obj = returnInstanceMetaDataObject(
+        allOrgs, language, profile, routeParams.instanceGuid, userLanguage, instanceLastChangedDateTime, instance.org,
       );
       setInstanceMetaObject(obj);
     }
-  }, [allOrgs, profile, instance]);
+  }, [allOrgs, profile, instance, instanceLastChangedDateTime]);
 
   React.useEffect(() => {
     if (applicationMetadata && applicationMetadata.title) {
@@ -115,8 +85,11 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   }, [applicationMetadata, userLanguage]);
 
   React.useEffect(() => {
-    const attachmentsResult = returnAttachments();
-    setAttachments(attachmentsResult);
+    if (instance && instance.data) {
+      const attachmentsResult = returnInstanceAttachments(instance.data);
+      setAttachments(attachmentsResult);
+    }
+
     if (instance) {
       setInstanceLastChangedDateTime(moment(instance.lastChangedDateTime).format('DD.MM.YYYY / HH:MM'));
     }
