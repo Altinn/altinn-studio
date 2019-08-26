@@ -13,7 +13,7 @@ let loginPage = new LoginPage();
 let common = new CommonPage();
 let designer = new DesignerPage();
 
-fixture('Deploy of service to a test environment tests')
+fixture('Deploy of app to a test environment tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Header texts
@@ -32,7 +32,7 @@ fixture('Deploy of service to a test environment tests')
       .resizeWindow(1536, 864)
   })
 
-test('Happy case; deploy a service to a test environment after a change', async () => {
+test('Happy case; deploy an app to a test environment after a change', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
     .click(designer.lageNavigationTab)
@@ -61,7 +61,7 @@ test('Happy case; deploy a service to a test environment after a change', async 
     .expect(Selector("h2").withText(t.ctx.tilgjengelig).exists).ok({ timeout: 120000 })
 });
 
-test('Service cannot deploy due to compilation error', async () => {
+test('App cannot deploy due to compilation error', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/aboutservice')
     .click(designer.lageNavigationTab)
@@ -75,7 +75,7 @@ test('Service cannot deploy due to compilation error', async () => {
     .expect(Selector("h2").withText(t.ctx.noCompile).exists).ok()
 });
 
-test('Service cannot be deployed due to local changes', async () => {
+test('App cannot be deployed due to local changes', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
     .click(designer.lageNavigationTab)
@@ -103,7 +103,7 @@ test('Service cannot be deployed due to local changes', async () => {
     .expect((Selector("h2").withText(t.ctx.klarForDeploy)).exists).ok({ timeout: 120000 })
 });
 
-test('User does not have write access to service, and cannot deploy', async () => {
+test('User does not have write access to app, and cannot deploy', async () => {
   await t
     .useRole(NoDeployUser)
     .click(dash.serviceSearch)

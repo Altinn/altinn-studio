@@ -19,7 +19,7 @@ fixture('GUI service designer tests')
       .resizeWindow(1280, 610)
   })
 
-  test("Instantiation of an access controlled service not possible", async () => {
+  test("Instantiation of an access controlled app not possible", async () => {
     await t
       .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
       .click(designer.testeNavigationTab)

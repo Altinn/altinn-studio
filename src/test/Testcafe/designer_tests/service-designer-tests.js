@@ -120,7 +120,7 @@ test("Fill out Access control information on a service", async () => {
 });
 
 
-test("User cannot clone a service that does not have a data model", async () => {
+test("User cannot clone an app that does not have a data model", async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
 })
@@ -147,7 +147,7 @@ test('Configure and delete rules', async () => {
     .click(designer.deleteRulesButton)
 });
 
-test('Links in Service Logic menu', async () => {
+test('Links in App Logic menu', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/uieditor')
     .expect(designer.openserviceLogicmenu.exists).ok({ timeout: 5000 })

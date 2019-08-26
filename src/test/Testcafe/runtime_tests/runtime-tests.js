@@ -13,7 +13,7 @@ let designer = new DesignerPage();
 
 const getCookie = ClientFunction(() => document.cookie);
 
-fixture('Regression tests of services in runtime')
+fixture('Regression tests of apps in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
@@ -27,7 +27,7 @@ fixture('Regression tests of services in runtime')
   })
 
 
-test('Instantiate a service in runtime', async () => {
+test('Instantiate an app in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
     .switchToIframe(runtime.testBrukerIframe)
