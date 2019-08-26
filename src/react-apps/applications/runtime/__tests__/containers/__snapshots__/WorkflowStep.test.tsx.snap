@@ -228,6 +228,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
           <button
             aria-label="Lukk"
             className="a-modal-close a-js-tabable-popover"
+            onClick={[Function]}
             type="button"
           >
             <span
