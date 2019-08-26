@@ -11,6 +11,8 @@ import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { IValidations } from '../../../types/global';
 import ReceiptContainer from '../../receipt/containers/receiptContainer';
 
+import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
+
 export interface IWorkflowStepProvidedProps {
   header: string;
   step: WorkflowSteps;
@@ -67,6 +69,15 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     );
   }
 
+  public handleModalCloseButton = () => {
+    const altinnWindow = window as any;
+    const origin = window.location.origin;
+    if (window) {
+      window.location.href = returnUrlToMessagebox(origin);
+    }
+    return true;
+  }
+
   public renderNavBar = () => {
     return (
       <div className='a-modal-navbar'>
@@ -82,6 +93,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
           type='button'
           className='a-modal-close a-js-tabable-popover'
           aria-label='Lukk'
+          onClick={this.handleModalCloseButton}
         >
           <span className='ai-stack'>
             <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />

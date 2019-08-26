@@ -39,7 +39,7 @@ export const returnUrlToMessagebox = (url: string): string => {
 
   } else if (url.search(studioRegex) >= 0) {
 
-    result = `https://${baseHostnameAltinnStudio}/${pathToMessageBox}`;
+    result = `http://${baseHostnameAltinnStudio}/designer/${org}/${service}#/test`;
 
   } else {
     result = null;
