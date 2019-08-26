@@ -197,7 +197,9 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                             this.renderSubmit()
                           }
                           {this.props.step === WorkflowSteps.Archived &&
-                            <ReceiptContainer />
+                            <div id='ReceiptContainer'>
+                              <ReceiptContainer/>
+                            </div>
                           }
                         </div>
                       </div>

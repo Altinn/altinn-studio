@@ -13,6 +13,18 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
   let mockHeader: string;
   let mockStore: any;
 
+  beforeAll(() => {
+    window.matchMedia = jest.fn().mockImplementation((query) => {
+      return {
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+      };
+    });
+  });
+
   beforeEach(() => {
     mockHeader = 'mock-service-name';
     const createStore = configureStore();
@@ -103,33 +115,33 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#1EAEF7');
   });
 
-  // it('+++ should render receipt when step is "archived"', () => {
-  //   const wrapper = mount(
-  //     <MemoryRouter>
-  //       <Provider store={mockStore}>
-  //         <WorkflowStep
-  //           header={mockHeader}
-  //           step={WorkflowSteps.Archived}
-  //         />
-  //       </Provider>
-  //     </MemoryRouter>,
-  //   );
-  //   expect(wrapper.exists('#receiptWrapper')).toEqual(true);
-  // });
+  it('+++ should render receipt when step is "archived"', () => {
+    const wrapper = mount(
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.Archived}
+          />
+        </Provider>
+      </MemoryRouter>,
+    );
+    expect(wrapper.exists('#ReceiptContainer')).toEqual(true);
+  });
 
-  // it('+++ the background color should be lightGreen if step is "Archive"', () => {
-  //   const wrapper = mount(
-  //     <MemoryRouter>
-  //       <Provider store={mockStore}>
-  //         <WorkflowStep
-  //           header={mockHeader}
-  //           step={WorkflowSteps.Archived}
-  //         />
-  //       </Provider>
-  //     </MemoryRouter>,
-  //   );
-  //   expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
-  // });
+  it('+++ the background color should be lightGreen if step is "Archive"', () => {
+    const wrapper = mount(
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.Archived}
+          />
+        </Provider>
+      </MemoryRouter>,
+    );
+    expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
+  });
 
   it('+++ should render submit when step is "submit"', () => {
     const wrapper = mount(
