@@ -23,7 +23,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlContextResponse, nameof(xacmlContextResponse));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.Response, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Response, Xacml30Constants.NameSpaces.Policy);
 
             if (xacmlContextResponse.Results.Count == 0)
             {
@@ -43,7 +43,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlContextResult, nameof(xacmlContextResult));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.Result, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Result, Xacml30Constants.NameSpaces.Policy);
 
             WriteContextDecision(writer, xacmlContextResult.Decision);
 
@@ -54,7 +54,7 @@ namespace Altinn.Authorization.ABAC.Utils
 
             if (xacmlContextResult.Obligations.Count > 0)
             {
-                writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.Obligations, Xacml30Constants.NameSpaces.Policy);
+                writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Obligations, Xacml30Constants.NameSpaces.Policy);
 
                 foreach (XacmlObligation val in xacmlContextResult.Obligations)
                 {
@@ -66,7 +66,7 @@ namespace Altinn.Authorization.ABAC.Utils
 
             if (xacmlContextResult.Advices.Count > 0)
             {
-                writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.AssociatedAdvice, Xacml30Constants.NameSpaces.Policy);
+                writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AssociatedAdvice, Xacml30Constants.NameSpaces.Policy);
 
                 foreach (XacmlAdvice val in xacmlContextResult.Advices)
                 {
@@ -86,7 +86,7 @@ namespace Altinn.Authorization.ABAC.Utils
 
             if (xacmlContextResult.PolicyIdReferences.Count > 0 || xacmlContextResult.PolicySetIdReferences.Count > 0)
             {
-                writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.PolicyIdentifierList, Xacml30Constants.NameSpaces.Policy);
+                writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.PolicyIdentifierList, Xacml30Constants.NameSpaces.Policy);
 
                 foreach (XacmlContextPolicyIdReference pref in xacmlContextResult.PolicyIdReferences)
                 {
@@ -131,7 +131,7 @@ namespace Altinn.Authorization.ABAC.Utils
                     throw new InvalidOperationException("Not a valid value");
             }
 
-            writer.WriteElementString(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.Decision, Xacml30Constants.NameSpaces.Policy, value);
+            writer.WriteElementString(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Decision, Xacml30Constants.NameSpaces.Policy, value);
         }
 
         private static void WriteContextStatus(XmlWriter writer, XacmlContextStatus xacmlContextStatus)
@@ -139,18 +139,18 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlContextStatus, nameof(xacmlContextStatus));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.Status, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Status, Xacml30Constants.NameSpaces.Policy);
 
             WriteContextStatusCode(writer, xacmlContextStatus.StatusCode);
 
             if (!string.IsNullOrEmpty(xacmlContextStatus.StatusMessage))
             {
-                writer.WriteElementString(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.StatusMessage, Xacml30Constants.NameSpaces.Policy, xacmlContextStatus.StatusMessage);
+                writer.WriteElementString(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.StatusMessage, Xacml30Constants.NameSpaces.Policy, xacmlContextStatus.StatusMessage);
             }
 
             if (xacmlContextStatus.StatusDetail.Count > 0)
             {
-                writer.WriteStartElement(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.StatusDetail, Xacml30Constants.NameSpaces.Policy);
+                writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.StatusDetail, Xacml30Constants.NameSpaces.Policy);
 
                 foreach (XmlElement element in xacmlContextStatus.StatusDetail)
                 {
@@ -168,7 +168,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlObligation, nameof(xacmlObligation));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.Obligation, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Obligation, Xacml30Constants.NameSpaces.Policy);
             writer.WriteAttributeString(XacmlConstants.AttributeNames.ObligationId, xacmlObligation.ObligationId.OriginalString);
             writer.WriteAttributeString(XacmlConstants.AttributeNames.FulfillOn, xacmlObligation.FulfillOn.ToString());
 
@@ -185,7 +185,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlAdvice, nameof(xacmlAdvice));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.Advice, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Advice, Xacml30Constants.NameSpaces.Policy);
             writer.WriteAttributeString(XacmlConstants.AttributeNames.AdviceId, xacmlAdvice.AdviceId.OriginalString);
 
             foreach (var attributeAssigment in xacmlAdvice.AttributeAssignment)
@@ -201,7 +201,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlAttributeAssignment, nameof(xacmlAttributeAssignment));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.AttributeAssignment, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AttributeAssignment, Xacml30Constants.NameSpaces.Policy);
 
             writer.WriteAttributeString(XacmlConstants.AttributeNames.DataType, xacmlAttributeAssignment.DataType.OriginalString);
             writer.WriteAttributeString(XacmlConstants.AttributeNames.AttributeId, xacmlAttributeAssignment.AttributeId.OriginalString);
@@ -233,7 +233,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlContextAttributes, nameof(xacmlContextAttributes));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.Attributes, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Attributes, Xacml30Constants.NameSpaces.Policy);
             writer.WriteAttributeString(XacmlConstants.AttributeNames.Category, xacmlContextAttributes.Category.OriginalString);
 
             if (xacmlContextAttributes.Id != null)
@@ -243,15 +243,15 @@ namespace Altinn.Authorization.ABAC.Utils
 
             if (!string.IsNullOrEmpty(xacmlContextAttributes.Content))
             {
-                writer.WriteElementString(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.Content, Xacml30Constants.NameSpaces.Policy, xacmlContextAttributes.Content);
+                writer.WriteElementString(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Content, Xacml30Constants.NameSpaces.Policy, xacmlContextAttributes.Content);
             }
 
             foreach (var attr in xacmlContextAttributes.Attributes)
             {
-                writer.WriteStartElement(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.Attribute, Xacml30Constants.NameSpaces.Policy);
+                writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.Attribute, Xacml30Constants.NameSpaces.Policy);
 
                 writer.WriteAttributeString(XacmlConstants.AttributeNames.AttributeId, attr.AttributeId.OriginalString);
-                writer.WriteAttributeString(XacmlConstants.AttributeNames.IncludeInResult, attr.IncludeInResult.ToString());
+                writer.WriteAttributeString(XacmlConstants.AttributeNames.IncludeInResult, attr.IncludeInResult.ToString().ToLower());
 
                 if (!string.IsNullOrEmpty(attr.Issuer))
                 {
@@ -274,7 +274,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlAttributeValue, nameof(xacmlAttributeValue));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.AttributeValue, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.AttributeValue, Xacml30Constants.NameSpaces.Policy);
             writer.WriteAttributeString(XacmlConstants.AttributeNames.DataType, xacmlAttributeValue.DataType.OriginalString);
 
             if (xacmlAttributeValue.Value != null)
@@ -294,7 +294,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlContextPolicyIdReference, nameof(xacmlContextPolicyIdReference));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.PolicyIdReference, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.PolicyIdReference, Xacml30Constants.NameSpaces.Policy);
 
             if (xacmlContextPolicyIdReference.Version != null)
             {
@@ -319,7 +319,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlContextPolicySetIdReference, nameof(xacmlContextPolicySetIdReference));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Policy, XacmlConstants.ElementNames.PolicySetIdReference, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.PolicySetIdReference, Xacml30Constants.NameSpaces.Policy);
 
             if (xacmlContextPolicySetIdReference.Version != null)
             {
@@ -344,7 +344,7 @@ namespace Altinn.Authorization.ABAC.Utils
             Guard.ArgumentNotNull(writer, nameof(writer));
             Guard.ArgumentNotNull(xacmlContextStatusCode, nameof(xacmlContextStatusCode));
 
-            writer.WriteStartElement(XacmlConstants.Prefixes.Context, XacmlConstants.ElementNames.StatusCode, Xacml30Constants.NameSpaces.Policy);
+            writer.WriteStartElement(XacmlConstants.Prefixes.Xacml, XacmlConstants.ElementNames.StatusCode, Xacml30Constants.NameSpaces.Policy);
 
             writer.WriteAttributeString(XacmlConstants.AttributeNames.Value, xacmlContextStatusCode.Value.ToString());
 

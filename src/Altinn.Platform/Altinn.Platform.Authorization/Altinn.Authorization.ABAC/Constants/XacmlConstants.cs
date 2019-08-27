@@ -802,14 +802,9 @@ namespace Altinn.Authorization.ABAC.Constants
         public sealed class Prefixes
         {
             /// <summary>
-            /// The XACML policy namespace prefix.
+            /// The XACML xml namespace prefix.
             /// </summary>
-            public const string Policy = "xacml";
-
-            /// <summary>
-            /// The XACML Context namespace prefix.
-            /// </summary>
-            public const string Context = "xacml-context";
+            public const string Xacml = "xacml";
 
             /// <summary>
             /// The XML namespace prefix.

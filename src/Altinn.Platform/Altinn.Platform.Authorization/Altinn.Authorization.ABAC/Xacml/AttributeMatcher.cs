@@ -51,7 +51,7 @@ namespace Altinn.Authorization.ABAC.Xacml
                     isMatch = MatchDateTime(policyAttribute, contextRequestAttribute);
                     break;
                 default:
-                    throw new NotImplementedException(); 
+                    throw new NotImplementedException();
             }
 
             return isMatch;

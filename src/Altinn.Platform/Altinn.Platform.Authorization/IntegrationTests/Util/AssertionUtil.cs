@@ -20,7 +20,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             {
                 AssertEqual(expected.Results.First(), actual.Results.First());
             }
-       }
+        }
 
         public static void AssertEqual(XacmlJsonResponse expected, XacmlJsonResponse actual)
         {
@@ -80,6 +80,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
             AssertEqual(expected.Status, actual.Status);
 
+            AssertEqual(expected.Attributes, actual.Attributes);
+
             Assert.Equal(expected.Obligations.Count, actual.Obligations.Count);
 
             if (expected.Obligations.Count > 0)
@@ -106,6 +108,65 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             {
                 AssertEqual(expected.AttributeAssignment.First(), actual.AttributeAssignment.First());
             }
+        }
+
+        private static void AssertEqual(ICollection<XacmlContextAttributes> expected, ICollection<XacmlContextAttributes> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.NotNull(actual);
+            Assert.Equal(expected.Count, actual.Count);
+
+            List<XacmlContextAttributes> expectedList = expected.ToList();
+            List<XacmlContextAttributes> actualList = actual.ToList();
+
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expectedList[i], actualList[i]);
+            }
+
+        }
+
+        private static void AssertEqual(XacmlContextAttributes expected, XacmlContextAttributes actual)
+        {
+            Assert.Equal(expected.Category.OriginalString, actual.Category.OriginalString);
+
+            List<XacmlAttribute> expectedList = expected.Attributes.ToList();
+            List<XacmlAttribute> actualList = actual.Attributes.ToList();
+
+            for (int i = 0; i < expected.Attributes.Count; i++)
+            {
+                AssertEqual(expectedList[i], actualList[i]);
+            }
+        }
+
+        private static void AssertEqual(XacmlAttribute expected, XacmlAttribute actual)
+        {
+            Assert.Equal(expected.AttributeId, actual.AttributeId);
+            Assert.Equal(expected.IncludeInResult, actual.IncludeInResult);
+            Assert.Equal(expected.Issuer, actual.Issuer);
+            Assert.Equal(expected.AttributeValues.Count, actual.AttributeValues.Count);
+        }
+
+        private static void AssertEqual(ICollection<XacmlAttributeValue> expected, ICollection<XacmlAttributeValue> actual)
+        {
+            List<XacmlAttributeValue> expectedList = expected.ToList();
+            List<XacmlAttributeValue> actualList = actual.ToList();
+
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expectedList[i], actualList[i]);
+            }
+        }
+
+        private static void AssertEqual(XacmlAttributeValue expected, XacmlAttributeValue actual)
+        {
+            Assert.Equal(expected.DataType, actual.DataType);
+            Assert.Equal(expected.Value, actual.Value);
         }
 
         private static void AssertEqual(XacmlAttributeAssignment expected, XacmlAttributeAssignment actual)

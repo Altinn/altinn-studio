@@ -705,82 +705,82 @@
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringEqualIgnoreCase">
             <summary>
-            String Equal Matching Function
+            String Equal Ignore Case Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.BooleanEqual">
             <summary>
-            String Equal Matching Function
+            Boolean Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.IntegerEqual">
             <summary>
-            String Equal Matching Function
+            Integer Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DoubleEqual">
             <summary>
-            String Equal Matching Function
+            Double Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateEqual">
             <summary>
-            String Equal Matching Function
+            Date Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.TimeEqual">
             <summary>
-            String Equal Matching Function
+            Time Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateTimeEqual">
             <summary>
-            String Equal Matching Function
+            DateTime Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DayTimeDurationEqual">
             <summary>
-            String Equal Matching Function
+            DayTimeDuration Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.YearMonthDurationEqual">
             <summary>
-            String Equal Matching Function
+            YearMonthDuration Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.AnyUriEqual">
             <summary>
-            String Equal Matching Function
+            AnyUri Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.X500NameEqual">
             <summary>
-            String Equal Matching Function
+            X500Name Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.Rfc822NameEqual">
             <summary>
-            String Equal Matching Function
+            Rfc822Name Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.HexBinaryEqual">
             <summary>
-            String Equal Matching Function
+            HexBinary Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.Base64BinaryEqual">
             <summary>
-            String Equal Matching Function
+            Base64Binary Equal Matching Function.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringIsIn">
             <summary>
-            String is in bag of attributes
+            String is in bag of attributes.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.IntegerOneAndOnly">
             <summary>
-            Verify that one one integer of that value exist
+            Verify that one one integer of that value exist.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.TimeBagSize">
@@ -810,17 +810,12 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes">
             <summary>
-            Prefixed used in namespaces when writing to XML
+            Prefixed used in namespaces when writing to XML.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Policy">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Xacml">
             <summary>
-            The XACML policy namespace prefix.
-            </summary>
-        </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Context">
-            <summary>
-            The XACML Context namespace prefix.
+            The XACML xml namespace prefix.
             </summary>
         </member>
         <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Xml">
@@ -1047,11 +1042,11 @@
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ValidateNotMoreThanOneElement(System.Xml.XmlReader,System.Int32,System.String)">
             <summary>
-            Validates that the count of element is not more than 
+            Validates that the count of element is not more than 1.
             </summary>
-            <param name="reader">The Xml Reader</param>
-            <param name="elementCount">The element count</param>
-            <param name="elementName">The element name</param>
+            <param name="reader">The Xml Reader.</param>
+            <param name="elementCount">The element count.</param>
+            <param name="elementName">The element name.</param>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.XacmlSerializer">
             <summary>
@@ -1093,32 +1088,32 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute">
             <summary>
-            Defines the Attribute Json object
+            Defines the Attribute Json object.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.AttributeId">
             <summary>
-            The AttributeId. Required
+            Gets or sets the AttributeId. Required.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.Value">
             <summary>
-            The value for the Attribute. Required
+            Gets or sets the value for the Attribute. Required.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.Issuer">
             <summary>
-            The issuer of the attribute. Optional
+            Gets or sets the issuer of the attribute. Optional.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.DataType">
             <summary>
-            The datatype of the attribute. Optional in somce cases.
+            Gets or sets the datatype of the attribute. Optional in some cases.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.IncludeInResult">
             <summary>
-            Defines if the attribute should be returned in the result. 
+            Gets or sets a value indicating whether the attribute should be returned in the result.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment">
@@ -1588,7 +1583,7 @@
             
              The <Apply/> element is of ApplyType complex type.
              The<Apply/> element contains the following attributes and elements:
-             
+            
              FunctionId[Required]
              The identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3.
             
@@ -1928,7 +1923,7 @@
              See section 7.3.7 for details of<AttributeSelector/> evaluation.
             
              The<AttributeSelector/> element is of AttributeSelectorType complex type
-             
+            
              The<AttributeSelector/> element has the following attributes:
              Category[Required]
              This attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
@@ -1970,20 +1965,20 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.Category">
             <summary>
-            This attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
+            Gets or sets this attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
             attributes category containing the applicable ContextSelectorId attribute, if the element includes a ContextSelectorId xml attribute.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.ContextSelectorId">
             <summary>
-            This attribute refers to the attribute (by its AttributeId) in the request context in the category given by the Category attribute.
+            Gets or sets this attribute refers to the attribute (by its AttributeId) in the request context in the category given by the Category attribute.
             The referenced attribute MUST have data type urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression, and must select a single node in the<Content/> element.
             The XPathCategory attribute of the referenced attribute MUST be equal to the Category attribute of the attribute selector.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.Path">
             <summary>
-            This attribute SHALL contain an XPath expression to be evaluated against the specified XML content.
+            Gets or sets this attribute SHALL contain an XPath expression to be evaluated against the specified XML content.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.DataType">
@@ -3155,14 +3150,14 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Effect">
             <summary>
-            Gets or set Rule effect.The value of this attribute is either “Permit” or “Deny”.
+            Gets or sets Rule effect.The value of this attribute is either “Permit” or “Deny”.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Obligations">
             <summary>
-            A conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the PEP in
+            Gets a conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the PEP in
             conjunction with the authorization decision.
-            See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations. 
+            See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.EvaluateCondition(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">

@@ -155,6 +155,7 @@ namespace Altinn.Authorization.ABAC
                 Status = new XacmlContextStatus(XacmlContextStatusCode.Success),
             };
             this.AddObligations(policy, contextResult);
+            this.AddRequestAttributes(decisionRequest, contextResult);
 
             return new XacmlContextResponse(contextResult);
         }
@@ -225,6 +226,29 @@ namespace Altinn.Authorization.ABAC
 
                         result.Obligations.Add(obligation);
                     }
+                }
+            }
+        }
+
+        private void AddRequestAttributes(XacmlContextRequest decisionRequest, XacmlContextResult result)
+        {
+            foreach (XacmlContextAttributes attribute in decisionRequest.Attributes)
+            {
+                bool hasResponseAttributes = false;
+                XacmlContextAttributes responseAttribute = new XacmlContextAttributes(attribute.Category) { Content = attribute.Content, Id = attribute.Id };
+
+                foreach (XacmlAttribute atr in attribute.Attributes)
+                {
+                    if (atr.IncludeInResult)
+                    {
+                        hasResponseAttributes = true;
+                        responseAttribute.Attributes.Add(atr);
+                    }
+                }
+
+                if (hasResponseAttributes)
+                {
+                    result.Attributes.Add(responseAttribute);
                 }
             }
         }

@@ -13,7 +13,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     ///
     /// The <Apply/> element is of ApplyType complex type.
     /// The<Apply/> element contains the following attributes and elements:
-    /// 
+    ///
     /// FunctionId[Required]
     /// The identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3.
     ///

@@ -12,7 +12,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// See section 7.3.7 for details of<AttributeSelector/> evaluation.
     ///
     /// The<AttributeSelector/> element is of AttributeSelectorType complex type
-    /// 
+    ///
     /// The<AttributeSelector/> element has the following attributes:
     /// Category[Required]
     /// This attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
@@ -80,7 +80,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// This attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
+        /// Gets or sets this attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
         /// attributes category containing the applicable ContextSelectorId attribute, if the element includes a ContextSelectorId xml attribute.
         /// </summary>
         public Uri Category
@@ -98,14 +98,14 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// This attribute refers to the attribute (by its AttributeId) in the request context in the category given by the Category attribute.
+        /// Gets or sets this attribute refers to the attribute (by its AttributeId) in the request context in the category given by the Category attribute.
         /// The referenced attribute MUST have data type urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression, and must select a single node in the<Content/> element.
         /// The XPathCategory attribute of the referenced attribute MUST be equal to the Category attribute of the attribute selector.
         /// </summary>
         public Uri ContextSelectorId { get; set; }
 
         /// <summary>
-        /// This attribute SHALL contain an XPath expression to be evaluated against the specified XML content.
+        /// Gets or sets this attribute SHALL contain an XPath expression to be evaluated against the specified XML content.
         /// </summary>
         public string Path
         {

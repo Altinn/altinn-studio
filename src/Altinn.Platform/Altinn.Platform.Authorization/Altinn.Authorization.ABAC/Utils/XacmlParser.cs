@@ -1125,7 +1125,7 @@ namespace Altinn.Authorization.ABAC.Utils
                 ReadAttribute<Uri>(reader, XacmlConstants.AttributeNames.AttributeId),
                 ReadAttribute<bool>(reader, XacmlConstants.AttributeNames.IncludeInResult))
             {
-                Issuer = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.Issuer, isRequered: false)
+                Issuer = ReadAttribute<string>(reader, XacmlConstants.AttributeNames.Issuer, isRequered: false),
             };
 
             reader.ReadStartElement(XacmlConstants.ElementNames.Attribute, Xacml30Constants.NameSpaces.Policy);
@@ -1173,9 +1173,16 @@ namespace Altinn.Authorization.ABAC.Utils
 
             XacmlAttributeValue attribute = new XacmlAttributeValue(new Uri(dataType, UriKind.RelativeOrAbsolute), value);
 
-            foreach (var item in attributes)
+            foreach (KeyValuePair<string, string> item in attributes)
             {
-                attribute.Attributes.Add(new System.Xml.Linq.XAttribute(item.Key, item.Value)); 
+                try
+                {
+                    attribute.Attributes.Add(new System.Xml.Linq.XAttribute(item.Key, item.Value));
+                }
+                catch(Exception ex)
+                {
+                    string Halle = "hh";
+                }
             }
 
             return attribute;
@@ -1342,11 +1349,11 @@ namespace Altinn.Authorization.ABAC.Utils
         }
 
         /// <summary>
-        /// Validates that the count of element is not more than 
+        /// Validates that the count of element is not more than 1.
         /// </summary>
-        /// <param name="reader">The Xml Reader</param>
-        /// <param name="elementCount">The element count</param>
-        /// <param name="elementName">The element name</param>
+        /// <param name="reader">The Xml Reader.</param>
+        /// <param name="elementCount">The element count.</param>
+        /// <param name="elementName">The element name.</param>
         private static void ValidateNotMoreThanOneElement(XmlReader reader, int elementCount, string elementName)
         {
             if (elementCount > 1)
