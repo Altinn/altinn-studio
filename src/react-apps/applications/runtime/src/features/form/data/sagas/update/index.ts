@@ -20,6 +20,7 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
       dataModelField,
       component,
       state.language.language,
+      state.formValidations.validations[componentId],
     );
     if (state.formData.formData[field] !== data) {
       yield call(FormDataActions.updateFormDataFulfilled, field, data);

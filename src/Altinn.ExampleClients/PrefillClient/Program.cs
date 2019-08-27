@@ -20,9 +20,11 @@ namespace Altinn.Clients.PrefillClient
                 {
                     PersonNumber = "01025180093",
                 },*/
+
                 DueDateTime = DateTime.Parse("2019-12-31"),
                 VisibleDateTime = DateTime.Parse("2019-10-01"),
             };
+
 
             MultipartFormDataContent content = new MultipartContentBuilder(instanceTemplate)                
                 .AddDataElement("form", new FileStream("data/schema.xsd", FileMode.Open), "application/xml")
@@ -33,7 +35,9 @@ namespace Altinn.Clients.PrefillClient
             //client.Timeout = new TimeSpan(0, 0, 3);
             //string prefix = "https://platform.at21.altinn.cloud/storage/api/v1";
             string prefix = "http://localhost:5010/storage/api/v1";
+
             Uri uri = new Uri(prefix + "/instances?appId=tdd/cat&instanceOwnerId=10101");
+
 
             try
             {
