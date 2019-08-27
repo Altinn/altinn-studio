@@ -17,6 +17,7 @@ export interface IProvidedProps {
   required: boolean;
   type: string;
   layout: ILayout;
+  addressComponentValidations?: any;
 }
 
 export interface IProps extends IProvidedProps {
@@ -76,6 +77,10 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
+      const validations = this.getAdressComponentValidations();
+      if (validations !== null) {
+        passThroughProps.addressComponentValidations = validations;
+      }
 
       return (
         <>
@@ -90,6 +95,14 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
           {this.errorMessage()}
         </>
       );
+    }
+
+    public getAdressComponentValidations = () => {
+      if (this.props.type === 'AddressComponent') {
+        return this.props.componentValidations;
+      } else {
+        return null;
+      }
     }
 
     private hasValidationMessages = () => {
