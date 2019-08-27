@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 
 namespace Altinn.Clients.PrefillClient
 {
@@ -24,13 +25,16 @@ namespace Altinn.Clients.PrefillClient
             };
 
             MultipartFormDataContent content = new MultipartContentBuilder(instanceTemplate)
-                .AddDataElement("form1", new FileStream("data/schema.xsd", FileMode.Open), "application/xml")
-                .AddDataElement("cat", new FileStream("data/process-model.png", FileMode.Open), "image/png")
+                .AddDataElement("instance", new StringContent(instanceTemplate.ToString(), Encoding.UTF8, "application/json"))
+                .AddDataElement("form", new FileStream("data/schema.xsd", FileMode.Open), "application/xml")
+                .AddDataElement("cat", new FileStream("data/cat.jpg", FileMode.Open), "image/jpg")
                 .Build();
 
             HttpClient client = new HttpClient();
-            client.Timeout = new TimeSpan(0, 0, 3);
-            Uri uri = new Uri("http://altinn3.no/tdd/xyz23/instances");
+            //client.Timeout = new TimeSpan(0, 0, 3);
+            //string prefix = "https://platform.at21.altinn.cloud/storage/api/v1";
+            string prefix = "http://localhost:5010/storage/api/v1";
+            Uri uri = new Uri(prefix + "/instances?appId=tdd/cat");
 
             try
             {

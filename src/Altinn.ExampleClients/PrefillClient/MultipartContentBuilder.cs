@@ -33,6 +33,13 @@ namespace Altinn.Clients.PrefillClient
             return this;
         }
 
+        public MultipartContentBuilder AddDataElement(string elementType, StringContent content)
+        {                    
+            builder.Add(content, elementType);
+
+            return this;
+        }
+
         public MultipartFormDataContent Build()
         {
             return builder;
