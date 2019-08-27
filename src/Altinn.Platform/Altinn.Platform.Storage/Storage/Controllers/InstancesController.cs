@@ -232,6 +232,11 @@ namespace Altinn.Platform.Storage.Controllers
         private void SetSelfLinks(Instance instance)
         {
             string selfLink = $"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}";
+
+            if (!selfLink.EndsWith(instance.Id))
+            {
+                selfLink += $"/{instance.Id}";
+            }
             
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Platform = selfLink;
@@ -532,6 +537,8 @@ namespace Altinn.Platform.Storage.Controllers
                         instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
                     }
                 }
+
+                request.Body.Position = 0;
             }
             else
             {
@@ -542,8 +549,7 @@ namespace Altinn.Platform.Storage.Controllers
                     instanceTemplate = JsonConvert.DeserializeObject<Instance>(await ReadBodyAsync(request));
                 }
             }
-
-            request.Body.Position = 0;
+            
             return instanceTemplate;
         }
 
