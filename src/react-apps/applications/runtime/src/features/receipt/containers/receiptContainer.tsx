@@ -26,7 +26,7 @@ export const returnInstanceMetaDataObject = (
   ): {} => {
   const obj: any = {};
 
-  obj[getLanguageFromKey('receipt_container.date_sent', languageData)] = lastChangedDateTime;
+  obj[getLanguageFromKey('receipt.date_sent', languageData)] = lastChangedDateTime;
 
   let sender: string = '';
   if (profileData.profile && profileData.profile.party.person.ssn) {
@@ -34,16 +34,16 @@ export const returnInstanceMetaDataObject = (
   } else if (profileData) {
     sender = `${profileData.profile.party.orgNumber}-${profileData.profile.party.name}`;
   }
-  obj[getLanguageFromKey('receipt_container.sender', languageData)] = sender;
+  obj[getLanguageFromKey('receipt.sender', languageData)] = sender;
 
   if (orgsData[org]) {
-    obj[getLanguageFromKey('receipt_container.receiver', languageData)] = orgsData[org].name[userLanguageString];
+    obj[getLanguageFromKey('receipt.receiver', languageData)] = orgsData[org].name[userLanguageString];
   } else {
     // This is only related to testing in Altinn Studio Dev
-    obj[getLanguageFromKey('receipt_container.receiver', languageData)] = 'Error: Receiver org not found';
+    obj[getLanguageFromKey('receipt.receiver', languageData)] = 'Error: Receiver org not found';
   }
 
-  obj[getLanguageFromKey('receipt_container.ref_num', languageData)] = instanceGuid;
+  obj[getLanguageFromKey('receipt.ref_num', languageData)] = instanceGuid;
 
   return obj;
 };
@@ -106,13 +106,13 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   return (
     <ReceiptComponent
       attachments={attachments}
-      body={getLanguageFromKey('receipt_container.body', language)}
-      collapsibleTitle={getLanguageFromKey('receipt_container.attachments', language)}
+      body={getLanguageFromKey('receipt.body', language)}
+      collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
       instanceMetaDataObject={instanceMetaObject}
-      subtitle={getLanguageFromKey('receipt_container.subtitle', language)}
+      subtitle={getLanguageFromKey('receipt.subtitle', language)}
       subtitleurl={returnUrlToMessagebox(origin)}
-      title={`${appName} ${getLanguageFromKey('receipt_container.title_part_is_submitted', language)}`}
-      titleSubmitted={getLanguageFromKey('receipt_container.title_submitted', language)}
+      title={`${appName} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
+      titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
     />
   );
 

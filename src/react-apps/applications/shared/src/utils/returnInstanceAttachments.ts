@@ -1,21 +1,4 @@
-import { IAttachment } from './../types/index';
-
-interface IData {
-  id: string;
-  elementType: string;
-  fileName: string;
-  contentType: string;
-  storageUrl: string;
-  dataLinks: IDataLinks;
-  fileSize: number;
-  isLocked: boolean;
-  createdDateTime: Date;
-  lastChangedDateTime: Date;
-}
-
-interface IDataLinks {
-  apps: string;
-}
+import { IAttachment, IData } from './../types/index';
 
 export const returnInstanceAttachments = (data: any): IAttachment[] => {
   if (!data) {

@@ -61,7 +61,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
           </div>
           <h1 className='a-iconText-text mb-0'>
             <span className='a-iconText-text-large'>{this.props.step === WorkflowSteps.Archived ? (
-              <span>Kvittering</span>
+              <span>{getLanguageFromKey('receipt.receipt', this.props.language)}</span>
             ) : (this.props.header)}</span>
           </h1>
         </div>
@@ -70,7 +70,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public handleModalCloseButton = () => {
-    const altinnWindow = window as any;
     const origin = window.location.origin;
     if (window) {
       window.location.href = returnUrlToMessagebox(origin);
@@ -223,7 +222,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             {this.props.step === WorkflowSteps.Archived &&
               <Box display='none' displayPrint='block'>
                 <Typography variant='h2' style={{marginBottom: '2.1rem'}}>
-                  Kvittering
+                  {getLanguageFromKey('receipt.receipt', this.props.language)}
                 </Typography>
                 <ReceiptContainer />
               </Box>
