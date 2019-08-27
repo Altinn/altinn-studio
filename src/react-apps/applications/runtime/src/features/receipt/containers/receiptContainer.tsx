@@ -89,10 +89,12 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
     if (instance && instance.data) {
       const attachmentsResult = returnInstanceAttachments(instance.data);
       setAttachments(attachmentsResult);
-    }
 
-    if (instance) {
-      setInstanceLastChangedDateTime(moment(instance.lastChangedDateTime).format('DD.MM.YYYY / HH:MM'));
+      const defaultDataElementLastChangedDateTime = instance.data
+        .filter((elem) => elem.elementType === 'default')[0]
+        .lastChangedDateTime;
+
+      setInstanceLastChangedDateTime(moment(defaultDataElementLastChangedDateTime).format('DD.MM.YYYY / HH:mm'));
     }
   }, [instance]);
 
