@@ -157,7 +157,7 @@ function Receipt(props: WithStyles<typeof styles>) {
           <AltinnReceipt
             title={getTitle()}
             body={getLanguageFromKey('receipt_platform.helper_text', language)}
-            language={language}
+            collapsibleTitle={getLanguageFromKey('receipt_platform.attachments', language)}
             attachments={getAttachments()}
             instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organizations)}
             titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
