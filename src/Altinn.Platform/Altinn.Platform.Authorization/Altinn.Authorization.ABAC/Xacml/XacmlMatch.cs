@@ -131,13 +131,21 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Matches the context attribute against the Policy
+        /// Matches the context attribute against the Policy.
         /// </summary>
         /// <param name="xacmlAttributeValue">A xacml attribute value</param>
-        /// <returns></returns>
+        /// <returns>A boolean indicating it is a match</returns>
         public bool IsMatch(XacmlAttributeValue xacmlAttributeValue)
         {
-           return AttributeMatcher.MatchAttributes(AttributeValue.Value, xacmlAttributeValue.Value, MatchId.OriginalString);
+            if (this.AttributeValue.DataType.OriginalString.Equals(xacmlAttributeValue.DataType.OriginalString))
+            {
+                return AttributeMatcher.MatchAttributes(this.AttributeValue.Value, xacmlAttributeValue.Value, this.MatchId.OriginalString);
+            }
+            else
+            {
+                // Returns false if datatype is different even the values are the same
+                return false;
+            }
         }
 
         /// <summary>

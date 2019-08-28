@@ -1002,7 +1002,7 @@
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadChoiceElements(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
             <summary>
-            This method reads 
+            This method reads choice elements.
             </summary>
             <param name="reader">The XML Reader</param>
             <param name="readerActions">A dictionary with actions to be used on different element types</param>
@@ -1010,12 +1010,12 @@
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadChoiceElement(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
             <summary>
-            This method uses a dictionary with different actions to 
+            This method uses a dictionary with different actions to read choice elements.
             </summary>
             <param name="reader">The Xml reader</param>
-            <param name="actions">The actions to be used for reading a element</param>
-            <param name="isRequired">Defines if element is required</param>
-            <returns></returns>
+            <param name="actions">The actions to be used for reading a element.</param>
+            <param name="isRequired">Defines if element is required.</param>
+            <returns>Boolean value to tell if choice elements can be read.</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadAttributeSelector(System.Xml.XmlReader)">
             <summary>
@@ -1360,32 +1360,32 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Decision">
             <summary>
-            The XACML Decision
+            Gets or sets the XACML Decision.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Status">
             <summary>
-            The status
+            Gets or sets the status.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Obligations">
             <summary>
-            Any obligations of the result
+            Gets or sets any obligations of the result.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.AssociateAdvice">
             <summary>
-            XACML Advice
+            Gets or sets xACML Advice.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Category">
             <summary>
-            Category
+            Gets or sets category.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.PolicyIdentifierList">
             <summary>
-            Policy Identifyer list related to the result
+            Gets or sets policy Identifyer list related to the result.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus">
@@ -1395,17 +1395,17 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus.StatusMessage">
             <summary>
-            The status message
+            Gets or sets the status message.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus.StatusDetails">
             <summary>
-             List over status details
+             Gets or sets list over status details.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus.StatusCode">
             <summary>
-            The defined status code
+            Gets or sets the defined status code.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatusCode">
@@ -1415,12 +1415,12 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatusCode.Value">
             <summary>
-            The value
+            Gets or sets the value.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatusCode.StatusCode">
             <summary>
-            A nested status code
+            Gets or sets a nested status code.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAdvice">
@@ -1617,10 +1617,10 @@
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlApply.Evalute(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
             <summary>
-            Evauluate the Apply 
+            Evauluate the Apply.
             </summary>
             <param name="request">The context request</param>
-            <returns></returns>
+            <returns>The match result</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlApply.IsBagSizeCondition(Altinn.Authorization.ABAC.Xacml.XacmlApply)">
             <summary>
@@ -1641,7 +1641,7 @@
             
              AttributeId[Required]
              The Attribute identifier.A number of identifiers are reserved by XACML to denote commonly used attributes.  See Appendix B.
-             
+            
              Issuer[Optional]
              The Attribute issuer.  For example, this attribute value MAY be an x500Name that binds to a public key, or it may be some other identifier exchanged out-of-band by issuing and relying parties.
             
@@ -1709,7 +1709,7 @@
              Category [Optional]
              An optional category of the attribute. If this attribute is missing, the attribute has no category.The PEP SHALL interpret the significance and meaning of any Category attribute.
              Non-normative note: an expected use of the category is to disambiguate attributes which are relayed from the request.
-             
+            
              Issuer[Optional]
              An optional issuer of the attribute.If this attribute is missing, the attribute has no issuer.The PEP SHALL interpret the significance and meaning of any Issuer attribute.
              Non-normative note: an expected use of the issuer is to disambiguate attributes which are relayed from the request.
@@ -1762,7 +1762,7 @@
             
              The <AttributeAssignmentExpression/> element is of AttributeAssignmentExpressionType complex type.
              The <AttributeAssignmentExpression/> element contains the following attributes:
-             
+            
              <Expression/> [Required]
              The expression which evaluates to a constant attribute value or a bag of zero or more attribute values.See section 5.25.
             
@@ -1824,7 +1824,7 @@
              governed by AttributeId and DataType attributes alone.
             
              The<AttributeDesignatorType/> contains the following attributes:
-             
+            
              Category[Required]
              This attribute SHALL specify the Category with which to match the attribute.
             
@@ -1836,7 +1836,7 @@
             
              Issuer[Optional]
              This attribute, if supplied, SHALL specify the Issuer with which to match the attribute.
-             
+            
              MustBePresent[Required]
              This attribute governs whether the element returns “Indeterminate” or an empty bag in the event the named attribute is absent from the request context.See Section 7.3.5.
              Also see Sections 7.19.2 and 7.19.3.
@@ -2051,10 +2051,10 @@
             
              The <CombinerParameter/> element is of CombinerParameterType complex type.
              The<CombinerParameter/> element contains the following attributes:
-             
+            
              ParameterName[Required]
              The identifier of the parameter.
-             
+            
              <AttributeValue/> [Required]
              The value of the parameter.
              Support for the<CombinerParameter/> element is optional.
@@ -2401,7 +2401,7 @@
              5.47 Element <Response/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047152
              The <Response/> element is an abstraction layer used by the policy language.  Any proprietary system using the XACML specification MUST
              transform an XACML context <Response/> element into the form of its authorization decision.
-             
+            
              The<Response/> element encapsulates the authorization decision produced by the PDP.It includes a sequence of one or more results,
              with one <Result/> element per requested resource.  Multiple results MAY be returned by some implementations, in particular those
              that support the XACML Profile for Requests for Multiple Resources [Multi].  Support for multiple results is OPTIONAL.
@@ -2575,15 +2575,15 @@
             
              A PDP MUST NOT return a<StatusDetail/> element in conjunction with the “ok” status value.
              urn:oasis:names:tc:xacml:1.0:status:missing-attribute
-             
+            
              A PDP MAY choose not to return any<StatusDetail/> information or MAY choose to return a<StatusDetail/> element containing one or more
              <MissingAttributeDetail/> elements.
              urn:oasis:names:tc:xacml:1.0:status:syntax-error
-             
+            
              A PDP MUST NOT return a<StatusDetail/> element in conjunction with the “syntax-error” status value.  A syntax error may
              represent either a problem with the policy being used or with the request context.  The PDP MAY return a<StatusMessage/> describing the problem.
              urn:oasis:names:tc:xacml:1.0:status:processing-error
-             
+            
              A PDP MUST NOT return <StatusDetail/> element in conjunction with the “processing-error” status value.  This status code
              indicates an internal problem in the PDP.For security reasons, the PDP MAY choose to return no further information to the PEP.
              In the case of a divide-by-zero error or other computational error, the PDP MAY return a<StatusMessage/> describing the nature of the error.
@@ -2605,7 +2605,7 @@
              See Section B.8 for a list of values.
             
              <StatusCode/> [Any Number]
-             Minor status code.This status code qualifies its parent status code. 
+             Minor status code.This status code qualifies its parent status code.
              </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.#ctor(System.String)">
@@ -2762,7 +2762,7 @@
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlMatch.IsMatch(Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue)">
             <summary>
-            Matches the context attribute against the Policy
+            Matches the context attribute against the Policy.
             </summary>
             <param name="xacmlAttributeValue">A xacml attribute value</param>
             <returns></returns>
@@ -2781,7 +2781,7 @@
             
              The <Obligation/> element is of ObligationType complexType.  See Section 7.18 for a description of how the set of obligations to be returned by the PDP is determined.
              The <Obligation/> element contains the following elements and attributes:
-             
+            
              ObligationId[Required]
              Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.
             
@@ -3096,7 +3096,7 @@
             
              RuleId[Required]
              A string identifying this rule.
-             
+            
              Effect[Required]
              Rule effect.The value of this attribute is either “Permit” or “Deny”.
             
@@ -3192,7 +3192,7 @@
              Note that none of the rule-combining algorithms specified in XACML 3.0 is parameterized.
             
              The <RuleCombinerParameters/> element contains the following attribute:
-             
+            
              RuleIdRef[Required]
              The identifier of the<Rule/> contained in the policy.
              Support for the<RuleCombinerParameters/> element is optional, only if support for combiner parameters is not implemented.
@@ -3218,7 +3218,7 @@
             
              The <Target/> element is of TargetType complex type.
              The<Target/> element contains the following elements:
-             
+            
              <AnyOf/> [Zero to Many]
              Matching specification for attributes in the context.If this element is missing, then the target SHALL match all contexts.
              </summary>

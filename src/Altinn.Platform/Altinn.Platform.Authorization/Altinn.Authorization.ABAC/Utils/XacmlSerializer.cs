@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Altinn.Authorization.ABAC.Constants;
@@ -9,15 +7,15 @@ using Altinn.Authorization.ABAC.Xacml;
 namespace Altinn.Authorization.ABAC.Utils
 {
     /// <summary>
-    /// Utility to parse XACM objects to XML or JSON
+    /// Utility to parse XACM objects to XML or JSON.
     /// </summary>
     public static class XacmlSerializer
     {
         /// <summary>
-        /// Method to serialize the XACML Response
+        /// Method to serialize the XACML Response.
         /// </summary>
-        /// <param name="writer">XML Writer</param>
-        /// <param name="xacmlContextResponse">The responze</param>
+        /// <param name="writer">XML Writer.</param>
+        /// <param name="xacmlContextResponse">The responze.</param>
         public static void WriteContextResponse(XmlWriter writer, XacmlContextResponse xacmlContextResponse)
         {
             Guard.ArgumentNotNull(writer, nameof(writer));

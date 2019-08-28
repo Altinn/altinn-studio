@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
 {
     /// <summary>
-    /// The JSON object roor needed to be abe to parse the request
+    /// The JSON object root needed to be able to parse the request.
     /// </summary>
     public class XacmlJsonRequestRoot
     {
         /// <summary>
-        /// The request
+        /// Gets or sets the request.
         /// </summary>
         public XacmlJsonRequest Request { get; set; }
     }

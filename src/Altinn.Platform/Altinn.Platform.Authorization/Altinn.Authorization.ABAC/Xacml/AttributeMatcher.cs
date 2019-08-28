@@ -5,17 +5,17 @@ using Altinn.Authorization.ABAC.Utils;
 namespace Altinn.Authorization.ABAC.Xacml
 {
     /// <summary>
-    /// Utility to match attributes
+    /// Utility to match attributes.
     /// </summary>
     public static class AttributeMatcher
     {
         /// <summary>
-        /// Method to match attributes
+        /// Method to match attributes.
         /// </summary>
-        /// <param name="policyAttribute">The attribute in policy</param>
-        /// <param name="contextRequestAttribute">The attribute in </param>
-        /// <param name="matchId">The match parameter</param>
-        /// <returns></returns>
+        /// <param name="policyAttribute">The attribute in policy.</param>
+        /// <param name="contextRequestAttribute">The attribute in.</param>
+        /// <param name="matchId">The match parameter.</param>
+        /// <returns>A boolean to tell if the attributes match.</returns>
         public static bool MatchAttributes(string policyAttribute, string contextRequestAttribute, string matchId)
         {
             Guard.ArgumentNotNull(policyAttribute, nameof(policyAttribute));

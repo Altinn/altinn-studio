@@ -1310,7 +1310,7 @@ namespace Altinn.Authorization.ABAC.Utils
         }
 
         /// <summary>
-        /// Delegate to make it possible to send different read methods in to metods
+        /// Delegate to make it possible to send different read methods in to metods.
         /// </summary>
         /// <typeparam name="T">The type</typeparam>
         /// <param name="reader">The xml reader</param>

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
 {
@@ -12,58 +10,58 @@ namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
     public class XacmlJsonRequest
     {
         /// <summary>
-        /// Gets or sets the ReturnPolicyIdList. Optional. Default false
+        /// Gets or sets a value indicating whether the PolicyIdList should be returned. Optional. Default false.
         /// </summary>
         public bool ReturnPolicyIdList { get; set; }
 
         /// <summary>
-        /// Sets or gets the combined decision
+        /// Gets or sets a value indicating whether it is a combined decision.
         /// </summary>
         public bool CombinedDecision { get; set; }
 
         /// <summary>
-        /// The xpath version
+        /// Gets or sets the xpath version.
         /// </summary>
         public string XPathVersion { get; set; }
 
         /// <summary>
-        /// The Category object corresponds to the XML <Attributes/> element. Just like the <Attributes/> element is
+        /// Gets or sets the Category object corresponds to the XML <Attributes/> element. Just like the <Attributes/> element is
         /// specific to a given XACML attribute category, the Category object in JSON is specific to a given XACML attribute category.
         /// </summary>
         public List<XacmlJsonCategory> Category { get; set; }
 
         /// <summary>
-        /// The resource attributes
+        /// Gets or sets the resource attributes.
         /// </summary>
         public List<XacmlJsonCategory> Resource { get; set; }
 
         /// <summary>
-        /// The action attributes
+        /// Gets or sets the action attributes.
         /// </summary>
         public List<XacmlJsonCategory> Action { get; set; }
 
         /// <summary>
-        /// The subject attributes
+        /// Gets or sets the subject attributes.
         /// </summary>
         public List<XacmlJsonCategory> AccessSubject { get; set; }
 
         /// <summary>
-        /// The recipent subjet
+        /// Gets or sets the recipent subjet.
         /// </summary>
         public List<XacmlJsonCategory> RecipientSubject { get; set; }
 
         /// <summary>
-        /// The intermediary subjects attributes
+        /// Gets or sets the intermediary subjects attributes.
         /// </summary>
         public List<XacmlJsonCategory> IntermediarySubject { get; set; }
 
         /// <summary>
-        /// Attributes about requsting machine
+        /// Gets or sets attributes about requsting machine.
         /// </summary>
         public List<XacmlJsonCategory> RequestingMachine { get; set; }
 
         /// <summary>
-        /// References to multiple requests
+        /// Gets or sets references to multiple requests.
         /// </summary>
         public XacmlJsonMultiRequests MultiRequests { get; set; }
     }
