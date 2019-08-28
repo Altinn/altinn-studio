@@ -32,7 +32,8 @@ namespace Altinn.Platform.Storage.Helpers
                     InstanceOwnerId = instance.InstanceOwnerId,
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
-                    Title = appTitles[instance.AppId]["nb"]
+                    Title = appTitles[instance.AppId]["nb"],
+                    ProcessCurrentTask = instance.Process.CurrentTask
                 });
             }
 
@@ -46,7 +47,7 @@ namespace Altinn.Platform.Storage.Helpers
     public class MessageBoxInstance
     {
         /// <summary>
-        /// unique id of the instance {integer}/{guid}
+        /// unique guid id of the instance {guid}
         /// </summary>
         public string Id { get; set; }
 
@@ -64,6 +65,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// application title for the instance
         /// </summary>
         public string Title { get; set; }
+
+        /// <summary>
+        /// current task in processState
+        /// </summary>
+        public string ProcessCurrentTask { get; set; }
 
         /// <summary>
         /// create date and time for the instance
