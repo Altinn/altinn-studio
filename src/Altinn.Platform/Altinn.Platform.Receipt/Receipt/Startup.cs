@@ -1,17 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Tokens;
 using AltinnCore.Authentication.JwtCookie;
-
+using AltinnCore.Common.Configuration;
 
 namespace Altinn.Platform.Receipt
 {
@@ -64,6 +60,8 @@ namespace Altinn.Platform.Receipt
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
+            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
         }
 
         /// <summary>
@@ -83,7 +81,18 @@ namespace Altinn.Platform.Receipt
                 app.UseExceptionHandler("/Error");
             }
             app.UseStaticFiles();
-            app.UseMvc();
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "languageRoute",
+                    template: "receipt/api/v1/{controller}/{action=Index}",
+                    defaults: new { controller = "Language" },
+                    constraints: new
+                    {
+                        controller = "Language",
+                    }
+                );
+            });
         }
     }
 }

@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../../AltinnCore/Common/AltinnCore.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AltinnCore.ServiceLibrary" Version="9.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
@@ -14,8 +18,28 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.1-dev-00159" />
     <PackageReference Include="Serilog.Sinks.TextWriter" Version="2.1.0" />
-    <PackageReference Include="JWTCookieAuthentication" Version="0.8.10-alpha" />
+    <PackageReference Include="JWTCookieAuthentication" Version="0.8.11-alpha" />
   </ItemGroup>
+
+  <ItemGroup>
+	  <CoreLanguage Include="../../../AltinnCore/Common/Languages/ini/*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="JWTValidationCert.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="AfterPublishScript" AfterTargets="Publish">
+	  <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
+	  <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
+  </Target>
+
+  <Target Name="AfterPublishScript" AfterTargets="Publish">
+	  <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
+	  <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
+  </Target>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>

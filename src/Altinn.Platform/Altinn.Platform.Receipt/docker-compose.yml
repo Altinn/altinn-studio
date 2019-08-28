@@ -5,17 +5,28 @@ networks:
     external: false
 
 services:
-  altinn_platform_config:
-    container_name: altinn-platform-config
-    image: altinnplatformconfig:latest
+  altinn_receipt_react_app:
+    container_name: altinn-receipt-react-app
+    image: altinn-receipt-react-app:latest
+    build:
+      context: ../../
+      dockerfile: react-apps/applications/receipt/Dockerfile
+
+  altinn_platform_receipt:
+    container_name: altinn-platform-receipt
+    image: altinnplatformreceipt:latest
     restart: always
     networks:
       - altinnplatform_network
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5060
+      - PlatformSettings:ApiProfileEndpoint=https://platform.at21.altinn.cloud/profile/api/v1/
+      - GeneralSettings:LanguageFilesLocation=Languages/
     ports:
       - "5060:5060"
+    depends_on:
+      - altinn_receipt_react_app
     build:
-      context: .
-      dockerfile: Receipt/Dockerfile
+      context: ../../../
+      dockerfile: src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/Dockerfile

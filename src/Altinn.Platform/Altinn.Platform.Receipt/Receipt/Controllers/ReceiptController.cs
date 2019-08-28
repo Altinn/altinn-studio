@@ -9,6 +9,9 @@ using System.Net.Http;
 using AltinnCore.ServiceLibrary.Models;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
+using AltinnCore.Common.Configuration;
+using Microsoft.Extensions.Options;
+using System;
 
 namespace Altinn.Platform.Receipt
 {
@@ -18,11 +21,13 @@ namespace Altinn.Platform.Receipt
     [ApiController]
     public class ReceiptController : Controller
     {
+        private PlatformSettings _platformSettings;
         private HttpClient _client;
         private ILogger _logger;
 
-        public ReceiptController(ILogger<ReceiptController> logger)
+        public ReceiptController(IOptions<PlatformSettings> platformSettings, ILogger<ReceiptController> logger)
         {
+            _platformSettings = platformSettings.Value;
             _logger = logger;
             _client = new HttpClient();
             _client.DefaultRequestHeaders.Clear();
@@ -48,11 +53,25 @@ namespace Altinn.Platform.Receipt
                 return BadRequest("Invalid request context. UserId must be provided in claims.");
             }
 
+
             int userId = int.Parse(userIdString);
-            string endpointUrl = $"https://platform.at21.altinn.cloud/profile/api/v1/users/{userId}";
+            string userUrl = string.Empty;
+            if( Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint") != null)
+            {
+                userUrl = $"{Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint")}users/{userId}";
+            }
+            else
+            {
+                userUrl = $"{_platformSettings.ApiProfileEndpoint}users/{userId}";
+            }
+
+            _logger.LogError($"Platformsettings: {_platformSettings.ApiProfileEndpoint}");
+            _logger.LogError($"Environment variable: {Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint")}");
+            _logger.LogError($"userUrl: {userUrl}");
+
             string token = JwtTokenUtil.GetTokenFromContext(Request.HttpContext, "AltinnStudioRuntime");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-            HttpResponseMessage response = await _client.GetAsync(endpointUrl);
+            HttpResponseMessage response = await _client.GetAsync(userUrl);
             UserProfile userProfile = null;
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {

@@ -10,8 +10,9 @@ import AltinnReceipt from '../../../../../shared/src/components/organisms/Altinn
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { IApplication, IAttachment, IData, IInstance, IParty, IProfile  } from '../../../../../shared/src/types';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
+import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import { getInstanceId } from '../../../utils/instance';
-import { altinnOrganisationsUrl, altinnUrl, getApplicationMetadataUrl, getInstanceMetadataUrl, getPartyUrl, getUrlQueryParameterByKey, getUserUrl, getMessageBoxUrl } from '../../../utils/urlHelper';
+import { altinnOrganisationsUrl, getApplicationMetadataUrl, getInstanceMetadataUrl, getPartyUrl, getUserUrl, languageUrl } from '../../../utils/urlHelper';
 
 const styles = () => createStyles({
   body: {
@@ -30,6 +31,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   const [organizations, setOrganizations] = React.useState(null);
   const [application, setApplication] = React.useState<IApplication>(null);
   const [user, setUser] = React.useState<IProfile>(null);
+  const [language, setLanguage] = React.useState(null);
   const isPrint = useMediaQuery('print');
 
   const fetchParty = async () => {
@@ -70,27 +72,20 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   const fetchUser = async () => {
-    if (!user) {
-      return;
-    }
     try {
-      const response = await Axios.get(getUserUrl());
+      const response = await Axios.get<IProfile>(getUserUrl());
       setUser(response.data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const getOrganizationDisplayName = (): string => {
-    if (!organizations) {
-      return instance.org.toUpperCase();
-    } else {
-      // TODO: fetch this language based on language cookie
-      if (organizations.orgs[instance.org]) {
-        return organizations.orgs[instance.org].name.nb.toUpperCase();
-      } else {
-        return instance.org.toUpperCase();
-      }
+  const fetchLanguage = async () => {
+    try {
+      const response = await Axios.get(languageUrl);
+      setLanguage(response.data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -113,37 +108,15 @@ function Receipt(props: WithStyles<typeof styles>) {
 
   const getTitle = (): string => {
     const applicationTitle = application ? application.title.nb : '';
-    return `${applicationTitle} ${getLanguageFromKey('er sendt inn', {})}`;
-  };
-
-  const instanceMetaDataObject = (
-
-    ): {} => {
-    const obj = {} as any;
-    let dateSubmitted;
-    if (instance.lastChangedDateTime) {
-      dateSubmitted = moment(instance.lastChangedDateTime).format('DD.MM.YYYY / HH:MM');
-    }
-    obj[getLanguageFromKey('Dato sendt', {})] = dateSubmitted;
-    let sender: string = '';
-    if (party && party.person.ssn) {
-      sender = `${party.person.ssn}-${party.person.name}`;
-    } else if (party) {
-      sender = `${party.orgNumber}-${party.name}`;
-    }
-    obj[getLanguageFromKey('Avsender', {})] = sender;
-    obj[getLanguageFromKey('Mottaker', {})] = getOrganizationDisplayName();
-    obj[getLanguageFromKey('Referansenummer', {})] = getInstanceId();
-    return obj;
+    return `${applicationTitle} ${getLanguageFromKey('receipt_platform.is_sent', language)}`;
   };
 
   const handleModalClose = () => {
-    window.location.href = getMessageBoxUrl();
+    window.location.href = returnUrlToMessagebox(window.location.origin);
   };
 
   const isLoading = (): boolean => {
-    // todo: add user
-    return (!party || !instance || !organizations || !application);
+    return (!party || !instance || !organizations || !application || !language || !user);
   };
 
   React.useEffect(() => {
@@ -157,16 +130,17 @@ function Receipt(props: WithStyles<typeof styles>) {
     fetchParty();
     fetchOrganizations();
     fetchUser();
+    fetchLanguage();
   }, []);
 
   return (
-    <div className={'container'}>
+    <>
       <AltinnAppHeader
         logoColor={theme.altinnPalette.primary.blueDarker}
         headerColor={theme.altinnPalette.primary.blue}
         party={party ? party : {} as IParty}
         // tslint:disable-next-line: max-line-length
-        userParty={{partyId: 12, person: {firstName: 'Steffen', middleName: '', lastName: 'Ekeberg'}, ssn: '123467'} as IParty}
+        userParty={user ? user.party : {} as IParty}
       />
         <AltinnModal
           classes={props.classes}
@@ -174,7 +148,7 @@ function Receipt(props: WithStyles<typeof styles>) {
           onClose={handleModalClose}
           hideBackdrop={true}
           hideCloseIcon={isPrint}
-          headerText={getLanguageFromKey('Kvittering', {})}
+          headerText={getLanguageFromKey('receipt_platform.receipt', language)}
         >
         {isLoading() &&
           <AltinnContentLoader/>
@@ -182,19 +156,49 @@ function Receipt(props: WithStyles<typeof styles>) {
         {!isLoading() &&
           <AltinnReceipt
             title={getTitle()}
-            // tslint:disable-next-line: max-line-length
-            body={'Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten.'}
-            language={{shared_altinnreceipt: {
-              attachments: 'Vedlegg',
-            }}}
+            body={getLanguageFromKey('receipt_platform.helper_text', language)}
+            language={language}
             attachments={getAttachments()}
-            instanceMetaDataObject={instanceMetaDataObject()}
-            titleSubmitted={'Følgende er sendt inn'}
+            instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organizations)}
+            titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
           />
         }
         </AltinnModal>
-    </div>
+    </>
   );
 }
+
+export const getInstanceMetaDataObject = (instance: IInstance, party: IParty,  language: any, organizations: any) => {
+  const obj = {} as any;
+  let dateSubmitted;
+  if (instance.data) {
+    const lastChanged = instance.data.filter((elem) => elem.elementType === 'default')[0].lastChangedDateTime;
+    dateSubmitted = moment(lastChanged).format('DD.MM.YYYY / HH:mm');
+  }
+  obj[getLanguageFromKey('receipt_platform.date_sent', language)] = dateSubmitted;
+  let sender: string = '';
+  if (party && party.person.ssn) {
+    sender = `${party.person.ssn}-${party.person.name}`;
+  } else if (party) {
+    sender = `${party.orgNumber}-${party.name}`;
+  }
+  obj[getLanguageFromKey('receipt_platform.sender', language)] = sender;
+  obj[getLanguageFromKey('receipt_platform.receiver', language)] = getOrganizationDisplayName(instance, organizations);
+  obj[getLanguageFromKey('receipt_platform.reference_number', language)] = getInstanceId();
+  return obj;
+};
+
+export const getOrganizationDisplayName = (instance: IInstance, organizations: any ): string => {
+  if (!organizations) {
+    return instance.org.toUpperCase();
+  } else {
+    // TODO: fetch this language based on language cookie
+    if (organizations.orgs[instance.org]) {
+      return organizations.orgs[instance.org].name.nb.toUpperCase();
+    } else {
+      return instance.org.toUpperCase();
+    }
+  }
+};
 
 export default withStyles(styles)(Receipt);

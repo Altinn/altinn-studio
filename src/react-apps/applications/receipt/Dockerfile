@@ -1,25 +1,22 @@
 # base image
-FROM node:10.13.0 as altinn-receipt-react-app
+FROM node:10.13.0  AS generate-receipt-app
 
 # Copy and install Lerna
-COPY ./src/react-apps/lerna.json .
-COPY ./src/react-apps/package.json .
-COPY ./src/react-apps/package-lock.json .
-RUN npm install
+# Context is ./src, see docker-compose.yaml in src\Altinn.Platform\Altinn.Platform.Receipt\docker-compose.yml
+COPY react-apps/lerna.json .
+COPY react-apps/package.json .
+COPY react-apps/package-lock.json .
+RUN npm ci
 
 # Copy shared and receipt
-COPY ./src/react-apps/applications/shared/ /applications/shared/
-COPY ./src/react-apps/applications/runtime/ /applications/receipt/
-
-# set working directory
-RUN mkdir /usr/src/app
-WORKDIR /usr/src/app
+COPY react-apps/applications/shared/ /applications/shared/
+COPY react-apps/applications/receipt/ /applications/receipt/
 
 # Install
 RUN npm run install-deps
 
 # Build runtime
-RUN npm run build --prefix /applications/runtime; exit 0
+RUN npm run build --prefix /applications/receipt; exit 0
 
 CMD ["echo", "done"]
 
