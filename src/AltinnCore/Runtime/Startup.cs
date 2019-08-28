@@ -89,6 +89,9 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IProfile, ProfileStudioSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
                 services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
+
+                // need this to get InstancesController to work. 
+                services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             }
             else
             {
@@ -123,9 +126,7 @@ namespace AltinnCore.Runtime
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddResponseCompression();
 
-            string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
-                                : Configuration["ServiceRepositorySettings:RepositoryLocation"];
+            string repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
             if (!Directory.Exists(repoLocation))
             {
@@ -199,7 +200,14 @@ namespace AltinnCore.Runtime
                     Version = "v1"
                 });
 
-                // options.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                try
+                {
+                    options.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Cannot read XML file for SWAGGER Config! {e.Message}");
+                }
             });
         }
 

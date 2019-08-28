@@ -63,6 +63,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\AltinnCore.Common.csproj" />
     <ProjectReference Include="..\Designer\AltinnCore.Designer.csproj" />
+    <ProjectReference Include="..\Runtime\AltinnCore.Runtime.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -124,6 +125,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Designer\Edag-latin1.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Runtime\data\CreatedInstanceFromStorage.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

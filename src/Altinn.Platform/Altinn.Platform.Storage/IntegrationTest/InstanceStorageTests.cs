@@ -248,6 +248,36 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
+        /// Read a binary file.
+        /// </summary>
+        [Fact]
+        public async void StoreAndGetImageFile()
+        {
+            string applicationId = testAppId;
+            int instanceOwnerId = testInstanceOwnerId;
+
+            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+
+            Instance instance2 = await storageClient.PostDataReadFromFile(instance.Id, "image.png", "image/png");
+
+            string dataId = instance2.Data.Find(m => m.ElementType.Equals("default")).Id;
+
+            string requestUri = $"{versionPrefix}/instances/{instance2.Id}/data/{dataId}";
+
+            using (HttpResponseMessage response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    using (Stream remoteStream = await response.Content.ReadAsStreamAsync())
+                    using (var output = File.Create("test.png"))
+                    {
+                        await remoteStream.CopyToAsync(output);
+                    }                    
+                }
+            }
+        }
+
+        /// <summary>
         ///  update an existing data file.
         /// </summary>
         [Fact]

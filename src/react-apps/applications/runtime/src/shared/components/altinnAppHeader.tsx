@@ -157,7 +157,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
                 {
                   party && party.organization &&
                   getLanguageFromKey('general.for', props.language) + ' ' +
-                  party.organization.toUpperCase()
+                  party.organization.name.toUpperCase()
                 }
               </span>
             </>

@@ -6,18 +6,18 @@ namespace AltinnCore.ServiceLibrary.Enums
     public enum PartyType
     {
         /// <summary>
-        /// Indicates that this party is a Person
+        /// Party Type is Person
         /// </summary>
-        Person = 0, 
+        Person = 1,
 
         /// <summary>
-        /// Indicates that this party is an Organization
+        /// Party Type is Organization
         /// </summary>
-        Organization = 1,
+        Organization = 2,
 
         /// <summary>
-        /// Indicates that this party is a self identified user
+        /// Party Type is Self Identified user
         /// </summary>
-        SelfIdentified = 2,
+        SelfIdentified = 3
     }
 }

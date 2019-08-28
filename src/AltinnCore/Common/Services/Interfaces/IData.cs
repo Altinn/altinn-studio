@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
@@ -48,6 +49,16 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="dataId">the data id</param>
         object GetFormData(Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId, Guid dataId);
+
+        /// <summary>
+        /// Gets the data as is.
+        /// </summary>
+        /// <param name="org">The application owner id</param>
+        /// <param name="appName">The application name</param>
+        /// <param name="instanceOwnerId">The instance owner id</param>
+        /// <param name="instanceGuid">The instanceid</param>
+        /// <param name="dataId">the data id</param>
+        Task<Stream> GetData(string org, string appName, int instanceOwnerId, Guid instanceGuid, Guid dataId);
 
         /// <summary>
         /// Method that gets metadata on form attachments ordered by attachmentType

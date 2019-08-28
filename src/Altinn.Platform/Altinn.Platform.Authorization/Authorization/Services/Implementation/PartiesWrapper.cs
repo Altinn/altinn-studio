@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Services.Interface;
+using AltinnCore.ServiceLibrary.Models;
 using Authorization.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -47,32 +48,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return partiesList;
-        }
-
-        /// <inheritdoc />
-        public async Task<bool?> UpdateSelectedParty(int userId, int partyId)
-        {
-            bool isValid = await ValidateSelectedParty(userId, partyId);
-
-            if (!isValid)
-            {
-                return null;
-            }
-
-            // TODO: set all required cookies.
-
-            string apiUrl = $"ui/Reportee/ChangeReportee/?R={partyId}";
-            HttpResponseMessage response = await _sblClient.Client.GetAsync(apiUrl);
-            string message = response.Content.ToString();
-
-            if (response.StatusCode == HttpStatusCode.OK && message.Equals("Reportee successfully updated."))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
         }
 
         /// <inheritdoc />

@@ -2,18 +2,26 @@
 
 exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snapshot of AddressComponent 1`] = `
 <div
-  className="address-component"
+  className="address-component pb-2"
 >
   <label
     className="address-component-label"
   >
     Adresse
+    <span
+      className="address-component-label-smaller"
+    >
+       (
+      general.optional
+      )
+    </span>
   </label>
   <input
     className="form-control"
     disabled={false}
     onBlur={[Function]}
     onChange={[Function]}
+    required={false}
     value="adresse 1"
   />
   <div
@@ -26,12 +34,20 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
         className="address-component-label"
       >
         Postnr
+        <span
+          className="address-component-label-smaller"
+        >
+           (
+          general.optional
+          )
+        </span>
       </label>
       <input
         className="address-component-small-inputs form-control"
         disabled={false}
         onBlur={[Function]}
         onChange={[Function]}
+        required={false}
         value=""
       />
     </div>
@@ -45,9 +61,8 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
       </label>
       <input
         className="form-control"
-        disabled={false}
-        onBlur={[Function]}
-        onChange={[Function]}
+        disabled={true}
+        readOnly={true}
         value=""
       />
     </div>

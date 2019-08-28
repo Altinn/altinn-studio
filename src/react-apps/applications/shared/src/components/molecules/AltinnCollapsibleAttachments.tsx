@@ -23,6 +23,9 @@ const styles = createStyles({
   transition: {
     transitionDuration: '0.1s',
   },
+  collapsedTitle: {
+    fontSize: '20px',
+  },
 });
 
 interface IAltinnCollapsibleAttachmentsProps extends WithStyles<typeof styles> {
@@ -63,6 +66,7 @@ export function AltinnCollapsibleAttachments(props: IAltinnCollapsibleAttachment
               primary={`${props.title} (${props.attachments && props.attachments.length})`}
               classes={{
                 root: classNames(props.classes.listItemTextPadding),
+                primary: classNames(props.classes.collapsedTitle),
               }}
             />
           </ListItem>
