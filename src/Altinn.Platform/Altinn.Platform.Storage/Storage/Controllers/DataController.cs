@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     try
                     {
-                        Stream dataStream = await _dataRepository.GetDataInStorage(storageFileName);
+                        Stream dataStream = await _dataRepository.ReadDataFromStorage(storageFileName);
 
                         if (dataStream == null)
                         {
@@ -240,7 +240,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 // store file as blob
-                newData.FileSize = await _dataRepository.CreateDataInStorage(theStream, newData.StorageUrl);
+                newData.FileSize = await _dataRepository.WriteDataToStorage(theStream, newData.StorageUrl);
 
                 // update instance
                 Instance result = await _instanceRepository.Update(instance);
@@ -362,7 +362,7 @@ namespace Altinn.Platform.Storage.Controllers
                     instance.LastChangedBy = User.Identity.Name;
 
                     // store file as blob
-                    data.FileSize = _dataRepository.UpdateDataInStorage(theStream, storageFileName).Result;
+                    data.FileSize = _dataRepository.WriteDataToStorage(theStream, storageFileName).Result;
 
                     if (data.FileSize > 0)
                     {
