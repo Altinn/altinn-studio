@@ -64,7 +64,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// The data-type of the attribute value.
+        /// Gets or sets the data-type of the attribute value.
         /// </summary>
         public Uri DataType
         {
@@ -81,7 +81,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// The attributes
+        /// The attributes.
         /// </summary>
         public ICollection<XAttribute> Attributes
         {
@@ -89,7 +89,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// The elements
+        /// Gets the elements.
         /// </summary>
         public ICollection<XElement> Elements
         {
@@ -97,14 +97,14 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Match Attribute value against input attribute value
+        /// Match Attribute value against input attribute value.
         /// </summary>
         /// <param name="matchFunction">The match function</param>
         /// <param name="policyAttributeValue">The policy Attribute</param>
         /// <returns></returns>
         public bool MatchAttributeValues(Uri matchFunction, XacmlAttributeValue policyAttributeValue)
         {
-            return AttributeMatcher.MatchAttributes(value, policyAttributeValue.Value, matchFunction.OriginalString);
+            return AttributeMatcher.MatchAttributes(this.value, policyAttributeValue.Value, matchFunction.OriginalString);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
        /// <summary>
-       /// The collection of parameters for the Apply object
+       /// Gets the collection of parameters for the Apply object.
        /// </summary>
         public ICollection<IXacmlExpression> Parameters
         {
@@ -55,7 +55,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// The identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3 of the XACML documentation
+        /// Gets or sets the identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3 of the XACML documentation.
         /// </summary>
         public Uri FunctionId
         {
@@ -74,8 +74,8 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <summary>
         /// Evauluate the Apply.
         /// </summary>
-        /// <param name="request">The context request</param>
-        /// <returns>The match result</returns>
+        /// <param name="request">The context request.</param>
+        /// <returns>The match result.</returns>
         public XacmlAttributeMatchResult Evalute(XacmlContextRequest request)
         {
             XacmlAttributeValue policyConditionAttributeValue = null;

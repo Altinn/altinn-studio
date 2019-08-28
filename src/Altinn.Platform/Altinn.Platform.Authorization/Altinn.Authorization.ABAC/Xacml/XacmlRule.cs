@@ -152,17 +152,19 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <returns></returns>
         public XacmlAttributeMatchResult MatchAttributes(XacmlContextRequest request, string category)
         {
-            Dictionary<string, ICollection<XacmlAttribute>> requestAttributes = GetCategoryAttributes(request, category);
+            Dictionary<string, ICollection<XacmlAttribute>> requestAttributes = this.GetCategoryAttributes(request, category);
 
             XacmlAttributeMatchResult xacmlAttributeMatchResult = XacmlAttributeMatchResult.NoMatch;
 
-            if (Target == null)
+            if (this.Target == null)
             {
                 // If the rules does not have any target, it is a match anyway
                 return XacmlAttributeMatchResult.Match;
             }
 
-            foreach (XacmlAnyOf anyOf in Target.AnyOf)
+            bool foundCategoryInAnyOf = false;
+
+            foreach (XacmlAnyOf anyOf in this.Target.AnyOf)
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)
                 {
@@ -211,7 +213,18 @@ namespace Altinn.Authorization.ABAC.Xacml
                         // All allOff matches for attributes in a anyOff did match.
                         xacmlAttributeMatchResult = XacmlAttributeMatchResult.Match;
                     }
+
+                    if (matchinAttributeCategoryFoundInAllOf)
+                    {
+                        foundCategoryInAnyOf = true;
+                    }
                 }
+            }
+
+            if (!foundCategoryInAnyOf)
+            {
+                // If none of the attributes in policy is for this category it is for any attributes of this category
+                return XacmlAttributeMatchResult.Match;
             }
 
             return xacmlAttributeMatchResult;

@@ -1026,7 +1026,7 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadElement`1">
             <summary>
-            Delegate to make it possible to send different read methods in to metods
+            Delegate to make it possible to send different read methods in to metods.
             </summary>
             <typeparam name="T">The type</typeparam>
             <param name="reader">The xml reader</param>
@@ -1050,29 +1050,29 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.XacmlSerializer">
             <summary>
-            Utility to parse XACM objects to XML or JSON
+            Utility to parse XACM objects to XML or JSON.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlSerializer.WriteContextResponse(System.Xml.XmlWriter,Altinn.Authorization.ABAC.Xacml.XacmlContextResponse)">
             <summary>
-            Method to serialize the XACML Response
+            Method to serialize the XACML Response.
             </summary>
-            <param name="writer">XML Writer</param>
-            <param name="xacmlContextResponse">The responze</param>
+            <param name="writer">XML Writer.</param>
+            <param name="xacmlContextResponse">The responze.</param>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.AttributeMatcher">
             <summary>
-            Utility to match attributes
+            Utility to match attributes.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.AttributeMatcher.MatchAttributes(System.String,System.String,System.String)">
             <summary>
-            Method to match attributes
+            Method to match attributes.
             </summary>
-            <param name="policyAttribute">The attribute in policy</param>
-            <param name="contextRequestAttribute">The attribute in </param>
-            <param name="matchId">The match parameter</param>
-            <returns></returns>
+            <param name="policyAttribute">The attribute in policy.</param>
+            <param name="contextRequestAttribute">The attribute in.</param>
+            <param name="matchId">The match parameter.</param>
+            <returns>A boolean to tell if the attributes match.</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.IXacmlExpression">
              <summary>
@@ -1118,32 +1118,32 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment">
             <summary>
-            Json reprentation of Attribute assignment returned
+            Json reprentation of Attribute assignment returned.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.AttributeId">
             <summary>
-            A string containing a XACML attribute URI. Mandatory
+            Gets or sets a string containing a XACML attribute URI. Mandatory.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.Value">
             <summary>
-            The value. Mandatory
+            Gets or sets the value. Mandatory.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.Category">
             <summary>
-            A string containing a XACML category URI or the shorthand notation defined in section 4.2.2.1
+            Gets or sets a string containing a XACML category URI or the shorthand notation defined in section 4.2.2.1.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.DataType">
             <summary>
-            The datattype of the attribute
+            Gets or sets the datattype of the attribute.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.Issuer">
             <summary>
-             The issuer of the attribute. Optional
+             Gets or sets the issuer of the attribute. Optional.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory">
@@ -1176,88 +1176,88 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonIdReference">
             <summary>
-            A JSON object for policy refernces
+            A JSON object for policy refernces.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonIdReference.Id">
             <summary>
-            A string containing a XACML policy or policy set URI.
+            Gets or sets a string containing a XACML policy or policy set URI.
             Represents the value stored inside the XACML XML<PolicyIdReference /> or<PolicySetIdReference/> element.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonIdReference.Version">
             <summary>
-            The version
+            Gets or sets the version.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail">
             <summary>
-            A JSON object for information about missing attributes in the Context Request
+            A JSON object for information about missing attributes in the Context Request.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.AttributeId">
             <summary>
-            A string containing a XACML attribute URI
+            Gets or sets a string containing a XACML attribute URI.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.Value">
             <summary>
-            The value
+            Gets or sets the value.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.Issuer">
             <summary>
-            The issuer
+            Gets or sets the issuer.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.DataType">
             <summary>
-            The datatype
+            Gets or sets the datatype.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.Category">
             <summary>
-             The category of the missing attribute
+             Gets or sets the category of the missing attribute.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMultiRequests">
             <summary>
-            A JSON object that defines references to multiple requests
+            A JSON object that defines references to multiple requests.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMultiRequests.RequestReference">
             <summary>
-            The request reference
+            Gets or sets the request reference.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonObligationOrAdvice">
             <summary>
-            Defines a Json object for Obl
+            Defines a Json object for ObligationOrAdvice.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonObligationOrAdvice.Id">
             <summary>
-            A string containing a XACML obligation or advice URI
+            Gets or sets a string containing a XACML obligation or advice URI.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonObligationOrAdvice.AttributeAssignment">
             <summary>
-            An array of AttributeAssignment objects
+            Gets or sets an array of AttributeAssignment objects.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonPolicyIdentifierList">
             <summary>
-            A JSON object that refernces a policy or policy set
+            A JSON object that refernces a policy or policy set.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonPolicyIdentifierList.PolicyIdReference">
             <summary>
-            List over policy id references
+            Gets or sets list over policy id references.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonPolicyIdentifierList.PolicySetIdReference">
             <summary>
-            List policy sets references
+            Gets or sets list policy sets references.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest">
@@ -1269,58 +1269,58 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.ReturnPolicyIdList">
             <summary>
-            Gets or sets the ReturnPolicyIdList. Optional. Default false
+            Gets or sets a value indicating whether the PolicyIdList should be returned. Optional. Default false.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.CombinedDecision">
             <summary>
-            Sets or gets the combined decision
+            Gets or sets a value indicating whether it is a combined decision.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.XPathVersion">
             <summary>
-            The xpath version
+            Gets or sets the xpath version.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.Category">
             <summary>
-            The Category object corresponds to the XML <Attributes/> element. Just like the <Attributes/> element is
+            Gets or sets the Category object corresponds to the XML <Attributes/> element. Just like the <Attributes/> element is
             specific to a given XACML attribute category, the Category object in JSON is specific to a given XACML attribute category.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.Resource">
             <summary>
-            The resource attributes
+            Gets or sets the resource attributes.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.Action">
             <summary>
-            The action attributes
+            Gets or sets the action attributes.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.AccessSubject">
             <summary>
-            The subject attributes
+            Gets or sets the subject attributes.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.RecipientSubject">
             <summary>
-            The recipent subjet
+            Gets or sets the recipent subjet.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.IntermediarySubject">
             <summary>
-            The intermediary subjects attributes
+            Gets or sets the intermediary subjects attributes.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.RequestingMachine">
             <summary>
-            Attributes about requsting machine
+            Gets or sets attributes about requsting machine.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.MultiRequests">
             <summary>
-            References to multiple requests
+            Gets or sets references to multiple requests.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestReference">
@@ -1335,12 +1335,12 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestRoot">
             <summary>
-            The JSON object roor needed to be abe to parse the request
+            The JSON object root needed to be able to parse the request.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestRoot.Request">
             <summary>
-            The request
+            Gets or sets the request.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResponse">
@@ -2765,7 +2765,7 @@
             Matches the context attribute against the Policy.
             </summary>
             <param name="xacmlAttributeValue">A xacml attribute value</param>
-            <returns></returns>
+            <returns>A boolean indicating it is a match</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlMatch.IsMatch(System.String)">
             <summary>

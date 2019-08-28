@@ -44,7 +44,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Helper class to prevent null objects
+        /// Helper class to prevent null objects.
         /// </summary>
         /// <typeparam name="T">The type</typeparam>
         private class NoNullCollection<T> : Collection<T>

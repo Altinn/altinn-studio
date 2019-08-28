@@ -1,16 +1,14 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
 {
     /// <summary>
-    /// JSON object for request references
+    /// JSON object for request references.
     /// </summary>
     public class XacmlJsonRequestReference
     {
         /// <summary>
-        /// The reference Id
+        /// Gets or sets the reference Id.
         /// </summary>
         public List<string> ReferenceId { get; set; }
     }

@@ -51,7 +51,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Advice arguments assignment.The values of the advice arguments MAY be interpreted by the PE
+        /// Gets advice arguments assignment.The values of the advice arguments MAY be interpreted by the PEP.
         /// </summary>
         public ICollection<XacmlAttributeAssignment> AttributeAssignment
         {
@@ -62,7 +62,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Advice identifier.The value of the advice identifier MAY be interpreted by the PEP.
+        /// Gets or sets advice identifier.The value of the advice identifier MAY be interpreted by the PEP.
         /// </summary>
         public Uri AdviceId
         {

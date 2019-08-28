@@ -1,13 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text;
 using System.Xml.Linq;
 
 namespace Altinn.Authorization.ABAC.Xacml
 {
     /// <summary>
-    /// Entity for any elements in XML
+    /// Entity for any elements in XML.
     /// </summary>
     public abstract class XacmlAnyElement
     {
@@ -22,7 +20,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// XML attributes.
+        /// Gets xML attributes.
         /// </summary>
         public ICollection<XAttribute> Attributes
         {
@@ -30,7 +28,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// XML elements.
+        /// Gets xML elements.
         /// </summary>
         public ICollection<XElement> Elements
         {

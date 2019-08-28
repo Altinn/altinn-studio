@@ -45,8 +45,8 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// Initializes a new instance of the <see cref="XacmlAttributeAssignment"/> class.
         /// </summary>
         /// <param name="attributeId">The attribute Identifier.</param>
-        /// <param name="dataType">The datatype</param>
-        /// <param name="value">The value</param>
+        /// <param name="dataType">The datatype.</param>
+        /// <param name="value">The value.</param>
         public XacmlAttributeAssignment(Uri attributeId, Uri dataType, string value)
             : base(dataType)
         {
@@ -86,7 +86,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Gets or sets the value
+        /// Gets or sets the value.
         /// </summary>
         public override string Value
         {
