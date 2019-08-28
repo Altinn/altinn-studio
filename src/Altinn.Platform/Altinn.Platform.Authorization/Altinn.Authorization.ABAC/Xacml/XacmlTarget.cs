@@ -11,7 +11,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     ///
     /// The <Target/> element is of TargetType complex type.
     /// The<Target/> element contains the following elements:
-    /// 
+    ///
     /// <AnyOf/> [Zero to Many]
     /// Matching specification for attributes in the context.If this element is missing, then the target SHALL match all contexts.
     /// </summary>

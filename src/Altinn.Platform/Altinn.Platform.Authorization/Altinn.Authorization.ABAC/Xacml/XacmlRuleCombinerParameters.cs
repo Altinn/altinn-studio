@@ -13,7 +13,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// Note that none of the rule-combining algorithms specified in XACML 3.0 is parameterized.
     ///
     /// The <RuleCombinerParameters/> element contains the following attribute:
-    /// 
+    ///
     /// RuleIdRef[Required]
     /// The identifier of the<Rule/> contained in the policy.
     /// Support for the<RuleCombinerParameters/> element is optional, only if support for combiner parameters is not implemented.

@@ -70,15 +70,15 @@ namespace Altinn.Authorization.ABAC.Xacml
         ///
         /// A PDP MUST NOT return a<StatusDetail/> element in conjunction with the “ok” status value.
         /// urn:oasis:names:tc:xacml:1.0:status:missing-attribute
-        /// 
+        ///
         /// A PDP MAY choose not to return any<StatusDetail/> information or MAY choose to return a<StatusDetail/> element containing one or more
         /// <MissingAttributeDetail/> elements.
         /// urn:oasis:names:tc:xacml:1.0:status:syntax-error
-        /// 
+        ///
         /// A PDP MUST NOT return a<StatusDetail/> element in conjunction with the “syntax-error” status value.  A syntax error may
         /// represent either a problem with the policy being used or with the request context.  The PDP MAY return a<StatusMessage/> describing the problem.
         /// urn:oasis:names:tc:xacml:1.0:status:processing-error
-        /// 
+        ///
         /// A PDP MUST NOT return <StatusDetail/> element in conjunction with the “processing-error” status value.  This status code
         /// indicates an internal problem in the PDP.For security reasons, the PDP MAY choose to return no further information to the PEP.
         /// In the case of a divide-by-zero error or other computational error, the PDP MAY return a<StatusMessage/> describing the nature of the error.

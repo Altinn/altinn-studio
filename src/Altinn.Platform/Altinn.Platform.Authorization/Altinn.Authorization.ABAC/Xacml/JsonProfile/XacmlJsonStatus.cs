@@ -8,17 +8,17 @@ namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
     public class XacmlJsonStatus
     {
         /// <summary>
-        /// The status message
+        /// Gets or sets the status message.
         /// </summary>
         public string StatusMessage { get; set; }
 
         /// <summary>
-        ///  List over status details
+        ///  Gets or sets list over status details.
         /// </summary>
         public List<string> StatusDetails { get; set; }
 
         /// <summary>
-        /// The defined status code
+        /// Gets or sets the defined status code.
         /// </summary>
         public XacmlJsonStatusCode StatusCode { get; set; }
     }

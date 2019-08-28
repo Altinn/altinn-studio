@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
 {
     /// <summary>
@@ -10,12 +6,12 @@ namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
     public class XacmlJsonStatusCode
     {
         /// <summary>
-        /// The value
+        /// Gets or sets the value.
         /// </summary>
         public string Value { get; set; }
 
         /// <summary>
-        /// A nested status code
+        /// Gets or sets a nested status code.
         /// </summary>
         public XacmlJsonStatusCode StatusCode { get; set; }
     }

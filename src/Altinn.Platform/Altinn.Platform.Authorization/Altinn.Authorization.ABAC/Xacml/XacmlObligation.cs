@@ -11,7 +11,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     ///
     /// The <Obligation/> element is of ObligationType complexType.  See Section 7.18 for a description of how the set of obligations to be returned by the PDP is determined.
     /// The <Obligation/> element contains the following elements and attributes:
-    /// 
+    ///
     /// ObligationId[Required]
     /// Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.
     ///

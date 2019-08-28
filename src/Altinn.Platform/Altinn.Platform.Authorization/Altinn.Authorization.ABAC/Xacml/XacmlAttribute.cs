@@ -16,7 +16,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     ///
     /// AttributeId[Required]
     /// The Attribute identifier.A number of identifiers are reserved by XACML to denote commonly used attributes.  See Appendix B.
-    /// 
+    ///
     /// Issuer[Optional]
     /// The Attribute issuer.  For example, this attribute value MAY be an x500Name that binds to a public key, or it may be some other identifier exchanged out-of-band by issuing and relying parties.
     ///

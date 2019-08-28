@@ -24,7 +24,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// governed by AttributeId and DataType attributes alone.
     ///
     /// The<AttributeDesignatorType/> contains the following attributes:
-    /// 
+    ///
     /// Category[Required]
     /// This attribute SHALL specify the Category with which to match the attribute.
     ///
@@ -36,7 +36,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     ///
     /// Issuer[Optional]
     /// This attribute, if supplied, SHALL specify the Issuer with which to match the attribute.
-    /// 
+    ///
     /// MustBePresent[Required]
     /// This attribute governs whether the element returns “Indeterminate” or an empty bag in the event the named attribute is absent from the request context.See Section 7.3.5.
     /// Also see Sections 7.19.2 and 7.19.3.

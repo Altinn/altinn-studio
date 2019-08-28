@@ -14,7 +14,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// See Section B.8 for a list of values.
     ///
     /// <StatusCode/> [Any Number]
-    /// Minor status code.This status code qualifies its parent status code. 
+    /// Minor status code.This status code qualifies its parent status code.
     /// </summary>
     public class XacmlContextStatusCode
     {

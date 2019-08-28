@@ -72,10 +72,10 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Evauluate the Apply 
+        /// Evauluate the Apply.
         /// </summary>
         /// <param name="request">The context request</param>
-        /// <returns></returns>
+        /// <returns>The match result</returns>
         public XacmlAttributeMatchResult Evalute(XacmlContextRequest request)
         {
             XacmlAttributeValue policyConditionAttributeValue = null;

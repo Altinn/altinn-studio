@@ -9,10 +9,10 @@ namespace Altinn.Authorization.ABAC.Xacml
     ///
     /// The <CombinerParameter/> element is of CombinerParameterType complex type.
     /// The<CombinerParameter/> element contains the following attributes:
-    /// 
+    ///
     /// ParameterName[Required]
     /// The identifier of the parameter.
-    /// 
+    ///
     /// <AttributeValue/> [Required]
     /// The value of the parameter.
     /// Support for the<CombinerParameter/> element is optional.

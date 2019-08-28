@@ -19,7 +19,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     ///
     /// RuleId[Required]
     /// A string identifying this rule.
-    /// 
+    ///
     /// Effect[Required]
     /// Rule effect.The value of this attribute is either “Permit” or “Deny”.
     ///
@@ -161,7 +161,7 @@ namespace Altinn.Authorization.ABAC.Xacml
                 // If the rules does not have any target, it is a match anyway
                 return XacmlAttributeMatchResult.Match;
             }
-         
+
             foreach (XacmlAnyOf anyOf in Target.AnyOf)
             {
                 foreach (XacmlAllOf allOf in anyOf.AllOf)

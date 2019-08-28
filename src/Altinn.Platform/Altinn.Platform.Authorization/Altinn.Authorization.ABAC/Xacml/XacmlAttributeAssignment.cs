@@ -20,7 +20,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// Category [Optional]
     /// An optional category of the attribute. If this attribute is missing, the attribute has no category.The PEP SHALL interpret the significance and meaning of any Category attribute.
     /// Non-normative note: an expected use of the category is to disambiguate attributes which are relayed from the request.
-    /// 
+    ///
     /// Issuer[Optional]
     /// An optional issuer of the attribute.If this attribute is missing, the attribute has no issuer.The PEP SHALL interpret the significance and meaning of any Issuer attribute.
     /// Non-normative note: an expected use of the issuer is to disambiguate attributes which are relayed from the request.

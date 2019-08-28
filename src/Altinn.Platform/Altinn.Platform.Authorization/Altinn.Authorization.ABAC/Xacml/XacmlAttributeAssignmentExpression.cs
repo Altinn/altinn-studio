@@ -12,7 +12,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     ///
     /// The <AttributeAssignmentExpression/> element is of AttributeAssignmentExpressionType complex type.
     /// The <AttributeAssignmentExpression/> element contains the following attributes:
-    /// 
+    ///
     /// <Expression/> [Required]
     /// The expression which evaluates to a constant attribute value or a bag of zero or more attribute values.See section 5.25.
     ///

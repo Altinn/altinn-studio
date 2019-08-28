@@ -8,32 +8,32 @@ namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
     public class XacmlJsonResult
     {
         /// <summary>
-        /// The XACML Decision
+        /// Gets or sets the XACML Decision.
         /// </summary>
         public string Decision { get; set; }
 
         /// <summary>
-        /// The status
+        /// Gets or sets the status.
         /// </summary>
         public XacmlJsonStatus Status { get; set;  }
 
         /// <summary>
-        /// Any obligations of the result
+        /// Gets or sets any obligations of the result.
         /// </summary>
         public List<XacmlJsonObligationOrAdvice> Obligations { get; set; }
 
         /// <summary>
-        /// XACML Advice
+        /// Gets or sets xACML Advice.
         /// </summary>
         public List<XacmlJsonObligationOrAdvice> AssociateAdvice { get; set; }
 
         /// <summary>
-        /// Category
+        /// Gets or sets category.
         /// </summary>
         public List<XacmlJsonCategory> Category { get; set;  }
 
         /// <summary>
-        /// Policy Identifyer list related to the result
+        /// Gets or sets policy Identifyer list related to the result.
         /// </summary>
         public XacmlJsonPolicyIdentifierList PolicyIdentifierList { get; set; }
     }

@@ -575,7 +575,7 @@ namespace Altinn.Authorization.ABAC.Utils
 
             return result;
         }
-               
+
         private static string ReadContextStatusMessage(XmlReader reader)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -846,7 +846,7 @@ namespace Altinn.Authorization.ABAC.Utils
         }
 
         /// <summary>
-        /// This method reads 
+        /// This method reads choice elements.
         /// </summary>
         /// <param name="reader">The XML Reader</param>
         /// <param name="readerActions">A dictionary with actions to be used on different element types</param>
@@ -871,12 +871,12 @@ namespace Altinn.Authorization.ABAC.Utils
         }
 
         /// <summary>
-        /// This method uses a dictionary with different actions to 
+        /// This method uses a dictionary with different actions to read choice elements.
         /// </summary>
         /// <param name="reader">The Xml reader</param>
-        /// <param name="actions">The actions to be used for reading a element</param>
-        /// <param name="isRequired">Defines if element is required</param>
-        /// <returns></returns>
+        /// <param name="actions">The actions to be used for reading a element.</param>
+        /// <param name="isRequired">Defines if element is required.</param>
+        /// <returns>Boolean value to tell if choice elements can be read.</returns>
         private static bool ReadChoiceElement(XmlReader reader, IDictionary<Tuple<string, string>, Action> actions, bool isRequired = false)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -907,7 +907,7 @@ namespace Altinn.Authorization.ABAC.Utils
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
             ValidateXacmlPolicyStartElement(reader, XacmlConstants.ElementNames.Target);
-  
+
             if (reader.IsEmptyElement)
             {
                 reader.Read();
@@ -1260,7 +1260,7 @@ namespace Altinn.Authorization.ABAC.Utils
                 throw new XmlException(elementName + " is required");
             }
         }
-      
+
         private static T ReadAttribute<T>(XmlReader reader, string attribute, string namespaceURI = null, bool isRequered = true)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
