@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -48,13 +45,14 @@ namespace Altinn.Platform.Storage.Client
             using (Stream input = File.OpenRead($"data/{fileName}"))
             {
                 HttpContent fileStreamContent = new StreamContent(input);
+                fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
 
-                using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                using (MultipartFormDataContent multipartFormData = new MultipartFormDataContent())
                 {
-                    formData.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
-                    formData.Add(fileStreamContent, elementType, fileName);
+                    
+                    multipartFormData.Add(fileStreamContent, elementType, fileName);
 
-                    HttpResponseMessage response = await client.PostAsync(hostName + requestUri, formData);
+                    HttpResponseMessage response = await client.PostAsync(hostName + requestUri, multipartFormData);
 
                     if (response.IsSuccessStatusCode)
                     {

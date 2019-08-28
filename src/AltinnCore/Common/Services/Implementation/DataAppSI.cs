@@ -111,6 +111,24 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
+        public Task<Stream> GetData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpResponseMessage response = _client.GetAsync(apiUrl).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response.Content.ReadAsStreamAsync();
+            }
+
+            return null;            
+        }
+
+        /// <inheritdoc />
         public object GetFormData(Guid instanceGuid, Type type, string org, string appName, int instanceOwnerId, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
@@ -233,25 +251,38 @@ namespace AltinnCore.Common.Services.Implementation
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
                 JwtTokenUtil.AddTokenToRequestHeader(client, token);
 
-                using (Stream input = attachment.Body)
+                if (attachment.ContentType.StartsWith("multipart"))
                 {
-                    HttpContent fileStreamContent = new StreamContent(input);
+                    StreamContent content = new StreamContent(attachment.Body);
+                    content.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.ContentType);
 
-                    using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                    HttpResponseMessage response = client.PostAsync(apiUrl, content).Result;
+
+                    response.EnsureSuccessStatusCode();
+
+                    string instancedata = await response.Content.ReadAsStringAsync();
+                    instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+                    return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                }
+                else
+                {
+                    using (Stream input = attachment.Body)
                     {
-                        fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-                        ContentDispositionHeaderValue header = new ContentDispositionHeaderValue("form-data");
-                        header.FileName = attachmentName;
-                        header.Size = attachment.ContentLength;
-                        formData.Headers.ContentDisposition = header;
-                        formData.Add(fileStreamContent, attachmentType, attachmentName);
-                        HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
+                        HttpContent fileStreamContent = new StreamContent(input);
 
-                        response.EnsureSuccessStatusCode();
+                        using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                        {
+                            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
 
-                        string instancedata = await response.Content.ReadAsStringAsync();
-                        instance = JsonConvert.DeserializeObject<Instance>(instancedata);
-                        return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                            formData.Add(fileStreamContent, attachmentType, attachmentName);
+                            HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
+
+                            response.EnsureSuccessStatusCode();
+
+                            string instancedata = await response.Content.ReadAsStringAsync();
+                            instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+                            return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                        }
                     }
                 }
             }

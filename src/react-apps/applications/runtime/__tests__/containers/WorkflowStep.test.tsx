@@ -3,6 +3,7 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
+import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 
@@ -11,6 +12,18 @@ import { WorkflowStep, WorkflowSteps } from '../../src/features/form/containers/
 describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
   let mockHeader: string;
   let mockStore: any;
+
+  beforeAll(() => {
+    window.matchMedia = jest.fn().mockImplementation((query) => {
+      return {
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+      };
+    });
+  });
 
   beforeEach(() => {
     mockHeader = 'mock-service-name';
@@ -46,79 +59,100 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
           },
         },
       },
+      organizationMetaData: {
+        allOrgs: null,
+      },
+      applicationMetadata: {
+        applicationMetadata: null,
+      },
+      instanceData: {
+        instance: null,
+      },
     };
     mockStore = createStore(initialState);
   });
 
   it('+++ should match snapshot', () => {
     const rendered = renderer.create(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.FormFilling}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.FormFilling}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
     expect(rendered).toMatchSnapshot();
   });
 
   it('+++ should render formfiller when step is "formfiller"', () => {
     const wrapper = mount(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.FormFilling}
-          children={<div id='mockFormFiller' />}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.FormFilling}
+            children={<div id='mockFormFiller' />}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
     expect(wrapper.exists('#mockFormFiller')).toEqual(true);
   });
 
   it('+++ the background color should be blue if step is "FormFiller"', () => {
     const wrapper = mount(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.FormFilling}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.FormFilling}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
     expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#1EAEF7');
   });
 
   it('+++ should render receipt when step is "archived"', () => {
     const wrapper = mount(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.Archived}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.Archived}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
-    expect(wrapper.exists('#receiptWrapper')).toEqual(true);
+    expect(wrapper.exists('#ReceiptContainer')).toEqual(true);
   });
 
   it('+++ the background color should be lightGreen if step is "Archive"', () => {
     const wrapper = mount(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.Archived}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.Archived}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
     expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
   });
 
   it('+++ should render submit when step is "submit"', () => {
     const wrapper = mount(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.Submit}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.Submit}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
     expect(wrapper.exists('#workflowSubmitStepButton')).toEqual(true);
   });
@@ -145,18 +179,30 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
       profile: {
         profile: null,
       },
+      organizationMetaData: {
+        allOrgs: null,
+      },
+      applicationMetadata: {
+        applicationMetadata: null,
+      },
+      instanceData: {
+        instance: null,
+      },
     };
     mockStore = createStore(newState);
     const wrapper = mount(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.Submit}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.Submit}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
     expect(wrapper.find('.a-modal-header').first().prop('style')).toHaveProperty('backgroundColor', '#F9CAD3');
   });
+
   it('no user in state returns null', () => {
     const createStore = configureStore();
     const newState = {
@@ -180,18 +226,30 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
       profile: {
         profile: null,
       },
+      organizationMetaData: {
+        allOrgs: null,
+      },
+      applicationMetadata: {
+        applicationMetadata: null,
+      },
+      instanceData: {
+        instance: null,
+      },
     };
     mockStore = createStore(newState);
     const wrapper = mount(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.Submit}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.Submit}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
     expect(wrapper.find('.d-block').first().text()).toEqual('');
   });
+
   it('if organization a different icon should show', () => {
     const createStore = configureStore();
     const newState = {
@@ -221,19 +279,32 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
               middleName: null,
               lastName: 'Revisor',
             },
-            organization: 'Tull og Tøys AS',
+            organization: {
+              name: 'Tull og Tøys AS',
+            },
           },
         },
+      },
+      organizationMetaData: {
+        allOrgs: null,
+      },
+      applicationMetadata: {
+        applicationMetadata: null,
+      },
+      instanceData: {
+        instance: null,
       },
     };
     mockStore = createStore(newState);
     const wrapper = mount(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.Submit}
-        />
-      </Provider>,
+      <MemoryRouter>
+        <Provider store={mockStore}>
+          <WorkflowStep
+            header={mockHeader}
+            step={WorkflowSteps.Submit}
+          />
+        </Provider>
+      </MemoryRouter>,
     );
     expect(wrapper.find('.d-block').first().text()).toEqual('PÅL REVISOR');
     expect(wrapper.find('.fa-corp-circle-big').length).toBe(1);

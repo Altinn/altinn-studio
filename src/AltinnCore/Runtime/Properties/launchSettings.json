@@ -1,4 +1,4 @@
-﻿{
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
@@ -18,7 +18,8 @@
     "AltinnCoreRuntime": {
       "commandName": "Project",
       "launchBrowser": true,
-      "applicationUrl": "https://localhost:5005",
+      "launchUrl": "swagger/index.html",
+      "applicationUrl": "http://localhost:5005",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

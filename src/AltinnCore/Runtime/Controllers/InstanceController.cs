@@ -184,8 +184,9 @@ namespace AltinnCore.Runtime.Controllers
 
                 if (currentState.State == WorkflowStep.Archived)
                 {
-                    await _instance.ArchiveInstance(serviceModel, serviceImplementation.GetServiceModelType(), service, org, requestContext.UserContext.PartyId, instanceGuid);
+                    Instance archivedInstance = await _instance.ArchiveInstance(serviceModel, serviceImplementation.GetServiceModelType(), service, org, requestContext.UserContext.PartyId, instanceGuid);
                     apiResult.NextState = currentState.State;
+                    apiResult.Instance = archivedInstance;
                 }
 
                 // Create and store the instance submitted event

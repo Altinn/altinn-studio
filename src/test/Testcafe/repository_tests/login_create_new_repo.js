@@ -5,7 +5,7 @@ import LandingPage from '../page-objects/landingPage';
 import CommonPage from '../page-objects/common';
 import HeaderPage from '../page-objects/headerPage';
 import RepoPage from '../page-objects/repoPage';
-import TestData from '../TestData';
+import { AutoTestUser } from '../TestData';
 
 let app = new App();
 let common = new CommonPage();
@@ -13,7 +13,6 @@ let loginPage = new LoginPage();
 let landingPage = new LandingPage();
 let header = new HeaderPage();
 let repoPage = new RepoPage();
-const testUser = new TestData('trymen', 'extten@brreg.no', 'test123', 'basic');
 let firstRun = true;
 
 fixture('adminster repos')
@@ -26,7 +25,7 @@ fixture('adminster repos')
   })
   .beforeEach(async t => {
     if (firstRun) {
-      await common.login(testUser.userEmail, testUser.password, loginPage);
+  await t.useRole(AutoTestUser)
       await common.ensureUserHasNoRepos(testUser.userName, landingPage, repoPage);
       firstRun = false;
     }
@@ -37,7 +36,7 @@ fixture('adminster repos')
 
 const getPageUrl = ClientFunction(() => window.location.href);
 
-test('Login and create new repo', async t => {
+test.skip('Login and create new repo', async t => {
   await t
     .expect(header.navBar.exists).ok({ timeout: 2500 })
     .expect(landingPage.title.textContent).eql('Altinn studio')

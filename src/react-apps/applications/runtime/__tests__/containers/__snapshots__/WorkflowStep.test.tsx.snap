@@ -17,13 +17,13 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
       className="AltinnAppHeader-appBarWrapper-1"
     >
       <header
-        className="MuiPaper-root-23 MuiPaper-elevation4-29 MuiAppBar-root-14 MuiAppBar-positionStatic-18 MuiAppBar-colorPrimary-21 AltinnAppHeader-default-4"
+        className="MuiPaper-root MuiPaper-elevation4 MuiAppBar-root MuiAppBar-positionStatic AltinnAppHeader-default-4 MuiAppBar-colorPrimary"
       >
         <div
-          className="MuiToolbar-root-50 MuiToolbar-regular-52 MuiToolbar-gutters-51 container AltinnAppHeader-toolbarContainer-13"
+          className="MuiToolbar-root MuiToolbar-regular container AltinnAppHeader-toolbarContainer-13 MuiToolbar-gutters"
         >
           <div
-            className="MuiGrid-item-55 AltinnAppHeader-logo-10"
+            className="MuiGrid-root AltinnAppHeader-logo-10 MuiGrid-item"
             style={
               Object {
                 "flexGrow": 1,
@@ -228,6 +228,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
           <button
             aria-label="Lukk"
             className="a-modal-close a-js-tabable-popover"
+            onClick={[Function]}
             type="button"
           >
             <span
@@ -257,7 +258,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
                 className="modal-content"
               >
                 <div
-                  className="modal-header a-modal-header "
+                  className="modal-header a-modal-header"
                 >
                   <div
                     className="a-iconText a-iconText-background a-iconText-large"
