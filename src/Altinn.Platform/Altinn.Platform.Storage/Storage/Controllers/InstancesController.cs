@@ -379,7 +379,7 @@ namespace Altinn.Platform.Storage.Controllers
                     DataElement newDataElement = DataElementHelper.CreateDataElement(part.Name, storedInstance, creationTime, part.ContentType, part.FileName, part.Stream.Length, userId);
 
                     // Store file as blob.
-                    newDataElement.FileSize = _dataRepository.CreateDataInStorage(part.Stream, newDataElement.StorageUrl).Result;
+                    newDataElement.FileSize = _dataRepository.WriteDataToStorage(part.Stream, newDataElement.StorageUrl).Result;
 
                     if (newDataElement.FileSize > 0)
                     {
@@ -403,7 +403,7 @@ namespace Altinn.Platform.Storage.Controllers
                     logger.LogError($"Deleted data element '{dataElement.ElementType} - {dataElement.Id}' stored at {dataElement.StorageUrl}");
                 }
 
-                throw dataElementException;
+                throw;
             }
 
             return storedInstance;
@@ -484,7 +484,8 @@ namespace Altinn.Platform.Storage.Controllers
         {
             errorResult = null;
 
-            List<Part> parts = new List<Part>();        
+            List<Part> parts = new List<Part>();
+            List<Part> emptyList = Enumerable.Empty<Part>().ToList();
 
             if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
             {            
@@ -502,13 +503,13 @@ namespace Altinn.Platform.Storage.Controllers
                     if (!hasContentDispositionHeader)
                     {
                         errorResult = BadRequest("Multipart section must have content disposition header");
-                        return null;
+                        return emptyList;
                     }
 
                     if (contentDisposition.Name == null)
                     {
                         errorResult = BadRequest("Multipart section has no name. It must have a name that corresponds to elementTypes defined in Application metadat");
-                        return null;
+                        return emptyList;
                     }
 
                     string contentType = section.ContentType;
@@ -530,31 +531,24 @@ namespace Altinn.Platform.Storage.Controllers
                         else
                         {
                             errorResult = BadRequest($"Multipart section with named 'instance' must have 'Content-Type = application/json', it has unexpected content type {contentType}");
+                            return emptyList;
                         }                       
                     }
                     else
-                    {
-                        string contentFileName = null;
-                        if (contentDisposition.FileName != null)
-                        {
-                            contentFileName = contentDisposition.FileName.ToString();
-                        }
-
-                        long fileSize = contentDisposition.Size ?? 0;
-
+                    {                        
                         // Check if the content disposition name is declared for the application (e.g. "default").
                         ElementType elementType = appInfo.ElementTypes.Find(e => e.Id == sectionName);
 
                         if (elementType == null)
                         {
                             errorResult = BadRequest($"Multipart section named, '{sectionName}' does not correspond to an element type in application metadata");
-                            return null;
+                            return emptyList;
                         }
 
                         if (section.ContentType == null)
                         {
                             errorResult = BadRequest($"The multipart section named {sectionName} is missing Content-Type.");
-                            return null;
+                            return emptyList;
                         }
 
                         string contentTypeWithoutEncoding = contentType.Split(";")[0];
@@ -563,8 +557,11 @@ namespace Altinn.Platform.Storage.Controllers
                         if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
                         {
                             errorResult = BadRequest($"The multipart section named {sectionName} has a Content-Type '{contentType}' which is not declared in this application element type '{elementType}'");
-                            return null;
+                            return emptyList;
                         }
+
+                        string contentFileName = contentDisposition.FileName.HasValue ? contentDisposition.Name.Value : null;
+                        long fileSize = contentDisposition.Size ?? 0;
 
                         MemoryStream memoryStream = new MemoryStream();
                         section.Body.CopyTo(memoryStream);
@@ -573,7 +570,7 @@ namespace Altinn.Platform.Storage.Controllers
                         if (memoryStream.Length == 0)
                         {
                             errorResult = BadRequest($"The multpart section named {sectionName} has no data. Cannot process empty part.");
-                            return null;
+                            return emptyList;
                         }
 
                         parts.Add(new Part()

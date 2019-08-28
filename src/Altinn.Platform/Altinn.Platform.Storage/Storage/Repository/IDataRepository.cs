@@ -18,22 +18,14 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="fileStream">data to be written to the form data file</param>
         /// <param name="fileName">the filename to be used</param>
         /// <returns>the size of the blob</returns>
-        Task<long> CreateDataInStorage(Stream fileStream, string fileName);
-
-        /// <summary>
-        /// Update a new file in blob storage for formdata
-        /// </summary>
-        /// <param name="fileStream">data to be written to the form data file</param>
-        /// <param name="fileName">the filename to be used</param>
-        /// <returns>the size of the blob</returns>
-        Task<long> UpdateDataInStorage(Stream fileStream, string fileName);
+        Task<long> WriteDataToStorage(Stream fileStream, string fileName);
 
         /// <summary>
         /// Gets a formd data file in blob storage
         /// </summary>
         /// <param name="fileName">the filename to be used</param>
         /// <returns></returns>
-        Task<Stream> GetDataInStorage(string fileName);
+        Task<Stream> ReadDataFromStorage(string fileName);
 
         /// <summary>
         /// Deletes the data element permanently
