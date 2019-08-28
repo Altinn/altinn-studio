@@ -6,7 +6,6 @@ namespace Altinn.Platform.Storage.Controllers
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Security.Claims;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -19,7 +18,6 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Http.Features;
-    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
@@ -87,7 +85,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
             }
 
-            result.ForEach(i => SetSelfLinks(i));
+            result.ForEach(i => AddSelfLinks(Request, i));
 
             return Ok(result);
         }
@@ -202,7 +200,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 // add self links to platform
-                result.Instances.ForEach(i => SetSelfLinks(i));
+                result.Instances.ForEach(i => AddSelfLinks(Request, i));
                 
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
@@ -228,15 +226,16 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         ///   Annotate instance with self links to platform for the instance and each of its data elements.
         /// </summary>
+        /// <param name="request">the http request which has the path to the request</param>
         /// <param name="instance">the instance to annotate</param>
-        private void SetSelfLinks(Instance instance)
+        public static void AddSelfLinks(HttpRequest request, Instance instance)
         {
-            string selfLink = $"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}";
+            string selfLink = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.Path}";
 
-            if (!selfLink.EndsWith(instance.Id))
-            {
-                selfLink += $"/{instance.Id}";
-            }
+            int start = selfLink.IndexOf("/instances");
+            selfLink = selfLink.Substring(0, start) + "/instances";
+            
+            selfLink += $"/{instance.Id}";
             
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Platform = selfLink;
@@ -287,7 +286,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 result = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
 
-                SetSelfLinks(result);
+                AddSelfLinks(Request, result);
 
                 return Ok(result);
             }
@@ -323,23 +322,14 @@ namespace Altinn.Platform.Storage.Controllers
                 return contentError;
             }
 
-            Instance instanceTemplate = null;
-
-            // instance template should, if it exists, be first part in list 
-            if (parts.Any() && parts[0] != null && parts[0].Name != null && parts[0].Name.Equals("instance"))
-            {
-                Part instancePart = parts[0];
-
-                instanceTemplate = JsonConvert.DeserializeObject<Instance>(await ReadBodyAsync(instancePart.Stream));
-
-                parts.Remove(instancePart);
-            }
+            // extract instance template. it should, if it exists, be first part in list
+            Instance instanceTemplate = await ExtractInstanceTemplateFromParts(parts);
 
             // get instanceOwnerId from one out of three possible places
-            int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerError);
-            if (instanceOwnerError != null)
+            int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerIdError);
+            if (instanceOwnerIdError != null)
             {
-                return instanceOwnerError;
+                return instanceOwnerIdError;
             }
 
             if (instanceTemplate == null)
@@ -347,44 +337,92 @@ namespace Altinn.Platform.Storage.Controllers
                 instanceTemplate = new Instance();
             }
 
+            Instance storedInstance = null;
+
             try
             {
                 DateTime creationTime = DateTime.UtcNow;
                 string userId = null;
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instanceTemplate, ownerId, creationTime, userId);
+                storedInstance = await _instanceRepository.Create(instanceToCreate);
+                logger.LogInformation($"Created instance: {storedInstance.Id}");
 
-                Instance storedInstance = await _instanceRepository.Create(instanceToCreate);
-
-                foreach (Part part in parts)
-                {                    
-                    // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
-                    DataElement newDataElement = DataElementHelper.CreateDataElement(part.Name, storedInstance, creationTime, part.ContentType, part.FileName, 0, userId);
-
-                    // Store file as blob.
-                    bool blobCreated = _dataRepository.CreateDataInStorage(part.Stream, newDataElement.StorageUrl).Result;
-
-                    if (blobCreated)
-                    {
-                        logger.LogInformation($"Part {part.Name} with id {newDataElement.Id} is stored in blob storage {part.Stream.Length / 1024}KB");
-                    }
-
-                    // Add file to instance.
-                    storedInstance.Data.Add(newDataElement);
-
-                    // Update instance with the data element.
-                    storedInstance = _instanceRepository.Update(storedInstance).Result;
+                if (parts.Any())
+                {
+                    storedInstance = await SaveDataElementsAndUpdateInstance(parts, storedInstance, creationTime, userId);
                 }
 
-                SetSelfLinks(storedInstance);
+                AddSelfLinks(Request, storedInstance);
 
                 return Ok(storedInstance);
             }
-            catch (Exception e)
+            catch (Exception storageException)
             {
-                logger.LogError($"Unable to create {appId} instance for {ownerId} due to {e}");
-                return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {e.Message}");
-            }        
+                logger.LogError($"Unable to create {appId} instance for {ownerId} due to {storageException}");
+
+                // compensating action - delete instance
+                await _instanceRepository.Delete(storedInstance);
+                logger.LogError($"Deleted instance {storedInstance.Id}");
+                
+                return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {storageException.Message}");
+            }
+        }
+
+        private async Task<Instance> SaveDataElementsAndUpdateInstance(List<Part> parts, Instance storedInstance, DateTime creationTime, string userId)
+        {
+            try
+            {
+                foreach (Part part in parts)
+                {
+                    // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
+                    DataElement newDataElement = DataElementHelper.CreateDataElement(part.Name, storedInstance, creationTime, part.ContentType, part.FileName, part.Stream.Length, userId);
+
+                    // Store file as blob.
+                    newDataElement.FileSize = _dataRepository.CreateDataInStorage(part.Stream, newDataElement.StorageUrl).Result;
+
+                    if (newDataElement.FileSize > 0)
+                    {
+                        storedInstance.Data.Add(newDataElement);
+
+                        logger.LogInformation($"Data element '{newDataElement.ElementType} - {newDataElement.Id}' is stored at {newDataElement.StorageUrl}, file size {newDataElement.FileSize / 1024}KB");
+                    }
+                }
+
+                // Update instance with the data element.
+                storedInstance = _instanceRepository.Update(storedInstance).Result;
+            }
+            catch (Exception dataElementException)
+            {
+                // compensating action - delete blobs
+                logger.LogError($"Creation of data elements failed. {dataElementException}");
+
+                foreach (DataElement dataElement in storedInstance.Data)
+                {
+                    await _dataRepository.DeleteDataInStorage(dataElement.StorageUrl);
+                    logger.LogError($"Deleted data element '{dataElement.ElementType} - {dataElement.Id}' stored at {dataElement.StorageUrl}");
+                }
+
+                throw dataElementException;
+            }
+
+            return storedInstance;
+        }
+
+        private async Task<Instance> ExtractInstanceTemplateFromParts(List<Part> parts)
+        {
+            Instance instanceTemplate = null;
+
+            if (parts.Any() && parts[0] != null && parts[0].Name != null && parts[0].Name.Equals("instance"))
+            {
+                Part instancePart = parts[0];
+
+                instanceTemplate = JsonConvert.DeserializeObject<Instance>(await StreamToUtf8String(instancePart.Stream));
+
+                parts.Remove(instancePart);
+            }
+
+            return instanceTemplate;
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, int ownerId, DateTime creationTime, string userId)
@@ -436,10 +474,12 @@ namespace Altinn.Platform.Storage.Controllers
         }      
 
         /// <summary>
-        /// Method to read the instance object from the HttpRequest body. 
+        /// Method to read the parts of request body. 
         /// </summary>
         /// <param name="request">The HttpRequest</param>
-        /// <returns>The instance object</returns>
+        /// <param name="appInfo">The application metadata</param>
+        /// <param name="errorResult">The error message if the part does not follow the application metadata or has a proper section name, ...</param>
+        /// <returns>The list of the parts in the multpart request</returns>
         private List<Part> ReadAndCheckContent(HttpRequest request, Application appInfo, out ActionResult errorResult)
         {
             errorResult = null;
@@ -456,9 +496,8 @@ namespace Altinn.Platform.Storage.Controllers
 
                 while (section != null)
                 {
-                    bool hasContentDispositionHeader =
-                        ContentDispositionHeaderValue.
-                        TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+                    bool hasContentDispositionHeader = ContentDispositionHeaderValue
+                        .TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
 
                     if (!hasContentDispositionHeader)
                     {
@@ -488,6 +527,10 @@ namespace Altinn.Platform.Storage.Controllers
                                 Stream = section.Body,
                             });
                         }
+                        else
+                        {
+                            errorResult = BadRequest($"Multipart section with named 'instance' must have 'Content-Type = application/json', it has unexpected content type {contentType}");
+                        }                       
                     }
                     else
                     {
@@ -527,11 +570,19 @@ namespace Altinn.Platform.Storage.Controllers
                         section.Body.CopyTo(memoryStream);
                         memoryStream.Position = 0;
 
+                        if (memoryStream.Length == 0)
+                        {
+                            errorResult = BadRequest($"The multpart section named {sectionName} has no data. Cannot process empty part.");
+                            return null;
+                        }
+
                         parts.Add(new Part()
                         {
                             ContentType = contentType,
                             Name = sectionName,
                             Stream = memoryStream,
+                            FileName = contentFileName,
+                            FileSize = fileSize,
                         });
                     }
 
@@ -560,7 +611,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// Reads the body element of HttpRequest as string
         /// </summary>
         /// <returns></returns>
-        private async Task<string> ReadBodyAsync(Stream stream)
+        private async Task<string> StreamToUtf8String(Stream stream)
         {
             StreamReader streamReader = new StreamReader(stream, Encoding.UTF8);
             return await streamReader.ReadToEndAsync();
@@ -761,7 +812,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                SetSelfLinks(result);
+                AddSelfLinks(Request, result);
             }
             catch (Exception e) 
             {
@@ -836,16 +887,34 @@ namespace Altinn.Platform.Storage.Controllers
         }
     }
 
-    class Part
+    /// <summary>
+    /// A helper to organise the parts in a multipart
+    /// </summary>
+    internal class Part
     {
+        /// <summary>
+        /// The stream to access this part.
+        /// </summary>
         public Stream Stream { get; set; }
 
+        /// <summary>
+        /// The file name as given in content description.
+        /// </summary>
         public string FileName { get; set; }
 
+        /// <summary>
+        /// The parts name.
+        /// </summary>
         public string Name { get; set; }
 
+        /// <summary>
+        /// The content type of the part.
+        /// </summary>
         public string ContentType { get; set; }
 
-        public int FileSize { get; set; }
+        /// <summary>
+        /// The file size of the part, if given.
+        /// </summary>
+        public long FileSize { get; set; }
     }
 }

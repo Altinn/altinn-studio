@@ -76,12 +76,14 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="fileStream">The file stream to read from</param>
         /// <param name="fileName">The file name to writ to</param>
         /// <returns></returns>
-        public async Task<bool> CreateDataInStorage(Stream fileStream, string fileName)
+        public async Task<long> CreateDataInStorage(Stream fileStream, string fileName)
         {
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 
             await blockBlob.UploadFromStreamAsync(fileStream);
-            return await Task.FromResult(true);
+            blockBlob.FetchAttributes();
+            
+            return await Task.FromResult(blockBlob.Properties.Length);
         }
        
         /// <summary>
@@ -90,12 +92,14 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="fileStream">the stream to update from</param>
         /// <param name="fileName">the name of the file to update</param>
         /// <returns></returns>
-        public async Task<bool> UpdateDataInStorage(Stream fileStream, string fileName)
+        public async Task<long> UpdateDataInStorage(Stream fileStream, string fileName)
         {
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 
             await blockBlob.UploadFromStreamAsync(fileStream);
-            return await Task.FromResult(true);
+            blockBlob.FetchAttributes();
+
+            return await Task.FromResult(blockBlob.Properties.Length);
         }
 
         /// <summary>
