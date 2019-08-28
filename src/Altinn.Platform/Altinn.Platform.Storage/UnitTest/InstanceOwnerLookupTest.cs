@@ -183,7 +183,7 @@ namespace Altinn.Platform.Storage.UnitTest
                 }));
             
             Mock<IDataRepository> mockDataRepository = new Mock<IDataRepository>();
-            mockDataRepository.Setup(dr => dr.CreateDataInStorage(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.FromResult(true));
+            mockDataRepository.Setup(dr => dr.WriteDataToStorage(It.IsAny<Stream>(), It.IsAny<string>())).Returns(Task.FromResult(50L));
 
             Mock<ILogger<InstancesController>> mockLogger = new Mock<ILogger<InstancesController>>();
             Mock<IOptions<GeneralSettings>> mockGeneralSettings = new Mock<IOptions<GeneralSettings>>();
