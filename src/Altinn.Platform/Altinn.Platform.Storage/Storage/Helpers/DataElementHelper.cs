@@ -28,7 +28,7 @@ namespace Altinn.Platform.Storage.Helpers
                 ContentType = contentType,
                 CreatedBy = user,
                 CreatedDateTime = creationTime,
-                FileName = contentFileName ?? $"{dataId}.xml",
+                FileName = contentFileName,
                 LastChangedBy = user,
                 LastChangedDateTime = creationTime,
                 FileSize = fileSize,

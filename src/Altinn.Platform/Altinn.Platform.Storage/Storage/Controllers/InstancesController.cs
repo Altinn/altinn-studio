@@ -6,7 +6,6 @@ namespace Altinn.Platform.Storage.Controllers
     using System.Linq;
     using System.Net;
     using System.Net.Http;
-    using System.Security.Claims;
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
@@ -19,7 +18,6 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Extensions;
     using Microsoft.AspNetCore.Http.Features;
-    using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
@@ -87,7 +85,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
             }
 
-            result.ForEach(i => SetSelfLinks(i));
+            result.ForEach(i => AddSelfLinks(Request, i));
 
             return Ok(result);
         }
@@ -202,7 +200,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }
 
                 // add self links to platform
-                result.Instances.ForEach(i => SetSelfLinks(i));
+                result.Instances.ForEach(i => AddSelfLinks(Request, i));
                 
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
@@ -228,15 +226,16 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         ///   Annotate instance with self links to platform for the instance and each of its data elements.
         /// </summary>
+        /// <param name="request">the http request which has the path to the request</param>
         /// <param name="instance">the instance to annotate</param>
-        private void SetSelfLinks(Instance instance)
+        public static void AddSelfLinks(HttpRequest request, Instance instance)
         {
-            string selfLink = $"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}";
+            string selfLink = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.Path}";
 
-            if (!selfLink.EndsWith(instance.Id))
-            {
-                selfLink += $"/{instance.Id}";
-            }
+            int start = selfLink.IndexOf("/instances");
+            selfLink = selfLink.Substring(0, start) + "/instances";
+            
+            selfLink += $"/{instance.Id}";
             
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Platform = selfLink;
@@ -287,7 +286,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 result = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
 
-                SetSelfLinks(result);
+                AddSelfLinks(Request, result);
 
                 return Ok(result);
             }
@@ -311,19 +310,26 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult> Post(string appId, int? instanceOwnerId)
         {
             // check if metadata exists
-            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoErrorResult);
-            if (appInfoErrorResult != null)
+            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
+            if (appInfoError != null)
             {
-                return appInfoErrorResult;
+                return appInfoError;
             }
 
-            Instance instanceTemplate = await ReadInstanceTemplateFromBody(Request);
-
-            // get instanceOwnerId from three possible places
-            int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerErrorResult);
-            if (instanceOwnerErrorResult != null)
+            List<Part> parts = ReadAndCheckContent(Request, appInfo, out ActionResult contentError);
+            if (contentError != null)
             {
-                return instanceOwnerErrorResult;
+                return contentError;
+            }
+
+            // extract instance template. it should, if it exists, be first part in list
+            Instance instanceTemplate = await ExtractInstanceTemplateFromParts(parts);
+
+            // get instanceOwnerId from one out of three possible places
+            int ownerId = GetOrLookupInstanceOwnerId(instanceOwnerId, instanceTemplate, out ActionResult instanceOwnerIdError);
+            if (instanceOwnerIdError != null)
+            {
+                return instanceOwnerIdError;
             }
 
             if (instanceTemplate == null)
@@ -331,34 +337,92 @@ namespace Altinn.Platform.Storage.Controllers
                 instanceTemplate = new Instance();
             }
 
+            Instance storedInstance = null;
+
             try
             {
                 DateTime creationTime = DateTime.UtcNow;
                 string userId = null;
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instanceTemplate, ownerId, creationTime, userId);
+                storedInstance = await _instanceRepository.Create(instanceToCreate);
+                logger.LogInformation($"Created instance: {storedInstance.Id}");
 
-                Instance storedInstance = await _instanceRepository.Create(instanceToCreate);
-
-                if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+                if (parts.Any())
                 {
-                    storedInstance = ReadMultipartAndStoreFilesToBlob(storedInstance, appInfo.ElementTypes, creationTime, userId, out ActionResult errorResult);
-
-                    if (errorResult != null)
-                    {
-                        return errorResult;
-                    }
+                    storedInstance = await SaveDataElementsAndUpdateInstance(parts, storedInstance, creationTime, userId);
                 }
 
-                SetSelfLinks(storedInstance);
+                AddSelfLinks(Request, storedInstance);
 
                 return Ok(storedInstance);
             }
-            catch (Exception e)
+            catch (Exception storageException)
             {
-                logger.LogError($"Unable to create {appId} instance for {ownerId} due to {e}");
-                return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {e.Message}");
-            }        
+                logger.LogError($"Unable to create {appId} instance for {ownerId} due to {storageException}");
+
+                // compensating action - delete instance
+                await _instanceRepository.Delete(storedInstance);
+                logger.LogError($"Deleted instance {storedInstance.Id}");
+                
+                return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {storageException.Message}");
+            }
+        }
+
+        private async Task<Instance> SaveDataElementsAndUpdateInstance(List<Part> parts, Instance storedInstance, DateTime creationTime, string userId)
+        {
+            try
+            {
+                foreach (Part part in parts)
+                {
+                    // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
+                    DataElement newDataElement = DataElementHelper.CreateDataElement(part.Name, storedInstance, creationTime, part.ContentType, part.FileName, part.Stream.Length, userId);
+
+                    // Store file as blob.
+                    newDataElement.FileSize = _dataRepository.WriteDataToStorage(part.Stream, newDataElement.StorageUrl).Result;
+
+                    if (newDataElement.FileSize > 0)
+                    {
+                        storedInstance.Data.Add(newDataElement);
+
+                        logger.LogInformation($"Data element '{newDataElement.ElementType} - {newDataElement.Id}' is stored at {newDataElement.StorageUrl}, file size {newDataElement.FileSize / 1024}KB");
+                    }
+                }
+
+                // Update instance with the data element.
+                storedInstance = _instanceRepository.Update(storedInstance).Result;
+            }
+            catch (Exception dataElementException)
+            {
+                // compensating action - delete blobs
+                logger.LogError($"Creation of data elements failed. {dataElementException}");
+
+                foreach (DataElement dataElement in storedInstance.Data)
+                {
+                    await _dataRepository.DeleteDataInStorage(dataElement.StorageUrl);
+                    logger.LogError($"Deleted data element '{dataElement.ElementType} - {dataElement.Id}' stored at {dataElement.StorageUrl}");
+                }
+
+                throw;
+            }
+
+            return storedInstance;
+        }
+
+        private async Task<Instance> ExtractInstanceTemplateFromParts(List<Part> parts)
+        {
+            Instance instanceTemplate = null;
+
+            if (parts.Any() && parts[0] != null && parts[0].Name != null && parts[0].Name.Equals("instance"))
+            {
+                Part instancePart = parts[0];
+
+                instanceTemplate = JsonConvert.DeserializeObject<Instance>(await StreamToUtf8String(instancePart.Stream));
+
+                parts.Remove(instancePart);
+            }
+
+            return instanceTemplate;
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, int ownerId, DateTime creationTime, string userId)
@@ -407,159 +471,221 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return createdInstance;
-        }
+        }      
 
         /// <summary>
-        /// Loop through multipart content and save file(s) to blob
+        /// Method to read the parts of of a multipart request body. 
         /// </summary>
-        /// <param name="storedInstance">The Instance object to connect stored files</param>
-        /// <param name="appInfoElementTypes">The element types from the application info</param>
-        /// <param name="creationTime">The DateTime varialbe on which the storedInstance was created</param>
-        /// <param name="user">The user</param>
-        /// <param name="errorResult">The possible error message</param>
-        /// <returns></returns>
-        private Instance ReadMultipartAndStoreFilesToBlob(Instance storedInstance, List<ElementType> appInfoElementTypes, DateTime creationTime, string user, out ActionResult errorResult)
+        /// <param name="request">The HttpRequest</param>
+        /// <param name="appInfo">The application metadata</param>
+        /// <param name="errorResult">The error message if the part does not follow the application metadata or has a proper section name, ...</param>
+        /// <returns>The list of the parts in the multpart request</returns>
+        private List<Part> ReadAndCheckContent(HttpRequest request, Application appInfo, out ActionResult errorResult)
         {
             errorResult = null;
 
-            MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
-            string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+            List<Part> emptyList = Enumerable.Empty<Part>().ToList();
 
-            MultipartReader reader = new MultipartReader(boundary, Request.Body);
-            MultipartSection section = reader.ReadNextSectionAsync().Result;
-            
-            while (section != null)
+            if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
             {
-                bool hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(
-                    section.ContentDisposition,
-                    out ContentDispositionHeaderValue contentDisposition);
+                List<Part> parts = ReadMultipartContentOrError(request, appInfo, out ActionResult multipartError);
 
-                if (!hasContentDispositionHeader)
+                if (multipartError != null)
                 {
-                    errorResult = BadRequest("Multipart section must have content disposition header");
+                    errorResult = multipartError;
+                    return emptyList;
+                }
+
+                return parts;
+            }
+            else
+            {
+                Part part = ReadInstanceTemplatePart(request.ContentType, request.Body, out ActionResult instanceTemplateError);
+
+                if (instanceTemplateError != null)
+                {
+                    errorResult = instanceTemplateError;                    
+                }
+
+                if (part != null)
+                {
+                    return new List<Part>() { part };
+                }                
+            }
+            
+            return emptyList;
+        }
+
+        private Part ReadInstanceTemplatePart(string contentType, Stream stream, out ActionResult errorResult)
+        {
+            errorResult = null;
+            
+            if (!string.IsNullOrEmpty(contentType))
+            {
+                if (contentType.StartsWith("application/json"))
+                {
+                    return new Part()
+                    {
+                        ContentType = contentType,
+                        Name = "instance",
+                        Stream = CopyStreamIntoMemoryStream(stream),
+                    };
+                }
+                else
+                {
+                    errorResult = BadRequest($"Unexpected Content-Type '{contentType}' of embedded instance template. Expecting 'application/json'");
                     return null;
                 }
+            }
 
-                if (contentDisposition.Name == null)
+            return null;
+        }
+
+        private List<Part> ReadMultipartContentOrError(HttpRequest request, Application appInfo, out ActionResult errorResult)
+        {
+            errorResult = null;
+
+            List<Part> parts = new List<Part>();
+            List<Part> emptyList = Enumerable.Empty<Part>().ToList();
+
+            MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
+            string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+
+            MultipartReader reader = new MultipartReader(boundary, request.Body);
+            MultipartSection section = reader.ReadNextSectionAsync().Result;
+
+            while (section != null)
+            {
+                Part part = ReadSectionIntoPartOrError(section, appInfo, out ActionResult sectionError);
+
+                if (sectionError != null)
                 {
-                    errorResult = BadRequest("Multipart section has no name. It must have a name that corresponds to elementTypes defined in Application metadat");
-                    return null;                
+                    errorResult = sectionError;
+                    return emptyList;
                 }
 
-                string sectionName = contentDisposition.Name.Value;
-
-                if (!"instance".Equals(sectionName))
+                if (part != null)
                 {
-                    string contentFileName = null;                                      
-                    if (contentDisposition.FileName != null)
-                    {
-                        contentFileName = contentDisposition.FileName.ToString();
-                    }
-                    
-                    long fileSize = contentDisposition.Size ?? 0;
-
-                    // Check if the content disposition name is declared for the application (e.g. "default").
-                    ElementType elementType = appInfoElementTypes.Find(e => e.Id == sectionName);
-                    
-                    if (elementType == null)
-                    {
-                        errorResult = BadRequest($"Multipart section named, '{sectionName}' does not correspond to an element type in application metadata");
-                        return null;
-                    }
-
-                    if (section.ContentType == null)
-                    {
-                        errorResult = BadRequest($"The multipart section named {sectionName} is missing Content-Type.");
-                        return null;
-                    }
-
-                    string contentType = section.ContentType;
-                    string contentTypeWithoutEncoding = contentType.Split(";")[0];                    
-
-                    // Check if the content type of the multipart section is declared for the element type (e.g. "application/xml").
-                    if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
-                    {
-                        errorResult = BadRequest($"The multipart section named {sectionName} has a Content-Type '{contentType}' which is not declared in this application element type '{elementType}'");
-                        return null;
-                    }
-
-                    Stream theStream = section.Body;
-
-                    // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
-                    DataElement newDataElement = DataElementHelper.CreateDataElement(sectionName, storedInstance, creationTime, contentType, contentFileName, fileSize, user);
- 
-                    // Store file as blob.
-                    bool blobCreated = _dataRepository.CreateDataInStorage(theStream, newDataElement.StorageUrl).Result;
-
-                    // Add file to instance.
-                    storedInstance.Data.Add(newDataElement);
-
-                    // Update instance with the data element.
-                    storedInstance = _instanceRepository.Update(storedInstance).Result;                                   
+                    parts.Add(part);
                 }
 
                 section = reader.ReadNextSectionAsync().Result;
             }
 
-            return storedInstance;
+            return parts;
         }
 
         /// <summary>
-        /// Method to read the instance object from the HttpRequest body. 
+        /// Reads a multipart section, checks if it meets criteria of Application metadata and returns a part holding the stream with content.
         /// </summary>
-        /// <param name="request">The HttpRequest</param>
-        /// <returns>The instance object</returns>
-        private async Task<Instance> ReadInstanceTemplateFromBody(HttpRequest request)
+        /// <param name="section">the section to read</param>
+        /// <param name="appInfo">the application metadata</param>
+        /// <param name="errorResult">error message</param>
+        /// <returns>the part holding the section's stream</returns>
+        private Part ReadSectionIntoPartOrError(MultipartSection section, Application appInfo, out ActionResult errorResult)
         {
-            Instance instanceTemplate = null;
-            string contentType = null;
+            errorResult = null;
 
-            if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
+            bool hasContentDispositionHeader = ContentDispositionHeaderValue
+                   .TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+
+            if (!hasContentDispositionHeader)
             {
-                // Only read the first section of the mulitpart message, to get the instance.
-                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
-                string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+                errorResult = BadRequest("Multipart section must have content disposition header");
+                return null;
+            }
 
-                MultipartReader reader = new MultipartReader(boundary, request.Body);
-                MultipartSection section = reader.ReadNextSectionAsync().Result;
+            if (!contentDisposition.Name.HasValue)
+            {
+                errorResult = BadRequest("Multipart section has no name. It must have a name that corresponds to elementTypes defined in Application metadat");
+                return null;
+            }
 
-                bool hasContentDispositionHeader =
-                        ContentDispositionHeaderValue.
-                        TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-                
-                if (hasContentDispositionHeader && contentDisposition.Name.Value.Equals("instance"))
+            string sectionName = contentDisposition.Name.Value;
+            string contentType = section.ContentType;
+            
+            if (sectionName.Equals("instance"))
+            {
+                Part part = ReadInstanceTemplatePart(contentType, section.Body, out ActionResult instanceTemplateError);
+
+                if (instanceTemplateError != null)
                 {
-                    contentType = section.ContentType;
-
-                    // Check if the content type is of type "application/json".
-                    if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
-                    {
-                        instanceTemplate = JsonConvert.DeserializeObject<Instance>(await section.ReadAsStringAsync());
-                    }
+                    errorResult = instanceTemplateError;
+                    return null;
                 }
 
-                request.Body.Position = 0;
+                if (part != null)
+                {
+                    return part;
+                }            
             }
             else
             {
-                contentType = request.ContentType;
+                // Check if the section name is declared for the application (e.g. "default").
+                ElementType elementType = appInfo.ElementTypes.Find(e => e.Id == sectionName);
 
-                if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
+                if (elementType == null)
                 {
-                    instanceTemplate = JsonConvert.DeserializeObject<Instance>(await ReadBodyAsync(request));
+                    errorResult = BadRequest($"Multipart section named, '{sectionName}' does not correspond to an element type in application metadata");
+                    return null;
                 }
+
+                if (section.ContentType == null)
+                {
+                    errorResult = BadRequest($"The multipart section named {sectionName} is missing Content-Type.");
+                    return null;
+                }
+
+                string contentTypeWithoutEncoding = contentType.Split(";")[0];
+
+                // Check if the content type of the multipart section is declared for the element type (e.g. "application/xml").
+                if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
+                {
+                    errorResult = BadRequest($"The multipart section named {sectionName} has a Content-Type '{contentType}' which is not declared in this application element type '{elementType}'");
+                    return null;
+                }
+
+                string contentFileName = contentDisposition.FileName.HasValue ? contentDisposition.Name.Value : null;
+                long fileSize = contentDisposition.Size ?? 0;
+
+                // copy the section.Body stream since this stream cannot be rewind
+                MemoryStream memoryStream = CopyStreamIntoMemoryStream(section.Body);
+                    
+                if (memoryStream.Length == 0)
+                {
+                    errorResult = BadRequest($"The multpart section named {sectionName} has no data. Cannot process empty part.");
+                    return null;
+                }
+
+                return new Part()
+                {
+                    ContentType = contentType,
+                    Name = sectionName,
+                    Stream = memoryStream,
+                    FileName = contentFileName,
+                    FileSize = fileSize,
+                };
             }
-            
-            return instanceTemplate;
+
+            return null;
+        }
+
+        private MemoryStream CopyStreamIntoMemoryStream(Stream stream)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+
+            return memoryStream;
         }
 
         /// <summary>
         /// Reads the body element of HttpRequest as string
         /// </summary>
         /// <returns></returns>
-        private async Task<string> ReadBodyAsync(HttpRequest req)
+        private async Task<string> StreamToUtf8String(Stream stream)
         {
-            StreamReader streamReader = new StreamReader(req.Body, Encoding.UTF8);
+            StreamReader streamReader = new StreamReader(stream, Encoding.UTF8);
             return await streamReader.ReadToEndAsync();
         }
         
@@ -758,7 +884,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                SetSelfLinks(result);
+                AddSelfLinks(Request, result);
             }
             catch (Exception e) 
             {
@@ -831,5 +957,36 @@ namespace Altinn.Platform.Storage.Controllers
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// A helper to organise the parts in a multipart
+    /// </summary>
+    internal class Part
+    {
+        /// <summary>
+        /// The stream to access this part.
+        /// </summary>
+        public Stream Stream { get; set; }
+
+        /// <summary>
+        /// The file name as given in content description.
+        /// </summary>
+        public string FileName { get; set; }
+
+        /// <summary>
+        /// The parts name.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// The content type of the part.
+        /// </summary>
+        public string ContentType { get; set; }
+
+        /// <summary>
+        /// The file size of the part, if given.
+        /// </summary>
+        public long FileSize { get; set; }
     }
 }

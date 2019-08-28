@@ -16,16 +16,17 @@ namespace Altinn.Clients.PrefillClient
 
             Instance instanceTemplate = new Instance()
             {
-                InstanceOwnerLookup = new InstanceOwnerLookup()
+                /*InstanceOwnerLookup = new InstanceOwnerLookup()
                 {
                     PersonNumber = "01025180093",
-                },
+                },*/
+
                 DueDateTime = DateTime.Parse("2019-12-31"),
                 VisibleDateTime = DateTime.Parse("2019-10-01"),
             };
 
-            MultipartFormDataContent content = new MultipartContentBuilder(instanceTemplate)
-                .AddDataElement("instance", new StringContent(instanceTemplate.ToString(), Encoding.UTF8, "application/json"))
+
+            MultipartFormDataContent content = new MultipartContentBuilder(instanceTemplate)                
                 .AddDataElement("form", new FileStream("data/schema.xsd", FileMode.Open), "application/xml")
                 .AddDataElement("cat", new FileStream("data/cat.jpg", FileMode.Open), "image/jpg")
                 .Build();
@@ -34,7 +35,9 @@ namespace Altinn.Clients.PrefillClient
             //client.Timeout = new TimeSpan(0, 0, 3);
             //string prefix = "https://platform.at21.altinn.cloud/storage/api/v1";
             string prefix = "http://localhost:5010/storage/api/v1";
-            Uri uri = new Uri(prefix + "/instances?appId=tdd/cat");
+
+            Uri uri = new Uri(prefix + "/instances?appId=tdd/cat&instanceOwnerId=10101");
+
 
             try
             {
