@@ -126,9 +126,9 @@ namespace Altinn.Platform.Storage.Repository
             }
 
             try
-            {                
+            {
                 IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
-                            
+
                 FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
 
                 if (!feedResponse.Any())
@@ -146,7 +146,7 @@ namespace Altinn.Platform.Storage.Repository
                 // this migth be expensive              
                 feedOptions.RequestContinuation = null;
                 int totalHits = queryBuilder.Count();
-                queryResponse.TotalHits = totalHits;                
+                queryResponse.TotalHits = totalHits;
 
                 List<Instance> instances = feedResponse.ToList<Instance>();
 
@@ -260,7 +260,7 @@ namespace Altinn.Platform.Storage.Repository
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.DueDateTime == dateValue); 
+            return queryBuilder.Where(i => i.DueDateTime == dateValue);
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
@@ -423,6 +423,54 @@ namespace Altinn.Platform.Storage.Repository
             List<Instance> instances = feedResponse.ToList<Instance>();
 
             PostProcess(instances);
+
+            return instances;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerId, string instanceState)
+        {
+            List<Instance> instances = new List<Instance>();
+            string instanceOwnerIdString = instanceOwnerId.ToString();
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                PartitionKey = new PartitionKey(instanceOwnerIdString)
+            };
+
+            IQueryable<Instance> filter = null;
+
+            if (instanceState.Equals("active"))
+            {
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => i.InstanceState.IsDeleted == false)
+                        .Where(i => i.InstanceState.IsArchived == false);
+            }
+            else if (instanceState.Equals("deleted"))
+            {
+                // what about hard delete. Should we account for that too?
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => i.InstanceState.IsDeleted == true);
+            }
+            else if (instanceState.Equals("archived"))
+            {
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                       .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                       .Where(i => i.InstanceState.IsArchived == true)
+                       .Where(i => i.InstanceState.IsDeleted == false);
+            }
+            else
+            {
+                return instances;
+            }
+
+            IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
+
+            FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+
+            instances = feedResponse.ToList<Instance>();
 
             return instances;
         }

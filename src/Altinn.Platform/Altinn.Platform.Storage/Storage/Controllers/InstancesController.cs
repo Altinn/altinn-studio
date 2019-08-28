@@ -93,6 +93,45 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Gets all instances in a given state for a given instance owner.
+        /// </summary>
+        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceState">the instance state</param>
+        /// <returns>list of instances</returns>
+        [HttpGet("{instanceOwnerId:int}/{instanceState}")]
+        public async Task<ActionResult> GetInstanceOwnerAndState(int instanceOwnerId, string instanceState)
+        {
+            string[] allowedStates = new string[] { "active", "archived", "deleted" };
+
+            if (!allowedStates.Contains(instanceState.ToLower()))
+            {
+                return BadRequest("Invalid instance state");
+            }
+
+            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerId, instanceState);
+
+            if (allInstances == null || allInstances.Count == 0)
+            {
+                return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
+            }
+
+            // TODO: authorize instances and filter list
+
+            // get appId from filteredInstances eventually
+            List<string> appIds = allInstances.Select(i => i.AppId)
+                                    .Distinct()
+                                    .ToList();
+
+            // Get title from app metadata
+            Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
+
+            // Simplify instances and return
+            List<MessageBoxInstance> simpleInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, AltinnCore.ServiceLibrary.ServiceMetadata.Language.NorwegianBokmal);
+ 
+            return Ok(simpleInstances);
+        }
+
+        /// <summary>
         /// Get all instances for a given org or appId. Only one parameter at the time.
         /// </summary>
         /// <param name="org">application owner</param>
@@ -134,7 +173,7 @@ namespace Altinn.Platform.Storage.Controllers
                 selfContinuationToken = continuationToken;
                 continuationToken = HttpUtility.UrlDecode(continuationToken);
             }
-           
+
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
             string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
@@ -156,7 +195,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return BadRequest(result.Exception);
                 }
-          
+
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
@@ -203,7 +242,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 // add self links to platform
                 result.Instances.ForEach(i => SetSelfLinks(i));
-                
+
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
                 {
@@ -222,7 +261,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 logger.LogError("exception", e);
                 return StatusCode(500, $"Unable to perform query due to: {e.Message}");
-            }                               
+            }
         }
 
         /// <summary>
@@ -232,7 +271,7 @@ namespace Altinn.Platform.Storage.Controllers
         private void SetSelfLinks(Instance instance)
         {
             string selfLink = $"{Request.Scheme}://{Request.Host.ToUriComponent()}{Request.Path}";
-            
+
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Platform = selfLink;
 
@@ -353,7 +392,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 logger.LogError($"Unable to create {appId} instance for {ownerId} due to {e}");
                 return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {e.Message}");
-            }        
+            }
         }
 
         private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, int ownerId, DateTime creationTime, string userId)
@@ -422,7 +461,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             MultipartReader reader = new MultipartReader(boundary, Request.Body);
             MultipartSection section = reader.ReadNextSectionAsync().Result;
-            
+
             while (section != null)
             {
                 bool hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(
@@ -438,24 +477,24 @@ namespace Altinn.Platform.Storage.Controllers
                 if (contentDisposition.Name == null)
                 {
                     errorResult = BadRequest("Multipart section has no name. It must have a name that corresponds to elementTypes defined in Application metadat");
-                    return null;                
+                    return null;
                 }
 
                 string sectionName = contentDisposition.Name.Value;
 
                 if (!"instance".Equals(sectionName))
                 {
-                    string contentFileName = null;                                      
+                    string contentFileName = null;
                     if (contentDisposition.FileName != null)
                     {
                         contentFileName = contentDisposition.FileName.ToString();
                     }
-                    
+
                     long fileSize = contentDisposition.Size ?? 0;
 
                     // Check if the content disposition name is declared for the application (e.g. "default").
                     ElementType elementType = appInfoElementTypes.Find(e => e.Id == sectionName);
-                    
+
                     if (elementType == null)
                     {
                         errorResult = BadRequest($"Multipart section named, '{sectionName}' does not correspond to an element type in application metadata");
@@ -469,7 +508,7 @@ namespace Altinn.Platform.Storage.Controllers
                     }
 
                     string contentType = section.ContentType;
-                    string contentTypeWithoutEncoding = contentType.Split(";")[0];                    
+                    string contentTypeWithoutEncoding = contentType.Split(";")[0];
 
                     // Check if the content type of the multipart section is declared for the element type (e.g. "application/xml").
                     if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
@@ -482,7 +521,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                     // Create a new DataElement to be stored in blob and added in the Data List of the Instance object.
                     DataElement newDataElement = DataElementHelper.CreateDataElement(sectionName, storedInstance, creationTime, contentType, contentFileName, fileSize, user);
- 
+
                     // Store file as blob.
                     bool blobCreated = _dataRepository.CreateDataInStorage(theStream, newDataElement.StorageUrl).Result;
 
@@ -490,7 +529,7 @@ namespace Altinn.Platform.Storage.Controllers
                     storedInstance.Data.Add(newDataElement);
 
                     // Update instance with the data element.
-                    storedInstance = _instanceRepository.Update(storedInstance).Result;                                   
+                    storedInstance = _instanceRepository.Update(storedInstance).Result;
                 }
 
                 section = reader.ReadNextSectionAsync().Result;
@@ -521,7 +560,7 @@ namespace Altinn.Platform.Storage.Controllers
                 bool hasContentDispositionHeader =
                         ContentDispositionHeaderValue.
                         TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-                
+
                 if (hasContentDispositionHeader && contentDisposition.Name.Value.Equals("instance"))
                 {
                     contentType = section.ContentType;
@@ -556,7 +595,7 @@ namespace Altinn.Platform.Storage.Controllers
             StreamReader streamReader = new StreamReader(req.Body, Encoding.UTF8);
             return await streamReader.ReadToEndAsync();
         }
-        
+
         private Application GetApplicationOrError(string appId, out ActionResult errorResult)
         {
             errorResult = null;
@@ -566,7 +605,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 string org = appId.Split("/")[0];
 
-                appInfo = _applicationRepository.FindOne(appId, org).Result;                
+                appInfo = _applicationRepository.FindOne(appId, org).Result;
             }
             catch (DocumentClientException dce)
             {
@@ -583,7 +622,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 errorResult = StatusCode(500, $"Unable to perform request: {e}");
             }
-    
+
             return appInfo;
         }
 
@@ -599,7 +638,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns></returns>
         private int GetOrLookupInstanceOwnerId(int? instanceOwnerId, Instance instanceTemplate, out ActionResult errorResult)
         {
-            errorResult = null;          
+            errorResult = null;
 
             if (instanceOwnerId.HasValue)
             {
@@ -614,8 +653,8 @@ namespace Altinn.Platform.Storage.Controllers
                         return int.Parse(instanceTemplate.InstanceOwnerId);
                     }
                     else
-                    {                        
-                        return InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup, ref errorResult);                        
+                    {
+                        return InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup, ref errorResult);
                     }
                 }
                 else
@@ -649,7 +688,7 @@ namespace Altinn.Platform.Storage.Controllers
                 catch (Exception e)
                 {
                     errorResult = BadRequest(e.Message);
-                }                
+                }
             }
             else
             {
@@ -754,10 +793,10 @@ namespace Altinn.Platform.Storage.Controllers
                 result = await _instanceRepository.Update(existingInstance);
                 SetSelfLinks(result);
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
-            }            
+            }
 
             return Ok(result);
         }
@@ -800,7 +839,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     await _instanceRepository.Delete(instance);
 
-                    return Ok(true);                    
+                    return Ok(true);
                 }
                 catch (Exception e)
                 {
@@ -816,8 +855,8 @@ namespace Altinn.Platform.Storage.Controllers
                 try
                 {
                     Instance softDeletedInstance = await _instanceRepository.Update(instance);
-                    
-                    return Ok(softDeletedInstance);                    
+
+                    return Ok(softDeletedInstance);
                 }
                 catch (Exception e)
                 {
