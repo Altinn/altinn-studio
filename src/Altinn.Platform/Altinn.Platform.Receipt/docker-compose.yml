@@ -14,7 +14,7 @@ services:
 
   altinn_platform_receipt:
     container_name: altinn-platform-receipt
-    image: altinnplatformreceipt:latest
+    image: altinn-platform-receipt:latest
     restart: always
     networks:
       - altinnplatform_network
