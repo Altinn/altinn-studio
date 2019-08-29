@@ -3,12 +3,12 @@ import * as React from 'react';
 import AltinnButton from '../components/AltinnButton';
 import AltinnIcon from '../components/AltinnIcon';
 import AltinnInputField from '../components/AltinnInputField';
-import altinnAppTheme from '../theme/altinnAppTheme';
+import AltinnAppTheme from '../theme/altinnAppTheme';
 import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
 import { altinnDocsUrl, dataModelUploadPageUrl, dataModelXsdUrl, repositoryGitUrl } from '../utils/urlHelper';
 
-const theme = createMuiTheme(altinnAppTheme);
+const theme = createMuiTheme(AltinnAppTheme);
 
 const styles = createStyles({
   modalContainer: {

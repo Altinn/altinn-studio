@@ -65,10 +65,6 @@ namespace Altinn.Platform.Receipt
                 userUrl = $"{_platformSettings.ApiProfileEndpoint}users/{userId}";
             }
 
-            _logger.LogError($"Platformsettings: {_platformSettings.ApiProfileEndpoint}");
-            _logger.LogError($"Environment variable: {Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint")}");
-            _logger.LogError($"userUrl: {userUrl}");
-
             string token = JwtTokenUtil.GetTokenFromContext(Request.HttpContext, "AltinnStudioRuntime");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             HttpResponseMessage response = await _client.GetAsync(userUrl);

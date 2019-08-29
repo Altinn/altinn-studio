@@ -22,7 +22,7 @@ export function getAltinnCloudUrl(): string {
     // if we are developing locally, point to test data in at21
     return altinnAt21PlatformUrl;
   } else {
-    // in prod => point to origin. Can be multiple environments.
+    // Point to origin. Can be multiple environments.
     return window.location.origin + '/';
   }
 }

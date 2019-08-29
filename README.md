@@ -149,6 +149,7 @@ The platform receipt component can run locally, both in docker and manually.
 ### Manual
 - Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`
 - run `npm install`
+- run `npm run gulp` (if running for the first time, otherwise this can be skipped)
 - run `npm run gulp-install-deps`
 - run `npm run gulp-develop`
 

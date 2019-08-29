@@ -74,7 +74,7 @@ gulp.task('develop', gulp.parallel(
 ));
 
 gulp.task('install-react-app-dependencies', gulp.series(
-  run('lerna bootstrap --hoist', {
+  run('lerna bootstrap --hoist --ci', {
     cwd: '../../react-apps',
   })
 ));

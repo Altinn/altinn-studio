@@ -12,8 +12,8 @@ export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
   userParty: IParty;
   /** The color used for the logos in the header */
   logoColor: string;
-  /** The header color */
-  headerColor: string;
+  /** The header background color */
+  headerBackgroundColor: string;
 }
 
 const styles = createStyles({
@@ -34,7 +34,7 @@ const styles = createStyles({
 });
 
 export function AltinnAppHeader(props: IAltinnAppHeaderProps) {
-  const {classes, logoColor, headerColor, party, userParty} = props;
+  const {classes, logoColor, headerBackgroundColor: headerColor, party, userParty} = props;
   return (
     <AppBar position={'relative'} classes={{root: classes.altinnAppHeader}} style={{backgroundColor: headerColor}}>
       <Grid
