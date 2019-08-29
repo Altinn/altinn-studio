@@ -50,6 +50,9 @@ namespace AltinnCore.UnitTest.Runtime
             Mock<HttpRequest> request = new Mock<HttpRequest>();
             request.SetupGet(x => x.Headers["Accept"]).Returns("application/json");
             request.SetupGet(x => x.Body).Returns(instanceStream);
+            request.SetupGet(x => x.Scheme).Returns("http");
+            request.SetupGet(x => x.Host).Returns(new HostString("tdd.apps.at21.altinn.cloud"));
+            request.SetupGet(x => x.Path).Returns(new PathString("/tdd/test/instances"));
 
             var context = new Mock<HttpContext>();
             context.SetupGet(x => x.Request).Returns(request.Object);
@@ -72,6 +75,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Assert.NotNull(instance);
             Assert.Equal("20000004", instance.InstanceOwnerId);
+            Assert.StartsWith("http://tdd.apps.at21.altinn.cloud/tdd/test/instances/20000004", instance.SelfLinks.Apps);
         }
 
         private Mock<IHttpClientAccessor> MockStorage()
