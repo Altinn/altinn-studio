@@ -1041,7 +1041,7 @@ namespace Altinn.Platform.Storage.Controllers
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
 
             // Simplify instances and return
-            List<MessageBoxInstance> simpleInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, languageId);
+            MessageBoxInstance simpleInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, languageId).First();
 
             return Ok(simpleInstance);
         }
