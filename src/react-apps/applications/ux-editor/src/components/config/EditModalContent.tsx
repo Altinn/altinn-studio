@@ -410,7 +410,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
             </Grid>
             {
               renderSelectTextFromResources(
-                'modal_configure_address_component_helper',
+                'modal_properties_label_helper',
                 this.handleTitleChange,
                 this.props.textResources,
                 this.props.language,

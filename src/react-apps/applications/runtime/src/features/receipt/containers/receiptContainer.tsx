@@ -51,7 +51,7 @@ export const returnInstanceMetaDataObject = (
 const ReceiptContainer = (props: IReceiptContainerProps ) => {
   const [appName, setAppName] = React.useState('');
   const [attachments, setAttachments] = useState([]);
-  const [instanceLastChangedDateTime, setInstanceLastChangedDateTime] = useState('');
+  const [lastChangedDateTime, setLastChangedDateTime] = useState('');
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
 
@@ -73,11 +73,11 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   React.useEffect(() => {
     if (allOrgs != null && profile.profile && instance && instance.org && allOrgs) {
       const obj = returnInstanceMetaDataObject(
-        allOrgs, language, profile, routeParams.instanceGuid, userLanguage, instanceLastChangedDateTime, instance.org,
+        allOrgs, language, profile, routeParams.instanceGuid, userLanguage, lastChangedDateTime, instance.org,
       );
       setInstanceMetaObject(obj);
     }
-  }, [allOrgs, profile, instance, instanceLastChangedDateTime]);
+  }, [allOrgs, profile, instance, lastChangedDateTime]);
 
   React.useEffect(() => {
     if (applicationMetadata && applicationMetadata.title) {
@@ -89,10 +89,12 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
     if (instance && instance.data) {
       const attachmentsResult = returnInstanceAttachments(instance.data);
       setAttachments(attachmentsResult);
-    }
 
-    if (instance) {
-      setInstanceLastChangedDateTime(moment(instance.lastChangedDateTime).format('DD.MM.YYYY / HH:MM'));
+      const defaultDataElementLastChangedDateTime = instance.data
+        .filter((elem) => elem.elementType === 'default')[0]
+        .lastChangedDateTime;
+
+      setLastChangedDateTime(moment(defaultDataElementLastChangedDateTime).format('DD.MM.YYYY / HH:mm'));
     }
   }, [instance]);
 

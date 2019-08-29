@@ -120,16 +120,20 @@ export function validateComponentFormData(
   dataModelFieldElement: IDataModelFieldElement,
   component: ILayoutComponent,
   language: any,
+  existingValidationErrors?: IComponentValidations,
 ): IComponentValidations {
   const validationErrors: string[] = [];
   const fieldKey = Object.keys(component.dataModelBindings).find((binding: string) =>
     component.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
-  const componentValidations: IComponentValidations = {
-    [fieldKey]: {
-      errors: [],
-      warnings: [],
-    },
-  };
+
+  const componentValidations: IComponentValidations = !existingValidationErrors ?
+    {
+      [fieldKey]: {
+        errors: [],
+        warnings: [],
+      },
+    } : existingValidationErrors;
+
   Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
     const validationSuccess = runValidation(key, dataModelFieldElement.Restrictions[key], formData);
     if (!validationSuccess) {
@@ -151,6 +155,11 @@ export function validateComponentFormData(
       );
     }
   }
+
+  if (!componentValidations[fieldKey]) {
+    return null;
+  }
+
   componentValidations[fieldKey].errors = validationErrors;
   return componentValidations;
 }
