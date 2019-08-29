@@ -167,4 +167,4 @@ test('Receipt page test', async t => {
     .switchToMainWindow()
     .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
     .expect(runtime.receiptContainer.find('p').withText('Referansenummer').parent('td').nextSibling('td').find('p').value).notEql('','Reference number is null')
-})
+});
