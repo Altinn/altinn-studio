@@ -8,15 +8,17 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnAppTheme';
 import { IAttachment } from '../../types/index.d';
-import { getLanguageFromKey } from '../../utils/language';
 import AltinnAttachment from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
+
+// TODO: Fix when upgrading to Material-UI v4
+import { unstable_useMediaQuery } from '@material-ui/core/useMediaQuery';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   attachments?: IAttachment[];
   body: string;
+  collapsibleTitle: string;
   instanceMetaDataObject: any;
-  language: any;
   pdf?: IAttachment[];
   subtitle?: boolean;
   subtitleurl?: string;
@@ -107,8 +109,8 @@ export function ReceiptComponent(props: IReceiptComponentProps) {
         {props.attachments && (
           <AltinnCollapsibleAttachments
             attachments={props.attachments}
-            collapsible={Boolean(props.attachments.length > 4)}
-            title={getLanguageFromKey('shared_altinnreceipt.attachments', props.language)}
+            collapsible={unstable_useMediaQuery('print') ? false : Boolean(props.attachments.length > 4)}
+            title={props.collapsibleTitle}
           />
         )}
 

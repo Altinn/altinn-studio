@@ -13,7 +13,7 @@ let designer = new DesignerPage();
 
 const getCookie = ClientFunction(() => document.cookie);
 
-fixture('Regression tests of services in runtime')
+fixture('Regression tests of apps in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
@@ -27,7 +27,7 @@ fixture('Regression tests of services in runtime')
   })
 
 
-test('Instantiate a service in runtime', async () => {
+test('Instantiate an app in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
     .switchToIframe(runtime.testBrukerIframe)
@@ -98,7 +98,7 @@ test('Read-only components test in runtime', async () => {
     .expect(runtime.testUserHeader[0].exists).ok()
 });
 
-test('Fill out, save, and submit a form', async () => {
+test('Fill out, save, and submit an instance of an app', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/formfilling#/test')
     .switchToIframe(runtime.testBrukerIframe)
