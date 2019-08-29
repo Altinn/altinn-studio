@@ -33,7 +33,9 @@ namespace Altinn.Platform.Storage.Helpers
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
                     Title = appTitles[instance.AppId]["nb"],
-                    ProcessCurrentTask = instance.Process.CurrentTask
+                    ProcessCurrentTask = instance.Process.CurrentTask,
+                    AuthorizedForWrite = true,
+                    AllowDelete = false
                 });
             }
 
@@ -62,6 +64,11 @@ namespace Altinn.Platform.Storage.Helpers
         public string Org { get; set; }
 
         /// <summary>
+        /// Application name used to identfify application
+        /// </summary>
+        public string AppName { get; set; }
+
+        /// <summary>
         /// application title for the instance
         /// </summary>
         public string Title { get; set; }
@@ -85,5 +92,15 @@ namespace Altinn.Platform.Storage.Helpers
         /// due date to submit the instance to application owner.
         /// </summary>
         public DateTime? DueDateTime { get; set; }
+
+        /// <summary>
+        /// Boolean indicating if user is allowed to delete instance
+        /// </summary>
+        public bool AllowDelete { get; set; }
+
+        /// <summary>
+        /// Boolean indicating if user is authorized to write on instance
+        /// </summary>
+        public bool AuthorizedForWrite { get; set; }
     }
 }
