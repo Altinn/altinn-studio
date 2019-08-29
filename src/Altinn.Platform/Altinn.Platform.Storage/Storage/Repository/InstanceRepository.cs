@@ -143,7 +143,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 logger.LogInformation($"continuation token: {nextContinuationToken}");
 
-                // this migth be expensive              
+                // this migth be expensive
                 feedOptions.RequestContinuation = null;
                 int totalHits = queryBuilder.Count();
                 queryResponse.TotalHits = totalHits;
@@ -444,22 +444,22 @@ namespace Altinn.Platform.Storage.Repository
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => i.InstanceState.IsDeleted == false)
-                        .Where(i => i.InstanceState.IsArchived == false);
+                        .Where(i => !i.InstanceState.IsDeleted)
+                        .Where(i => !i.InstanceState.IsArchived);
             }
             else if (instanceState.Equals("deleted"))
             {
                 // what about hard delete. Should we account for that too?
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => i.InstanceState.IsDeleted == true);
+                        .Where(i => i.InstanceState.IsDeleted);
             }
             else if (instanceState.Equals("archived"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                       .Where(i => i.InstanceState.IsArchived == true)
-                       .Where(i => i.InstanceState.IsDeleted == false);
+                       .Where(i => i.InstanceState.IsArchived)
+                       .Where(i => !i.InstanceState.IsDeleted);
             }
             else
             {
@@ -519,7 +519,7 @@ namespace Altinn.Platform.Storage.Repository
 
         /// <summary>
         /// An instanceId should follow this format {int}/{guid}.
-        /// Cosmos does not allow / in id. 
+        /// Cosmos does not allow / in id.
         /// But in some old cases instanceId is just {guid}.
         /// </summary>
         /// <param name="instanceId">the id to convert to cosmos</param>

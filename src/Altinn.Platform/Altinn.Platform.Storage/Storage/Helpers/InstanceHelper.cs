@@ -33,7 +33,7 @@ namespace Altinn.Platform.Storage.Helpers
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
-                    Title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language]: appTitles[instance.AppId]["nb"],
+                    Title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language] : appTitles[instance.AppId]["nb"],
                     ProcessCurrentTask = instance.Process.CurrentTask,
                     AuthorizedForWrite = true,
                     AllowDelete = false
