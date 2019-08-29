@@ -70,40 +70,19 @@ namespace Altinn.Platform.Storage.Repository
             return blobClient;
         }
 
-        /// <summary>
-        /// Creates a file in blob storage.
-        /// </summary>
-        /// <param name="fileStream">The file stream to read from</param>
-        /// <param name="fileName">The file name to writ to</param>
-        /// <returns></returns>
-        public async Task<bool> CreateDataInStorage(Stream fileStream, string fileName)
+        /// <inheritdoc/>
+        public async Task<long> WriteDataToStorage(Stream fileStream, string fileName)
         {
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 
             await blockBlob.UploadFromStreamAsync(fileStream);
-            return await Task.FromResult(true);
-        }
-       
-        /// <summary>
-        /// Updates a file in blob storage.
-        /// </summary>
-        /// <param name="fileStream">the stream to update from</param>
-        /// <param name="fileName">the name of the file to update</param>
-        /// <returns></returns>
-        public async Task<bool> UpdateDataInStorage(Stream fileStream, string fileName)
-        {
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
-
-            await blockBlob.UploadFromStreamAsync(fileStream);
-            return await Task.FromResult(true);
+            blockBlob.FetchAttributes();
+            
+            return await Task.FromResult(blockBlob.Properties.Length);
         }
 
-        /// <summary>
-        /// Retrieves a file as a stream from blob storage.
-        /// </summary>
-        /// <param name="fileName">the file to retrieve</param>
-        /// <returns></returns>
-        public async Task<Stream> GetDataInStorage(string fileName)
+        /// <inheritdoc/>
+        public async Task<Stream> ReadDataFromStorage(string fileName)
         {
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 
@@ -113,11 +92,7 @@ namespace Altinn.Platform.Storage.Repository
             return memoryStream;
         }
 
-        /// <summary>
-        /// Deletes a file in blob storage.
-        /// </summary>
-        /// <param name="fileName">the file to delete</param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public async Task<bool> DeleteDataInStorage(string fileName)
         {           
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
