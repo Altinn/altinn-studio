@@ -34,10 +34,10 @@ namespace Altinn.Authorization.ABAC.Utils
         }
 
         /// <summary>
-        ///  Converts a Xacml XML response to a JSON object response
+        ///  Converts a Xacml XML response to a JSON object response.
         /// </summary>
-        /// <param name="xacmlContextResponse">The context response</param>
-        /// <returns></returns>
+        /// <param name="xacmlContextResponse">The context response.</param>
+        /// <returns>The json response.</returns>
         public static XacmlJsonResponse ConvertResponse(XacmlContextResponse xacmlContextResponse)
         {
             XacmlJsonResponse response = new XacmlJsonResponse();

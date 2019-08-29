@@ -27,7 +27,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// Initializes a new instance of the <see cref="XacmlObligation"/> class.
         /// </summary>
         /// <param name="obligationId">Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.</param>
-        /// <param name="fulfillOn">The action to fulfillon</param>
+        /// <param name="fulfillOn">The action to fulfillon.</param>
         /// <param name="attributeAssigments"> list Obligation arguments assignment.The values of the obligation arguments SHALL be interpreted by the PEP.</param>
         public XacmlObligation(Uri obligationId, XacmlEffectType fulfillOn, IEnumerable<XacmlAttributeAssignment> attributeAssigments)
         {

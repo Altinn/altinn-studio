@@ -66,7 +66,11 @@ namespace Altinn.Authorization.ABAC
 
             if (matchingRules == null || matchingRules.Count == 0)
             {
-               contextResult = new XacmlContextResult(XacmlContextDecision.NotApplicable);
+               contextResult = new XacmlContextResult(XacmlContextDecision.NotApplicable)
+               {
+                   Status = new XacmlContextStatus(XacmlContextStatusCode.Success),
+               };
+
                return new XacmlContextResponse(contextResult);
             }
 

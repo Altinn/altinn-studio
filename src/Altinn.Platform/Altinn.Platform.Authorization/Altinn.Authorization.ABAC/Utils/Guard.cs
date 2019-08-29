@@ -1,16 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Altinn.Authorization.ABAC.Utils
 {
     /// <summary>
-    /// Utils class for different types of guarding
+    /// Utils class for different types of guarding.
     /// </summary>
     public static class Guard
     {
         /// <summary>
-        /// Checks an argument to ensure it isn't null
+        /// Checks an argument to ensure it isn't null.
         /// </summary>
         /// <param name="argumentValue">
         /// The argument value to check.

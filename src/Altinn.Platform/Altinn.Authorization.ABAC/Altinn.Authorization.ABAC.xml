@@ -1325,12 +1325,12 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestReference">
             <summary>
-            JSON object for request references
+            JSON object for request references.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestReference.ReferenceId">
             <summary>
-            The reference Id
+            Gets or sets the reference Id.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestRoot">
@@ -1345,12 +1345,12 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResponse">
             <summary>
-            The JSON Response
+            The JSON Response.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResponse.Response">
             <summary>
-            A list over JSON XACML results
+            Gets or sets a list over JSON XACML results.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult">
@@ -1410,7 +1410,7 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatusCode">
             <summary>
-            A XACML Json object for status Code
+            A XACML Json object for status Code.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatusCode.Value">
@@ -1449,12 +1449,12 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAdvice.AttributeAssignment">
             <summary>
-            Advice arguments assignment.The values of the advice arguments MAY be interpreted by the PE
+            Gets advice arguments assignment.The values of the advice arguments MAY be interpreted by the PEP.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAdvice.AdviceId">
             <summary>
-            Advice identifier.The value of the advice identifier MAY be interpreted by the PEP.
+            Gets or sets advice identifier.The value of the advice identifier MAY be interpreted by the PEP.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAdviceExpression">
@@ -1531,7 +1531,7 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement">
             <summary>
-            Entity for any elements in XML
+            Entity for any elements in XML.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.#ctor">
@@ -1541,12 +1541,12 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.Attributes">
             <summary>
-            XML attributes.
+            Gets xML attributes.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.Elements">
             <summary>
-            XML elements.
+            Gets xML elements.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyOf">
@@ -1571,7 +1571,7 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyOf.NoNullCollection`1">
             <summary>
-            Helper class to prevent null objects
+            Helper class to prevent null objects.
             </summary>
             <typeparam name="T">The type</typeparam>
         </member>
@@ -1607,20 +1607,20 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlApply.Parameters">
             <summary>
-            The collection of parameters for the Apply object
+            Gets the collection of parameters for the Apply object.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlApply.FunctionId">
             <summary>
-            The identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3 of the XACML documentation
+            Gets or sets the identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3 of the XACML documentation.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlApply.Evalute(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
             <summary>
             Evauluate the Apply.
             </summary>
-            <param name="request">The context request</param>
-            <returns>The match result</returns>
+            <param name="request">The context request.</param>
+            <returns>The match result.</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlApply.IsBagSizeCondition(Altinn.Authorization.ABAC.Xacml.XacmlApply)">
             <summary>
@@ -1727,8 +1727,8 @@
             Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment"/> class.
             </summary>
             <param name="attributeId">The attribute Identifier.</param>
-            <param name="dataType">The datatype</param>
-            <param name="value">The value</param>
+            <param name="dataType">The datatype.</param>
+            <param name="value">The value.</param>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment.Category">
             <summary>
@@ -1749,7 +1749,7 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment.Value">
             <summary>
-            Gets or sets the value
+            Gets or sets the value.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignmentExpression">
@@ -2023,22 +2023,22 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.DataType">
             <summary>
-            The data-type of the attribute value.
+            Gets or sets the data-type of the attribute value.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.Attributes">
             <summary>
-            The attributes
+            The attributes.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.Elements">
             <summary>
-            The elements
+            Gets the elements.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.MatchAttributeValues(System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue)">
             <summary>
-            Match Attribute value against input attribute value
+            Match Attribute value against input attribute value.
             </summary>
             <param name="matchFunction">The match function</param>
             <param name="policyAttributeValue">The policy Attribute</param>

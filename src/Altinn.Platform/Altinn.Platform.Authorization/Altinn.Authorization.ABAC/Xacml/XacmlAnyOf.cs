@@ -46,7 +46,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <summary>
         /// Helper class to prevent null objects.
         /// </summary>
-        /// <typeparam name="T">The type</typeparam>
+        /// <typeparam name="T">The type.</typeparam>
         private class NoNullCollection<T> : Collection<T>
         {
             protected override void InsertItem(int index, T item)

@@ -13,10 +13,18 @@ namespace Altinn.Authorization.ABAC.Utils
     public static class XacmlParser
     {
         /// <summary>
+        /// Delegate to make it possible to send different read methods in to metods.
+        /// </summary>
+        /// <typeparam name="T">The type.</typeparam>
+        /// <param name="reader">The xml reader.</param>
+        /// <returns>The element.</returns>
+        private delegate T ReadElement<out T>(XmlReader reader);
+
+        /// <summary>
         /// Parses a Xacml 3.0 XML Policy.
         /// </summary>
-        /// <param name="reader">A XML Reader with the Policy loaded</param>
-        /// <returns>The XACML Policy</returns>
+        /// <param name="reader">A XML Reader with the Policy loaded.</param>
+        /// <returns>The XACML Policy.</returns>
         public static XacmlPolicy ParseXacmlPolicy(XmlReader reader)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -117,10 +125,10 @@ namespace Altinn.Authorization.ABAC.Utils
         }
 
         /// <summary>
-        /// Parses XML based Xacml Context Request
+        /// Parses XML based Xacml Context Request.
         /// </summary>
-        /// <param name="reader">The XNL Reader</param>
-        /// <returns></returns>
+        /// <param name="reader">The XNL Reader.</param>
+        /// <returns>XacmlContextRequest the XacmlContextRequest.</returns>
         public static XacmlContextRequest ReadContextRequest(XmlReader reader)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -199,10 +207,10 @@ namespace Altinn.Authorization.ABAC.Utils
         }
 
         /// <summary>
-        /// Parses XACML 3.0 Context Response XML documents
+        /// Parses XACML 3.0 Context Response XML documents.
         /// </summary>
-        /// <param name="reader">The XML Reader</param>
-        /// <returns></returns>
+        /// <param name="reader">The XML Reader.</param>
+        /// <returns>The XacmlContextResponse.</returns>
         public static XacmlContextResponse ReadContextResponse(XmlReader reader)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -221,10 +229,10 @@ namespace Altinn.Authorization.ABAC.Utils
         }
 
         /// <summary>
-        /// Parses a XMLContextResult
+        /// Parses a XMLContextResult.
         /// </summary>
-        /// <param name="reader">The XML Reader</param>
-        /// <returns></returns>
+        /// <param name="reader">The XML Reader.</param>
+        /// <returns>The XacmlContext result.</returns>
         private static XacmlContextResult ReadContextResult(XmlReader reader)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -848,9 +856,9 @@ namespace Altinn.Authorization.ABAC.Utils
         /// <summary>
         /// This method reads choice elements.
         /// </summary>
-        /// <param name="reader">The XML Reader</param>
-        /// <param name="readerActions">A dictionary with actions to be used on different element types</param>
-        /// <param name="isRequired">Defines if it is a required parameter</param>
+        /// <param name="reader">The XML Reader.</param>
+        /// <param name="readerActions">A dictionary with actions to be used on different element types.</param>
+        /// <param name="isRequired">Defines if it is a required parameter.</param>
         private static void ReadChoiceElements(XmlReader reader, IDictionary<Tuple<string, string>, Action> readerActions, bool isRequired = false)
         {
             Guard.ArgumentNotNull(reader, nameof(reader));
@@ -1309,20 +1317,12 @@ namespace Altinn.Authorization.ABAC.Utils
             return new XmlException(message, null, info != null ? info.LineNumber : 0, info != null ? info.LinePosition : 0);
         }
 
-        /// <summary>
-        /// Delegate to make it possible to send different read methods in to metods.
-        /// </summary>
-        /// <typeparam name="T">The type</typeparam>
-        /// <param name="reader">The xml reader</param>
-        /// <returns></returns>
-        private delegate T ReadElement<out T>(XmlReader reader);
-
-        /// <summary>
+           /// <summary>
         /// Validates if the next element Xacml XLM is of a given type.
-        /// Throws exception if not
+        /// Throws exception if not.
         /// </summary>
-        /// <param name="reader">The XML Reader</param>
-        /// <param name="elementName">The name of the element</param>
+        /// <param name="reader">The XML Reader.</param>
+        /// <param name="elementName">The name of the element.</param>
         private static void ValidateXacmlPolicyStartElement(XmlReader reader, string elementName)
         {
             if (!reader.IsStartElement(elementName, Xacml30Constants.NameSpaces.Policy))

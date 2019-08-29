@@ -99,9 +99,9 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <summary>
         /// Match Attribute value against input attribute value.
         /// </summary>
-        /// <param name="matchFunction">The match function</param>
-        /// <param name="policyAttributeValue">The policy Attribute</param>
-        /// <returns></returns>
+        /// <param name="matchFunction">The match function.</param>
+        /// <param name="policyAttributeValue">The policy Attribute.</param>
+        /// <returns>A bool indicating it is a match.</returns>
         public bool MatchAttributeValues(Uri matchFunction, XacmlAttributeValue policyAttributeValue)
         {
             return AttributeMatcher.MatchAttributes(this.value, policyAttributeValue.Value, matchFunction.OriginalString);

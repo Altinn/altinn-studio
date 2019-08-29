@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
 {
     /// <summary>
-    /// XACML Json object for status
+    /// XACML Json object for status.
     /// </summary>
     public class XacmlJsonStatus
     {

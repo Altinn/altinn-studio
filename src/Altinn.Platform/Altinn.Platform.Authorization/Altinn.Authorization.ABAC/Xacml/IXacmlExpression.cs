@@ -8,7 +8,7 @@ namespace Altinn.Authorization.ABAC.Xacml
     /// The following elements are in the <Expression/> element substitution group:
     /// <Apply/>, <AttributeSelector/>, <AttributeValue/>, <Function/>, <VariableReference/> and<AttributeDesignator/>.
     ///
-    /// This interface is implemtend by the above types to make it possible to have a generic property on the XacmlExpression type
+    /// This interface is implemtend by the above types to make it possible to have a generic property on the XacmlExpression type.
     /// </summary>
     public interface IXacmlExpression
     {

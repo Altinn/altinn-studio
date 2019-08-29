@@ -149,13 +149,13 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Matches a string attribute against the policy
+        /// Matches a string attribute against the policy.
         /// </summary>
-        /// <param name="contextValue">The value from context</param>
-        /// <returns></returns>
+        /// <param name="contextValue">The value from context.</param>
+        /// <returns>A bool telling if it is a match</returns>
         public bool IsMatch(string contextValue)
         {
-            return AttributeMatcher.MatchAttributes(AttributeValue.Value, contextValue, MatchId.OriginalString);
+            return AttributeMatcher.MatchAttributes(this.AttributeValue.Value, contextValue, this.MatchId.OriginalString);
         }
     }
 }
