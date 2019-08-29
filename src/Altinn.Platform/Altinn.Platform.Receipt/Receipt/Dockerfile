@@ -6,11 +6,10 @@ WORKDIR /src/AltinnCore/
 COPY src/AltinnCore/ .
 
 # Copy receipt backend
-WORKDIR /src/Altinn.Platform/
-COPY src/Altinn.Platform/Altinn.Platform.Receipt/ ./Altinn.Platform.Receipt
+WORKDIR /src/Altinn.Platform/Altinn.Platform.Receipt/Receipt
+COPY src/Altinn.Platform/Altinn.Platform.Receipt/Receipt .
 
 # Build and publish
-WORKDIR /src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/
 RUN dotnet build Altinn.Platform.Receipt.csproj -c Release -o /app_output
 RUN dotnet publish Altinn.Platform.Receipt.csproj -c Release -o /app_output
 
