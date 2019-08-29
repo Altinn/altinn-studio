@@ -474,7 +474,7 @@ namespace Altinn.Platform.Storage.Controllers
         }      
 
         /// <summary>
-        /// Method to read the parts of request body. 
+        /// Method to read the parts of of a multipart request body. 
         /// </summary>
         /// <param name="request">The HttpRequest</param>
         /// <param name="appInfo">The application metadata</param>
@@ -500,31 +500,45 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                string contentType = request.ContentType;
+                Part part = ReadInstanceTemplatePart(request.ContentType, request.Body, out ActionResult instanceTemplateError);
 
-                if (!string.IsNullOrEmpty(contentType))
+                if (instanceTemplateError != null)
                 {
-                    if (contentType.StartsWith("application/json"))
-                    {
-                        return new List<Part>()
-                        {
-                            new Part()
-                            {
-                                ContentType = request.ContentType,
-                                Name = "instance",
-                                Stream = request.Body,
-                            }
-                        };
-                    }
-                    else
-                    {
-                        errorResult = BadRequest($"Unexpected Content-Type '{contentType}' of embedded instance template. Expecting 'application/json'");
-                        return emptyList;
-                    }
+                    errorResult = instanceTemplateError;                    
                 }
+
+                if (part != null)
+                {
+                    return new List<Part>() { part };
+                }                
             }
             
             return emptyList;
+        }
+
+        private Part ReadInstanceTemplatePart(string contentType, Stream stream, out ActionResult errorResult)
+        {
+            errorResult = null;
+            
+            if (!string.IsNullOrEmpty(contentType))
+            {
+                if (contentType.StartsWith("application/json"))
+                {
+                    return new Part()
+                    {
+                        ContentType = contentType,
+                        Name = "instance",
+                        Stream = CopyStreamIntoMemoryStream(stream),
+                    };
+                }
+                else
+                {
+                    errorResult = BadRequest($"Unexpected Content-Type '{contentType}' of embedded instance template. Expecting 'application/json'");
+                    return null;
+                }
+            }
+
+            return null;
         }
 
         private List<Part> ReadMultipartContentOrError(HttpRequest request, Application appInfo, out ActionResult errorResult)
@@ -562,7 +576,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Reads a multipart section, checks if it meets criteria of Application metadata and return part.
+        /// Reads a multipart section, checks if it meets criteria of Application metadata and returns a part holding the stream with content.
         /// </summary>
         /// <param name="section">the section to read</param>
         /// <param name="appInfo">the application metadata</param>
@@ -592,21 +606,18 @@ namespace Altinn.Platform.Storage.Controllers
             
             if (sectionName.Equals("instance"))
             {
-                // Check if the content type is of type "application/json".
-                if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
+                Part part = ReadInstanceTemplatePart(contentType, section.Body, out ActionResult instanceTemplateError);
+
+                if (instanceTemplateError != null)
                 {
-                    return new Part()
-                    {
-                        ContentType = contentType,
-                        Name = "instance",
-                        Stream = section.Body,
-                    };
-                }
-                else
-                {
-                    errorResult = BadRequest($"Multipart section with named 'instance' must have 'Content-Type = application/json', it has unexpected content type {contentType}");
+                    errorResult = instanceTemplateError;
                     return null;
                 }
+
+                if (part != null)
+                {
+                    return part;
+                }            
             }
             else
             {
@@ -638,10 +649,8 @@ namespace Altinn.Platform.Storage.Controllers
                 long fileSize = contentDisposition.Size ?? 0;
 
                 // copy the section.Body stream since this stream cannot be rewind
-                MemoryStream memoryStream = new MemoryStream();
-                section.Body.CopyTo(memoryStream);
-                memoryStream.Position = 0;
-
+                MemoryStream memoryStream = CopyStreamIntoMemoryStream(section.Body);
+                    
                 if (memoryStream.Length == 0)
                 {
                     errorResult = BadRequest($"The multpart section named {sectionName} has no data. Cannot process empty part.");
@@ -657,6 +666,17 @@ namespace Altinn.Platform.Storage.Controllers
                     FileSize = fileSize,
                 };
             }
+
+            return null;
+        }
+
+        private MemoryStream CopyStreamIntoMemoryStream(Stream stream)
+        {
+            MemoryStream memoryStream = new MemoryStream();
+            stream.CopyTo(memoryStream);
+            memoryStream.Position = 0;
+
+            return memoryStream;
         }
 
         /// <summary>
