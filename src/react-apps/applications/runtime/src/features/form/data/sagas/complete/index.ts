@@ -16,7 +16,7 @@ function* completeAndSendInFormSaga({ url }: ICompleteAndSendInForm): SagaIterat
       if (workflowState === WorkflowSteps.Archived) {
         document.body.className = 'a-bgGreenLight flex-column d-flex';
       }
-      yield call(FormActions.completeAndSendInFormFulfilled);
+      yield call(FormActions.completeAndSendInFormFulfilled, response);
       yield call(WorkflowActions.setCurrentState, response.data.nextState);
     } else {
       yield call(FormActions.completeAndSendInFormRejected, {});

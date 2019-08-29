@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
@@ -201,6 +202,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.Equal("default", instanceResult.Data[0].ElementType);
             Assert.Equal("default", instanceResult.Data[1].ElementType);
             Assert.Equal("picture", instanceResult.Data[2].ElementType);
+
+            string dueDateTime = string.Format("{0:s}", instanceResult.DueDateTime);
+            Assert.StartsWith("2019-10-01", dueDateTime);
 
             Assert.Equal("1000", instanceResult.InstanceOwnerId);
         }

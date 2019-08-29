@@ -13,7 +13,9 @@ import FormWorkflowSagas from '../features/form/workflow/sagas';
 import InstantiationSagas from '../features/instantiate/instantiation/sagas';
 import ApplicationMetadataSagas from '../shared/resources/applicationMetadata/sagas';
 import Attachments from '../shared/resources/attachments/attachmentSagas';
+import InstanceDataSagas from '../shared/resources/instanceData/instanceDataSagas';
 import LanguageSagas from '../shared/resources/language/languageSagas';
+import OrgsSagas from '../shared/resources/orgs/orgsSagas';
 import PartySagas from '../shared/resources/party/partySagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
 import TextResourcesSagas from '../shared/resources/textResources/sagas';
@@ -34,6 +36,8 @@ function* root(): SagaIterator {
   yield fork(PartySagas);
   yield fork(ApplicationMetadataSagas);
   yield fork(InstantiationSagas);
+  yield fork(OrgsSagas);
+  yield fork(InstanceDataSagas);
 }
 
 export const initSagas: () => Task = () => sagaMiddleware.run(root);

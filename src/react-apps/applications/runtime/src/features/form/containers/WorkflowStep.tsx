@@ -1,3 +1,6 @@
+import { Typography } from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
@@ -6,6 +9,9 @@ import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IProfile } from '../../../shared/resources/profile';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { IValidations } from '../../../types/global';
+import ReceiptContainer from '../../receipt/containers/receiptContainer';
+
+import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
@@ -43,20 +49,32 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public renderHeader = () => {
     return (
       <div
-        className={'modal-header a-modal-header ' +
-          ((this.props.step === WorkflowSteps.Archived) ? 'a-modal-background-success' : '')
-        }
+        className={classNames(
+          'modal-header',
+          'a-modal-header',
+          {['a-modal-background-success']: this.props.step === WorkflowSteps.Archived},
+        )}
       >
         <div className='a-iconText a-iconText-background a-iconText-large'>
           <div className='a-iconText-icon'>
             <i className='fa fa-corp a-icon' aria-hidden='true' />
           </div>
           <h1 className='a-iconText-text mb-0'>
-            <span className='a-iconText-text-large'>{this.props.header}</span>
+            <span className='a-iconText-text-large'>{this.props.step === WorkflowSteps.Archived ? (
+              <span>{getLanguageFromKey('receipt.receipt', this.props.language)}</span>
+            ) : (this.props.header)}</span>
           </h1>
         </div>
       </div>
     );
+  }
+
+  public handleModalCloseButton = () => {
+    const origin = window.location.origin;
+    if (window) {
+      window.location.href = returnUrlToMessagebox(origin);
+    }
+    return true;
   }
 
   public renderNavBar = () => {
@@ -74,6 +92,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
           type='button'
           className='a-modal-close a-js-tabable-popover'
           aria-label='Lukk'
+          onClick={this.handleModalCloseButton}
         >
           <span className='ai-stack'>
             <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
@@ -162,7 +181,9 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public render() {
-    const backgroundColor = (this.props.step === WorkflowSteps.Archived) ? '#D4F9E4' : '#1EAEF7';
+    const isWorkflowStepsArchived = Boolean(this.props.step === WorkflowSteps.Archived);
+    const backgroundColor = isWorkflowStepsArchived ? '#D4F9E4' : '#1EAEF7';
+
     return (
       <div id='workflowContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
         <div className='container'>
@@ -170,32 +191,42 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             language={this.props.language}
             profile={this.props.profile}
           />
-          <div className='row'>
-            <div className='col-xl-10 offset-xl-1 a-p-static'>
-              {this.renderErrorReport()}
-              {this.renderNavBar()}
-              <div className='a-modal-content-target'>
-                <div className='a-page a-current-page'>
-                  <div className='modalPage'>
-                    <div className='modal-content'>
-                      {this.renderHeader()}
-                      <div className='modal-body a-modal-body'>
-                        {this.props.step === WorkflowSteps.FormFilling &&
-                          this.renderFormFiller()
-                        }
-                        {this.props.step === WorkflowSteps.Submit &&
-                          this.renderSubmit()
-                        }
-                        {this.props.step === WorkflowSteps.Archived &&
-                          this.renderReceipt()
-                        }
+            <div className={classNames('row', {['d-print-none']: isWorkflowStepsArchived})}>
+              <div className='col-xl-10 offset-xl-1 a-p-static'>
+                {this.renderErrorReport()}
+                {this.renderNavBar()}
+                <div className='a-modal-content-target'>
+                  <div className='a-page a-current-page'>
+                    <div className='modalPage'>
+                      <div className='modal-content'>
+                        {this.renderHeader()}
+                        <div className='modal-body a-modal-body'>
+                          {this.props.step === WorkflowSteps.FormFilling &&
+                            this.renderFormFiller()
+                          }
+                          {this.props.step === WorkflowSteps.Submit &&
+                            this.renderSubmit()
+                          }
+                          {this.props.step === WorkflowSteps.Archived &&
+                            <div id='ReceiptContainer'>
+                              <ReceiptContainer/>
+                            </div>
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+            {this.props.step === WorkflowSteps.Archived &&
+              <Box display='none' displayPrint='block'>
+                <Typography variant='h2' style={{marginBottom: '2.1rem'}}>
+                  {getLanguageFromKey('receipt.receipt', this.props.language)}
+                </Typography>
+                <ReceiptContainer />
+              </Box>
+            }
         </div>
       </div>
     );

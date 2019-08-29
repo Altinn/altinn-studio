@@ -6,9 +6,9 @@ import {
 } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import AltinnInput from 'Shared/components/AltinnInput';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
 import { IRuntimeState } from 'src/types';
+import AltinnInput from '../../../../shared/src/components/AltinnInput';
+import AltinnAppTheme from '../../../../shared/src/theme/altinnAppTheme';
 
 const styles = createStyles({
   partySearchContainer: {
