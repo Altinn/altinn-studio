@@ -484,124 +484,179 @@ namespace Altinn.Platform.Storage.Controllers
         {
             errorResult = null;
 
-            List<Part> parts = new List<Part>();
             List<Part> emptyList = Enumerable.Empty<Part>().ToList();
 
             if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
-            {            
-                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
-                string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+            {
+                List<Part> parts = ReadMultipartContentOrError(request, appInfo, out ActionResult multipartError);
 
-                MultipartReader reader = new MultipartReader(boundary, request.Body);
-                MultipartSection section = reader.ReadNextSectionAsync().Result;
-
-                while (section != null)
+                if (multipartError != null)
                 {
-                    bool hasContentDispositionHeader = ContentDispositionHeaderValue
-                        .TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-
-                    if (!hasContentDispositionHeader)
-                    {
-                        errorResult = BadRequest("Multipart section must have content disposition header");
-                        return emptyList;
-                    }
-
-                    if (contentDisposition.Name == null)
-                    {
-                        errorResult = BadRequest("Multipart section has no name. It must have a name that corresponds to elementTypes defined in Application metadat");
-                        return emptyList;
-                    }
-
-                    string contentType = section.ContentType;
-
-                    string sectionName = contentDisposition.Name.Value;
-
-                    if (sectionName.Equals("instance"))
-                    {
-                        // Check if the content type is of type "application/json".
-                        if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
-                        {
-                            parts.Add(new Part()
-                            {
-                                ContentType = contentType,
-                                Name = "instance",
-                                Stream = section.Body,
-                            });
-                        }
-                        else
-                        {
-                            errorResult = BadRequest($"Multipart section with named 'instance' must have 'Content-Type = application/json', it has unexpected content type {contentType}");
-                            return emptyList;
-                        }                       
-                    }
-                    else
-                    {                        
-                        // Check if the content disposition name is declared for the application (e.g. "default").
-                        ElementType elementType = appInfo.ElementTypes.Find(e => e.Id == sectionName);
-
-                        if (elementType == null)
-                        {
-                            errorResult = BadRequest($"Multipart section named, '{sectionName}' does not correspond to an element type in application metadata");
-                            return emptyList;
-                        }
-
-                        if (section.ContentType == null)
-                        {
-                            errorResult = BadRequest($"The multipart section named {sectionName} is missing Content-Type.");
-                            return emptyList;
-                        }
-
-                        string contentTypeWithoutEncoding = contentType.Split(";")[0];
-
-                        // Check if the content type of the multipart section is declared for the element type (e.g. "application/xml").
-                        if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
-                        {
-                            errorResult = BadRequest($"The multipart section named {sectionName} has a Content-Type '{contentType}' which is not declared in this application element type '{elementType}'");
-                            return emptyList;
-                        }
-
-                        string contentFileName = contentDisposition.FileName.HasValue ? contentDisposition.Name.Value : null;
-                        long fileSize = contentDisposition.Size ?? 0;
-
-                        MemoryStream memoryStream = new MemoryStream();
-                        section.Body.CopyTo(memoryStream);
-                        memoryStream.Position = 0;
-
-                        if (memoryStream.Length == 0)
-                        {
-                            errorResult = BadRequest($"The multpart section named {sectionName} has no data. Cannot process empty part.");
-                            return emptyList;
-                        }
-
-                        parts.Add(new Part()
-                        {
-                            ContentType = contentType,
-                            Name = sectionName,
-                            Stream = memoryStream,
-                            FileName = contentFileName,
-                            FileSize = fileSize,
-                        });
-                    }
-
-                    section = reader.ReadNextSectionAsync().Result;
+                    errorResult = multipartError;
+                    return emptyList;
                 }
+
+                return parts;
             }
             else
             {
                 string contentType = request.ContentType;
 
-                if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
+                if (!string.IsNullOrEmpty(contentType))
                 {
-                    parts.Add(new Part()
+                    if (contentType.StartsWith("application/json"))
                     {
-                        ContentType = request.ContentType,
-                        Name = "instance",
-                        Stream = request.Body,
-                    });                                                
+                        return new List<Part>()
+                        {
+                            new Part()
+                            {
+                                ContentType = request.ContentType,
+                                Name = "instance",
+                                Stream = request.Body,
+                            }
+                        };
+                    }
+                    else
+                    {
+                        errorResult = BadRequest($"Unexpected Content-Type '{contentType}' of embedded instance template. Expecting 'application/json'");
+                        return emptyList;
+                    }
                 }
             }
             
+            return emptyList;
+        }
+
+        private List<Part> ReadMultipartContentOrError(HttpRequest request, Application appInfo, out ActionResult errorResult)
+        {
+            errorResult = null;
+
+            List<Part> parts = new List<Part>();
+            List<Part> emptyList = Enumerable.Empty<Part>().ToList();
+
+            MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
+            string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+
+            MultipartReader reader = new MultipartReader(boundary, request.Body);
+            MultipartSection section = reader.ReadNextSectionAsync().Result;
+
+            while (section != null)
+            {
+                Part part = ReadSectionIntoPartOrError(section, appInfo, out ActionResult sectionError);
+
+                if (sectionError != null)
+                {
+                    errorResult = sectionError;
+                    return emptyList;
+                }
+
+                if (part != null)
+                {
+                    parts.Add(part);
+                }
+
+                section = reader.ReadNextSectionAsync().Result;
+            }
+
             return parts;
+        }
+
+        /// <summary>
+        /// Reads a multipart section, checks if it meets criteria of Application metadata and return part.
+        /// </summary>
+        /// <param name="section">the section to read</param>
+        /// <param name="appInfo">the application metadata</param>
+        /// <param name="errorResult">error message</param>
+        /// <returns>the part holding the section's stream</returns>
+        private Part ReadSectionIntoPartOrError(MultipartSection section, Application appInfo, out ActionResult errorResult)
+        {
+            errorResult = null;
+
+            bool hasContentDispositionHeader = ContentDispositionHeaderValue
+                   .TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+
+            if (!hasContentDispositionHeader)
+            {
+                errorResult = BadRequest("Multipart section must have content disposition header");
+                return null;
+            }
+
+            if (!contentDisposition.Name.HasValue)
+            {
+                errorResult = BadRequest("Multipart section has no name. It must have a name that corresponds to elementTypes defined in Application metadat");
+                return null;
+            }
+
+            string sectionName = contentDisposition.Name.Value;
+            string contentType = section.ContentType;
+            
+            if (sectionName.Equals("instance"))
+            {
+                // Check if the content type is of type "application/json".
+                if (!string.IsNullOrEmpty(contentType) && contentType.StartsWith("application/json"))
+                {
+                    return new Part()
+                    {
+                        ContentType = contentType,
+                        Name = "instance",
+                        Stream = section.Body,
+                    };
+                }
+                else
+                {
+                    errorResult = BadRequest($"Multipart section with named 'instance' must have 'Content-Type = application/json', it has unexpected content type {contentType}");
+                    return null;
+                }
+            }
+            else
+            {
+                // Check if the section name is declared for the application (e.g. "default").
+                ElementType elementType = appInfo.ElementTypes.Find(e => e.Id == sectionName);
+
+                if (elementType == null)
+                {
+                    errorResult = BadRequest($"Multipart section named, '{sectionName}' does not correspond to an element type in application metadata");
+                    return null;
+                }
+
+                if (section.ContentType == null)
+                {
+                    errorResult = BadRequest($"The multipart section named {sectionName} is missing Content-Type.");
+                    return null;
+                }
+
+                string contentTypeWithoutEncoding = contentType.Split(";")[0];
+
+                // Check if the content type of the multipart section is declared for the element type (e.g. "application/xml").
+                if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
+                {
+                    errorResult = BadRequest($"The multipart section named {sectionName} has a Content-Type '{contentType}' which is not declared in this application element type '{elementType}'");
+                    return null;
+                }
+
+                string contentFileName = contentDisposition.FileName.HasValue ? contentDisposition.Name.Value : null;
+                long fileSize = contentDisposition.Size ?? 0;
+
+                // copy the section.Body stream since this stream cannot be rewind
+                MemoryStream memoryStream = new MemoryStream();
+                section.Body.CopyTo(memoryStream);
+                memoryStream.Position = 0;
+
+                if (memoryStream.Length == 0)
+                {
+                    errorResult = BadRequest($"The multpart section named {sectionName} has no data. Cannot process empty part.");
+                    return null;
+                }
+
+                return new Part()
+                {
+                    ContentType = contentType,
+                    Name = sectionName,
+                    Stream = memoryStream,
+                    FileName = contentFileName,
+                    FileSize = fileSize,
+                };
+            }
         }
 
         /// <summary>
