@@ -30,7 +30,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Service that handles functionality needed for creating and updating services in AltinnCore
     /// </summary>
-    public class RepositorySI : AltinnCore.Common.Services.Interfaces.IRepository
+    public class RepositorySI : Interfaces.IRepository
     {
         private readonly IDefaultFileFactory _defaultFileFactory;
         private readonly ServiceRepositorySettings _settings;
@@ -187,17 +187,10 @@ namespace AltinnCore.Common.Services.Implementation
                 LastChangedBy = developer
             };
 
-            if (appMetadata.Title == null)
-            {
-                appMetadata.Title = new Dictionary<string, string>();
-            }
-
+            appMetadata.Title = new Dictionary<string, string>();
             appMetadata.Title.Add("nb", appName);
-            if (appMetadata.ElementTypes == null)
-            {
-                appMetadata.ElementTypes = new List<Altinn.Platform.Storage.Models.ElementType>();
-            }
 
+            appMetadata.ElementTypes = new List<Altinn.Platform.Storage.Models.ElementType>();
             appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
             {
                 Id = "default",
@@ -1812,6 +1805,31 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return true;
+        }
+
+        /// <inheritdoc/>        
+        public bool UpdateAppTitle(string org, string appName, string languageId, string newTitle)
+        {
+            Application app = GetApplication(org, appName);
+
+            if (app == null)
+            {
+                return false;
+            }
+
+            Dictionary<string, string> titles = app.Title;
+            if (titles.ContainsKey(languageId))
+            {
+                titles[languageId] = newTitle;
+            }
+            else
+            {
+                titles.Add(languageId, newTitle);
+            }
+
+            app.Title = titles;
+
+            return UpdateApplication(org, appName, app);
         }
 
         private static string ViewResourceKey(string viewName)

@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     try
                     {
-                        Stream dataStream = await _dataRepository.GetDataInStorage(storageFileName);
+                        Stream dataStream = await _dataRepository.ReadDataFromStorage(storageFileName);
 
                         if (dataStream == null)
                         {
@@ -240,10 +240,11 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 // store file as blob
-                await _dataRepository.CreateDataInStorage(theStream, newData.StorageUrl);
+                newData.FileSize = await _dataRepository.WriteDataToStorage(theStream, newData.StorageUrl);
 
                 // update instance
                 Instance result = await _instanceRepository.Update(instance);
+                InstancesController.AddSelfLinks(Request, result);
 
                 return Ok(result);
             }
@@ -336,39 +337,13 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound("Dataid is not registered in instance");
                 }
 
-                string storageFileName = DataElementHelper.DataFileName(instance.AppId.ToString(), instanceGuid.ToString(), dataIdString);
+                string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataIdString);
 
                 if (string.Equals(data.StorageUrl, storageFileName))
                 {
                     DateTime updateTime = DateTime.UtcNow;
 
-                    Stream theStream = null;
-                    string contentType = null;
-                    string contentFileName = null;
-                    if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
-                    {
-                        // Only read the first section of the mulitpart message.
-                        MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
-                        string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
-
-                        MultipartReader reader = new MultipartReader(boundary, Request.Body);
-                        MultipartSection section = reader.ReadNextSectionAsync().Result;
-
-                        theStream = section.Body;
-                        contentType = section.ContentType;
-
-                        bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-
-                        if (hasContentDisposition)
-                        {
-                            contentFileName = contentDisposition.FileName.ToString();
-                        }
-                    }
-                    else
-                    {
-                        theStream = Request.Body;
-                        contentType = Request.ContentType;
-                    }
+                    DataElement updatedData = GetDataElementFromRequest(Request, data.ElementType, instance, out Stream theStream);
 
                     if (theStream == null)
                     {
@@ -378,8 +353,8 @@ namespace Altinn.Platform.Storage.Controllers
                     DateTime changedTime = DateTime.UtcNow;
 
                     // update data record
-                    data.ContentType = contentType;
-                    data.FileName = contentFileName ?? data.FileName;
+                    data.ContentType = updatedData.ContentType;
+                    data.FileName = updatedData.FileName;
                     data.LastChangedBy = User.Identity.Name;
                     data.LastChangedDateTime = changedTime;
 
@@ -387,12 +362,13 @@ namespace Altinn.Platform.Storage.Controllers
                     instance.LastChangedBy = User.Identity.Name;
 
                     // store file as blob
-                    bool success = _dataRepository.UpdateDataInStorage(theStream, storageFileName).Result;
+                    data.FileSize = _dataRepository.WriteDataToStorage(theStream, storageFileName).Result;
 
-                    if (success)
+                    if (data.FileSize > 0)
                     {
                         // update instance
                         Instance result = await _instanceRepository.Update(instance);
+                        InstancesController.AddSelfLinks(Request, instance);
 
                         return Ok(result);
                     }
@@ -406,7 +382,7 @@ namespace Altinn.Platform.Storage.Controllers
             return BadRequest("Cannot update data element that is not registered");
         }
 
-        protected Application GetApplication(string appId, string org, out ActionResult errorMessage)
+        private Application GetApplication(string appId, string org, out ActionResult errorMessage)
         {
             errorMessage = null;
 
