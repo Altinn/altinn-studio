@@ -91,45 +91,6 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Gets all instances in a given state for a given instance owner.
-        /// </summary>
-        /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <param name="instanceState">the instance state</param>
-        /// <returns>list of instances</returns>
-        [HttpGet("{instanceOwnerId:int}/{instanceState}")]
-        public async Task<ActionResult> GetInstanceOwnerAndState(int instanceOwnerId, string instanceState)
-        {
-            string[] allowedStates = new string[] { "active", "archived", "deleted" };
-
-            if (!allowedStates.Contains(instanceState.ToLower()))
-            {
-                return BadRequest("Invalid instance state");
-            }
-
-            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerId, instanceState);
-
-            if (allInstances == null || allInstances.Count == 0)
-            {
-                return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
-            }
-
-            // TODO: authorize instances and filter list
-
-            // get appId from filteredInstances eventually
-            List<string> appIds = allInstances.Select(i => i.AppId)
-                                    .Distinct()
-                                    .ToList();
-
-            // Get title from app metadata
-            Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
-
-            // Simplify instances and return
-            List<MessageBoxInstance> simpleInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, AltinnCore.ServiceLibrary.ServiceMetadata.Language.NorwegianBokmal);
-
-            return Ok(simpleInstances);
-        }
-
-        /// <summary>
         /// Get all instances for a given org or appId. Only one parameter at the time.
         /// </summary>
         /// <param name="org">application owner</param>

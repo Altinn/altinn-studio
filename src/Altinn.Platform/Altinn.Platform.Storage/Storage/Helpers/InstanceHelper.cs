@@ -32,6 +32,7 @@ namespace Altinn.Platform.Storage.Helpers
                     InstanceOwnerId = instance.InstanceOwnerId,
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
+                    AppName = instance.AppId.Split('/')[1],
                     Title = appTitles[instance.AppId]["nb"],
                     ProcessCurrentTask = instance.Process.CurrentTask,
                     AuthorizedForWrite = true,
