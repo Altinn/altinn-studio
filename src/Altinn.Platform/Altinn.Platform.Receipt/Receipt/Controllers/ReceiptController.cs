@@ -21,9 +21,9 @@ namespace Altinn.Platform.Receipt
     [ApiController]
     public class ReceiptController : Controller
     {
-        private PlatformSettings _platformSettings;
-        private HttpClient _client;
-        private ILogger _logger;
+        private readonly PlatformSettings _platformSettings;
+        private readonly HttpClient _client;
+        private readonly ILogger _logger;
 
         public ReceiptController(IOptions<PlatformSettings> platformSettings, ILogger<ReceiptController> logger)
         {
