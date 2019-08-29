@@ -18,7 +18,7 @@ namespace Storage.Interface.Models
         public string InstanceOwnerId { get; set; }
 
         /// <summary>
-        /// Application owner for the service, should be lower case.
+        /// Application owner for the app, should be lower case.
         /// </summary>
         public string Org { get; set; }
 
