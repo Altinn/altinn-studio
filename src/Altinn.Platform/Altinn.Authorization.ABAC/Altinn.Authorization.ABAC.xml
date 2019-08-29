@@ -870,15 +870,15 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Interface.IContextHandler">
             <summary>
-            Defines Interface for Context Handler
+            Defines Interface for Context Handler.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Interface.IContextHandler.Enrich(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
             <summary>
-            Enrich the DecisionRequest with needed attributes so PDP can evaluate decision request for a policy/policyset
+            Enrich the DecisionRequest with needed attributes so PDP can evaluate decision request for a policy/policyset.
             </summary>
-            <param name="decisionRequest">The XacmlContextRequest</param>
-            <returns></returns>
+            <param name="decisionRequest">The XacmlContextRequest.</param>
+            <returns>Enriched context.</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Interface.IPolicyInformationPoint">
             <summary>
@@ -934,12 +934,12 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.Guard">
             <summary>
-            Utils class for different types of guarding
+            Utils class for different types of guarding.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.Guard.ArgumentNotNull(System.Object,System.String)">
             <summary>
-            Checks an argument to ensure it isn't null
+            Checks an argument to ensure it isn't null.
             </summary>
             <param name="argumentValue">
             The argument value to check.
@@ -962,51 +962,59 @@
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter.ConvertResponse(Altinn.Authorization.ABAC.Xacml.XacmlContextResponse)">
             <summary>
-             Converts a Xacml XML response to a JSON object response
+             Converts a Xacml XML response to a JSON object response.
             </summary>
-            <param name="xacmlContextResponse">The context response</param>
-            <returns></returns>
+            <param name="xacmlContextResponse">The context response.</param>
+            <returns>The json response.</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser">
             <summary>
             Parser Responsible for parsing.
             </summary>
         </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadElement`1">
+            <summary>
+            Delegate to make it possible to send different read methods in to metods.
+            </summary>
+            <typeparam name="T">The type.</typeparam>
+            <param name="reader">The xml reader.</param>
+            <returns>The element.</returns>
+        </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ParseXacmlPolicy(System.Xml.XmlReader)">
             <summary>
             Parses a Xacml 3.0 XML Policy.
             </summary>
-            <param name="reader">A XML Reader with the Policy loaded</param>
-            <returns>The XACML Policy</returns>
+            <param name="reader">A XML Reader with the Policy loaded.</param>
+            <returns>The XACML Policy.</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextRequest(System.Xml.XmlReader)">
             <summary>
-            Parses XML based Xacml Context Request
+            Parses XML based Xacml Context Request.
             </summary>
-            <param name="reader">The XNL Reader</param>
-            <returns></returns>
+            <param name="reader">The XNL Reader.</param>
+            <returns>XacmlContextRequest the XacmlContextRequest.</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextResponse(System.Xml.XmlReader)">
             <summary>
-            Parses XACML 3.0 Context Response XML documents
+            Parses XACML 3.0 Context Response XML documents.
             </summary>
-            <param name="reader">The XML Reader</param>
-            <returns></returns>
+            <param name="reader">The XML Reader.</param>
+            <returns>The XacmlContextResponse.</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextResult(System.Xml.XmlReader)">
             <summary>
-            Parses a XMLContextResult
+            Parses a XMLContextResult.
             </summary>
-            <param name="reader">The XML Reader</param>
-            <returns></returns>
+            <param name="reader">The XML Reader.</param>
+            <returns>The XacmlContext result.</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadChoiceElements(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
             <summary>
             This method reads choice elements.
             </summary>
-            <param name="reader">The XML Reader</param>
-            <param name="readerActions">A dictionary with actions to be used on different element types</param>
-            <param name="isRequired">Defines if it is a required parameter</param>
+            <param name="reader">The XML Reader.</param>
+            <param name="readerActions">A dictionary with actions to be used on different element types.</param>
+            <param name="isRequired">Defines if it is a required parameter.</param>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadChoiceElement(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
             <summary>
@@ -1024,21 +1032,13 @@
             <param name="reader">The xml Reader</param>
             <returns>A XacmlAttributeSelector</returns>
         </member>
-        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadElement`1">
-            <summary>
-            Delegate to make it possible to send different read methods in to metods.
-            </summary>
-            <typeparam name="T">The type</typeparam>
-            <param name="reader">The xml reader</param>
-            <returns></returns>
-        </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ValidateXacmlPolicyStartElement(System.Xml.XmlReader,System.String)">
             <summary>
             Validates if the next element Xacml XLM is of a given type.
-            Throws exception if not
+            Throws exception if not.
             </summary>
-            <param name="reader">The XML Reader</param>
-            <param name="elementName">The name of the element</param>
+            <param name="reader">The XML Reader.</param>
+            <param name="elementName">The name of the element.</param>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ValidateNotMoreThanOneElement(System.Xml.XmlReader,System.Int32,System.String)">
             <summary>
@@ -1083,7 +1083,7 @@
              The following elements are in the <Expression/> element substitution group:
              <Apply/>, <AttributeSelector/>, <AttributeValue/>, <Function/>, <VariableReference/> and<AttributeDesignator/>.
             
-             This interface is implemtend by the above types to make it possible to have a generic property on the XacmlExpression type
+             This interface is implemtend by the above types to make it possible to have a generic property on the XacmlExpression type.
              </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute">
@@ -1390,7 +1390,7 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus">
             <summary>
-            XACML Json object for status
+            XACML Json object for status.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus.StatusMessage">
@@ -1573,7 +1573,7 @@
             <summary>
             Helper class to prevent null objects.
             </summary>
-            <typeparam name="T">The type</typeparam>
+            <typeparam name="T">The type.</typeparam>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlApply">
              <summary>
@@ -2040,9 +2040,9 @@
             <summary>
             Match Attribute value against input attribute value.
             </summary>
-            <param name="matchFunction">The match function</param>
-            <param name="policyAttributeValue">The policy Attribute</param>
-            <returns></returns>
+            <param name="matchFunction">The match function.</param>
+            <param name="policyAttributeValue">The policy Attribute.</param>
+            <returns>A bool indicating it is a match.</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameter">
              <summary>
@@ -2769,10 +2769,10 @@
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlMatch.IsMatch(System.String)">
             <summary>
-            Matches a string attribute against the policy
+            Matches a string attribute against the policy.
             </summary>
-            <param name="contextValue">The value from context</param>
-            <returns></returns>
+            <param name="contextValue">The value from context.</param>
+            <returns>A bool telling if it is a match</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlObligation">
              <summary>
@@ -2794,7 +2794,7 @@
             Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlObligation"/> class.
             </summary>
             <param name="obligationId">Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.</param>
-            <param name="fulfillOn">The action to fulfillon</param>
+            <param name="fulfillOn">The action to fulfillon.</param>
             <param name="attributeAssigments"> list Obligation arguments assignment.The values of the obligation arguments SHALL be interpreted by the PEP.</param>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlObligation.#ctor(System.Uri,System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment})">
