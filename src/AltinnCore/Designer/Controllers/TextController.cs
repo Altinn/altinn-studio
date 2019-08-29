@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -94,7 +95,16 @@ namespace AltinnCore.Designer.Controllers
             JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
             json["resources"].Replace(sorted);
 
+            // updating application metadata with appTitle.
+            JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "ServiceName");
+            if (!(appTitleToken == null))
+            {
+                string appTitle = appTitleToken.Value<string>("value");
+                _repository.UpdateAppTitle(org, service, id, appTitle);
+            }
+    
             _repository.SaveResource(org, service, id, json.ToString());
+
             return Json(new
             {
                 Success = true,
