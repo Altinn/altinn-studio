@@ -39,13 +39,20 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceState">the instance state</param>
         /// <returns>list of instances</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceState}")]
-        public async Task<ActionResult> GetMessageboxInstanceList(int instanceOwnerId, string instanceState)
+        public async Task<ActionResult> GetMessageboxInstanceList(int instanceOwnerId, string instanceState, [FromQuery] string language)
         {
             string[] allowedStates = new string[] { "active", "archived", "deleted" };
+            string[] acceptedLanguages = new string[] { "en", "nb", "nn-NO" };
+            string languageId = "nb";
 
             if (!allowedStates.Contains(instanceState.ToLower()))
             {
                 return BadRequest("Invalid instance state");
+            }
+
+            if (language != null && acceptedLanguages.Contains(language.ToLower()))
+            {
+                languageId = language;
             }
 
             List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerId, instanceState);
@@ -66,7 +73,7 @@ namespace Altinn.Platform.Storage.Controllers
             Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
 
             // Simplify instances and return
-            List<MessageBoxInstance> simpleInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, AltinnCore.ServiceLibrary.ServiceMetadata.Language.NorwegianBokmal);
+            List<MessageBoxInstance> simpleInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
 
             return Ok(simpleInstances);
         }
@@ -76,10 +83,20 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerId">the instance owner id</param>
         /// <param name="instanceGuid">the instance guid</param>
+        /// <param name="language"> language id en, nb, nn-NO"</param>
         /// <returns>list of instances</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> GetMessageboxInstance(int instanceOwnerId, Guid instanceGuid)
+        public async Task<ActionResult> GetMessageboxInstance(int instanceOwnerId, Guid instanceGuid, [FromQuery] string language)
         {
+            string[] acceptedLanguages = new string[] { "en", "nb", "nn-NO" };
+
+            string languageId = "nb";
+
+            if (language != null && acceptedLanguages.Contains(language.ToLower()))
+            {
+                languageId = language;
+            }            
+
             string instanceId = instanceOwnerId.ToString() + "/" + instanceGuid.ToString();
 
             Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
@@ -95,7 +112,7 @@ namespace Altinn.Platform.Storage.Controllers
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
 
             // Simplify instances and return
-            List<MessageBoxInstance> simpleInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, AltinnCore.ServiceLibrary.ServiceMetadata.Language.NorwegianBokmal);
+            List<MessageBoxInstance> simpleInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, languageId);
 
             return Ok(simpleInstance);
         }

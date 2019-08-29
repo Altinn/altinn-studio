@@ -18,7 +18,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// <param name="instances">List of instances to convert.</param>
         /// <param name="appTitles">Dictionary for application titles by language.</param>
         /// <param name="language">Desired language.</param>
-        public static List<MessageBoxInstance> ConvertToMessageBoxInstance(List<Instance> instances, Dictionary<string, Dictionary<string, string>> appTitles, Language language)
+        public static List<MessageBoxInstance> ConvertToMessageBoxInstance(List<Instance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
         {
             List<MessageBoxInstance> simpleInstances = new List<MessageBoxInstance>();
 
@@ -33,7 +33,7 @@ namespace Altinn.Platform.Storage.Helpers
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
-                    Title = appTitles[instance.AppId]["nb"],
+                    Title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language]: appTitles[instance.AppId]["nb"],
                     ProcessCurrentTask = instance.Process.CurrentTask,
                     AuthorizedForWrite = true,
                     AllowDelete = false
