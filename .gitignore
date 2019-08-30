@@ -321,6 +321,13 @@ src/react-apps/applications/dashboard/dist
 src/react-apps/applications/runtime/node_modules
 src/react-apps/applications/runtime/compiled
 src/react-apps/applications/runtime/dist
+src/react-apps/applications/receipt/node_modules
+src/react-apps/applications/receipt/compiled
+src/react-apps/applications/receipt/dist
+
+######### Built react apps for receipt ###########
+src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/js/react
+src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/css
 
 ######### Built react apps for runtime ###########
 src/AltinnCore/Runtime/wwwroot/runtime/css/react
