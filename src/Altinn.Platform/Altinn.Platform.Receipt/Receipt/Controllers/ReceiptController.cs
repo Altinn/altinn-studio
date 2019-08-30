@@ -25,6 +25,11 @@ namespace Altinn.Platform.Receipt
         private readonly HttpClient _client;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReceiptController"/> class
+        /// </summary>
+        /// <param name="platformSettings"></param>
+        /// <param name="logger"></param>
         public ReceiptController(IOptions<PlatformSettings> platformSettings, ILogger<ReceiptController> logger)
         {
             _platformSettings = platformSettings.Value;
@@ -33,6 +38,11 @@ namespace Altinn.Platform.Receipt
             _client.DefaultRequestHeaders.Clear();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
+
+        /// <summary>
+        /// Gets the receipt for a given instanceOwner and instanceId
+        /// </summary>
+        /// <returns>A view containing the receipt fontend</returns>
         [HttpGet]
         [Route("receipt/{instanceOwnerId}/{instanceId}")]
         public IActionResult Index()
@@ -41,6 +51,10 @@ namespace Altinn.Platform.Receipt
             return View("receipt");
         }
 
+        /// <summary>
+        /// Gets the user profile of the currently logged in user
+        /// </summary>
+        /// <returns>The user profile</returns>
         [HttpGet]
         [Route("receipt/api/v1/users/current")]
         public async Task<IActionResult> GetCurrentUser()
