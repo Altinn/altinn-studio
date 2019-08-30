@@ -146,6 +146,7 @@ function Receipt(props: WithStyles<typeof styles>) {
           onClose={handleModalClose}
           hideBackdrop={true}
           hideCloseIcon={isPrint}
+          printView={isPrint}
           headerText={getLanguageFromKey('receipt_platform.receipt', language)}
         >
         {isLoading() &&

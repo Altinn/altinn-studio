@@ -19,6 +19,8 @@ export interface IAltinnModalComponentProvidedProps {
   hideCloseIcon?: boolean;
   /** Boolean value for allowing modal to close on backdrop click */
   allowCloseOnBackdropClick?: boolean;
+  /** Boolean value for showing print view */
+  printView?: boolean;
 }
 
 export interface IAltinnModalComponentState {
@@ -83,14 +85,34 @@ const styles = createStyles({
 
 export class AltinnModal extends React.Component<IAltinnModalComponentProvidedProps, IAltinnModalComponentState> {
   public render() {
-    const { classes } = this.props;
-    return (
-      <Modal
-        open={this.props.isOpen}
-        className={this.props.classes.scroll}
-        hideBackdrop={this.props.hideBackdrop}
-        onBackdropClick={this.props.allowCloseOnBackdropClick === false ? null : this.props.onClose}
-      >
+    const { classes, printView } = this.props;
+    if (!printView) {
+      return (
+        <Modal
+          open={this.props.isOpen}
+          className={this.props.classes.scroll}
+          hideBackdrop={this.props.hideBackdrop}
+          onBackdropClick={this.props.allowCloseOnBackdropClick === false ? null : this.props.onClose}
+        >
+          <div className={classes.modal}>
+            <div className={classes.header}>
+              {this.props.hideCloseIcon && this.props.hideCloseIcon === true ? null :
+                <IconButton className={classes.iconBtn} onClick={this.props.onClose}>
+                  <i className={classNames('ai ai-exit-test', classes.iconStyling)} />
+                </IconButton>
+              }
+              <Typography className={classes.headerText}>
+                {this.props.headerText}
+              </Typography>
+            </div>
+            <div className={classes.body}>
+              {this.props.children}
+            </div>
+          </div>
+        </Modal>
+      );
+    } else {
+      return (
         <div className={classes.modal}>
           <div className={classes.header}>
             {this.props.hideCloseIcon && this.props.hideCloseIcon === true ? null :
@@ -106,8 +128,8 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
             {this.props.children}
           </div>
         </div>
-      </Modal>
-    );
+      );
+    }
   }
 }
 
