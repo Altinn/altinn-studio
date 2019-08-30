@@ -407,7 +407,42 @@
 							"response": []
 						},
 						{
-							"name": "GET App",
+							"name": "GET All Apps",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+										"exec": [
+											"pm.test(\"Status code of retrieving all apps by Org is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"applications",
+										"{{org}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET App by name",
 							"event": [
 								{
 									"listen": "test",
@@ -812,6 +847,105 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "PUT Edit App instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											"pm.test(\"Status code of editing an instance is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET App Instance by Id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											"pm.test(\"Status code of getting an instance by id is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}"
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"_postman_isSubFolder": true
@@ -1102,6 +1236,44 @@
 							"response": []
 						},
 						{
+							"name": "GET Event by Id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "357288ce-372f-4b00-9b7a-42dc94990430",
+										"exec": [
+											"pm.test(\"Get Instance Event by id - Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/{{EventId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events",
+										"{{EventId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "GET All Events",
 							"event": [
 								{
@@ -1333,6 +1505,60 @@
 						}
 					],
 					"_postman_isSubFolder": true
+				},
+				{
+					"name": "DELETE App Instance by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"exec": [
+									"pm.test(\"Status code of deleting an instance by id is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+						},
+						"url": {
+							"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							],
+							"query": [
+								{
+									"key": "hard",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
