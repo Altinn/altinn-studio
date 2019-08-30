@@ -1,0 +1,10 @@
+{
+  "partyId": "20002",
+  "PartyTypeName": "SubUnit",
+  "Name": "Leet Skills Inc",
+  "Organization": {
+    "OrganizationId": "1337",
+    "OrganizationNumber": "13371337",
+    "OrganizationName": "Leet Skills Inc"
+  }
+}

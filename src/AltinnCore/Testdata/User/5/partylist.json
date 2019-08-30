@@ -1,0 +1,30 @@
+[
+  {
+    "partyTypeName": "Person",
+    "orgNumber": null,
+    "person": null,
+    "organization": null,
+    "partyID": "20001",
+    "organizationNumber": null,
+    "unitType": null,
+    "ssn": "01047512345",
+    "name": "Roar Subunit",
+    "isDeleted": false,
+    "onlyHiearhyElementWithNoAccess": false,
+    "childActors": null
+  },
+  {
+		"partyTypeName": "SubUnit",
+		"orgNumber": "13371337",
+		"person": null,
+		"organization": null,
+		"partyID": "20002",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Leet Skills Inc",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	}
+]
