@@ -472,6 +472,8 @@ namespace Altinn.Platform.Storage.Repository
 
             instances = feedResponse.ToList<Instance>();
 
+            PostProcess(instances);
+
             return instances;
         }
 
