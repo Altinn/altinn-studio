@@ -25,6 +25,7 @@ test('Drag and drop test', async () => {
     .expect(designer.inputComponent).ok()
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .dragToElement(designer.addressComponent, designer.dragToArea)
+  await designer.deleteUIComponentsMethod(t);
 });
 
 test('Add one of each component to the designer using keyboard', async () => {
@@ -35,19 +36,18 @@ test('Add one of each component to the designer using keyboard', async () => {
     .click(designer.inputComponent)
     .pressKey('enter') //input button
     .pressKey('tab')
-    .pressKey('enter') //datepicker
+    .pressKey('enter') //text area
     .pressKey('tab')
-    .pressKey('enter') //dropdown
-    .pressKey('tab')
-    .pressKey('enter') //checkboxes
+    .pressKey('enter') //Checkbox
     .pressKey('tab')
     .pressKey('enter') //radiobutton
     .pressKey('tab')
-    .pressKey('enter') //text area
-    .pressKey('tab')
     .pressKey('enter') //file upload
     .pressKey('tab')
-    .pressKey('enter') //submit
+    .pressKey('enter') //date
+    .pressKey('tab')
+    .pressKey('enter') //submit       
+  await designer.deleteUIComponentsMethod(t);
 });
 
 test('Sync a service with master', async () => {

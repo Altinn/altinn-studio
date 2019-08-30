@@ -26,14 +26,15 @@ fixture('Deploy of app to a test environment tests')
     await t
       .useRole(AutoTestUser)
       .resizeWindow(1536, 864)
-  })
+  });
 
 test('Happy case; deploy an app to a test environment after a change', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
-    .click(designer.lageNavigationTab)
+    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/uieditor')
+  await designer.deleteUIComponentsMethod(t);
+  await t   
     .click(designer.hentEndringer)
-    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
+    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
     .click(designer.omNavigationTab) //remove pop up
     .dragToElement(designer.inputComponent, designer.dragToArea)
   await t.eval(() => location.reload(true))
@@ -59,8 +60,7 @@ test('Happy case; deploy an app to a test environment after a change', async () 
 
 test('App cannot deploy due to compilation error', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/aboutservice')
-    .click(designer.lageNavigationTab)
+    .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/uieditor')    
     .click(designer.hentEndringer)
     .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
     .click(designer.testeNavigationTab) //click twice to remove pop up from "del"

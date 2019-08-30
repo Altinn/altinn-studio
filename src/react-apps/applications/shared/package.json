@@ -16,6 +16,7 @@
     "classnames": "2.2.6",
     "diff": "4.0.1",
     "moment": "2.24.0",
+    "react-content-loader": "4.2.1",
     "react-monaco-editor": "0.22.0",
     "react-router-dom": "4.3.1",
     "react-truncate-markup": "2.0.1"

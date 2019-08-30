@@ -170,10 +170,18 @@ namespace AltinnCore.Runtime
             string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
             string url = Request.Path;
 
-            string appSelfLink = $"{host}{url}";
+            string selfLink = $"{host}{url}";
+
+            int start = selfLink.IndexOf("/instances");
+            if (start > 0)
+            {
+                selfLink = selfLink.Substring(0, start) + "/instances";
+            }
+
+            selfLink += $"/{instance.Id}";            
 
             instance.SelfLinks = instance.SelfLinks ?? new Storage.Interface.Models.ResourceLinks();
-            instance.SelfLinks.Apps = appSelfLink;
+            instance.SelfLinks.Apps = selfLink;
 
             if (instance.Data != null)
             {
@@ -181,11 +189,11 @@ namespace AltinnCore.Runtime
                 {
                     dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
 
-                    dataElement.DataLinks.Apps = $"{appSelfLink}/data/{dataElement.Id}";
+                    dataElement.DataLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
                 }
             }
 
-            return appSelfLink;
+            return selfLink;
         }
 
         private Instance CalculateAndValidate(Instance instance, out ActionResult calculateOrValidateError)
