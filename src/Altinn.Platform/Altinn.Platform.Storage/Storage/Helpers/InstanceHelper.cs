@@ -29,7 +29,7 @@ namespace Altinn.Platform.Storage.Helpers
                 {
                     CreatedDateTime = instance.CreatedDateTime,
                     DueDateTime = instance.DueDateTime,
-                    Id = instance.Id,
+                    Id = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId,
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
