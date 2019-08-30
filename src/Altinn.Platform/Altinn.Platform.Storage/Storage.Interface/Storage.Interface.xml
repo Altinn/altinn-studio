@@ -696,6 +696,66 @@
             <param name="info">info</param>
             <param name="context">context</param>
         </member>
+        <member name="T:Storage.Interface.Models.MessageBoxInstance">
+            <summary>
+            Simplified instance class designed for Altinn 2 messagebox.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.Id">
+            <summary>
+            Unique guid id of the instance.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.InstanceOwnerId">
+            <summary>
+            Owner of the instance.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.Org">
+            <summary>
+            Application owner for the app, should be lower case.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.AppName">
+            <summary>
+            Application name used to identfify application.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.Title">
+            <summary>
+            Application title for the instance.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.ProcessCurrentTask">
+            <summary>
+            Current task in processState.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.CreatedDateTime">
+            <summary>
+            Create date and time for the instance.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.LastChangedBy">
+            <summary>
+            User id of the user who last changed the instance.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.DueDateTime">
+            <summary>
+            Due date to submit the instance to application owner.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.AllowDelete">
+            <summary>
+            Boolean indicating if user is allowed to delete instance.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.AuthorizedForWrite">
+            <summary>
+            Boolean indicating if user is authorized to write on instance.
+            </summary>
+        </member>
         <member name="T:Storage.Interface.Models.ProcessState">
             <summary>
             Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 

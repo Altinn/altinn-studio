@@ -475,5 +475,15 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="applicationMetadata">The application metadata to be updated</param>
         /// <returns>The updated application metadata</returns>
         bool UpdateApplication(string org, string appName, Application applicationMetadata);
+
+        /// <summary>
+        /// Updates application metadata
+        /// </summary>
+        /// <param name="org">the organisation that owns the application</param>
+        /// <param name="appName">the application name</param>
+        /// <param name="languageId"> the language id</param>
+        /// <param name="title"> new application title </param>
+        /// <returns>The updated application metadata</returns>
+        bool UpdateAppTitle(string org, string appName, string languageId, string title);
     }
 }
