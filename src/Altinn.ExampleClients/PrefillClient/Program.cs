@@ -3,6 +3,9 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Linq;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
 
 namespace Altinn.Clients.PrefillClient
 {
@@ -11,53 +14,48 @@ namespace Altinn.Clients.PrefillClient
         static void Main(string[] args)
         {
             Console.WriteLine("Starting program.");
+            CommandLineArgs commandLineArgs = new CommandLineArgs();
 
-            string appId = null, endPoint = null, specifiedDirectory = null;
+            string appId = null;
+            string url = null;
+            string folder = null;
 
-            if (args.Length > 3)
+            if (commandLineArgs.Count() == 0)
             {
-                for (int i = 0; i < args.Length; i++)
-                {
-                    string parameter = args[i].ToLower();
-                    switch (parameter)
-                    {
-                        case "-a":
-                            appId = args[++i];
-                            Console.WriteLine($"App ID: {appId}");
-                            break;
-                        case "-e":
-                            endPoint = args[++i];
-                            Console.WriteLine($"Endpoint: {endPoint}");
-                            break;
-                        case "-d":
-                            specifiedDirectory = args[++i];
-                            Console.WriteLine($"Specified directory: {specifiedDirectory}");
-                            break;
-                    }
-                }
+                Console.WriteLine("No parameters given, please restart the program including these.");
+                System.Environment.Exit(0);
+            }
+
+            if (commandLineArgs.ContainsKey("appid") && commandLineArgs.ContainsKey("url"))
+            {
+                appId = commandLineArgs["appid"];
+                url = commandLineArgs["url"];
             }
             else
             {
-                Console.WriteLine("Did not find the parameters as prerequisites specified, please run the program again including these.");
+                Console.WriteLine("Did not find both the required parameters 'appid' and 'url', please restart the program including these.");
                 System.Environment.Exit(0);
             }
-
-            if (string.IsNullOrEmpty(specifiedDirectory))
+            
+            if (commandLineArgs.ContainsKey("folder"))
             {
-                // No input directory specified, use the application installation directory where the XML files then is supposed to be situated.
-                specifiedDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                Console.WriteLine($"Specified directory: {specifiedDirectory}");
+                folder = commandLineArgs["folder"];
+            }
+            else
+            {
+                Console.WriteLine($"No incoming folder parameter, the folder containing XML files is presumed to be the application installation folder: {folder}");
+                folder = AppDomain.CurrentDomain.BaseDirectory;
             }
             
-            string [] xmlFilePaths = Directory.GetFiles(specifiedDirectory, "*.xml");
+            string [] xmlFilePaths = Directory.GetFiles(folder, "*.xml");
 
             if (xmlFilePaths == null || xmlFilePaths.Length < 1)
             {
-                Console.WriteLine("Please add the XML files in your input directory, and run the program again.");
+                Console.WriteLine("Please add the XML files in your chosen folder (default is application installation folder if none specified), and restart the program.");
                 System.Environment.Exit(0);
             }
             
-            string requestUri = $"{endPoint}?appId={appId}";
+            string requestUri = $"{url}?appId={appId}";
             HttpClient client = new HttpClient();
 
             string xmlFileName, personNumber;
@@ -66,7 +64,7 @@ namespace Altinn.Clients.PrefillClient
             {
                 xmlFileName = xmlFilePath.Split("\\").Last();
 
-                // Get the person number which is the XML filename.
+                // The person number is the XML filename
                 personNumber = xmlFileName.Split(".").First();
 
                 Instance instanceTemplate = new Instance()
@@ -84,45 +82,71 @@ namespace Altinn.Clients.PrefillClient
                 try
                 {
                     HttpResponseMessage response = client.PostAsync(requestUri, content).Result;
-                    
+                    string result = response.Content.ReadAsStringAsync().Result;
+
                     if (!response.IsSuccessStatusCode)
                     {
-                        WriteLogFile(response.ReasonPhrase, personNumber, specifiedDirectory);
-                        Console.WriteLine($"Failed to instanciate and save prefill on person number {personNumber}.");
+                        File.WriteAllText($"{folder}\\error-{personNumber}.txt", $"Status code '{Convert.ToInt32(response.StatusCode)}', error message: {result}");
                     }
                     else
                     {
-                        string json = response.Content.ReadAsStringAsync().Result;
-                        
-                        System.IO.File.WriteAllText($"{specifiedDirectory}\\{personNumber}.json", json);
-
-                        Console.WriteLine($"Successfully instanciated and saved prefill on person number {personNumber}.");
+                        Instance instanceResult = JsonConvert.DeserializeObject<Instance>(result);
+                        File.WriteAllText($"{folder}\\{personNumber}.json", JsonConvert.SerializeObject(instanceResult, Formatting.Indented));
                     }
                 }
                 catch (Exception e)
                 {
-                    WriteLogFile(e.Message, personNumber, specifiedDirectory);
-                    Console.WriteLine($"Failed to instanciate and save prefill on person number {personNumber}.");
+                    File.WriteAllText($"{folder}\\error-{personNumber}.txt", $"{e.Message}");
                 }
             }
+
+            Console.WriteLine("Program finished executing.");
+        }
+    }
+
+    /// <summary>
+    /// Basic Command Line Args extracter
+    /// <para>Parse command line args for args in the following format:</para>
+    /// <para>    -argname=argvalue -argname=argvalue ...</para>
+    /// </summary>
+    public class CommandLineArgs
+    {
+        private const string Pattern = @"\-(?<argname>\w+)=(?<argvalue>.+)";
+        private readonly Regex _regex = new Regex(Pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private readonly Dictionary<String, String> _args = new Dictionary<String, String>();
+
+        public CommandLineArgs()
+        {
+            BuildArgDictionary();
         }
 
-        private static void WriteLogFile(string message, string personNumber, string specifiedDirectory)
+        public string this[string key]
         {
-            string errorFile = Path.Combine(specifiedDirectory, "error.txt");
+            get { return _args.ContainsKey(key) ? _args[key] : null; }
+        }
 
-            if (!File.Exists(errorFile))
-            {
-                File.Create(Path.Combine(errorFile)).Dispose();
-            }
+        public bool ContainsKey(string key)
+        {
+            return _args.ContainsKey(key);
+        }
 
-            using (StreamWriter sw = File.AppendText(errorFile))
+        public int Count()
+        {
+            return _args.Count;
+        }
+
+        private void BuildArgDictionary()
+        {
+            var args = Environment.GetCommandLineArgs();
+            
+            foreach (var match in args.Select(arg => _regex.Match(arg)).Where(m => m.Success))
             {
-                sw.WriteLine("============= Error Logging ===========");
-                sw.WriteLine($"=========== Start ============= {DateTime.Now}");
-                sw.WriteLine($"Failed to instanciate and save prefill on person number {personNumber}.");
-                sw.WriteLine($"Error Message: {message}");
-                sw.WriteLine($"=========== End ============= {DateTime.Now}");
+                try
+                {
+                    _args.Add(match.Groups["argname"].Value, match.Groups["argvalue"].Value);
+                }
+                // Ignore any duplicate args
+                catch (Exception) { }
             }
         }
     }
