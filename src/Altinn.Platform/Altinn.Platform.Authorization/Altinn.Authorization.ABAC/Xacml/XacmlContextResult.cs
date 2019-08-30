@@ -70,7 +70,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// </summary>
         /// <param name="decision">The authorization decision.</param>
         /// <remarks>
-        /// Used only from XACML 2.0/3.0
+        /// Used only from XACML 2.0/3.0.
         /// </remarks>
         public XacmlContextResult(XacmlContextDecision decision)
         {

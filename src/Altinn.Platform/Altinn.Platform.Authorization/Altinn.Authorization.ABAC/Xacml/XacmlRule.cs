@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Security.Claims;
-using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Utils;
 
 namespace Altinn.Authorization.ABAC.Xacml
@@ -66,18 +64,18 @@ namespace Altinn.Authorization.ABAC.Xacml
         public string Description { get; set; }
 
         /// <summary>
-        /// Get or sets Target that Identifies the set of decision requests that the <Rule/> element is intended to evaluate.If this element is omitted,
+        /// Gets or sets Target that Identifies the set of decision requests that the <Rule/> element is intended to evaluate.If this element is omitted,
         /// then the target for the<Rule/> SHALL be defined by the <Target/> element of the enclosing <Policy/> element.See Section 7.7 for details.
         /// </summary>
         public XacmlTarget Target { get; set; }
 
         /// <summary>
-        ///  A predicate that MUST be satisfied for the rule to be assigned its Effect value.
+        ///  Gets or sets a predicate that MUST be satisfied for the rule to be assigned its Effect value.
         /// </summary>
         public XacmlExpression Condition { get; set; }
 
         /// <summary>
-        ///  Gets or set A string identifying this rule.
+        ///  Gets or sets A string identifying this rule.
         /// </summary>
         public string RuleId
         {
@@ -112,12 +110,13 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Evauluat the condition
+        /// Evauluat the condition.
         /// </summary>
-        /// <param name="request">The xacml context request</param>
+        /// <param name="request">The xacml context request.</param>
+        /// <returns>The match result.</returns>
         public XacmlAttributeMatchResult EvaluateCondition(XacmlContextRequest request)
         {
-            Type conditionType = Condition.Property.GetType();
+            Type conditionType = this.Condition.Property.GetType();
 
             if (conditionType == typeof(XacmlFunction))
             {
@@ -125,7 +124,7 @@ namespace Altinn.Authorization.ABAC.Xacml
             }
             else if (conditionType == typeof(XacmlApply))
             {
-                XacmlApply xacmlApply = Condition.Property as XacmlApply;
+                XacmlApply xacmlApply = this.Condition.Property as XacmlApply;
                 return xacmlApply.Evalute(request);
             }
 
@@ -133,7 +132,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// A conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the PEP in conjunction with the
+        /// Gets a conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the PEP in conjunction with the
         /// authorization decision.See Section 7.18 for a description of how the set of advice to be returned by the PDP SHALL be determined.
         /// </summary>
         public ICollection<XacmlAdviceExpression> Advices
@@ -145,11 +144,11 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Match Policy Attributes and request attributes of the same category
+        /// Match Policy Attributes and request attributes of the same category.
         /// </summary>
-        /// <param name="request">The request</param>
-        /// <param name="category">The attribute category</param>
-        /// <returns></returns>
+        /// <param name="request">The request.</param>
+        /// <param name="category">The attribute category.</param>
+        /// <returns>The match result.</returns>
         public XacmlAttributeMatchResult MatchAttributes(XacmlContextRequest request, string category)
         {
             Dictionary<string, ICollection<XacmlAttribute>> requestAttributes = this.GetCategoryAttributes(request, category);

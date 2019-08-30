@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Altinn.Authorization.ABAC.Xacml
 {
     /// <summary>
@@ -28,17 +24,17 @@ namespace Altinn.Authorization.ABAC.Xacml
     public class XacmlContextPolicyIdReference
     {
         /// <summary>
-        ///  Specifies a matching expression for the version of the policy set referenced.
+        ///  Gets or sets specifies a matching expression for the version of the policy set referenced.
         /// </summary>
         public XacmlVersionMatchType Version { get; set; }
 
         /// <summary>
-        /// Specifies a matching expression for the earliest acceptable version of the policy set referenced.
+        /// Gets or sets specifies a matching expression for the earliest acceptable version of the policy set referenced.
         /// </summary>
         public XacmlVersionMatchType EarliestVersion { get; set; }
 
         /// <summary>
-        /// Specifies a matching expression for the latest acceptable version of the policy set referenced.
+        /// Gets or sets specifies a matching expression for the latest acceptable version of the policy set referenced.
         /// The matching operation is defined in Section 5.13.  Any combination of these attributes MAY be present in a<PolicySetIdReference/>.
         /// The referenced policy set MUST match all expressions.If none of these attributes is present, then any version of the policy set is acceptable.
         /// In the case that more than one matching version can be obtained, then the most recent one SHOULD be used.
@@ -46,7 +42,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         public XacmlVersionMatchType LatestVersion { get; set; }
 
         /// <summary>
-        /// The value
+        /// Gets or sets the value.
         /// </summary>
         public string Value { get; set; }
     }

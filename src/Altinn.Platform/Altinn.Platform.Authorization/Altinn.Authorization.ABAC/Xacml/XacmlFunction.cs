@@ -27,7 +27,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// The identifier of the function.
+        /// Gets or sets the identifier of the function.
         /// </summary>
         public Uri FunctionId
         {

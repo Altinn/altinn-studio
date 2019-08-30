@@ -693,119 +693,129 @@
             Attribute Matching Identity.
             </summary>
         </member>
-        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers">
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction">
             <summary>
             The match type identifier.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.StringEqual">
             <summary>
             String Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringEqualIgnoreCase">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.StringEqualIgnoreCase">
             <summary>
             String Equal Ignore Case Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.BooleanEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.BooleanEqual">
             <summary>
             Boolean Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.IntegerEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.IntegerEqual">
             <summary>
             Integer Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DoubleEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.DoubleEqual">
             <summary>
             Double Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.DateEqual">
             <summary>
             Date Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.TimeEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.TimeEqual">
             <summary>
             Time Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateTimeEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.DateTimeEqual">
             <summary>
             DateTime Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DayTimeDurationEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.DayTimeDurationEqual">
             <summary>
             DayTimeDuration Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.YearMonthDurationEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.YearMonthDurationEqual">
             <summary>
             YearMonthDuration Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.AnyUriEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.AnyUriEqual">
             <summary>
             AnyUri Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.X500NameEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.X500NameEqual">
             <summary>
             X500Name Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.Rfc822NameEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.Rfc822NameEqual">
             <summary>
             Rfc822Name Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.HexBinaryEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.HexBinaryEqual">
             <summary>
             HexBinary Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.Base64BinaryEqual">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.Base64BinaryEqual">
             <summary>
             Base64Binary Equal Matching Function.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringIsIn">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.StringIsIn">
             <summary>
             String is in bag of attributes.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.IntegerOneAndOnly">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.IntegerOneAndOnly">
             <summary>
             Verify that one one integer of that value exist.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.TimeBagSize">
-            <summary>
-            Verify that time bag size.
-            </summary>
-        </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateBagSize">
-            <summary>
-            Verify the date bag size.
-            </summary>
-        </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateTimeBagSize">
-            <summary>
-            Verify the date bag size.
-            </summary>
-        </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.DateOneAndOnly">
             <summary>
             Verify that the bag only contains one Date attribute withe the given attribute ID.
             </summary>
         </member>
-        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateTimeOneAndOnly">
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.DateTimeOneAndOnly">
             <summary>
             Verify that the bag only contains one DateTime attribute withe the given attribute ID.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeMatchFunction.RegexpMatch">
+            <summary>
+            Match input attributes against a given regexp.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeBagFunction">
+            <summary>
+            Attribute Bag function identifiers.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeBagFunction.TimeBagSize">
+            <summary>
+            Verify that time bag size.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeBagFunction.DateBagSize">
+            <summary>
+            Verify the date bag size.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeBagFunction.DateTimeBagSize">
+            <summary>
+            Verify the date bag size.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes">
@@ -1070,7 +1080,7 @@
             Method to match attributes.
             </summary>
             <param name="policyAttribute">The attribute in policy.</param>
-            <param name="contextRequestAttribute">The attribute in.</param>
+            <param name="decisionRequestAttribute">The attribute in.</param>
             <param name="matchId">The match parameter.</param>
             <returns>A boolean to tell if the attributes match.</returns>
         </member>
@@ -2219,17 +2229,17 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference.Version">
             <summary>
-             Specifies a matching expression for the version of the policy set referenced.
+             Gets or sets specifies a matching expression for the version of the policy set referenced.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference.EarliestVersion">
             <summary>
-            Specifies a matching expression for the earliest acceptable version of the policy set referenced.
+            Gets or sets specifies a matching expression for the earliest acceptable version of the policy set referenced.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference.LatestVersion">
             <summary>
-            Specifies a matching expression for the latest acceptable version of the policy set referenced.
+            Gets or sets specifies a matching expression for the latest acceptable version of the policy set referenced.
             The matching operation is defined in Section 5.13.  Any combination of these attributes MAY be present in a<PolicySetIdReference/>.
             The referenced policy set MUST match all expressions.If none of these attributes is present, then any version of the policy set is acceptable.
             In the case that more than one matching version can be obtained, then the most recent one SHOULD be used.
@@ -2237,7 +2247,7 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference.Value">
             <summary>
-            The value
+            Gets or sets the value.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference">
@@ -2266,17 +2276,17 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference.Version">
             <summary>
-            Specifies a matching expression for the version of the policy set referenced.
+            Gets or sets specifies a matching expression for the version of the policy set referenced.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference.EarliestVersion">
             <summary>
-            Specifies a matching expression for the earliest acceptable version of the policy set referenced.
+            Gets or sets specifies a matching expression for the earliest acceptable version of the policy set referenced.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference.LatestVersion">
             <summary>
-            Specifies a matching expression for the latest acceptable version of the policy set referenced.
+            Gets or sets specifies a matching expression for the latest acceptable version of the policy set referenced.
             The matching operation is defined in Section 5.13.  Any combination of these attributes MAY be present in
             a<PolicySetIdReference/>.The referenced policy set MUST match all expressions.If none of these attributes is present,
             then any version of the policy set is acceptable.In the case that more than one matching version can be obtained,
@@ -2285,7 +2295,7 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference.Value">
             <summary>
-            The value of the reference
+            Gets or sets the value of the reference.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest">
@@ -2479,7 +2489,7 @@
             </summary>
             <param name="decision">The authorization decision.</param>
             <remarks>
-            Used only from XACML 2.0/3.0
+            Used only from XACML 2.0/3.0.
             </remarks>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.Decision">
@@ -2558,7 +2568,7 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatus.StatusMessage">
             <summary>
-            A status message describing the status code.
+            Gets or sets a status message describing the status code.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatus.StatusDetail">
@@ -2699,7 +2709,7 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlFunction.FunctionId">
             <summary>
-            The identifier of the function.
+            Gets or sets the identifier of the function.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlMatch">
@@ -3134,18 +3144,18 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Target">
             <summary>
-            Get or sets Target that Identifies the set of decision requests that the <Rule/> element is intended to evaluate.If this element is omitted,
+            Gets or sets Target that Identifies the set of decision requests that the <Rule/> element is intended to evaluate.If this element is omitted,
             then the target for the<Rule/> SHALL be defined by the <Target/> element of the enclosing <Policy/> element.See Section 7.7 for details.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Condition">
             <summary>
-             A predicate that MUST be satisfied for the rule to be assigned its Effect value.
+             Gets or sets a predicate that MUST be satisfied for the rule to be assigned its Effect value.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.RuleId">
             <summary>
-             Gets or set A string identifying this rule.
+             Gets or sets A string identifying this rule.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Effect">
@@ -3162,23 +3172,24 @@
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.EvaluateCondition(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
             <summary>
-            Evauluat the condition
+            Evauluat the condition.
             </summary>
-            <param name="request">The xacml context request</param>
+            <param name="request">The xacml context request.</param>
+            <returns>The match result.</returns>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Advices">
             <summary>
-            A conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the PEP in conjunction with the
+            Gets a conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the PEP in conjunction with the
             authorization decision.See Section 7.18 for a description of how the set of advice to be returned by the PDP SHALL be determined.
             </summary>
         </member>
         <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.MatchAttributes(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,System.String)">
             <summary>
-            Match Policy Attributes and request attributes of the same category
+            Match Policy Attributes and request attributes of the same category.
             </summary>
-            <param name="request">The request</param>
-            <param name="category">The attribute category</param>
-            <returns></returns>
+            <param name="request">The request.</param>
+            <param name="category">The attribute category.</param>
+            <returns>The match result.</returns>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlRuleCombinerParameters">
              <summary>

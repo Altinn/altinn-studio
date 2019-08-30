@@ -160,9 +160,9 @@ namespace Altinn.Authorization.ABAC.Xacml
 
             switch (applyfunction)
             {
-                case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
-                case XacmlConstants.MatchTypeIdentifiers.DateBagSize:
-                case XacmlConstants.MatchTypeIdentifiers.DateTimeBagSize:
+                case XacmlConstants.AttributeBagFunction.TimeBagSize:
+                case XacmlConstants.AttributeBagFunction.DateBagSize:
+                case XacmlConstants.AttributeBagFunction.DateTimeBagSize:
                     return true;
                 default:
                     return false;
@@ -201,9 +201,9 @@ namespace Altinn.Authorization.ABAC.Xacml
 
             switch (applyfunction)
             {
-                case XacmlConstants.MatchTypeIdentifiers.TimeBagSize:
-                case XacmlConstants.MatchTypeIdentifiers.DateBagSize:
-                case XacmlConstants.MatchTypeIdentifiers.DateTimeBagSize:
+                case XacmlConstants.AttributeBagFunction.TimeBagSize:
+                case XacmlConstants.AttributeBagFunction.DateBagSize:
+                case XacmlConstants.AttributeBagFunction.DateTimeBagSize:
                     int bagSize = this.GetBagSize(contextAttributes, attributeDesignator);
                     if (int.Parse(policyConditionAttributeValue.Value).Equals(bagSize))
                     {
@@ -255,13 +255,13 @@ namespace Altinn.Authorization.ABAC.Xacml
 
             switch (applyfunction)
             {
-                case XacmlConstants.MatchTypeIdentifiers.IntegerOneAndOnly:
+                case XacmlConstants.AttributeMatchFunction.IntegerOneAndOnly:
                     isSingleFunction = true;
                     break;
-                case XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly:
+                case XacmlConstants.AttributeMatchFunction.DateOneAndOnly:
                     isSingleFunction = true;
                     break;
-                case XacmlConstants.MatchTypeIdentifiers.DateTimeOneAndOnly:
+                case XacmlConstants.AttributeMatchFunction.DateTimeOneAndOnly:
                     isSingleFunction = true;
                     break;
                 default:

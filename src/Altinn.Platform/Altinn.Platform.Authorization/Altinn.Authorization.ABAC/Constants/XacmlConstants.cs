@@ -683,7 +683,7 @@ namespace Altinn.Authorization.ABAC.Constants
         /// <summary>
         /// The match type identifier.
         /// </summary>
-        public sealed class MatchTypeIdentifiers
+        public sealed class AttributeMatchFunction
         {
             /// <summary>
             /// String Equal Matching Function.
@@ -771,6 +771,27 @@ namespace Altinn.Authorization.ABAC.Constants
             public const string IntegerOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:integer-one-and-only";
 
             /// <summary>
+            /// Verify that the bag only contains one Date attribute withe the given attribute ID.
+            /// </summary>
+            public const string DateOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:date-one-and-only";
+
+            /// <summary>
+            /// Verify that the bag only contains one DateTime attribute withe the given attribute ID.
+            /// </summary>
+            public const string DateTimeOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:dateTime-one-and-only";
+
+            /// <summary>
+            /// Match input attributes against a given regexp.
+            /// </summary>
+            public const string RegexpMatch = "urn:oasis:names:tc:xacml:1.0:function:string-regexp-match";
+        }
+
+        /// <summary>
+        /// Attribute Bag function identifiers.
+        /// </summary>
+        public sealed class AttributeBagFunction
+        {
+            /// <summary>
             /// Verify that time bag size.
             /// </summary>
             public const string TimeBagSize = "urn:oasis:names:tc:xacml:1.0:function:time-bag-size";
@@ -784,21 +805,11 @@ namespace Altinn.Authorization.ABAC.Constants
             /// Verify the date bag size.
             /// </summary>
             public const string DateTimeBagSize = "urn:oasis:names:tc:xacml:1.0:function:dateTime-bag-size";
-
-            /// <summary>
-            /// Verify that the bag only contains one Date attribute withe the given attribute ID.
-            /// </summary>
-            public const string DateOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:date-one-and-only";
-
-            /// <summary>
-            /// Verify that the bag only contains one DateTime attribute withe the given attribute ID.
-            /// </summary>
-            public const string DateTimeOneAndOnly = "urn:oasis:names:tc:xacml:1.0:function:dateTime-one-and-only";
         }
 
-        /// <summary>
-        /// Prefixed used in namespaces when writing to XML.
-        /// </summary>
+            /// <summary>
+            /// Prefixed used in namespaces when writing to XML.
+            /// </summary>
         public sealed class Prefixes
         {
             /// <summary>

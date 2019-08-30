@@ -42,7 +42,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// A status message describing the status code.
+        /// Gets or sets a status message describing the status code.
         /// </summary>
         public string StatusMessage
         {
