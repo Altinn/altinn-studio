@@ -10,19 +10,22 @@ using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Controllers
 {
+    /// <summary>
+    /// Implements endpoints related to messagebox instances
+    /// </summary>
     [Route("storage/api/v1/sbl/instances")]
     [ApiController]
-    public class MessageboxInstancesController : ControllerBase
+    public class MessageBoxInstancesController : ControllerBase
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MessageboxInstancesController"/> class
+        /// Initializes a new instance of the <see cref="MessageBoxInstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="applicationRepository">the application repository handler</param>
-        public MessageboxInstancesController(
+        public MessageBoxInstancesController(
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository)
         {
@@ -39,7 +42,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>list of instances</returns>
         [HttpGet("{instanceOwnerId:int}")]
         [Produces("application/vnd+altinn2.inbox+json")]
-        public async Task<ActionResult> GetMessageboxInstanceList(int instanceOwnerId, [FromQuery] string State, [FromQuery] string language)
+        public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerId, [FromQuery] string State, [FromQuery] string language)
         {
             string[] allowedStates = new string[] { "active", "archived", "deleted" };
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-NO" };
@@ -73,9 +76,9 @@ namespace Altinn.Platform.Storage.Controllers
             Dictionary<string, Dictionary<string, string>> appTitles = await _applicationRepository.GetAppTitles(appIds);
 
             // Simplify instances and return
-            List<MessageBoxInstance> simpleInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
+            List<MessageBoxInstance> messageBoxInstances = InstanceHelper.ConvertToMessageBoxInstance(allInstances, appTitles, languageId);
 
-            return Ok(simpleInstances);
+            return Ok(messageBoxInstances);
         }
 
         /// <summary>
@@ -87,7 +90,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>list of instances</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
         [Produces("application/vnd+altinn2.inbox+json")]
-        public async Task<ActionResult> GetMessageboxInstance(int instanceOwnerId, Guid instanceGuid, [FromQuery] string language)
+        public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerId, Guid instanceGuid, [FromQuery] string language)
         {
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-NO" };
 
@@ -113,9 +116,9 @@ namespace Altinn.Platform.Storage.Controllers
             Dictionary<string, Dictionary<string, string>> appTitle = await _applicationRepository.GetAppTitles(new List<string> { instance.AppId });
 
             // Simplify instances and return
-            MessageBoxInstance simpleInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, languageId).First();
+            MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, languageId).First();
 
-            return Ok(simpleInstance);
+            return Ok(messageBoxInstance);
         }
     }
 }
