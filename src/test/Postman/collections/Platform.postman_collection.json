@@ -837,7 +837,18 @@
 							],
 							"request": {
 								"method": "POST",
-								"header": [],
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{}"
+								},
 								"url": {
 									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
 									"host": [
@@ -922,9 +933,20 @@
 							],
 							"request": {
 								"method": "PUT",
-								"header": [],
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{}"
+								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}?elementType=skjema",
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
 									"host": [
 										"{{platformUrl}}"
 									],
@@ -937,12 +959,6 @@
 										"{{instanceId}}",
 										"data",
 										"{{dataId}}"
-									],
-									"query": [
-										{
-											"key": "elementType",
-											"value": "skjema"
-										}
 									]
 								}
 							},
