@@ -123,7 +123,7 @@ test('Fill out, save, and submit an instance of an app', async () => {
     .expect(runtime.workflowSubmit.exists).ok({ timeout: 120000 })
     .expect(runtime.workflowSubmit.visible).ok()
     .click(runtime.workflowSubmit)
-    .expect(Selector("p").withText(t.ctx.formFillComplete).visible).ok({ timeout: 120000 })
+    .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
 });
 
 
@@ -153,4 +153,18 @@ test('axe UI accessibility test for runtime', async t => {
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
   axeCheck(t);
+});
+
+test('Receipt page test', async t => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/formfilling#/test')
+    .switchToIframe(runtime.testBrukerIframe)
+    .expect(runtime.testUsers[0].exists).ok()
+    .hover(runtime.testUsers[0])
+    .click(runtime.testUsers[0])
+  await runtime.findAndOpenArchivedMessage(t);
+  await t
+    .switchToMainWindow()
+    .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
+    .expect(runtime.receiptContainer.find('p').withText('Referansenummer').parent('td').nextSibling('td').find('p').value).notEql('','Reference number is null')
 });
