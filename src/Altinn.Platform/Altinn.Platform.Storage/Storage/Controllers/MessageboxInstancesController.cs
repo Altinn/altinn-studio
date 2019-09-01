@@ -37,18 +37,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// Gets all instances in a given state for a given instance owner.
         /// </summary>
         /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <param name="State">the instance state; active, archived or deleted</param>
+        /// <param name="state">the instance state; active, archived or deleted</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
         [HttpGet("{instanceOwnerId:int}")]
-        [Produces("application/vnd+altinn2.inbox+json")]
-        public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerId, [FromQuery] string State, [FromQuery] string language)
+        public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerId, [FromQuery] string state, [FromQuery] string language)
         {
             string[] allowedStates = new string[] { "active", "archived", "deleted" };
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-NO" };
             string languageId = "nb";
 
-            if (!allowedStates.Contains(State.ToLower()))
+            if (string.IsNullOrEmpty(state) || !allowedStates.Contains(state.ToLower()))
             {
                 return BadRequest("Invalid instance state");
             }
@@ -58,7 +57,7 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerId, State);
+            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerId, state);
 
             if (allInstances == null || allInstances.Count == 0)
             {
