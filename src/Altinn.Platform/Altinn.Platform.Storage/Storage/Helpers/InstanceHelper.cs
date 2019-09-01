@@ -21,11 +21,11 @@ namespace Altinn.Platform.Storage.Helpers
         /// <param name="language">Desired language.</param>
         public static List<MessageBoxInstance> ConvertToMessageBoxInstance(List<Instance> instances, Dictionary<string, Dictionary<string, string>> appTitles, string language)
         {
-            List<MessageBoxInstance> simpleInstances = new List<MessageBoxInstance>();
+            List<MessageBoxInstance> messageBoxInstances = new List<MessageBoxInstance>();
 
             foreach (Instance instance in instances)
             {
-                simpleInstances.Add(new MessageBoxInstance()
+                messageBoxInstances.Add(new MessageBoxInstance()
                 {
                     CreatedDateTime = instance.CreatedDateTime,
                     DueDateTime = instance.DueDateTime,
@@ -41,7 +41,7 @@ namespace Altinn.Platform.Storage.Helpers
                 });
             }
 
-            return simpleInstances;
+            return messageBoxInstances;
         }
     }
 }
