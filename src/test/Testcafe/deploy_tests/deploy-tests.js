@@ -73,7 +73,7 @@ test('App cannot deploy due to compilation error', async () => {
 
 test('App cannot be deployed due to local changes', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
@@ -124,7 +124,7 @@ test('Accessibility testing for deployment to test environment page', async t =>
 
 test('Clone modal functionality', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deploymentservice#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)
     .click(designer.cloneButton)
