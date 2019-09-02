@@ -26,7 +26,6 @@ export const returnUrlToMessagebox = (url: string): string => {
   const testRegex = new RegExp(baseHostnameAltinnTest);
   const studioRegex = new RegExp(baseHostnameAltinnStudio);
   let result: string;
-
   if (url.search(prodRegex) >= 0) {
 
     result = `https://${baseHostnameAltinnProd}/${pathToMessageBox}`;

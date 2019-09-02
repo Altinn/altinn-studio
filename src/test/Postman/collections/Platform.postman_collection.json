@@ -7,10 +7,10 @@
 	},
 	"item": [
 		{
-			"name": "register",
+			"name": "Register",
 			"item": [
 				{
-					"name": "organizations",
+					"name": "GET Organizations",
 					"event": [
 						{
 							"listen": "test",
@@ -21,14 +21,10 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Correct organization name is returned\", function () {",
+									"pm.test(\"GET organization response has expected values\", function () {",
 									"    pm.expect(pm.response.text()).to.include(\"REINE OG KORSHAMN\");",
-									"});",
-									"",
-									"pm.test(\"Correct unit type is returned\", function () {",
 									"    pm.expect(pm.response.text()).to.include(\"ANS\");",
-									"})",
-									""
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -38,9 +34,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{at21}}/register/api/v1/organizations/{{orgNr}}",
+							"raw": "{{platformUrl}}/register/api/v1/organizations/{{orgNr}}",
 							"host": [
-								"{{at21}}"
+								"{{platformUrl}}"
 							],
 							"path": [
 								"register",
@@ -54,18 +50,18 @@
 					"response": []
 				},
 				{
-					"name": "parties",
+					"name": "GET Parties",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"id": "3dc27b90-5c04-4fc8-a5d4-8157c75b8842",
 								"exec": [
-									"pm.test(\"GET organization returns 200\", function () {",
+									"pm.test(\"GET Parties returns 200\", function () {",
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Correct organization name is returned\", function () {",
+									"pm.test(\"GET Parties reponse has expected values\", function () {",
 									"    pm.expect(pm.response.text()).to.include(\"01066660040\");",
 									"});"
 								],
@@ -77,9 +73,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{at21}}/register/api/v1/parties/{{partyID}}",
+							"raw": "{{platformUrl}}/register/api/v1/parties/{{partyID}}",
 							"host": [
-								"{{at21}}"
+								"{{platformUrl}}"
 							],
 							"path": [
 								"register",
@@ -93,14 +89,14 @@
 					"response": []
 				},
 				{
-					"name": "persons",
+					"name": "GET Persons",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"id": "9a29ae71-c668-4284-a10e-5fd12e5e1029",
 								"exec": [
-									"pm.test(\"Status code of GET Tickets is 200\", function () {\r",
+									"pm.test(\"Status code of GET Persons is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
 									""
@@ -127,9 +123,9 @@
 							"raw": "\"01023102389\""
 						},
 						"url": {
-							"raw": "{{at21}}/register/api/v1/persons",
+							"raw": "{{platformUrl}}/register/api/v1/persons",
 							"host": [
-								"{{at21}}"
+								"{{platformUrl}}"
 							],
 							"path": [
 								"register",
@@ -144,7 +140,7 @@
 			]
 		},
 		{
-			"name": "profile",
+			"name": "Profile",
 			"item": [
 				{
 					"name": "Profile",
@@ -167,9 +163,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{at21}}/profile/api/v1/users/{{userID}}",
+							"raw": "{{platformUrl}}/profile/api/v1/users/{{userID}}",
 							"host": [
-								"{{at21}}"
+								"{{platformUrl}}"
 							],
 							"path": [
 								"profile",
@@ -223,9 +219,9 @@
 							"raw": "{\r\n    \"encryptedTicket\": \"CD4E027814113A483207C670A4\"\r\n}"
 						},
 						"url": {
-							"raw": "{{envURL}}/authentication/api/v1/authentication?goto=http://www.vg.no",
+							"raw": "{{platformUrl}}/authentication/api/v1/authentication?goto=http://www.vg.no",
 							"host": [
-								"{{envURL}}"
+								"{{platformUrl}}"
 							],
 							"path": [
 								"authentication",
@@ -237,6 +233,1327 @@
 								{
 									"key": "goto",
 									"value": "http://www.vg.no"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authorization",
+			"item": [
+				{
+					"name": "GET Actors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e45aaeae-96e7-42ef-9429-c224609f299d",
+								"exec": [
+									"pm.test(\"Status code of GET Actors is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{platformUrl}}/authorization/api/v1/parties?userid={{userID}}",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"parties"
+							],
+							"query": [
+								{
+									"key": "userid",
+									"value": "{{userID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Roles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0b884ff1-f754-4671-a1eb-13bd734e88b5",
+								"exec": [
+									"pm.test(\"Status code of GET Roles is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{platformUrl}}/authorization/api/v1/roles?coveredbyuserid={{userID}}&offeredbypartyid={{partyID}}",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"roles"
+							],
+							"query": [
+								{
+									"key": "coveredbyuserid",
+									"value": "{{userID}}"
+								},
+								{
+									"key": "offeredbypartyid",
+									"value": "{{partyID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Storage",
+			"item": [
+				{
+					"name": "Applications",
+					"item": [
+						{
+							"name": "POST Create App",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "c41aa913-9f1a-4cc8-87dc-d896ef72317c",
+										"exec": [
+											"var current_timestamp = new Date();\r",
+											"postman.setEnvironmentVariable(\"current_timestamp\", current_timestamp.toISOString());"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "1b3da8e9-45b9-477f-aef7-0e2ede88ed12",
+										"exec": [
+											"pm.test(\"Status code of storing an app is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Body of response contains app id\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.id).to.eql(\"tdd/postmanapp\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"appId\": \"tdd/postmantest\",\r\n  \"versionId\": \"\",\r\n  \"org\": \"tdd\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"\",\r\n  \"title\": {\r\n    \"nb\": \"postmanapp\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    }\r\n  ]\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"applications"
+									],
+									"query": [
+										{
+											"key": "appId",
+											"value": "{{org}}%2F{{app}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET All Apps",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+										"exec": [
+											"pm.test(\"Status code of retrieving all apps by Org is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"applications",
+										"{{org}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET App by name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ce37f250-8e44-4034-9ec3-b9ee5feac332",
+										"exec": [
+											"pm.test(\"Status code of retrieving app is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Body of response contains postmanapp\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.id).to.eql(\"tdd/postmanapp\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"applications",
+										"{{org}}",
+										"{{app}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT Edit App",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "7762b309-0916-44bc-bb7c-5fb2dc8e639b",
+										"exec": [
+											"pm.test(\"Status code of retrieving app is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Body of response contains \\\"Application already exists\\\"\", function () {\r",
+											"    pm.expect(pm.response.text()).to.include(\"true\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"appId\": \"tdd/postmanapp\",\t\r\n  \"org\": \"tdd\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 100,\r\n      \"maxCount\": 50,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    }\r\n  ]\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"applications"
+									],
+									"query": [
+										{
+											"key": "appId",
+											"value": "{{org}}%2F{{app}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE App",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c9b3b6a7-ab5e-4f32-a63c-3e0150654efb",
+										"exec": [
+											"pm.test(\"Status code of app deletion is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}/{{app}}?hard=true",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"applications",
+										"{{org}}",
+										"{{app}}"
+									],
+									"query": [
+										{
+											"key": "hard",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Instances",
+					"item": [
+						{
+							"name": "POST App instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											"pm.test(\"Status code of creating an instance is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    var jsonData = pm.response.json();\r",
+											"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+											"    {\r",
+											"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+											"        pm.environment.set('appId',jsonData.appId);\r",
+											"        var instanceId = jsonData.id;\r",
+											"        instanceId = instanceId.toString();\r",
+											"        instanceId = instanceId.split('/');\r",
+											"        instanceId = instanceId[1];\r",
+											"        pm.environment.set('instanceId',instanceId);\r",
+											"    }\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&instanceOwnerId={{instanceOwnerId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances"
+									],
+									"query": [
+										{
+											"key": "appId",
+											"value": "{{appId}}"
+										},
+										{
+											"key": "instanceOwnerId",
+											"value": "{{instanceOwnerId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Instances",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+										"exec": [
+											"pm.test(\"Status code of retrieving instances is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "",
+										"value": "",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances"
+									],
+									"query": [
+										{
+											"key": "",
+											"value": "",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Instances by InstanceOwnerID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+										"exec": [
+											"pm.test(\"Status code of retrieving instances by ownerID is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/hal+json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Instances with process filters",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+										"exec": [
+											"pm.test(\"Status code of retrieving instances by ownerID is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&process.isComplete=false&process.currentTask=FormFilling_1",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances"
+									],
+									"query": [
+										{
+											"key": "appId",
+											"value": "{{appId}}"
+										},
+										{
+											"key": "process.isComplete",
+											"value": "false"
+										},
+										{
+											"key": "process.currentTask",
+											"value": "FormFilling_1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Instances with date filters",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+										"exec": [
+											"pm.test(\"Status code of retrieving instances by ownerID is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&createdDateTime=gt:{{current_timestamp}}&lastChangedDateTime=gte:2019-08-12T11:20:10.2003387Z",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances"
+									],
+									"query": [
+										{
+											"key": "appId",
+											"value": "{{appId}}"
+										},
+										{
+											"key": "createdDateTime",
+											"value": "gt:{{current_timestamp}}"
+										},
+										{
+											"key": "lastChangedDateTime",
+											"value": "gte:2019-08-12T11:20:10.2003387Z"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT Edit App instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											"pm.test(\"Status code of editing an instance is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET App Instance by Id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											"pm.test(\"Status code of getting an instance by id is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Data",
+					"item": [
+						{
+							"name": "POST Add Data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "4e0a8157-5f87-46a5-8df1-f3097c021797",
+										"exec": [
+											"pm.test(\"Status code of adding an instance data is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data"
+									],
+									"query": [
+										{
+											"key": "elementType",
+											"value": "default"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Instance Data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "b7a4e821-33f0-4c30-b93b-d8b0b0a2b53a",
+										"exec": [
+											"pm.test(\"Status code of retrieving instance data is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    var jsonData = pm.response.json();\r",
+											"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+											"    {\r",
+											"        pm.environment.set('dataId',jsonData[0].id);\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT Change data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "62cd01a6-9c8c-4d36-8134-f51512efb018",
+										"exec": [
+											"pm.test(\"Status code of editing an instance data is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data",
+										"{{dataId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Instance Data by Id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "62cd01a6-9c8c-4d36-8134-f51512efb018",
+										"exec": [
+											"pm.test(\"Status code of getting an instance data is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data",
+										"{{dataId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE instance data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cc714784-7a38-4224-aad8-11d36fe6c540",
+										"exec": [
+											"pm.test(\"Status code of deleting an instance data is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data",
+										"{{dataId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Events",
+					"item": [
+						{
+							"name": "Add instance event",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "59eb307d-9e00-43b3-a209-0b3b02ead6a8",
+										"exec": [
+											"pm.test(\"Add Instance event - Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Add Instance event - New instance is created\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    if(pm.expect(jsonData.id).not.eql(null))",
+											"    {",
+											"        pm.environment.set('EventId', jsonData.id);",
+											"    }",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{    \n   \"instanceOwnerId\": \"{{instanceOwnerId}}\",\n   \"instanceId\": \"{{instanceOwnerId}}/{{instanceId}}\",\n   \"eventType\": \"created\",\n   \"userId\": 3,\n   \"authenticationLevel\": 1,\n   \"workflowStep\": \"8\",\n   \"enduserSystemId\": 2\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Event by Id",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "357288ce-372f-4b00-9b7a-42dc94990430",
+										"exec": [
+											"pm.test(\"Get Instance Event by id - Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/{{EventId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events",
+										"{{EventId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET All Events",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "357288ce-372f-4b00-9b7a-42dc94990430",
+										"exec": [
+											"pm.test(\"Get All Events - Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Get All Events - Newly created instance is retrieved\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var eventIdFound = 'false';",
+											"    for(var i =0; i<jsonData.length; i++)",
+											"    {",
+											"        var createdEventId = pm.environment.get(\"EventId\");",
+											"        if(jsonData[i].id == createdEventId)",
+											"        {",
+											"            eventIdFound = 'true';",
+											"            break;",
+											"        }",
+											"    }",
+											"    if(eventIdFound != 'true')",
+											"    {",
+											"        pm.expect(eventIdFound).to.equal(true);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Events with type",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "04584cdf-bdf6-45e3-85f2-e5768b49208a",
+										"exec": [
+											"pm.test(\"Get Events with type - Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\" Get Events with type - Events of type created are fetched\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    var eventTypeCreated = 'true';",
+											"    for(var i =0; i<jsonData.length; i++)",
+											"    {",
+											"        if(jsonData[i].eventType != 'created')",
+											"        {",
+											"            eventTypeCreated = 'false';",
+											"            break;    ",
+											"        }",
+											"    }",
+											"    if(eventTypeCreated != 'true')",
+											"    {",
+											"        pm.expect(eventIdFound).to.equal(true);",
+											"    }",
+											"});",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?eventTypes=created",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events",
+										""
+									],
+									"query": [
+										{
+											"key": "eventTypes",
+											"value": "created"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Events not retrieved by wrong time",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "546d0678-0ca9-44bd-a160-ebfc385882e7",
+										"exec": [
+											"pm.test(\"Events not retrieved by wrong time - Status code is 404\", function () {",
+											"    pm.response.to.have.status(404);",
+											"});",
+											"",
+											"pm.test(\"Events not retrieved by wrong time - Body matches string\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"Did not find any instance events\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "8aa76d9e-95b4-4db6-a5d0-4b13afe1339d",
+										"exec": [
+											"var currentDate = new Date();",
+											"var hoursToMinus = currentDate.getHours() - 1;",
+											"currentDate.setHours(hoursToMinus);",
+											"pm.environment.set(\"fromDate\", currentDate);",
+											"var currentDate1 = new Date();",
+											"var hoursToAdd = currentDate1.getHours() + 5;",
+											"console.log(hoursToAdd);",
+											"currentDate1.setHours(hoursToAdd);",
+											"pm.environment.set(\"toDate\", currentDate1);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events",
+										""
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "2018-05-22T08:42:53"
+										},
+										{
+											"key": "to",
+											"value": "2018-06-22T08:42:53"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE events",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "686160fc-c6de-4c3f-904a-fe9528f346a7",
+										"exec": [
+											"pm.test(\"DELETE Events - Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"DELETE Events - Body matches string - deleted\", function () {",
+											"    pm.expect(pm.response.text()).to.include(\"succesfully deleted\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "DELETE App Instance by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"exec": [
+									"pm.test(\"Status code of deleting an instance by id is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+						},
+						"url": {
+							"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							],
+							"query": [
+								{
+									"key": "hard",
+									"value": "true"
 								}
 							]
 						}

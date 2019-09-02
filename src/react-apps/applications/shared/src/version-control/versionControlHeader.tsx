@@ -3,6 +3,7 @@ import axios from 'axios';
 import * as React from 'react';
 import { get, post } from '../../../shared/src/utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
+import { IAltinnWindow } from '../types';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
 import FetchChangesComponent from '../version-control/fetchChanges';
