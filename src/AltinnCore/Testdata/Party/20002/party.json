@@ -1,10 +1,11 @@
 {
   "partyId": "20002",
-  "PartyTypeName": "SubUnit",
-  "Name": "Leet Skills Inc",
+  "PartyTypeName": "Organization",
+  "Name": "Underenhet AS",
+  "UnitType": "AAFY",
   "Organization": {
     "OrganizationId": "1337",
     "OrganizationNumber": "13371337",
-    "OrganizationName": "Leet Skills Inc"
+    "OrganizationName": "Underenhet AS"
   }
 }
