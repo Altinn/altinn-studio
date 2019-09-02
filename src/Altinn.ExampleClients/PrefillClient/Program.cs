@@ -14,48 +14,58 @@ namespace Altinn.Clients.PrefillClient
         static void Main(string[] args)
         {
             Console.WriteLine("Starting program.");
-            CommandLineArgs commandLineArgs = new CommandLineArgs();
+
+            Dictionary<string, string> dict = args.Select(a => a.Split('=')).ToDictionary(a => a[0].ToLower().Substring(1), a => a.Length == 2 ? a[1] : null);
 
             string appId = null;
             string url = null;
             string folder = null;
-
-            if (commandLineArgs.Count() == 0)
-            {
-                Console.WriteLine("No parameters given, please restart the program including these.");
-                System.Environment.Exit(0);
-            }
-
-            if (commandLineArgs.ContainsKey("appid") && commandLineArgs.ContainsKey("url"))
-            {
-                appId = commandLineArgs["appid"];
-                url = commandLineArgs["url"];
-            }
-            else
-            {
-                Console.WriteLine("Did not find both the required parameters 'appid' and 'url', please restart the program including these.");
-                System.Environment.Exit(0);
-            }
             
-            if (commandLineArgs.ContainsKey("folder"))
+            if (dict.Count() == 0)
             {
-                folder = commandLineArgs["folder"];
+                Console.WriteLine("No parameters given, please restart the program including these ('appid' and 'url', optionally 'folder').");
+                System.Environment.Exit(0);
+            }
+
+            if (dict.ContainsKey("appid") && dict.ContainsKey("url"))
+            {
+                appId = dict["appid"];
+                url = dict["url"];
             }
             else
             {
-                Console.WriteLine($"No incoming folder parameter, the folder containing XML files is presumed to be the application installation folder: {folder}");
+                Console.WriteLine("Did not find both the required parameters 'appid' and 'url', please restart the program with both given.");
+                System.Environment.Exit(0);
+            }
+
+            if (dict.ContainsKey("folder"))
+            {
+                folder = dict["folder"];
+            }
+            else
+            {
                 folder = AppDomain.CurrentDomain.BaseDirectory;
+                Console.WriteLine($"No folder set, hence the folder containing XML files is presumed to be the folder where the application execute from: {folder}");
             }
             
-            string [] xmlFilePaths = Directory.GetFiles(folder, "*.xml");
+            string[] xmlFilePaths = Directory.GetFiles(folder, "*.xml");
 
             if (xmlFilePaths == null || xmlFilePaths.Length < 1)
             {
-                Console.WriteLine("Please add the XML files in your chosen folder (default is application installation folder if none specified), and restart the program.");
+                Console.WriteLine($"Please add the XML files in the chosen folder ({folder}), and restart the program. " +
+                    "Otherwise specify the correct folder which contains the XML files with the '-folder=' command.");
                 System.Environment.Exit(0);
             }
-            
+
             string requestUri = $"{url}?appId={appId}";
+
+            InstanciateAndPrefillData(xmlFilePaths, requestUri, folder);
+            
+            Console.WriteLine("Program finished executing.");
+        }
+
+        private static void InstanciateAndPrefillData(string[] xmlFilePaths, string requestUri, string folder)
+        {
             HttpClient client = new HttpClient();
 
             string xmlFileName, personNumber;
@@ -74,7 +84,7 @@ namespace Altinn.Clients.PrefillClient
                         PersonNumber = personNumber,
                     }
                 };
-                
+
                 MultipartFormDataContent content = new MultipartContentBuilder(instanceTemplate)
                 .AddDataElement("default", new FileStream(xmlFilePath, FileMode.Open), "application/xml")
                 .Build();
@@ -98,55 +108,6 @@ namespace Altinn.Clients.PrefillClient
                 {
                     File.WriteAllText($"{folder}\\error-{personNumber}.txt", $"{e.Message}");
                 }
-            }
-
-            Console.WriteLine("Program finished executing.");
-        }
-    }
-
-    /// <summary>
-    /// Basic Command Line Args extracter
-    /// <para>Parse command line args for args in the following format:</para>
-    /// <para>    -argname=argvalue -argname=argvalue ...</para>
-    /// </summary>
-    public class CommandLineArgs
-    {
-        private const string Pattern = @"\-(?<argname>\w+)=(?<argvalue>.+)";
-        private readonly Regex _regex = new Regex(Pattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-        private readonly Dictionary<String, String> _args = new Dictionary<String, String>();
-
-        public CommandLineArgs()
-        {
-            BuildArgDictionary();
-        }
-
-        public string this[string key]
-        {
-            get { return _args.ContainsKey(key) ? _args[key] : null; }
-        }
-
-        public bool ContainsKey(string key)
-        {
-            return _args.ContainsKey(key);
-        }
-
-        public int Count()
-        {
-            return _args.Count;
-        }
-
-        private void BuildArgDictionary()
-        {
-            var args = Environment.GetCommandLineArgs();
-            
-            foreach (var match in args.Select(arg => _regex.Match(arg)).Where(m => m.Success))
-            {
-                try
-                {
-                    _args.Add(match.Groups["argname"].Value, match.Groups["argvalue"].Value);
-                }
-                // Ignore any duplicate args
-                catch (Exception) { }
             }
         }
     }
