@@ -162,7 +162,7 @@ function PartySelection(props: IPartySelectionProps) {
             },
           }}
         />
-      )
+      );
     }
 
     return (
