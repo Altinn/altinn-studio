@@ -11,7 +11,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     public class MessageBoxInstanceData
     {
         private static string instanceOwnerId_1 = "50002108";
-        private static string userId_1 = "20000000";
+        private static string userId_1 = "20000007";
 
         private static string org_1 = "TDD";
         private static string org_2 = "SPF";

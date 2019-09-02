@@ -849,7 +849,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
         /// <param name="instance">instance</param>
-        /// <returns></returns>
+        /// <returns>The updated instance</returns>
         [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> Put(int instanceOwnerId, Guid instanceGuid, [FromBody] Instance instance)
         {

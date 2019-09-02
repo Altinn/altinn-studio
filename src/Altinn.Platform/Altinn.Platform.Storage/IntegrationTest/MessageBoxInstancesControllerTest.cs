@@ -20,7 +20,7 @@ using Xunit;
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>
-    /// Test class for InstanceController
+    /// Test class for MessageBoxInstancesController
     /// </summary>
     public class MessageBoxInstancesControllerTest : IClassFixture<PlatformStorageFixture>, IDisposable
     {
@@ -32,7 +32,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private MessageBoxInstanceData testdata;
         private readonly List<string> appIds;
         private static DocumentClient _client;
-        private AzureCosmosSettings _cosmosettings = new AzureCosmosSettings()
+        private AzureCosmosSettings _cosmosSettings = new AzureCosmosSettings()
         {
             Collection = "Instance",
             Database = "ServiceEngine",
@@ -43,11 +43,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string versionPrefix = "/storage/api/v1";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
+        /// Initializes a new instance of the <see cref="MessageBoxInstancesControllerTest"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
-        /// <param name="cosmosettings">Cosmos settings</param>
-        /// <param name="logger">Logger. </param>
         public MessageBoxInstancesControllerTest(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
@@ -55,7 +53,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.instanceClient = new InstanceClient(this.client);
             this.appClient = new ApplicationClient(this.client);
 
-            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, new ConnectionPolicy
+            _client = new DocumentClient(new Uri(_cosmosSettings.EndpointUri), _cosmosSettings.PrimaryKey, new ConnectionPolicy
             {
                 ConnectionMode = ConnectionMode.Gateway,
                 ConnectionProtocol = Protocol.Https,
@@ -179,7 +177,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             List<Instance> testInstances = testdata.GetInstances_App1();
             foreach (Instance item in testInstances)
             {
-                await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, _cosmosettings.Collection), item);              
+                await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_cosmosSettings.Database, _cosmosSettings.Collection), item);              
             }
 
             int expectedCount = 1;

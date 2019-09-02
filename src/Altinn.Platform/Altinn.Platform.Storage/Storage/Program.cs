@@ -56,10 +56,12 @@ namespace Altinn.Platform.Storage
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-            .UseKestrel()
-            .UseUrls("http://0.0.0.0:5010")
+
+            /* // Parameters required for integration with SBL in local development             
+             .UseKestrel()
+             .UseUrls("http://0.0.0.0:5010")
             .UseContentRoot(Directory.GetCurrentDirectory())
-            .UseIISIntegration()
+            .UseIISIntegration() */
             .UseApplicationInsights()
             .UseStartup<Startup>();
 

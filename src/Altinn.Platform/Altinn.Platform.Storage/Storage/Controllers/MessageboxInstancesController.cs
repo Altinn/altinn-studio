@@ -47,7 +47,7 @@ namespace Altinn.Platform.Storage.Controllers
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-NO" };
             string languageId = "nb";
 
-            if (string.IsNullOrEmpty(state) || !allowedStates.Contains(state.ToLower()))
+            if (string.IsNullOrWhiteSpace(state) || !allowedStates.Contains(state.ToLower()))
             {
                 return BadRequest("Invalid instance state");
             }
