@@ -27,7 +27,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         private InstanceClient instanceClient;
-        private InstanceRepository instanceRepository;
         private ApplicationClient appClient;
         private MessageBoxInstanceData testdata;
         private readonly List<string> appIds;
@@ -177,7 +176,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             List<Instance> testInstances = testdata.GetInstances_App1();
             foreach (Instance item in testInstances)
             {
-                await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_cosmosSettings.Database, _cosmosSettings.Collection), item);              
+                await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_cosmosSettings.Database, _cosmosSettings.Collection), item);
             }
 
             int expectedCount = 1;
