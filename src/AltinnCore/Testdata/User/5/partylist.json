@@ -1,0 +1,44 @@
+[
+  {
+    "partyTypeName": "Person",
+    "orgNumber": null,
+    "person": null,
+    "organization": null,
+    "partyID": "20001",
+    "organizationNumber": null,
+    "unitType": "Person",
+    "ssn": "01047512345",
+    "name": "Roar Underenhet",
+    "isDeleted": false,
+    "onlyHiearhyElementWithNoAccess": false,
+    "childActors": null
+  },
+  {
+		"partyTypeName": "Organization",
+		"orgNumber": "13371337",
+		"person": null,
+		"organization": null,
+		"partyID": "20002",
+		"organizationNumber": null,
+		"unitType": "AAFY",
+		"ssn": null,
+		"name": "Underenhet AS",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+  },
+  {
+		"partyTypeName": "Organization",
+		"orgNumber": "13381338",
+		"person": null,
+		"organization": null,
+		"partyID": "20003",
+		"organizationNumber": null,
+		"unitType": "KBO",
+		"ssn": null,
+		"name": "Konkursbo AS",
+		"isDeleted": false,
+		"onlyHiearhyElementWithNoAccess": false,
+		"childActors": null
+	}
+]

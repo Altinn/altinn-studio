@@ -1,0 +1,11 @@
+{
+  "partyId": "20003",
+  "PartyTypeName": "Organization",
+  "Name": "Konkursbo AS",
+  "UnitType": "KBO",
+  "Organization": {
+    "OrganizationId": "1338",
+    "OrganizationNumber": "13381338",
+    "OrganizationName": "Konkursbo AS"
+  }
+}
