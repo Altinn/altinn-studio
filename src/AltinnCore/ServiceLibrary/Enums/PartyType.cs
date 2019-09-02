@@ -28,7 +28,7 @@ namespace AltinnCore.ServiceLibrary.Enums
         /// <summary>
         /// Party Type is bankrupcy estate
         /// </summary>
-        BankrupcyEstate = 5
+        BankruptcyEstate = 5
 
     }
 }
