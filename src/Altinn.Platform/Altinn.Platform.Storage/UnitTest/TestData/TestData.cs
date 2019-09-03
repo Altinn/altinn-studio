@@ -9,8 +9,8 @@ namespace Altinn.Platform.Storage.UnitTest
 {
     public static class TestData
     {
-        public static string InstanceOwnerId_1 = "50002108";
-        public static string UserId_1 = "20000007";
+        public static string InstanceOwnerId_1 = "50000000";
+        public static string UserId_1 = "20000000";
 
         public static string Org_1 = "TDD";
         public static string Org_2 = "SPF";
