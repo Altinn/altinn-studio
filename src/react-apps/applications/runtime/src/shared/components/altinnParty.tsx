@@ -54,7 +54,7 @@ function AltinnParty(props: IAltinnPartyProps) {
 
   function onKeyPress(event: React.KeyboardEvent) {
     event.preventDefault();
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === ' ') {
       onSelectParty(party);
     }
   }
