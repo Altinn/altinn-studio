@@ -52,8 +52,15 @@ function AltinnParty(props: IAltinnPartyProps) {
     onSelectParty(party);
   }
 
+  function onKeyPress(event: React.KeyboardEvent) {
+    event.preventDefault();
+    if (event.key === 'Enter') {
+      onSelectParty(party);
+    }
+  }
+
   return (
-    <Paper className={classes.partyPaper} onClick={onClickParty}>
+    <Paper className={classes.partyPaper} onClick={onClickParty} tabIndex={0} onKeyPress={onKeyPress} >
       <Grid container={true}>
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')}/>
         <Typography className={classes.partyName}>
