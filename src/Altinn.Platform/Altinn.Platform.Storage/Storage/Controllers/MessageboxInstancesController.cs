@@ -44,7 +44,7 @@ namespace Altinn.Platform.Storage.Controllers
         public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerId, [FromQuery] string state, [FromQuery] string language)
         {
             string[] allowedStates = new string[] { "active", "archived", "deleted" };
-            string[] acceptedLanguages = new string[] { "en", "nb", "nn-NO" };
+            string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
             string languageId = "nb";
 
             if (string.IsNullOrWhiteSpace(state) || !allowedStates.Contains(state.ToLower()))
