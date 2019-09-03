@@ -37,11 +37,11 @@ namespace Altinn.Platform.Storage
         /// <param name="args">the arguments</param>
         /// <returns></returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)           
+            WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-                
+
                 string basePathCurrentDirectory = Directory.GetCurrentDirectory();
                 logger.Information($"Current directory is: {basePathCurrentDirectory}");
 
@@ -56,6 +56,12 @@ namespace Altinn.Platform.Storage
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
+
+            /* // Parameters required for integration with SBL in local development             
+             .UseKestrel()
+             .UseUrls("http://0.0.0.0:5010")
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .UseIISIntegration() */
             .UseApplicationInsights()
             .UseStartup<Startup>();
 
@@ -68,21 +74,21 @@ namespace Altinn.Platform.Storage
         public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
             logger.Information($"Loading Configuration from basePath={basePath}");
-            
+
             config.SetBasePath(basePath);
             string configJsonFile1 = $"{basePath}/altinn-appsettings/altinn-dbsettings-secret.json";
             string configJsonFile2 = $"{basePath}/Storage/appsettings.json";
-            
+
             if (basePath == "/")
             {
-                configJsonFile2 = "/app/appsettings.json";                
+                configJsonFile2 = "/app/appsettings.json";
             }
 
             logger.Information($"Loading configuration file: '{configJsonFile1}'");
             config.AddJsonFile(configJsonFile1, optional: true, reloadOnChange: true);
 
             logger.Information($"Loading configuration file2: '{configJsonFile2}'");
-            config.AddJsonFile(configJsonFile2, optional: false, reloadOnChange: true);                        
+            config.AddJsonFile(configJsonFile2, optional: false, reloadOnChange: true);
 
             config.AddEnvironmentVariables();
             config.AddCommandLine(args);
@@ -106,7 +112,7 @@ namespace Altinn.Platform.Storage
             logger.Information($"Setting application insights instrumentationKey='{applicationInsights}'");
             if (!string.IsNullOrEmpty(applicationInsights))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = applicationInsights;                
+                TelemetryConfiguration.Active.InstrumentationKey = applicationInsights;
             }
         }
     }

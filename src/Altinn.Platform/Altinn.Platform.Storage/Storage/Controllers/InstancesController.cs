@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage.Controllers
                 selfContinuationToken = continuationToken;
                 continuationToken = HttpUtility.UrlDecode(continuationToken);
             }
-           
+
             Dictionary<string, StringValues> queryParams = QueryHelpers.ParseQuery(Request.QueryString.Value);
 
             string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
@@ -154,7 +154,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return BadRequest(result.Exception);
                 }
-          
+
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
@@ -201,7 +201,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 // add self links to platform
                 result.Instances.ForEach(i => AddSelfLinks(Request, i));
-                
+
                 StringValues acceptHeader = Request.Headers["Accept"];
                 if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
                 {
@@ -220,7 +220,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 logger.LogError("exception", e);
                 return StatusCode(500, $"Unable to perform query due to: {e.Message}");
-            }                               
+            }
         }
 
         /// <summary>
@@ -234,7 +234,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             int start = selfLink.IndexOf("/instances");
             selfLink = selfLink.Substring(0, start) + "/instances";
-            
+
             selfLink += $"/{instance.Id}";
 
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
@@ -297,7 +297,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Inserts new instance into the instance collection. 
+        /// Inserts new instance into the instance collection.
         /// </summary>
         /// <param name="appId">the application id</param>
         /// <param name="instanceOwnerId">instance owner id</param>
@@ -364,7 +364,7 @@ namespace Altinn.Platform.Storage.Controllers
                 // compensating action - delete instance
                 await _instanceRepository.Delete(storedInstance);
                 logger.LogError($"Deleted instance {storedInstance.Id}");
-                
+
                 return StatusCode(500, $"Unable to create {appId} instance for {ownerId} due to {storageException.Message}");
             }
         }
@@ -471,10 +471,10 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return createdInstance;
-        }      
+        }
 
         /// <summary>
-        /// Method to read the parts of of a multipart request body. 
+        /// Method to read the parts of of a multipart request body.
         /// </summary>
         /// <param name="request">The HttpRequest</param>
         /// <param name="appInfo">The application metadata</param>
@@ -504,22 +504,22 @@ namespace Altinn.Platform.Storage.Controllers
 
                 if (instanceTemplateError != null)
                 {
-                    errorResult = instanceTemplateError;                    
+                    errorResult = instanceTemplateError;
                 }
 
                 if (part != null)
                 {
                     return new List<Part>() { part };
-                }                
+                }
             }
-            
+
             return emptyList;
         }
 
         private Part ReadInstanceTemplatePart(string contentType, Stream stream, out ActionResult errorResult)
         {
             errorResult = null;
-            
+
             if (!string.IsNullOrEmpty(contentType))
             {
                 if (contentType.StartsWith("application/json"))
@@ -603,7 +603,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             string sectionName = contentDisposition.Name.Value;
             string contentType = section.ContentType;
-            
+
             if (sectionName.Equals("instance"))
             {
                 Part part = ReadInstanceTemplatePart(contentType, section.Body, out ActionResult instanceTemplateError);
@@ -650,7 +650,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 // copy the section.Body stream since this stream cannot be rewind
                 MemoryStream memoryStream = CopyStreamIntoMemoryStream(section.Body);
-                    
+
                 if (memoryStream.Length == 0)
                 {
                     errorResult = BadRequest($"The multpart section named {sectionName} has no data. Cannot process empty part.");
@@ -688,7 +688,7 @@ namespace Altinn.Platform.Storage.Controllers
             StreamReader streamReader = new StreamReader(stream, Encoding.UTF8);
             return await streamReader.ReadToEndAsync();
         }
-        
+
         private Application GetApplicationOrError(string appId, out ActionResult errorResult)
         {
             errorResult = null;
@@ -698,7 +698,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 string org = appId.Split("/")[0];
 
-                appInfo = _applicationRepository.FindOne(appId, org).Result;                
+                appInfo = _applicationRepository.FindOne(appId, org).Result;
             }
             catch (DocumentClientException dce)
             {
@@ -715,7 +715,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 errorResult = StatusCode(500, $"Unable to perform request: {e}");
             }
-    
+
             return appInfo;
         }
 
@@ -731,7 +731,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns></returns>
         private int GetOrLookupInstanceOwnerId(int? instanceOwnerId, Instance instanceTemplate, out ActionResult errorResult)
         {
-            errorResult = null;          
+            errorResult = null;
 
             if (instanceOwnerId.HasValue)
             {
@@ -746,8 +746,8 @@ namespace Altinn.Platform.Storage.Controllers
                         return int.Parse(instanceTemplate.InstanceOwnerId);
                     }
                     else
-                    {                        
-                        return InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup, ref errorResult);                        
+                    {
+                        return InstanceOwnerLookup(instanceTemplate.InstanceOwnerLookup, ref errorResult);
                     }
                 }
                 else
@@ -781,7 +781,7 @@ namespace Altinn.Platform.Storage.Controllers
                 catch (Exception e)
                 {
                     errorResult = BadRequest(e.Message);
-                }                
+                }
             }
             else
             {
@@ -849,7 +849,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
         /// <param name="instance">instance</param>
-        /// <returns></returns>        
+        /// <returns>The updated instance</returns>
         [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> Put(int instanceOwnerId, Guid instanceGuid, [FromBody] Instance instance)
         {
@@ -886,10 +886,10 @@ namespace Altinn.Platform.Storage.Controllers
                 result = await _instanceRepository.Update(existingInstance);
                 AddSelfLinks(Request, result);
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
-            }            
+            }
 
             return Ok(result);
         }
@@ -932,7 +932,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     await _instanceRepository.Delete(instance);
 
-                    return Ok(true);                    
+                    return Ok(true);
                 }
                 catch (Exception e)
                 {
@@ -948,8 +948,8 @@ namespace Altinn.Platform.Storage.Controllers
                 try
                 {
                     Instance softDeletedInstance = await _instanceRepository.Update(instance);
-                    
-                    return Ok(softDeletedInstance);                    
+
+                    return Ok(softDeletedInstance);
                 }
                 catch (Exception e)
                 {
