@@ -122,7 +122,7 @@ test('Fill out, save, and submit an instance of an app', async () => {
     .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
 });
 
-test.only('Attachment dropdown and download on receipt page', async () => {
+test('Attachment dropdown and download on receipt page', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtimemanual#/test')
     .switchToIframe(runtime.testBrukerIframe)
