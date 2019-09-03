@@ -91,7 +91,7 @@ namespace Altinn.Platform.Storage.Controllers
         [Produces("application/vnd+altinn2.inbox+json")]
         public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerId, Guid instanceGuid, [FromQuery] string language)
         {
-            string[] acceptedLanguages = new string[] { "en", "nb", "nn-NO" };
+            string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
 
             string languageId = "nb";
 
