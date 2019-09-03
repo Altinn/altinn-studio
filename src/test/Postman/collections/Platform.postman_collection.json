@@ -536,48 +536,6 @@
 								}
 							},
 							"response": []
-						},
-						{
-							"name": "DELETE App",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "c9b3b6a7-ab5e-4f32-a63c-3e0150654efb",
-										"exec": [
-											"pm.test(\"Status code of app deletion is 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}/{{app}}?hard=true",
-									"host": [
-										"{{platformUrl}}"
-									],
-									"path": [
-										"storage",
-										"api",
-										"v1",
-										"applications",
-										"{{org}}",
-										"{{app}}"
-									],
-									"query": [
-										{
-											"key": "hard",
-											"value": "true"
-										}
-									]
-								}
-							},
-							"response": []
 						}
 					],
 					"_postman_isSubFolder": true
@@ -1549,6 +1507,48 @@
 								"instances",
 								"{{instanceOwnerId}}",
 								"{{instanceId}}"
+							],
+							"query": [
+								{
+									"key": "hard",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE App",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c9b3b6a7-ab5e-4f32-a63c-3e0150654efb",
+								"exec": [
+									"pm.test(\"Status code of app deletion is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}/{{app}}?hard=true",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"applications",
+								"{{org}}",
+								"{{app}}"
 							],
 							"query": [
 								{
