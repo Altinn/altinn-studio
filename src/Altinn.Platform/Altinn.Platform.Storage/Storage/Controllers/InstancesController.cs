@@ -236,7 +236,7 @@ namespace Altinn.Platform.Storage.Controllers
             selfLink = selfLink.Substring(0, start) + "/instances";
             
             selfLink += $"/{instance.Id}";
-            
+
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Platform = selfLink;
 
@@ -617,7 +617,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (part != null)
                 {
                     return part;
-                }            
+                }
             }
             else
             {
