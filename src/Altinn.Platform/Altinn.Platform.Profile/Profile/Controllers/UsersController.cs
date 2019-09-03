@@ -1,6 +1,8 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Profile.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.Authentication.Constants;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Profile.Controllers
@@ -37,6 +39,26 @@ namespace Altinn.Platform.Profile.Controllers
             }
 
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Gets the current user based on the request context
+        /// </summary>
+        /// <returns>User profile of current user</returns>
+        [HttpGet("current")]
+        public async Task<ActionResult> Get()
+        {
+            string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
+           .Select(c => c.Value).SingleOrDefault();
+
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return BadRequest("Invalid request context. UserId must be provided in claims.");
+            }
+
+            int userId = int.Parse(userIdString);
+
+            return await Get(userId);
         }
     }
 }

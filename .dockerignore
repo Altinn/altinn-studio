@@ -12,3 +12,4 @@ docker-compose.*.yml
 src/react-apps/ux-editor/node_modules
 src/react-apps/ux-editor/compiled
 src/Altinn.Platform
+!src/Altinn.Platform/Altinn.Platform.Receipt

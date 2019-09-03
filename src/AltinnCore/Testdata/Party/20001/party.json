@@ -1,0 +1,16 @@
+{
+  "PartyId": "20001",
+  "PartyTypeName": "Person",
+  "Name": "Roar Subunit",
+  "Person": {
+    "PersonId": "1",
+    "SSN": "01017512345",
+    "FirstName": "Roar",
+    "LastName": "Subunit"
+  },
+  "PostAdress": {
+    "Street": "Subunitgata 1",
+    "PostalCode": "1337",
+    "City": "Sandvika"
+  }
+}

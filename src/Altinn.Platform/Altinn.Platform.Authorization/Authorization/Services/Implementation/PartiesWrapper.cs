@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Services.Interface;
+using AltinnCore.ServiceLibrary.Models;
 using Authorization.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -16,15 +18,19 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     public class PartiesWrapper : IParties
     {
         private readonly PartyClient _partyClient;
+        private readonly SBLClient _sblClient;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PartiesWrapper"/> class
         /// </summary>
-        /// <param name="partyClient">the client handler for actor api</param>
-        public PartiesWrapper(PartyClient partyClient, ILogger<PartiesWrapper> logger)
+        /// <param name="partyClient">the client handler for parties api in Bridge</param>
+        /// <param name="sblClient">the client handler for SBL apis</param>
+        /// <param name="logger">The logger</param>
+        public PartiesWrapper(PartyClient partyClient, SBLClient sblClient, ILogger<PartiesWrapper> logger)
         {
             _partyClient = partyClient;
+            _sblClient = sblClient;
             _logger = logger;
         }
 

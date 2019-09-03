@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -54,13 +55,13 @@ namespace AltinnCore.Common.Services.Implementation
         {
             bool result = false;
             List<Party> partyList = GetPartyList(userId);
-           
+
             if (partyList.Count > 0)
             {
                 result = partyList.Any(p => p.PartyId == partyId);
             }
 
-            return await Task.FromResult(result);            
+            return await Task.FromResult(result);
         }
     }
 }

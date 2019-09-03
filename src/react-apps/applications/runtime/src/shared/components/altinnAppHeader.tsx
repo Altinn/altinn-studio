@@ -89,6 +89,8 @@ const styles = createStyles({
       marginTop: '0 !important',
       marginLeft: '2.4rem',
     },
+    'paddingLeft': '0',
+    'paddingRight': '0',
   },
 });
 
@@ -155,7 +157,7 @@ const AltinnAppHeader = (props: IHeaderProps) => {
                 {
                   party && party.organization &&
                   getLanguageFromKey('general.for', props.language) + ' ' +
-                  party.organization.toUpperCase()
+                  party.organization.name.toUpperCase()
                 }
               </span>
             </>

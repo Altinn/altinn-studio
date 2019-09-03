@@ -1,0 +1,18 @@
+{
+  "name": "altinn.platform.receipt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The receipt component in altinn platform",
+  "scripts": {
+    "gulp": "gulp",
+    "gulp-develop": "gulp develop",
+    "gulp-install-deps": "gulp install-react-app-dependencies"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "4.0.2",
+    "gulp-run-command": "0.0.9",
+    "lerna": "3.16.4",
+    "chokidar": "2.0.3"
+  }
+}
