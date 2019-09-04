@@ -46,8 +46,8 @@ namespace Altinn.Platform.Storage.Controllers
             string[] allowedStates = new string[] { "active", "archived", "deleted" };
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
             string languageId = "nb";
-
-            if (string.IsNullOrWhiteSpace(state) || !allowedStates.Contains(state.ToLower()))
+            state = state.ToLower();
+            if (string.IsNullOrWhiteSpace(state) || !allowedStates.Contains(state))
             {
                 return BadRequest("Invalid instance state");
             }
@@ -57,7 +57,7 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerId, state);
+            List<Instance> allInstances = await _instanceRepository.GetVisibleInstancesInStateOfInstanceOwner(instanceOwnerId, state);
 
             if (allInstances == null || allInstances.Count == 0)
             {

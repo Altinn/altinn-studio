@@ -428,7 +428,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerId, string instanceState)
+        public async Task<List<Instance>> GetVisibleInstancesInStateOfInstanceOwner(int instanceOwnerId, string instanceState)
         {
             List<Instance> instances = new List<Instance>();
             string instanceOwnerIdString = instanceOwnerId.ToString();
@@ -444,20 +444,24 @@ namespace Altinn.Platform.Storage.Repository
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime < DateTime.UtcNow))
                         .Where(i => !i.InstanceState.IsDeleted)
                         .Where(i => !i.InstanceState.IsArchived);
+                
             }
             else if (instanceState.Equals("deleted"))
             {
                 // what about hard delete. Should we account for that too?
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime < DateTime.UtcNow))
                         .Where(i => i.InstanceState.IsDeleted);
             }
             else if (instanceState.Equals("archived"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                       .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime < DateTime.UtcNow))
                        .Where(i => i.InstanceState.IsArchived)
                        .Where(i => !i.InstanceState.IsDeleted);
             }
