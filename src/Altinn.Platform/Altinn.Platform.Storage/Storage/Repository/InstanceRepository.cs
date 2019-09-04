@@ -447,7 +447,6 @@ namespace Altinn.Platform.Storage.Repository
                         .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime < DateTime.UtcNow))
                         .Where(i => !i.InstanceState.IsDeleted)
                         .Where(i => !i.InstanceState.IsArchived);
-                
             }
             else if (instanceState.Equals("deleted"))
             {
