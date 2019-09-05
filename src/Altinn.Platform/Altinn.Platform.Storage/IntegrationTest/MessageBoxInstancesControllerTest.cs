@@ -28,7 +28,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly HttpClient client;
         private InstanceClient instanceClient;
         private ApplicationClient appClient;
-        private MessageBoxInstanceData testdata;
+        private TestData testdata;
         private readonly List<string> appIds;
         private static DocumentClient _client;
         private AzureCosmosSettings _cosmosSettings = new AzureCosmosSettings()
@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 ConnectionProtocol = Protocol.Https,
             });
 
-            testdata = new MessageBoxInstanceData();
+           testdata = new TestData();
             appIds = testdata.GetAppIds();
             CreateTestApplications();
 
