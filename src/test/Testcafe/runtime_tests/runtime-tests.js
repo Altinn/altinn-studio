@@ -2,14 +2,10 @@ import App from '../app';
 import { Selector, t, ClientFunction } from 'testcafe';
 import axeCheck from 'axe-testcafe';
 import RunTimePage from '../page-objects/runTimePage';
-import DesignerPage from '../page-objects/designerPage';
 import { AutoTestUser } from '../TestData';
-
 
 let app = new App();
 let runtime = new RunTimePage();
-let designer = new DesignerPage();
-
 
 const getCookie = ClientFunction(() => document.cookie);
 
@@ -124,6 +120,44 @@ test('Fill out, save, and submit an instance of an app', async () => {
     .expect(runtime.workflowSubmit.visible).ok()
     .click(runtime.workflowSubmit)
     .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
+});
+
+test('Attachment dropdown and download on receipt page', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/runtimemanual#/test')
+    .switchToIframe(runtime.testBrukerIframe)
+    .expect(runtime.testUsers[0].exists).ok()
+    .hover(runtime.testUsers[0])
+    .click(runtime.testUsers[0])
+    .expect(runtime.startNewButton.exists).ok()
+    .click(runtime.startNewButton)
+    .switchToMainWindow()
+    .expect(runtime.testUserHeader[0].exists).ok()
+    .clearUpload(runtime.fileDropComponent)    
+    .setFilesToUpload(runtime.fileDropComponent, [
+      '../testdata/ServiceModel.xsd',
+      '../testdata/ServiceModel2.xsd',
+      '../testdata/ServiceModel3.xsd',
+      '../testdata/ServiceModel4.xsd',
+      '../testdata/ServiceModel5.xsd'
+    ])
+  
+  var files = await runtime.fileUploadChecks;
+
+  await t
+    .expect(files.exists).ok()
+    .expect(files.count).eql(5, {timeout: 180000})
+    .click(runtime.saveButton)
+    .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
+    .click(runtime.sendInnButton)
+    .expect(runtime.workflowSubmit.exists).ok({ timeout: 120000 })
+    .expect(runtime.workflowSubmit.visible).ok()
+    .click(runtime.workflowSubmit)
+    .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
+    .expect(runtime.AttachmentDropDown.visible).ok()
+    .doubleClick(runtime.AttachmentDropDown)
+    .expect(runtime.attachedFiles.count).eql(10) //selector for each file is split in two parts, so matches twice
+    .click(runtime.attachedFiles.nth(0))
 });
 
 

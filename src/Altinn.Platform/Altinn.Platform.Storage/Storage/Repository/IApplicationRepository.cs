@@ -40,6 +40,13 @@ namespace Altinn.Platform.Storage.Repository
         Task<Application> FindOne(string appId, string org);
 
         /// <summary>
+        /// Get a list of application titles based on applicationId.
+        /// </summary>
+        /// <param name="appIds">List of application ids.</param>
+        /// <returns>A dictionary of application titles based on applicationId.</returns>
+        Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds);
+
+        /// <summary>
         /// Update instance for a given form id
         /// </summary>
         /// <param name="item">the application object</param>

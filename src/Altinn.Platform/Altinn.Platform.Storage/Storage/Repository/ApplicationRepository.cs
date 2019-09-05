@@ -206,5 +206,31 @@ namespace Altinn.Platform.Storage.Repository
 
             return application;
         }
+
+        /// <inheritdoc/>
+        public async Task<Dictionary<string, Dictionary<string, string>>> GetAppTitles(List<string> appIds)
+        {
+            List<string> cosmosAppIds = new List<string>();
+            foreach (string appId in appIds)
+            {
+                cosmosAppIds.Add(AppIdToCosmosId(appId));
+            }
+
+            IQueryable<Application> filter = _client.CreateDocumentQuery<Application>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
+                .Where(a => cosmosAppIds.Contains(a.Id));
+
+            IDocumentQuery<Application> query = filter.AsDocumentQuery<Application>();
+
+            FeedResponse<Application> feedResponse = await query.ExecuteNextAsync<Application>();
+
+            List<Application> applications = feedResponse.ToList<Application>();
+            Dictionary<string, Dictionary<string, string>> titleDictionary = new Dictionary<string, Dictionary<string, string>>();
+            foreach (Application app in applications)
+            {
+                titleDictionary.Add(CosmosIdToAppId(app.Id), app.Title);
+            }
+
+            return titleDictionary;
+        }
     }
 }
