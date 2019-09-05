@@ -30,9 +30,9 @@ data:
 
       server {
         listen 80;
-        server_name dev.altinn.studio;
+        server_name staging.altinn.studio;
         # Redirect all HTTP requests to HTTPS with a 301 Moved Permanently response.
-        return 301 https://dev.altinn.studio$request_uri;
+        return 301 https://staging.altinn.studio$request_uri;
       }
 
       server {
@@ -56,51 +56,60 @@ data:
 
         ssl_session_tickets on;
 
-        server_name dev.altinn.studio;
+        server_name staging.altinn.studio;
 
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
+        rewrite ^/.*/.*/staticfiles(.*)$ $1 last;
+
         location = / {
           proxy_pass 			    http://designer/;
-          proxy_set_header 	  Host dev.altinn.studio;
+          proxy_set_header 	  Host staging.altinn.studio;
+          proxy_set_header 	  X-Forwarded-For $remote_addr;
+        }
+
+        location = /repos/ {
+          proxy_pass          http://designer/Redirect/FetchCookieAndRedirectHome/;
+          proxy_set_header 	  Host staging.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
         location /Home/  {
           proxy_pass         	http://designer/Home/;
-          proxy_set_header 	  Host dev.altinn.studio;
+          proxy_set_header 	  Host staging.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
         location /designer/ {
           proxy_pass         	http://designer/designer/;
-          proxy_set_header 	  Host dev.altinn.studio;
+          proxy_set_header 	  Host staging.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
-        location /runtime/ {
-          proxy_pass          http://runtime/runtime/;
-          proxy_set_header 	  Host dev.altinn.studio;
+        location / {
+          proxy_pass          http://runtime/;
+          proxy_set_header 	  Host staging.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
         location /designerapi/ {
           proxy_pass          http://designer/designerapi/;
-          proxy_set_header  	Host dev.altinn.studio;
+          proxy_set_header  	Host staging.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
-        location / {
+        location /repos/ {
           proxy_pass         	http://repositories/;
-          proxy_set_header 	  Host dev.altinn.studio;
+          proxy_set_header 	  Host staging.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
         location /grafana/ {
           proxy_pass			    http://grafana/;
           rewrite				      ^/grafana/(.*) /$1 break;
-          proxy_set_header	  Host dev.altinn.studio;
+          proxy_set_header	  Host staging.altinn.studio;
           proxy_set_header	  X-Forwarded-For $remote_addr;
         }
+
       }
     }

@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-flex-kv
+spec:
+  containers:
+    - name: nginx-flex-kv
+      image: nginx
+      volumeMounts:
+        - name: test
+          mountPath: /kvmnt
+          readOnly: true
+  volumes:
+    - name: altinn-loadbalancer-ssl-kv
+      flexVolume:
+        driver: "azure/kv"
+        secretRef:
+          name: "kvcreds"
+        options:
+          usepodidentity: "false"
+          keyvaultname: "altinn-studio"
+          keyvaultobjectnames: "star-altinn-studio"
+          keyvaultobjecttypes: "cert"
+          resourcegroup: "altinntjenester-tre-null"
+          subscriptionid: ""
+          tenantid: ""

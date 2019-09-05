@@ -46,8 +46,8 @@ mountOptions:
   - file_mode=0755
 parameters:
   skuName: Standard_LRS
-  storageAccount: altinnt30storageaccount
-  resourceGroup: altinntjenester-tre-null
+  storageAccount: altinnstudiostorage02
+  resourceGroup: altinnstudio-rg
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
