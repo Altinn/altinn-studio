@@ -62,7 +62,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             testdata = new TestData();
             appIds = testdata.GetAppIds();
             CreateTestApplications();
-
         }
 
         /// <summary>

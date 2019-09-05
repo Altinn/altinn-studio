@@ -316,7 +316,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Title available in nb og nn.
         /// Both instances are active.
         /// </summary>
-        /// <returns></returns>
         public List<Instance> GetInstances_App3()
         {
             return InstanceList_App3;
@@ -325,27 +324,38 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Produces a list of test instances
         /// </summary>
-        /// <returns></returns>
         public List<Instance> GetInstances()
         {
             return InstanceList_InstanceOwner1;
         }
 
+        /// <summary>
+        /// Returns a hard deleted instance
+        /// </summary>
         public Instance GetHardDeletedInstance()
         {
             return Instance_1_4;
         }
 
+        /// <summary>
+        /// Returns a soft deleted instance
+        /// </summary>
         public Instance GetSoftDeletedInstance()
         {
             return Instance_1_3;
         }
 
+        /// <summary>
+        /// Returns an archived instance
+        /// </summary>
         public Instance GeArchivedInstance()
         {
             return Instance_1_2;
         }
 
+        /// <summary>
+        /// Returns an active instance
+        /// </summary>
         public Instance GetActiveInstance()
         {
             return Instance_1_1;
