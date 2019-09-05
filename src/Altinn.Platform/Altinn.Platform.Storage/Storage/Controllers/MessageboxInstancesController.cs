@@ -122,13 +122,13 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Restores a soft deleted instance
+        /// Undelete a soft deleted instance
         /// </summary>
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
-        /// <returns>True if the instance was restored.</returns>
+        /// <returns>True if the instance was undeleted.</returns>
         [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}/undelete")]
-        public async Task<ActionResult> Restore(int instanceOwnerId, Guid instanceGuid)
+        public async Task<ActionResult> Undelete(int instanceOwnerId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
