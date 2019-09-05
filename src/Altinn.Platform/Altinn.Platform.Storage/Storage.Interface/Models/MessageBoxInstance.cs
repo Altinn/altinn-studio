@@ -53,6 +53,11 @@ namespace Storage.Interface.Models
         public DateTime? DueDateTime { get; set; }
 
         /// <summary>
+        /// Delete status of instance; default or softDeleted.
+        /// </summary>
+        public string DeleteStatus { get; set; }
+
+        /// <summary>
         /// Boolean indicating if user is allowed to delete instance.
         /// </summary>
         public bool AllowDelete { get; set; }

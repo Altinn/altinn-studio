@@ -746,6 +746,11 @@
             Due date to submit the instance to application owner.
             </summary>
         </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.DeleteStatus">
+            <summary>
+            Delete status of instance; default or softDeleted.
+            </summary>
+        </member>
         <member name="P:Storage.Interface.Models.MessageBoxInstance.AllowDelete">
             <summary>
             Boolean indicating if user is allowed to delete instance.

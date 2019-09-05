@@ -38,7 +38,8 @@ namespace Altinn.Platform.Storage.Helpers
                     ProcessCurrentTask = instance.Process.CurrentTask,
                     AuthorizedForWrite = true,
                     AllowDelete = true,
-                    AllowNewCopy = false
+                    AllowNewCopy = false,
+                    DeleteStatus = instance.InstanceState.IsDeleted ? "softDeleted" : "default",
                 });
             }
 
