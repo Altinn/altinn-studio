@@ -21,7 +21,7 @@ $aksDockerBridgeAddress = "172.17.0.1/16"
 #postgres
 $databaseServerName = "altinnstudio-db-staging-postgres"
 $databaseAdminUser = "adminuser"
-$databaseAdminPassword = "229GBOCvBphG"
+$databaseAdminPassword = ""
 $databaseSKU = "GP_Gen5_2"
 $databaseSSLEnforcement = "Enabled"
 $databaseName = "altinnstudio"
@@ -32,8 +32,7 @@ $altinnruntime_imagetag = "11558"
 
 #Docker secret
 $secretName = "acrsecret"
-$dockerEmail = "extoot@brreg.no"
-#$altinnstudioRegistryName = "altinntjenestercontainerregistry"
+$dockerEmail = ""
 $altinnstudioRegistryRG = "altinntjenester-tre-null"
 $altinnstudioRegistrySubscription = "Tjenester 3.0"
 
