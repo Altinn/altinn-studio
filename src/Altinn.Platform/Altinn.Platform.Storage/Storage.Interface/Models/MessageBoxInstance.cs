@@ -58,6 +58,11 @@ namespace Storage.Interface.Models
         public bool AllowDelete { get; set; }
 
         /// <summary>
+        /// Boolean indicating if user is allowed to create a new copy from existing instance.
+        /// </summary>
+        public bool AllowNewCopy { get; set; }
+
+        /// <summary>
         /// Boolean indicating if user is authorized to write on instance.
         /// </summary>
         public bool AuthorizedForWrite { get; set; }
