@@ -179,7 +179,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">instance id</param>
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="hard">if true is marked for hard delete.</param>
-        /// <returns>updated instance object</returns>
+        /// <returns>true if instance was successfully deleted</returns>
         /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}?hard={bool}
         [HttpDelete("{instanceOwnerId:int}/{instanceGuid:guid}")]
         public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerId, bool hard)
