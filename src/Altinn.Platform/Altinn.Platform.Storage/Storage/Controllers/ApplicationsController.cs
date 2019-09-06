@@ -38,7 +38,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// Get all applications for a given application owner (org)
         /// </summary>
         /// <param name="org">application owner id</param>
-        /// <returns>list of all applications for a given owner</returns>        
+        /// <returns>list of all applications for a given owner</returns>
         [HttpGet("{org}")]
         public async Task<ActionResult> GetMany(string org)
         {

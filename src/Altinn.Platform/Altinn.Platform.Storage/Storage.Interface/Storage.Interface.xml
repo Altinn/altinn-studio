@@ -746,14 +746,39 @@
             Due date to submit the instance to application owner.
             </summary>
         </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.DeleteStatus">
+            <summary>
+            Delete status of instance; default or softDeleted.
+            </summary>
+        </member>
         <member name="P:Storage.Interface.Models.MessageBoxInstance.AllowDelete">
             <summary>
             Boolean indicating if user is allowed to delete instance.
             </summary>
         </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.AllowNewCopy">
+            <summary>
+            Boolean indicating if user is allowed to create a new copy from existing instance.
+            </summary>
+        </member>
         <member name="P:Storage.Interface.Models.MessageBoxInstance.AuthorizedForWrite">
             <summary>
             Boolean indicating if user is authorized to write on instance.
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.DeleteStatusType">
+            <summary>
+            Status indicating the deletion status of an instance
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Models.DeleteStatusType.Default">
+            <summary>
+            Default status, not soft deleted.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Models.DeleteStatusType.SoftDeleted">
+            <summary>
+            Instance has been soft deleted.
             </summary>
         </member>
         <member name="T:Storage.Interface.Models.ProcessState">

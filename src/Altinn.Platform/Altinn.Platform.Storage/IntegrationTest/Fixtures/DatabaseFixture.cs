@@ -18,6 +18,13 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
     public class DatabaseFixture : IDisposable
     {
         /// <summary>
+        /// Constructor.
+        /// </summary>
+        public DatabaseFixture()
+        {
+        }
+
+        /// <summary>
         /// Platform storage Instance client used to talk to storage.
         /// </summary>
         public InstanceClient Client { get; set; }
@@ -28,19 +35,12 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         public string App { get; set; }
 
         /// <summary>
-        /// Constructor.
-        /// </summary>
-        public DatabaseFixture()
-        {
-        }
-
-        /// <summary>
         /// Method that loads the m1000 dataset into cosmos db
         /// </summary>
         /// <param name="appId">App id</param>
         /// <param name="client">instance client</param>
         public static void LoadData(string appId, InstanceClient client)
-        {            
+        {
             try
             {
                 List<Instance> ins = client.GetInstancesForOrg(appId.Split("/")[0], 1000).Result;
@@ -52,7 +52,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
             catch
             {
             }
-                        
+
             string json = File.ReadAllText("data/m1000-instances.json");
             JObject jsonObject = JObject.Parse(json);
             List<Instance> instances = jsonObject["instances"].ToObject<List<Instance>>();
@@ -67,7 +67,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         ///  Generate test data instances can be returned with query param.
         /// </summary>
         public static void GenerateTestdata(HttpClient client)
-        {            
+        {
             GenerateInstanceTestData.For1000InstanceOwners(client);
         }
 
