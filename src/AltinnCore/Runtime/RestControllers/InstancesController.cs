@@ -1,52 +1,76 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.RestControllers;
+using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Common.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Storage.Interface.Clients;
 using Storage.Interface.Models;
 
-namespace AltinnCore.Runtime
+namespace AltinnCore.Runtime.RestControllers
 {
     /// <summary>
     /// Handles and dispatches operations to platform storage for the application instance resources
     /// </summary>
     [Route("{org}/{app}/instances")]
+
     [Authorize]
     [ApiController]
     public class InstancesController : ControllerBase
     {
         private readonly ILogger<InstancesController> logger;
+        private readonly GeneralSettings generalSettings;
         private readonly HttpClient storageClient;
         private readonly IInstance instanceService;        
         private readonly IData dataService;
+
+        private readonly IExecution executionService;
+        private readonly UserHelper userHelper;
+        private readonly IRegister registerService;
+        private readonly IRepository repositoryService;
+        private readonly IPlatformServices platformService;
+        private readonly IInstanceEvent eventService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         public InstancesController(
+            IOptions<GeneralSettings> generalSettings,
             ILogger<InstancesController> logger,
-            IHttpClientAccessor httpClientAccessor,
+            IRegister registerService,            
             IInstance instanceService,
-            IData dataService)
+            IData dataService,
+            IExecution executionService,
+            IProfile profileService,
+            IPlatformServices platformServices,
+            IInstanceEvent eventService,
+            IRepository repositoryService)
         {
+            this.generalSettings = generalSettings.Value;
             this.logger = logger;
-            if (httpClientAccessor != null)
-            {
-                this.storageClient = httpClientAccessor.StorageClient;
-            }
-
             this.instanceService = instanceService;
             this.dataService = dataService;
+            this.executionService = executionService;
+            this.registerService = registerService;
+            this.platformService = platformServices;
+            this.eventService = eventService;
+            this.repositoryService = repositoryService;
+
+            userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
@@ -70,7 +94,7 @@ namespace AltinnCore.Runtime
                 return NotFound();
             }
 
-            GetAndSetAppSelfLink(instance);
+            SetAppSelfLinks(instance, Request);
 
             return Ok(instance);
         }
@@ -103,7 +127,7 @@ namespace AltinnCore.Runtime
                 return NotFound();
             }
 
-            GetAndSetAppSelfLink(instance);
+            SetAppSelfLinks(instance, Request);
 
             return Ok(instance);
         }
@@ -125,7 +149,7 @@ namespace AltinnCore.Runtime
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Instance> Post([FromRoute] string org, [FromRoute] string app, [FromQuery] int? instanceOwnerId)
+        public async Task<ActionResult<Instance>> Post([FromRoute] string org, [FromRoute] string app, [FromQuery] int? instanceOwnerId)
         {
             if (string.IsNullOrEmpty(org))
             {
@@ -139,36 +163,48 @@ namespace AltinnCore.Runtime
 
             string appId = $"{org}/{app}";
 
-            Uri storageUri = GetStorageUri(appId, instanceOwnerId);
-
-            // dispatch request to platform storage
-            Instance instance = DispatchCreateInstanceToStorage(storageUri, Request, out ActionResult dispatchError);
-            if (dispatchError != null)
+            // If this is a multipart request we assume the creation is by application owner or client system.
+            if (Request.ContentType != null && Request.ContentType.StartsWith("multipart"))
             {
-                return dispatchError;
+                instanceOwnerId = 2000004;
+
+                // 1) TODO handle multipart and instanceTemplate
             }
 
-            if (instance.Data != null)
+            if (!instanceOwnerId.HasValue)
             {
-                instance = CalculateAndValidate(instance, out ActionResult calculateOrValidateError);
-                if (calculateOrValidateError != null)
-                {
-                    return calculateOrValidateError;
-                }
-            }            
-
-            if (instance != null)
-            {
-                return Created(GetAndSetAppSelfLink(instance), instance);
+                return BadRequest("Instance owner id must currently have a value");
             }
 
-            return StatusCode(500, "Unknown error!");
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwnerId = instanceOwnerId.Value.ToString(),
+            };
+
+            Instance instance = await instanceService.CreateInstance(org, app, instanceTemplate);           
+            
+            if (instance == null)
+            {
+                return StatusCode(500, "Unknown error!");                
+            }
+
+            SetAppSelfLinks(instance, Request);
+            string url = instance.SelfLinks.Apps;
+
+            DispatchEvent("created", instance);
+
+            return Created(url, instance);
         }
 
-        private string GetAndSetAppSelfLink(Instance instance)
+        /// <summary>
+        /// Sets the application specific self links.
+        /// </summary>
+        /// <param name="instance">the instance to set links for</param>
+        /// <param name="request">the http request to extract host and path name</param>
+        internal static void SetAppSelfLinks(Instance instance, HttpRequest request)
         {
-            string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
-            string url = Request.Path;
+            string host = $"https://{request.Host.ToUriComponent()}";
+            string url = request.Path;
 
             string appSelfLink = $"{host}{url}";
 
@@ -184,8 +220,6 @@ namespace AltinnCore.Runtime
                     dataElement.DataLinks.Apps = $"{appSelfLink}/data/{dataElement.Id}";
                 }
             }
-
-            return appSelfLink;
         }
 
         private Instance CalculateAndValidate(Instance instance, out ActionResult calculateOrValidateError)
@@ -216,40 +250,32 @@ namespace AltinnCore.Runtime
             }
             
             return changedInstance;
-        }
+        }       
 
-        private Uri GetStorageUri(string appId, int? instanceOwnerId)
-        {            
-            if (instanceOwnerId.HasValue)
-            {
-                return new Uri($"instances?appId={appId}&instanceOwnerId={instanceOwnerId.Value}", UriKind.Relative);
-            }
-            else
-            {
-                return new Uri($"instances?appId={appId}", UriKind.Relative);
-            }
-        }
-
-        private Instance DispatchCreateInstanceToStorage(Uri storageUri, HttpRequest request, out ActionResult dispatchError)
+        /// <summary>
+        /// Event generator.
+        /// </summary>
+        private async void DispatchEvent(string eventType, Instance instance)
         {
-            dispatchError = null;
-            StreamContent content = new StreamContent(request.Body);
-            if (!string.IsNullOrEmpty(request.ContentType))
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
+            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
+
+            int authenticationLevel = requestContext.UserContext.AuthenticationLevel;
+            int userId = requestContext.UserContext.UserId;
+
+            // Create and store the instance created event
+            InstanceEvent instanceEvent = new InstanceEvent
             {
-                content.Headers.Add("Content-Type", request.ContentType);
-            }
+                AuthenticationLevel = authenticationLevel,
+                EventType = eventType,
+                InstanceId = instance.Id,
+                InstanceOwnerId = instance.InstanceOwnerId,
+                UserId = userId,
+                WorkflowStep = instance.Process != null ? instance.Process.CurrentTask : null,
+            };
 
-            HttpResponseMessage httpResponse = storageClient.PostAsync(storageUri, content).Result;
-
-            if (httpResponse.IsSuccessStatusCode)
-            {
-                Instance instance = JsonConvert.DeserializeObject<Instance>(httpResponse.Content.ReadAsStringAsync().Result);
-                return instance;
-            }
-
-            dispatchError = StatusCode((int)httpResponse.StatusCode, httpResponse.ReasonPhrase);
-
-            return null;
-        }        
+            await eventService.SaveInstanceEvent(instanceEvent, instance.Org, instance.AppId.Split("/")[1]);
+        }
     }
+
 }
