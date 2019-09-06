@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.Serialization;
 
 namespace Storage.Interface.Models
 {
@@ -55,7 +56,7 @@ namespace Storage.Interface.Models
         /// <summary>
         /// Delete status of instance; default or softDeleted.
         /// </summary>
-        public string DeleteStatus { get; set; }
+        public DeleteStatusType DeleteStatus { get; set; }
 
         /// <summary>
         /// Boolean indicating if user is allowed to delete instance.
@@ -71,5 +72,23 @@ namespace Storage.Interface.Models
         /// Boolean indicating if user is authorized to write on instance.
         /// </summary>
         public bool AuthorizedForWrite { get; set; }
+    }
+
+    /// <summary>
+    /// Status indicating the deletion status of an instance
+    /// </summary>
+    public enum DeleteStatusType : int
+    {
+        /// <summary>
+        /// Default status, not soft deleted.
+        /// </summary>
+        [EnumMember]
+        Default = 0,
+
+        /// <summary>
+        /// Instance has been soft deleted.
+        /// </summary>
+        [EnumMember]
+        SoftDeleted = 1
     }
 }

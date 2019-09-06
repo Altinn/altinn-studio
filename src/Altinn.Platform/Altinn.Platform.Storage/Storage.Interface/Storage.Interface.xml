@@ -766,6 +766,21 @@
             Boolean indicating if user is authorized to write on instance.
             </summary>
         </member>
+        <member name="T:Storage.Interface.Models.DeleteStatusType">
+            <summary>
+            Status indicating the deletion status of an instance
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Models.DeleteStatusType.Default">
+            <summary>
+            Default status, not soft deleted.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Models.DeleteStatusType.SoftDeleted">
+            <summary>
+            Instance has been soft deleted.
+            </summary>
+        </member>
         <member name="T:Storage.Interface.Models.ProcessState">
             <summary>
             Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 
