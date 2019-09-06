@@ -9,10 +9,10 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <Version>9.0.1</Version>
+    <Version>9.0.2</Version>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{f3b3f88c-b460-47d6-913e-70ecfa43385c}</ProjectGuid>
-    <AssemblyVersion>9.0.1.0</AssemblyVersion>
+    <AssemblyVersion>9.0.2.0</AssemblyVersion>
     <FileVersion>9.0.1.0</FileVersion>
   </PropertyGroup>
 

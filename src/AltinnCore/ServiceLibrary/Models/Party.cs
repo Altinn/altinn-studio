@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary.Enums;
 
 namespace AltinnCore.ServiceLibrary.Models
@@ -56,5 +57,10 @@ namespace AltinnCore.ServiceLibrary.Models
         /// Gets or sets the organization details for this party (will only be set if the party type is Organization)
         /// </summary>
         public Organization Organization { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value of ChildParties
+        /// </summary>
+        public List<Party> ChildParties { get; set; }
     }
 }
