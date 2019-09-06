@@ -61,7 +61,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             testdata = new MessageBoxInstanceData();
             appIds = testdata.GetAppIds();
             CreateTestApplications();
-
         }
 
         /// <summary>

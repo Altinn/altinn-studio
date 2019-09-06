@@ -57,7 +57,7 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            List<Instance> allInstances = await _instanceRepository.GetVisibleInstancesInStateOfInstanceOwner(instanceOwnerId, state);
+            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerId, state);
 
             if (allInstances == null || allInstances.Count == 0)
             {

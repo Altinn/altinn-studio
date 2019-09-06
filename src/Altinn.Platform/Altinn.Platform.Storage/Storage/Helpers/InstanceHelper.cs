@@ -39,7 +39,7 @@ namespace Altinn.Platform.Storage.Helpers
                     AuthorizedForWrite = true,
                     AllowDelete = true,
                     AllowNewCopy = false,
-                    DeleteStatus = instance.InstanceState.IsDeleted ? "softDeleted" : "default",
+                    DeleteStatus = instance.InstanceState.IsDeleted ? "softdeleted" : "default",
                 });
             }
 
