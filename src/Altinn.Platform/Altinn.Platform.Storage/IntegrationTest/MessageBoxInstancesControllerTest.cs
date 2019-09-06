@@ -9,6 +9,7 @@ using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -28,7 +29,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly HttpClient client;
         private InstanceClient instanceClient;
         private ApplicationClient appClient;
-        private MessageBoxInstanceData testdata;
+        private TestData testdata;
         private readonly List<string> appIds;
         private static DocumentClient _client;
         private AzureCosmosSettings _cosmosSettings = new AzureCosmosSettings()
@@ -58,7 +59,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 ConnectionProtocol = Protocol.Https,
             });
 
-            testdata = new MessageBoxInstanceData();
+            testdata = new TestData();
             appIds = testdata.GetAppIds();
             CreateTestApplications();
         }
@@ -210,12 +211,129 @@ namespace Altinn.Platform.Storage.IntegrationTest
             }
         }
 
+        /// <summary>
+        /// Scenario: Restore a soft deleted instance in storage.
+        /// Expeted: The instance is restored.
+        /// Success: True is returned for the http request. 
+        /// </summary>
+        [Fact]
+        public async void RestoreInstance_TC01()
+        {
+            // Arrange
+            Instance instance = await this.UploadInstance(this.testdata.GetSoftDeletedInstance());
+            bool expectedResult = true;
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+
+            // Act
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}/undelete", null);
+            HttpStatusCode actualStatusCode = response.StatusCode;
+            string responseJson = await response.Content.ReadAsStringAsync();
+            bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
+
+            // Assert
+            Assert.Equal(expectedResult, actualResult);
+            Assert.Equal(expectedStatusCode, actualStatusCode);
+
+            // Cleanup
+            await this.DeleteInstance(instance);
+        }
+
+        /// <summary>
+        /// Scenario: Restore a hard deleted instance in storage
+        /// Expeted: It should not be possible to restore a hard deleted instance.
+        /// Success: 500 response and an error message is returned.
+        /// </summary>
+        [Fact]
+        public async void RestoreInstance_TC02()
+        {
+            // Arrange
+            Instance instance = await this.UploadInstance(this.testdata.GetHardDeletedInstance());
+            HttpStatusCode expectedStatusCode = HttpStatusCode.BadRequest;
+            string expectedMsg = "Instance was permanently deleted and cannot be restored.";
+
+            // Act
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}/undelete", null);
+            string actualMgs = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+            HttpStatusCode actualStatusCode = response.StatusCode;
+
+            // Assert
+            Assert.Equal(expectedStatusCode, actualStatusCode);
+            Assert.Equal(expectedMsg, actualMgs);
+
+            // Cleanup
+            await this.DeleteInstance(instance);
+        }
+
+        /// <summary>
+        /// Scenario: Restore an archived instance in storage
+        /// Expeted: Nothing is done to alter the instance.
+        /// Success: True is returned for the http request. 
+        /// </summary>
+        [Fact]
+        public async void RestoreInstance_TC03()
+        {
+            // Arrange
+            Instance instance = await this.UploadInstance(this.testdata.GetActiveInstance());
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+            bool expectedResult = true;
+
+            // Act
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}/undelete", null);
+            HttpStatusCode actualStatusCode = response.StatusCode;
+            string responseJson = await response.Content.ReadAsStringAsync();
+            bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
+
+            // Assert
+            Assert.Equal(expectedResult, actualResult);
+            Assert.Equal(expectedStatusCode, actualStatusCode);
+
+            // Cleanup
+            await this.DeleteInstance(instance);
+        }
+
+        /// <summary>
+        /// Scenario: Non-existent instance to be restored
+        /// Expeted: 
+        /// Success: 
+        /// </summary>
+        [Fact]
+        public async void RestoreInstance_TC04()
+        {
+            // Arrange
+            string instanceId = Guid.NewGuid().ToString();
+            string expectedMsg = $"Didn't find the object that should be restored with instanceId={testdata.GetInstanceOwnerId()}/{instanceId}";
+            HttpStatusCode expectedStatusCode = HttpStatusCode.NotFound;
+
+            // Act
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerId()}/{instanceId}/undelete", null);
+            HttpStatusCode actualStatusCode = response.StatusCode;
+            string actualMgs = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
+
+            // Assert
+            Assert.Equal(expectedMsg, actualMgs);
+            Assert.Equal(expectedStatusCode, actualStatusCode);
+        }
+
+        private async Task<Instance> UploadInstance(Instance instance)
+        {
+            ResourceResponse<Document> res = await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_cosmosSettings.Database, _cosmosSettings.Collection), instance);
+            return JsonConvert.DeserializeObject<Instance>(res.Resource.ToString());
+        }
+
         private async Task<bool> UploadInstances(List<Instance> instances)
         {
             foreach (Instance instance in instances)
             {
                 await instanceClient.PostInstances(instance.AppId, instance);
             }
+
+            return true;
+        }
+
+        private async Task<bool> DeleteInstance(Instance instance)
+        {
+            string instanceUrl = $"{versionPrefix}/instances/{instance.Id}?hard=true";
+            await client.DeleteAsync(instanceUrl);
 
             return true;
         }

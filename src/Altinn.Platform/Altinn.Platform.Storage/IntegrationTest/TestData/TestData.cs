@@ -8,7 +8,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     /// Class exposing test data for messageboxinstancecontroller integration tests
     /// </summary>
-    public class MessageBoxInstanceData
+    public class TestData
     {
         private static string instanceOwnerId_1 = "50000000";
         private static string userId_1 = "20000000";
@@ -67,7 +67,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Title = appTitles_App3
         };
 
-        // 1st instance of application 1
+        // Active instance of app 1
         private static readonly Instance Instance_1_1 = new Instance()
         {
             AppId = AppId_1,
@@ -90,7 +90,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             }
         };
 
-        // 2nd instance of application 1
+        // Archived instance of app 1
         private static readonly Instance Instance_1_2 = new Instance()
         {
             AppId = AppId_1,
@@ -113,7 +113,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             }
         };
 
-        // 3rd instance of application 1
+        // Soft deleted instance of app 1
         private static readonly Instance Instance_1_3 = new Instance()
         {
             AppId = AppId_1,
@@ -133,7 +133,30 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 CurrentTask = "FormFilling",
                 IsComplete = false,
-            }
+            },
+        };
+
+        // Hard deleted instance of app 1
+        private static readonly Instance Instance_1_4 = new Instance()
+        {
+            AppId = AppId_1,
+            CreatedBy = userId_1,
+            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
+            InstanceOwnerId = instanceOwnerId_1,
+            InstanceState = new InstanceState()
+            {
+                IsArchived = true,
+                IsDeleted = true,
+                IsMarkedForHardDelete = true
+            },
+            LastChangedBy = userId_1,
+            LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
+            Org = org_1,
+            Process = new ProcessState()
+            {
+                CurrentTask = "FormFilling",
+                IsComplete = false,
+            },
         };
 
         // 1st instance of application 2
@@ -156,7 +179,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 CurrentTask = "FormFilling",
                 IsComplete = false,
-            }
+            },
         };
 
         // 2nd instance of application 2
@@ -179,7 +202,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 CurrentTask = "FormFilling",
                 IsComplete = false,
-            }
+            },
         };
 
         // 1st instance of application 3
@@ -202,7 +225,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 CurrentTask = "FormFilling",
                 IsComplete = false,
-            }
+            },
         };
 
         private static readonly Instance Instance_3_2 = new Instance()
@@ -224,13 +247,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 CurrentTask = "FormFilling",
                 IsComplete = false,
-            }
+            },
         };
 
         private readonly static List<Instance> InstanceList_App1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3 };
         private readonly static List<Instance> InstanceList_App2 = new List<Instance>() { Instance_2_1, Instance_2_2 };
         private readonly static List<Instance> InstanceList_App3 = new List<Instance>() { Instance_3_1, Instance_3_2 };
-        private readonly static List<Instance> InstanceList_InstanceOwner1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3, Instance_2_1, Instance_2_2, Instance_3_1, Instance_3_2 };
+        private readonly static List<Instance> InstanceList_InstanceOwner1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3, Instance_1_4, Instance_2_1, Instance_2_2, Instance_3_1, Instance_3_2 };
 
         private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App1 = new Dictionary<string, Dictionary<string, string>>() { { app_1.Id, appTitles_App1 } };
         private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App2 = new Dictionary<string, Dictionary<string, string>>() { { app_2.Id, appTitles_App2 } };
@@ -239,7 +262,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             { app_1.Id, appTitles_App1 },
             { app_2.Id, appTitles_App2 },
-            { app_3.Id, appTitles_App3 }
+            { app_3.Id, appTitles_App3 },
         };
 
         /// <summary>
@@ -261,7 +284,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Gets application title dictinoary based on application id
+        /// Gets application title dictinoary based on application id.
         /// </summary>
         public List<Application> GetApps()
         {
@@ -293,7 +316,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Title available in nb og nn.
         /// Both instances are active.
         /// </summary>
-        /// <returns></returns>
         public List<Instance> GetInstances_App3()
         {
             return InstanceList_App3;
@@ -302,10 +324,41 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Produces a list of test instances
         /// </summary>
-        /// <returns></returns>
         public List<Instance> GetInstances()
         {
             return InstanceList_InstanceOwner1;
+        }
+
+        /// <summary>
+        /// Returns a hard deleted instance
+        /// </summary>
+        public Instance GetHardDeletedInstance()
+        {
+            return Instance_1_4;
+        }
+
+        /// <summary>
+        /// Returns a soft deleted instance
+        /// </summary>
+        public Instance GetSoftDeletedInstance()
+        {
+            return Instance_1_3;
+        }
+
+        /// <summary>
+        /// Returns an archived instance
+        /// </summary>
+        public Instance GeArchivedInstance()
+        {
+            return Instance_1_2;
+        }
+
+        /// <summary>
+        /// Returns an active instance
+        /// </summary>
+        public Instance GetActiveInstance()
+        {
+            return Instance_1_1;
         }
     }
 }

@@ -6,6 +6,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents;
 using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -118,6 +119,55 @@ namespace Altinn.Platform.Storage.Controllers
             MessageBoxInstance messageBoxInstance = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { instance }, appTitle, languageId).First();
 
             return Ok(messageBoxInstance);
+        }
+
+        /// <summary>
+        /// Undelete a soft deleted instance
+        /// </summary>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceGuid">instance id</param>
+        /// <returns>True if the instance was undeleted.</returns>
+        [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}/undelete")]
+        public async Task<ActionResult> Undelete(int instanceOwnerId, Guid instanceGuid)
+        {
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+
+            Instance instance;
+
+            try
+            {
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    return NotFound($"Didn't find the object that should be restored with instanceId={instanceId}");
+                }
+
+                return StatusCode(500, $"Unknown database exception in restore: {dce}");
+            }
+
+            if (instance.InstanceState.IsMarkedForHardDelete)
+            {
+                return BadRequest("Instance was permanently deleted and cannot be restored.");
+            }
+            else if (instance.InstanceState.IsDeleted)
+            {
+                instance.InstanceState.IsDeleted = false;
+
+                try
+                {
+                    await _instanceRepository.Update(instance);
+                    return Ok(true);
+                }
+                catch (Exception e)
+                {
+                    return StatusCode(500, $"Unknown exception in restore: {e}");
+                }
+            }
+
+            return Ok(true);
         }
     }
 }
