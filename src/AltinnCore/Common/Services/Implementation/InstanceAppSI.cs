@@ -76,21 +76,20 @@ namespace AltinnCore.Common.Services.Implementation
             string appName = startServiceModel.Service;
             int instanceOwnerId = startServiceModel.PartyId;
 
-            string apiUrl = $"instances/?appId={appId}&instanceOwnerId={instanceOwnerId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwnerId = instanceOwnerId.ToString(),
+            };
 
-            try
+            Instance createdInstance = await CreateInstance(org, appId, instance);
+
+            if (createdInstance == null)
             {
-                HttpResponseMessage response = await _client.PostAsync(apiUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
-                Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
-                instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
-            }
-            catch
-            {
-                return instance;
+                return null;
             }
 
+            instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
+           
             // Save instantiated form model
             instance = await _data.InsertData(
                 serviceModel,
@@ -204,6 +203,26 @@ namespace AltinnCore.Common.Services.Implementation
 
             instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
             return instance;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
+        {
+            string apiUrl = $"instances/?appId={app}&instanceOwnerId={instanceTemplate.InstanceOwnerId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            try
+            {
+                HttpResponseMessage response = await _client.PostAsync(apiUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
+                Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
+
+                return createdInstance;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
