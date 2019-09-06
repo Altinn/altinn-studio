@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AltinnCore.ServiceLibrary" Version="9.0.1" />
+    <PackageReference Include="AltinnCore.ServiceLibrary" Version="9.0.2" />
     <PackageReference Include="JWTCookieAuthentication" Version="0.8.11-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
