@@ -37,7 +37,9 @@ namespace Altinn.Platform.Storage.Helpers
                     Title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language] : appTitles[instance.AppId]["nb"],
                     ProcessCurrentTask = instance.Process.CurrentTask,
                     AuthorizedForWrite = true,
-                    AllowDelete = true
+                    AllowDelete = true,
+                    AllowNewCopy = false,
+                    DeleteStatus = instance.InstanceState.IsDeleted ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
                 });
             }
 

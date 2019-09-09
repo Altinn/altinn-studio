@@ -444,15 +444,16 @@ namespace Altinn.Platform.Storage.Repository
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime <= DateTime.UtcNow))
                         .Where(i => !i.InstanceState.IsDeleted)
                         .Where(i => !i.InstanceState.IsArchived);
             }
             else if (instanceState.Equals("deleted"))
             {
-                // what about hard delete. Should we account for that too?
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => i.InstanceState.IsDeleted);
+                        .Where(i => i.InstanceState.IsDeleted)
+                        .Where(i => !i.InstanceState.IsMarkedForHardDelete);
             }
             else if (instanceState.Equals("archived"))
             {
