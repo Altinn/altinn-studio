@@ -219,7 +219,11 @@ ingressRoutes:
     entrypoints:
       - web
     routes:
-      - match: Host(`altinn3.no`) && Path(`/`)
+      - match:
+          local: Host(`altinn3.no`) && Path(`/`)
+          dev: Host(`dev.altinn.studio`) && Path(`/`)
+          staging: Host(`staging.altinn.studio`) && Path(`/`)
+          prod: Host(`altinn.studio`) && Path(`/`)
         kind: Rule
         strategy: RoundRobin
     middlewares: []
@@ -228,7 +232,11 @@ ingressRoutes:
     entrypoints:
       - web
     routes:
-      - match: Host(`altinn3.no`) && PathPrefix(`/Home`)
+      - match:
+          local: Host(`altinn3.no`) && PathPrefix(`/Home`)
+          dev: Host(`dev.altinn.studio`) && PathPrefix(`/Home`)
+          staging: Host(`staging.altinn.studio`) && PathPrefix(`/Home`)
+          prod: Host(`altinn.studio`) && PathPrefix(`/Home`)
         kind: Rule
         strategy: RoundRobin
     middlewares: []
@@ -237,7 +245,11 @@ ingressRoutes:
     entrypoints:
       - web
     routes:
-      - match: Host(`altinn3.no`) && PathPrefix(`/designer`)
+      - match:
+          local: Host(`altinn3.no`) && PathPrefix(`/designer`)
+          dev: Host(`dev.altinn.studio`) && PathPrefix(`/designer`)
+          staging: Host(`staging.altinn.studio`) && PathPrefix(`/designer`)
+          prod: Host(`altinn.studio`) && PathPrefix(`/designer`)
         kind: Rule
         strategy: RoundRobin
     middlewares: []
@@ -246,7 +258,11 @@ ingressRoutes:
     entrypoints:
       - web
     routes:
-      - match: (Host(`altinn3.no`) && (Path(`/repos/`) || Path(`/repos`)))
+      - match:
+          local: Host(`altinn3.no`) && (Path(`/repos/`) || Path(`/repos`))
+          dev: Host(`dev.altinn.studio`) && (Path(`/repos/`) || Path(`/repos`))
+          staging: Host(`staging.altinn.studio`) && (Path(`/repos/`) || Path(`/repos`))
+          prod: Host(`altinn.studio`) && (Path(`/repos/`) || Path(`/repos`))
         kind: Rule
         strategy: RoundRobin
     middlewares:

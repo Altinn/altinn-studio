@@ -226,7 +226,11 @@ ingressRoutes:
     entrypoints:
       - web
     routes:
-      - match: Host(`altinn3.no`)
+      - match:
+          local: Host(`altinn3.no`)
+          dev: Host(`dev.altinn.studio`)
+          staging: Host(`staging.altinn.studio`)
+          prod: Host(`altinn.studio`)
         priority: 1
         kind: Rule
         strategy: RoundRobin

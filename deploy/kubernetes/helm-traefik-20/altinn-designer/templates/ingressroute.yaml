@@ -1,5 +1,6 @@
 {{- $serviceName := .Values.service.name }}
 {{- $servicePort := .Values.service.port }}
+{{- $environment := .Values.environment }}
 {{- $middlewareEnabled := .Values.middlewareEnabled }}
 {{- range $ingressRoute := .Values.ingressRoutes }}
 apiVersion: traefik.containo.us/v1alpha1
@@ -18,7 +19,15 @@ spec:
   {{- end }}
   routes:
   {{- range $route := $ingressRoute.routes }}
-    - match: {{ $route.match }}
+    {{- if eq $environment "local" }}
+    - match: {{ $route.match.local }}
+    {{- else if eq $environment "development" }}
+    - match: {{ $route.match.dev }}
+    {{- else if eq $environment "staging" }}
+    - match: {{ $route.match.staging }}
+    {{- else if eq $environment "production" }}
+    - match: {{ $route.match.prod }}
+    {{- end }}
       kind: {{ $route.kind }}
       services:
         - name: {{ $serviceName }}
