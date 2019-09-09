@@ -15,21 +15,21 @@ namespace AltinnCore.Common.Services.Interfaces
         List<Testdata> GetTestUsers();
 
         /// <summary>
-        /// Returns a list of local form instances for a given partyId and serviceId
+        /// Returns a list of local form instances for a given partyId and application instanceId
         /// </summary>
         /// <param name="instanceOwnerId">The instance owner id</param>
-        /// <param name="org">The application owner</param>
-        /// <param name="appName">The application name</param>
+        /// <param name="org">The organisation code for the application owner</param>
+        /// <param name="app">The application name</param>
         /// <returns>List of form instances</returns>
-        List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string appName);
+        List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string app);
 
         /// <summary>
-        /// Returns a list over local stored prefill for a given service
+        /// Returns a list over local stored prefill for a given application
         /// </summary>
         /// <param name="instanceOwnerId">The instance owner id</param>
-        /// <param name="org">The application owner</param>
-        /// <param name="appName">The application name</param>
+        /// <param name="org">The organisation code for the application owner</param>
+        /// <param name="app">The application name</param>
         /// <returns>List over prefill</returns>
-        List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string appName);
+        List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string app);
     }
 }

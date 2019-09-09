@@ -83,7 +83,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string appName)
+        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string app)
         {
             // TDOD: to be implemented
             return new List<ServicePrefill>();
