@@ -125,10 +125,6 @@ test("User cannot clone an app that does not have a data model", async () => {
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
 })
 
-test('Automated accessibility test for designer page', async t => {
-  axeCheck(t);
-});
-
 test('Configure and delete rules', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/rulesservice#/uieditor')
