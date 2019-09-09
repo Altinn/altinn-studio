@@ -89,7 +89,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="language"> language id en, nb, nn-NO"</param>
         /// <returns>list of instances</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        [Produces("application/vnd+altinn2.inbox+json")]
         public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerId, Guid instanceGuid, [FromQuery] string language)
         {
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
@@ -155,6 +154,8 @@ namespace Altinn.Platform.Storage.Controllers
             else if (instance.InstanceState.IsDeleted)
             {
                 instance.InstanceState.IsDeleted = false;
+                instance.LastChangedBy = User.Identity.Name;
+                instance.LastChangedDateTime = DateTime.UtcNow;
 
                 try
                 {
@@ -165,8 +166,60 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return StatusCode(500, $"Unknown exception in restore: {e}");
                 }
+
+                // generate instance event 'Undeleted'
             }
 
+            return Ok(true);
+        }
+
+        /// <summary>
+        /// Marks an instance for deletion in storage.
+        /// </summary>
+        /// <param name="instanceGuid">instance id</param>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="hard">if true is marked for hard delete.</param>
+        /// <returns>true if instance was successfully deleted</returns>
+        /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}?hard={bool}
+        [HttpDelete("{instanceOwnerId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerId, bool hard)
+        {
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+
+            Instance instance;
+            try
+            {
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
+                }
+
+                return StatusCode(500, $"Unknown database exception in delete: {dce}");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Unknown exception in delete: {e}");
+            }
+
+            instance.InstanceState.IsDeleted = true;
+            instance.InstanceState.IsMarkedForHardDelete = hard;
+            instance.LastChangedBy = User.Identity.Name;
+            instance.LastChangedDateTime = DateTime.UtcNow;
+
+            try
+            {
+                await _instanceRepository.Update(instance);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Unknown exception in delete: {e}");
+            }
+
+            // generate instance event 'Undeleted'
             return Ok(true);
         }
     }
