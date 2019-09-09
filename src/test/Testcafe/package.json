@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "node .\\testRunner --env=dev",
-    "wcag": "testcafe puppeteer .\\wcag_tests\\wcag-tests.js -r junit:junit.xml"
+    "wcag": "testcafe puppeteer .\\wcag\\wcag-tests.js -r junit:junit.xml"
   },
   "keywords": [],
   "author": "",
