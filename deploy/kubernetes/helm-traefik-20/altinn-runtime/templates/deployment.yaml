@@ -1,0 +1,123 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Values.service.name }}
+spec:
+  selector:
+    matchLabels:
+      run: {{ .Values.service.name }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        run: {{ .Values.service.name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "local" }}
+          image: "{{ .Values.image.repositoryLocal }}:{{ .Values.image.imageTagLocal }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.image.containerPort }}
+          {{- if eq (required "evironment not set" .Values.environment) "development"}}
+          env:
+            {{- range $variable := .Values.environmentVariables.development }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value}}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $variable.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq (required "evironment not set" .Values.environment) "production"}}
+          env:
+            {{- range $variable := .Values.environmentVariables.production }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value}}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $variable.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq (required "evironment not set" .Values.environment) "staging"}}
+          env:
+            {{- range $variable := .Values.environmentVariables.staging }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value}}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $variable.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq (required "evironment not set" .Values.environment) "local"}}
+          env:
+            {{- range $variable := .Values.environmentVariables.local }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value}}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $variable.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.volumeMounts}}
+          {{- if ne (required "evironment not set" .Values.environment) "local"}}
+          volumeMounts:
+            {{- range $volume := .Values.volumeMounts }}
+            - name: {{ $volume.name }}
+              mountPath: {{ $volume.mountPath }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+      {{- if ne (required "evironment not set" .Values.environment) "local"}}
+      {{- if .Values.volumes }}
+      volumes:
+      {{- range $volume := .Values.volumes }}
+        - name: {{ $volume.name }}
+          {{- if $volume.persistentVolumeClaim }}
+          persistentVolumeClaim:
+            claimName: {{ $volume.persistentVolumeClaim.claimName }}
+          {{- end }}
+          {{- if $volume.secret }}
+          secret:
+            secretName: {{ $volume.secret.secretName }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if ne (required "evironment not set" .Values.environment) "local"}}
+      {{- if .Values.image.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.imagePullSecret }}
+      {{- end }}
+      {{- end }}

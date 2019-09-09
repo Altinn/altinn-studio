@@ -1,0 +1,253 @@
+replicaCount: 1
+
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
+  repositoryLocal: altinncore
+  pullPolicy: IfNotPresent
+  tagLocal: latest
+  containerPort: 5000
+  imagePullSecret: acrsecret
+
+environmentVariables:
+  local:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: dev.altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: http://altinn3.no/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: https://platform.at21.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
+  development:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: dev.altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://dev.altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: https://platform.at21.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
+  production:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Production
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: https://platform.at21.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
+  staging:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: staging.altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://staging.altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: https://platform.at21.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
+
+volumeMounts:
+  - name: altinn-repo-storage
+    mountPath: "/AltinnCore/Repos"
+  - name: altinn-appsettings
+    mountPath: "/altinn-appsettings"
+
+volumes:
+  - name: altinn-repo-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-repo-premium-volume-claim
+  - name: altinn-appsettings
+    secret:
+      secretName: altinn-appsettings-secret
+
+service:
+  name: altinn-designer
+  port: 5000
+  targetPort: 5000
+  protocol: TCP
+
+middlewares:
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: Middleware
+    metadata:
+      name: fetch-cookie-and-redirect
+    spec:
+      replacePath:
+        path: /Redirect/FetchCookieAndRedirectHome/
+
+middlewareEnabled: true
+
+ingressRoutes:
+  - name: altinn-designer-root
+    namespace: default
+    entrypoints:
+      - web
+    routes:
+      - match: Host(`altinn3.no`) && Path(`/`)
+        kind: Rule
+        strategy: RoundRobin
+    middlewares: []
+  - name: altinn-designer-home
+    namespace: default
+    entrypoints:
+      - web
+    routes:
+      - match: Host(`altinn3.no`) && PathPrefix(`/Home`)
+        kind: Rule
+        strategy: RoundRobin
+    middlewares: []
+  - name: altinn-designer-designer
+    namespace: default
+    entrypoints:
+      - web
+    routes:
+      - match: Host(`altinn3.no`) && PathPrefix(`/designer`)
+        kind: Rule
+        strategy: RoundRobin
+    middlewares: []
+  - name: altinn-designer-repos
+    namespace: default
+    entrypoints:
+      - web
+    routes:
+      - match: (Host(`altinn3.no`) && (Path(`/repos/`) || Path(`/repos`)))
+        kind: Rule
+        strategy: RoundRobin
+    middlewares:
+      - name: fetch-cookie-and-redirect

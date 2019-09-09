@@ -1,0 +1,35 @@
+{{- $serviceName := .Values.service.name }}
+{{- $servicePort := .Values.service.port }}
+{{- $middlewareEnabled := .Values.middlewareEnabled }}
+{{- range $ingressRoute := .Values.ingressRoutes }}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $ingressRoute.name }}
+  {{- if $ingressRoute.namespace}}
+  namespace: {{ $ingressRoute.namespace }}
+  {{- else }}
+  namespace: default
+  {{- end }}
+spec:
+  entrypoints:
+  {{- range $entrypoint := $ingressRoute.entrypoints}}
+    - {{ $entrypoint }}
+  {{- end }}
+  routes:
+  {{- range $route := $ingressRoute.routes }}
+    - match: {{ $route.match }}
+      kind: {{ $route.kind }}
+      services:
+        - name: {{ $serviceName }}
+          port: {{ $servicePort }}
+          strategy: {{ $route.strategy }}
+  {{- end }}
+  {{- if $middlewareEnabled }}
+      middlewares:
+    {{- range $middleware := $ingressRoute.middlewares }}
+        - name: {{ $middleware.name }}
+    {{- end }}
+  {{- end }}
+---
+{{- end }}

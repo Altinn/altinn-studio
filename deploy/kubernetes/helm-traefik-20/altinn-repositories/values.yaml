@@ -1,0 +1,104 @@
+replicaCount: 1
+
+image:
+  repositoryDev: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev
+  repositoryProd: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-prod
+  repositoryStaging: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-staging
+  repositoryLocal: altinn-gitea
+  tag: latest
+  tagLocal: latest
+  pullPolicy: Never
+  containerPorts:
+    port: 3000
+  imagePullSecret: acrsecret
+
+environmentVariables:
+  local:
+    - name: USER_UID
+      value: \"1000\"
+    - name: USER_GID
+      value: \"1000\"
+  other:
+    - name: USER_UID
+      value: \"1000\"
+    - name: USER_GID
+      value: \"1000\"
+    - name: DB_TYPE
+      value: "postgres"
+    - name: DB_SSL_MODE
+      value: require
+    - name: DB_HOST
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: host
+    - name: DB_NAME
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: db-name
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: username
+    - name: DB_PASSWD
+      valueFrom:
+        secretKeyRef:
+          name: gitea-db-secret
+          key: password
+    - name: SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: gitea-security
+          key: secretkey
+    - name: INTERNAL_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: gitea-security
+          key: internaltoken
+    - name: LFS_JWT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: gitea-server-jwt-secret
+          key: lfsjwtsecret
+
+volumeMounts:
+  - name: altinn-gitea-storage
+    mountPath: "/data/git"
+
+volumes:
+  - name: altinn-gitea-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-gitea-volume-claim
+
+service:
+  name: altinn-repositories
+  port: 3000
+  targetPort: 3000
+  protocol: TCP
+
+middlewares:
+  - apiVersion: traefik.containo.us/v1alpha1
+    kind: Middleware
+    metadata:
+      name: strip-repos-prefix
+    spec:
+      stripPrefix:
+        prefixes:
+        - /repos/
+
+middlewareEnabled: true
+
+ingressRoutes:
+  - name: altinn-repositories
+    namespace: default
+    entrypoints:
+      - web
+    routes:
+      - match: Host(`altinn3.no`) && PathPrefix(`/repos/{.+}`)
+        kind: Rule
+        strategy: RoundRobin
+    middlewares:
+      - name: strip-repos-prefix
+

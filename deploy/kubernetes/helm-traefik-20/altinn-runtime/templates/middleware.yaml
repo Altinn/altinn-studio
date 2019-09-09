@@ -1,0 +1,6 @@
+{{- if .Values.middlewareEnabled}}
+{{- range $middleware := .Values.middlewares }}
+{{ toYaml . }}
+---
+{{- end }}
+{{- end }}

@@ -1,0 +1,22 @@
+image:
+  repository: traefik
+  tag: "2.0"
+  pullPolicy: IfNotPresent
+
+container:
+  replicas: 1
+
+name: altinn-traefik
+
+service:
+  type: LoadBalancer
+  name: altinn-traefik
+  selector:
+    app: altinn-traefik
+  ports:
+    - name: web
+      port: 80
+      protocol: TCP
+    - name: admin
+      port: 8080
+      protocol: TCP

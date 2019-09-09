@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-repositories
+spec:
+  selector:
+    matchLabels:
+      run: altinn-repositories
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        run: altinn-repositories
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "development" }}
+          image: "{{ .Values.image.repositoryDev }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "production" }}
+          image: "{{ .Values.image.repositoryProd }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "staging" }}
+          image: "{{ .Values.image.repositoryStaging }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "local" }}
+          image: "{{ .Values.image.repositoryLocal }}:{{ .Values.image.tagLocal }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.image.containerPorts.port }}
+          {{- if .Values.environmentVariables }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "local" }}
+          env:
+            {{- range $variable := .Values.environmentVariables.local }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value }}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $variable.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+              {{- end }}
+            {{- end }}
+          {{- else }}
+          env:
+            {{- range $variable := .Values.environment.other }}
+              - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value }}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $variable.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if ne .Values.environment "local" }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+          {{- range $mount := .Values.volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+      {{- if ne .Values.environment "local" }}
+      {{- if .Values.volumes }}
+      volumes:
+      {{- range $volume := .Values.volumes }}
+        - name: {{ $volume.name }}
+          {{- if $volume.persistentVolumeClaim }}
+          persistentVolumeClaim:
+            claimName: {{ $volume.persistentVolumeClaim.claimName }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if ne .Values.environment "local"}}
+      {{- if .Values.image.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.imagePullSecret }}
+      {{- end }}
+      {{- end }}
+
