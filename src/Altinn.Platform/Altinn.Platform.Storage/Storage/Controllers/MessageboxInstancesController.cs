@@ -203,7 +203,6 @@ namespace Altinn.Platform.Storage.Controllers
             catch (Exception e)
             {
                 return StatusCode(500, $"Unknown exception in delete: {e}");
-
             }
 
             instance.InstanceState.IsDeleted = true;
@@ -213,7 +212,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                Instance deletedInstance = await _instanceRepository.Update(instance);
+                await _instanceRepository.Update(instance);
             }
             catch (Exception e)
             {
