@@ -46,16 +46,3 @@ fixture('Instantiation tests')
       .expect(Selector('p').withText('Dine aktører').exists).ok()
       .expect(Selector('p').withText('Kari Consulting').exists).ok()
   });
-
-  test('axe UI accessibility test for party selection page', async t => {
-    await t
-      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/test')
-      .switchToIframe(runtime.testBrukerIframe)
-      .expect(runtime.testUsers[1].exists).ok()
-      .hover(runtime.testUsers[1])
-      .click(runtime.testUsers[1])
-      .expect(runtime.startNewButton.exists).ok()
-      .click(runtime.startNewButton)
-      .switchToMainWindow()      
-    axeCheck(t);
-  });
