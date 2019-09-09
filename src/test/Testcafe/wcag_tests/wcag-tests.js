@@ -13,7 +13,7 @@ let dashboard = new DashBoard();
 
 const getLocation = ClientFunction(() => document.location.href);
 
-fixture.only('WCAG 2.0 tests for Altinn Studio')
+fixture('WCAG 2.0 tests for Altinn Studio')
 	.page(app.baseUrl)
 	.beforeEach(async t => {
 		await t
@@ -60,7 +60,9 @@ fixture.only('WCAG 2.0 tests for Altinn Studio')
 			await t.expect(violations.length === 0).ok(createReport(violations));	
 		});
 
-	test.skip('Accessibility testing for designer page', async t => {
+	test('Accessibility testing for designer page', async t => {
+		await t
+		  .navigateTo(app.baseUrl + 'designer/tdd/wcag#/test')
 		const { error, violations } = await axeCheck(t);
 		await t.expect(violations.length === 0).ok(createReport(violations));	
 	});
