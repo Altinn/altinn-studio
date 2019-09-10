@@ -6,9 +6,9 @@ image:
   repositoryStaging: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-staging
   tag: latest
   pullPolicy: Always
-  containerPorts:
-    port: 3000
+  containerPort: 3000
   imagePullSecret: acrsecret
+  lifecyclePostStartCommand: "adduser git -D"
 
 environmentVariables:
   - name: USER_UID
@@ -64,8 +64,17 @@ volumes:
     persistentVolumeClaim:
       claimName: altinn-storage-gitea-volume-claim
 
-service:
-  ports:
-    - port: 3000
-      targetPort: 3000
-      protocol: TCP
+ingress:
+  - metadata:
+      name: altinn-repositories-base-path
+      annotations:
+        # traefik.ingress.kubernetes.io/request-modifier: "ReplacePathRegex: ^/repos/(.*) /$1"
+        # traefik.ingress.kubernetes.io/request-modifier: AddPrefix: /users
+        # traefik.ingress.kubernetes.io/rewrite-target: /users
+        traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
+        traefik.frontend.priority: "500"
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+    paths:
+      - path: /repos/
+    host: staging.altinn.studio
