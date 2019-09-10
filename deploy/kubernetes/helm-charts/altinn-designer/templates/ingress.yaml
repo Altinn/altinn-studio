@@ -1,5 +1,5 @@
 {{- $serviceName := include "altinn-designer.fullname" . }}
-{{- $containerPort := .Values.image.containerPort }}
+{{- $servicePort := .Values.service.externalPort }}
 {{- range $ingress := .Values.ingress }}
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -20,7 +20,7 @@ spec:
       - path: {{ $path.path }}
         backend:
           serviceName: {{ $serviceName }}
-          servicePort: {{ $containerPort }}
+          servicePort: {{ $servicePort }}
       {{- end }}
 ---
 {{- end }}

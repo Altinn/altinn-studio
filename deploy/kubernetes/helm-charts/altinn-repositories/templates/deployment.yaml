@@ -52,7 +52,7 @@ spec:
           lifecycle:
             postStart:
               exec:
-                command: ["/bin/sh", "-c", {{ .Values.image.lifecycle.postStart.exec.command }}]
+                command: ["/bin/sh", "-c", {{ .Values.image.lifecyclePostStartCommand }}]
           {{- end }}
       {{- if .Values.volumes }}
       volumes:

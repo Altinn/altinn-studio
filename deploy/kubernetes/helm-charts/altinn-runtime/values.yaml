@@ -7,6 +7,9 @@ image:
   imagePullSecret: acrsecret
   pullPolicy: Always
 
+service:
+  externalPort: 3000
+
 environmentVariables:
   development:
     - name: ASPNETCORE_ENVIRONMENT

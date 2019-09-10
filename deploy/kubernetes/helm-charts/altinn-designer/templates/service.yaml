@@ -6,7 +6,7 @@ metadata:
     run: altinn-designer
 spec:
   ports:
-    - port: {{ .Values.image.containerPort }}
+    - port: {{ .Values.service.externalPort }}
       targetPort: {{ .Values.image.containerPort }}
       protocol: TCP
   selector:
