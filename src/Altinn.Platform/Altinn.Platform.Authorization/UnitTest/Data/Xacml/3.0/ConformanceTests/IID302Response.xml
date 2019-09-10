@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Response
+      xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17
+        http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd">
+    <Result>
+        <Decision>Deny</Decision>
+        <Status>
+            <StatusCode
+                  Value="urn:oasis:names:tc:xacml:1.0:status:ok"/>
+        </Status>
+        
+		<Obligations>
+            <Obligation
+                ObligationId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:obligation-1" >
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:assignment1"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">assignment1</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:dynamicSingleValue"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">J. Hibbert</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:dynamicMultiValue"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">C. Everet Koop</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:dynamicMultiValue"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">Victor Frankenstein</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:dynamicMultiValue"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">John Jeckel</AttributeAssignment>
+            </Obligation>
+        </Obligations>
+        <AssociatedAdvice>
+            <Advice
+                AdviceId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:Advice-1">
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:assignment1"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">assignment1</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:dynamicSingleValue"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">J. Hibbert</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:dynamicMultiValue"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">C. Everet Koop</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:dynamicMultiValue"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">Victor Frankenstein</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IID302:dynamicMultiValue"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">John Jeckel</AttributeAssignment>
+            </Advice>
+        </AssociatedAdvice>
+    </Result>
+</Response>
