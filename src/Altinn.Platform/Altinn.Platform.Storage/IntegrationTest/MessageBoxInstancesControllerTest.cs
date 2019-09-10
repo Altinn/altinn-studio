@@ -267,7 +267,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Scenario: Restore an archived instance in storage
         /// Expeted: Nothing is done to alter the instance.
-        /// Success: True is returned for the http request. 
+        /// Success: True is returned for the http request.
         /// </summary>
         [Fact]
         public async void RestoreInstance_TC03()
@@ -293,8 +293,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
         /// <summary>
         /// Scenario: Non-existent instance to be restored
-        /// Expeted: 
-        /// Success: 
+        /// Expeted: Error code is returned from the controller
+        /// Success: Not found error code is returned.
         /// </summary>
         [Fact]
         public async void RestoreInstance_TC04()
@@ -314,6 +314,77 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.Equal(expectedStatusCode, actualStatusCode);
         }
 
+        /// <summary>
+        /// Scenario: Soft delete an active instance in storage.
+        /// Expeted: Instance is marked for soft delete.
+        /// Success: True is returned for the http request.
+        /// </summary>
+        [Fact]
+        public async void DeleteInstance_TC01()
+        {
+            // Arrange
+            Instance instance = await this.UploadInstance(this.testdata.GetActiveInstance());
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+            bool expectedResult = true;
+
+            // Act
+            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}?hard=false");        
+            HttpStatusCode actualStatusCode = response.StatusCode;
+            string responseJson = await response.Content.ReadAsStringAsync();
+            bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
+
+            Instance storedInstance = await GetInstance(instance.Id, instance.InstanceOwnerId);
+
+            // Assert
+            Assert.Equal(expectedResult, actualResult);
+            Assert.Equal(expectedStatusCode, actualStatusCode);
+            Assert.True(storedInstance.InstanceState.IsDeleted);
+            Assert.False(storedInstance.InstanceState.IsMarkedForHardDelete);
+
+            // Cleanup
+            await this.DeleteInstance(instance);
+        }
+
+        /// <summary>
+        /// Scenario: Hard delete a soft deleted instance in storage.
+        /// Expeted: Instance is marked for hard delete.
+        /// Success: True is returned for the http request.
+        /// </summary>
+        [Fact]
+        public async void DeleteInstance_TC02()
+        {
+            // Arrange
+            Instance instance = await this.UploadInstance(this.testdata.GetSoftDeletedInstance());
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+            bool expectedResult = true;
+
+            // Act
+            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}?hard=true");
+            HttpStatusCode actualStatusCode = response.StatusCode;
+            string responseJson = await response.Content.ReadAsStringAsync();
+            bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
+
+            Instance storedInstance = await GetInstance(instance.Id, instance.InstanceOwnerId);
+
+            // Assert
+            Assert.Equal(expectedResult, actualResult);
+            Assert.Equal(expectedStatusCode, actualStatusCode);
+            Assert.True(storedInstance.InstanceState.IsMarkedForHardDelete);
+
+            // Cleanup
+            await this.DeleteInstance(instance);
+        }
+
+        private async Task<Instance> GetInstance(string instanceGuid, string instanceOwnerId)
+        {
+            Instance instance = await _client
+                  .ReadDocumentAsync<Instance>(
+                      UriFactory.CreateDocumentUri(_cosmosSettings.Database, _cosmosSettings.Collection, instanceGuid),
+                      new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
+
+            return instance;
+        }
+
         private async Task<Instance> UploadInstance(Instance instance)
         {
             ResourceResponse<Document> res = await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_cosmosSettings.Database, _cosmosSettings.Collection), instance);
@@ -324,7 +395,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             foreach (Instance instance in instances)
             {
-                await instanceClient.PostInstances(instance.AppId, instance);
+              await instanceClient.PostInstances(instance.AppId, instance);
             }
 
             return true;

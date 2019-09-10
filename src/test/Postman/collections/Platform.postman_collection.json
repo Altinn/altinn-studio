@@ -1650,6 +1650,103 @@
 							"response": []
 						},
 						{
+							"name": "DELETE Soft Delete Instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											"pm.test(\"Platform - Storage - SBL - Soft Delete Instance - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Platform - Storage - SBL - Soft Delete Instance - Content - Matches\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.instanceState.isDeleted).equal(true);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=false",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}"
+									],
+									"query": [
+										{
+											"key": "hard",
+											"value": "false"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT Restore Deleted message",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "72cf897c-1a3c-46e3-9d9c-67c1159588c8",
+										"exec": [
+											"pm.test(\"Platform - Storage - SBL - Restore Instance - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    pm.expect(pm.response.text()).equal('true');\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"sbl",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"undelete"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "GET Instance by Id",
 							"event": [
 								{
@@ -1660,6 +1757,11 @@
 											"pm.test(\"Platform - Storage - SBL - Get Instance by id for SBL - Status - 200\", function () {\r",
 											"    pm.response.to.have.status(200);\r",
 											"});\r",
+											"pm.test(\"Platform - Storage - SBL - Get Instance by id for SBL - Verify - Restored Instance\", function () {\r",
+											"    var instanceId = pm.environment.get('instanceId');\r",
+											"    pm.expect(pm.response.json().id).equal(instanceId);\r",
+											"});\r",
+											"\r",
 											""
 										],
 										"type": "text/javascript"
@@ -1688,7 +1790,7 @@
 							"response": []
 						},
 						{
-							"name": "DELETE App Instance by Id",
+							"name": "DELETE Hard Delete Instance",
 							"event": [
 								{
 									"listen": "test",
@@ -1707,8 +1809,8 @@
 									{
 										"key": "Content-Type",
 										"name": "Content-Type",
-										"value": "application/json",
-										"type": "text"
+										"type": "text",
+										"value": "application/json"
 									}
 								],
 								"body": {
@@ -1733,6 +1835,45 @@
 											"key": "hard",
 											"value": "true"
 										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "PUT Restore Hard Deleted message - negative",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3d1598d9-8cc0-418f-9171-22db9db7659c",
+										"exec": [
+											"pm.test(\"Platform - Storage - SBL - Restore Instance - Status - 404\", function () {\r",
+											"    pm.response.to.have.status(404);\r",
+											"    pm.expect(pm.response.text()).to.include(\"Didn't find the object\");\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"sbl",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"undelete"
 									]
 								}
 							},

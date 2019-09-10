@@ -175,20 +175,6 @@ test('Check that cookie for Altinn Party is set correctly', async () => {
   await t.expect(JSON.stringify(cookies).includes("AltinnPartyId")).ok();
 });
 
-test('axe UI accessibility test for runtime', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
-    .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
-    .click(runtime.startNewButton)
-    .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
-  axeCheck(t);
-});
-
 test('Receipt page test', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/formfilling#/test')
