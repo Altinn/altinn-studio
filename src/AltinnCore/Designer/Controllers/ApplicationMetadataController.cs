@@ -85,7 +85,7 @@ namespace Designer.Controllers
             }
             else
             {
-                _repository.CreateApplication(org, app);
+                _repository.CreateApplication(org, app, string.Empty);
                 Application createdApplication = _repository.GetApplication(org, app);
                 if (createdApplication == null)
                 {

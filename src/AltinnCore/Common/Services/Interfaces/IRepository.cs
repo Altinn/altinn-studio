@@ -463,9 +463,10 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// creates application  metadata for attachment
         /// </summary>
-        /// <param name="org">the organisation that owns the application</param>
-        /// <param name="appName">the application name</param>
-        void CreateApplication(string org, string appName);
+        /// <param name="org">The organisation code for the application owner</param>
+        /// <param name="app">the application name, e.g. "app-name-with-spaces"</param>
+        /// <param name="appTitle">the application UI title, e.g. "App name with spaces"</param>
+        void CreateApplication(string org, string app, string appTitle);
 
         /// <summary>
         /// Updates application metadata

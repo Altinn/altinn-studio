@@ -239,7 +239,7 @@ namespace AltinnCore.Designer.Controllers
             // but the metadata for attachment will not be available on deployment
             if (applicationFromRepository == null)
             {
-                _repository.CreateApplication(org, appName);
+                _repository.CreateApplication(org, appName, string.Empty);
                 applicationFromRepository = _repository.GetApplication(org, appName);
             }
 
