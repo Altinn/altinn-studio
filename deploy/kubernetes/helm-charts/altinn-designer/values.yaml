@@ -159,13 +159,8 @@ ingress:
   - metadata:
       name: altinn-designer-base-path
       annotations:
-        # traefik.ingress.kubernetes.io/request-modifier: AddPrefix: /users
-        # traefik.ingress.kubernetes.io/rewrite-target: /users
-        # traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
         traefik.ingress.kubernetes.io/rule-type: Path
         traefik.frontend.priority: "1000"
-        # kubernetes.io/ingress.class: nginx
-        # kubernetes.io/tls-acme: "true"
     paths:
       - path: /
     host: staging.altinn.studio
@@ -174,10 +169,7 @@ ingress:
       annotations:
         traefik.ingress.kubernetes.io/request-modifier: "ReplacePath: /Redirect/FetchCookieAndRedirectHome/"
         traefik.ingress.kubernetes.io/rule-type: Path
-        # traefik.ingress.kubernetes.io/rewrite-target: /Redirect/FetchCookieAndRedirectHome/
         traefik.frontend.priority: "900"
-        # kubernetes.io/ingress.class: nginx
-        # kubernetes.io/tls-acme: "true"
     paths:
       - path: /repos/
     host: staging.altinn.studio
@@ -185,8 +177,6 @@ ingress:
       name: altinn-designer-home-path
       annotations:
         traefik.frontend.priority: "800"
-        # kubernetes.io/ingress.class: nginx
-        # kubernetes.io/tls-acme: "true"
     paths:
       - path: /Home/
     host: staging.altinn.studio
@@ -194,8 +184,6 @@ ingress:
       name: altinn-designer-designer-path
       annotations:
         traefik.frontend.priority: "700"
-        # kubernetes.io/ingress.class: nginx
-        # kubernetes.io/tls-acme: "true"
     paths:
       - path: /designer/
     host: staging.altinn.studio
@@ -203,8 +191,6 @@ ingress:
       name: altinn-designer-designerapi-path
       annotations:
         traefik.frontend.priority: "600"
-        # kubernetes.io/ingress.class: nginx
-        # kubernetes.io/tls-acme: "true"
     paths:
       - path: /designerapi/
     host: staging.altinn.studio

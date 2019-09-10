@@ -165,8 +165,6 @@ ingress:
       annotations:
         traefik.ingress.kubernetes.io/request-modifier: "ReplacePathRegex: ^/.*/.*/staticfiles(.*)$ $1"
         traefik.frontend.priority: "100"
-        # kubernetes.io/ingress.class: nginx
-        # kubernetes.io/tls-acme: "true"
     paths:
       - path: /
     host: staging.altinn.studio
