@@ -13,7 +13,7 @@ namespace Common.Helpers
     {
         private const string BANKRUPTCY_CODE = "KBO";
         private const string SUB_UNIT_CODE = "BEDR";
-        private const string SUB_UNIT_CODE_AAFY = "AAFY";
+        private const string SUB_UNIT_CODE_AAFY = "AAFY";        
 
         /// <summary>
         /// Filters a list of parties based on an applications allowed party types.
@@ -31,8 +31,37 @@ namespace Common.Helpers
 
             parties.ForEach(party =>
             {
-                if (IsPartyAllowedToInstantiate(party, partyTypesAllowed))
+                bool isChildPartyAllowed = false;
+                List<Party> allowedChildParties = null;
+                if (party.ChildParties != null)
                 {
+                    allowedChildParties = new List<Party>();
+                    foreach (Party childParty in party.ChildParties)
+                    {
+                        if (IsPartyAllowedToInstantiate(childParty, partyTypesAllowed))
+                        {
+                            allowedChildParties.Add(childParty);
+                            isChildPartyAllowed = true;
+                        }
+                    }
+                }
+
+                if (IsPartyAllowedToInstantiate(party, partyTypesAllowed) && isChildPartyAllowed)
+                {
+                    party.ChildParties = new List<Party>();
+                    party.ChildParties.AddRange(allowedChildParties);
+                    allowed.Add(party);
+                }
+                else if (!IsPartyAllowedToInstantiate(party, partyTypesAllowed) && isChildPartyAllowed)
+                {
+                    party.ChildParties = new List<Party>();
+                    party.OnlyHiearhyElementWithNoAccess = true;
+                    party.ChildParties.AddRange(allowedChildParties);
+                    allowed.Add(party);
+                }
+                else if (IsPartyAllowedToInstantiate(party, partyTypesAllowed))
+                {
+                    party.ChildParties = new List<Party>();
                     allowed.Add(party);
                 }
             });
@@ -70,7 +99,8 @@ namespace Common.Helpers
 
                     break;
                 case PartyType.Organization:
-                    if (partyTypesAllowed.Organization == true)
+                    // Return only main units when the allowedpartytype is "Virksomhet"
+                    if (partyTypesAllowed.Organization == true && (party.UnitType != null && (!SUB_UNIT_CODE.Equals(party.UnitType.Trim()) && !SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()))))
                     {
                         isAllowed = true;
                     }
