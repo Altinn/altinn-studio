@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+ <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -28,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj" />
     <ProjectReference Include="..\Authorization.Interface\Authorization.Interface.csproj" />
   </ItemGroup>
 

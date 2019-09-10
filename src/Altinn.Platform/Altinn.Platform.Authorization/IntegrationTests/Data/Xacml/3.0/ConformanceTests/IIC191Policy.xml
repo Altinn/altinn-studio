@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" PolicyId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIC191:policy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" Version="1.0" xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:policy:schema:os access_control-xacml-2.0-policy-schema-os.xsd">
+    <Description>
+        Policy for Conformance Test IIC191.
+    </Description>
+    <Target/>
+    <Rule Effect="Permit" RuleId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIC191:rule">
+        <Condition>
+<Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:integer-equal">
+            <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:date-bag-size">
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:date-intersection">
+                    <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:date-bag">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#date">2002-04-12</AttributeValue>
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#date">2002-03-22</AttributeValue>
+                    </Apply>
+                    <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:test-attr" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#date" MustBePresent="false"/>
+                </Apply>
+            </Apply>
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">2</AttributeValue>
+        </Apply>
+        </Condition>
+    </Rule>
+</Policy>
