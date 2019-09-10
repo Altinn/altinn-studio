@@ -29,6 +29,12 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.image.containerPorts.port }}
+          {{- if .Values.postStartLifecycleCommand }}
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", "adduser git -D"]
+          {{- end }}
           {{- if .Values.environmentVariables }}
           {{- if eq (required ".Values.environment not set" .Values.environment) "local" }}
           env:

@@ -12,8 +12,12 @@ image:
     port: 3000
   imagePullSecret: acrsecret
 
+postStartLifecycleCommand: ["adduser git -D"]
+
 environmentVariables:
   local:
+    - name: RUN_USER
+      value: root
     - name: USER_UID
       value: \"1000\"
     - name: USER_GID

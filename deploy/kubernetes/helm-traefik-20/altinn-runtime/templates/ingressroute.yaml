@@ -1,5 +1,6 @@
 {{- $serviceName := .Values.service.name }}
 {{- $servicePort := .Values.service.port }}
+{{- $environment := .Values.environment}}
 {{- $middlewareEnabled := .Values.middlewareEnabled }}
 {{- range $ingressRoute := .Values.ingressRoutes }}
 apiVersion: traefik.containo.us/v1alpha1
