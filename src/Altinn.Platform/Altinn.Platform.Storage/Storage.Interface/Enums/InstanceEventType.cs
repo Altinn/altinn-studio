@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace AltinnCore.Common.Enums
+namespace Storage.Interface.Enums
 {
     /// <summary>
     /// This enum defines the Instance event types supported by the AltinnCore platform.
@@ -32,6 +32,12 @@ namespace AltinnCore.Common.Enums
         /// <summary>
         /// Instance deleted event.
         /// </summary>
-        Deleted        
+        Deleted,
+
+        /// <summary>
+        /// Instance deleted event.
+        /// </summary>
+        Undeleted
+
     }
 }
