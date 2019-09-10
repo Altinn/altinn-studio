@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.ModelBinding;
@@ -22,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Storage.Interface.Enums;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -452,7 +452,7 @@ namespace AltinnCore.Runtime.Controllers
                     CurrentTask = currentState.State.ToString(),
                     IsComplete = false,
                 };
-         
+
                 Instance updatedInstance = await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.PartyId, instanceId);
 
                 Response.StatusCode = 200;
