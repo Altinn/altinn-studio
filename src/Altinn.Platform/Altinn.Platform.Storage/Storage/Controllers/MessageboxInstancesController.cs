@@ -163,6 +163,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 InstanceEvent instanceEvent = new InstanceEvent
                 {
+                    CreatedDateTime = DateTime.UtcNow,
                     AuthenticationLevel = 0, // update when authentication is turned on
                     EventType = InstanceEventType.Undeleted.ToString(),
                     InstanceId = instance.Id,
@@ -226,6 +227,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             InstanceEvent instanceEvent = new InstanceEvent
             {
+                CreatedDateTime = DateTime.UtcNow,
                 AuthenticationLevel = 0, // update when authentication is turned on
                 EventType = InstanceEventType.Deleted.ToString(),
                 InstanceId = instance.Id,
