@@ -943,7 +943,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 instance.InstanceState.IsDeleted = true;
                 instance.LastChangedBy = User.Identity.Name;
-                instance.LastChangedDateTime = DateTime.UtcNow;
+                instance.LastChangedDateTime = instance.DeletedDateTime = DateTime.UtcNow;
 
                 try
                 {
