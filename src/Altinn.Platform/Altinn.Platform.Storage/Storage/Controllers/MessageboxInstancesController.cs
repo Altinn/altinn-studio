@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
+using Storage.Interface.Enums;
 using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -19,6 +20,7 @@ namespace Altinn.Platform.Storage.Controllers
     public class MessageBoxInstancesController : ControllerBase
     {
         private readonly IInstanceRepository _instanceRepository;
+        private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
 
         /// <summary>
@@ -28,9 +30,11 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationRepository">the application repository handler</param>
         public MessageBoxInstancesController(
             IInstanceRepository instanceRepository,
+            IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository)
         {
             _instanceRepository = instanceRepository;
+            _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
         }
 
@@ -89,7 +93,6 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="language"> language id en, nb, nn-NO"</param>
         /// <returns>list of instances</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        [Produces("application/vnd+altinn2.inbox+json")]
         public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerId, Guid instanceGuid, [FromQuery] string language)
         {
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
@@ -155,18 +158,94 @@ namespace Altinn.Platform.Storage.Controllers
             else if (instance.InstanceState.IsDeleted)
             {
                 instance.InstanceState.IsDeleted = false;
+                instance.LastChangedBy = User.Identity.Name;
+                instance.LastChangedDateTime = DateTime.UtcNow;
+
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    CreatedDateTime = DateTime.UtcNow,
+                    AuthenticationLevel = 0, // update when authentication is turned on
+                    EventType = InstanceEventType.Undeleted.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
+                    UserId = 0, // update when authentication is turned on
+                };
 
                 try
                 {
                     await _instanceRepository.Update(instance);
+                    await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
                     return Ok(true);
                 }
                 catch (Exception e)
                 {
                     return StatusCode(500, $"Unknown exception in restore: {e}");
                 }
+
+                // generate instance event 'Undeleted'
             }
 
+            return Ok(true);
+        }
+
+        /// <summary>
+        /// Marks an instance for deletion in storage.
+        /// </summary>
+        /// <param name="instanceGuid">instance id</param>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="hard">if true is marked for hard delete.</param>
+        /// <returns>true if instance was successfully deleted</returns>
+        /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}?hard={bool}
+        [HttpDelete("{instanceOwnerId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerId, bool hard)
+        {
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+
+            Instance instance;
+            try
+            {
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
+                }
+
+                return StatusCode(500, $"Unknown database exception in delete: {dce}");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Unknown exception in delete: {e}");
+            }
+
+            instance.InstanceState.IsDeleted = true;
+            instance.InstanceState.IsMarkedForHardDelete = hard;
+            instance.LastChangedBy = User.Identity.Name;
+            instance.LastChangedDateTime = DateTime.UtcNow;
+
+            InstanceEvent instanceEvent = new InstanceEvent
+            {
+                CreatedDateTime = DateTime.UtcNow,
+                AuthenticationLevel = 0, // update when authentication is turned on
+                EventType = InstanceEventType.Deleted.ToString(),
+                InstanceId = instance.Id,
+                InstanceOwnerId = instance.InstanceOwnerId.ToString(),
+                UserId = 0, // update when authentication is turned on
+            };
+
+            try
+            {
+                await _instanceRepository.Update(instance);
+                await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Unknown exception in delete: {e}");
+            }
+
+            // generate instance event 'Undeleted'
             return Ok(true);
         }
     }

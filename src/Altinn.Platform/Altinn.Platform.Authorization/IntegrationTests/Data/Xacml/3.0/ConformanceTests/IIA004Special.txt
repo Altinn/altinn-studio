@@ -1,0 +1,18 @@
+Special Instructions for Test Case II.A.4
+
+The policy for this test contains a syntax error.
+
+If an initial policy with invalid syntax MAY EVER be evaluated by
+the implementation's XACML PDP at the time a Request is received,
+then this test MUST be passed.  In this case, the result MUST be
+consistent with the supplied IIA004Response.xml file: it returns
+a Decision of Indeterminate with a StatusCode value of
+"urn:oasis:names:tc:xacml:1.0:status:syntax-error".
+
+If the implementation's XACML PDP CAN NEVER attempt to evaluate
+an initial policy with invalid syntax, then the implementation
+MUST demonstrate that the policy in IIA004Policy.xml will be
+rejected by whatever entity is responsible for validating policy
+syntax in the system in which the XACML PDP will be used.  In
+this case, the supplied Request and Response files are not
+relevant and may be ignored.

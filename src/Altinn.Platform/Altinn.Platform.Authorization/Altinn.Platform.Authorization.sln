@@ -1,18 +1,25 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.572
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorization", "Authorization\Altinn.Platform.Authorization.csproj", "{D9C0433E-738C-4E07-9F88-D71D7DF04E3F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F2EB70E6-8AF2-43A7-AAAA-AE9F9BE5441D}"
 	ProjectSection(SolutionItems) = preProject
+		UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj = UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj
 		Altinn3.ruleset = Altinn3.ruleset
 	EndProjectSection
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Authorization.Interface", "Authorization.Interface\Authorization.Interface.csproj", "{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC", "Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj", "{D4EDBE62-E430-49E1-ACC7-65581BA9714F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authorization.IntegrationTest", "IntegrationTests\Altinn.Platform.Authorization.IntegrationTest.csproj", "{977119A9-CF6D-4806-BEB2-9CFEE26C3208}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Authorization.ABAC.UnitTest", "UnitTest\Altinn.Authorization.ABAC.UnitTest.csproj", "{F7FECF3A-0766-46DE-94C7-F237A188FCD0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +39,18 @@ Global
 		{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{849808D5-B4C6-4EA8-A7B2-714EB86F28D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4EDBE62-E430-49E1-ACC7-65581BA9714F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4EDBE62-E430-49E1-ACC7-65581BA9714F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4EDBE62-E430-49E1-ACC7-65581BA9714F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4EDBE62-E430-49E1-ACC7-65581BA9714F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{977119A9-CF6D-4806-BEB2-9CFEE26C3208}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{977119A9-CF6D-4806-BEB2-9CFEE26C3208}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{977119A9-CF6D-4806-BEB2-9CFEE26C3208}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{977119A9-CF6D-4806-BEB2-9CFEE26C3208}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7FECF3A-0766-46DE-94C7-F237A188FCD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7FECF3A-0766-46DE-94C7-F237A188FCD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7FECF3A-0766-46DE-94C7-F237A188FCD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7FECF3A-0766-46DE-94C7-F237A188FCD0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

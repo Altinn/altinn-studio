@@ -1,0 +1,3297 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Altinn.Authorization.ABAC</name>
+    </assembly>
+    <members>
+        <member name="T:Altinn.Authorization.ABAC.Constants.Xacml30Constants">
+            <summary>
+            Constants for XACML 3.0 Constants
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.Xacml30Constants.NameSpaces">
+            <summary>
+            Namespace constants
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.Xacml30Constants.NameSpaces.Policy">
+            <summary>
+            Namespace for policy in XACML 3.0
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants">
+            <summary>
+            Constants for XACML 
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames">
+            <summary>
+            Element names in XACML 
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.ActionAttributeDesignator">
+            <summary>
+            ActionAttributeDesignator Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AdviceExpression">
+            <summary>
+            AdviceExpression Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AdviceExpressions">
+            <summary>
+            AdviceExpressions Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AnyOf">
+            <summary>
+            AnyOf Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AllOf">
+            <summary>
+            AllOf Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Apply">
+            <summary>
+            Apply Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Advice">
+            <summary>
+            Advice Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AssociatedAdvice">
+            <summary>
+            AssociatedAdvice Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Attribute">
+            <summary>
+            Attribute Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Attributes">
+            <summary>
+            Attributes Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeAssignment">
+            <summary>
+            AttributeAssignment Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeAssignmentExpression">
+            <summary>
+            AttributeAssignmentExpression Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeDesignator">
+            <summary>
+            AttributeDesignator Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributesReference">
+            <summary>
+            AttributesReference Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeSelector">
+            <summary>
+            AttributeSelector Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.AttributeValue">
+            <summary>
+            AttributeValue Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.CombinerParameter">
+            <summary>
+            CombinerParameter 
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.CombinerParameters">
+            <summary>
+            CombinerParameters Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Condition">
+            <summary>
+            Condition Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Content">
+            <summary> 
+            Content Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Decision">
+            <summary>
+            Decision Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Description">
+            <summary>
+            Description Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.EnvironmentAttributeDesignator">
+            <summary>
+            EnvironmentAttributeDesignator Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Function">
+            <summary>
+            Function Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Match">
+            <summary>
+            Match Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.MultiRequests">
+            <summary>
+            MultiRequests Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Obligation">
+            <summary>
+            Obligation Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Obligations">
+            <summary>
+            Obligations Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.ObligationExpressions">
+            <summary>
+            ObligationExpressions Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.ObligationExpression">
+            <summary>
+            ObligationExpression Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Policy">
+            <summary>
+            Policy Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicyDefaults">
+            <summary>
+            PolicyDefaults Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicyIdentifierList">
+            <summary>
+            PolicyIdentifierList Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicySetIdReference">
+            <summary>
+            PolicySetIdReference Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicyIdReference">
+            <summary>
+            PolicyIdReference Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicyIssuer">
+            <summary>
+            PolicyIssuer Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.PolicySet">
+            <summary>
+            PolicySet Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Request">
+            <summary>
+            Context Requext Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.RequestDefaults">
+            <summary>
+            RequestDefaults Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.RequestReference">
+            <summary>
+            RequestReference Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.ResourceAttributeDesignator">
+            <summary>
+            ResourceAttributeDesignator Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Response">
+            <summary>
+            Response Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Result">
+            <summary>
+            Result Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Rule">
+            <summary>
+            Rule Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.RuleCombinerParameters">
+            <summary>
+            RuleCombinerParameters Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Status">
+            <summary>
+            Status Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.StatusCode">
+            <summary>
+            StatusCode Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.StatusDetail">
+            <summary>
+            StatusDetail Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.StatusMessage">
+            <summary>
+            StatusMessage Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.SubjectAttributeDesignator">
+            <summary>
+            SubjectAttributeDesignator Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.Target">
+            <summary>
+            Target Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.VariableDefinition">
+            <summary>
+            VariableDefinition Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.VariableReference">
+            <summary>
+            VariableReference Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.ElementNames.XPathVersion">
+            <summary>
+            XPathVersion Xacml 3.0 element name
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames">
+            <summary>
+            Attribute names constant
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.AdviceId">
+            <summary>
+            AdviceId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.AppliesTo">
+            <summary>
+            AppliesTo Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.AttributeId">
+            <summary>
+            AttributeId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Category">
+            <summary>
+            Category Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.CombinedDecision">
+            <summary>
+            CombinedDecision Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.DataType">
+            <summary>
+            DataType Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.EarliestVersion">
+            <summary> 
+            EarliestVersion Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Effect">
+            <summary>
+            Effect Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.FulfillOn">
+            <summary>
+            FulfillOn Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.FunctionId">
+            <summary>
+            FunctionId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Id">
+            <summary>
+            id Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.IncludeInResult">
+            <summary>
+            IncludeInResult Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Issuer">
+            <summary>
+            Issuer Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.LatestVersion">
+            <summary>
+            LatestVersion Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ObligationId">
+            <summary>
+            ObligationId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ParameterName">
+            <summary>
+            ParameterName Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Path">
+            <summary>
+            Path Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.PolicyId">
+            <summary>
+            PolicyId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ReferenceId">
+            <summary> 
+            ReferenceId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ResourceId">
+            <summary>
+            ResourceId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.ReturnPolicyIdList">
+            <summary>
+            ReturnPolicyIdList Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.RequestContextPath">
+            <summary>
+            RequestContextPath Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.RuleCombiningAlgId">
+            <summary>
+            RuleCombiningAlgId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.RuleId">
+            <summary>
+            RuleId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.RuleIdRef">
+            <summary>
+            RuleIdRef Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.MaxDelegationDepth">
+            <summary>
+            MaxDelegationDepth Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.MatchId">
+            <summary>
+            MatchId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.MustBePresent">
+            <summary>
+            MustBePresent Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Value">
+            <summary>
+            Value Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.VariableId">
+            <summary>
+            VariableId Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.AttributeNames.Version">
+            <summary>
+            Version Xacml 3.0 attribute name
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory">
+            <summary>
+            The Attribute categories
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory.Resource">
+            <summary>
+            The Resource Category
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory.Action">
+            <summary>
+            The action category
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory.Environement">
+            <summary>
+            The environment category
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeCategory.Subject">
+            <summary>
+            The subject category
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms">
+            <summary>
+            Combining algorithms used when there are more than one rule or policy that matches request
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleDenyOverrides">
+            <summary>
+            The deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyDenyOverrides">
+            <summary>
+            The deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RulePermitOverrides">
+            <summary>
+            The permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyPermidOverrides">
+            <summary>
+            The permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleFirstApplicable">
+            <summary>
+            The first-applicable rule-combining algorithm has the following value for the ruleCombiningAlgId attribute: 
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyFirstApplicable">
+            <summary>
+            The first-applicable policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyOnlyOneApplicable">
+            <summary>
+            The only-one-applicable-policy policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleOrderedDenyOverrides">
+            <summary>
+            The ordered-deny-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyOrderedDenyOverrided">
+            <summary>
+            The ordered-deny-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleOrderedPermitOverrides">
+            <summary>
+            The ordered-permit-overrides rule-combining algorithm has the following value for the ruleCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyOrderedPermitOverrides">
+            <summary>
+            The ordered-permit-overrides policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RuleDenyUnlessPermit">
+            <summary>
+            The deny-unless-permit rule-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.RulePermittUnlessDeny">
+            <summary>
+            The permit-unless-deny rule-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyDenyUnlessPermit">
+            <summary>
+            The deny-unless-permit policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.CombiningAlgorithms.PolicyPermitUnlessDeny">
+            <summary>
+            The permit-unless-deny policy-combining algorithm has the following value for the policyCombiningAlgId attribute:
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.StatusCodes">
+            <summary>
+            B.8 Status codes
+            The following status code values are defined.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.StatusCodes.Success">
+            <summary>
+            This identifier indicates success.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.StatusCodes.MissingAttribute">
+            <summary>
+            This identifier indicates that all the attributes necessary to make a policy decision were not available.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.StatusCodes.SyntaxError">
+            <summary>
+            This identifier indicates that some attribute value contained a syntax error, such as a letter in a numeric field.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.StatusCodes.ProcessingError">
+            <summary>
+            This identifier indicates that an error occurred during policy evaluation. An example would be division by zero.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers">
+            <summary>
+            10.2.6 Identifiers
+            The implementation MUST use the attributes associated with the following identifiers in the way XACML has defined.
+            This requirement pertains primarily to implementations of a PAP or PEP that uses XACML, since the semantics of the
+            attributes are transparent to the PDP.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.DnsName">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.IpAdress">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.AuthenticationMethod">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.AuthenticationTime">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.KeyInfo">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.RequestTime">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.SessionStartTime">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.SubjectId">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.SubjectIdQualifier">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.AccessSubject">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.CodeBase">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.IntermediarySubject">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.RecipientSubject">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.RequestingMachine">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.ResourceLocation">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.ResourceId">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.SimpleFileName">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.ActionId">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchAttributeIdentifiers.ImpliedAction">
+            <summary>
+            Attribute Matching Identity
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers">
+            <summary>
+            The match type identifier
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringEqualIgnoreCase">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.BooleanEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.IntegerEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DoubleEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.TimeEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateTimeEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DayTimeDurationEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.YearMonthDurationEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.AnyUriEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.X500NameEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.Rfc822NameEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.HexBinaryEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.Base64BinaryEqual">
+            <summary>
+            String Equal Matching Function
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.StringIsIn">
+            <summary>
+            String is in bag of attributes
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.IntegerOneAndOnly">
+            <summary>
+            Verify that one one integer of that value exist
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.TimeBagSize">
+            <summary>
+            Verify that time bag size is 1
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.MatchTypeIdentifiers.DateOneAndOnly">
+            <summary>
+            Verify that the bag only contains one Date attribute withe the given attribute ID
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes">
+            <summary>
+            Prefixed used in namespaces when writing to XML
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Policy">
+            <summary>
+            The XACML policy namespace prefix.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Context">
+            <summary>
+            The XACML Context namespace prefix.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.Prefixes.Xml">
+            <summary>
+            The XML namespace prefix.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes">
+            <summary>
+            The datatypes uses in XACML
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XML_String">
+            <summary>
+            Datatype xml string
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XML_Integer">
+            <summary>
+            Datatype XML integer
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XacmlConstants.DataTypes.XML_AnyURI">
+            <summary>
+            Datatype Any uri
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants">
+            <summary>
+            Constants for XML 
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants.AttributeNames">
+            <summary>
+            XML Attributes
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XmlConstants.AttributeNames.XmlNameSpacePrefix">
+            <summary>
+            XML namespace prefix
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Constants.XmlConstants.Namespaces">
+            <summary>
+            XML Namespaces
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Constants.XmlConstants.Namespaces.XmlNamespace">
+            <summary>
+            The XML namespace
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Interface.IContextHandler">
+            <summary>
+            Defines Interface for Context Handler
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Interface.IContextHandler.Enrich(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+            <summary>
+            Enrich the DecisionRequest with needed attributes so PDP can evaluate decision request for a policy/policyset
+            </summary>
+            <param name="decisionRequest">The XacmlContextRequest</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Interface.IPolicyInformationPoint">
+            <summary>
+            The Interface that defines the Policy Information Point
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Interface.IPolicyInformationPoint.GetClaimsPrincipal(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+            <summary>
+            Returns a Claims Princial based on the Context Request
+            </summary>
+            <param name="request">The Context Request</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint">
+            <summary>
+            Defines the interface for the Policy Retrival Point
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint.GetPolicy(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+            <summary>
+            Returns a policy based on the context request
+            </summary>
+            <param name="request">The context request</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.PolicyDecisionPoint">
+            <summary>
+            This is the Policy Decision Point performing validation of request against policies
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.#ctor(Altinn.Authorization.ABAC.Interface.IContextHandler,Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.PolicyDecisionPoint"/> class.
+            </summary>
+            <param name="contextHandler">The configured contexthandler</param>
+            <param name="prp">The Policy Retrieval Point</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.Authorize(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+            <summary>
+            Method that validated if the subject is allwoed to perform the requested operation on a given resource
+            </summary>
+            <param name="decisionRequest">The Xacml Context request</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.GetMatchingRules(Altinn.Authorization.ABAC.Xacml.XacmlPolicy,Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,System.Boolean@)">
+            <summary>
+            Returns the list of rules that matched the ContextRequest
+            </summary>
+            <param name="policy">The policy</param>
+            <param name="decisionRequest">The decision request</param>
+            <param name="requiredAttributeMissing">Tels if a required attribute is missing</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.Guard">
+            <summary>
+            Utils class for different types of guarding
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.Guard.ArgumentNotNull(System.Object,System.String)">
+            <summary>
+            Checks an argument to ensure it isn't null
+            </summary>
+            <param name="argumentValue">
+            The argument value to check.
+            </param>
+            <param name="argumentName">
+            The name of the argument.
+            </param>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter">
+            <summary>
+            Utility that converts between JSON objects and XML objects
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter.ConvertRequest(Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest)">
+            <summary>
+            Converts JSON request 
+            </summary>
+            <param name="xacmlJsonRequest">The JSON Request</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlJsonXmlConverter.ConvertResponse(Altinn.Authorization.ABAC.Xacml.XacmlContextResponse)">
+            <summary>
+             Converts a Xacml XML response to a JSON object response
+            </summary>
+            <param name="xacmlContextResponse">The context response</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser">
+            <summary>
+            Parser Responsible for parsing 
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ParseXacmlPolicy(System.Xml.XmlReader)">
+            <summary>
+            Parses a Xacml 3.0 XML Policy 
+            </summary>
+            <param name="reader">A XML Reader with the Policy loaded</param>
+            <returns>The XACML Policy</returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextRequest(System.Xml.XmlReader)">
+            <summary>
+            Parses XML based Xacml Context Request
+            </summary>
+            <param name="reader">The XNL Reader</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextResponse(System.Xml.XmlReader)">
+            <summary>
+            Parses XACML 3.0 Context Response XML documents
+            </summary>
+            <param name="reader">The XML Reader</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadContextResult(System.Xml.XmlReader)">
+            <summary>
+            Parses a XMLContextResult
+            </summary>
+            <param name="reader">The XML Reader</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadChoiceElements(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
+            <summary>
+            This method reads 
+            </summary>
+            <param name="reader">The XML Reader</param>
+            <param name="readerActions">A dictionary with actions to be used on different element types</param>
+            <param name="isRequired">Defines if it is a required parameter</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadChoiceElement(System.Xml.XmlReader,System.Collections.Generic.IDictionary{System.Tuple{System.String,System.String},System.Action},System.Boolean)">
+            <summary>
+            This method uses a dictionary with different actions to 
+            </summary>
+            <param name="reader">The Xml reader</param>
+            <param name="actions">The actions to be used for reading a element</param>
+            <param name="isRequired">Defines if element is required</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadAttributeSelector(System.Xml.XmlReader)">
+            <summary>
+            Reads Attribute Selector Elements from XACML 3.0 Policy
+            </summary>
+            <param name="reader">The xml Reader</param>
+            <returns>A XacmlAttributeSelector</returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlParser.ReadElement`1">
+            <summary>
+            Delegate to make it possible to send different read methods in to metods
+            </summary>
+            <typeparam name="T">The type</typeparam>
+            <param name="reader">The xml reader</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ValidateXacmlPolicyStartElement(System.Xml.XmlReader,System.String)">
+            <summary>
+            Validates if the next element Xacml XLM is of a given type.
+            Throws exception if not
+            </summary>
+            <param name="reader">The XML Reader</param>
+            <param name="elementName">The name of the element</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlParser.ValidateNotMoreThanOneElement(System.Xml.XmlReader,System.Int32,System.String)">
+            <summary>
+            Validates that the count of element is not more than 
+            </summary>
+            <param name="reader">The Xml Reader</param>
+            <param name="elementCount">The element count</param>
+            <param name="elementName">The element name</param>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Utils.XacmlSerializer">
+            <summary>
+            Utility to parse XACM objects to XML or JSON
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Utils.XacmlSerializer.WriteContextResponse(System.Xml.XmlWriter,Altinn.Authorization.ABAC.Xacml.XacmlContextResponse)">
+            <summary>
+            Method to serialize the XACML Response
+            </summary>
+            <param name="writer">XML Writer</param>
+            <param name="xacmlContextResponse">The responze</param>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.AttributeMatcher">
+            <summary>
+            Utility to match attributes
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.AttributeMatcher.MatchAttributes(System.String,System.String,System.String)">
+            <summary>
+            Method to match attributes
+            </summary>
+            <param name="policyAttribute">The attribute in policy</param>
+            <param name="contextRequestAttribute">The attribute in </param>
+            <param name="matchId">The match parameter</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.IXacmlExpression">
+             <summary>
+             5.25 Element <Expression/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503878
+             The <Expression /> element is not used directly in a policy.
+             The <Expression /> element signifies that an element that extends the ExpressionType and is a member of the <Expression /> element substitution group SHALL appear in its place.
+            
+             The following elements are in the <Expression/> element substitution group:
+             <Apply/>, <AttributeSelector/>, <AttributeValue/>, <Function/>, <VariableReference/> and<AttributeDesignator/>.
+            
+             This interface is implemtend by the above types to make it possible to have a generic property on the XacmlExpression type
+             </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute">
+            <summary>
+            Defines the Attribute Json object
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.AttributeId">
+            <summary>
+            The AttributeId. Required
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.Value">
+            <summary>
+            The value for the Attribute. Required
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.Issuer">
+            <summary>
+            The issuer of the attribute. Optional
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.DataType">
+            <summary>
+            The datatype of the attribute. Optional in somce cases.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttribute.IncludeInResult">
+            <summary>
+            Defines if the attribute should be returned in the result. 
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment">
+            <summary>
+            Json reprentation of Attribute assignment returned
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.AttributeId">
+            <summary>
+            A string containing a XACML attribute URI. Mandatory
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.Value">
+            <summary>
+            The value. Mandatory
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.Category">
+            <summary>
+            A string containing a XACML category URI or the shorthand notation defined in section 4.2.2.1
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.DataType">
+            <summary>
+            The datattype of the attribute
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonAttributeAssignment.Issuer">
+            <summary>
+             The issuer of the attribute. Optional
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory">
+            <summary>
+            The Category object corresponds to the XML <Attributes /> element. Just like the <Attributes /> element is specific to a given XACML
+            attribute category, the Category object in JSON is specific to a given XACML attribute category.
+            http://docs.oasis-open.org/xacml/xacml-json-http/v1.1/csprd01/xacml-json-http-v1.1-csprd01.html
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.CategoryId">
+            <summary>
+            Sets or gets the CategoryId.
+            Mandatory for a Category object in the "Category" member array; otherwise, optional. See section 4.2.2.2.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Id">
+            <summary>
+            The Id of the category, mappes to attributeId in xml version of ContextRequest 
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Content">
+            <summary>
+            Optional XML conten
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonCategory.Attribute">
+            <summary>
+            A list over all attributes for a given attribute Id mappes to the 
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonIdReference">
+            <summary>
+            A JSON object for policy refernces
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonIdReference.Id">
+            <summary>
+            A string containing a XACML policy or policy set URI.
+            Represents the value stored inside the XACML XML<PolicyIdReference /> or<PolicySetIdReference/> element.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonIdReference.Version">
+            <summary>
+            The version
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail">
+            <summary>
+            A JSON object for information about missing attributes in the Context Request
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.AttributeId">
+            <summary>
+            A string containing a XACML attribute URI
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.Value">
+            <summary>
+            The value
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.Issuer">
+            <summary>
+            The issuer
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.DataType">
+            <summary>
+            The datatype
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMissingAttributeDetail.Category">
+            <summary>
+             The category of the missing attribute
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMultiRequests">
+            <summary>
+            A JSON object that defines references to multiple requests
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonMultiRequests.RequestReference">
+            <summary>
+            The request reference
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonObligationOrAdvice">
+            <summary>
+            Defines a Json object for Obl
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonObligationOrAdvice.Id">
+            <summary>
+            A string containing a XACML obligation or advice URI
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonObligationOrAdvice.AttributeAssignment">
+            <summary>
+            An array of AttributeAssignment objects
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonPolicyIdentifierList">
+            <summary>
+            A JSON object that refernces a policy or policy set
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonPolicyIdentifierList.PolicyIdReference">
+            <summary>
+            List over policy id references
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonPolicyIdentifierList.PolicySetIdReference">
+            <summary>
+            List policy sets references
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest">
+            <summary>
+            4.2 Representation of the XACML request in JSON
+            An XACML request is represented as an object with a single member named "Request". The value of the "Request" member is a Request object.
+            http://docs.oasis-open.org/xacml/xacml-json-http/v1.1/csprd01/xacml-json-http-v1.1-csprd01.html
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.ReturnPolicyIdList">
+            <summary>
+            Gets or sets the ReturnPolicyIdList. Optional. Default false
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.CombinedDecision">
+            <summary>
+            Sets or gets the combined decision
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.XPathVersion">
+            <summary>
+            The xpath version
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.Category">
+            <summary>
+            The Category object corresponds to the XML <Attributes/> element. Just like the <Attributes/> element is
+            specific to a given XACML attribute category, the Category object in JSON is specific to a given XACML attribute category.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.Resource">
+            <summary>
+            The resource attributes
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.Action">
+            <summary>
+            The action attributes
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.AccessSubject">
+            <summary>
+            The subject attributes
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.RecipientSubject">
+            <summary>
+            The recipent subjet
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.IntermediarySubject">
+            <summary>
+            The intermediary subjects attributes
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.RequestingMachine">
+            <summary>
+            Attributes about requsting machine
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequest.MultiRequests">
+            <summary>
+            References to multiple requests
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestReference">
+            <summary>
+            JSON object for request references
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestReference.ReferenceId">
+            <summary>
+            The reference Id
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestRoot">
+            <summary>
+            The JSON object roor needed to be abe to parse the request
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonRequestRoot.Request">
+            <summary>
+            The request
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResponse">
+            <summary>
+            The JSON Response
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResponse.Response">
+            <summary>
+            A list over JSON XACML results
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult">
+            <summary>
+            The JSON object Result
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Decision">
+            <summary>
+            The XACML Decision
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Status">
+            <summary>
+            The status
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Obligations">
+            <summary>
+            Any obligations of the result
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.AssociateAdvice">
+            <summary>
+            XACML Advice
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Category">
+            <summary>
+            Category
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.PolicyIdentifierList">
+            <summary>
+            Policy Identifyer list related to the result
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus">
+            <summary>
+            XACML Json object for status
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus.StatusMessage">
+            <summary>
+            The status message
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus.StatusDetails">
+            <summary>
+             List over status details
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatus.StatusCode">
+            <summary>
+            The defined status code
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatusCode">
+            <summary>
+            A XACML Json object for status Code
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatusCode.Value">
+            <summary>
+            The value
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonStatusCode.StatusCode">
+            <summary>
+            A nested status code
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAdvice">
+             <summary>
+             5.35 Element <Advice/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047140
+            
+             The <Advice/> element SHALL contain an identifier for the advice and a set of attributes that form arguments of the supplemental
+             information defined by the advice.
+            
+             The <Advice/> element is of AdviceType complexType.  See Section 7.18 for a description of how the set of advice to be returned by the PDP is determined.
+             The<Advice/> element contains the following elements and attributes:
+            
+             AdviceId[Required]
+             Advice identifier.The value of the advice identifier MAY be interpreted by the PEP.
+            
+             <AttributeAssignment/> [Optional]
+             Advice arguments assignment.The values of the advice arguments MAY be interpreted by the PEP.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAdvice.#ctor(System.Uri,System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAdvice"/> class.
+            </summary>
+            <param name="adviceId">Advice identifier.The value of the advice identifier MAY be interpreted by the PEP.</param>
+            <param name="attributeAssigments">Advice arguments assignment.The values of the advice arguments MAY be interpreted by the PEP.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAdvice.AttributeAssignment">
+            <summary>
+            Advice arguments assignment.The values of the advice arguments MAY be interpreted by the PE
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAdvice.AdviceId">
+            <summary>
+            Advice identifier.The value of the advice identifier MAY be interpreted by the PEP.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAdviceExpression">
+             <summary>
+             XACML 5.40 Element <AdviceExpression/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503891
+             The <AdviceExpression/> element evaluates to an advice and SHALL contain an identifier for an advice and a set of expressions that form
+             arguments of the supplemental information defined by the advice.  The AppliesTo attribute SHALL indicate the effect for which this advice must be provided to the PEP.
+            
+             The <AdviceExpression/> element is of AdviceExpressionType complexType.  See Section 7.16 for a description of how the set of advice to be returned by the PDP is determined.
+             The<AdviceExpression/> element contains the following elements and attributes:
+            
+             AdviceId[Required]
+             Advice identifier.The value of the advice identifier MAY be interpreted by the PEP.
+            
+             AppliesTo [Required]
+             The effect for which this advice must be provided to the PEP.
+            
+             <AttributeAssignmentExpression/> [Optional]
+             Advice arguments in the form of expressions. The expressions SHALL be evaluated by the PDP to constant <AttributeValue /> elements or bags, which shall be the
+             attribute assignments in the<Advice /> returned to the PEP.If an <AttributeAssignmentExpression /> evaluates to an atomic attribute value, then there MUST be
+             one resulting <AttributeAssignment /> which MUST contain this single attribute value.If the <AttributeAssignmentExpression /> evaluates to a bag, then there
+             MUST be a resulting <AttributeAssignment /> for each of the values in the bag. If the bag is empty, there shall be no <AttributeAssignment /> from this
+             <AttributeAssignmentExpression />.  The values of the advice arguments MAY be interpreted by the PEP.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAdviceExpression.#ctor(System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlEffectType)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAdviceExpression"/> class.
+            </summary>
+            <param name="adviceId">Advice identifier.The value of the advice identifier MAY be interpreted by the PEP.</param>
+            <param name="appliesTo">The effect for which this advice must be provided to the PEP.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAdviceExpression.AdviceId">
+            <summary>
+            Advice identifier.The value of the advice identifier MAY be interpreted by the PEP.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAdviceExpression.AppliesTo">
+            <summary>
+            The effect for which this advice must be provided to the PEP.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAdviceExpression.AttributeAssignmentExpressions">
+            <summary>
+            Advice arguments in the form of expressions. The expressions SHALL be evaluated by the PDP to constant <AttributeValue /> elements or bags, which shall be the
+            attribute assignments in the<Advice /> returned to the PEP.If an <AttributeAssignmentExpression /> evaluates to an atomic attribute value, then there MUST be
+            one resulting <AttributeAssignment /> which MUST contain this single attribute value.If the <AttributeAssignmentExpression /> evaluates to a bag, then there
+            MUST be a resulting <AttributeAssignment /> for each of the values in the bag. If the bag is empty, there shall be no <AttributeAssignment /> from this
+            <AttributeAssignmentExpression />.  The values of the advice arguments MAY be interpreted by the PEP.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAllOf">
+             <summary>
+             5.8 Element <AllOf/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503861
+             The <AllOf/> element SHALL contain a conjunctive sequence of <Match/> elements.
+            
+             The <AllOf/> element is of AllOfType complex type.
+             The<AllOf/> element contains the following elements.
+            
+             <Match/> [One to Many]
+             A conjunctive sequence of individual matches of the attributes in the request context and the embedded attribute values.See Section 5.9.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAllOf.#ctor(System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlMatch})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAllOf"/> class.
+            </summary>
+            <param name="matches">The matches.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAllOf.Matches">
+            <summary>
+            Gets the matches.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement">
+            <summary>
+            Entity for any elements in XML
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement"/> class.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.Attributes">
+            <summary>
+            XML attributes.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAnyElement.Elements">
+            <summary>
+            XML elements.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyOf">
+            <summary>
+            5.7 Element <AnyOf />
+            The <AnyOf /> element SHALL contain a disjunctive sequence of <AllOf /> elements.
+            The<AnyOf/> element is of AnyOfType complex type.
+            The<AnyOf/> element contains the following elements:
+            <AllOf/> [One to Many, Required] See Section 5.8.
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAnyOf.#ctor(System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlAllOf})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyOf"/> class.
+            </summary>
+            <param name="allOf">All of.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAnyOf.AllOf">
+            <summary>
+            Gets a value AllOf.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAnyOf.NoNullCollection`1">
+            <summary>
+            Helper class to prevent null objects
+            </summary>
+            <typeparam name="T">The type</typeparam>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlApply">
+             <summary>
+             From Xacml Specification 5.27 http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503880
+             The <Apply/> element denotes application of a function to its arguments, thus encoding a function call.
+             The <Apply/> element can be applied to any combination of the members of the <Expression/> element substitution group.  See Section 5.25.
+            
+             The <Apply/> element is of ApplyType complex type.
+             The<Apply/> element contains the following attributes and elements:
+             
+             FunctionId[Required]
+             The identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3.
+            
+             <Description/> [Optional]
+             A free-form description of the <Apply/> element.
+            
+             <Expression/> [Optional]
+             Arguments to the function, which may include other functions.
+             </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlApply.Description">
+            <summary>
+            Gets or sets A free-form description of the <Apply/> element.
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlApply.#ctor(System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlApply"/> class.
+            </summary>
+            <param name="functionId">The identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlApply.Parameters">
+            <summary>
+            The collection of parameters for the Apply object
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlApply.FunctionId">
+            <summary>
+            The identifier of the function to be applied to the arguments.XACML-defined functions are described in Appendix A.3 of the XACML documentation
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlApply.Evalute(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+            <summary>
+            Evauluate the Apply 
+            </summary>
+            <param name="request">The context request</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttribute">
+             <summary>
+             5.46 Element <Attribute/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503899
+             The<Attribute/> element is the central abstraction of the request context.It contains attribute meta-data and one or more attribute values.
+             The attribute meta-data comprises the attribute identifier and the attribute issuer.  <AttributeDesignator/> elements in the policy MAY refer to attributes by means of this meta-data.
+            
+             The <Attribute/> element is of AttributeType complex type.
+             The<Attribute/> element contains the following attributes and elements:
+            
+             AttributeId[Required]
+             The Attribute identifier.A number of identifiers are reserved by XACML to denote commonly used attributes.  See Appendix B.
+             
+             Issuer[Optional]
+             The Attribute issuer.  For example, this attribute value MAY be an x500Name that binds to a public key, or it may be some other identifier exchanged out-of-band by issuing and relying parties.
+            
+             IncludeInResult [Default: false]
+             Whether to include this attribute in the result. This is useful to correlate requests with their responses in case of multiple requests.
+            
+             <AttributeValue/> [One to Many]
+             One or more attribute values.Each attribute value MAY have contents that are empty, occur once or occur multiple times.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttribute.#ctor(System.Uri,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttribute"/> class.
+            </summary>
+            <param name="attributeId">The Attribute identifier.A number of identifiers are reserved by XACML to denote commonly used attributes.  See Appendix B.</param>
+            <param name="includeInResult">Whether to include this attribute in the result. This is useful to correlate requests with their responses in case of multiple requests.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttribute.Issuer">
+            <summary>
+            Gets or sets the issuer.
+            </summary>
+            <value>
+            The issuer.
+            </value>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttribute.AttributeId">
+            <summary>
+            Gets or sets the attribute identifier.
+            </summary>
+            <value>
+            The attribute identifier.
+            </value>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttribute.IncludeInResult">
+            <summary>
+            Gets or sets a value indicating whether [include in result].
+            </summary>
+            <value>
+              <c>true</c> if [include in result]; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttribute.AttributeValues">
+            <summary>
+            Gets the attribute values.
+            </summary>
+            <value>
+            The attribute values.
+            </value>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment">
+             <summary>
+              5.36 Element <AttributeAssignment/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047141
+             The <AttributeAssignment/> element is used for including arguments in obligation and advice expressions.
+             It SHALL contain an AttributeId and the corresponding attribute value, by extending the AttributeValueType type definition.
+             The <AttributeAssignment/> element MAY be used in any way that is consistent with the schema syntax, which is a sequence of xs:any elements.
+             The value specified SHALL be understood by the PEP, but it is not further specified by XACML. See Section 7.18.  Section 4.2.4.3
+             provides a number of examples of arguments included in obligation.expressions.
+            
+             The <AttributeAssignment/> element is of AttributeAssignmentType complex type.
+             The<AttributeAssignment/> element contains the following attributes:
+            
+             AttributeId[Required]
+             The attribute Identifier.
+            
+             Category [Optional]
+             An optional category of the attribute. If this attribute is missing, the attribute has no category.The PEP SHALL interpret the significance and meaning of any Category attribute.
+             Non-normative note: an expected use of the category is to disambiguate attributes which are relayed from the request.
+             
+             Issuer[Optional]
+             An optional issuer of the attribute.If this attribute is missing, the attribute has no issuer.The PEP SHALL interpret the significance and meaning of any Issuer attribute.
+             Non-normative note: an expected use of the issuer is to disambiguate attributes which are relayed from the request.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment.#ctor(System.Uri,System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment"/> class.
+            </summary>
+            <param name="attributeId"> The attribute Identifier.</param>
+            <param name="dataType">The datatype</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment.#ctor(System.Uri,System.Uri,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment"/> class.
+            </summary>
+            <param name="attributeId">The attribute Identifier.</param>
+            <param name="dataType">The datatype</param>
+            <param name="value">The value</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment.Category">
+            <summary>
+            An optional category of the attribute. If this attribute is missing, the attribute has no category.The PEP SHALL interpret the significance and meaning of any Category attribute.
+            Non-normative note: an expected use of the category is to disambiguate attributes which are relayed from the request.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment.Issuer">
+            <summary>
+            An optional issuer of the attribute.If this attribute is missing, the attribute has no issuer.The PEP SHALL interpret the significance and meaning of any Issuer attribute.
+            Non-normative note: an expected use of the issuer is to disambiguate attributes which are relayed from the request.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment.AttributeId">
+            <summary>
+            Gets or sets the AttributeId
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment.Value">
+            <summary>
+            Gets or sets the value
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignmentExpression">
+             <summary>
+             5.41 Element <AttributeAssignmentExpression/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503894
+             The<AttributeAssignmentExpression/> element is used for including arguments in
+             obligations and advice.It SHALL contain an AttributeId and an expression which SHALL by evaluated into the
+             corresponding attribute value.The value specified SHALL be understood by the PEP, but it is not further specified by
+             XACML.See Section 7.16.  Section 4.2.4.3 provides a number of examples of arguments included in obligations.
+            
+             The <AttributeAssignmentExpression/> element is of AttributeAssignmentExpressionType complex type.
+             The <AttributeAssignmentExpression/> element contains the following attributes:
+             
+             <Expression/> [Required]
+             The expression which evaluates to a constant attribute value or a bag of zero or more attribute values.See section 5.25.
+            
+             AttributeId[Required]
+             The attribute identifier. The value of the AttributeId attribute in the resulting <AttributeAssignment/> element MUST be equal to this value.
+            
+             Category[Optional]
+             An optional category of the attribute.If this attribute is missing, the attribute has no category.The value of the Category attribute in the resulting
+             <AttributeAssignment/> element MUST be equal to this value.
+            
+             Issuer[Optional]
+             An optional issuer of the attribute.If this attribute is missing, the attribute has no issuer.The value of the Issuer attribute in the resulting
+             <AttributeAssignment/> element MUST be equal to this value.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignmentExpression.#ctor(System.Uri,Altinn.Authorization.ABAC.Xacml.IXacmlExpression)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignmentExpression"/> class.
+            </summary>
+            <param name="attributeId">The attribute identifier. The value of the AttributeId attribute in the resulting <AttributeAssignment/> element MUST be equal to this value.</param>
+            <param name="expressionElement">The expression which evaluates to a constant attribute value or a bag of zero or more attribute values.See section 5.25.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignmentExpression.Category">
+            <summary>
+            An optional category of the attribute.If this attribute is missing, the attribute has no category.The value of the Category attribute in the resulting
+            <AttributeAssignment/> element MUST be equal to this value.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignmentExpression.Issuer">
+            <summary>
+            An optional issuer of the attribute.If this attribute is missing, the attribute has no issuer.The value of the Issuer attribute in the resulting
+            <AttributeAssignment/> element MUST be equal to this value.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignmentExpression.AttributeId">
+            <summary>
+            The attribute identifier. The value of the AttributeId attribute in the resulting <AttributeAssignment/> element MUST be equal to this value.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator">
+             <summary>
+             5.29 Element <AttributeDesignator/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503882
+            
+             The<AttributeDesignator/> element retrieves a bag of values for a named attribute from the request context.A named attribute SHALL
+             be considered present if there is at least one attribute that matches the criteria set out below.
+            
+             The<AttributeDesignator/> element SHALL return a bag containing all the attribute values that are matched by the named attribute.
+             In the event that no matching attribute is present in the context, the MustBePresent attribute governs whether this element returns an empty bag or “Indeterminate”.
+             See Section 7.3.5.
+             The<AttributeDesignator/> MAY appear in the<Match/> element and MAY be passed to the <Apply/> element as an argument.
+             The<AttributeDesignator/> element is of the AttributeDesignatorType complex type.
+            
+             A named attribute SHALL match an attribute if the values of their respective Category, AttributeId, DataType and Issuer attributes match.
+             The attribute designator’s Category MUST match, by identifier equality, the Category of the <Attributes/> element in which the attribute is present.
+             The attribute designator’s AttributeId MUST match, by identifier equality, the AttributeId of the attribute.  The attribute designator’s
+             DataType MUST match, by identifier equality, the DataType of the same attribute.
+             If the Issuer attribute is present in the attribute designator, then it MUST match, using the “urn:oasis:names:tc:xacml:1.0:function:string-equal” function,
+             the Issuer of the same attribute.If the Issuer is not present in the attribute designator, then the matching of the attribute to the named attribute SHALL be
+             governed by AttributeId and DataType attributes alone.
+            
+             The<AttributeDesignatorType/> contains the following attributes:
+             
+             Category[Required]
+             This attribute SHALL specify the Category with which to match the attribute.
+            
+             AttributeId[Required]
+             This attribute SHALL specify the AttributeId with which to match the attribute.
+            
+             DataType[Required]
+             The bag returned by the <AttributeDesignator/> element SHALL contain values of this data-type.
+            
+             Issuer[Optional]
+             This attribute, if supplied, SHALL specify the Issuer with which to match the attribute.
+             
+             MustBePresent[Required]
+             This attribute governs whether the element returns “Indeterminate” or an empty bag in the event the named attribute is absent from the request context.See Section 7.3.5.
+             Also see Sections 7.19.2 and 7.19.3.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator.#ctor(System.Uri,System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator"/> class.
+            </summary>
+            <param name="attributeId"> This attribute SHALL specify the AttributeId with which to match the attribute.</param>
+            <param name="dataType">The bag returned by the <AttributeDesignator/> element SHALL contain values of this data-type.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator.#ctor(System.Uri,System.Uri,System.Uri,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator"/> class.
+            </summary>
+            <param name="category">This attribute SHALL specify the Category with which to match the attribute.</param>
+            <param name="attributeId">This attribute SHALL specify the AttributeId with which to match the attribute.</param>
+            <param name="dataType">The bag returned by the <AttributeDesignator/> element SHALL contain values of this data-type.</param>
+            <param name="mustBePresent"> This attribute governs whether the element returns “Indeterminate” or an empty bag in the event the named attribute is absent from the request context.See Section 7.3.5.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator.AttributeId">
+            <summary>
+            This attribute SHALL specify the AttributeId with which to match the attribute.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator.DataType">
+            <summary>
+            The bag returned by the <AttributeDesignator/> element SHALL contain values of this data-type.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator.Issuer">
+            <summary>
+            This attribute, if supplied, SHALL specify the Issuer with which to match the attribute.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator.MustBePresent">
+            <summary>
+            This attribute governs whether the element returns “Indeterminate” or an empty bag in the event the named attribute is absent from the request context.See Section 7.3.5.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator.Category">
+            <summary>
+            This attribute SHALL specify the Category with which to match the attribute.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult">
+            <summary>
+            Internal enum to be used in matching of attributes
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.NoMatch">
+            <summary>
+            Permits a action if rules is fulfilled
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.RequiredAttributeMissing">
+            <summary>
+            A Required attribute in the policy is missing
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.Match">
+            <summary>
+            All attributes matches
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlAttributeMatchResult.ToManyAttributes">
+            <summary>
+            There are to many attributes with same id / datatype than allowed
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector">
+             <summary>
+             From XACML Documentation http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503883
+             5.30 Element <AttributeSelector/>
+             The<AttributeSelector/> element produces a bag of unnamed and uncategorized attribute values.The values shall be constructed from
+             the node(s) selected by applying the XPath expression given by the element's Path attribute to the XML content indicated by the element's
+             Category attribute.Support for the<AttributeSelector/> element is OPTIONAL.
+             See section 7.3.7 for details of<AttributeSelector/> evaluation.
+            
+             The<AttributeSelector/> element is of AttributeSelectorType complex type
+             
+             The<AttributeSelector/> element has the following attributes:
+             Category[Required]
+             This attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
+             attributes category containing the applicable ContextSelectorId attribute, if the element includes a ContextSelectorId xml attribute.
+            
+             ContextSelectorId[Optional]
+             This attribute refers to the attribute (by its AttributeId) in the request context in the category given by the Category attribute.
+             The referenced attribute MUST have data type urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression, and must select a single node in the<Content/> element.
+             The XPathCategory attribute of the referenced attribute MUST be equal to the Category attribute of the attribute selector.
+            
+             Path[Required]
+             This attribute SHALL contain an XPath expression to be evaluated against the specified XML content.
+             See Section 7.3.7 for details of the XPath evaluation during <AttributeSelector/> processing.
+            
+             DataType[Required]
+             The attribute specifies the datatype of the values returned from the evaluation of this <AttributeSelector/> element.
+            
+             MustBePresent[Required]
+             This attribute governs whether the element returns “Indeterminate” or an empty bag in the event the XPath expression selects no node.
+             See Section 7.3.5.  Also see Sections 7.17.2 and 7.17.3.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.#ctor(System.String,System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector"/> class.
+            </summary>
+            <param name="path">This attribute SHALL contain an XPath expression to be evaluated against the specified XML content.</param>
+            <param name="dataType">The attribute specifies the datatype of the values returned from the evaluation of this <AttributeSelector/> element.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.#ctor(System.Uri,System.String,System.Uri,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector"/> class.
+            </summary>
+            <param name="category">This attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
+            attributes category containing the applicable ContextSelectorId attribute, if the element includes a ContextSelectorId xml attribute.</param>
+            <param name="path">This attribute SHALL contain an XPath expression to be evaluated against the specified XML content.</param>
+            <param name="dataType">The attribute specifies the datatype of the values returned from the evaluation of this <AttributeSelector/> element.</param>
+            <param name="mustBePresent">This attribute governs whether the element returns “Indeterminate” or an empty bag in the event the XPath expression selects no node.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.Category">
+            <summary>
+            This attribute SHALL specify the attributes category of the <Content/> element containing the XML from which nodes will be selected. It also indicates the
+            attributes category containing the applicable ContextSelectorId attribute, if the element includes a ContextSelectorId xml attribute.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.ContextSelectorId">
+            <summary>
+            This attribute refers to the attribute (by its AttributeId) in the request context in the category given by the Category attribute.
+            The referenced attribute MUST have data type urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression, and must select a single node in the<Content/> element.
+            The XPathCategory attribute of the referenced attribute MUST be equal to the Category attribute of the attribute selector.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.Path">
+            <summary>
+            This attribute SHALL contain an XPath expression to be evaluated against the specified XML content.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.DataType">
+            <summary>
+            The attribute specifies the datatype of the values returned from the evaluation of this <AttributeSelector/> element.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector.MustBePresent">
+            <summary>
+            This attribute governs whether the element returns “Indeterminate” or an empty bag in the event the XPath expression selects no node.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue">
+             <summary>
+             5.31 Element <AttributeValue/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503884
+             The<AttributeValue/> element SHALL contain a literal attribute value.
+            
+             The <AttributeValue/> element is of AttributeValueType complex type.
+             The<AttributeValue/> element has the following attributes:
+            
+             DataType[Required]
+             The data-type of the attribute value.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.#ctor(System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue"/> class.
+            </summary>
+            <param name="dataType">The data-type of the attribute value.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.#ctor(System.Uri,System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue"/> class.
+            </summary>
+            <param name="dataType">The data-type of the attribute value.</param>
+            <param name="value">The value.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.Value">
+            <summary>
+            The value of the attribute
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.DataType">
+            <summary>
+            The data-type of the attribute value.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.Attributes">
+            <summary>
+            The attributes
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.Elements">
+            <summary>
+            The elements
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue.MatchAttributeValues(System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue)">
+            <summary>
+            Match Attribute value against input attribute value
+            </summary>
+            <param name="matchFunction">The match function</param>
+            <param name="policyAttributeValue">The policy Attribute</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameter">
+             <summary>
+             5.17 Element <CombinerParameter/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047122
+             The <CombinerParameter/> element conveys a single parameter for a policy- or rule-combining algorithm.
+            
+             The <CombinerParameter/> element is of CombinerParameterType complex type.
+             The<CombinerParameter/> element contains the following attributes:
+             
+             ParameterName[Required]
+             The identifier of the parameter.
+             
+             <AttributeValue/> [Required]
+             The value of the parameter.
+             Support for the<CombinerParameter/> element is optional.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameter.#ctor(System.String,Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameter"/> class.
+            </summary>
+            <param name="parameterName">The identifier of the parameter.</param>
+            <param name="attributeValue">The value of the parameter.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameter.ParameterName">
+            <summary>
+            The identifier of the parameter.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameter.AttributeValue">
+            <summary>
+            The value of the parameter.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameters">
+             <summary>
+             5.16 Element <CombinerParameters/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047121
+            
+             The <CombinerParameters/> element conveys parameters for a policy- or rule-combining algorithm.
+             If multiple<CombinerParameters/> elements occur within the same policy or policy set, they SHALL be considered equal to
+             one<CombinerParameters/> element containing the concatenation of all the sequences of <CombinerParameters/> contained in all the
+             aforementioned<CombinerParameters/> elements, such that the order of occurence of the <CominberParameters/> elements is preserved in the concatenation of the <CombinerParameter/> elements.
+             Note that none of the combining algorithms specified in XACML 3.0 is parameterized.
+            
+             The <CombinerParameters/> element is of CombinerParametersType complex type.
+             The<CombinerParameters/> element contains the following elements:
+             <CombinerParameter/> [Any Number]
+             A single parameter.See Section 5.17.
+             Support for the<CombinerParameters/> element is optional
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameters.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameters"/> class.
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameters.#ctor(System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameter})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameters"/> class.
+            </summary>
+            <param name="paramaters">Collection of XacmlCombinerParameter</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlCombinerParameters.CombinerParameters">
+            <summary>
+            Collection of XacmlCombinerParameter
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes">
+            <summary>
+            Defines the context attributes
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes.#ctor(System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes"/> class.
+            </summary>
+            <param name="category">The category.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes.#ctor(System.Uri,System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlAttribute})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes" /> class.
+            </summary>
+            <param name="category">The category.</param>
+            <param name="attributes">The attributes.</param>
+            <exception cref="T:System.ArgumentNullException">category</exception>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes.Id">
+            <summary>
+            Gets or sets the identifier.
+            </summary>
+            <value>
+            The identifier.
+            </value>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes.Content">
+            <summary>
+            Gets or sets the content.
+            </summary>
+            <value>
+            The content.
+            </value>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes.Attributes">
+            <summary>
+            Gets or sets the attributes.
+            </summary>
+            <value>
+            The attributes.
+            </value>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes.Category">
+            <summary>
+            Gets or sets the category.
+            </summary>
+            <value>
+            The category.
+            </value>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextDecision">
+             <summary>
+             The <Decision /> element contains the result of policy evaluation.
+            
+             The <Decision /> element is of DecisionType simple type.
+             The values of the<Decision /> element have the following meanings:
+             “Permit”: the requested access is permitted
+             “Deny”: the requested access is denied.
+             “Indeterminate”: the PDP is unable to evaluate the requested access.  Reasons for such inability include: missing attributes, network errors while
+             retrieving policies, division by zero during policy evaluation, syntax errors in the decision request or in the policy, etc.
+             “NotApplicable”: the PDP does not have any policy that applies to this decision request.
+             </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlContextDecision.Permit">
+            <summary>
+            “Permit”: the requested access is permitted
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlContextDecision.Deny">
+            <summary>
+            “Deny”: the requested access is denied.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlContextDecision.Indeterminate">
+            <summary>
+            “Indeterminate”: the PDP is unable to evaluate the requested access.  Reasons for such inability include: missing attributes, network errors while retrieving policies, division by zero during policy evaluation, syntax errors in the decision request or in the policy, etc.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlContextDecision.NotApplicable">
+            <summary>
+             “NotApplicable”: the PDP does not have any policy that applies to this decision request.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference">
+             <summary>
+             5.10 Element <PolicySetIdReference/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047115
+             The <PolicySetIdReference/> element SHALL be used to reference a <PolicySet/> element by id.  If <PolicySetIdReference/> is a URL, then it
+             MAY be resolvable to the <PolicySet/> element.  However, the mechanism for resolving a policy set reference to the corresponding policy
+             set is outside the scope of this specification.
+            
+             Element <PolicySetIdReference/> is of xacml:IdReferenceType complex type.
+             IdReferenceType extends the xs:anyURI type with the following attributes:
+            
+             Version[Optional]
+             Specifies a matching expression for the version of the policy set referenced.
+            
+             EarliestVersion[Optional]
+             Specifies a matching expression for the earliest acceptable version of the policy set referenced.
+            
+             LatestVersion[Optional]
+             Specifies a matching expression for the latest acceptable version of the policy set referenced.
+             The matching operation is defined in Section 5.13.  Any combination of these attributes MAY be present in a<PolicySetIdReference/>.
+             The referenced policy set MUST match all expressions.If none of these attributes is present, then any version of the policy set is acceptable.
+             In the case that more than one matching version can be obtained, then the most recent one SHOULD be used.
+             </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference.Version">
+            <summary>
+             Specifies a matching expression for the version of the policy set referenced.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference.EarliestVersion">
+            <summary>
+            Specifies a matching expression for the earliest acceptable version of the policy set referenced.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference.LatestVersion">
+            <summary>
+            Specifies a matching expression for the latest acceptable version of the policy set referenced.
+            The matching operation is defined in Section 5.13.  Any combination of these attributes MAY be present in a<PolicySetIdReference/>.
+            The referenced policy set MUST match all expressions.If none of these attributes is present, then any version of the policy set is acceptable.
+            In the case that more than one matching version can be obtained, then the most recent one SHOULD be used.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicyIdReference.Value">
+            <summary>
+            The value
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference">
+             <summary>
+             5.10 Element <PolicySetIdReference/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047115
+             The <PolicySetIdReference/> element SHALL be used to reference a <PolicySet/> element by id.  If <PolicySetIdReference/> is a URL,
+             then it MAY be resolvable to the <PolicySet/> element.  However, the mechanism for resolving a policy set reference to the
+             corresponding policy set is outside the scope of this specification.
+            
+             Element <PolicySetIdReference/> is of xacml:IdReferenceType complex type.
+             IdReferenceType extends the xs:anyURI type with the following attributes:
+            
+             Version[Optional]
+             Specifies a matching expression for the version of the policy set referenced.
+            
+             EarliestVersion[Optional]
+             Specifies a matching expression for the earliest acceptable version of the policy set referenced.
+            
+             LatestVersion[Optional]
+             Specifies a matching expression for the latest acceptable version of the policy set referenced.
+             The matching operation is defined in Section 5.13.  Any combination of these attributes MAY be present in
+             a<PolicySetIdReference/>.The referenced policy set MUST match all expressions.If none of these attributes is present,
+             then any version of the policy set is acceptable.In the case that more than one matching version can be obtained,
+             then the most recent one SHOULD be used.
+             </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference.Version">
+            <summary>
+            Specifies a matching expression for the version of the policy set referenced.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference.EarliestVersion">
+            <summary>
+            Specifies a matching expression for the earliest acceptable version of the policy set referenced.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference.LatestVersion">
+            <summary>
+            Specifies a matching expression for the latest acceptable version of the policy set referenced.
+            The matching operation is defined in Section 5.13.  Any combination of these attributes MAY be present in
+            a<PolicySetIdReference/>.The referenced policy set MUST match all expressions.If none of these attributes is present,
+            then any version of the policy set is acceptable.In the case that more than one matching version can be obtained,
+            then the most recent one SHOULD be used.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextPolicySetIdReference.Value">
+            <summary>
+            The value of the reference
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest">
+             <summary>
+             5.42 Element <Request/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047147
+             The <Request/> element is an abstraction layer used by the policy language.  For simplicity of expression, this document describes
+             policy evaluation in terms of operations on the context.  However a conforming PDP is not required to actually instantiate the context
+             in the form of an XML document.  But, any system conforming to the XACML specification MUST produce exactly the same authorization decisions as
+             if all the inputs had been transformed into the form of an <Request/> element.
+             The<Request/> element contains<Attributes/> elements.There may be multiple<Attributes/> elements with the same
+             Category attribute if the PDP implements the multiple decision profile, see[Multi].  Under other conditions,
+             it is a syntax error if there are multiple<Attributes/> elements with the same Category (see Section 7.19.2 for error codes).
+            
+             The <Request/> element is of RequestType complex type.
+             The<Request/> element contains the following elements and attributes:
+            
+             ReturnPolicyIdList[Required]
+             This attribute is used to request that the PDP return a list of all fully applicable policies and policy sets which were used
+             in the decision as a part of the decision response.
+            
+             CombinedDecision [Required]
+             This attribute is used to request that the PDP combines multiple decisions into a single decision.The use of this attribute
+             is specified in [Multi]. If the PDP does not implement the relevant functionality in [Multi], then the PDP must return an
+             Indeterminate with a status code of urn:oasis:names:tc:xacml:1.0:status:processing-error if it receives a request with this attribute set to “true”.
+            
+             <RequestDefaults/> [Optional]
+             Contains default values for the request, such as XPath version. See section 5.43.
+            
+             <Attributes/> [One to Many]
+             Specifies information about attributes of the request context by listing a sequence of<Attribute/>
+             elements associated with an attribute category.One or more<Attributes/> elements are allowed.
+             Different<Attributes/> elements with different categories are used to represent information about the subject,
+             resource, action, environment or other categories of the access request.
+            
+             <MultiRequests/> [Optional]
+             Lists multiple request contexts by references to the <Attributes/> elements.Implementation of this
+             element is optional.The semantics of this element is defined in [Multi]. If the implementation does not
+             implement this element, it MUST return an Indeterminate result if it encounters this element.See section 5.50.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.#ctor(System.Boolean,System.Boolean,System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlContextAttributes})">
+            <summary>
+            Constructor user only for XACML 3.0
+            </summary>
+            <param name="returnPolicyIdList">This attribute is used to request that the PDP return a list of all fully applicable policies and policy sets which were used
+            in the decision as a part of the decision response.</param>
+            <param name="combinedDecision">  /// This attribute is used to request that the PDP combines multiple decisions into a single decision.The use of this attribute
+            is specified in [Multi]. If the PDP does not implement the relevant functionality in [Multi], then the PDP must return an
+            Indeterminate with a status code of urn:oasis:names:tc:xacml:1.0:status:processing-error if it receives a request with this attribute set to “true”.</param>
+            <param name="attributes">Specifies information about attributes of the request context by listing a sequence of<Attribute/>
+            elements associated with an attribute category.One or more<Attributes/> elements are allowed.
+            Different<Attributes/> elements with different categories are used to represent information about the subject,
+            resource, action, environment or other categories of the access request.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.ReturnPolicyIdList">
+            <summary>
+            This attribute is used to request that the PDP return a list of all fully applicable policies and policy sets which were used
+            in the decision as a part of the decision response.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.CombinedDecision">
+            <summary>
+            This attribute is used to request that the PDP combines multiple decisions into a single decision.The use of this attribute
+            is specified in [Multi]. If the PDP does not implement the relevant functionality in [Multi], then the PDP must return an
+            Indeterminate with a status code of urn:oasis:names:tc:xacml:1.0:status:processing-error if it receives a request with this attribute set to “true”.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.XPathVersion">
+            <summary>
+            The XPATH version used
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.Attributes">
+            <summary>
+            Specifies information about attributes of the request context by listing a sequence of<Attribute/>
+            elements associated with an attribute category.One or more<Attributes/> elements are allowed.
+            Different<Attributes/> elements with different categories are used to represent information about the subject,
+            resource, action, environment or other categories of the access request.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.RequestReferences">
+            <summary>
+            The <RequestReference /> element defines an instance of a request in terms of references to <Attributes/> elements.
+            The semantics of this element are defined in [Multi]. Support for this element is optional.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextRequestReference">
+             <summary>
+             5.51 Element <RequestReference/>  http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047156
+            
+             The <RequestReference/> element defines an instance of a request in terms of references to <Attributes/> elements.
+             The semantics of this element are defined in [Multi]. Support for this element is optional.
+            
+             The <RequestReference/> element contains the following elements.
+            
+             <AttributesReference/> [one to many]
+             A reference to an<Attributes/> element in the enclosing <Request/> element.See section 5.52.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextRequestReference.#ctor(System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextRequestReference"/> class.
+            </summary>
+            <param name="references"> A reference to an<Attributes/> element in the enclosing <Request/> element.See section 5.52.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextRequestReference.AttributeReferences">
+            <summary>
+             A reference to an<Attributes/> element in the enclosing <Request/> element.See section 5.52.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextResponse">
+             <summary>
+             5.47 Element <Response/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047152
+             The <Response/> element is an abstraction layer used by the policy language.  Any proprietary system using the XACML specification MUST
+             transform an XACML context <Response/> element into the form of its authorization decision.
+             
+             The<Response/> element encapsulates the authorization decision produced by the PDP.It includes a sequence of one or more results,
+             with one <Result/> element per requested resource.  Multiple results MAY be returned by some implementations, in particular those
+             that support the XACML Profile for Requests for Multiple Resources [Multi].  Support for multiple results is OPTIONAL.
+            
+             The <Response/> element is of ResponseType complex type.
+             The<Response/> element contains the following elements:
+             <Result/> [One to Many]
+             An authorization decision result.See Section 5.48.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextResponse.#ctor(Altinn.Authorization.ABAC.Xacml.XacmlContextResult)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextResponse"/> class.
+            </summary>
+            <param name="result">An authorization decision result.See Section 5.48.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextResponse.#ctor(System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlContextResult})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextResponse"/> class.
+            </summary>
+            <param name="results">List of authorization decision results.See Section 5.48.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResponse.Results">
+            <summary>
+            Collection of authorization decision results.See Section 5.48.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextResult">
+             <summary>
+             5.48 Element <Result/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047153
+             The <Result/> element represents an authorization decision result.  It MAY include a set of obligations that MUST be fulfilled by the PEP.
+             If the PEP does not understand or cannot fulfill an obligation, then the action of the PEP is determined by its bias, see section 7.1.
+             It MAY include a set of advice with supplemental information which MAY be safely ignored by the PEP.
+            
+             The<Result/> element is of ResultType complex type.
+             The<Result/> element contains the following attributes and elements:
+            
+             <Decision/> [Required]
+             The authorization decision: “Permit”, “Deny”, “Indeterminate” or “NotApplicable”.
+            
+             <Status/> [Optional]
+             Indicates whether errors occurred during evaluation of the decision request, and optionally, information about those errors.
+             If the <Response/> element contains <Result/> elements whose <Status/> elements are all identical, and the <Response/> element is
+             contained in a protocol wrapper that can convey status information, then the common status information MAY be placed in the protocol
+             wrapper and this <Status/> element MAY be omitted from all <Result/> elements.
+            
+             <Obligations/> [Optional]
+             A list of obligations that MUST be fulfilled by the PEP.If the PEP does not understand or cannot fulfill an obligation, then the action of the
+             PEP is determined by its bias, see section 7.2.  See Section 7.18 for a description of how the set of obligations to be returned by the PDP is determined.
+            
+             <AssociatedAdvice/> [Optional]
+             A list of advice that provide supplemental information to the PEP.If the PEP does not understand an advice, the PEP may safely
+             ignore the advice.See Section 7.18 for a description of how the set of advice to be returned by the PDP is determined.
+            
+             <Attributes/> [Optional]
+             A list of attributes that were part of the request. The choice of which attributes are included here is made with the
+             IncludeInResult attribute of the<Attribute/> elements of the request.See section 5.46.
+            
+             <PolicyIdentifierList/> [Optional]
+             If the ReturnPolicyIdList attribute in the<Request/> is true (see section 5.42), a PDP that implements this optional feature
+             MUST return a list of all policies which were found to be fully applicable. That is, all policies where both the<Target/>
+             matched and the <Condition/> evaluated to true, whether or not the <Effect/> was the same or different from the<Decision/>.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.#ctor(Altinn.Authorization.ABAC.Xacml.XacmlContextDecision,Altinn.Authorization.ABAC.Xacml.XacmlContextStatus)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextResult"/> class.
+            </summary>
+            <param name="decision">The authorization decision.</param>
+            <param name="status">The status.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.#ctor(Altinn.Authorization.ABAC.Xacml.XacmlContextDecision)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextResult"/> class.
+            </summary>
+            <param name="decision">The authorization decision.</param>
+            <remarks>
+            Used only from XACML 2.0/3.0
+            </remarks>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.Decision">
+            <summary>
+            Gets or sets the authorization decision.
+            </summary>
+            <remarks>See [XacmlCore, 6.11] for more details.</remarks>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.Status">
+            <summary>
+            Gets or sets the status.
+            </summary>
+            <remarks>
+            See [XacmlCore, 6.12] for more details.
+            Optional in XACML2.0/3.0
+            </remarks>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.Obligations">
+            <summary>
+            Gets the obligations.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.ResourceId">
+            <summary>
+            Gets or sets the resource identifier.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.Advices">
+            <summary>
+            Gets the advices.
+            </summary>
+            <remarks>Used only for XACML V3.0</remarks>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.Attributes">
+            <summary>
+            Gets the attributes.
+            </summary>
+            <remarks>Used only for XACML V3.0</remarks>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.PolicyIdReferences">
+            <summary>
+            Gets the policy identifier references.
+            </summary>
+            <remarks>Used only for XACML V3.0</remarks>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.PolicySetIdReferences">
+            <summary>
+            Gets the policy set identifier references.
+            </summary>
+            <remarks>Used only for XACML V3.0</remarks>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextStatus">
+             <summary>
+             5.54 Element <Status/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047159
+            
+             The <Status/> element represents the status of the authorization decision result.
+            
+             The <Status/> element is of StatusType complex type.
+             The<Status/> element contains the following elements:
+            
+             <StatusCode/> [Required]
+             Status code.
+            
+             <StatusMessage/> [Optional]
+             A status message describing the status code.
+            
+             <StatusDetail/> [Optional]
+             Additional status information.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextStatus.#ctor(Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextStatus"/> class.
+            </summary>
+            <param name="statusCode">The status code.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatus.StatusMessage">
+            <summary>
+            A status message describing the status code.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatus.StatusDetail">
+             <summary>
+             5.57 Element <StatusDetail/>
+             The <StatusDetail/> element qualifies the <Status/> element with additional information.
+            
+             The <StatusDetail/> element is of StatusDetailType complex type.
+             The<StatusDetail/> element allows arbitrary XML content.
+            
+             Inclusion of a <StatusDetail/> element is optional.  However, if a PDP returns one of the following XACML-defined <StatusCode/>
+             values and includes a <StatusDetail/> element, then the following rules apply.
+             urn:oasis:names:tc:xacml:1.0:status:ok
+            
+             A PDP MUST NOT return a<StatusDetail/> element in conjunction with the “ok” status value.
+             urn:oasis:names:tc:xacml:1.0:status:missing-attribute
+             
+             A PDP MAY choose not to return any<StatusDetail/> information or MAY choose to return a<StatusDetail/> element containing one or more
+             <MissingAttributeDetail/> elements.
+             urn:oasis:names:tc:xacml:1.0:status:syntax-error
+             
+             A PDP MUST NOT return a<StatusDetail/> element in conjunction with the “syntax-error” status value.  A syntax error may
+             represent either a problem with the policy being used or with the request context.  The PDP MAY return a<StatusMessage/> describing the problem.
+             urn:oasis:names:tc:xacml:1.0:status:processing-error
+             
+             A PDP MUST NOT return <StatusDetail/> element in conjunction with the “processing-error” status value.  This status code
+             indicates an internal problem in the PDP.For security reasons, the PDP MAY choose to return no further information to the PEP.
+             In the case of a divide-by-zero error or other computational error, the PDP MAY return a<StatusMessage/> describing the nature of the error.
+             </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatus.StatusCode">
+            <summary>
+            The status code
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode">
+             <summary>
+             5.55 Element <StatusCode/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047160
+            
+             The <StatusCode/> element is of StatusCodeType complex type.
+             The<StatusCode/> element contains the following attributes and elements:
+            
+             Value[Required]
+             See Section B.8 for a list of values.
+            
+             <StatusCode/> [Any Number]
+             Minor status code.This status code qualifies its parent status code. 
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode"/> class.
+            </summary>
+            <param name="value">The status value.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.#ctor(System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode"/> class.
+            </summary>
+            <param name="value">Value as URI</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.Success">
+            <summary>
+            Gets the success status code.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.MissingAttribute">
+            <summary>
+            Gets the missing attribute code.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.SyntaxError">
+            <summary>
+            Gets the syntax error code.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.ProcessingError">
+            <summary>
+            Gets the parsing error status code.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.Value">
+            <summary>
+            Gets or sets the status value.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextStatusCode.StatusCode">
+            <summary>
+            Gets or sets the status code.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlEffectType">
+            <summary>
+            The EffectType simple type defines the values allowed for the Effect attribute of the <Rule/> element and for the
+            FulfillOn attribute of the <ObligationExpression/> and <AdviceExpression/> elements.
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlEffectType.Permit">
+            <summary>
+            Permits a action if rules is fulfilled
+            </summary>
+        </member>
+        <member name="F:Altinn.Authorization.ABAC.Xacml.XacmlEffectType.Deny">
+            <summary>
+            Denies a action if a rule is fullfilled
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlExpression">
+             <summary>
+             The <Expression/> element is not used directly in a policy.
+             The <Expression/> element signifies that an element that extends the ExpressionType and is a member of the <Expression/> element substitution group SHALL appear in its place.
+            
+             The following elements are in the <Expression/> element substitution group:
+             <Apply/>, <AttributeSelector/>, <AttributeValue/>, <Function/>, <VariableReference/> and<AttributeDesignator/>.
+             </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlExpression.Property">
+            <summary>
+            Defines the Given Expression Type for the Expression. Can be of type <Apply/>, <AttributeSelector/>, <AttributeValue/>, <Function/>, <VariableReference/> and<AttributeDesignator/>.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlFunction">
+             <summary>
+             5.28 Element <Function/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047133
+             The <Function/> element SHALL be used to name a function as an argument to the function defined by the parent <Apply/> element.
+            
+             The <Function/> element is of FunctionType complex type.
+             The<Function/> element contains the following attribute:
+             FunctionId[Required]
+             The identifier of the function.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlFunction.#ctor(System.Uri)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlFunction"/> class.
+            </summary>
+            <param name="functionId">The identifier of the function.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlFunction.FunctionId">
+            <summary>
+            The identifier of the function.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlMatch">
+             <summary>
+             5.9 Element <Match/>
+             The <Match/> element SHALL identify a set of entities by matching attribute values in an <Attributes/> element of the request context with the embedded attribute value.
+            
+             The <Match/> element is of MatchType complex type.
+            
+             The <Match/> element contains the following attributes and elements:
+            
+             MatchId [Required]
+             Specifies a matching function.The value of this attribute MUST be of type xs:anyURI with legal values documented in Section 7.6.
+            
+             <AttributeValue/> [Required]
+             Embedded attribute value.
+            
+             <AttributeDesignator/> [Required choice]
+             MAY be used to identify one or more attribute values in an<Attributes/> element of the request context.
+            
+             <AttributeSelector/> [Required choice]
+             MAY be used to identify one or more attribute values in a<Content/> element of the request context.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlMatch.#ctor(System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue,Altinn.Authorization.ABAC.Xacml.XacmlAttributeDesignator)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlMatch"/> class.
+            </summary>
+            <param name="matchId">Specifies a matching function.The value of this attribute MUST be of type xs:anyURI with legal values documented in Section 7.6.</param>
+            <param name="attributeValue">Embedded attribute value.</param>
+            <param name="attributeDesignator">MAY be used to identify one or more attribute values in an<Attributes/> element of the request context.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlMatch.#ctor(System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue,Altinn.Authorization.ABAC.Xacml.XacmlAttributeSelector)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlMatch"/> class.
+            </summary>
+            <param name="matchId">Specifies a matching function.The value of this attribute MUST be of type xs:anyURI with legal values documented in Section 7.6.</param>
+            <param name="attributeValue">Embedded attribute value.</param>
+            <param name="attributeSelector">MAY be used to identify one or more attribute values in a<Content/> element of the request context.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlMatch.AttributeValue">
+            <summary>
+            Embedded attribute value.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlMatch.AttributeDesignator">
+            <summary>
+            MAY be used to identify one or more attribute values in an<Attributes/> element of the request context.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlMatch.AttributeSelector">
+            <summary>
+            MAY be used to identify one or more attribute values in a<Content/> element of the request context.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlMatch.MatchId">
+            <summary>
+            Specifies a matching function.The value of this attribute MUST be of type xs:anyURI with legal values documented in Section 7.6.
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlMatch.IsMatch(Altinn.Authorization.ABAC.Xacml.XacmlAttributeValue)">
+            <summary>
+            Matches the context attribute against the Policy
+            </summary>
+            <param name="xacmlAttributeValue">A xacml attribute value</param>
+            <returns></returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlMatch.IsMatch(System.String)">
+            <summary>
+            Matches a string attribute against the policy
+            </summary>
+            <param name="contextValue">The value from context</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlObligation">
+             <summary>
+             5.34 Element <Obligation/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047139
+             The <Obligation/> element SHALL contain an identifier for the obligation and a set of attributes that form arguments of the action defined by the obligation.
+            
+             The <Obligation/> element is of ObligationType complexType.  See Section 7.18 for a description of how the set of obligations to be returned by the PDP is determined.
+             The <Obligation/> element contains the following elements and attributes:
+             
+             ObligationId[Required]
+             Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.
+            
+             <AttributeAssignment/> [Optional]
+             Obligation arguments assignment.The values of the obligation arguments SHALL be interpreted by the PEP.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlObligation.#ctor(System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlEffectType,System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlObligation"/> class.
+            </summary>
+            <param name="obligationId">Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.</param>
+            <param name="fulfillOn">The action to fulfillon</param>
+            <param name="attributeAssigments"> list Obligation arguments assignment.The values of the obligation arguments SHALL be interpreted by the PEP.</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlObligation.#ctor(System.Uri,System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlAttributeAssignment})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlObligation"/> class.
+            </summary>
+            <param name="obligationId">Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.</param>
+            <param name="attributeAssigments">list Obligation arguments assignment.The values of the obligation arguments SHALL be interpreted by the PEP.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlObligation.AttributeAssignment">
+            <summary>
+            Gets the attribute assignment.
+            </summary>
+            <value>
+            The attribute assignment.
+            </value>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlObligation.ObligationId">
+            <summary>
+            Gets or sets the obligation identifier.
+            </summary>
+            <value>
+            The obligation identifier.
+            </value>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlObligation.FulfillOn">
+            <summary>
+            Gets or sets the fulfill on.
+            </summary>
+            <value>
+            The fulfill on.
+            </value>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlObligationExpression">
+             <summary>
+             5.39 Element <ObligationExpression/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047144
+            
+             The <ObligationExpression/> element evaluates to an obligation and SHALL contain an identifier for an obligation and a set of expressions
+             that form arguments of the action defined by the obligation.
+             The FulfillOn attribute SHALL indicate the effect for which this obligation must be fulfilled by the PEP.
+            
+             The <ObligationExpression/> element is of ObligationExpressionType complexType.  See Section 7.18 for a description of how the set of obligations to be returned by the PDP is determined.
+            
+             The<ObligationExpression/> element contains the following elements and attributes:
+            
+             ObligationId[Required]
+             Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.
+            
+             FulfillOn [Required]
+             The effect for which this obligation must be fulfilled by the PEP.
+            
+             <AttributeAssignmentExpression/> [Optional]
+             Obligation arguments in the form of expressions. The expressions SHALL be evaluated by the PDP to constant <AttributeValue/> elements or bags,
+             which shall be the attribute assignments in the<Obligation/> returned to the PEP.If an <AttributeAssignmentExpression/> evaluates to an atomic attribute
+             value, then there MUST be one resulting <AttributeAssignment/> which MUST contain this single attribute value.If the <AttributeAssignmentExpression/> evaluates to a bag,
+             then there MUST be a resulting <AttributeAssignment/> for each of the values in the bag. If the bag is empty, there shall be no <AttributeAssignment/> from this <AttributeAssignmentExpression/>.
+             The values of the obligation arguments SHALL be interpreted by the PEP.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlObligationExpression.#ctor(System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlEffectType)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlObligationExpression"/> class.
+            </summary>
+            <param name="obligationId">Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.</param>
+            <param name="effectType">The effecttype</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlObligationExpression.ObligationId">
+            <summary>
+            Obligation identifier.The value of the obligation identifier SHALL be interpreted by the PEP.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlObligationExpression.FulfillOn">
+            <summary>
+            The effect for which this obligation must be fulfilled by the PEP.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlObligationExpression.AttributeAssignmentExpressions">
+            <summary>
+            Obligation arguments in the form of expressions.The expressions SHALL be evaluated by the PDP to constant<AttributeValue/> elements or bags,
+            which shall be the attribute assignments in the<Obligation/> returned to the PEP.If an <AttributeAssignmentExpression/> evaluates to an atomic attribute
+            value, then there MUST be one resulting <AttributeAssignment/> which MUST contain this single attribute value.If the <AttributeAssignmentExpression/> evaluates to a bag,
+            then there MUST be a resulting <AttributeAssignment/> for each of the values in the bag. If the bag is empty, there shall be no <AttributeAssignment/> from this <AttributeAssignmentExpression/>.
+            The values of the obligation arguments SHALL be interpreted by the PEP.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlPolicy">
+             <summary>
+             5.14 Element <Policy/>  http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047119
+             The <Policy/> element is the smallest entity that SHALL be presented to the PDP for evaluation.
+             A<Policy/> element may be evaluated, in which case the evaluation procedure defined in Section 7.12 SHALL be used.
+             The main components of this element are the<Target/>, <Rule/>, <CombinerParameters/>, <RuleCombinerParameters/>, <ObligationExpressions/> and<AdviceExpressions/>
+             elements and the RuleCombiningAlgId attribute.
+             
+             A<Policy/> element MAY contain a<PolicyIssuer/> element. The interpretation of the <PolicyIssuer/> element is explained in the separate administrative policy profile[XACMLAdmin].
+             
+             The<Target/> element defines the applicability of the<Policy/> element to a set of decision requests.  If the <Target/> element within the<Policy/> element matches the
+             request context, then the <Policy/> element MAY be used by the PDP in making its authorization decision.  See Section 7.12.
+            
+             The<Policy/> element includes a sequence of choices between <VariableDefinition/> and<Rule/> elements.
+             Rules included in the<Policy/> element MUST be combined by the algorithm specified by the RuleCombiningAlgId attribute.
+             The<ObligationExpressions/> element contains a set of obligation expressions that MUST be evaluated into obligations by the PDP and the resulting
+             obligations MUST be fulfilled by the PEP in conjunction with the authorization decision.If the PEP does not understand, or cannot fulfill,
+             any of the obligations, then it MUST act according to the PEP bias.See Section 7.2 and 7.18.
+             
+             The<AdviceExpressions/> element contains a set of advice expressions that MUST be evaluated into advice by the PDP.The resulting
+             advice MAY be safely ignored by the PEP in conjunction with the authorization decision.See Section 7.18.
+            
+            
+             The <Policy/> element is of PolicyType complex type.
+             The<Policy/> element contains the following attributes and elements:
+            
+             PolicyId[Required]
+             Policy identifier.It is the responsibility of the PAP to ensure that no two policies visible to the PDP have the same identifier.
+             This MAY be achieved by following a predefined URN or URI scheme.If the policy identifier is in the form of a URL, then it MAY be resolvable.
+            
+             Version[Required]
+             The version number of the Policy.
+            
+             RuleCombiningAlgId[Required]
+             The identifier of the rule-combining algorithm by which the<Policy/>, <CombinerParameters/> and<RuleCombinerParameters/> components MUST be combined.
+             Standard rule-combining algorithms are listed in Appendix Appendix C.Standard rule-combining algorithm identifiers are listed in Section B.9.
+            
+             MaxDelegationDepth[Optional]
+             If present, limits the depth of delegation which is authorized by this policy.See the delegation profile [XACMLAdmin].
+            
+             <Description/> [Optional]
+             A free-form description of the policy.See Section 5.2.
+            
+             <PolicyIssuer/> [Optional]
+             Attributes of the issuer of the policy.
+            
+             <PolicyDefaults/> [Optional]
+             Defines a set of default values applicable to the policy.The scope of the <PolicyDefaults/> element SHALL be the enclosing policy.
+            
+             <CombinerParameters/> [Optional]
+             A sequence of parameters to be used by the rule-combining algorithm. The parameters apply to the combining algorithm as such and it is up to the
+             specific combining algorithm to interpret them and adjust its behavior accordingly.
+            
+             <RuleCombinerParameters/> [Optional]
+             A sequence of<RuleCombinerParameter/> elements that are associated with a particular <Rule/> element within the<Policy/>.. It is up to
+             the specific combining algorithm to interpret them and adjust its behavior accordingly.
+            
+             <Target/> [Required]
+             The <Target/> element defines the applicability of a<Policy/> to a set of decision requests.
+             The<Target/> element MAY be declared by the creator of the <Policy/> element, or it MAY be computed from the<Target/> elements of the
+             referenced<Rule/> elements either as an intersection or as a union.
+            
+             <VariableDefinition/> [Any Number]
+             Common function definitions that can be referenced from anywhere in a rule where an expression can be found.
+            
+             <Rule/> [Any Number]
+             A sequence of rules that MUST be combined according to the RuleCombiningAlgId attribute.Rules whose <Target/> elements and conditions match the
+             decision request MUST be considered.  Rules whose <Target/> elements or conditions do not match the decision request SHALL be ignored.
+            
+             <ObligationExpressions/> [Optional]
+             A conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the PEP in conjunction with the
+             authorization decision.See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations.
+            
+             <AdviceExpressions/> [Optional]
+             A conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the
+             PEP in conjunction with the authorization decision.See Section 7.18 for a description of how the set of advice to be returned by the PDP SHALL be determined.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.#ctor(System.Uri,System.Uri,Altinn.Authorization.ABAC.Xacml.XacmlTarget)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlPolicy"/> class.
+            </summary>
+            <param name="policyId">Policy identifier.It is the responsibility of the PAP to ensure that no two policies visible to the PDP have the same identifier.</param>
+            <param name="ruleCombiningAlgId">The identifier of the rule-combining algorithm by which the<Policy/>, <CombinerParameters/> and<RuleCombinerParameters/> components MUST be combined</param>
+            <param name="target">The <Target/> element defines the applicability of a<Policy/> to a set of decision requests.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.Description">
+            <summary>
+            A free-form description of the policy.See Section 5.2.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.PolicyIssuer">
+            <summary>
+            Attributes of the issuer of the policy.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.XPathVersion">
+            <summary>
+            The <XPathVersion/> element SHALL specify the version of the XPath specification to be used by <AttributeSelector/> elements and XPath-based functions in the policy set or policy.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.Target">
+            <summary>
+            The <Target/> element defines the applicability of a<Policy/> to a set of decision requests.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.CombinerParameters">
+            <summary>
+            A sequence of parameters to be used by the rule-combining algorithm. The parameters apply to the combining algorithm as such and it is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.RuleCombinerParameters">
+            <summary>
+            A sequence of<RuleCombinerParameter/> elements that are associated with a particular <Rule/> element within the<Policy/>..
+            It is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.VariableDefinitions">
+            <summary>
+            Common function definitions that can be referenced from anywhere in a rule where an expression can be found.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.ChoiceCombinerParameters">
+            <summary>
+            A sequence of parameters to be used by the rule-combining algorithm. The parameters apply to the combining algorithm as such and it is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.Rules">
+            <summary>
+            A sequence of rules that MUST be combined according to the RuleCombiningAlgId attribute.Rules whose <Target/>
+            elements and conditions match the decision request MUST be considered.  Rules whose <Target/> elements or conditions do not match the decision request SHALL be ignored.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.Obligations">
+            <summary>
+            A conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the PEP in conjunction with the
+            authorization decision.See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.PolicyId">
+            <summary>
+             Policy identifier.It is the responsibility of the PAP to ensure that no two policies visible to the PDP have the same identifier.This MAY be achieved by following a predefined URN or URI scheme.If the policy identifier is in the form of a URL, then it MAY be resolvable.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.Version">
+            <summary>
+            The version number of the Policy.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.RuleCombiningAlgId">
+            <summary>
+            The identifier of the rule-combining algorithm by which the<Policy/>, <CombinerParameters/> and<RuleCombinerParameters/> components MUST be combined.
+            Standard rule-combining algorithms are listed in Appendix Appendix C.Standard rule-combining algorithm identifiers are listed in Section B.9.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.MaxDelegationDepth">
+            <summary>
+            If present, limits the depth of delegation which is authorized by this policy.See the delegation profile [XACMLAdmin].
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.ObligationExpressions">
+            <summary>
+            A conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the PEP in conjunction with the
+            authorization decision.See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.AdviceExpressions">
+            <summary>
+            A conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the
+            PEP in conjunction with the authorization decision.See Section 7.18 for a description of how the set of advice to be returned by the PDP SHALL be determined.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.Namespaces">
+            <summary>
+            The namespaces used in Policy
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlPolicyIssuer">
+             <summary>
+             5.3 Element <PolicyIssuer/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-cd-03-en.html#_Toc256503856
+             The <PolicyIssuer/> element contains attributes describing the issuer of the policy or policy set. The use of the policy issuer
+             element is defined in a separate administration profile [XACMLAdmin]. A PDP which does not implement the administration profile MUST
+             report an error or return an Indeterminate result if it encounters this element.
+            
+             The <PolicyIssuer/> element is of PolicyIssuerType complex type.
+             The<PolicyIssuer/> element contains the following elements:
+            
+             <Content/> [Optional]
+             Free form XML describing the issuer.See Section 5.45.
+            
+             <Attribute/> [Zero to many]
+             An attribute of the issuer.See Section 5.46.
+             </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicyIssuer.Content">
+            <summary>
+            Free form XML describing the issuer.See Section 5.45.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicyIssuer.Attributes">
+            <summary>
+            An attribute of the issuer.See Section 5.46.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlRule">
+             <summary>
+             From XACML Specification https://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047126
+             The <Rule/> element SHALL define the individual rules in the policy.  The main components of this element are the <Target/>, <Condition/>,
+             <ObligationExpressions/>  and <AdviceExpressions/>  elements and the Effect attribute.
+             A<Rule/> element may be evaluated, in which case the evaluation procedure defined in Section 7.10 SHALL be used.
+            
+             The <Rule/> element is of RuleType complex type.
+             The<Rule/> element contains the following attributes and elements:
+            
+             RuleId[Required]
+             A string identifying this rule.
+             
+             Effect[Required]
+             Rule effect.The value of this attribute is either “Permit” or “Deny”.
+            
+             <Description/> [Optional]
+             A free-form description of the rule.
+            
+             <Target/> [Optional]
+             Identifies the set of decision requests that the <Rule/> element is intended to evaluate.If this element is omitted, then the target for the<Rule/> SHALL be defined by
+             the <Target/> element of the enclosing <Policy/> element.See Section 7.7 for details.
+            
+             <Condition/> [Optional]
+             A predicate that MUST be satisfied for the rule to be assigned its Effect value.
+            
+             <ObligationExpressions/> [Optional]
+             A conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the
+             PEP in conjunction with the authorization decision.
+             See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations.
+            
+             <AdviceExpressions/> [Optional]
+             A conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the PEP in conjunction with the
+             authorization decision.See Section 7.18 for a description of how the set of advice to be returned by the PDP SHALL be determined.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.#ctor(System.String,Altinn.Authorization.ABAC.Xacml.XacmlEffectType)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlRule"/> class.
+            </summary>
+            <param name="ruleId">The rule identifier.</param>
+            <param name="effect">The rule effect.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Description">
+            <summary>
+            Gets or sets A free-form description of the rule.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Target">
+            <summary>
+            Get or sets Target that Identifies the set of decision requests that the <Rule/> element is intended to evaluate.If this element is omitted,
+            then the target for the<Rule/> SHALL be defined by the <Target/> element of the enclosing <Policy/> element.See Section 7.7 for details.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Condition">
+            <summary>
+             A predicate that MUST be satisfied for the rule to be assigned its Effect value.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.RuleId">
+            <summary>
+             Gets or set A string identifying this rule.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Effect">
+            <summary>
+            Gets or set Rule effect.The value of this attribute is either “Permit” or “Deny”.
+            </summary>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Obligations">
+            <summary>
+            A conjunctive sequence of obligation expressions which MUST be evaluated into obligations byt the PDP.The corresponsding obligations MUST be fulfilled by the PEP in
+            conjunction with the authorization decision.
+            See Section 7.18 for a description of how the set of obligations to be returned by the PDP SHALL be determined.See section 7.2 about enforcement of obligations. 
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.EvaluateCondition(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+            <summary>
+            Evauluat the condition
+            </summary>
+            <param name="request">The xacml context request</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRule.Advices">
+            <summary>
+            A conjunctive sequence of advice expressions which MUST evaluated into advice by the PDP. The corresponding advice provide supplementary information to the PEP in conjunction with the
+            authorization decision.See Section 7.18 for a description of how the set of advice to be returned by the PDP SHALL be determined.
+            </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRule.MatchAttributes(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,System.String)">
+            <summary>
+            Match Policy Attributes and request attributes of the same category
+            </summary>
+            <param name="request">The request</param>
+            <param name="category">The attribute category</param>
+            <returns></returns>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlRuleCombinerParameters">
+             <summary>
+             5.18 Element <RuleCombinerParameters/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047123
+            
+             The <RuleCombinerParameters/> element conveys parameters associated with a particular rule within a policy for a rule-combining algorithm.
+             Each<RuleCombinerParameters/> element MUST be associated with a rule contained within the same policy.If multiple<RuleCombinerParameters/>
+             elements reference the same rule, they SHALL be considered equal to one<RuleCombinerParameters/> element containing the concatenation of all the sequences
+             of <CombinerParameters/> contained in all the aforementioned<RuleCombinerParameters/> elements, such that the order of occurrence of
+             the <RuleCominberParameters/> elements is preserved in the concatenation of the <CombinerParameter/> elements.
+             Note that none of the rule-combining algorithms specified in XACML 3.0 is parameterized.
+            
+             The <RuleCombinerParameters/> element contains the following attribute:
+             
+             RuleIdRef[Required]
+             The identifier of the<Rule/> contained in the policy.
+             Support for the<RuleCombinerParameters/> element is optional, only if support for combiner parameters is not implemented.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlRuleCombinerParameters.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlRuleCombinerParameters"/> class.
+            </summary>
+            <param name="ruleIdRef">The identifier of the<Rule/> contained in the policy.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlRuleCombinerParameters.RuleIdRef">
+            <summary>
+            The identifier of the<Rule/> contained in the policy.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlTarget">
+             <summary>
+             The <Target/> element identifies the set of decision requests that the parent element is intended to evaluate.
+             The <Target/> element SHALL appear as a child of a <PolicySet/> and <Policy/> element and MAY appear as a child of a <Rule/> element
+             The<Target/> element SHALL contain a conjunctive sequence of<AnyOf/> elements.For the parent of the<Target/> element to be applicable to the decision
+             request, there MUST be at least one positive match between each <AnyOf/> element of the<Target/> element and the corresponding section of the <Request/> element.
+            
+             The <Target/> element is of TargetType complex type.
+             The<Target/> element contains the following elements:
+             
+             <AnyOf/> [Zero to Many]
+             Matching specification for attributes in the context.If this element is missing, then the target SHALL match all contexts.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlTarget.#ctor(System.Collections.Generic.IEnumerable{Altinn.Authorization.ABAC.Xacml.XacmlAnyOf})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlTarget"/> class.
+            </summary>
+            <param name="anyOf">Matching specification for attributes in the context.If this element is missing, then the target SHALL match all contexts.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlTarget.AnyOf">
+            <summary>
+            Matching specification for attributes in the context.If this element is missing, then the target SHALL match all contexts.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlVariableDefinition">
+             <summary>
+             5.23 Element <VariableDefinition/> http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047128
+            
+             The <VariableDefinition/> element SHALL be used to define a value that can be referenced by a <VariableReference/> element.
+             The name supplied for its VariableId attribute SHALL NOT occur in the VariableId attribute of any other <VariableDefinition/>
+             element within the encompassing policy.  The <VariableDefinition/> element MAY contain undefined <VariableReference/> elements,
+             but if it does, a corresponding <VariableDefinition/> element MUST be defined later in the encompassing policy.
+             <VariableDefinition/> elements MAY be grouped together or MAY be placed close to the reference in the encompassing policy.
+             There MAY be zero or more references to each <VariableDefinition/> element.
+            
+             The <VariableDefinition/> element is of VariableDefinitionType complex type.  The <VariableDefinition/> element has the following elements and attributes:
+            
+             <Expression/> [Required]
+             Any element of ExpressionType complex type.
+            
+             VariableId [Required]
+             The name of the variable definition.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlVariableDefinition.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlVariableDefinition"/> class.
+            </summary>
+            <param name="variableId">The name of the variable definition.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlVariableDefinition.VariableId">
+            <summary>
+            The name of the variable definition.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlVariableReference">
+             <summary>
+             5.24 Element <VariableReference/>
+            
+             The <VariableReference/> element is used to reference a value defined within the same encompassing <Policy/> element.
+             The <VariableReference/> element SHALL refer to the <VariableDefinition/> element by identifier equality on the value of their respective VariableId attributes.
+             One and only one <VariableDefinition/> MUST exist within the same encompassing <Policy/> element to which the <VariableReference/> refers.
+             There MAY be zero or more <VariableReference/> elements that refer to the same <VariableDefinition/> element.
+            
+             The <VariableReference/> element is of the VariableReferenceType complex type, which is of the ExpressionType complex type and is a
+             member of the <Expression/> element substitution group.  The <VariableReference/> element MAY appear any place where an <Expression/> element occurs in the schema.
+             The<VariableReference/> element has the following attribute:
+            
+             VariableId[Required]
+             The name used to refer to the value defined in a<VariableDefinition/> element.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlVariableReference.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlVariableReference"/> class.
+            </summary>
+            <param name="variableId">The name used to refer to the value defined in a<VariableDefinition/> element.</param>
+        </member>
+        <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlVariableReference.VariableId">
+            <summary>
+            The name used to refer to the value defined in a<VariableDefinition/> element.
+            </summary>
+        </member>
+        <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlVersionMatchType">
+             <summary>
+             5.13 Simple type VersionMatchType
+            
+             Elements of this type SHALL contain a restricted regular expression matching a version number (see Section 5.12).
+             The expression SHALL match versions of a referenced policy or policy set that are acceptable for inclusion in the referencing policy or policy set.
+            
+             A version match is '.'-separated, like a version string.  A number represents a direct numeric match.  A '*' means that any single number is valid.  A '+' means that any number, and any subsequent numbers, are valid.
+             In this manner, the following four patterns would all match the version string '1.2.3': '1.2.3', '1.*.3', '1.2.*' and ‘1.+'.
+             </summary>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlVersionMatchType.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.Xacml.XacmlVersionMatchType"/> class.
+            </summary>
+            <param name="value">The varsion match</param>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlVersionMatchType.ToString">
+            <summary>
+            Returns value
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

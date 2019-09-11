@@ -13,9 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AltinnCore.ServiceLibrary" Version="9.0.1" />
+    <PackageReference Include="AltinnCore.ServiceLibrary" Version="10.0.0" />
     <PackageReference Include="Halcyon.Mvc" Version="2.5.1" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.12-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.13-alpha" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.2.2" />

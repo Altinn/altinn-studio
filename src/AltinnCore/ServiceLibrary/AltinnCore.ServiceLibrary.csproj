@@ -9,11 +9,11 @@
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <Version>9.0.2</Version>
+    <Version>10.0.0</Version>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{f3b3f88c-b460-47d6-913e-70ecfa43385c}</ProjectGuid>
-    <AssemblyVersion>9.0.2.0</AssemblyVersion>
-    <FileVersion>9.0.1.0</FileVersion>
+    <AssemblyVersion>10.0.0.0</AssemblyVersion>
+    <FileVersion>10.0.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +25,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.7-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.13-alpha" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

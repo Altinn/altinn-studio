@@ -1,0 +1,12 @@
+Test IIE002 requires the PDP to be able to obtain a Policy with
+PolicyId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIE002:policy1" and a
+PolicySet with PolicySetId="conformance-test:IIE002:policyset1"
+from its policy repository.  These policies are provided in files
+IIE002PolicyId1.xml and IIE002PolicySetId1.xml, respectively.
+
+In order to execute this test, the policy in file
+IIE002PolicyId1.xml and the policy set in file
+IIE002PolicySetId1.xml must be stored in a repository such that
+the PDP (or its Policy Retrieval Point) is able to fetch the
+respective policies when they are referenced by id by
+IIE002Policy.xml.

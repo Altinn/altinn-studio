@@ -63,12 +63,23 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Gets the list of parties the user can represent
         /// </summary>
-        /// <returns></returns>
+        /// <param name="org">the app owner</param>
+        /// <param name="app">the app</param>
+        /// <param name="allowedToInstantiateFilter">when set to true returns parties that are allowed to instantiate</param>
+        /// <returns>parties</returns>
         [HttpGet("{org}/{app}/api/v1/parties")]
-        public IActionResult Get()
+        public IActionResult Get(string org, string app, bool allowedToInstantiateFilter = false)
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
+
+            if (allowedToInstantiateFilter)
+            {
+                Application application = _repository.GetApplication(org, app);
+                List<Party> validParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, application.PartyTypesAllowed);
+                return Ok(validParties);
+            }
+
             return Ok(partyList);
         }
 
