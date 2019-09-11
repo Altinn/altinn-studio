@@ -121,6 +121,17 @@ namespace Altinn.Platform.Storage.Models
         [JsonProperty(PropertyName = "data")]
         public List<DataElement> Data { get; set; }
 
+        /// <summary>
+        /// the date the instance was archived 
+        /// </summary>
+        public DateTime? ArchivedDateTime { get; set; }
+
+
+        /// <summary>
+        /// the date the instance was deleted
+        /// </summary>
+        public DateTime? DeletedDateTime { get; set; }
+
         /// <inheritdoc/>
         public override string ToString()
         {

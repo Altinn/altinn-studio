@@ -160,6 +160,7 @@ namespace Altinn.Platform.Storage.Controllers
                 instance.InstanceState.IsDeleted = false;
                 instance.LastChangedBy = User.Identity.Name;
                 instance.LastChangedDateTime = DateTime.UtcNow;
+                instance.DeletedDateTime = null;
 
                 InstanceEvent instanceEvent = new InstanceEvent
                 {
@@ -223,7 +224,7 @@ namespace Altinn.Platform.Storage.Controllers
             instance.InstanceState.IsDeleted = true;
             instance.InstanceState.IsMarkedForHardDelete = hard;
             instance.LastChangedBy = User.Identity.Name;
-            instance.LastChangedDateTime = DateTime.UtcNow;
+            instance.LastChangedDateTime = instance.DeletedDateTime = DateTime.UtcNow;
 
             InstanceEvent instanceEvent = new InstanceEvent
             {
