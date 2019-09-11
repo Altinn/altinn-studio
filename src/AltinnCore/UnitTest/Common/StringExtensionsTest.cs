@@ -12,16 +12,16 @@ namespace AltinnCore.UnitTest.Common
     public class StringExtensionsTest
     {
         /// <summary>
-        /// Proper santization when using ToFileName without exceptions.
+        /// Proper santization when using AsFileName without exceptions.
         /// </summary>
         [Fact]
         public void AsFileNameReplaceSlashWithDash()
         {
-            var invalidFileNames = new string[] { "/test/", "\\test\\" };
+            string[] invalidFileNames = new string[] { "/test/", "\\test\\" };
 
             foreach (var invalidFileName in invalidFileNames)
             {
-                var sanitizedName = invalidFileName.AsFileName(throwExceptionOnInvalidCharacters: false);
+                string sanitizedName = invalidFileName.AsFileName(throwExceptionOnInvalidCharacters: false);
                 Assert.Equal("-test-", sanitizedName);
             }
         }
@@ -32,9 +32,9 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void AsFileNameThrowsException()
         {
-            var invalidFileNames = new string[] { "/test/", "\\test\\" };
+            string[] invalidFileNames = new string[] { "/test/", "\\test\\" };
 
-            foreach (var invalidFileName in invalidFileNames)
+            foreach (string invalidFileName in invalidFileNames)
             {
                 Assert.Throws<ArgumentOutOfRangeException>(() => invalidFileName.AsFileName());
             }

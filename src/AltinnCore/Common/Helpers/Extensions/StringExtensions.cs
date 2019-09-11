@@ -11,11 +11,10 @@ namespace AltinnCore.Common.Helpers.Extensions
     public static class StringExtensions
     {
         /// <summary>
-        /// Santize the input variable as a file name. If the parameter throwException is set to true, it will throw an invalidargumentexception
-        /// if the variable contains invalid characters. When it is set to false, it will replace the characters with '-'.
+        /// Sanitize the input as a file name. 
         /// </summary>
         /// <param name="input">The input variable to be sanitized</param>
-        /// <param name="throwExceptionOnInvalidCharacters">Throw exception if invalid characters are found</param>
+        /// <param name="throwExceptionOnInvalidCharacters">Throw exception instead of replacing invalid characters with '-'</param>
         /// <returns></returns>
         public static string AsFileName(this string input, bool throwExceptionOnInvalidCharacters = true)
         {
@@ -24,7 +23,7 @@ namespace AltinnCore.Common.Helpers.Extensions
                 return input;
             }
 
-            var illegalFileNameCharacters = System.IO.Path.GetInvalidFileNameChars();
+            char[] illegalFileNameCharacters = System.IO.Path.GetInvalidFileNameChars();
             if (throwExceptionOnInvalidCharacters)
             {
                 if (illegalFileNameCharacters.Any(ic => input.Any(i => ic == i)))
