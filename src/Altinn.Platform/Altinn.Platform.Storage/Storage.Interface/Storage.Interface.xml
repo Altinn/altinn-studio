@@ -455,16 +455,6 @@
             the data elements associated with the instance
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.Instance.ArchivedDateTime">
-            <summary>
-            the date the instance was archived 
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Models.Instance.DeletedDateTime">
-            <summary>
-            the date the instance was deleted
-            </summary>
-        </member>
         <member name="M:Altinn.Platform.Storage.Models.Instance.ToString">
             <inheritdoc/>
         </member>
@@ -715,6 +705,16 @@
         <member name="P:Storage.Interface.Models.InstanceState.IsArchived">
             <summary>
             Gets or sets whether a user archived the instance
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.InstanceState.ArchivedDateTime">
+            <summary>
+            Gets or set the date the instance was archived 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.InstanceState.DeletedDateTime">
+            <summary>
+            Gets or sets the date the instance was deleted
             </summary>
         </member>
         <member name="T:Storage.Interface.Models.LanguageString">
