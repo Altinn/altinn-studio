@@ -14,6 +14,7 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.RestControllers;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+using AltinnCoreServiceImplementation.tdd.xyz23;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -35,6 +36,7 @@ namespace AltinnCore.UnitTest.Runtime
         private readonly string authenticationLevel = "1";
         private readonly string org = "test";
         private readonly string app = "app";
+        private readonly Guid dataGuid = Guid.Parse("16b62641-67b1-4cf0-b26f-61279fbf528d");
 
         /// <summary>
         /// Simulates an application owner's instanciation of an app with prefill.
@@ -54,7 +56,9 @@ namespace AltinnCore.UnitTest.Runtime
             request.SetupGet(x => x.Headers["Accept"]).Returns("application/json");
             request.SetupGet(x => x.ContentType).Returns("application/json");
             request.SetupGet(x => x.Body).Returns(instanceStream);
-            request.SetupGet(x => x.Cookies["AltinnPartyId"]).Returns("220002");
+            request.SetupGet(x => x.Host).Returns(new HostString("tdd.apps.at21.altinn.cloud"));
+            request.SetupGet(x => x.Path).Returns(new PathString("/tdd/test/instances/"));
+            request.SetupGet(x => x.Cookies["AltinnPartyId"]).Returns(instanceOwnerId);
 
             var context = new Mock<HttpContext>();
             context.SetupGet(x => x.Request).Returns(request.Object);
@@ -68,8 +72,8 @@ namespace AltinnCore.UnitTest.Runtime
             };
 
             InstancesController controller = NewInstanceController(context);
-
-            ActionResult<Instance> result = controller.Post(org, app, int.Parse(instanceOwnerId)).Result;
+            
+            ActionResult<Instance> result = controller.Post(org, app, int.Parse(instanceOwnerId)).Result;               
 
             Assert.IsType<CreatedResult>(result.Result);
 
@@ -77,6 +81,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Assert.NotNull(instance);
             Assert.Equal(instanceOwnerId, instance.InstanceOwnerId);
+            Assert.StartsWith($"https://tdd.apps.at21.altinn.cloud/tdd/test/instances/{instanceOwnerId}", instance.SelfLinks.Apps);
         }
 
         /// <summary>
@@ -95,7 +100,8 @@ namespace AltinnCore.UnitTest.Runtime
             string instance = JsonConvert.SerializeObject(instanceTemplate);
             string xml = "<xml><is><no><good></good></no></is></xml>";
 
-            MultipartFormDataContent formData = new MultipartFormDataContent()
+            string boundary = "abcdefgh";
+            MultipartFormDataContent formData = new MultipartFormDataContent(boundary)
             {
                 { new StringContent(instance, Encoding.UTF8, "application/json"), "instance" },
                 { new StringContent(xml, Encoding.UTF8, "application/xml"), "default" }
@@ -103,14 +109,15 @@ namespace AltinnCore.UnitTest.Runtime
 
             MemoryStream multipartStream = new MemoryStream();
             await formData.CopyToAsync(multipartStream);
+            multipartStream.Position = 0;
 
             Mock<HttpRequest> request = new Mock<HttpRequest>();
             request.SetupGet(x => x.Headers["Accept"]).Returns("application/json");
-            request.SetupGet(x => x.ContentType).Returns("multipart/form-data");
+            request.SetupGet(x => x.ContentType).Returns($"multipart/form-data; boundary={boundary}");
             request.SetupGet(x => x.Body).Returns(multipartStream);
             request.SetupGet(x => x.Host).Returns(new HostString("tdd.apps.at21.altinn.cloud"));
             request.SetupGet(x => x.Path).Returns(new PathString("/tdd/test/instances/"));
-            request.SetupGet(x => x.Cookies["AltinnPartyId"]).Returns("20002");
+            request.SetupGet(x => x.Cookies["AltinnPartyId"]).Returns(instanceOwnerId);
 
             Mock<ClaimsPrincipal> userMock = MockUser();
 
@@ -128,6 +135,8 @@ namespace AltinnCore.UnitTest.Runtime
             Instance createdInstance = (Instance)((CreatedResult)actionResult.Result).Value;
 
             Assert.NotNull(createdInstance);
+            Assert.Single(createdInstance.Data);
+            Assert.Equal("default", createdInstance.Data[0].ElementType);
         }
 
         private InstancesController NewInstanceController(Mock<HttpContext> context)
@@ -138,6 +147,22 @@ namespace AltinnCore.UnitTest.Runtime
                 InstanceOwnerId = $"{instanceOwnerId}",
                 AppId = $"{org}/{app}",
                 Org = $"{org}",
+            };
+
+            Instance instanceWithData = new Instance()
+            {
+                Id = createdInstance.Id,
+                InstanceOwnerId = createdInstance.InstanceOwnerId,
+                AppId = createdInstance.AppId,
+                Org = createdInstance.Org,
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = dataGuid.ToString(),
+                        ElementType = "default",
+                    }
+                }
             };
 
             Mock<IAuthorization> authorizationService = new Mock<IAuthorization>();
@@ -152,12 +177,12 @@ namespace AltinnCore.UnitTest.Runtime
             Mock<IRegister> registerServiceMock = new Mock<IRegister>();
             registerServiceMock
                 .Setup(x => x.GetParty(It.IsAny<int>()))
-                .Returns(Task.FromResult(new Party() { PartyId = 20000 }));
+                .Returns(Task.FromResult(new Party() { PartyId = int.Parse(instanceOwnerId) }));
 
             Mock<IProfile> profileServiceMock = new Mock<IProfile>();
             profileServiceMock
                 .Setup(x => x.GetUserProfile(It.IsAny<int>()))
-                .Returns(Task.FromResult(new UserProfile() { UserId = 44 }));
+                .Returns(Task.FromResult(new UserProfile() { UserId = int.Parse(userId) }));
 
             Mock<IOptions<GeneralSettings>> generalSettingsMock = new Mock<IOptions<GeneralSettings>>();
             generalSettingsMock.Setup(s => s.Value).Returns(new GeneralSettings()
@@ -165,17 +190,33 @@ namespace AltinnCore.UnitTest.Runtime
                 AltinnPartyCookieName = "AltinnPartyId",
             });
 
+            Mock<ServiceContext> serviceContextMock = new Mock<ServiceContext>();
+            Mock<IExecution> executionServiceMock = new Mock<IExecution>();
+            executionServiceMock
+                .Setup(e => e.GetServiceContext(org, app, It.IsAny<bool>()))
+                .Returns(serviceContextMock.Object);
+
+            ServiceImplementation serviceImplementation = new ServiceImplementation();
+            executionServiceMock
+                .Setup(e => e.GetServiceImplementation(org, app, It.IsAny<bool>()))
+                .Returns(serviceImplementation);
+
             Mock<IRepository> repositoryServiceMock = new Mock<IRepository>();
             Application application = JsonConvert.DeserializeObject<Application>(File.ReadAllText("Runtime/ServiceModels/default/Metadata/applicationmetadata.json"));
             repositoryServiceMock.Setup(r => r.GetApplication(org, app)).Returns(application);
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.InsertData(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<Type>(), org, app, It.IsAny<int>()))
+                .Returns(Task.FromResult(instanceWithData));
 
             return new InstancesController(
                 generalSettingsMock.Object,
                 logger.Object,
                 registerServiceMock.Object,
                 instanceServiceMock.Object,
-                new Mock<IData>().Object,
-                new Mock<IExecution>().Object,
+                dataServiceMock.Object,
+                executionServiceMock.Object,
                 profileServiceMock.Object,
                 new Mock<IPlatformServices>().Object,
                 new Mock<IInstanceEvent>().Object,

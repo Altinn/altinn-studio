@@ -6,6 +6,7 @@ import * as React from 'react';
 import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
+import { IAltinnWindow } from '../types';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
 

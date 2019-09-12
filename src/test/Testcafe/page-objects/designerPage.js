@@ -76,7 +76,7 @@ export default class DesignerPage {
     this.paragraphComponent = Selector(".fa.fa-paragraph").parent(2);
     this.addressComponent = Selector(".fa.fa-address").parent(2);
     this.dragToArea = Selector(".col-12");
-    this.removeComponentIcon = Selector(".fa.fa-circletrash");
+    this.removeComponentsButton = Selector(".fa.fa-circletrash");
 
     //"språk" navigation tab selectors
     this.spraakNavigationTab = Selector('div').withExactText('Språk');
@@ -158,12 +158,16 @@ export default class DesignerPage {
     return Selector('h2').withExactText(headerText);
   }
 
-  async deleteSelectedComponentsMethod() {
-    let deleteSelectedComponent = await this.deleteIcon;
-    let numberOfSelectedComponents = deleteSelectedComponent.length;
-    await t.click(deleteSelectedComponent);
-    for (let i = 0; i < numberOfSelectedComponents; i++) {
-      //await t.click(deleteSelectedComponent.nth(i));
+  async deleteUIComponentsMethod (t) {
+    var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable','true');
+    var numberOfComponents = await addedUIComponents.count;    
+    if (numberOfComponents > 0) {
+    for (var i = 0; i < numberOfComponents; i++) {
+      await t.hover(addedUIComponents.nth(i));
+      await t.click(addedUIComponents.nth(i));
+      }
+    await t.hover(this.removeComponentsButton.parent('button'));
+    await t.click(this.removeComponentsButton.parent('button'));
     }
   }
 }

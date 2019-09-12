@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
+using Storage.Interface.Enums;
 
 namespace AltinnCore.Runtime.RestControllers
 {
@@ -124,9 +125,7 @@ namespace AltinnCore.Runtime.RestControllers
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [DisableFormValueModelBinding]
         public async Task<ActionResult> PutDataElement(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
-        {
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app);
-
+        {           
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
 
             if (instance == null)
@@ -140,6 +139,9 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 return NotFound("Data element not found");
             }
+
+            string elementType = dataElement.ElementType;
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType);
 
             object serviceModel = ParseContentAndDeserializeServiceModel(Request, serviceImplementation.GetServiceModelType(), out ActionResult contentError);
 
@@ -201,7 +203,7 @@ namespace AltinnCore.Runtime.RestControllers
         [HttpGet("{elementType}")]
         public async Task<ActionResult> GetDataElement(string org, string app, int instanceOwnerId, Guid instanceId, string elementType = "default")
         {
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app);
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType);
                 
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
@@ -243,7 +245,7 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="org">org identifier</param>
         /// <param name="app">app identifier</param>
         /// <param name="instanceOwnerId">instance owner id</param>
-        /// <param name="instanceId">instance id</param>
+        /// <param name="instanceGuid">instance id</param>
         /// <param name="elementType">element type</param>
         /// <returns>instance metadata with new data element</returns>
         [Authorize]
@@ -254,12 +256,12 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerId,
-            [FromRoute] Guid instanceId,
+            [FromRoute] Guid instanceGuid,
             [FromQuery] string elementType = "default")
         {
             bool startService = true;
 
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, startService);
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType, startService);
                 
             Application application = repositoryService.GetApplication(org, app);
             if (application != null)
@@ -267,7 +269,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound($"AppId {org}/{app} was not found");
             }
 
-            Instance instanceBefore = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
+            Instance instanceBefore = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instanceBefore == null)
             {
                 return BadRequest("Unknown instance");
@@ -296,7 +298,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             InstancesController.SetAppSelfLinks(instanceBefore, Request);
            
-            Instance instanceAfter = await dataService.InsertData(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, app, instanceOwnerId);
+            Instance instanceAfter = await dataService.InsertData(serviceModel, instanceGuid, serviceImplementation.GetServiceModelType(), org, app, instanceOwnerId);
 
             InstancesController.SetAppSelfLinks(instanceAfter, Request);
             List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);           
@@ -305,7 +307,15 @@ namespace AltinnCore.Runtime.RestControllers
             return Created(dataUrl, instanceAfter);
         }
 
-        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, bool startService = false)
+        /// <summary>
+        /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
+        /// </summary>
+        /// <param name="org">the organisation id</param>
+        /// <param name="app">the app name</param>
+        /// <param name="elementType">the data element type</param>
+        /// <param name="startService">indicates if the servcie should be started or just opened</param>
+        /// <returns>the serviceImplementation object which represents the application business logic</returns>
+        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startService = false)
         {
             IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startService);
 

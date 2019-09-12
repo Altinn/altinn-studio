@@ -1,8 +1,10 @@
 import * as moment from 'moment';
-import * as React from 'react';
 import { useState } from 'react';
+import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
+import AltinnContentIconReceipt from '../../../../../shared/src/components/atoms/AltinnContentIconReceipt';
+import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
 import ReceiptComponent from '../../../../../shared/src/components/organisms/AltinnReceipt';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
 import { IRuntimeState } from '../../../types';
@@ -64,6 +66,19 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   const origin = window.location.origin;
   const routeParams: any = props.match.params;
 
+  const isLoading = (): boolean => {
+    return (
+      !attachments ||
+      !instanceMetaObject ||
+      !lastChangedDateTime ||
+      !appName ||
+      !allOrgs ||
+      !profile ||
+      !instance ||
+      !lastChangedDateTime
+    );
+  };
+
   React.useEffect(() => {
     setUserLanguage(getUserLanguage());
     OrgsActions.fetchOrgs();
@@ -106,16 +121,25 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   // }];
 
   return (
-    <ReceiptComponent
-      attachments={attachments}
-      body={getLanguageFromKey('receipt.body', language)}
-      collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
-      instanceMetaDataObject={instanceMetaObject}
-      subtitle={getLanguageFromKey('receipt.subtitle', language)}
-      subtitleurl={returnUrlToMessagebox(origin)}
-      title={`${appName} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
-      titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
-    />
+    <>
+      {isLoading() &&
+        <AltinnContentLoader  width={705} height={561}>
+          <AltinnContentIconReceipt/>
+        </AltinnContentLoader>
+      }
+      {!isLoading() &&
+        <ReceiptComponent
+          attachments={attachments}
+          body={getLanguageFromKey('receipt.body', language)}
+          collapsibleTitle={getLanguageFromKey('receipt.attachments', language)}
+          instanceMetaDataObject={instanceMetaObject}
+          subtitle={getLanguageFromKey('receipt.subtitle', language)}
+          subtitleurl={returnUrlToMessagebox(origin)}
+          title={`${appName} ${getLanguageFromKey('receipt.title_part_is_submitted', language)}`}
+          titleSubmitted={getLanguageFromKey('receipt.title_submitted', language)}
+        />
+      }
+    </>
   );
 
 };

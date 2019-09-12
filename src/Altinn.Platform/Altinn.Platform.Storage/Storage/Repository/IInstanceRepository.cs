@@ -19,6 +19,14 @@ namespace Altinn.Platform.Storage.Repository
         Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerId);
 
         /// <summary>
+        /// Gets all the instances for an instance owner that should be visible for the user and in a given state
+        /// </summary>
+        /// <param name="instanceOwnerId">the owner of the instance</param>
+        /// <param name="instanceState">instance state. Valid values: active, archived, deleted</param>
+        /// <returns>The list of instances for an instance owner</returns>
+        Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerId, string instanceState);
+
+        /// <summary>
         /// Gets all the instances for an app
         /// </summary>
         /// <param name="queryParams">the query params</param>

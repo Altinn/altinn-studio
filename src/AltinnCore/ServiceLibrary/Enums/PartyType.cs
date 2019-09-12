@@ -18,6 +18,17 @@ namespace AltinnCore.ServiceLibrary.Enums
         /// <summary>
         /// Party Type is Self Identified user
         /// </summary>
-        SelfIdentified = 3
+        SelfIdentified = 3,
+
+        /// <summary>
+        /// Party Type is sub unit
+        /// </summary>
+        SubUnit = 4,
+
+        /// <summary>
+        /// Party Type is bankrupcy estate
+        /// </summary>
+        BankruptcyEstate = 5
+
     }
 }

@@ -149,6 +149,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
         />
       );
     } else {
+      console.log('###### REDIRECTING TO /PARTYSELECTION');
       return (
         <Redirect
           to={{

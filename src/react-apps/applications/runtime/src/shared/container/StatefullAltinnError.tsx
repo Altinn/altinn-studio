@@ -49,21 +49,21 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
     const { party_selection } = language;
     return (
       <>
-        {`${party_selection.error_no_valid_selection_second_part} ${(window as IAltinnWindow).service}. `}
-        {`${party_selection.error_no_valid_selection_third_part} ${templatePartyTypeString()}.`}
+        {`${party_selection.no_valid_selection_second_part} ${(window as IAltinnWindow).service}. `}
+        {`${party_selection.no_valid_selection_third_part} ${templatePartyTypeString()}.`}
         <br />
         <br />
         <a href={'https://altinn.no/help/profil/roller-og-rettigheter/'}>
-          {`${party_selection.error_read_more_roles_link}`}
+          {`${party_selection.read_more_roles_link}`}
         </a>
-        {`. ${party_selection.error_contact_support}`}
+        {`. ${party_selection.contact_support}`}
       </>
     );
   }
 
   function templateErrorMessageTitle(): string {
     const { party_selection } = language;
-    return `${party_selection.error_no_valid_selection_first_part} ${templatePartyTypeString()}`;
+    return `${party_selection.no_valid_selection_first_part} ${templatePartyTypeString()}`;
   }
 
   function templatePartyTypeString(): string {

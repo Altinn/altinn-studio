@@ -8,18 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.7-alpha" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="data\cat.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="data\process-model.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="data\schema.xsd">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.15-alpha" />
   </ItemGroup>
 </Project>

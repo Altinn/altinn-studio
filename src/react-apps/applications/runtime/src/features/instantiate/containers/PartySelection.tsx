@@ -16,6 +16,10 @@ import { IProfile } from '../../../shared/resources/profile';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { capitalizeName } from '../../../utils/stringHelper';
 
+const UNIT_TYPE_BANKRUPTCY_CODE: string = 'KBO';
+const UNIT_TYPE_SUB_UNIT: string = 'BEDR';
+const UNIT_TYPE_SUB_UNIT_AAFY: string = 'AAFY';
+
 const styles = createStyles({
   partySelectionPage: {
     width: '100%',
@@ -70,7 +74,7 @@ const styles = createStyles({
   },
 });
 
-interface IRedirectValidPartes {
+interface IRedirectValidParties {
   validParties: IParty[];
 }
 
@@ -106,52 +110,78 @@ function PartySelection(props: IPartySelectionProps) {
       return null;
     }
 
-    const validParties: IParty[] = parties.map((party) => {
-      if (!showDeleted) {
-        if ((party.ssn != null && appMetadata.partyTypesAllowed.person) && !party.isDeleted) {
-          return party;
+    let validParties: IParty[];
+
+    if (!location.state || !location.state.validParties) {
+      validParties = parties.map((party) => {
+        if (!showDeleted) {
+          if ((party.ssn != null && appMetadata.partyTypesAllowed.person) && !party.isDeleted) {
+            return party;
+          }
+          if ((party.orgNumber != null &&
+            (appMetadata.partyTypesAllowed.organization ||
+              appMetadata.partyTypesAllowed.subUnit ||
+              appMetadata.partyTypesAllowed.bankruptcyEstate)
+            ) && !party.isDeleted) {
+            return party;
+          }
+        } else {
+          if ((party.ssn != null && appMetadata.partyTypesAllowed.person)) {
+            return party;
+          }
+          if (
+              party.orgNumber != null &&
+              (party.unitType === UNIT_TYPE_SUB_UNIT ||
+              party.unitType === UNIT_TYPE_SUB_UNIT_AAFY) &&
+              appMetadata.partyTypesAllowed.subUnit
+            ) {
+            return party;
+          }
+          if (
+            party.orgNumber != null &&
+            party.unitType ===  UNIT_TYPE_BANKRUPTCY_CODE &&
+            appMetadata.partyTypesAllowed.bankruptcyEstate
+          ) {
+            return party;
+          }
         }
-        if ((party.orgNumber != null && appMetadata.partyTypesAllowed.organization) && !party.isDeleted) {
-          return party;
-        }
-      } else {
-        if ((party.ssn != null && appMetadata.partyTypesAllowed.person)) {
-          return party;
-        }
-        if ((party.orgNumber != null && appMetadata.partyTypesAllowed.organization)) {
-          return party;
-        }
-      }
-    }).filter((party) => !party ? null : party);
+      }).filter((party) => !party ? null : party);
+    } else {
+      validParties = (location.state as IRedirectValidParties).validParties;
+    }
 
     let numberOfPartiesRendered: number = 0;
 
+    if (validParties.length === 0) {
+      return (
+        <Redirect
+          to={{
+            pathname: '/error',
+            state: {
+              message: 'No valid parties',
+            },
+          }}
+        />
+      );
+    }
+
     return (
       <>
-        {parties.length > 0 && validParties.length === 0 ?
-          <Redirect
-            to={{
-              pathname: '/error',
-              state: {
-                message: 'No valid parties',
-              },
-            }}
-          /> :
-          validParties.map((party: IParty, index: number) =>
-            party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
-              numberOfPartiesShown > numberOfPartiesRendered ?
-                (() => {
-                  numberOfPartiesRendered += 1;
-                  return (
-                    <AltinnParty
-                      key={index}
-                      party={party}
-                      onSelectParty={onSelectParty}
-                    />
-                  );
-                })()
-                : null
-              : null,
+        {validParties.map((party: IParty, index: number) =>
+          party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
+            numberOfPartiesShown > numberOfPartiesRendered ?
+              (() => {
+                numberOfPartiesRendered += 1;
+                return (
+                  <AltinnParty
+                    key={index}
+                    party={party}
+                    onSelectParty={onSelectParty}
+                  />
+                );
+              })()
+              : null
+            : null,
           )}
         {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < validParties.length ?
           <Grid container={true}>
@@ -282,7 +312,7 @@ function PartySelection(props: IPartySelectionProps) {
             language.party_selection.header
           }
         </Typography>
-        {!location.state || !(location.state as IRedirectValidPartes).validParties.length ?
+        {!location.state || !(location.state as IRedirectValidParties).validParties.length ?
           null :
           <Typography className={classes.partySelectionError}>
             {templateErrorMessage()}

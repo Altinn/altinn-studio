@@ -24,6 +24,7 @@ export default class RunTimePage {
     this.fileDropComponent = Selector('.file-upload').child('input');
     this.fileListBox = Selector('[id*="-fileuploader-"]');
     this.fileDeleteButton = Selector('#attachment-delete-0');
+    this.fileUploadChecks = Selector(".ai.ai-check-circle"); 
     this.checkBox = Selector('');
     this.textboxComponent = Selector('textarea')
     this.addressComponent = Selector('input').withAttribute('type', 'text');
@@ -33,6 +34,13 @@ export default class RunTimePage {
     this.workflowSubmit = Selector("#workflowSubmitStepButton");
     //file component error message
     this.errorMessage = Selector('.field-validation-error.a-message.a-message-error');
+    //Receipt Page
+    this.receiptContainer = Selector('#ReceiptContainer');
+    this.AttachmentDropDown = Selector("div > span").withText("Vedlegg");
+    this.attachedFiles = Selector("p").withText("ServiceModel");
+
+    //Message Box
+    this.messagesList = Selector('.table.table-striped.table-bordered').find('tbody');
 
     this.testUserHeader = [
       Selector('div').withAttribute('title', 'OLA PRIVATPERSON'),
@@ -45,5 +53,19 @@ export default class RunTimePage {
   async readOnlySelectors(innerText) {
     let readOnlySelector = Selector('.a-form-group').withText(innerText).child('input');
     return (readOnlySelector)
+  }
+
+  async findAndOpenArchivedMessage (t){
+    var messages = await this.messagesList.find('tr td a');
+    var messagesCount = await messages.count;    
+    if (messagesCount > 0) {
+        for (var i=0; i<messagesCount; i++) {          
+          var innerTextMessageId = await messages.nth(i).innerText;          
+          if (innerTextMessageId.includes('Arktivert'))  {
+            await t.click(messages.nth(i));
+            break;
+        }
+      }       
+    }
   }
 }

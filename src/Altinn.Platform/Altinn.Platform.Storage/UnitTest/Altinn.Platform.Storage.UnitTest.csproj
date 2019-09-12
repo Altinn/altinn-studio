@@ -23,7 +23,4 @@
     <ProjectReference Include="..\Storage\Altinn.Platform.Storage.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-  </ItemGroup>
-
 </Project>

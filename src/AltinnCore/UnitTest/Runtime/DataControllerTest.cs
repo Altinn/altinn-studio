@@ -243,13 +243,13 @@ namespace AltinnCore.UnitTest.Runtime
             };      
             
             Mock<ServiceContext> serviceContextMock = new Mock<ServiceContext>();
-            Mock<IExecution> executionService = new Mock<IExecution>();
-            executionService
+            Mock<IExecution> executionServiceMock = new Mock<IExecution>();
+            executionServiceMock
                 .Setup(e => e.GetServiceContext(org, app, It.IsAny<bool>()))
                 .Returns(serviceContextMock.Object);
 
             ServiceImplementation serviceImplementation = new ServiceImplementation();
-            executionService
+            executionServiceMock
                 .Setup(e => e.GetServiceImplementation(org, app, It.IsAny<bool>()))
                 .Returns(serviceImplementation);
 
@@ -268,7 +268,7 @@ namespace AltinnCore.UnitTest.Runtime
                 registerServiceMock.Object,
                 instanceServiceMock.Object,
                 dataServiceMock.Object,
-                executionService.Object,
+                executionServiceMock.Object,
                 profileServiceMock.Object,
                 platformServicesMock.Object,
                 new Mock<IRepository>().Object,

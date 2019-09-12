@@ -1,10 +1,13 @@
 using System;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Runtime.RequestHandling;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Common.Helpers;
@@ -13,6 +16,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Storage.Interface.Enums;
 using Storage.Interface.Models;
 
 namespace AltinnCore.Runtime.RestControllers
@@ -169,26 +174,33 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound($"AppId {org}/{app} was not found");
             }
 
-            // If this is a multipart request we assume the creation is by application owner or client system.
-            if (Request.ContentType != null && Request.ContentType.StartsWith("multipart"))
-            {
-                if (!instanceOwnerId.HasValue)
-                {
-                    return BadRequest("Multipart is currently not supported");
-                }
+            MultipartRequestReader parsedRequest = new MultipartRequestReader(Request);
+            parsedRequest.Read().Wait();
 
-                // 1) TODO handle multipart and instanceTemplate
+            if (parsedRequest.Errors.Any())
+            {
+                return BadRequest($"Error when reading content: {parsedRequest.Errors}");
             }
 
-            if (!instanceOwnerId.HasValue)
+            Instance instanceTemplate = ExtractInstanceTemplate(parsedRequest, instanceOwnerId);
+            if (instanceTemplate == null)
             {
-                return BadRequest("InstanceOwnerId must currently have a value");
+                return BadRequest("Cannot create a valid instance template, you must provide an instanceOwnerId");
             }
 
-            Instance instanceTemplate = new Instance()
+            RequestPartValidator requestValidator = new RequestPartValidator(application);
+
+            string multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
+
+            if (!string.IsNullOrEmpty(multipartError))
             {
-                InstanceOwnerId = instanceOwnerId.Value.ToString(),
-            };
+                return BadRequest($"Error when comparting content to application metadata: {multipartError}");
+            }            
+
+            if (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))
+            {
+                return BadRequest($"Error instanceOwnerId must have value");
+            }
 
             Party party = await registerService.GetParty(instanceOwnerId.Value);
 
@@ -204,12 +216,77 @@ namespace AltinnCore.Runtime.RestControllers
                 return StatusCode(500, "Unknown error!");                
             }
 
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            int instanceOwnerInt = int.Parse(instance.InstanceOwnerId);
+            Instance instanceWithData = null;
+
+            try
+            {
+                foreach (RequestPart part in parsedRequest.Parts)
+                {
+                    object data = new StreamReader(part.Stream).ReadToEnd();
+                    IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, part.Name, true);
+                    instanceWithData = await dataService.InsertData(data, instanceGuid, serviceImplementation.GetServiceModelType(), org, app, instanceOwnerInt);
+
+                    if (instanceWithData == null)
+                    {
+                        throw new ApplicationException("Unable to store data element");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Failure storing multpart prefil of {instanceOwnerId}/{instanceGuid}. Because {ex}");
+
+                // todo add compensating transaction
+                return StatusCode(500, $"Failure storing multpart prefil of {instanceOwnerId}/{instanceGuid}. Because {ex.Message}");
+            }
+
+            if (instanceWithData != null)
+            {
+                instance = instanceWithData;
+            }
+
             SetAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
 
             DispatchEvent(InstanceEventType.Created.ToString(), instance);
 
             return Created(url, instance);
+        }
+
+        private Instance ExtractInstanceTemplate(MultipartRequestReader reader, int? instanceOwnerId)
+        {
+            Instance instanceTemplate = null;
+            RequestPart instancePart = null;
+
+            // assume that first part with no name is an instanceTemplate
+            if (reader.Parts.Count == 1 && reader.Parts[0].ContentType.Contains("application/json") && reader.Parts[0].Name == null)
+            {
+                instancePart = reader.Parts[0];
+            }
+            else
+            {
+                instancePart = reader.Parts.Find(part => part.Name == "instance");
+            }
+
+            if (instancePart != null)
+            {
+                reader.Parts.Remove(instancePart);
+
+                StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
+                string content = streamReader.ReadToEnd();
+
+                instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);                
+            }
+
+            if (instanceOwnerId.HasValue)
+            {
+                instanceTemplate = instanceTemplate ?? new Instance();
+                instanceTemplate.InstanceOwnerId = instanceOwnerId.Value.ToString();
+            }
+
+            return instanceTemplate;
         }
 
         /// <summary>
@@ -222,15 +299,23 @@ namespace AltinnCore.Runtime.RestControllers
             string host = $"https://{request.Host.ToUriComponent()}";
             string url = request.Path;
 
-            string appSelfLink = $"{host}{url}";
+            string selfLink = $"{host}{url}";
 
-            if (!appSelfLink.EndsWith(instance.Id))
+            int start = selfLink.IndexOf("/instances");
+            if (start > 0)
             {
-                appSelfLink += instance.Id;
+                selfLink = selfLink.Substring(0, start) + "/instances";
+            }
+
+            selfLink += $"/{instance.Id}";            
+
+            if (!selfLink.EndsWith(instance.Id))
+            {
+                selfLink += instance.Id;
             }
 
             instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
-            instance.SelfLinks.Apps = appSelfLink;
+            instance.SelfLinks.Apps = selfLink;
 
             if (instance.Data != null)
             {
@@ -238,16 +323,40 @@ namespace AltinnCore.Runtime.RestControllers
                 {
                     dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
 
-                    dataElement.DataLinks.Apps = $"{appSelfLink}/data/{dataElement.Id}";
+                    dataElement.DataLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
                 }
             }
-        }  
+        }
+
+        /// <summary>
+        /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
+        /// </summary>
+        /// <param name="org">the organisation id</param>
+        /// <param name="app">the app name</param>
+        /// <param name="elementType">the data element type</param>
+        /// <param name="startService">indicates if the servcie should be started or just opened</param>
+        /// <returns>the serviceImplementation object which represents the application business logic</returns>
+        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startService = false)
+        {
+            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startService);
+
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
+            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
+            requestContext.Party = requestContext.UserContext.Party;
+
+            ServiceContext serviceContext = executionService.GetServiceContext(org, app, startService);
+
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
+            serviceImplementation.SetPlatformServices(platformService);
+
+            return serviceImplementation;
+        }
 
         /// <summary>
         /// Creates an event and dispatches it to the eventService for storage.
         /// </summary>
         private async void DispatchEvent(string eventType, Instance instance)
-        {
+        { 
             UserContext userContext = await userHelper.GetUserContext(HttpContext);
 
             string app = instance.AppId.Split("/")[1];
