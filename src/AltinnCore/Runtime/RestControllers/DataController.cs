@@ -143,7 +143,7 @@ namespace AltinnCore.Runtime.RestControllers
             string elementType = dataElement.ElementType;
             IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType);
 
-            object serviceModel = ParseContentAndDeserializeServiceModel(Request, serviceImplementation.GetServiceModelType(), out ActionResult contentError);
+            object serviceModel = ParseContentAndDeserializeServiceModel(serviceImplementation.GetServiceModelType(), out ActionResult contentError);
 
             if (contentError != null)
             {
@@ -185,7 +185,7 @@ namespace AltinnCore.Runtime.RestControllers
                 dataGuid);
 
             // Create and store instance saved event
-            DispatchEvent(InstanceEventType.Saved.ToString(), instance, dataGuid);
+            await DispatchEvent(InstanceEventType.Saved.ToString(), instance, dataGuid);
 
             return Ok(serviceModel);
         }
@@ -283,7 +283,7 @@ namespace AltinnCore.Runtime.RestControllers
             }
             else
             {
-                serviceModel = ParseContentAndDeserializeServiceModel(Request, serviceImplementation.GetServiceModelType(), out ActionResult contentError);
+                serviceModel = ParseContentAndDeserializeServiceModel(serviceImplementation.GetServiceModelType(), out ActionResult contentError);
                 if (contentError != null)
                 {
                     return contentError;
@@ -317,6 +317,8 @@ namespace AltinnCore.Runtime.RestControllers
         /// <returns>the serviceImplementation object which represents the application business logic</returns>
         private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startService = false)
         {
+            logger.LogInformation($"Prepare application model for {elementType}");
+
             IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startService);
 
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
@@ -331,7 +333,7 @@ namespace AltinnCore.Runtime.RestControllers
             return serviceImplementation;
         }
 
-        private object ParseContentAndDeserializeServiceModel(HttpRequest request, Type modelType, out ActionResult error)
+        private object ParseContentAndDeserializeServiceModel(Type modelType, out ActionResult error)
         {
             error = null;
             object serviceModel = null;
@@ -371,7 +373,7 @@ namespace AltinnCore.Runtime.RestControllers
             return serviceModel;
         }
 
-        private async void DispatchEvent(string eventType, Instance instance, Guid dataGuid)
+        private async Task DispatchEvent(string eventType, Instance instance, Guid dataGuid)
         {
             UserContext userContext = await userHelper.GetUserContext(HttpContext);
 
@@ -414,36 +416,6 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             return elementsCreated;
-        }
-
-        /// <summary>
-        /// Returns the stream of the first section in a multipart or the body of a normal 
-        /// </summary>
-        private Stream GetServiceDataFromRequest(HttpRequest request, string elementType, Instance instance, out Stream theStream)
-        {
-            DateTime creationTime = DateTime.UtcNow;
-
-            theStream = null;
-
-            if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
-            {
-                // Only read the first section of the mulitpart message.
-                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
-                string boundary = MultipartRequestHelper.GetBoundary(mediaType, 70);
-
-                MultipartReader reader = new MultipartReader(boundary, request.Body);
-                MultipartSection section = reader.ReadNextSectionAsync().Result;
-
-                theStream = section.Body;
-
-                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-            }
-            else
-            {
-                theStream = request.Body;
-            }
-                      
-            return theStream;
         }
     }
 }

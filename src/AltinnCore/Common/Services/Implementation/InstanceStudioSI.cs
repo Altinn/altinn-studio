@@ -15,6 +15,7 @@ using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Task = System.Threading.Tasks.Task;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -221,11 +222,15 @@ namespace AltinnCore.Common.Services.Implementation
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}";
             string folderForInstance = Path.Combine(testDataForParty, instanceGuid.ToString());
-            Directory.CreateDirectory(folderForInstance);
-            string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
 
-            File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
+            await Task.Run(() =>
+            {
+                Directory.CreateDirectory(folderForInstance);
+                string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
 
+                File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
+            });
+            
             return instance;
         }
     }
