@@ -1,10 +1,12 @@
-﻿{
+{
   "PartyId": "10004",
   "PartyTypeName": "Organization",
   "Name": "Frisk & Sporty Trondheim",
+  "OrgNumber": "900000004",
   "Organization": {
     "OrganizationId": "4",
     "OrganizationNumber": "900000004",
+    "OrgNumber": "900000004",
     "OrganizationName": "Frisk & Sporty Trondheim"
   }
 }

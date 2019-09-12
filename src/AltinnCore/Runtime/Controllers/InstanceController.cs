@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -47,6 +48,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IInstanceEvent _event;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
+        private readonly IPrefill _prefill;
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
 
@@ -72,6 +74,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="eventSI">the instance event service handler</param>
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
+        /// <param name="prefill">The prefill service handler</param>
         /// <param name="repositorySettings">the repository settings</param>
         /// <param name="generalSettings">the general settings</param>
         public InstanceController(
@@ -91,6 +94,7 @@ namespace AltinnCore.Runtime.Controllers
             IInstanceEvent eventSI,
             IPlatformServices platformSI,
             IData dataSI,
+            IPrefill prefill,
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings)
         {
@@ -111,6 +115,7 @@ namespace AltinnCore.Runtime.Controllers
             _event = eventSI;
             _platformSI = platformSI;
             _data = dataSI;
+            _prefill = prefill;
             _settings = repositorySettings.Value;
             _generalSettings = generalSettings.Value;
         }
@@ -342,6 +347,17 @@ namespace AltinnCore.Runtime.Controllers
 
             // Assign service model to the implementation
             serviceImplementation.SetServiceModel(serviceModel);
+
+            // Run prefill
+            PrefillContext prefillContext = new PrefillContext
+            {
+                OrgNumber = requestContext.UserContext.Party.Organization?.OrgNumber,
+                SSN = requestContext.UserContext.Party.Person?.SSN,
+                UserId = requestContext.UserContext.UserId
+            };
+            string prefillConfiguration = _repository.GetJsonFile(startServiceModel.Org, startServiceModel.Service, "prefill.json");
+            _logger.LogInformation(prefillConfiguration);
+            await _prefill.PrefillDataModel(prefillConfiguration, _register, _profile, prefillContext);
 
             // Run Instansiation event
             await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
