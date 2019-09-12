@@ -89,6 +89,11 @@ namespace Common.Helpers
 
             PartyType partyType = party.PartyTypeName;
             bool isAllowed = false;
+
+            bool isSubUnit = party.UnitType != null && (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()));
+            bool isMainUnit = !isSubUnit;
+            bool isKbo = party.UnitType != null && BANKRUPTCY_CODE.Equals(party.UnitType.Trim());
+
             switch (partyType)
             {
                 case PartyType.Person:
@@ -99,30 +104,20 @@ namespace Common.Helpers
 
                     break;
                 case PartyType.Organization:
-                    // Return only main units when the allowedpartytype is "Virksomhet"
-                    if (partyTypesAllowed.Organization == true && (party.UnitType != null && (!SUB_UNIT_CODE.Equals(party.UnitType.Trim()) && !SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()))))
+
+                    if (isMainUnit && partyTypesAllowed.Organization)
                     {
                         isAllowed = true;
                     }
-                    else if (partyTypesAllowed.BankruptcyEstate == true)
+                    else if (isSubUnit && partyTypesAllowed.SubUnit)
                     {
-                        // BankruptcyEstate is a sub group of organization
-                        if (party.UnitType != null && BANKRUPTCY_CODE.Equals(party.UnitType.Trim()))
-                        {
-                            // The org is a BankruptcyEstate, and BankruptcyEstate are allowed to initiate
-                            isAllowed = true;
-                        }
+                        isAllowed = true;
                     }
-                    else if (partyTypesAllowed.SubUnit == true)
+                    else if (isKbo && partyTypesAllowed.BankruptcyEstate)
                     {
-                        // SubUnit is a sub group of organization
-                        if (party.UnitType != null && (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim())))
-                        {
-                            // The org is a SubUnit, and SubUnits are allowed to initiate
-                            isAllowed = true;
-                        }
+                        isAllowed = true;
                     }
-
+                    
                     break;
                 case PartyType.SelfIdentified:
                     if (partyTypesAllowed.Person == true)
