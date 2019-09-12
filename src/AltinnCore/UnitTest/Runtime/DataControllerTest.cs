@@ -154,6 +154,12 @@ namespace AltinnCore.UnitTest.Runtime
             ActionResult result = dataController.GetDataElement(org, app, instanceOwnerId, instanceGuid, elementType).Result;
 
             Assert.IsType<OkObjectResult>(result);
+
+            OkObjectResult okresult = result as OkObjectResult;
+            Skjema model = (Skjema)okresult.Value;
+
+            Assert.Equal(5800, model.gruppeid);
+            Assert.Equal("Ærlige Øksne Åsheim", model.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonNavndatadef2.value);
         }
 
         /// <summary>
