@@ -164,9 +164,7 @@ namespace AltinnCore.Runtime.RestControllers
             if (string.IsNullOrEmpty(app))
             {
                 return BadRequest("The path parameter 'app' cannot be empty");
-            }
-
-            string appId = $"{org}/{app}";           
+            }         
 
             Application application = repositoryService.GetApplication(org, app);
             if (application == null)
@@ -197,7 +195,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return BadRequest($"Error when comparting content to application metadata: {multipartError}");
             }            
 
-            if (instanceTemplate != null && string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))
+            if (string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))
             {
                 return BadRequest($"Error instanceOwnerId must have value");
             }
@@ -230,7 +228,7 @@ namespace AltinnCore.Runtime.RestControllers
 
                     if (instanceWithData == null)
                     {
-                        throw new ApplicationException("Unable to store data element");
+                        throw new ArgumentNullException("Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
                     }
                 }
             }
@@ -360,7 +358,6 @@ namespace AltinnCore.Runtime.RestControllers
             UserContext userContext = await userHelper.GetUserContext(HttpContext);
 
             string app = instance.AppId.Split("/")[1];
-            string org = instance.Org;
             int authenticationLevel = userContext.AuthenticationLevel;
             int userId = userContext.UserId;
 

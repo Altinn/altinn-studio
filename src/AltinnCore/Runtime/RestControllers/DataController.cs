@@ -37,8 +37,6 @@ namespace AltinnCore.Runtime.RestControllers
 
         private readonly IExecution executionService;
         private readonly UserHelper userHelper;
-        private readonly IProfile profileService;
-        private readonly IRegister registerService;
         private readonly IPlatformServices platformService;
         private readonly IRepository repositoryService;
         private readonly IInstanceEvent eventService;
@@ -75,8 +73,6 @@ namespace AltinnCore.Runtime.RestControllers
             this.instanceService = instanceService;
             this.dataService = dataService;
             this.executionService = executionService;
-            this.profileService = profileService;
-            this.registerService = registerService;
             this.platformService = platformService;
             this.repositoryService = repositoryService;
             this.eventService = eventService;
