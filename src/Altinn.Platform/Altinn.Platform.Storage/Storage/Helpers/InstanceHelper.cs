@@ -39,8 +39,8 @@ namespace Altinn.Platform.Storage.Helpers
                     AuthorizedForWrite = true,
                     AllowDelete = true,
                     AllowNewCopy = false,
-                    DeletedDateTime = instance.DeletedDateTime,
-                    ArchivedDateTime = instance.ArchivedDateTime,
+                    DeletedDateTime = instance.InstanceState.DeletedDateTime,
+                    ArchivedDateTime = instance.InstanceState.ArchivedDateTime,
                     DeleteStatus = instance.InstanceState.IsDeleted ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
                 });
             }

@@ -28,5 +28,18 @@ namespace Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "isArchived")]
         public bool IsArchived { get; set; }
+
+        /// <summary>
+        /// Gets or set the date the instance was archived 
+        /// </summary>
+        [JsonProperty(PropertyName = "archivedDateTime")]
+        public DateTime? ArchivedDateTime { get; set; }
+
+
+        /// <summary>
+        /// Gets or sets the date the instance was deleted
+        /// </summary>
+        [JsonProperty(PropertyName = "deletedDateTime")]
+        public DateTime? DeletedDateTime { get; set; }
     }
 }
