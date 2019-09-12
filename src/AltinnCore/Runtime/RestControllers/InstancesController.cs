@@ -250,7 +250,7 @@ namespace AltinnCore.Runtime.RestControllers
             SetAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
 
-            DispatchEvent(InstanceEventType.Created.ToString(), instance);
+            await DispatchEvent(InstanceEventType.Created.ToString(), instance);
 
             return Created(url, instance);
         }
@@ -355,7 +355,7 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         /// Creates an event and dispatches it to the eventService for storage.
         /// </summary>
-        private async void DispatchEvent(string eventType, Instance instance)
+        private async Task DispatchEvent(string eventType, Instance instance)
         { 
             UserContext userContext = await userHelper.GetUserContext(HttpContext);
 
