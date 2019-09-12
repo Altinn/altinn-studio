@@ -32,7 +32,6 @@ namespace AltinnCore.Runtime.RestControllers
     public class InstancesController : ControllerBase
     {
         private readonly ILogger<InstancesController> logger;
-        private readonly GeneralSettings generalSettings;
         private readonly IInstance instanceService;
         private readonly IData dataService;
 
@@ -58,7 +57,6 @@ namespace AltinnCore.Runtime.RestControllers
             IInstanceEvent eventService,
             IRepository repositoryService)
         {
-            this.generalSettings = generalSettings.Value;
             this.logger = logger;
             this.instanceService = instanceService;
             this.dataService = dataService;
@@ -228,7 +226,7 @@ namespace AltinnCore.Runtime.RestControllers
 
                     if (instanceWithData == null)
                     {
-                        throw new ArgumentNullException("Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
+                        throw new InvalidOperationException($"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
                     }
                 }
             }
@@ -336,6 +334,8 @@ namespace AltinnCore.Runtime.RestControllers
         /// <returns>the serviceImplementation object which represents the application business logic</returns>
         private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startService = false)
         {
+            logger.LogInformation($"Preparing data element instantiation for {elementType}");
+
             IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startService);
 
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);

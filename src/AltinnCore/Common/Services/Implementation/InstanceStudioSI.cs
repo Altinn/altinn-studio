@@ -57,12 +57,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
+        [Obsolete("Method is deprecated, please use CreateInstance instead")]
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
             string appName = startServiceModel.Service;
             string org = startServiceModel.Org;
             int instanceOwnerId = startServiceModel.PartyId;
-            int userId = startServiceModel.UserId;
 
             Instance instanceTemplate = new Instance()
             {
