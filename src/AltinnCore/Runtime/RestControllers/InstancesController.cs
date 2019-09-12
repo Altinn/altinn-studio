@@ -1,15 +1,10 @@
 using System;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Runtime.RestControllers;
-using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Common.Helpers;
@@ -18,24 +13,22 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Storage.Interface.Models;
 
 namespace AltinnCore.Runtime.RestControllers
 {
     /// <summary>
-    /// Handles and dispatches operations to platform storage for the application instance resources
+    /// Controller for application instances for app-backend.
+    /// You can create a new instance (POST), update it (PUT) and retreive a specific instance (GET).
     /// </summary>
     [Route("{org}/{app}/instances")]
-
     [Authorize]
     [ApiController]
     public class InstancesController : ControllerBase
     {
         private readonly ILogger<InstancesController> logger;
         private readonly GeneralSettings generalSettings;
-        private readonly HttpClient storageClient;
-        private readonly IInstance instanceService;        
+        private readonly IInstance instanceService;
         private readonly IData dataService;
 
         private readonly IExecution executionService;
@@ -51,12 +44,12 @@ namespace AltinnCore.Runtime.RestControllers
         public InstancesController(
             IOptions<GeneralSettings> generalSettings,
             ILogger<InstancesController> logger,
-            IRegister registerService,            
+            IRegister registerService,
             IInstance instanceService,
             IData dataService,
             IExecution executionService,
             IProfile profileService,
-            IPlatformServices platformServices,
+            IPlatformServices platformService,
             IInstanceEvent eventService,
             IRepository repositoryService)
         {
@@ -66,7 +59,7 @@ namespace AltinnCore.Runtime.RestControllers
             this.dataService = dataService;
             this.executionService = executionService;
             this.registerService = registerService;
-            this.platformService = platformServices;
+            this.platformService = platformService;
             this.eventService = eventService;
             this.repositoryService = repositoryService;
 
@@ -86,7 +79,11 @@ namespace AltinnCore.Runtime.RestControllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Get(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public async Task<ActionResult> Get(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid)
         {
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
@@ -149,7 +146,10 @@ namespace AltinnCore.Runtime.RestControllers
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Instance>> Post([FromRoute] string org, [FromRoute] string app, [FromQuery] int? instanceOwnerId)
+        public async Task<ActionResult<Instance>> Post(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromQuery] int? instanceOwnerId)
         {
             if (string.IsNullOrEmpty(org))
             {
@@ -161,25 +161,41 @@ namespace AltinnCore.Runtime.RestControllers
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            string appId = $"{org}/{app}";
+            string appId = $"{org}/{app}";           
+
+            Application application = repositoryService.GetApplication(org, app);
+            if (application == null)
+            {
+                return NotFound($"AppId {org}/{app} was not found");
+            }
 
             // If this is a multipart request we assume the creation is by application owner or client system.
             if (Request.ContentType != null && Request.ContentType.StartsWith("multipart"))
             {
-                instanceOwnerId = 2000004;
+                if (!instanceOwnerId.HasValue)
+                {
+                    return BadRequest("Multipart is currently not supported");
+                }
 
                 // 1) TODO handle multipart and instanceTemplate
             }
 
             if (!instanceOwnerId.HasValue)
             {
-                return BadRequest("Instance owner id must currently have a value");
+                return BadRequest("InstanceOwnerId must currently have a value");
             }
 
             Instance instanceTemplate = new Instance()
             {
                 InstanceOwnerId = instanceOwnerId.Value.ToString(),
             };
+
+            Party party = await registerService.GetParty(instanceOwnerId.Value);
+
+            if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
+            {
+                return Forbid($"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
+            }
 
             Instance instance = await instanceService.CreateInstance(org, app, instanceTemplate);           
             
@@ -191,7 +207,7 @@ namespace AltinnCore.Runtime.RestControllers
             SetAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
 
-            DispatchEvent("created", instance);
+            DispatchEvent(InstanceEventType.Created.ToString(), instance);
 
             return Created(url, instance);
         }
@@ -208,7 +224,12 @@ namespace AltinnCore.Runtime.RestControllers
 
             string appSelfLink = $"{host}{url}";
 
-            instance.SelfLinks = instance.SelfLinks ?? new Storage.Interface.Models.ResourceLinks();
+            if (!appSelfLink.EndsWith(instance.Id))
+            {
+                appSelfLink += instance.Id;
+            }
+
+            instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Apps = appSelfLink;
 
             if (instance.Data != null)
@@ -220,48 +241,19 @@ namespace AltinnCore.Runtime.RestControllers
                     dataElement.DataLinks.Apps = $"{appSelfLink}/data/{dataElement.Id}";
                 }
             }
-        }
-
-        private Instance CalculateAndValidate(Instance instance, out ActionResult calculateOrValidateError)
-        {
-            Instance changedInstance = instance;
-            calculateOrValidateError = null;
-
-            foreach (DataElement dataElement in instance.Data)
-            {
-                logger.LogInformation($"Calculate and validate: {dataElement.ElementType}");
-
-                Uri dataUri = new Uri($"instances/{instance.Id}/data/{dataElement.Id}", UriKind.Relative);
-
-                // Get data element
-                // Todo - Calulate and Validate
-                logger.LogInformation($"calculate: {dataUri}");
-
-                bool validationOk = true;
-                if (validationOk)
-                {
-                    // update data object if changed by calculation - dispatch to storage, set lastChangedInstance
-                }
-                else
-                {
-                    // Todo delete instance in storage
-                    calculateOrValidateError = Conflict("Data element is not valid!");
-                }
-            }
-            
-            return changedInstance;
-        }       
+        }  
 
         /// <summary>
-        /// Event generator.
+        /// Creates an event and dispatches it to the eventService for storage.
         /// </summary>
         private async void DispatchEvent(string eventType, Instance instance)
         {
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
+            UserContext userContext = await userHelper.GetUserContext(HttpContext);
 
-            int authenticationLevel = requestContext.UserContext.AuthenticationLevel;
-            int userId = requestContext.UserContext.UserId;
+            string app = instance.AppId.Split("/")[1];
+            string org = instance.Org;
+            int authenticationLevel = userContext.AuthenticationLevel;
+            int userId = userContext.UserId;
 
             // Create and store the instance created event
             InstanceEvent instanceEvent = new InstanceEvent
@@ -271,11 +263,10 @@ namespace AltinnCore.Runtime.RestControllers
                 InstanceId = instance.Id,
                 InstanceOwnerId = instance.InstanceOwnerId,
                 UserId = userId,
-                WorkflowStep = instance.Process != null ? instance.Process.CurrentTask : null,
+                WorkflowStep = instance.Process?.CurrentTask,
             };
 
-            await eventService.SaveInstanceEvent(instanceEvent, instance.Org, instance.AppId.Split("/")[1]);
+            await eventService.SaveInstanceEvent(instanceEvent, instance.Org, app);
         }
     }
-
 }

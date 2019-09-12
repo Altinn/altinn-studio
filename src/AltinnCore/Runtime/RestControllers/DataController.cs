@@ -1,15 +1,31 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
+using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Enums;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Runtime.RestControllers
 {
     /// <summary>
-    /// Data controller
+    /// The data controller handles creation, update, validation and calculation of data elements.
     /// </summary>
     [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceGuid:guid}/data")]
     public class DataController : ControllerBase
@@ -18,23 +34,56 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly IData dataService;
         private readonly IInstance instanceService;
 
+        private readonly IExecution executionService;
+        private readonly UserHelper userHelper;
+        private readonly IProfile profileService;
+        private readonly IRegister registerService;
+        private readonly IPlatformServices platformService;
+        private readonly IRepository repositoryService;
+        private readonly IInstanceEvent eventService;
+
+        private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
+
         /// <summary>
-        /// The data controller. Currently only GET is supported.
+        /// The data controller is responsible for adding business logic to the data elements.
         /// </summary>
+        /// <param name="generalSettings">settings </param>
         /// <param name="logger">logger</param>
+        /// <param name="registerService">register service</param>
+        /// <param name="instanceService">instance service to store instances</param>
         /// <param name="dataService">dataservice</param>
+        /// <param name="executionService">execution service to execute data element logic</param>
+        /// <param name="profileService">profile service to access profile information about users and parties</param>
+        /// <param name="platformService">platform</param>
+        /// <param name="repositoryService">repository for accessing applicaiton metadata</param>
+        /// <param name="eventService">event service for dispatching data events</param>
         public DataController(
+            IOptions<GeneralSettings> generalSettings,
             ILogger<DataController> logger,
+            IRegister registerService,
+            IInstance instanceService,
             IData dataService,
-            IInstance instanceService)
+            IExecution executionService,
+            IProfile profileService,
+            IPlatformServices platformService,
+            IRepository repositoryService,
+            IInstanceEvent eventService)
         {
             this.logger = logger;
-            this.dataService = dataService;
+
             this.instanceService = instanceService;
+            this.dataService = dataService;
+            this.executionService = executionService;
+            this.profileService = profileService;
+            this.registerService = registerService;
+            this.platformService = platformService;
+            this.repositoryService = repositoryService;
+            this.eventService = eventService;
+            this.userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
-        /// Gets a data element.
+        /// Gets a data element. No business logic is currently implemented.
         /// </summary>
         /// <param name="org">org</param>
         /// <param name="app">app</param>
@@ -43,6 +92,7 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="dataGuid">data guid</param>
         /// <returns>The data element</returns>
         [HttpGet("{dataGuid:guid}")]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<ActionResult> Get(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
@@ -59,6 +109,331 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 return NotFound();
             }
+        }
+
+        /// <summary>
+        /// Updates an existing data element.
+        /// </summary>
+        /// <param name="org">org identifier</param>
+        /// <param name="app">application identifier</param>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceGuid">instance guid</param>
+        /// <param name="dataGuid">data guid</param>
+        /// <returns></returns>
+        [HttpPut]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [DisableFormValueModelBinding]
+        public async Task<ActionResult> PutDataElement(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        {
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app);
+
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+
+            if (instance == null)
+            {
+                return NotFound("Instance not found");
+            }
+
+            DataElement dataElement = instance.Data.Find(m => m.Id == dataGuid.ToString());
+
+            if (dataElement == null)
+            {
+                return NotFound("Data element not found");
+            }
+
+            object serviceModel = ParseContentAndDeserializeServiceModel(Request, serviceImplementation.GetServiceModelType(), out ActionResult contentError);
+
+            if (contentError != null)
+            {
+                return contentError;
+            }
+
+            if (serviceModel == null)
+            {
+                return BadRequest("No data found in content");
+            }
+
+            serviceImplementation.SetServiceModel(serviceModel);
+
+            // send events to trigger application business logic
+            await serviceImplementation.RunServiceEvent(ServiceEventType.DataRetrieval);
+            await serviceImplementation.RunServiceEvent(ServiceEventType.Calculation);
+
+            try
+            {
+                // Run the model Validation that handles validation defined on the model
+                TryValidateModel(serviceModel);
+
+                // send events to trigger application business logic
+                await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Validation errors are currently ignored: {ex.Message}");
+            }
+
+            // Save Formdata to database
+            this.dataService.UpdateData(
+                serviceModel,
+                instanceGuid,
+                serviceImplementation.GetServiceModelType(),
+                org,
+                app,
+                instanceOwnerId,
+                dataGuid);
+
+            // Create and store instance saved event
+            DispatchEvent(InstanceEventType.Saved.ToString(), instance, dataGuid);
+
+            return Ok(serviceModel);
+        }
+
+        /// <summary>
+        /// Gets a data element.
+        /// </summary>
+        /// <param name="org">org</param>
+        /// <param name="app">appname</param>
+        /// <param name="instanceOwnerId">instanceonwerid</param>
+        /// <param name="instanceId">instance id</param>
+        /// <param name="elementType">element type to create</param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpGet("{elementType}")]
+        public async Task<ActionResult> GetDataElement(string org, string app, int instanceOwnerId, Guid instanceId, string elementType = "default")
+        {
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app);
+                
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
+            if (instance == null)
+            {
+                return NotFound("Did not find instance");
+            }
+
+            DataElement dataElement = instance.Data.Find(m => m.ElementType.Equals(elementType));
+
+            if (dataElement == null)
+            {
+                return NotFound("Did not find data element");
+            }
+
+            Guid dataId = Guid.Parse(dataElement.Id);
+
+            // Getting the Form Data from datastore
+            object serviceModel = dataService.GetFormData(
+                instanceId,
+                serviceImplementation.GetServiceModelType(),
+                org,
+                app,
+                instanceOwnerId,
+                dataId);
+
+            // Assing the populated service model to the service implementation
+            serviceImplementation.SetServiceModel(serviceModel);
+
+            // send events to trigger application business logic
+            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
+            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Calculation);
+
+            return Ok(serviceModel);
+        }
+
+        /// <summary>
+        /// Create a data element of a given element-type
+        /// </summary>
+        /// <param name="org">org identifier</param>
+        /// <param name="app">app identifier</param>
+        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="instanceId">instance id</param>
+        /// <param name="elementType">element type</param>
+        /// <returns>instance metadata with new data element</returns>
+        [Authorize]
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        public async Task<ActionResult> CreateDataElement(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceId,
+            [FromQuery] string elementType = "default")
+        {
+            bool startService = true;
+
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, startService);
+                
+            Application application = repositoryService.GetApplication(org, app);
+            if (application != null)
+            {
+                return NotFound($"AppId {org}/{app} was not found");
+            }
+
+            Instance instanceBefore = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
+            if (instanceBefore == null)
+            {
+                return BadRequest("Unknown instance");
+            }       
+
+            object serviceModel = null;
+
+            if (Request.ContentType == null)
+            {
+               serviceModel = serviceImplementation.CreateNewServiceModel();
+            }
+            else
+            {
+                serviceModel = ParseContentAndDeserializeServiceModel(Request, serviceImplementation.GetServiceModelType(), out ActionResult contentError);
+                if (contentError != null)
+                {
+                    return contentError;
+                }
+            }
+
+            serviceImplementation.SetServiceModel(serviceModel);
+
+            // send events to trigger application business logic
+            await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
+            await serviceImplementation.RunServiceEvent(ServiceEventType.ValidateInstantiation);
+
+            InstancesController.SetAppSelfLinks(instanceBefore, Request);
+           
+            Instance instanceAfter = await dataService.InsertData(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, app, instanceOwnerId);
+
+            InstancesController.SetAppSelfLinks(instanceAfter, Request);
+            List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);           
+            string dataUrl = createdElements.First().DataLinks.Apps;
+
+            return Created(dataUrl, instanceAfter);
+        }
+
+        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, bool startService = false)
+        {
+            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startService);
+
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
+            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
+            requestContext.Party = requestContext.UserContext.Party;
+
+            ServiceContext serviceContext = executionService.GetServiceContext(org, app, startService);
+
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
+            serviceImplementation.SetPlatformServices(platformService);
+
+            return serviceImplementation;
+        }
+
+        private object ParseContentAndDeserializeServiceModel(HttpRequest request, Type modelType, out ActionResult error)
+        {
+            error = null;
+            object serviceModel = null;
+
+            Stream contentStream = Request.Body;
+            if (contentStream != null)
+            {
+                if (Request.ContentType.Contains("application/json"))
+                {
+                    try
+                    {
+                        StreamReader reader = new StreamReader(contentStream, Encoding.UTF8);
+                        string content = reader.ReadToEnd();
+                        serviceModel = JsonConvert.DeserializeObject(content, modelType);
+                    }
+                    catch (Exception ex)
+                    {
+                        error = BadRequest($"Cannot parse json content due to {ex.Message}");
+                        return null;
+                    }
+                }
+                else if (Request.ContentType.Contains("application/xml"))
+                {
+                    try
+                    {
+                        XmlSerializer serializer = new XmlSerializer(modelType);
+                        serviceModel = serializer.Deserialize(contentStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        error = BadRequest($"Cannot parse xml content due to {ex.Message}");
+                        return null;
+                    }
+                }
+            }
+
+            return serviceModel;
+        }
+
+        private async void DispatchEvent(string eventType, Instance instance, Guid dataGuid)
+        {
+            UserContext userContext = await userHelper.GetUserContext(HttpContext);
+
+            string workflowStep = instance.Process?.CurrentTask;
+
+            string app = instance.AppId.Split("/")[1];
+            string org = instance.Org;
+
+            InstanceEvent instanceEvent = new InstanceEvent
+            {
+                AuthenticationLevel = userContext.AuthenticationLevel,
+                EventType = eventType,
+                DataId = dataGuid.ToString(),
+                InstanceId = instance.Id,
+                InstanceOwnerId = instance.InstanceOwnerId,
+                UserId = userContext.UserId,
+                WorkflowStep = workflowStep,
+            };
+
+            await eventService.SaveInstanceEvent(instanceEvent, org, app);
+        }
+
+        private List<DataElement> CompareAndReturnCreatedElements(Instance before, Instance after)
+        {
+            if (before.Data == null)
+            {
+                return after.Data;
+            }
+
+            HashSet<string> dataGuidsBefore = before.Data.Select(d => d.Id).ToHashSet();
+            HashSet<string> dataGuidsAfter = after.Data.Select(d => d.Id).ToHashSet();
+
+            IEnumerable<string> dataGuidsCreated = dataGuidsAfter.Except(dataGuidsBefore);
+
+            List<DataElement> elementsCreated = new List<DataElement>();
+
+            foreach (string guid in dataGuidsCreated)
+            {
+                elementsCreated.Add(after.Data.Find(d => d.Id == guid));
+            }
+
+            return elementsCreated;
+        }
+
+        /// <summary>
+        /// Returns the stream of the first section in a multipart or the body of a normal 
+        /// </summary>
+        private Stream GetServiceDataFromRequest(HttpRequest request, string elementType, Instance instance, out Stream theStream)
+        {
+            DateTime creationTime = DateTime.UtcNow;
+
+            theStream = null;
+
+            if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
+            {
+                // Only read the first section of the mulitpart message.
+                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
+                string boundary = MultipartRequestHelper.GetBoundary(mediaType, 70);
+
+                MultipartReader reader = new MultipartReader(boundary, request.Body);
+                MultipartSection section = reader.ReadNextSectionAsync().Result;
+
+                theStream = section.Body;
+
+                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+            }
+            else
+            {
+                theStream = request.Body;
+            }
+                      
+            return theStream;
         }
     }
 }
