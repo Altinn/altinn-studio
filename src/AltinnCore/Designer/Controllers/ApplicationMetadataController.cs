@@ -85,6 +85,9 @@ namespace Designer.Controllers
             }
             else
             {
+                // At the moment we send empty string as application title until we support multiple
+                // languages (it will now get set to the "app" value in the CreateApplication method
+                // if title is undefined).
                 _repository.CreateApplication(org, app, string.Empty);
                 Application createdApplication = _repository.GetApplication(org, app);
                 if (createdApplication == null)

@@ -65,13 +65,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Start a new deployment
         /// </summary>
-        /// <param name="org">The Organization code for the application owner</param>
-        /// <param name="appName">The application code for the current service</param>
+        /// <param name="org">The organisation code for the application owner</param>
+        /// <param name="app">The application name</param>
+        // /// <param name="appTitle">The application title, e.g. "app name with spaces"</param>
         /// <returns>The result of trying to start a new deployment</returns>
         [HttpPost]
-        public async Task<IActionResult> StartDeployment(string org, string appName)
+        public async Task<IActionResult> StartDeployment(string org, string app)
         {
-            if (org == null || appName == null)
+            if (org == null || app == null)
             {
                 return BadRequest(new DeploymentStatus
                 {
@@ -90,7 +91,7 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
-            Repository repository = _giteaAPI.GetRepository(org, appName).Result;
+            Repository repository = _giteaAPI.GetRepository(org, app).Result;
 
             if (repository != null && repository.Permissions != null && repository.Permissions.Push != true)
             {
@@ -105,10 +106,10 @@ namespace AltinnCore.Designer.Controllers
             string credentials = _configuration["AccessTokenDevOps"];
 
             string result = string.Empty;
-            Branch masterBranch = _giteaAPI.GetBranch(org, appName, "master").Result;
+            Branch masterBranch = _giteaAPI.GetBranch(org, app, "master").Result;
             if (masterBranch == null)
             {
-                _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {appName}");
+                _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {app}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
@@ -117,10 +118,10 @@ namespace AltinnCore.Designer.Controllers
             }
 
             // register application in platform storage
-            bool applicationInStorage = await RegisterApplicationInStorage(org, appName, masterBranch.Commit.Id);
+            bool applicationInStorage = await RegisterApplicationInStorage(org, app, masterBranch.Commit.Id);
             if (!applicationInStorage)
             {
-                _logger.LogWarning($"Unable to deploy app {appName} for {org} to Platform Storage");
+                _logger.LogWarning($"Unable to deploy app {app} for {org} to Platform Storage");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
@@ -141,7 +142,7 @@ namespace AltinnCore.Designer.Controllers
                         {
                             id = 5,
                         },
-                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{appName}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
+                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{app}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
@@ -157,7 +158,7 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Unable deploy app {appName} for {org} because {ex}");
+                _logger.LogWarning($"Unable deploy app {app} for {org} because {ex}");
                 return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
@@ -229,23 +230,26 @@ namespace AltinnCore.Designer.Controllers
             });
         }
 
-        private async Task<bool> RegisterApplicationInStorage(string org, string appName, string versionId)
+        private async Task<bool> RegisterApplicationInStorage(string org, string app, string versionId)
         {
             bool applicationInStorage = false;
 
-            Application applicationFromRepository = _repository.GetApplication(org, appName);
+            Application applicationFromRepository = _repository.GetApplication(org, app);
 
-            // for old service application meta data file was not generated, so create the application meta data file
+            // for old services the application meta data file was not generated, so create the application meta data file
             // but the metadata for attachment will not be available on deployment
             if (applicationFromRepository == null)
             {
-                _repository.CreateApplication(org, appName, string.Empty);
-                applicationFromRepository = _repository.GetApplication(org, appName);
+                // At the moment we send empty string as application title until we support multiple
+                // languages (it will now get set to the "app" value in the CreateApplication method
+                // if title is undefined).
+                _repository.CreateApplication(org, app, string.Empty);
+                applicationFromRepository = _repository.GetApplication(org, app);
             }
 
             using (HttpClient client = new HttpClient())
             {
-                string appId = $"{org}/{appName}";
+                string appId = $"{org}/{app}";
                 string storageEndpoint = _platformSettings.GetApiStorageEndpoint;
                 _logger.LogInformation($"Client url {storageEndpoint}");
 

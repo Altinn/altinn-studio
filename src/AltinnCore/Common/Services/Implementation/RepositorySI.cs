@@ -171,9 +171,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// Creates the application metadata file
         /// </summary>
         /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">the application name, e.g. "app-name-with-spaces"</param>
-        /// <param name="appTitle">the application UI title, e.g. "App name with spaces"</param>
-        public void CreateApplication(string org, string app, string appTitle)
+        /// <param name="app">The application name, e.g. "app-name-with-spaces"</param>
+        /// <param name="appTitleNb">The application title, e.g. "app name with spaces", at the moment it get stored as Norwegian title ("nb")</param>
+        public void CreateApplication(string org, string app, string appTitleNb)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Application appMetadata = new Application
@@ -187,9 +187,9 @@ namespace AltinnCore.Common.Services.Implementation
                 LastChangedDateTime = DateTime.UtcNow,
                 LastChangedBy = developer
             };
-            
+
             appMetadata.Title = new Dictionary<string, string>();
-            appMetadata.Title.Add("nb", appTitle);
+            appMetadata.Title.Add("nb", string.IsNullOrEmpty(appTitleNb) ? app : appTitleNb);
 
             appMetadata.ElementTypes = new List<Altinn.Platform.Storage.Models.ElementType>();
             appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType

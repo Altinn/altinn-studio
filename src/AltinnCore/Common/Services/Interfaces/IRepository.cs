@@ -465,8 +465,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The organisation code for the application owner</param>
         /// <param name="app">the application name, e.g. "app-name-with-spaces"</param>
-        /// <param name="appTitle">the application UI title, e.g. "App name with spaces"</param>
-        void CreateApplication(string org, string app, string appTitle);
+        /// <param name="appTitleNb">The application title, e.g. "app name with spaces", at the moment it get stored as Norwegian title ("nb")</param>
+        void CreateApplication(string org, string app, string appTitleNb);
 
         /// <summary>
         /// Updates application metadata
