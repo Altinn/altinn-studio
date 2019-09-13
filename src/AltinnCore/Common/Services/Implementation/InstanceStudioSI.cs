@@ -15,6 +15,7 @@ using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Storage.Interface.Models;
 using Task = System.Threading.Tasks.Task;
 
 namespace AltinnCore.Common.Services.Implementation
@@ -67,6 +68,11 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instanceTemplate = new Instance()
             {
                 InstanceOwnerId = instanceOwnerId.ToString(),
+                Process = new ProcessState()
+                {
+                    CurrentTask = _workflow.GetInitialServiceState(org, appName).State.ToString(),
+                    IsComplete = false,
+                },
             };
 
             Instance instance = await CreateInstance(org, appName, instanceTemplate);
@@ -193,7 +199,6 @@ namespace AltinnCore.Common.Services.Implementation
             Guid instanceGuid = Guid.NewGuid();
 
             string userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext).ToString();
-            ServiceState currentTask = _workflow.GetInitialServiceState(org, app);
             string instanceOwnerId = instanceTemplate.InstanceOwnerId;
 
             Instance instance = new Instance
@@ -218,15 +223,12 @@ namespace AltinnCore.Common.Services.Implementation
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}";
             string folderForInstance = Path.Combine(testDataForParty, instanceGuid.ToString());
+         
+            Directory.CreateDirectory(folderForInstance);
+            string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
 
-            await Task.Run(() =>
-            {
-                Directory.CreateDirectory(folderForInstance);
-                string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
-
-                File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
-            });
-            
+            File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
+                  
             return instance;
         }
     }

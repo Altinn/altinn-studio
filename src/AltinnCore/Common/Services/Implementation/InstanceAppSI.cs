@@ -20,6 +20,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Storage.Interface.Clients;
+using Storage.Interface.Models;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -78,6 +79,11 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instanceTemplate = new Instance()
             {
                 InstanceOwnerId = instanceOwnerId.ToString(),
+                Process = new ProcessState()
+                {
+                    CurrentTask = _workflow.GetInitialServiceState(org, appName).State.ToString(),
+                    IsComplete = false,
+                },
             };
 
             Instance createdInstance = await CreateInstance(org, appId, instanceTemplate);
@@ -97,15 +103,6 @@ namespace AltinnCore.Common.Services.Implementation
                 org,
                 appName,
                 instanceOwnerId);
-
-            ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
-
-            // set initial workflow state
-            instance.Process = new Storage.Interface.Models.ProcessState()
-            {
-                CurrentTask = currentState.State.ToString(),
-                IsComplete = false,
-            };
 
             instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
 
