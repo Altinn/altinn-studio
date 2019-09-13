@@ -138,6 +138,8 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
+      console.error(new Error('No'))
+      /*
       return (
         <Redirect
           to={{
@@ -147,18 +149,11 @@ function InstantiateContainer(props: IServiceInfoProps) {
             },
           }}
         />
-      );
+      );*/
     } else {
       console.log('###### REDIRECTING TO /PARTYSELECTION');
       return (
-        <Redirect
-          to={{
-            pathname: '/partyselection',
-            state: {
-              validParties: partyValidation.validParties,
-            },
-          }}
-        />
+        <Redirect to={'/partyselection'}/>
       );
     }
   }

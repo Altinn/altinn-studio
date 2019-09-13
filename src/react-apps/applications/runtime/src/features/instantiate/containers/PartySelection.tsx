@@ -115,35 +115,11 @@ function PartySelection(props: IPartySelectionProps) {
     if (!location.state || !location.state.validParties) {
       validParties = parties.map((party) => {
         if (!showDeleted) {
-          if ((party.ssn != null && appMetadata.partyTypesAllowed.person) && !party.isDeleted) {
-            return party;
-          }
-          if ((party.orgNumber != null &&
-            (appMetadata.partyTypesAllowed.organization ||
-              appMetadata.partyTypesAllowed.subUnit ||
-              appMetadata.partyTypesAllowed.bankruptcyEstate)
-            ) && !party.isDeleted) {
+          if (!party.isDeleted) {
             return party;
           }
         } else {
-          if ((party.ssn != null && appMetadata.partyTypesAllowed.person)) {
-            return party;
-          }
-          if (
-              party.orgNumber != null &&
-              (party.unitType === UNIT_TYPE_SUB_UNIT ||
-              party.unitType === UNIT_TYPE_SUB_UNIT_AAFY) &&
-              appMetadata.partyTypesAllowed.subUnit
-            ) {
-            return party;
-          }
-          if (
-            party.orgNumber != null &&
-            party.unitType ===  UNIT_TYPE_BANKRUPTCY_CODE &&
-            appMetadata.partyTypesAllowed.bankruptcyEstate
-          ) {
-            return party;
-          }
+          return party;
         }
       }).filter((party) => !party ? null : party);
     } else {
