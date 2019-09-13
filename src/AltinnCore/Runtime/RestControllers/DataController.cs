@@ -80,17 +80,78 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         /// <summary>
-        /// Gets a data element. No business logic is currently implemented.
+        ///  Gets a data element from storage and performs business logic on it (e.g. to calculate certain fields) before it is returned.
+        ///  If more there are more data elements of the same elementType only the first one is returned. In that case use the more spesific
+        ///  GET method to fetch a particular data element. 
         /// </summary>
-        /// <param name="org">org</param>
-        /// <param name="app">app</param>
-        /// <param name="instanceOwnerId">owner</param>
-        /// <param name="instanceGuid">instance guid</param>
-        /// <param name="dataGuid">data guid</param>
-        /// <returns>The data element</returns>
+        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="elementType">identifies the data element type get</param>
+        /// <returns>data element is returned in response body</returns>
+        [Authorize]
+        [HttpGet("{elementType}")]
+        public async Task<ActionResult> GetDataElement(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid,
+            [FromRoute] string elementType = "default")
+        {
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType);
+
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            if (instance == null)
+            {
+                return NotFound("Did not find instance");
+            }
+
+            DataElement dataElement = instance.Data.Find(m => m.ElementType.Equals(elementType));
+
+            if (dataElement == null)
+            {
+                return NotFound("Did not find data element");
+            }
+
+            Guid dataId = Guid.Parse(dataElement.Id);
+
+            // Getting the Form Data from datastore
+            object serviceModel = dataService.GetFormData(
+                instanceGuid,
+                serviceImplementation.GetServiceModelType(),
+                org,
+                app,
+                instanceOwnerId,
+                dataId);
+
+            // Assing the populated service model to the service implementation
+            serviceImplementation.SetServiceModel(serviceModel);
+
+            // send events to trigger application business logic
+            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
+            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Calculation);
+
+            return Ok(serviceModel);
+        }
+
+        /// <summary>
+        /// Gets a data element directly from storage without applying business logic.
+        /// </summary>
+        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="dataGuid">unique id to identify the data element to get</param>
+        /// <returns>The data element is returned in the body of the response</returns>
         [HttpGet("{dataGuid:guid}")]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        public async Task<ActionResult> Get(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        public async Task<ActionResult> Get(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid,
+            [FromRoute] Guid dataGuid)
         {
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
 
@@ -109,18 +170,26 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         /// <summary>
-        /// Updates an existing data element.
+        ///  Updates an existing data element with new content.
+        ///  Content (xml/json) is expected to be passed as the body of the request.
+        ///  Before the data element is stored application business logic is applied, e.g. calculation.
+        ///  Thus the data element may be changed and is therefore returned by the controller.
         /// </summary>
-        /// <param name="org">org identifier</param>
-        /// <param name="app">application identifier</param>
-        /// <param name="instanceOwnerId">instance owner</param>
-        /// <param name="instanceGuid">instance guid</param>
-        /// <param name="dataGuid">data guid</param>
-        /// <returns></returns>
-        [HttpPut]
+        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="dataGuid">unique id to identify the data element to update</param>
+        /// <returns>changed data element with calculated fields in the body of the response message</returns>
+        [HttpPut("{dataGuid:guid}")]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [DisableFormValueModelBinding]
-        public async Task<ActionResult> PutDataElement(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        public async Task<ActionResult> PutDataElement(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid,
+            [FromRoute] Guid dataGuid)
         {           
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
 
@@ -184,65 +253,16 @@ namespace AltinnCore.Runtime.RestControllers
             await DispatchEvent(InstanceEventType.Saved.ToString(), instance, dataGuid);
 
             return Ok(serviceModel);
-        }
+        }       
 
         /// <summary>
-        /// Gets a data element.
+        /// Creates and instantiates a data element of a given element-type. Clients can upload the data element in the request content.
         /// </summary>
-        /// <param name="org">org</param>
-        /// <param name="app">appname</param>
-        /// <param name="instanceOwnerId">instanceonwerid</param>
-        /// <param name="instanceId">instance id</param>
-        /// <param name="elementType">element type to create</param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpGet("{elementType}")]
-        public async Task<ActionResult> GetDataElement(string org, string app, int instanceOwnerId, Guid instanceId, string elementType = "default")
-        {
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType);
-                
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
-            if (instance == null)
-            {
-                return NotFound("Did not find instance");
-            }
-
-            DataElement dataElement = instance.Data.Find(m => m.ElementType.Equals(elementType));
-
-            if (dataElement == null)
-            {
-                return NotFound("Did not find data element");
-            }
-
-            Guid dataId = Guid.Parse(dataElement.Id);
-
-            // Getting the Form Data from datastore
-            object serviceModel = dataService.GetFormData(
-                instanceId,
-                serviceImplementation.GetServiceModelType(),
-                org,
-                app,
-                instanceOwnerId,
-                dataId);
-
-            // Assing the populated service model to the service implementation
-            serviceImplementation.SetServiceModel(serviceModel);
-
-            // send events to trigger application business logic
-            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
-            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Calculation);
-
-            return Ok(serviceModel);
-        }
-
-        /// <summary>
-        /// Create a data element of a given element-type
-        /// </summary>
-        /// <param name="org">org identifier</param>
-        /// <param name="app">app identifier</param>
-        /// <param name="instanceOwnerId">instance owner id</param>
-        /// <param name="instanceGuid">instance id</param>
-        /// <param name="elementType">element type</param>
+        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="elementType">identifies the data element type to create</param>
         /// <returns>instance metadata with new data element</returns>
         [Authorize]
         [HttpPost]

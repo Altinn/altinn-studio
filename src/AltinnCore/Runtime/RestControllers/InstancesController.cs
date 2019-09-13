@@ -70,12 +70,12 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         /// <summary>
-        ///  Gets one application instance from platform storage.
+        ///  Gets an instance object from storage.
         /// </summary>
-        /// <param name="org">the org</param>
-        /// <param name="app">the app name</param>
-        /// <param name="instanceOwnerId">the instance owner id (partyId)</param>
-        /// <param name="instanceGuid">the instance guid</param>
+        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
@@ -100,12 +100,12 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         /// <summary>
-        ///  Updates an application instance in platform storage.
+        ///  Updates an instance object in storage.
         /// </summary>
-        /// <param name="org">the organisation id, the owner of the app</param>
-        /// <param name="app">the app name</param>
-        /// <param name="instanceOwnerId">the instance owner id (partyId)</param>
-        /// <param name="instanceGuid">the instance guid</param>
+        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="instance">the instance with attributes that should be updated</param>
         /// <returns>the updated instance</returns>
         [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
@@ -135,13 +135,12 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         /// Creates a new instance of an application in platform storage. Clients can send a instance as a json or send a
         /// multipart form-data with the instance in the first part named "instance" and the prefill data in the next parts, with
-        /// names that corresponds to the element types defined in the application metadata.
+        /// names that correspond to the element types defined in the application metadata.
         /// The content is dispatched to storage. Currently calculate and validate is not implemented. 
-        /// 
         /// </summary>
-        /// <param name="org">the organisation id</param>
-        /// <param name="app">the application name</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
         /// <returns>the created instance</returns>
         [HttpPost]
         [DisableFormValueModelBinding]
@@ -203,7 +202,7 @@ namespace AltinnCore.Runtime.RestControllers
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
                 return Forbid($"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
-            }
+            }            
 
             Instance instance = await instanceService.CreateInstance(org, app, instanceTemplate);           
             
