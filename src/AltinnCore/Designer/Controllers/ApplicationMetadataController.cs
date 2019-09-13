@@ -85,7 +85,8 @@ namespace Designer.Controllers
             }
             else
             {
-                _repository.CreateApplication(org, app);
+                // TO DO: Application title handling (issue #2053/#1725)
+                _repository.CreateApplication(org, app, app);
                 Application createdApplication = _repository.GetApplication(org, app);
                 if (createdApplication == null)
                 {

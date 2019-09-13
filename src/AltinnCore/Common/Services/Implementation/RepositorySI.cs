@@ -170,14 +170,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the application metadata file
         /// </summary>
-        /// <param name="org">the application owner</param>
-        /// <param name="appName">the application name</param>
-        public void CreateApplication(string org, string appName)
+        /// <param name="org">The organisation code for the application owner</param>
+        /// <param name="app">The application name, e.g. "app-name-with-spaces"</param>
+        /// <param name="appTitle">The application title in default language (nb), e.g. "app name with spaces"</param>
+        public void CreateApplication(string org, string app, string appTitle)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Application appMetadata = new Application
             {
-                Id = ApplicationHelper.GetFormattedApplicationId(org, appName),
+                Id = ApplicationHelper.GetFormattedApplicationId(org, app),
                 VersionId = null,
                 Org = org,
 
@@ -188,7 +189,7 @@ namespace AltinnCore.Common.Services.Implementation
             };
 
             appMetadata.Title = new Dictionary<string, string>();
-            appMetadata.Title.Add("nb", appName);
+            appMetadata.Title.Add("nb", appTitle ?? app);
 
             appMetadata.ElementTypes = new List<Altinn.Platform.Storage.Models.ElementType>();
             appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
@@ -200,7 +201,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             string metaDataDir = _settings.GetMetadataPath(
                                     org,
-                                    appName,
+                                    app,
                                     developer);
             DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
@@ -1123,7 +1124,7 @@ namespace AltinnCore.Common.Services.Implementation
                 };
 
                 CreateServiceMetadata(metadata);
-                CreateApplication(owner, serviceConfig.ServiceName);
+                CreateApplication(owner, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
