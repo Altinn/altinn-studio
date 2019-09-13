@@ -189,7 +189,7 @@ namespace AltinnCore.Common.Services.Implementation
             };
 
             appMetadata.Title = new Dictionary<string, string>();
-            appMetadata.Title.Add("nb", string.IsNullOrEmpty(appTitleNb) ? app : appTitleNb);
+            appMetadata.Title.Add("nb", appTitleNb ?? app);
 
             appMetadata.ElementTypes = new List<Altinn.Platform.Storage.Models.ElementType>();
             appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
