@@ -57,24 +57,24 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IServiceImplementation GetServiceImplementation(string org, string appName, bool startServiceFlag)
+        public IServiceImplementation GetServiceImplementation(string org, string app, bool startServiceFlag)
         {
-            string assemblyName = LoadServiceAssembly(org, appName, startServiceFlag);
-            string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(appName)) + ".ServiceImplementation," + assemblyName;
+            string assemblyName = LoadServiceAssembly(org, app, startServiceFlag);
+            string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(app)) + ".ServiceImplementation," + assemblyName;
 
             return (IServiceImplementation)Activator.CreateInstance(Type.GetType(implementationTypeName));
         }
 
         /// <inheritdoc/>
-        public ServiceContext GetServiceContext(string org, string appName, bool startServiceFlag)
+        public ServiceContext GetServiceContext(string org, string app, bool startServiceFlag)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(org, appName, false).GetServiceModelType(),
-                ServiceText = _repository.GetServiceTexts(org, appName),
-                ServiceMetaData = _repository.GetServiceMetaData(org, appName),
+                ServiceModelType = GetServiceImplementation(org, app, false).GetServiceModelType(),
+                ServiceText = _repository.GetServiceTexts(org, app),
+                ServiceMetaData = _repository.GetServiceMetaData(org, app),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = _repository.GetWorkFlow(org, appName),
+                WorkFlow = _repository.GetWorkFlow(org, app),
             };
 
             if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)
@@ -92,9 +92,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetCodelist(string org, string appName, string name)
+        public string GetCodelist(string org, string app, string name)
         {
-            string codeList = _repository.GetCodelist(org, appName, name);
+            string codeList = _repository.GetCodelist(org, app, name);
             if (string.IsNullOrEmpty(codeList))
             {
                 // Try find the codelist at the service owner level
@@ -105,14 +105,14 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public byte[] GetServiceResource(string org, string appName, string resource)
+        public byte[] GetServiceResource(string org, string app, string resource)
         {
-            return _repository.GetServiceResource(org, appName, resource);
+            return _repository.GetServiceResource(org, app, resource);
         }
 
-        private string LoadServiceAssembly(string org, string appName, bool startServiceFlag)
+        private string LoadServiceAssembly(string org, string app, bool startServiceFlag)
         {
-            var codeCompilationResult = _compilation.CreateServiceAssembly(org, appName, startServiceFlag);
+            var codeCompilationResult = _compilation.CreateServiceAssembly(org, app, startServiceFlag);
             if (!codeCompilationResult.Succeeded)
             {
                 var errorMessages = codeCompilationResult?.CompilationInfo?.Where(e => e.Severity == "Error")
@@ -128,9 +128,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceMetadata GetServiceMetaData(string org, string appName)
+        public ServiceMetadata GetServiceMetaData(string org, string app)
         {
-            return _repository.GetServiceMetaData(org, appName);
+            return _repository.GetServiceMetaData(org, app);
         }
 
         /// <inheritdoc/>
