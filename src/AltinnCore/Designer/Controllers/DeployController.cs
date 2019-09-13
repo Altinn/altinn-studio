@@ -67,7 +67,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organisation code for the application owner</param>
         /// <param name="app">The application name</param>
-        // /// <param name="appTitle">The application title, e.g. "app name with spaces"</param>
         /// <returns>The result of trying to start a new deployment</returns>
         [HttpPost]
         public async Task<IActionResult> StartDeployment(string org, string app)
@@ -236,7 +235,7 @@ namespace AltinnCore.Designer.Controllers
 
             Application applicationFromRepository = _repository.GetApplication(org, app);
 
-            // for old services the application meta data file was not generated, so create the application meta data file
+            // for old apps the application meta data file was not generated, so create the application meta data file
             // but the metadata for attachment will not be available on deployment
             if (applicationFromRepository == null)
             {
