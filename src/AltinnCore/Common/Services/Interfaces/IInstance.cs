@@ -16,12 +16,12 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets the instance
         /// </summary>
-        Task<Instance> GetInstance(string appName, string org, int instanceOwnerId, Guid instanceId);
+        Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId);
 
         /// <summary>
         /// Gets the instance list
         /// </summary>
-        Task<List<Instance>> GetInstances(string appName, string org, int instanceOwnerId);
+        Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerId);
 
         /// <summary>
         /// Stores the form data
@@ -31,11 +31,11 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// update instance metadata
         /// </summary>
-        Task<Instance> UpdateInstance(object dataToSerialize, string appName, string org, int instanceOwnerId, Guid instanceId);
+        Task<Instance> UpdateInstance(object dataToSerialize, string app, string org, int instanceOwnerId, Guid instanceId);
 
         /// <summary>
         /// update instance metadata
         /// </summary>
-        Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string appName, string org, int instanceOwnerId, Guid instanceId);
+        Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string app, string org, int instanceOwnerId, Guid instanceId);
     }
 }
