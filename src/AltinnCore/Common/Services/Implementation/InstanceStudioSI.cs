@@ -204,11 +204,7 @@ namespace AltinnCore.Common.Services.Implementation
                 Org = org,
                 CreatedBy = userId,
                 CreatedDateTime = DateTime.UtcNow,
-                Process = new Storage.Interface.Models.ProcessState()
-                {
-                    CurrentTask = currentTask.State.ToString(),
-                    IsComplete = false,
-                },
+                Process = instanceTemplate.Process,
                 InstanceState = new Storage.Interface.Models.InstanceState()
                 {
                     IsArchived = false,

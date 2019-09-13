@@ -210,6 +210,11 @@ namespace AltinnCore.UnitTest.Runtime
                 .Setup(d => d.InsertData(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<Type>(), org, app, It.IsAny<int>()))
                 .Returns(Task.FromResult(instanceWithData));
 
+            Mock<IWorkflow> processServiceMock = new Mock<IWorkflow>();
+            processServiceMock
+                .Setup(p => p.GetInitialServiceState(org, app))
+                .Returns(new ServiceLibrary.Models.Workflow.ServiceState() { State = ServiceLibrary.Enums.WorkflowStep.FormFilling });
+
             return new InstancesController(
                 generalSettingsMock.Object,
                 logger.Object,
@@ -220,7 +225,8 @@ namespace AltinnCore.UnitTest.Runtime
                 profileServiceMock.Object,
                 new Mock<IPlatformServices>().Object,
                 new Mock<IInstanceEvent>().Object,
-                repositoryServiceMock.Object)
+                repositoryServiceMock.Object,
+                processServiceMock.Object)
             {
                 ControllerContext = new ControllerContext()
                 {

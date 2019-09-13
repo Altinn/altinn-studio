@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -41,6 +42,7 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly IRepository repositoryService;
         private readonly IPlatformServices platformService;
         private readonly IInstanceEvent eventService;
+        private readonly IWorkflow processService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -55,7 +57,8 @@ namespace AltinnCore.Runtime.RestControllers
             IProfile profileService,
             IPlatformServices platformService,
             IInstanceEvent eventService,
-            IRepository repositoryService)
+            IRepository repositoryService,
+            IWorkflow processService)
         {
             this.logger = logger;
             this.instanceService = instanceService;
@@ -65,6 +68,7 @@ namespace AltinnCore.Runtime.RestControllers
             this.platformService = platformService;
             this.eventService = eventService;
             this.repositoryService = repositoryService;
+            this.processService = processService;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -136,7 +140,7 @@ namespace AltinnCore.Runtime.RestControllers
         /// Creates a new instance of an application in platform storage. Clients can send a instance as a json or send a
         /// multipart form-data with the instance in the first part named "instance" and the prefill data in the next parts, with
         /// names that correspond to the element types defined in the application metadata.
-        /// The content is dispatched to storage. Currently calculate and validate is not implemented. 
+        /// The data elements are stored. Currently calculate and validate is not implemented. 
         /// </summary>
         /// <param name="org">uniqe identfier of the organization responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
@@ -161,7 +165,7 @@ namespace AltinnCore.Runtime.RestControllers
             if (string.IsNullOrEmpty(app))
             {
                 return BadRequest("The path parameter 'app' cannot be empty");
-            }         
+            }
 
             Application application = repositoryService.GetApplication(org, app);
             if (application == null)
@@ -190,7 +194,7 @@ namespace AltinnCore.Runtime.RestControllers
             if (!string.IsNullOrEmpty(multipartError))
             {
                 return BadRequest($"Error when comparting content to application metadata: {multipartError}");
-            }            
+            }
 
             if (string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))
             {
@@ -202,44 +206,37 @@ namespace AltinnCore.Runtime.RestControllers
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
                 return Forbid($"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
-            }            
+            }
+
+            // set initial task
+            instanceTemplate.Process = instanceTemplate.Process ?? new ProcessState()
+            {
+                CurrentTask = processService.GetInitialServiceState(org, app).State.ToString(),
+                IsComplete = false,
+            };
 
             Instance instance = await instanceService.CreateInstance(org, app, instanceTemplate);           
             
             if (instance == null)
             {
-                return StatusCode(500, "Unknown error!");                
+                return StatusCode(500, "Unable to create instance. Unknown error!");                
             }
-
-            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            int instanceOwnerInt = int.Parse(instance.InstanceOwnerId);
-            Instance instanceWithData = null;
 
             try
             {
-                foreach (RequestPart part in parsedRequest.Parts)
-                {
-                    object data = new StreamReader(part.Stream).ReadToEnd();
-                    IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, part.Name, true);
-                    instanceWithData = await dataService.InsertData(data, instanceGuid, serviceImplementation.GetServiceModelType(), org, app, instanceOwnerInt);
+                Instance instanceWithData = await StorePrefillParts(instance, parsedRequest.Parts);
 
-                    if (instanceWithData == null)
-                    {
-                        throw new InvalidOperationException($"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
-                    }
+                if (instanceWithData != null)
+                {
+                    instance = instanceWithData;
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failure storing multpart prefil of {instanceOwnerId}/{instanceGuid}. Because {ex}");
+                logger.LogError($"Failure storing multpart prefil when instantiating {org}/{app} for {instanceOwnerId}. Because {ex}");
 
-                // todo add compensating transaction
-                return StatusCode(500, $"Failure storing multpart prefil of {instanceOwnerId}/{instanceGuid}. Because {ex.Message}");
-            }
-
-            if (instanceWithData != null)
-            {
-                instance = instanceWithData;
+                // todo add compensating transaction (delete instance)                
+                return StatusCode(500, $"Failure storing multpart prefil when instantiating {org}/{app} for {instanceOwnerId}. Because {ex.Message}");
             }
 
             SetAppSelfLinks(instance, Request);
@@ -248,6 +245,38 @@ namespace AltinnCore.Runtime.RestControllers
             await DispatchEvent(InstanceEventType.Created.ToString(), instance);
 
             return Created(url, instance);
+        }
+
+        private async Task<Instance> StorePrefillParts(Instance instance, List<RequestPart> parts)
+        {
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwnerId);
+            Instance instanceWithData = null;
+            string org = instance.Org;
+            string app = instance.AppId.Split("/")[1];
+
+            foreach (RequestPart part in parts)
+            {
+                logger.LogInformation($"Storing part {part.Name}");
+                object data = new StreamReader(part.Stream).ReadToEnd();
+
+                IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, part.Name, true);
+
+                instanceWithData = await dataService.InsertData(
+                    data,
+                    instanceGuid,
+                    serviceImplementation.GetServiceModelType(),
+                    org,
+                    app,
+                    instanceOwnerIdAsInt);
+
+                if (instanceWithData == null)
+                {
+                    throw new InvalidOperationException($"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
+                }
+            }
+
+            return instanceWithData;
         }
 
         private Instance ExtractInstanceTemplate(MultipartRequestReader reader, int? instanceOwnerId)
