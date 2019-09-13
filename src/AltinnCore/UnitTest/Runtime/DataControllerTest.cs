@@ -163,6 +163,68 @@ namespace AltinnCore.UnitTest.Runtime
         }
 
         /// <summary>
+        /// Gets a data element which is named.
+        /// </summary>
+        [Fact]
+        public void GetDataElementWithDataGuid()
+        {
+            /* SETUP */
+
+            Instance instance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "default",
+                        ContentType = "application/xml",
+                    }
+                }
+            };
+
+            Mock<HttpRequest> request = MockRequest();
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+                .Returns(Task.FromResult(instance));
+
+            Stream dataStream = File.OpenRead("Runtime/data/data-element.xml");
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.GetData(org, app, instanceOwnerId, instanceGuid, dataGuid))
+                .Returns(Task.FromResult(dataStream));
+
+            /* TEST */
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock);
+
+            ActionResult result = dataController.Get(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
+
+            Assert.IsType<FileStreamResult>(result);
+
+            FileStreamResult okresult = result as FileStreamResult;
+            Stream resultStream = (Stream)okresult.FileStream;
+
+            XmlSerializer serializer = new XmlSerializer(typeof(Skjema));
+            Skjema model = (Skjema)serializer.Deserialize(resultStream);
+
+            Assert.Equal(5800, model.gruppeid);
+            Assert.Equal("Ærlige Øksne Åsheim", model.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonNavndatadef2.value);
+        }
+
+        /// <summary>
         /// Updates a dataset happy days.
         /// </summary>
         [Fact]
