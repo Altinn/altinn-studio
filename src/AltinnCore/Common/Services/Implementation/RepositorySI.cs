@@ -172,8 +172,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The organisation code for the application owner</param>
         /// <param name="app">The application name, e.g. "app-name-with-spaces"</param>
-        /// <param name="appTitleNb">The application title, e.g. "app name with spaces", at the moment it get stored as Norwegian title ("nb")</param>
-        public void CreateApplication(string org, string app, string appTitleNb)
+        /// <param name="appTitle">The application title in default language (nb), e.g. "app name with spaces"</param>
+        public void CreateApplication(string org, string app, string appTitle)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Application appMetadata = new Application
@@ -189,7 +189,7 @@ namespace AltinnCore.Common.Services.Implementation
             };
 
             appMetadata.Title = new Dictionary<string, string>();
-            appMetadata.Title.Add("nb", appTitleNb ?? app);
+            appMetadata.Title.Add("nb", appTitle ?? app);
 
             appMetadata.ElementTypes = new List<Altinn.Platform.Storage.Models.ElementType>();
             appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
