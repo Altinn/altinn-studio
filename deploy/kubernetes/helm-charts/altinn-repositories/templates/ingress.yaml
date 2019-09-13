@@ -1,5 +1,6 @@
 {{- $serviceName := include "altinn-repositories.fullname" . }}
 {{- $servicePort := .Values.service.externalPort }}
+{{- $host := .Values.host }}
 {{- range $ingress := .Values.ingress }}
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -11,7 +12,11 @@ metadata:
   {{- end }}
 spec:
   rules:
+  {{ if $ingress.host }}
   - host: {{ $ingress.host }}
+  {{- else }}}
+  - host: {{ $host }}
+  {{- end }}}
     http:
       backend:
         serviceName: {{ $serviceName }}

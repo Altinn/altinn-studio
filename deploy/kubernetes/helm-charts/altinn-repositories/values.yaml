@@ -10,6 +10,8 @@ image:
   imagePullSecret: acrsecret
   lifecyclePostStartCommand: "adduser git -D"
 
+host: staging.altinn.studio
+
 service:
   externalPort: 3000
 
@@ -75,4 +77,3 @@ ingress:
         traefik.frontend.priority: "500"
     paths:
       - path: /repos/
-    host: staging.altinn.studio

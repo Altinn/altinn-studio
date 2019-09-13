@@ -7,6 +7,8 @@ image:
   imagePullSecret: acrsecret
   pullPolicy: Always
 
+host: staging.altinn.studio
+
 service:
   externalPort: 3000
 
@@ -167,4 +169,3 @@ ingress:
         traefik.frontend.priority: "100"
     paths:
       - path: /
-    host: staging.altinn.studio
