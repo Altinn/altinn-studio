@@ -223,12 +223,15 @@ namespace AltinnCore.Common.Services.Implementation
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}";
             string folderForInstance = Path.Combine(testDataForParty, instanceGuid.ToString());
-         
-            Directory.CreateDirectory(folderForInstance);
-            string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
 
-            File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
-                  
+            await Task.Run(() =>
+            {
+                Directory.CreateDirectory(folderForInstance);
+                string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
+
+                File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
+            });
+
             return instance;
         }
     }
