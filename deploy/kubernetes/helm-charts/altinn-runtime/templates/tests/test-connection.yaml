@@ -14,5 +14,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args:  ['altinn-runtime:{{ .Values.service.internalPort }}']
+      args:  ['altinn-runtime:{{ .Values.service.externalPort }}']
   restartPolicy: Never
