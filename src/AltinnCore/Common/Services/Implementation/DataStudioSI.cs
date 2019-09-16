@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,6 +31,9 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private const string FORM_ID = "default";
+
+        private static readonly Dictionary<Guid, object> InstanceGuard = new Dictionary<Guid, object>();
+        private static object instanceGuardLock = new object();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataStudioSI"/> class.
@@ -67,25 +69,33 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
-            string instanceData = File.ReadAllText(instanceFilePath);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-            string dataId = Guid.NewGuid().ToString();
-            DataElement data = new DataElement
-            {
-                Id = dataId,
-                ElementType = FORM_ID,
-                ContentType = "application/Xml",
-                FileName = $"{dataId}.xml",
-                StorageUrl = $"{appName}/{instanceGuid}/data/{dataId}",
-                CreatedBy = instanceOwnerId.ToString(),
-                CreatedDateTime = DateTime.UtcNow,
-                LastChangedBy = instanceOwnerId.ToString(),
-                LastChangedDateTime = DateTime.UtcNow,
-            };
 
-            instance.Data = new List<DataElement> { data };
-            string instanceDataAsString = JsonConvert.SerializeObject(instance);
-            File.WriteAllText(instanceFilePath, instanceDataAsString);
+            string dataId = Guid.NewGuid().ToString();
+            Instance instance = null;
+
+            lock (Guard(instanceGuid))
+            {
+                string instanceData = File.ReadAllText(instanceFilePath);
+                instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+                DataElement data = new DataElement
+                {
+                    Id = dataId,
+                    ElementType = FORM_ID,
+                    ContentType = "application/Xml",
+                    FileName = $"{dataId}.xml",
+                    StorageUrl = $"{appName}/{instanceGuid}/data/{dataId}",
+                    CreatedBy = instanceOwnerId.ToString(),
+                    CreatedDateTime = DateTime.UtcNow,
+                    LastChangedBy = instanceOwnerId.ToString(),
+                    LastChangedDateTime = DateTime.UtcNow,
+                };
+
+                instance.Data = new List<DataElement> { data };
+                string instanceDataAsString = JsonConvert.SerializeObject(instance);
+
+                File.WriteAllText(instanceFilePath, instanceDataAsString);
+            }
 
             string formDataFilePath = $"{dataPath}/{dataId}";
             try
@@ -102,6 +112,23 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return Task.FromResult(instance);
+        }
+
+        private static object Guard(Guid instanceGuid)
+        {
+            object result;
+
+            lock (instanceGuardLock)
+            {
+                if (!InstanceGuard.ContainsKey(instanceGuid))
+                {
+                    InstanceGuard.Add(instanceGuid, new object());
+                }
+
+                result = InstanceGuard[instanceGuid];
+            }
+
+            return result;             
         }
 
         /// <inheritdoc/>
@@ -162,8 +189,12 @@ namespace AltinnCore.Common.Services.Implementation
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
-            string instanceData = File.ReadAllText(formDataFilePath, Encoding.UTF8);
-            instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+            lock (Guard(instanceGuid))
+            {
+                string instanceData = File.ReadAllText(formDataFilePath, Encoding.UTF8);
+                instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+            }
 
             if (instance == null)
             {
@@ -204,15 +235,19 @@ namespace AltinnCore.Common.Services.Implementation
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
-            string instanceData = File.ReadAllText(instanceFilePath);
 
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-            DataElement removeFile = instance.Data.Find(m => m.Id == attachmentId);
+            lock (Guard(instanceId))
+            {
+                string instanceData = File.ReadAllText(instanceFilePath);
 
-            instance.Data.Remove(removeFile);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                DataElement removeFile = instance.Data.Find(m => m.Id == attachmentId);
 
-            string instanceDataAsString = JsonConvert.SerializeObject(instance);
-            File.WriteAllText(instanceFilePath, instanceDataAsString);
+                instance.Data.Remove(removeFile);
+
+                string instanceDataAsString = JsonConvert.SerializeObject(instance);
+                File.WriteAllText(instanceFilePath, instanceDataAsString);
+            }
 
             string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentId.AsFileName()}";
             File.Delete(pathToDelete);
@@ -236,35 +271,40 @@ namespace AltinnCore.Common.Services.Implementation
 
             string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
             string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
-            string instanceData = File.ReadAllText(instanceFilePath);
-
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
             provider.TryGetContentType(attachmentName, out string contentType);
 
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-
-            DataElement data = new DataElement
+            lock (Guard(instanceId))
             {
-                Id = dataId.ToString(),
-                ElementType = attachmentType,
-                ContentType = contentType,
-                FileName = attachmentName,
-                StorageUrl = $"{appName}/{instanceId}/data/{dataId}",
-                CreatedBy = instanceOwnerId.ToString(),
-                CreatedDateTime = DateTime.UtcNow,
-                LastChangedBy = instanceOwnerId.ToString(),
-                LastChangedDateTime = DateTime.UtcNow,
-                FileSize = filesize
-            };
-            if (instance.Data == null)
-            {
-                instance.Data = new List<DataElement>();
-            }
+                string instanceData = File.ReadAllText(instanceFilePath);
 
-            instance.Data.Add(data);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
 
-            string instanceDataAsString = JsonConvert.SerializeObject(instance);
-            File.WriteAllText(instanceFilePath, instanceDataAsString);
+                DataElement data = new DataElement
+                {
+                    Id = dataId.ToString(),
+                    ElementType = attachmentType,
+                    ContentType = contentType,
+                    FileName = attachmentName,
+                    StorageUrl = $"{appName}/{instanceId}/data/{dataId}",
+                    CreatedBy = instanceOwnerId.ToString(),
+                    CreatedDateTime = DateTime.UtcNow,
+                    LastChangedBy = instanceOwnerId.ToString(),
+                    LastChangedDateTime = DateTime.UtcNow,
+                    FileSize = filesize
+                };
+                if (instance.Data == null)
+                {
+                    instance.Data = new List<DataElement>();
+                }
+
+                instance.Data.Add(data);
+
+                string instanceDataAsString = JsonConvert.SerializeObject(instance);
+
+                File.WriteAllText(instanceFilePath, instanceDataAsString);
+            }          
+
             return dataId;
         }
     }
