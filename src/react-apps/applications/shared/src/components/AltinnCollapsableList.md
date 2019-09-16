@@ -10,15 +10,6 @@ const styles = () => createStyles({
     padding: 12,
     fontSize: '1.2rem',
   },
-  listWrapper: {
-    padding: 12,
-  },
-  listHeader: {
-    padding: 12,
-  },
-  listHeaderIcon: {
-    padding: 12,
-  },
   listItem: {
     padding: 12,
   }
@@ -34,18 +25,12 @@ function PreviewCollapsableList({classes}) {
   return (
     <AltinnCollapsableList
       transition={expandList}
-      expandIconClass={'ai ai-expand-circle'}
       onClickExpand={clickedExpandList}
-      rotateExpandIcon={true}
       listHeader={
         <Typography className={classes.listHeaderText}>
           Collapsable list
         </Typography>
       }
-      listStylingClasses={{
-        listHeaderIcon: classes.listHeaderIcon,
-        listWrapper: classes.listWrapper,
-      }}
     >
       <Typography className={classes.listItem}>
         List item 1

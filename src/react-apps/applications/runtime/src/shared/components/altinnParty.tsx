@@ -9,28 +9,27 @@ import { IParty } from '../resources/party';
 const styles = createStyles({
   partyPaper: {
     marginBottom: 12,
-    paddingLeft: 12,
-    paddingRight: 12,
     borderRadius: 0,
     backgroundColor: altinnTheme.altinnPalette.primary.blueLighter,
     boxShadow: altinnTheme.sharedStyles.boxShadow,
     width: '100%',
   },
   partyWrapper: {
+    'paddingLeft': 24,
+    'paddingRight': 24,
     '&:hover': {
       cursor: 'pointer',
-      backgroundColor: altinnTheme.altinnPalette.primary.blueLight,
     },
   },
   partyWrapperDisabled: {
+    'paddingLeft': 24,
+    'paddingRight': 24,
     '&:hover': {
       cursor: 'not-allowed',
     },
   },
   partyPaperDisabled: {
     marginBottom: 12,
-    paddingLeft: 24,
-    paddingRight: 24,
     borderRadius: 0,
     backgroundColor: altinnTheme.altinnPalette.primary.blueLighter,
     boxShadow: altinnTheme.sharedStyles.boxShadow,
@@ -53,38 +52,46 @@ const styles = createStyles({
     fontWeight: 300,
   },
   subUnitWrapper: {
-    'color': altinnTheme.altinnPalette.primary.black,
+    color: altinnTheme.altinnPalette.primary.black,
   },
   subUnitListHeaderWrapper: {
-    'borderTop': `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
     '&:hover': {
       cursor: 'pointer',
     },
-  },
-  subUnit: {
-    '&:hover': {
-      cursor: 'pointer',
-      backgroundColor: altinnTheme.altinnPalette.primary.blueLight,
-    },
-    'borderTop': `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
     'paddingTop': 12,
     'paddingBottom': 12,
+    'borderTop': `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
+  },
+  subUnit: {
     'width': '100%',
+    'paddingLeft': 24,
+    'paddingRight': 24,
+    '&:hover': {
+      background: altinnTheme.altinnPalette.primary.blueLight,
+      cursor: 'pointer',
+    },
   },
   subUnitListHeader: {
-    paddingTop: 20,
-    paddingLeft: 10,
+    'paddingLeft': 24,
+    'paddingRight': 24,
+    '&:hover': {
+      background: altinnTheme.altinnPalette.primary.blueLight,
+      cursor: 'pointer',
+    },
+  },
+  subUnitListHeaderText: {
+    paddingTop: 12,
+    color: altinnTheme.altinnPalette.primary.black,
   },
   subUnitListHeaderIcon: {
     padding: 12,
-    paddingTop: 21,
-    paddingBottom: 21,
     fontSize: '1.3rem',
     color: altinnTheme.altinnPalette.primary.blue,
   },
   subUnitTextWrapper: {
-    paddingTop: 12,
-    paddingLeft: 60,
+    borderTop: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
+    padding: 21,
+    paddingLeft: 48,
   },
   subUnitText: {
     fontSize: '1.6rem',
@@ -132,48 +139,69 @@ function AltinnParty(props: IAltinnPartyProps) {
     }
 
     return (
-      <>
-        <AltinnCollapsableList
-          transition={subUnitsExpanded}
-          onClickExpand={expandSubUnits}
-          expandIconClass={'ai ai-expand-circle'}
-          listHeader={
-            <Typography className={classes.subUnitListHeader}>
-              {party.childParties.length} underenheter
-            </Typography>
-          }
-          rotateExpandIcon={true}
-          listStylingClasses={{
-            listWrapper: classes.subUnitListWrapper,
-            listHeader: classes.subUnitListHeaderWrapper,
-            listHeaderIcon: classes.subUnitListHeaderIcon,
-          }}
-        >
-          {party.childParties.map((childParty: IParty, index: number) => (
-            <Grid item={true} className={classes.subUnitWrapper}>
-              <Grid
-                key={index}
-                className={classes.subUnit}
-                container={true}
-                direction={'column'}
-                onClick={onClickParty.bind(null, childParty)}
-                onKeyPress={onKeyPress.bind(null, childParty)}
-                tabIndex={subUnitsExpanded ? 0 : undefined}
+      <AltinnCollapsableList
+        transition={subUnitsExpanded}
+        onClickExpand={expandSubUnits}
+        listHeader={
+          <Grid
+            container={true}
+            direction={'row'}
+            className={classes.subUnitListHeader}
+          >
+            <Grid
+              container={true}
+              direction={'row'}
+              className={classes.subUnitListHeaderWrapper}
+            >
+              <div
+                className={classes.subUnitListHeaderIcon}
               >
-                <Grid container={true} direction={'row'} className={classes.subUnitTextWrapper}>
-                  <Typography className={`${classes.subUnitTextBold}`}>
-                    {childParty.name}
-                  </Typography>
-                  <Typography className={classes.subUnitText}>
-                    {/* tslint:disable-next-line*/}
-                    &nbsp;{!language.party_selection ? 'party_selection.unit_org_number' : language.party_selection.unit_org_number} {childParty.orgNumber}
-                  </Typography>
-                </Grid>
+                <i
+                  className={'ai ai-expand-circle'}
+                  style={{
+                    WebkitTransition: '-webkit-transform 0.5s',
+                    transition: 'transform 0.5s',
+                    transform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                    WebkitTransform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                  }}
+                />
+              </div>
+              <Typography className={classes.subUnitListHeaderText}>
+                {party.childParties.length} underenheter
+              </Typography>
+            </Grid>
+          </Grid>
+        }
+      >
+        {party.childParties.map((childParty: IParty, index: number) => (
+          <Grid
+            key={index}
+            item={true}
+            direction={'column'}
+            className={classes.subUnitWrapper}
+          >
+            <Grid
+              key={index}
+              className={classes.subUnit}
+              container={true}
+              direction={'column'}
+              onClick={onClickParty.bind(null, childParty)}
+              onKeyPress={onKeyPress.bind(null, childParty)}
+              tabIndex={subUnitsExpanded ? 0 : undefined}
+            >
+              <Grid container={true} direction={'row'} className={classes.subUnitTextWrapper}>
+                <Typography className={`${classes.subUnitTextBold}`}>
+                  {childParty.name}
+                </Typography>
+                <Typography className={classes.subUnitText}>
+                  {/* tslint:disable-next-line:max-line-length*/}
+                  &nbsp;{!language.party_selection ? 'party_selection.unit_org_number' : language.party_selection.unit_org_number} {childParty.orgNumber}
+                </Typography>
               </Grid>
             </Grid>
-          ))}
-        </AltinnCollapsableList>
-      </>
+          </Grid>
+        ))}
+      </AltinnCollapsableList>
     );
   }
 
