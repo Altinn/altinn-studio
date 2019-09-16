@@ -11,6 +11,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Helpers.Extensions;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
@@ -87,7 +88,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             serviceOrgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
                             ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org
-                            : _settings.RepositoryLocation + serviceMetadata.Org;
+                            : _settings.RepositoryLocation + serviceMetadata.Org.AsFileName();
 
             string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName;
 
@@ -393,7 +394,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A string containing the file content</returns>
         public string GetConfiguration(string org, string service, string name)
         {
-            string filename = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
+            string filename = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name.AsFileName();
             string filedata = null;
 
             if (File.Exists(filename))
@@ -845,7 +846,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if saving was ok</returns>
         public bool SaveResource(string org, string service, string id, string resource)
         {
-            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
+            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
             new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
@@ -1367,6 +1368,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>All code lists for at the given location</returns>
         public Dictionary<string, string> GetCodelists(string org, string service)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+
             CreateAndCloneOrgCodeLists(org);
 
             Dictionary<string, string> codelists = new Dictionary<string, string>();

@@ -10,6 +10,7 @@ using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Helpers.Extensions;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -213,7 +214,7 @@ namespace AltinnCore.Common.Services.Implementation
             string instanceDataAsString = JsonConvert.SerializeObject(instance);
             File.WriteAllText(instanceFilePath, instanceDataAsString);
 
-            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentId}";
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentId.AsFileName()}";
             File.Delete(pathToDelete);
         }
 
