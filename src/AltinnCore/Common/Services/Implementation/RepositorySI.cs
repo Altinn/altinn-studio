@@ -28,7 +28,7 @@ using Newtonsoft.Json.Linq;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Service that handles functionality needed for creating and updating services in AltinnCore
+    /// Service that handles functionality needed for creating and updating apps in AltinnCore
     /// </summary>
     public class RepositorySI : Interfaces.IRepository
     {
