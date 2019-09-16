@@ -220,7 +220,7 @@ namespace AltinnCore.Designer
                           });
                 routes.MapRoute(
                           name: "appRoute",
-                          template: "designer/{org}/{appName}/{controller}/{action=Index}/{id?}",
+                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Deploy" },
                           constraints: new
                           {
