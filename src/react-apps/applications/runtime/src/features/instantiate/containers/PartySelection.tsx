@@ -184,7 +184,8 @@ function PartySelection(props: IPartySelectionProps) {
     if (location.state !== undefined &&
       (location.state as IRedirectReason) &&
       (location.state as IRedirectReason) !== undefined) {
-      switch ((location.state as IRedirectReason).errorType){
+      switch ((location.state as IRedirectReason).errorType) {
+        // Keeping the switch statement because we might extends the enums to handle more errors
         case PartySelectionReason.NotValid: {
           return (
             <Typography className={classes.partySelectionError}>
@@ -194,7 +195,7 @@ function PartySelection(props: IPartySelectionProps) {
                 ${language.party_selection.invalid_selection_third_part}
               `}
             </Typography>
-          )
+          );
         }
         default: {
           return null;

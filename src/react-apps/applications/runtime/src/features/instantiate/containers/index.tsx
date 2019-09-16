@@ -149,7 +149,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
           },
         }}
       />
-    )
+    );
   }
 
   if (partyValidation !== null && !partyValidation.valid) {
