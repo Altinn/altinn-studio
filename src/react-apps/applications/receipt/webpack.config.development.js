@@ -5,7 +5,12 @@ const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin
 module.exports = {
   mode: 'development',
   devtool: 'eval',
-  entry: "./src/index.tsx",
+  entry: [
+    "core-js/modules/es.object.assign",
+    "core-js/modules/es.array.find-index",
+    "core-js/modules/es.array.find",
+    "./src/index.tsx"
+  ],
   output: {
     filename: "receipt.js"
   },

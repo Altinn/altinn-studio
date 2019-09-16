@@ -17,9 +17,10 @@
   "author": "Altinn",
   "license": "3-Clause BSD",
   "dependencies": {
-    "@material-ui/core": "3.9.3",
+    "@babel/polyfill": "7.6.0",
+    "@material-ui/core": "4.3.2",
     "@material-ui/icons": "3.0.1",
-    "babel-core": "6.26.3",
+    "core-js": "3.2.1",
     "immutability-helper": "2.7.0",
     "moment": "2.24.0",
     "react": "16.8.6",
@@ -39,6 +40,9 @@
     "webpack-dev-server": "3.1.14"
   },
   "devDependencies": {
+    "@babel/core": "7.6.0",
+    "@babel/preset-env": "7.6.0",
+    "@babel/preset-react": "7.0.0",
     "@types/classnames": "2.2.6",
     "@types/enzyme": "3.9.4",
     "@types/jest": "23.3.14",
@@ -52,7 +56,6 @@
     "altinn-designsystem": "2.0.19",
     "awesome-typescript-loader": "5.0.0",
     "babel-jest": "24.7.1",
-    "babel-preset-react": "6.24.1",
     "classnames": "2.2.6",
     "cross-env": "5.1.6",
     "css-loader": "2.1.1",
@@ -111,7 +114,7 @@
   "browserslist": [
     ">0.2%",
     "not dead",
-    "not ie <= 11",
+    "not ie <= 10",
     "not op_mini all"
   ]
 }

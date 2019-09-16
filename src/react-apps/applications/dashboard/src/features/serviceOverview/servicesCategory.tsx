@@ -47,7 +47,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
       );
     } else {
       return (
-        <Grid container={true} spacing={24} >
+        <Grid container={true} spacing={3} >
           {categoryRepos.map((service: any, index: number) => (
             <Grid item={true} key={index} xl={3} lg={4} md={6} sm={12} xs={12} className={classNames(classes.width100)}>
               <ServiceCard
