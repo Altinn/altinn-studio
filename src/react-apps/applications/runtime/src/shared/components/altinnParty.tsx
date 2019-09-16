@@ -167,7 +167,11 @@ function AltinnParty(props: IAltinnPartyProps) {
                 />
               </div>
               <Typography className={classes.subUnitListHeaderText}>
-                {party.childParties.length} underenheter
+                {party.childParties.length}
+                &nbsp;{language.party_selection.unit_type_subunit_plural ?
+                  language.party_selection.unit_type_subunit_plural :
+                  'language.party_selection.unit_type_subunit_plural'
+                }
               </Typography>
             </Grid>
           </Grid>
@@ -195,7 +199,11 @@ function AltinnParty(props: IAltinnPartyProps) {
                 </Typography>
                 <Typography className={classes.subUnitText}>
                   {/* tslint:disable-next-line:max-line-length*/}
-                  &nbsp;{!language.party_selection ? 'party_selection.unit_org_number' : language.party_selection.unit_org_number} {childParty.orgNumber}
+                  &nbsp;{!language.party_selection ?
+                    'party_selection.unit_org_number' :
+                    language.party_selection.unit_org_number
+                  }
+                  &nbsp;{childParty.orgNumber}
                 </Typography>
               </Grid>
             </Grid>
@@ -207,10 +215,10 @@ function AltinnParty(props: IAltinnPartyProps) {
 
   return (
     <Paper
-      className={party.onlyHiearhyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}
-      onClick={!party.onlyHiearhyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
-      tabIndex={!party.onlyHiearhyElementWithNoAccess ? 0 : undefined}
-      onKeyPress={!party.onlyHiearhyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
+      className={party.onlyHiearchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}
+      onClick={!party.onlyHiearchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
+      tabIndex={!party.onlyHiearchyElementWithNoAccess ? 0 : undefined}
+      onKeyPress={!party.onlyHiearchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
     >
       <Grid
         container={true}

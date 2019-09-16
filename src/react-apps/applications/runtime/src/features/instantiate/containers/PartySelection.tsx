@@ -16,10 +16,6 @@ import { IProfile } from '../../../shared/resources/profile';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { capitalizeName } from '../../../utils/stringHelper';
 
-const UNIT_TYPE_BANKRUPTCY_CODE: string = 'KBO';
-const UNIT_TYPE_SUB_UNIT: string = 'BEDR';
-const UNIT_TYPE_SUB_UNIT_AAFY: string = 'AAFY';
-
 const styles = createStyles({
   partySelectionPage: {
     width: '100%',
