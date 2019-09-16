@@ -223,7 +223,7 @@ function AltinnParty(props: IAltinnPartyProps) {
       <Grid
         container={true}
         direction={'row'}
-        className={party.onlyHiearhyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
+        className={party.onlyHiearchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
       >
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')} />
         <Typography className={classes.partyName}>
