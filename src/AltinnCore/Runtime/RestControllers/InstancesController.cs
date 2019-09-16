@@ -76,9 +76,9 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         ///  Gets an instance object from storage.
         /// </summary>
-        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
@@ -106,9 +106,9 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         ///  Updates an instance object in storage.
         /// </summary>
-        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="instance">the instance with attributes that should be updated</param>
         /// <returns>the updated instance</returns>
@@ -142,9 +142,9 @@ namespace AltinnCore.Runtime.RestControllers
         /// names that correspond to the element types defined in the application metadata.
         /// The data elements are stored. Currently calculate and validate is not implemented. 
         /// </summary>
-        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <returns>the created instance</returns>
         [HttpPost]
         [DisableFormValueModelBinding]
@@ -193,7 +193,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (!string.IsNullOrEmpty(multipartError))
             {
-                return BadRequest($"Error when comparting content to application metadata: {multipartError}");
+                return BadRequest($"Error when comparing content to application metadata: {multipartError}");
             }
 
             if (string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))

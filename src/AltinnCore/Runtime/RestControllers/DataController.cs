@@ -84,11 +84,11 @@ namespace AltinnCore.Runtime.RestControllers
         ///  If more there are more data elements of the same elementType only the first one is returned. In that case use the more spesific
         ///  GET method to fetch a particular data element. 
         /// </summary>
-        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceOwnerId">unique id of the party that is this the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
-        /// <param name="elementType">identifies the data element type get</param>
+        /// <param name="elementType">identifies the type of the data element that should be returned</param>
         /// <returns>data element is returned in response body</returns>
         [Authorize]
         [HttpGet("{elementType}")]
@@ -138,9 +138,9 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         /// Gets a data element directly from storage without applying business logic.
         /// </summary>
-        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to get</param>
         /// <returns>The data element is returned in the body of the response</returns>
@@ -175,9 +175,9 @@ namespace AltinnCore.Runtime.RestControllers
         ///  Before the data element is stored application business logic is applied, e.g. calculation.
         ///  Thus the data element may be changed and is therefore returned by the controller.
         /// </summary>
-        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <returns>changed data element with calculated fields in the body of the response message</returns>
@@ -258,7 +258,7 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         /// Creates and instantiates a data element of a given element-type. Clients can upload the data element in the request content.
         /// </summary>
-        /// <param name="org">uniqe identfier of the organization responsible for the app</param>
+        /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
@@ -326,8 +326,8 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
         /// </summary>
-        /// <param name="org">the organisation id</param>
-        /// <param name="app">the app name</param>
+        /// <param name="org">unique identfier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="elementType">the data element type</param>
         /// <param name="startService">indicates if the servcie should be started or just opened</param>
         /// <returns>the serviceImplementation object which represents the application business logic</returns>
