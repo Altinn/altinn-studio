@@ -63,11 +63,11 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Start a new deployment
+        /// Start a new deployment.
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
-        /// <returns>The result of trying to start a new deployment</returns>
+        /// <param name="org">Uniqe identfier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The result of trying to start a new deployment.</returns>
         [HttpPost]
         public async Task<IActionResult> StartDeployment(string org, string app)
         {
@@ -174,21 +174,21 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets deployment status
+        /// Gets deployment status.
         /// </summary>
-        /// <param name="org">The Organization code for the application owner</param>
-        /// <param name="appName">The application code for the current service</param>
-        /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
-        /// <returns>The build status of the deployment build</returns>
+        /// <param name="org">Uniqe identfier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="buildId">The id of the build for which the deployment status is to be retrieved.</param>
+        /// <returns>The build status of the deployment build.</returns>
         [HttpGet]
-        public async Task<IActionResult> FetchDeploymentStatus(string org, string appName, string buildId)
+        public async Task<IActionResult> FetchDeploymentStatus(string org, string app, string buildId)
         {
-            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(appName) || string.IsNullOrEmpty(buildId))
+            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app) || string.IsNullOrEmpty(buildId))
             {
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "application owner (org), appName or buildId not supplied",
+                    Message = "application owner (org), app or buildId not supplied",
                 });
             }
 
