@@ -15,3 +15,4 @@ export const partiesUrl: string =
 export const instantiateUrl: string = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
 export const currentPartyUrl: string = `${window.location.origin}/${org}/${service}/api/authorization/parties/current`;
 export const instancesControllerUrl: string = `${window.location.origin}/${org}/${service}/instances`;
+export const partySelectionUrl: string = `${window.location.origin}/${org}/${service}/#/partyselection`;

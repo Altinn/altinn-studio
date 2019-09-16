@@ -176,7 +176,7 @@ function AltinnParty(props: IAltinnPartyProps) {
         {party.childParties.map((childParty: IParty, index: number) => (
           <Grid
             key={index}
-            item={true}
+            container={true}
             direction={'column'}
             className={classes.subUnitWrapper}
           >

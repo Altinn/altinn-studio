@@ -70,12 +70,17 @@ const styles = createStyles({
     fontWeight: 500,
   },
   partySelectionCheckbox: {
+    paddingTop: 24,
     padding: 12,
   },
 });
 
-interface IRedirectValidParties {
-  validParties: IParty[];
+export enum PartySelectionReason {
+  NotValid,
+}
+
+interface IRedirectReason {
+  errorType: PartySelectionReason;
 }
 
 export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteProps {
@@ -112,19 +117,15 @@ function PartySelection(props: IPartySelectionProps) {
 
     let validParties: IParty[];
 
-    if (!location.state || !location.state.validParties) {
-      validParties = parties.map((party) => {
-        if (!showDeleted) {
-          if (!party.isDeleted) {
-            return party;
-          }
-        } else {
+    validParties = parties.map((party) => {
+      if (!showDeleted) {
+        if (!party.isDeleted) {
           return party;
         }
-      }).filter((party) => !party ? null : party);
-    } else {
-      validParties = (location.state as IRedirectValidParties).validParties;
-    }
+      } else {
+        return party;
+      }
+    }).filter((party) => !party ? null : party);
 
     let numberOfPartiesRendered: number = 0;
 
@@ -158,9 +159,9 @@ function PartySelection(props: IPartySelectionProps) {
               })()
               : null
             : null,
-          )}
+        )}
         {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < validParties.length ?
-          <Grid container={true}>
+          <Grid container={true} direction={'row'}>
             {renderShowMoreButton()}
           </Grid>
           : null
@@ -180,11 +181,26 @@ function PartySelection(props: IPartySelectionProps) {
     if (!language.party_selection) {
       return null;
     }
-    return `
-      ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
-      ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
-      ${language.party_selection.invalid_selection_third_part}
-    `;
+    if (location.state !== undefined &&
+      (location.state as IRedirectReason) &&
+      (location.state as IRedirectReason) !== undefined) {
+      switch ((location.state as IRedirectReason).errorType){
+        case PartySelectionReason.NotValid: {
+          return (
+            <Typography className={classes.partySelectionError}>
+              {`
+                ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
+                ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
+                ${language.party_selection.invalid_selection_third_part}
+              `}
+            </Typography>
+          )
+        }
+        default: {
+          return null;
+        }
+      }
+    }
   }
 
   function templatePartyTypesString() {
@@ -247,7 +263,7 @@ function PartySelection(props: IPartySelectionProps) {
         className={classes.loadMoreButton}
         onClick={increaseNumberOfShownParties}
       >
-        <Grid container={true}>
+        <Grid container={true} direction={'row'}>
           <AddIcon className={classes.loadMoreButtonIcon} />
           <Typography className={classes.loadMoreButtonText}>
             {!language.party_selection ?
@@ -269,7 +285,11 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   return (
-    <Grid container={true} className={'container ' + classes.partySelectionPage}>
+    <Grid
+      container={true}
+      direction={'column'}
+      className={'container ' + classes.partySelectionPage}
+    >
       <Header
         language={language}
         profile={profile}
@@ -277,6 +297,7 @@ function PartySelection(props: IPartySelectionProps) {
       />
       <Grid
         container={true}
+        direction={'row'}
         style={{
           display: 'flex',
           flexDirection: 'row',
@@ -288,20 +309,26 @@ function PartySelection(props: IPartySelectionProps) {
             language.party_selection.header
           }
         </Typography>
-        {!location.state || !(location.state as IRedirectValidParties).validParties.length ?
-          null :
-          <Typography className={classes.partySelectionError}>
-            {templateErrorMessage()}
-          </Typography>
-        }
+        {templateErrorMessage()}
       </Grid>
-      <Grid container={true} className={classes.partySearchFieldContainer}>
+      <Grid
+        container={true}
+        direction={'column'}
+        className={classes.partySearchFieldContainer}
+      >
         <AltinnPartySearch
           onSearchUpdated={onFilterStringChange}
         />
       </Grid>
-      <Grid container={true}>
-        <Grid container={true} justify={'space-between'}>
+      <Grid
+        container={true}
+        direction={'column'}
+      >
+        <Grid
+          container={true}
+          justify={'space-between'}
+          direction={'row'}
+        >
           <Grid item={true}>
             <Typography className={classes.partySelectionSubTitle}>
               {!language.party_selection ?
@@ -312,9 +339,9 @@ function PartySelection(props: IPartySelectionProps) {
           </Grid>
 
           <Grid item={true}>
-            <Grid container={true}>
+            <Grid container={true} direction={'row'}>
               <Grid item={true} className={classes.partySelectionCheckbox}>
-                <Grid container={true}>
+                <Grid container={true} direction={'row'}>
                   <AltinnCheckBox
                     checked={showDeleted}
                     onChangeFunction={toggleShowDeleted}
@@ -328,8 +355,11 @@ function PartySelection(props: IPartySelectionProps) {
                   </Typography>
                 </Grid>
               </Grid>
-              <Grid item={true} direction={'row'} className={classes.partySelectionCheckbox}>
-                <Grid container={true}>
+              <Grid
+                item={true}
+                className={classes.partySelectionCheckbox}
+              >
+                <Grid container={true} direction={'row'}>
                   <AltinnCheckBox
                     checked={showSubUnits}
                     onChangeFunction={toggleShowSubUnits}
