@@ -7,7 +7,12 @@ const path = require('path');
 module.exports = {
   mode: 'production',
   devtool: false,
-  entry: "./src/index.tsx",
+  entry: [
+    "core-js/modules/es.object.assign",
+    "core-js/modules/es.array.find-index",
+    "core-js/modules/es.array.find",
+    "./src/index.tsx"
+  ],
   output: {
     filename: "dashboard.js"
   },

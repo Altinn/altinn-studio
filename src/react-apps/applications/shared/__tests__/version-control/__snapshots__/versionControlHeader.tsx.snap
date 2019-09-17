@@ -2,10 +2,10 @@
 
 exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should match snapshot 1`] = `
 <div
-  className="MuiGrid-container-2 VersionControlHeader-headerStyling-1"
+  className="MuiGrid-root VersionControlHeader-headerStyling-1 MuiGrid-container"
 >
   <div
-    className="MuiGrid-item-3"
+    className="MuiGrid-root MuiGrid-item"
     style={
       Object {
         "marginRight": "24px",
@@ -13,11 +13,11 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     }
   >
     <button
-      className="MuiButtonBase-root-126 MuiButton-root-100 MuiButton-text-102 MuiButton-flat-105 CloneButton-cloneButton-99"
+      className="MuiButtonBase-root MuiButton-root CloneButton-cloneButton-105 MuiButton-text"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
-      onContextMenu={[Function]}
+      onDragLeave={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -27,17 +27,17 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       onTouchEnd={[Function]}
       onTouchMove={[Function]}
       onTouchStart={[Function]}
-      tabIndex="0"
+      tabIndex={0}
       type="button"
     >
       <span
-        className="MuiButton-label-101"
+        className="MuiButton-label"
       >
         <div
-          className="MuiGrid-container-2 MuiGrid-align-items-xs-center-10"
+          className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
         >
           <div
-            className="MuiGrid-item-3"
+            className="MuiGrid-root MuiGrid-item"
           >
             <i
               className="fa fa-clone"
@@ -53,10 +53,10 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             />
           </div>
           <div
-            className="MuiGrid-item-3"
+            className="MuiGrid-root MuiGrid-item"
           >
             <p
-              className="MuiTypography-root-130 MuiTypography-body1-139"
+              className="MuiTypography-root MuiTypography-body1"
               style={
                 Object {
                   "color": "#0062BA",
@@ -68,13 +68,10 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
           </div>
         </div>
       </span>
-      <span
-        className="MuiTouchRipple-root-189"
-      />
     </button>
   </div>
   <div
-    className="MuiGrid-item-3"
+    className="MuiGrid-root MuiGrid-item"
     style={
       Object {
         "marginRight": "24px",
@@ -82,11 +79,11 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     }
   >
     <button
-      className="MuiButtonBase-root-126 MuiButton-root-100 MuiButton-text-102 MuiButton-flat-105 FetchChangesComponent-clickable-168 FetchChangesComponent-btn-167"
+      className="MuiButtonBase-root MuiButton-root FetchChangesComponent-clickable-159 FetchChangesComponent-btn-158 MuiButton-text"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
-      onContextMenu={[Function]}
+      onDragLeave={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -96,17 +93,17 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       onTouchEnd={[Function]}
       onTouchMove={[Function]}
       onTouchStart={[Function]}
-      tabIndex="0"
+      tabIndex={0}
       type="button"
     >
       <span
-        className="MuiButton-label-101"
+        className="MuiButton-label"
       >
         <div
-          className="MuiGrid-container-2 MuiGrid-align-items-xs-center-10"
+          className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
         >
           <div
-            className="MuiGrid-item-3"
+            className="MuiGrid-root MuiGrid-item"
           >
             <i
               className="fa fa-download"
@@ -122,10 +119,10 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             />
           </div>
           <div
-            className="MuiGrid-item-3"
+            className="MuiGrid-root MuiGrid-item"
           >
             <p
-              className="MuiTypography-root-130 MuiTypography-body1-139 FetchChangesComponent-color_blueDark-169"
+              className="MuiTypography-root FetchChangesComponent-color_blueDark-160 MuiTypography-body1"
               id="fetch_changes_btn"
             >
               sync_header.fetch_changes
@@ -133,21 +130,18 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
           </div>
         </div>
       </span>
-      <span
-        className="MuiTouchRipple-root-189"
-      />
     </button>
   </div>
   <div
-    className="MuiGrid-item-3"
+    className="MuiGrid-root MuiGrid-item"
   >
     <button
-      className="MuiButtonBase-root-126 MuiButton-root-100 MuiButton-text-102 MuiButton-flat-105 ShareChangesComponent-color_blueDark-174 ShareChangesComponent-btn-171 ShareChangesComponent-clickable-173"
+      className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-165 ShareChangesComponent-btn-162 ShareChangesComponent-clickable-164 MuiButton-text"
       disabled={false}
       id="share_changes_button"
       onBlur={[Function]}
       onClick={[Function]}
-      onContextMenu={[Function]}
+      onDragLeave={[Function]}
       onFocus={[Function]}
       onKeyDown={[Function]}
       onKeyUp={[Function]}
@@ -157,17 +151,17 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       onTouchEnd={[Function]}
       onTouchMove={[Function]}
       onTouchStart={[Function]}
-      tabIndex="0"
+      tabIndex={0}
       type="button"
     >
       <span
-        className="MuiButton-label-101"
+        className="MuiButton-label"
       >
         <div
-          className="MuiGrid-container-2 MuiGrid-align-items-xs-center-10"
+          className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
         >
           <div
-            className="MuiGrid-item-3"
+            className="MuiGrid-root MuiGrid-item"
           >
             <i
               className="fa fa-upload"
@@ -183,10 +177,10 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             />
           </div>
           <div
-            className="MuiGrid-item-3"
+            className="MuiGrid-root MuiGrid-item"
           >
             <p
-              className="MuiTypography-root-130 MuiTypography-body1-139 ShareChangesComponent-color_blueDark-174"
+              className="MuiTypography-root ShareChangesComponent-color_blueDark-165 MuiTypography-body1"
               id="no_changes_to_share_btn"
             >
               sync_header.no_changes_to_share
@@ -194,9 +188,6 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
           </div>
         </div>
       </span>
-      <span
-        className="MuiTouchRipple-root-189"
-      />
     </button>
   </div>
 </div>

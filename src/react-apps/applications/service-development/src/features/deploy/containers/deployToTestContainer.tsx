@@ -276,7 +276,6 @@ export class DeployToTestContainer extends
                   this.props.imageVersions)
                 }
                 onClickStartDeployment={this.startDeployment}
-                titleTypographyVariant='h2'
               />
 
             </Grid>

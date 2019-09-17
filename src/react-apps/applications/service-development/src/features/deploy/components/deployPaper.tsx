@@ -1,6 +1,5 @@
 import { Grid, Paper, Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
-import { TypographyProps } from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
@@ -37,7 +36,7 @@ const styles = () => createStyles({
     borderBottom: '1px solid #0062ba',
   },
   listItemTitle: {
-    fontSize: theme.overrides.MuiTypography.body1.fontSize,
+    fontSize: 16,
     fontWeight: 500,
   },
   marginTop30: {
@@ -67,7 +66,6 @@ interface IDeployPaperProps {
   localRepoInSyncWithMaster: inSyncStatus.ahead | inSyncStatus.behind | inSyncStatus.ready;
   masterRepoAndDeployInSync: boolean;
   onClickStartDeployment: any;
-  titleTypographyVariant: TypographyProps['variant'];
 }
 
 export const DeployPaper = (props: IDeployPaperProps) => {
@@ -215,7 +213,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
           </Grid>
           <Grid item={true} xs={11}>
             <Typography
-              variant={props.titleTypographyVariant}
+              variant='h2'
               className={classes.fontSizeTitle}
             >
               {getLanguageFromKey('deploy_to_test.service_is_ready_for_test', props.language)}
@@ -240,13 +238,13 @@ export const DeployPaper = (props: IDeployPaperProps) => {
     return (
       <React.Fragment>
         <Typography
-          variant={props.titleTypographyVariant}
+          variant='h2'
           className={classes.fontSizeTitle}
         >
           {getLanguageFromKey('deploy_to_test.error_a_problem_has_occured', props.language)}
         </Typography>
 
-        <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
+        <Grid container={true} style={{ marginTop: 24 }} spacing={2} alignItems='flex-start'>
           <Grid item={true} xs={1}>
             <AltinnIcon
               iconClass={'fa fa-circle-exclamation'}
@@ -273,7 +271,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
     return (
       <React.Fragment>
         <Typography
-          variant={props.titleTypographyVariant}
+          variant='h2'
           className={classes.fontSizeTitle}
         >
           {title}
@@ -305,7 +303,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
     return (
       <React.Fragment>
         <Typography
-          variant={props.titleTypographyVariant}
+          variant='h2'
           className={classes.fontSizeTitle}
         >
           {getLanguageFromKey('deploy_to_test.error_service_was_not_deployed_title', props.language)}
@@ -317,7 +315,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
           {getLanguageFromKey('deploy_to_test.general_service_will_be_deployed_from_org', props.language)}
         </Typography>
 
-        <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
+        <Grid container={true} style={{ marginTop: 24 }} spacing={2} alignItems='flex-start'>
           <Grid item={true} xs={1}>
             <AltinnIcon
               iconClass={'fa fa-circle-exclamation'}
@@ -407,7 +405,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                       )
                   }
 
-                  <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
+                  <Grid container={true} style={{ marginTop: 24 }} spacing={2} alignItems='flex-start'>
 
                     {/* Render the repo in sync part */}
                     {renderRepoInSync()}

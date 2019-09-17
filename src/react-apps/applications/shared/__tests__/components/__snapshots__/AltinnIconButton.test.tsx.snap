@@ -2,11 +2,11 @@
 
 exports[`>>> AltinnIconButton--- Snapshot +++ Should match snapshot with all params specified 1`] = `
 <button
-  className="MuiButtonBase-root-29 MuiButton-root-3 MuiButton-contained-14 MuiButton-raised-17 AltinnIconButton-dottedBtn-1"
+  className="MuiButtonBase-root MuiButton-root AltinnIconButton-dottedBtn-1 MuiButton-contained"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -16,29 +16,26 @@ exports[`>>> AltinnIconButton--- Snapshot +++ Should match snapshot with all par
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-4"
+    className="MuiButton-label"
   >
     <i
       className="ai ai-write AltinnIconButton-dottedBtnIcon-2"
     />
     mock btn text
   </span>
-  <span
-    className="MuiTouchRipple-root-32"
-  />
 </button>
 `;
 
 exports[`>>> AltinnIconButton--- Snapshot +++ Should match snapshot with the least amount of params 1`] = `
 <button
-  className="MuiButtonBase-root-29 MuiButton-root-3 MuiButton-contained-14 MuiButton-raised-17 AltinnIconButton-dottedBtn-1"
+  className="MuiButtonBase-root MuiButton-root AltinnIconButton-dottedBtn-1 MuiButton-contained"
   disabled={false}
   onBlur={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -48,19 +45,16 @@ exports[`>>> AltinnIconButton--- Snapshot +++ Should match snapshot with the lea
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-4"
+    className="MuiButton-label"
   >
     <i
       className="ai ai-write AltinnIconButton-dottedBtnIcon-2"
     />
     mock btn text
   </span>
-  <span
-    className="MuiTouchRipple-root-32"
-  />
 </button>
 `;
