@@ -1,0 +1,9 @@
+Test IID029 applies only to PDPs that retrieve their initial
+policies from a repository, where multiple initial policies might
+be obtained based on <Target> matching.  IID029Policy1.xml and
+IID029Policy2.xml must be stored in the repository, such that
+both policies will be considered for application to the Request
+in IID029Request.xml.
+
+Any PDP that has only one initial policy, regardless of the
+Request, does not need to pass this test.

@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Helpers.Extensions;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
 using Microsoft.AspNetCore.Authorization;
@@ -93,7 +94,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public IActionResult Schema(string id)
         {
-            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{id}.json");
+            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{id.AsFileName()}.json");
             return Content(schema, "application/json", System.Text.Encoding.UTF8);
         }
 
@@ -117,7 +118,7 @@ namespace AltinnCore.Designer.Controllers
 
             return result;
         }
-        
+
         /// <summary>
         /// Method to retrieve the service description from the metadata file
         /// </summary>

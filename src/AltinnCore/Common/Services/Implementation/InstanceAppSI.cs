@@ -201,6 +201,8 @@ namespace AltinnCore.Common.Services.Implementation
 
             instance.Process.IsComplete = true;
             instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
+            instance.InstanceState.IsArchived = true;
+            instance.InstanceState.ArchivedDateTime = DateTime.UtcNow;
 
             instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
             return instance;

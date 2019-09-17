@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Response
+      xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17
+        http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd">
+    <Result>
+        <Decision>Permit</Decision>
+        <Status>
+            <StatusCode
+                  Value="urn:oasis:names:tc:xacml:1.0:status:ok"/>
+        </Status>
+        
+       <Obligations>
+            <Obligation
+                ObligationId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:obligation-1">
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:assignment1"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">assignment1</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:NaN"
+                    DataType="http://www.w3.org/2001/XMLSchema#double">NaN</AttributeAssignment>
+				<AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:INF"
+                    DataType="http://www.w3.org/2001/XMLSchema#double">INF</AttributeAssignment>
+				<AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:NegativeINF"
+                    DataType="http://www.w3.org/2001/XMLSchema#double">-INF</AttributeAssignment>
+            </Obligation>
+        </Obligations>
+        
+  		<AssociatedAdvice>
+            <Advice
+                AdviceId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:Advice-1">
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:assignment1"
+                    DataType="http://www.w3.org/2001/XMLSchema#string">assignment1</AttributeAssignment>
+                <AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:NaN"
+                    DataType="http://www.w3.org/2001/XMLSchema#double">NaN</AttributeAssignment>
+				<AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:INF"
+                    DataType="http://www.w3.org/2001/XMLSchema#double">INF</AttributeAssignment>
+				<AttributeAssignment
+                    AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA340:NegativeINF"
+                    DataType="http://www.w3.org/2001/XMLSchema#double">-INF</AttributeAssignment>
+            </Advice>
+        </AssociatedAdvice>
+        
+		<Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:environment">
+		    <Attribute IncludeInResult="true" AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:NaN" >
+		      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#double">NaN</AttributeValue>
+			</Attribute>
+		    <Attribute IncludeInResult="true" AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:INF" >
+		      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#double">INF</AttributeValue>
+			</Attribute>
+		    <Attribute IncludeInResult="true" AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:NegativeINF" >
+		      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#double">-INF</AttributeValue>
+			</Attribute>
+		</Attributes>
+        
+
+    </Result>
+</Response>

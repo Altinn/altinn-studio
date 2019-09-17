@@ -7,6 +7,11 @@ image:
   containerPort: 5000
   imagePullSecret: acrsecret
 
+host: staging.altinn.studio
+
+service:
+  externalPort: 3000
+
 environmentVariables:
   development:
     - name: ASPNETCORE_ENVIRONMENT
@@ -152,8 +157,37 @@ volumes:
     secret:
       secretName: altinn-appsettings-secret
 
-service:
-  ports:
-    - port: 5000
-      protocol: TCP
-      targetPort: 5000
+ingress:
+  - metadata:
+      name: altinn-designer-base-path
+      annotations:
+        traefik.ingress.kubernetes.io/rule-type: Path
+        traefik.frontend.priority: "1000"
+    paths:
+      - path: /
+  - metadata:
+      name: altinn-designer-cookie-fetcher
+      annotations:
+        traefik.ingress.kubernetes.io/request-modifier: "ReplacePath: /Redirect/FetchCookieAndRedirectHome/"
+        traefik.ingress.kubernetes.io/rule-type: Path
+        traefik.frontend.priority: "900"
+    paths:
+      - path: /repos/
+  - metadata:
+      name: altinn-designer-home-path
+      annotations:
+        traefik.frontend.priority: "800"
+    paths:
+      - path: /Home/
+  - metadata:
+      name: altinn-designer-designer-path
+      annotations:
+        traefik.frontend.priority: "700"
+    paths:
+      - path: /designer/
+  - metadata:
+      name: altinn-designer-designerapi-path
+      annotations:
+        traefik.frontend.priority: "600"
+    paths:
+      - path: /designerapi/

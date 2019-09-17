@@ -4,7 +4,8 @@
   "description": "UI tests for Altinn tjenester 3.0",
   "main": "app.js",
   "scripts": {
-    "test": "node .\\testRunner --env=dev"
+    "test": "node .\\testRunner --env=dev",
+    "wcag": "testcafe puppeteer .\\wcag\\wcag-tests.js -r junit:junit.xml"
   },
   "keywords": [],
   "author": "",

@@ -5,6 +5,7 @@ using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Runtime.RequestHandling;
 using AltinnCore.Runtime.RestControllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -138,6 +139,11 @@ namespace AltinnCore.Runtime
             }
 
             string appId = $"{org}/{app}";
+
+            MultipartRequestReader multipartRequestReader = new MultipartRequestReader(Request);
+            multipartRequestReader.Read().Wait();
+
+            //// TODO: Validate multipartRequestReader.Parts
 
             Uri storageUri = GetStorageUri(appId, instanceOwnerId);
 

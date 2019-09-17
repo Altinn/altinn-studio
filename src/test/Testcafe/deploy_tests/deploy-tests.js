@@ -113,15 +113,6 @@ test('User does not have write access to app, and cannot deploy', async () => {
     .expect(Selector("h2").withText(t.ctx.ikkeTilgang).visible).ok()
 });
 
-test('Accessibility testing for deployment to test environment page', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/deploytotest')
-    .click(designer.testeNavigationTab)
-    .hover(designer.leftDrawerMenu)
-    .click(designer.testeLeftMenuItems[1])
-  axeCheck(t);
-});
-
 test('Clone modal functionality', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')

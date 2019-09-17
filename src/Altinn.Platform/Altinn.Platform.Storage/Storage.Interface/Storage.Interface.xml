@@ -620,6 +620,41 @@
             <param name="info">info</param>
             <param name="context">context</param>
         </member>
+        <member name="T:Storage.Interface.Enums.InstanceEventType">
+            <summary>
+            This enum defines the Instance event types supported by the AltinnCore platform.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Enums.InstanceEventType.None">
+            <summary>
+            Unkown instance event.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Enums.InstanceEventType.Created">
+            <summary>
+            Instance created event.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Enums.InstanceEventType.Saved">
+            <summary>
+            Instance saved event.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Enums.InstanceEventType.Submited">
+            <summary>
+            Instance submited event.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Enums.InstanceEventType.Deleted">
+            <summary>
+            Instance deleted event.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Enums.InstanceEventType.Undeleted">
+            <summary>
+            Instance deleted event.
+            </summary>
+        </member>
         <member name="T:Storage.Interface.Models.ApplicationOwnerDataState">
             <summary>
             Model to hold application owner state for a specific data element
@@ -670,6 +705,16 @@
         <member name="P:Storage.Interface.Models.InstanceState.IsArchived">
             <summary>
             Gets or sets whether a user archived the instance
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.InstanceState.ArchivedDateTime">
+            <summary>
+            Gets or set the date the instance was archived 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.InstanceState.DeletedDateTime">
+            <summary>
+            Gets or sets the date the instance was deleted
             </summary>
         </member>
         <member name="T:Storage.Interface.Models.LanguageString">
@@ -746,14 +791,49 @@
             Due date to submit the instance to application owner.
             </summary>
         </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.DeleteStatus">
+            <summary>
+            Delete status of instance; default or softDeleted.
+            </summary>
+        </member>
         <member name="P:Storage.Interface.Models.MessageBoxInstance.AllowDelete">
             <summary>
             Boolean indicating if user is allowed to delete instance.
             </summary>
         </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.AllowNewCopy">
+            <summary>
+            Boolean indicating if user is allowed to create a new copy from existing instance.
+            </summary>
+        </member>
         <member name="P:Storage.Interface.Models.MessageBoxInstance.AuthorizedForWrite">
             <summary>
             Boolean indicating if user is authorized to write on instance.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.ArchivedDateTime">
+            <summary>
+            DateTime the instance was archived 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.MessageBoxInstance.DeletedDateTime">
+            <summary>
+            DateTime the instance was deleted
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.DeleteStatusType">
+            <summary>
+            Status indicating the deletion status of an instance
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Models.DeleteStatusType.Default">
+            <summary>
+            Default status, not soft deleted.
+            </summary>
+        </member>
+        <member name="F:Storage.Interface.Models.DeleteStatusType.SoftDeleted">
+            <summary>
+            Instance has been soft deleted.
             </summary>
         </member>
         <member name="T:Storage.Interface.Models.ProcessState">

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AltinnCore.Common.Helpers.Extensions;
 using AltinnCore.Common.Models;
 using Newtonsoft.Json;
 
@@ -292,6 +293,9 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetOrgPath(string org, string developer = null)
         {
+            developer = developer.AsFileName();
+            org = org.AsFileName();
+
             if (developer != null)
             {
                 developer += "/";
@@ -309,6 +313,10 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetServicePath(string org, string service, string developer = null)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            developer = developer.AsFileName();
+
             if (developer != null)
             {
                 developer += $"/{org}/{service}/";
@@ -327,6 +335,10 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetTestdataForPartyPath(string org, string service, string developer = null)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            developer = developer.AsFileName();
+
             if (developer != null)
             {
                 developer += "/";
@@ -344,6 +356,10 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetFormLayoutPath(string org, string service, string developer)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            developer = developer.AsFileName();
+
             if (developer != null)
             {
                 developer += "/";
@@ -361,6 +377,10 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetThirdPartyComponentsPath(string org, string service, string developer)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            developer = developer.AsFileName();
+        
             if (developer != null)
             {
                 developer += "/";
@@ -378,6 +398,10 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRuleHandlerPath(string org, string service, string developer)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            developer = developer.AsFileName();
+
             if (developer != null)
             {
                 developer += "/";
@@ -650,6 +674,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The path to common text resources in altinn, ending with "/"</returns>
         public string GetCommonTextResourcePath(string developer)
         {
+            developer = developer.AsFileName();
             return $"{RepositoryLocation}{developer}{TEXTRESOURCE_COMMON_FOLDER_NAME}";
         }
     }
