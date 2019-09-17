@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "91d09939-9330-4f72-9786-8d162ce7f42a",
+		"_postman_id": "9658a289-db42-438c-b19c-61a3f6b40647",
 		"name": "Platform",
 		"description": "Collection that tests the full integration between current Altinn platform and SBL bridge",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -1592,6 +1592,70 @@
 							"response": []
 						},
 						{
+							"name": "POST visibleDate in the future",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "4081c1b5-a9a1-4b52-95b3-6b89964d2fb6",
+										"exec": [
+											"pm.test(\"Platform - Storage - Instance - Add Instance with future visibleDateTime - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    var jsonData = pm.response.json();\r",
+											"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+											"    {\r",
+											"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+											"        pm.environment.set('appId',jsonData.appId);\r",
+											"        var instanceId = jsonData.id;\r",
+											"        instanceId = instanceId.toString();\r",
+											"        instanceId = instanceId.split('/');\r",
+											"        instanceId = instanceId[1];\r",
+											"        pm.environment.set('FutureDateinstanceId',instanceId);\r",
+											"    }\r",
+											"    pm.expect(jsonData.data[0].id).not.equal(null);\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "multipart/form-data; boundary=\"abcdefg\"",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n                <Skattyterinfor-grp-5801 gruppeid=\"5801\">                               \r\n                               <klagefrist-grp-5804 gruppeid=\"5804\">\r\n                                               <KlageGjeldendeInntektsar-datadef-25455 orid=\"25455\">2010</KlageGjeldendeInntektsar-datadef-25455>\r\n                                               <KlagemeldingSendtInnenKlagefrist-datadef-25454 orid=\"25454\" xsi:nil=\"true\" />\r\n                                               <KlageUtloptKlagefristBegrunnelse-datadef-25456 orid=\"25456\">åøæ123£$</KlageUtloptKlagefristBegrunnelse-datadef-25456>\r\n                               </klagefrist-grp-5804>\r\n                </Skattyterinfor-grp-5801>\r\n                <klage-grp-5805 gruppeid=\"5805\">\r\n                               <spesifisering-grp-5836 gruppeid=\"5836\">\r\n                                               <KlageSpesifisering-datadef-25457 orid=\"25457\">Orker ikke.</KlageSpesifisering-datadef-25457>\r\n                               </spesifisering-grp-5836>\r\n                </klage-grp-5805>\r\n</Skjema>\r\n--abcdefg--"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances"
+									],
+									"query": [
+										{
+											"key": "appId",
+											"value": "{{appId}}"
+										}
+									]
+								},
+								"description": "Should be able to GET instances with visibleDate set in the future"
+							},
+							"response": []
+						},
+						{
 							"name": "GET All instances",
 							"event": [
 								{
@@ -1602,7 +1666,11 @@
 											"pm.test(\"Platform - Storage - SBL - Get Instances for SBL - Status - 200\", function () {\r",
 											"    pm.response.to.have.status(200);\r",
 											"});\r",
-											""
+											"\r",
+											"pm.test(\"Platform - Storage - SBL - GET Instances for SBL - Content - Does not contain future visible instances\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData).to.not.contain(pm.environment.get(\"FutureDateinstanceId\"));\r",
+											"})"
 										],
 										"type": "text/javascript"
 									}
@@ -1829,6 +1897,57 @@
 										"instances",
 										"{{instanceOwnerId}}",
 										"{{instanceId}}"
+									],
+									"query": [
+										{
+											"key": "hard",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE Hard Delete future Instance",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{FutureDateinstanceId}}?hard=true",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{FutureDateinstanceId}}"
 									],
 									"query": [
 										{

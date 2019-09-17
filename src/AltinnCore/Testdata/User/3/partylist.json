@@ -10,7 +10,7 @@
 		"ssn": "01039012345",
 		"name": "Anne Sophie Næringsdrivende",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -24,7 +24,7 @@
 		"ssn": null,
 		"name": "Frisk & Sporty Oslo",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -38,7 +38,7 @@
 		"ssn": null,
 		"name": "Frisk & Sporty Bergen",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -52,7 +52,7 @@
 		"ssn": null,
 		"name": "Frisk & Sporty Trondheim",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	}
 ]

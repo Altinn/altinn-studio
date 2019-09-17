@@ -72,6 +72,16 @@ namespace Storage.Interface.Models
         /// Boolean indicating if user is authorized to write on instance.
         /// </summary>
         public bool AuthorizedForWrite { get; set; }
+
+        /// <summary>
+        /// DateTime the instance was archived 
+        /// </summary>
+        public DateTime? ArchivedDateTime { get; set; }
+
+        /// <summary>
+        /// DateTime the instance was deleted
+        /// </summary>
+        public DateTime? DeletedDateTime { get; set; }
     }
 
     /// <summary>

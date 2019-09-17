@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" PolicyId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIC103:policy" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" Version="1.0" xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:policy:schema:os access_control-xacml-2.0-policy-schema-os.xsd">
+    <Description>
+        Policy for Conformance Test IIC103.
+    </Description>
+    <Target/>
+    <Rule Effect="Permit" RuleId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIC103:rule">
+        <Condition>
+<Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:dateTime-equal">
+            <Apply FunctionId="urn:oasis:names:tc:xacml:3.0:function:dateTime-add-yearMonthDuration">
+                <Apply FunctionId="urn:oasis:names:tc:xacml:1.0:function:dateTime-one-and-only">
+                    <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:test-attr" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#dateTime" MustBePresent="false"/>
+                </Apply>
+                <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#yearMonthDuration">-P1Y2M</AttributeValue>
+            </Apply>
+            <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#dateTime">2001-01-22T08:23:47-05:00</AttributeValue>
+</Apply>
+        </Condition>
+    </Rule>
+</Policy>

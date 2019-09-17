@@ -645,7 +645,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return null;
                 }
 
-                string contentFileName = contentDisposition.FileName.HasValue ? contentDisposition.Name.Value : null;
+                string contentFileName = contentDisposition.FileName.HasValue ? contentDisposition.FileName.Value : null;
                 long fileSize = contentDisposition.Size ?? 0;
 
                 // copy the section.Body stream since this stream cannot be rewind
@@ -943,7 +943,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 instance.InstanceState.IsDeleted = true;
                 instance.LastChangedBy = User.Identity.Name;
-                instance.LastChangedDateTime = DateTime.UtcNow;
+                instance.LastChangedDateTime = instance.InstanceState.DeletedDateTime = DateTime.UtcNow;
 
                 try
                 {

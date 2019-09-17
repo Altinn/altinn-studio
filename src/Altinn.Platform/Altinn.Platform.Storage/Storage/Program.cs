@@ -1,8 +1,10 @@
+using System;
 using System.IO;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
@@ -101,18 +103,36 @@ namespace Altinn.Platform.Storage
                 && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
             {
                 AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
-                KeyVaultClient keyVaultClient = new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(
-                        azureServiceTokenProvider.KeyVaultTokenCallback));
-                config.AddAzureKeyVault(
-                    keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-            }
 
-            string applicationInsights = stageOneConfig.GetValue<string>("ApplicationInsights:InstrumentationKey");
-            logger.Information($"Setting application insights instrumentationKey='{applicationInsights}'");
-            if (!string.IsNullOrEmpty(applicationInsights))
+                KeyVaultClient keyVaultClient = new KeyVaultClient(
+                    new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+
+                config.AddAzureKeyVault(
+                    keyVaultEndpoint,
+                    keyVaultClient,
+                    new DefaultKeyVaultSecretManager());
+
+                try
+                {
+                    // get instrumentation key to set up telemetry
+                    SecretBundle secretBundle = keyVaultClient
+                        .GetSecretAsync(keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
+
+                    SetTelemetry(secretBundle.Value);
+                }
+                catch (Exception vaultException)
+                {
+                    logger.Error($"Could not find secretBundle for application insights {vaultException}");
+                }
+            }
+        }
+
+        private static void SetTelemetry(string instrumentationKey)
+        {
+            logger.Information($"Setting application insights telemetry with instrumentationKey='{instrumentationKey}'");
+            if (!string.IsNullOrEmpty(instrumentationKey))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = applicationInsights;
+                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
             }
         }
     }

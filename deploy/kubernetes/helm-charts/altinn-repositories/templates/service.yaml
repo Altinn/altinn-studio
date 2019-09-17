@@ -6,10 +6,8 @@ metadata:
     run: altinn-repositories
 spec:
   ports:
-  {{- range $port := .Values.service.ports}}
-    - port: {{ $port.port }}
-      targetPort: {{ $port.targetPort }}
-      protocol: {{ $port.protocol }}
-  {{- end }}
+    - port: {{ .Values.service.externalPort }}
+      targetPort: {{ .Values.image.containerPort }}
+      protocol: TCP
   selector:
     run: altinn-repositories
