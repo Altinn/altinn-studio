@@ -39,6 +39,7 @@ describe('altinnParty', () => {
         <AltinnParty
           party={mockParty}
           onSelectParty={onSelectPartyMock}
+          showSubUnits={true}
         />
       </Provider>,
     );
@@ -67,6 +68,7 @@ describe('altinnParty', () => {
           <AltinnParty
             party={mockParty}
             onSelectParty={onSelectPartyMock}
+            showSubUnits={true}
           />
         </Provider>,
       );
@@ -92,6 +94,7 @@ describe('altinnParty', () => {
           <AltinnParty
             party={mockParty}
             onSelectParty={onSelectPartyMock}
+            showSubUnits={true}
           />
         </Provider>,
       );
