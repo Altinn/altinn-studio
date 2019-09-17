@@ -38,5 +38,39 @@ namespace Altinn.Platform.Register.Controllers
 
             return Ok(result);
         }
+
+        /// <summary>
+        /// Gets the party for a given social security number or organization number.
+        /// </summary>
+        /// <param name="lookupValue">SSN or OrgNumber.</param>
+        /// <returns>The party represeting the provided SNN/OrgNumber.</returns>
+        [HttpGet("/lookupObject")]
+        public async Task<ActionResult> LookupPartyBySSNOrOrgNo([FromBody]string lookupValue)
+        {
+            Party result = await _partiesWrapper.LookupPartyBySSNOrOrgNo(lookupValue);
+            if (result.PartyId != 0)
+            {
+                return Ok(result);
+            }
+
+            return NotFound();
+        }
+
+        /// <summary>
+        /// Gets the party id for a given social security number or organization number.
+        /// </summary>
+        /// <param name="lookupValue">SSN or OrgNumber.</param>
+        /// <returns>The party represeting the provided SNN/OrgNumber.</returns>
+        [HttpGet("/lookup")]
+        public async Task<ActionResult> LookupPartyIdBySSNOrOrgNo([FromBody]string lookupValue)
+        {
+            int result = await _partiesWrapper.LookupPartyIdBySSNOrOrgNo(lookupValue);
+            if (result != -1)
+            {
+                return Ok(result);
+            }
+
+            return NotFound();
+        }
     }
 }
