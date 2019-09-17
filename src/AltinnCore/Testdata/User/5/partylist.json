@@ -5,13 +5,11 @@
     "person": null,
     "organization": null,
     "partyID": "20001",
-    "organizationNumber": null,
-    "unitType": "Person",
     "ssn": "01047512345",
     "name": "Roar Underenhet",
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
-    "childActors": null
+    "childParties": null
   },
   {
 	"partyTypeName": "Organization",
@@ -19,7 +17,6 @@
 	"person": null,
 	"organization": null,
 	"partyID": "20002",
-	"organizationNumber": null,
 	"unitType": "AS",
 	"ssn": null,
 	"name": "Underenhet AS",
@@ -47,12 +44,11 @@
 	"person": null,
 	"organization": null,
 	"partyID": "20003",
-	"organizationNumber": null,
 	"unitType": "KBO",
 	"ssn": null,
 	"name": "Konkursbo AS",
 	"isDeleted": false,
 	"onlyHierarchyElementWithNoAccess": false,
-	"childActors": null
+	"childParties": null
 	}
 ]
