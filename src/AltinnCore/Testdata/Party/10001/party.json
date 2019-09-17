@@ -1,10 +1,13 @@
 ﻿{
-  "PartyId": "10001",
-  "PartyTypeName": "Organization",
-  "Name": "Kari Consulting",
-  "Organization": {
-    "OrganizationId": "1",
-    "OrganizationNumber": "900000001",
-    "OrganizationName": "Kari Consulting"
-  }
+	"partyId": "10001",
+	"partyTypeName": 2,
+	"orgNumber": "900000001",
+	"ssn": null,
+	"unitType": "BEDR",
+	"name": "Kari Consulting",
+	"isDeleted": false,
+	"onlyHierarchyElementWithNoAccess": false,
+	"person": null,
+	"organization": null,
+	"childParties": null
 }
