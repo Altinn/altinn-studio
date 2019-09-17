@@ -136,7 +136,7 @@ namespace Common.Helpers
         /// </summary>
         /// <param name="partyList">The party list</param>
         /// <param name="partyId">The party id</param>
-        /// <returns>True or false</returns>
+        /// <returns>party from the party list</returns>
         public static Party GetPartyByPartyId(List<Party> partyList, int partyId)
         {
             if (partyList == null)
@@ -144,10 +144,21 @@ namespace Common.Helpers
                 return null;
             }
 
-            return partyList.Find(party =>
+            Party validParty = null;
+
+            foreach (Party party in partyList)
             {
-                return party.PartyId == partyId;
-            });
+                if (party.PartyId == partyId)
+                {
+                    validParty = party;
+                }
+                else if (party.ChildParties != null && party.ChildParties.Count > 0)
+                {
+                    validParty = party.ChildParties.Find(cp => cp.PartyId == partyId);
+                }
+            }
+
+            return validParty;
         }
     }
 }

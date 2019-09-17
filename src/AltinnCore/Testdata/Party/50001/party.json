@@ -2,12 +2,16 @@
 	"partyId": 50001,
 	"partyTypeName": 1,
 	"orgNumber": null,
-	"ssn": "01017512345",
+	"ssn": "01017512346",
+	"person": {
+		"ssn": "01017512346",
+		"firstName": "Ola",
+		"LastName": "Privatperson"
+	},	
 	"unitType": null,
 	"name": "Ola Privatperson",
 	"isDeleted": false,
 	"onlyHierarchyElementWithNoAccess": false,
-	"person": null,
 	"organization": null,
 	"childParties": null
 }
