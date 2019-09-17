@@ -87,7 +87,7 @@ namespace AltinnCore.Common.Services.Implementation
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             serviceOrgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org
+                            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
                             : _settings.RepositoryLocation + serviceMetadata.Org.AsFileName();
 
             string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName;
@@ -434,7 +434,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The resource file content</returns>
         public string GetResource(string org, string service, string id)
         {
-            string filename = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
+            string filename = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
             string filedata = null;
 
             if (File.Exists(filename))
@@ -862,7 +862,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if the delete was a success</returns>
         public bool DeleteLanguage(string org, string service, string id)
         {
-            string filename = string.Format(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id}.json";
+            string filename = string.Format(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id.AsFileName()}.json";
             bool deleted = false;
 
             if (File.Exists(filename))
