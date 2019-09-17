@@ -182,6 +182,7 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             Instance instanceTemplate = ExtractInstanceTemplate(parsedRequest);
+
             if (!instanceOwnerId.HasValue && instanceTemplate == null)
             {
                 return BadRequest("Cannot create an instance without an instanceOwnerId. Either provide instanceOwnerId as a query parameter or an instanceTemplate object in the body.");
@@ -201,6 +202,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return BadRequest($"Error when comparing content to application metadata: {multipartError}");
             }
 
+            // extract or create instance template
             if (instanceTemplate != null)
             {
                 InstanceOwnerLookup lookup = instanceTemplate.InstanceOwnerLookup;
@@ -229,7 +231,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
-                return Forbid($"Party {party.PartyId} is not allowed to instantiate this application {org}/{app}");
+                return Forbid($"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
             // set initial task
@@ -316,16 +318,13 @@ namespace AltinnCore.Runtime.RestControllers
             Instance instanceTemplate = null;
 
             RequestPart instancePart = reader.Parts.Find(part => part.Name == "instance");
-            
-            if (instancePart == null)
+
+            // assume that first part with no name is an instanceTemplate
+            if (instancePart == null && reader.Parts.Count == 1 && reader.Parts[0].ContentType.Contains("application/json") && reader.Parts[0].Name == null)
             {
-                // assume that first part with no name is an instanceTemplate
-                if (reader.Parts.Count == 1 && reader.Parts[0].ContentType.Contains("application/json") && reader.Parts[0].Name == null)
-                {
-                    instancePart = reader.Parts[0];
-                }
+                instancePart = reader.Parts[0];
             }
-            
+                        
             if (instancePart != null)
             {
                 reader.Parts.Remove(instancePart);
