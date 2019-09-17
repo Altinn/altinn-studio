@@ -107,11 +107,8 @@ namespace AltinnCore.Runtime.RequestHandling
             }
             else
             {
-                if (request.ContentType == null)
-                {
-                    Errors.Add("Part number 1 doesn't have a content type");
-                }
-                else
+                // create part of content
+                if (request.ContentType != null)
                 {
                     Parts.Add(new RequestPart()
                     {
