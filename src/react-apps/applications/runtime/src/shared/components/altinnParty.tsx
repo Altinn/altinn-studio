@@ -109,6 +109,7 @@ const styles = createStyles({
 export interface IAltinnPartyProps extends WithStyles<typeof styles> {
   party: IParty;
   onSelectParty: (party: IParty) => void;
+  showSubUnits: boolean;
 }
 
 function AltinnParty(props: IAltinnPartyProps) {
@@ -135,6 +136,10 @@ function AltinnParty(props: IAltinnPartyProps) {
 
   function renderSubunits() {
     if (!party.childParties || party.childParties.length === 0) {
+      return null;
+    }
+
+    if (!props.showSubUnits) {
       return null;
     }
 
@@ -215,15 +220,15 @@ function AltinnParty(props: IAltinnPartyProps) {
 
   return (
     <Paper
-      className={party.onlyHiearchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}
-      onClick={!party.onlyHiearchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
-      tabIndex={!party.onlyHiearchyElementWithNoAccess ? 0 : undefined}
-      onKeyPress={!party.onlyHiearchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
+      className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}
+      onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
+      tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
+      onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
     >
       <Grid
         container={true}
         direction={'row'}
-        className={party.onlyHiearchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
+        className={party.onlyHierarchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
       >
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')} />
         <Typography className={classes.partyName}>

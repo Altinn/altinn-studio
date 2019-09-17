@@ -95,8 +95,8 @@ function PartySelection(props: IPartySelectionProps) {
 
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
-  const [showSubUnits, setShowSubUnits] = React.useState(false);
-  const [showDeleted, setShowDeleted] = React.useState(true);
+  const [showSubUnits, setShowSubUnits] = React.useState(true);
+  const [showDeleted, setShowDeleted] = React.useState(false);
 
   React.useEffect(() => {
     PartyActions.getParties();
@@ -150,6 +150,7 @@ function PartySelection(props: IPartySelectionProps) {
                     key={index}
                     party={party}
                     onSelectParty={onSelectParty}
+                    showSubUnits={showSubUnits}
                   />
                 );
               })()
