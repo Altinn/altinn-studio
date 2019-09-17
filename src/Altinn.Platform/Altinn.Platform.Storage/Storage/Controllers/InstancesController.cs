@@ -13,6 +13,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
+    using AltinnCore.ServiceLibrary.Enums;
     using global::Storage.Interface.Models;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Http;
@@ -467,7 +468,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                createdInstance.Process = new ProcessState { CurrentTask = "FormFilling_1", IsComplete = false };
+                createdInstance.Process = new ProcessState { CurrentTask = StepType.FormFilling.ToString(), IsComplete = false };
             }
 
             return createdInstance;

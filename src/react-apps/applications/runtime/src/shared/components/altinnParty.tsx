@@ -1,27 +1,43 @@
 import { createStyles, Grid, Paper, Typography, withStyles, WithStyles } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
+import AltinnCollapsableList from '../../../../shared/src/components/AltinnCollapsableList';
 import altinnTheme from '../../../../shared/src/theme/altinnAppTheme';
 import { IRuntimeState } from '../../types';
 import { IParty } from '../resources/party';
 
 const styles = createStyles({
   partyPaper: {
-    'marginBottom': 12,
-    'borderRadius': 0,
-    'backgroundColor': altinnTheme.altinnPalette.primary.blueLight,
-    'boxShadow': altinnTheme.sharedStyles.boxShadow,
-    'width': '100%',
+    marginBottom: 12,
+    borderRadius: 0,
+    backgroundColor: altinnTheme.altinnPalette.primary.blueLighter,
+    boxShadow: altinnTheme.sharedStyles.boxShadow,
+    width: '100%',
+  },
+  partyWrapper: {
+    'paddingLeft': 24,
+    'paddingRight': 24,
     '&:hover': {
       cursor: 'pointer',
     },
   },
-  partyWrapper: {
-
+  partyWrapperDisabled: {
+    'paddingLeft': 24,
+    'paddingRight': 24,
+    '&:hover': {
+      cursor: 'not-allowed',
+    },
+  },
+  partyPaperDisabled: {
+    marginBottom: 12,
+    borderRadius: 0,
+    backgroundColor: altinnTheme.altinnPalette.primary.blueLighter,
+    boxShadow: altinnTheme.sharedStyles.boxShadow,
+    color: altinnTheme.altinnPalette.primary.grey,
+    width: '100%',
   },
   partyIcon: {
     padding: 12,
-    paddingLeft: 28,
     fontSize: '42px',
   },
   partyName: {
@@ -35,33 +51,186 @@ const styles = createStyles({
     fontSize: '1.5rem',
     fontWeight: 300,
   },
+  subUnitWrapper: {
+    color: altinnTheme.altinnPalette.primary.black,
+  },
+  subUnitListHeaderWrapper: {
+    '&:hover': {
+      cursor: 'pointer',
+    },
+    'paddingTop': 12,
+    'paddingBottom': 12,
+    'borderTop': `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
+  },
+  subUnit: {
+    'width': '100%',
+    'paddingLeft': 24,
+    'paddingRight': 24,
+    '&:hover': {
+      background: altinnTheme.altinnPalette.primary.blueLight,
+      cursor: 'pointer',
+    },
+  },
+  subUnitListHeader: {
+    'paddingLeft': 24,
+    'paddingRight': 24,
+    '&:hover': {
+      background: altinnTheme.altinnPalette.primary.blueLight,
+      cursor: 'pointer',
+    },
+  },
+  subUnitListHeaderText: {
+    paddingTop: 12,
+    color: altinnTheme.altinnPalette.primary.black,
+  },
+  subUnitListHeaderIcon: {
+    padding: 12,
+    fontSize: '1.3rem',
+    color: altinnTheme.altinnPalette.primary.blue,
+  },
+  subUnitTextWrapper: {
+    borderTop: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
+    padding: 21,
+    paddingLeft: 48,
+  },
+  subUnitText: {
+    fontSize: '1.6rem',
+  },
+  subUnitTextBold: {
+    fontSize: '1.6rem',
+    fontWeight: 700,
+  },
+  subUnitIcon: {
+    paddingLeft: 28,
+    fontSize: '42px',
+  },
 });
 
 export interface IAltinnPartyProps extends WithStyles<typeof styles> {
   party: IParty;
   onSelectParty: (party: IParty) => void;
+  showSubUnits: boolean;
 }
 
 function AltinnParty(props: IAltinnPartyProps) {
+  const [subUnitsExpanded, setSubUnitsExpanded] = React.useState<boolean>(false);
   const { classes, party, onSelectParty } = props;
   const isOrg: boolean = party.orgNumber != null;
   const language = useSelector((state: IRuntimeState) => state.language.language);
 
-  function onClickParty(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
-    event.preventDefault();
-    onSelectParty(party);
+  function onClickParty(selectedParty: IParty, event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+    event.stopPropagation();
+    onSelectParty(selectedParty);
   }
 
-  function onKeyPress(event: React.KeyboardEvent) {
+  function onKeyPress(selectedParty: IParty, event: React.KeyboardEvent) {
+    event.stopPropagation();
     if (event.key === 'Enter' || event.key === ' ') {
-      onSelectParty(party);
+      onSelectParty(selectedParty);
     }
   }
 
+  function expandSubUnits() {
+    setSubUnitsExpanded(!subUnitsExpanded);
+  }
+
+  function renderSubunits() {
+    if (!party.childParties || party.childParties.length === 0) {
+      return null;
+    }
+
+    if (!props.showSubUnits) {
+      return null;
+    }
+
+    return (
+      <AltinnCollapsableList
+        transition={subUnitsExpanded}
+        onClickExpand={expandSubUnits}
+        listHeader={
+          <Grid
+            container={true}
+            direction={'row'}
+            className={classes.subUnitListHeader}
+          >
+            <Grid
+              container={true}
+              direction={'row'}
+              className={classes.subUnitListHeaderWrapper}
+            >
+              <div
+                className={classes.subUnitListHeaderIcon}
+              >
+                <i
+                  className={'ai ai-expand-circle'}
+                  style={{
+                    WebkitTransition: '-webkit-transform 0.5s',
+                    transition: 'transform 0.5s',
+                    transform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                    WebkitTransform: subUnitsExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                  }}
+                />
+              </div>
+              <Typography className={classes.subUnitListHeaderText}>
+                {party.childParties.length}
+                &nbsp;{language.party_selection.unit_type_subunit_plural ?
+                  language.party_selection.unit_type_subunit_plural :
+                  'language.party_selection.unit_type_subunit_plural'
+                }
+              </Typography>
+            </Grid>
+          </Grid>
+        }
+      >
+        {party.childParties.map((childParty: IParty, index: number) => (
+          <Grid
+            key={index}
+            container={true}
+            direction={'column'}
+            className={classes.subUnitWrapper}
+          >
+            <Grid
+              key={index}
+              className={classes.subUnit}
+              container={true}
+              direction={'column'}
+              onClick={onClickParty.bind(null, childParty)}
+              onKeyPress={onKeyPress.bind(null, childParty)}
+              tabIndex={subUnitsExpanded ? 0 : undefined}
+            >
+              <Grid container={true} direction={'row'} className={classes.subUnitTextWrapper}>
+                <Typography className={`${classes.subUnitTextBold}`}>
+                  {childParty.name}
+                </Typography>
+                <Typography className={classes.subUnitText}>
+                  {/* tslint:disable-next-line:max-line-length*/}
+                  &nbsp;{!language.party_selection ?
+                    'party_selection.unit_org_number' :
+                    language.party_selection.unit_org_number
+                  }
+                  &nbsp;{childParty.orgNumber}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
+        ))}
+      </AltinnCollapsableList>
+    );
+  }
+
   return (
-    <Paper className={classes.partyPaper} onClick={onClickParty} tabIndex={0} onKeyPress={onKeyPress} >
-      <Grid container={true}>
-        <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')}/>
+    <Paper
+      className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}
+      onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
+      tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
+      onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
+    >
+      <Grid
+        container={true}
+        direction={'row'}
+        className={party.onlyHierarchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
+      >
+        <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')} />
         <Typography className={classes.partyName}>
           {party.name + (party.isDeleted ? ` (
             ${!language.party_selection ?
@@ -72,17 +241,18 @@ function AltinnParty(props: IAltinnPartyProps) {
         <Typography className={classes.partyInfo}>
           {
             isOrg ?
-            `${!language.party_selection ?
-              'party_selection.unit_org_number' :
-              language.party_selection.unit_org_number
-            } ` + party.orgNumber :
-            `${!language.party_selection ?
-              'party_selection.unit_personal_number' :
-              language.party_selection.unit_personal_number
-            } ` + party.ssn
+              `${!language.party_selection ?
+                'party_selection.unit_org_number' :
+                language.party_selection.unit_org_number
+              } ` + party.orgNumber :
+              `${!language.party_selection ?
+                'party_selection.unit_personal_number' :
+                language.party_selection.unit_personal_number
+              } ` + party.ssn
           }
         </Typography>
       </Grid>
+      {renderSubunits()}
     </Paper>
   );
 }

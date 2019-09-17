@@ -2,9 +2,15 @@ replicaCount: 1
 
 image:
   repository: altinntjenestercontainerregistry.azurecr.io/altinn-runtime
+  tag: latest
   containerPort: 5005
   imagePullSecret: acrsecret
   pullPolicy: Always
+
+host: staging.altinn.studio
+
+service:
+  externalPort: 3000
 
 environmentVariables:
   development:
@@ -155,8 +161,11 @@ volumes:
     secret:
       secretName: altinn-appsettings-secret
 
-service:
-  ports:
-    - port: 5005
-      targetPort: 5005
-      protocol: TCP
+ingress:
+  - metadata:
+      name: altinn-runtime-base-path
+      annotations:
+        traefik.ingress.kubernetes.io/request-modifier: "ReplacePathRegex: ^/.*/.*/staticfiles(.*)$ $1"
+        traefik.frontend.priority: "100"
+    paths:
+      - path: /
