@@ -42,7 +42,7 @@ export interface IParty {
   unitType: string;
   name: string;
   isDeleted: boolean;
-  onlyHiearhyElementWithNoAccess: boolean;
+  onlyHiearchyElementWithNoAccess: boolean;
   person?: IPerson;
   organization?: IOrganization;
 }

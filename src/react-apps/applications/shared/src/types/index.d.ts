@@ -128,7 +128,7 @@ export interface IParty {
   unitType?: any;
   name?: any;
   isDeleted: boolean;
-  onlyHiearhyElementWithNoAccess: boolean;
+  onlyHiearchyElementWithNoAccess: boolean;
   person: IPerson;
   organization?: IOrganization;
 }
