@@ -5,21 +5,18 @@
     "person": null,
     "organization": null,
     "partyID": "20001",
-    "organizationNumber": null,
-    "unitType": "Person",
     "ssn": "01047512345",
     "name": "Roar Underenhet",
     "isDeleted": false,
     "onlyHierarchyElementWithNoAccess": false,
-    "childActors": null
+    "childParties": null
   },
   {
 	"partyTypeName": "Organization",
-	"orgNumber": "13371337",
+	"orgNumber": "1001",
 	"person": null,
 	"organization": null,
 	"partyID": "20002",
-	"organizationNumber": null,
 	"unitType": "AS",
 	"ssn": null,
 	"name": "Underenhet AS",
@@ -27,38 +24,12 @@
 	"onlyHierarchyElementWithNoAccess": false,
 	"childParties": [
 		{
-			"partyId": 50013748,
+			"partyId": 10001,
 			"partyTypeName": 2,
-			"orgNumber": "910034006",
+			"orgNumber": "900000001",
 			"ssn": null,
 			"unitType": "BEDR",
-			"name": "TROFORS OG RENA",
-			"isDeleted": false,
-			"onlyHierarchyElementWithNoAccess": false,
-			"person": null,
-			"organization": null,
-			"childParties": null
-		},
-		{
-			"partyId": 50014619,
-			"partyTypeName": 2,
-			"orgNumber": "910034014",
-			"ssn": null,
-			"unitType": "BEDR",
-			"name": "FJELLHAMAR OG FLUBERG",
-			"isDeleted": false,
-			"onlyHierarchyElementWithNoAccess": false,
-			"person": null,
-			"organization": null,
-			"childParties": null
-		},
-		{
-			"partyId": 50015355,
-			"partyTypeName": 2,
-			"orgNumber": "910033980",
-			"ssn": null,
-			"unitType": "AAFY",
-			"name": "HURDAL OG DAVIK",
+			"name": "Kari Consulting",
 			"isDeleted": false,
 			"onlyHierarchyElementWithNoAccess": false,
 			"person": null,
@@ -73,12 +44,11 @@
 	"person": null,
 	"organization": null,
 	"partyID": "20003",
-	"organizationNumber": null,
 	"unitType": "KBO",
 	"ssn": null,
 	"name": "Konkursbo AS",
 	"isDeleted": false,
 	"onlyHierarchyElementWithNoAccess": false,
-	"childActors": null
+	"childParties": null
 	}
 ]

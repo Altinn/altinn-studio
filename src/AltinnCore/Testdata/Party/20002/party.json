@@ -1,11 +1,12 @@
 {
-  "partyId": "20002",
-  "PartyTypeName": "Organization",
-  "Name": "Underenhet AS",
-  "UnitType": "AAFY",
-  "Organization": {
-    "OrganizationId": "1337",
-    "OrganizationNumber": "13371337",
-    "OrganizationName": "Underenhet AS"
-  }
+	"partyId": "20002",
+	"partyTypeName": 2,
+	"orgNumber": 13371337,
+	"person": null,
+	"organization": null,    
+	"unitType": "AAFY",
+	"name": "Underenhet AS",
+	"isDeleted": false,
+	"onlyHierarchyElementWithNoAccess": false,
+	"childParties": null
 }

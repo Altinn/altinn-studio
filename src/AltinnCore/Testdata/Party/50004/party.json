@@ -1,16 +1,16 @@
 ﻿{
-  "PartyId": "50004",
-  "PartyTypeName": "Person",
-  "Name": "Pål Revisor",
-  "Person": {
-    "PersonId": "4",
-    "SSN": "04017512345",
-    "FirstName": "Pål",
-    "LastName": "Revisor"
-  },
-  "PostAdress": {
-    "Street": "Pålgata 1",
-    "PostalCode": "1337",
-    "City": "Sandvika"
-  }
+	"partyID": "50004",
+	"partyTypeName": 1,
+	"orgNumber": null,
+	"person": {
+		"ssn": "04017512345",
+		"firstName": "Pål",
+		"LastName": "Revisor"
+	},
+	"organization": null,
+	"ssn": "04017512345",
+	"name": "Pål Revisor",
+	"isDeleted": false,
+	"onlyHierarchyElementWithNoAccess": false,
+	"childParties": null
 }

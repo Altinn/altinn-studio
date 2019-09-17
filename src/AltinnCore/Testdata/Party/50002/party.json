@@ -1,16 +1,16 @@
 ﻿{
-  "PartyId": "50002",
-  "PartyTypeName": "Person",
-  "Name" :  "Kari Selvstendig",
-  "Person": {
-    "PersonId": "2",
-    "SSN": "02017512345",
-    "FirstName": "Kari",
-    "LastName": "Selvstendig"
-  },
-  "PostAdress": {
-    "Street": "Karigata 1",
-    "PostalCode": "1337",
-    "City":  "Sandvika"
-  }
+	"partyID": "50002",
+	"partyTypeName": 1,
+	"orgNumber": null,
+	"person": {
+		"ssn": "02017512345",
+		"firstName": "Kari",
+		"LastName": "Selvstendig"
+	},
+	"organization": null,    
+	"ssn": "02017512345",
+	"name": "Kari Selvstendig",
+	"isDeleted": false,
+	"onlyHierarchyElementWithNoAccess": false,
+	"childParties": null
 }
