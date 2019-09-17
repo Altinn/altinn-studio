@@ -55,7 +55,7 @@ namespace Common.Helpers
                 else if (!IsPartyAllowedToInstantiate(party, partyTypesAllowed) && isChildPartyAllowed)
                 {
                     party.ChildParties = new List<Party>();
-                    party.OnlyHiearchyElementWithNoAccess = true;
+                    party.OnlyHierarchyElementWithNoAccess = true;
                     party.ChildParties.AddRange(allowedChildParties);
                     allowed.Add(party);
                 }
