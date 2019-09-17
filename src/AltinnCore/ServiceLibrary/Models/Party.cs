@@ -46,7 +46,7 @@ namespace AltinnCore.ServiceLibrary.Models
         /// <summary>
         /// Gets or sets a value indicating whether if the reportee in the list is only there for showing the hierarchy (a parent unit with no access)
         /// </summary>
-        public bool OnlyHiearhyElementWithNoAccess { get; set; }
+        public bool OnlyHierarchyElementWithNoAccess { get; set; }
 
         /// <summary>
         /// Gets or sets the person details for this party (will only be set if the party type is Person)

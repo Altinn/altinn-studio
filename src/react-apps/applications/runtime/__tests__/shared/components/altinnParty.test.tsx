@@ -23,7 +23,7 @@ describe('altinnParty', () => {
       unitType: 'test',
       name: 'Testing Testing',
       isDeleted: false,
-      onlyHiearhyElementWithNoAccess: false,
+      onlyHierarchyElementWithNoAccess: false,
     };
     selectedParty = null;
     onSelectPartyMock = (party: IParty) => selectedParty = party;
@@ -58,7 +58,7 @@ describe('altinnParty', () => {
         unitType: 'test',
         name: 'Testing Testing',
         isDeleted: false,
-        onlyHiearhyElementWithNoAccess: false,
+        onlyHierarchyElementWithNoAccess: false,
       };
       mountedComponent = mount(
         <Provider store={mockStore}>
@@ -82,7 +82,7 @@ describe('altinnParty', () => {
         unitType: 'test',
         name: 'Testing Testing',
         isDeleted: false,
-        onlyHiearhyElementWithNoAccess: false,
+        onlyHierarchyElementWithNoAccess: false,
       };
       mountedComponent = mount(
         <Provider store={mockStore}>

@@ -10,7 +10,7 @@
 		"ssn": "02017512345",
 		"name": "Kari Selvstendig",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -24,7 +24,7 @@
 		"ssn": "02017512345",
 		"name": "Kari Consulting",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	}
 ]

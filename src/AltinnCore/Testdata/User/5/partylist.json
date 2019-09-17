@@ -10,7 +10,7 @@
     "ssn": "01047512345",
     "name": "Roar Underenhet",
     "isDeleted": false,
-    "onlyHiearhyElementWithNoAccess": false,
+    "onlyHierarchyElementWithNoAccess": false,
     "childActors": null
   },
   {
@@ -24,7 +24,7 @@
 	"ssn": null,
 	"name": "Underenhet AS",
 	"isDeleted": false,
-	"onlyHiearhyElementWithNoAccess": false,
+	"onlyHierarchyElementWithNoAccess": false,
 	"childParties": [
 		{
 			"partyId": 50013748,
@@ -34,7 +34,7 @@
 			"unitType": "BEDR",
 			"name": "TROFORS OG RENA",
 			"isDeleted": false,
-			"onlyHiearhyElementWithNoAccess": false,
+			"onlyHierarchyElementWithNoAccess": false,
 			"person": null,
 			"organization": null,
 			"childParties": null
@@ -47,7 +47,7 @@
 			"unitType": "BEDR",
 			"name": "FJELLHAMAR OG FLUBERG",
 			"isDeleted": false,
-			"onlyHiearhyElementWithNoAccess": false,
+			"onlyHierarchyElementWithNoAccess": false,
 			"person": null,
 			"organization": null,
 			"childParties": null
@@ -60,7 +60,7 @@
 			"unitType": "AAFY",
 			"name": "HURDAL OG DAVIK",
 			"isDeleted": false,
-			"onlyHiearhyElementWithNoAccess": false,
+			"onlyHierarchyElementWithNoAccess": false,
 			"person": null,
 			"organization": null,
 			"childParties": null
@@ -78,7 +78,7 @@
 	"ssn": null,
 	"name": "Konkursbo AS",
 	"isDeleted": false,
-	"onlyHiearhyElementWithNoAccess": false,
+	"onlyHierarchyElementWithNoAccess": false,
 	"childActors": null
 	}
 ]

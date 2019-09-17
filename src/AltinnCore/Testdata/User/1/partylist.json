@@ -10,7 +10,7 @@
 		"ssn": "01017512345",
 		"name": "Ola PrivatPerson",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	}
 ]

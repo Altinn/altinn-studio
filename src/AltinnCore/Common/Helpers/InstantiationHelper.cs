@@ -13,7 +13,7 @@ namespace Common.Helpers
     {
         private const string BANKRUPTCY_CODE = "KBO";
         private const string SUB_UNIT_CODE = "BEDR";
-        private const string SUB_UNIT_CODE_AAFY = "AAFY";        
+        private const string SUB_UNIT_CODE_AAFY = "AAFY";
 
         /// <summary>
         /// Filters a list of parties based on an applications allowed party types.
@@ -55,7 +55,7 @@ namespace Common.Helpers
                 else if (!IsPartyAllowedToInstantiate(party, partyTypesAllowed) && isChildPartyAllowed)
                 {
                     party.ChildParties = new List<Party>();
-                    party.OnlyHiearhyElementWithNoAccess = true;
+                    party.OnlyHierarchyElementWithNoAccess = true;
                     party.ChildParties.AddRange(allowedChildParties);
                     allowed.Add(party);
                 }
@@ -117,7 +117,7 @@ namespace Common.Helpers
                     {
                         isAllowed = true;
                     }
-                    
+
                     break;
                 case PartyType.SelfIdentified:
                     if (partyTypesAllowed.Person == true)
