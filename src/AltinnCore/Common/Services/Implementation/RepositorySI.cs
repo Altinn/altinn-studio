@@ -1168,6 +1168,9 @@ namespace AltinnCore.Common.Services.Implementation
 
                 string directoryPath = null;
 
+                org = org.AsFileName();
+                service = service.AsFileName();
+
                 directoryPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
                                 ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}/{developerUserName}/{org}"
                                 : $"{_settings.RepositoryLocation}/{developerUserName}/{org}";
@@ -1308,6 +1311,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">the organisation</param>
         public void CreateAndCloneOrgCodeLists(string org)
         {
+            org = org.AsFileName();
+
             try
             {
                 string localServiceRepoFolder =
@@ -1415,6 +1420,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if the code list was successfully saved</returns>
         public bool SaveCodeList(string org, string service, string name, string codelist)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            name = name.AsFileName();
+
             try
             {
                 string filePath =
@@ -1449,6 +1458,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if the Code List was deleted</returns>
         public bool DeleteCodeList(string org, string service, string name)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            name = name.AsFileName();
+
             try
             {
                 string filePath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
