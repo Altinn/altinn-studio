@@ -80,7 +80,7 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         /// <summary>
-        ///  Gets a data element from storage and performs business logic on it (e.g. to calculate certain fields) before it is returned.
+        ///  Gets a data element (form data) from storage and performs business logic on it (e.g. to calculate certain fields) before it is returned.
         ///  If more there are more data elements of the same elementType only the first one is returned. In that case use the more spesific
         ///  GET method to fetch a particular data element. 
         /// </summary>
@@ -107,16 +107,17 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound("Did not find instance");
             }
 
+            // Assume that there is only one data element of a given type !!
             DataElement dataElement = instance.Data.Find(m => m.ElementType.Equals(elementType));
 
             if (dataElement == null)
             {
                 return NotFound("Did not find data element");
-            }
+            }            
 
             Guid dataId = Guid.Parse(dataElement.Id);
 
-            // Getting the Form Data from datastore
+            // Get Form Data from data service. Assumes that the data element is form data.
             object serviceModel = dataService.GetFormData(
                 instanceGuid,
                 serviceImplementation.GetServiceModelType(),
@@ -124,6 +125,11 @@ namespace AltinnCore.Runtime.RestControllers
                 app,
                 instanceOwnerId,
                 dataId);
+
+            if (serviceModel == null)
+            {
+                return BadRequest($"Did not find form data for data element {dataId}");
+            }
 
             // Assing the populated service model to the service implementation
             serviceImplementation.SetServiceModel(serviceModel);
