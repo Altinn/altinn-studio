@@ -2,9 +2,10 @@
 
 exports[`>>> AltinnCheckBox +++ Should match snapshot 1`] = `
 <span
-  className="MuiButtonBase-root-18 MuiIconButton-root-12 MuiPrivateSwitchBase-root-8 MuiCheckbox-root-2 MuiCheckbox-colorSecondary-7 MuiPrivateSwitchBase-checked-9 MuiCheckbox-checked-3 Component-altinnCheckBox-1"
+  aria-disabled={false}
+  className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-8 MuiCheckbox-root MuiCheckbox-colorSecondary Component-altinnCheckBox-1 PrivateSwitchBase-checked-9 Mui-checked MuiIconButton-colorSecondary"
   onBlur={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -17,11 +18,11 @@ exports[`>>> AltinnCheckBox +++ Should match snapshot 1`] = `
   tabIndex={null}
 >
   <span
-    className="MuiIconButton-label-17"
+    className="MuiIconButton-label"
   >
     <svg
       aria-hidden="true"
-      className="MuiSvgIcon-root-21"
+      className="MuiSvgIcon-root"
       focusable="false"
       role="presentation"
       viewBox="0 0 24 24"
@@ -32,7 +33,7 @@ exports[`>>> AltinnCheckBox +++ Should match snapshot 1`] = `
     </svg>
     <input
       checked={true}
-      className="MuiPrivateSwitchBase-input-11"
+      className="PrivateSwitchBase-input-11"
       data-indeterminate={false}
       disabled={false}
       onChange={[Function]}
@@ -40,8 +41,5 @@ exports[`>>> AltinnCheckBox +++ Should match snapshot 1`] = `
       type="checkbox"
     />
   </span>
-  <span
-    className="MuiTouchRipple-root-30"
-  />
 </span>
 `;
