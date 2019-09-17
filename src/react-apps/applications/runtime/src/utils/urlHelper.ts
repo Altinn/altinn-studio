@@ -10,7 +10,9 @@ export const textResourcesUrl = `${origin}/${org}/${service}/api/textresources`;
 export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
   ${origin}/${org}/${service}/api/v1/parties/${partyId}
 `;
-export const partiesUrl: string = `${window.location.origin}/${org}/${service}/api/v1/parties`;
+export const partiesUrl: string =
+  `${window.location.origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const instantiateUrl: string = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
 export const currentPartyUrl: string = `${window.location.origin}/${org}/${service}/api/authorization/parties/current`;
 export const instancesControllerUrl: string = `${window.location.origin}/${org}/${service}/instances`;
+export const partySelectionUrl: string = `${window.location.origin}/${org}/${service}/#/partyselection`;

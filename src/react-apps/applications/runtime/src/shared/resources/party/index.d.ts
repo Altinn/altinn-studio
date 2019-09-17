@@ -45,4 +45,5 @@ export interface IParty {
   onlyHierarchyElementWithNoAccess: boolean;
   person?: IPerson;
   organization?: IOrganization;
+  childParties: IParty[];
 }

@@ -16,6 +16,7 @@ describe('altinnParty', () => {
 
   beforeEach(() => {
     mockParty = {
+      childParties: [],
       partyId: 'partyId',
       partyTypeName: 1,
       orgNumber: null,
@@ -38,6 +39,7 @@ describe('altinnParty', () => {
         <AltinnParty
           party={mockParty}
           onSelectParty={onSelectPartyMock}
+          showSubUnits={true}
         />
       </Provider>,
     );
@@ -51,6 +53,7 @@ describe('altinnParty', () => {
   describe('should render with correct icon based on what kind of party it is', () => {
     it('should render with class \'fa fa-private\' if party is a person', () => {
       mockParty = {
+        childParties: [],
         partyId: 'partyId',
         partyTypeName: 1,
         orgNumber: null,
@@ -65,6 +68,7 @@ describe('altinnParty', () => {
           <AltinnParty
             party={mockParty}
             onSelectParty={onSelectPartyMock}
+            showSubUnits={true}
           />
         </Provider>,
       );
@@ -75,6 +79,7 @@ describe('altinnParty', () => {
 
     it('should render with class \'fa fa-corp\' if party is a organization', () => {
       mockParty = {
+        childParties: [],
         partyId: 'partyId',
         partyTypeName: 1,
         orgNumber: 1000000,
@@ -89,6 +94,7 @@ describe('altinnParty', () => {
           <AltinnParty
             party={mockParty}
             onSelectParty={onSelectPartyMock}
+            showSubUnits={true}
           />
         </Provider>,
       );

@@ -13,6 +13,7 @@ import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
+import { PartySelectionReason } from './PartySelection';
 
 const styles = () => createStyles({
   modal: {
@@ -55,15 +56,17 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   const validatatePartySelection = async () => {
-    try {
-      const { data } = await post(
-        `${window.location.origin}/${org}/${service}/api/v1/parties/` +
-        `validateInstantiation?partyId=${selectedParty.partyId}`,
-      );
-      setPartyValidation(data);
-    } catch (err) {
-      console.error(err);
-      throw new Error('Server did not respond with party validation');
+    if (selectedParty !== undefined) {
+      try {
+        const { data } = await post(
+          `${window.location.origin}/${org}/${service}/api/v1/parties/` +
+          `validateInstantiation?partyId=${selectedParty.partyId}`,
+        );
+        setPartyValidation(data);
+      } catch (err) {
+        console.error(err);
+        throw new Error('Server did not respond with party validation');
+      }
     }
   };
 
@@ -136,6 +139,19 @@ function InstantiateContainer(props: IServiceInfoProps) {
     }
   }, [selectedParty, partyValidation, subscriptionHookValid, instantiating]);
 
+  if (selectedParty === undefined) {
+    return (
+      <Redirect
+        to={{
+          pathname: '/partyselection',
+          state: {
+            errorType: PartySelectionReason.NotValid,
+          },
+        }}
+      />
+    );
+  }
+
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
       return (
@@ -149,16 +165,8 @@ function InstantiateContainer(props: IServiceInfoProps) {
         />
       );
     } else {
-      console.log('###### REDIRECTING TO /PARTYSELECTION');
       return (
-        <Redirect
-          to={{
-            pathname: '/partyselection',
-            state: {
-              validParties: partyValidation.validParties,
-            },
-          }}
-        />
+        <Redirect to={'/partyselection'}/>
       );
     }
   }
