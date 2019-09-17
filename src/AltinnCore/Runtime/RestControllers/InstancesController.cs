@@ -181,7 +181,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return BadRequest($"Error when reading content: {parsedRequest.Errors}");
             }
 
-            Instance instanceTemplate = ExtractInstanceTemplate(parsedRequest, instanceOwnerId);
+            Instance instanceTemplate = ExtractOrBuildInstanceTemplate(parsedRequest, instanceOwnerId);
             if (instanceTemplate == null)
             {
                 return BadRequest("Cannot create a valid instance template, you must provide an instanceOwnerId");
@@ -196,12 +196,23 @@ namespace AltinnCore.Runtime.RestControllers
                 return BadRequest($"Error when comparing content to application metadata: {multipartError}");
             }
 
-            if (string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId))
+            InstanceOwnerLookup lookup = instanceTemplate.InstanceOwnerLookup;
+
+            if (string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId) && (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null)))
             {
-                return BadRequest($"Error instanceOwnerId must have value");
+                return BadRequest($"Error: instanceOwnerId is empty and InstanceOwnerLookup is missing. You must populate instanceOwnerId or InstanceOwnerLookup");
             }
 
-            Party party = await registerService.GetParty(instanceOwnerId.Value);
+            Party party = null;
+
+            if (instanceTemplate.InstanceOwnerId != null)
+            {
+                party = await registerService.GetParty(int.Parse(instanceTemplate.InstanceOwnerId));
+            }
+            else
+            {
+                /* todo - lookup personNumber or organisationNumber - awaiting registry endpoint implementation */
+            }
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
@@ -279,7 +290,7 @@ namespace AltinnCore.Runtime.RestControllers
             return instanceWithData;
         }
 
-        private Instance ExtractInstanceTemplate(MultipartRequestReader reader, int? instanceOwnerId)
+        private Instance ExtractOrBuildInstanceTemplate(MultipartRequestReader reader, int? instanceOwnerId)
         {
             Instance instanceTemplate = null;
             RequestPart instancePart = null;
@@ -355,10 +366,10 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
         /// </summary>
-        /// <param name="org">the organisation id</param>
-        /// <param name="app">the app name</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="elementType">the data element type</param>
-        /// <param name="startService">indicates if the servcie should be started or just opened</param>
+        /// <param name="startService">indicates if the service should be started or just opened</param>
         /// <returns>the serviceImplementation object which represents the application business logic</returns>
         private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startService = false)
         {
