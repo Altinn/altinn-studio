@@ -181,10 +181,15 @@ namespace AltinnCore.Runtime.RestControllers
                 return BadRequest($"Error when reading content: {parsedRequest.Errors}");
             }
 
-            Instance instanceTemplate = ExtractOrBuildInstanceTemplate(parsedRequest, instanceOwnerId);
-            if (instanceTemplate == null)
+            Instance instanceTemplate = ExtractInstanceTemplate(parsedRequest);
+            if (!instanceOwnerId.HasValue && instanceTemplate == null)
             {
-                return BadRequest("Cannot create a valid instance template, you must provide an instanceOwnerId");
+                return BadRequest("Cannot create an instance without an instanceOwnerId. Either provide instanceOwnerId as a query parameter or an instanceTemplate object in the body.");
+            }
+
+            if (instanceOwnerId.HasValue && instanceTemplate != null)
+            {
+                return BadRequest("You cannot provide an instanceOwnerId as a query param as well as an instance template in the body. Choose one or the other.");
             }
 
             RequestPartValidator requestValidator = new RequestPartValidator(application);
@@ -196,11 +201,19 @@ namespace AltinnCore.Runtime.RestControllers
                 return BadRequest($"Error when comparing content to application metadata: {multipartError}");
             }
 
-            InstanceOwnerLookup lookup = instanceTemplate.InstanceOwnerLookup;
-
-            if (string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId) && (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null)))
+            if (instanceTemplate != null)
             {
-                return BadRequest($"Error: instanceOwnerId is empty and InstanceOwnerLookup is missing. You must populate instanceOwnerId or InstanceOwnerLookup");
+                InstanceOwnerLookup lookup = instanceTemplate.InstanceOwnerLookup;
+
+                if (string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId) && (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null)))
+                {
+                    return BadRequest($"Error: instanceOwnerId is empty and InstanceOwnerLookup is missing. You must populate instanceOwnerId or InstanceOwnerLookup");
+                }
+            }
+            else
+            {
+                instanceTemplate = new Instance();
+                instanceTemplate.InstanceOwnerId = instanceOwnerId.Value.ToString();
             }
 
             Party party = null;
@@ -290,21 +303,29 @@ namespace AltinnCore.Runtime.RestControllers
             return instanceWithData;
         }
 
-        private Instance ExtractOrBuildInstanceTemplate(MultipartRequestReader reader, int? instanceOwnerId)
+        /// <summary>
+        /// Extracts the instance template from a multipart reader, which contains a number of parts. If the reader contains
+        /// only one part and it has no name and contentType application/json it is assumed to be an instance template.
+        ///
+        /// If found the method removes the part corresponding to the instance template form the parts list.
+        /// </summary>
+        /// <param name="reader">multipart reader object</param>
+        /// <returns>the instance template or null if none is found</returns>
+        private Instance ExtractInstanceTemplate(MultipartRequestReader reader)
         {
             Instance instanceTemplate = null;
-            RequestPart instancePart = null;
 
-            // assume that first part with no name is an instanceTemplate
-            if (reader.Parts.Count == 1 && reader.Parts[0].ContentType.Contains("application/json") && reader.Parts[0].Name == null)
+            RequestPart instancePart = reader.Parts.Find(part => part.Name == "instance");
+            
+            if (instancePart == null)
             {
-                instancePart = reader.Parts[0];
+                // assume that first part with no name is an instanceTemplate
+                if (reader.Parts.Count == 1 && reader.Parts[0].ContentType.Contains("application/json") && reader.Parts[0].Name == null)
+                {
+                    instancePart = reader.Parts[0];
+                }
             }
-            else
-            {
-                instancePart = reader.Parts.Find(part => part.Name == "instance");
-            }
-
+            
             if (instancePart != null)
             {
                 reader.Parts.Remove(instancePart);
@@ -313,13 +334,7 @@ namespace AltinnCore.Runtime.RestControllers
                 string content = streamReader.ReadToEnd();
 
                 instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);                
-            }
-
-            if (instanceOwnerId.HasValue)
-            {
-                instanceTemplate = instanceTemplate ?? new Instance();
-                instanceTemplate.InstanceOwnerId = instanceOwnerId.Value.ToString();
-            }
+            }                        
 
             return instanceTemplate;
         }

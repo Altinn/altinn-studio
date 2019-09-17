@@ -39,13 +39,50 @@ namespace AltinnCore.UnitTest.Runtime
         private readonly Guid dataGuid = Guid.Parse("16b62641-67b1-4cf0-b26f-61279fbf528d");
 
         /// <summary>
+        /// Create an instance with only instanceownerId in query param.
+        /// </summary>
+        [Fact]
+        public void PostInstanceWithInstanceOwnerIdInQueryParam()
+        {
+            Mock<HttpRequest> request = new Mock<HttpRequest>();
+            request.SetupGet(x => x.Headers["Accept"]).Returns("application/json");
+            request.SetupGet(x => x.Host).Returns(new HostString("tdd.apps.at21.altinn.cloud"));
+            request.SetupGet(x => x.Path).Returns(new PathString("/tdd/test/instances/"));
+            request.SetupGet(x => x.Cookies["AltinnPartyId"]).Returns(instanceOwnerId);
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Instance actualInstance = new Instance()
+            {
+                InstanceOwnerId = instanceOwnerId,
+                AppId = $"{org}/{app}",
+                Org = $"{org}",
+            };
+
+            InstancesController controller = NewInstanceController(context);
+
+            ActionResult<Instance> result = controller.Post(org, app, int.Parse(instanceOwnerId)).Result;
+
+            Assert.IsType<CreatedResult>(result.Result);
+
+            Instance instance = (Instance)((CreatedResult)result.Result).Value;
+
+            Assert.NotNull(instance);
+            Assert.Equal(instanceOwnerId, instance.InstanceOwnerId);
+            Assert.StartsWith($"https://tdd.apps.at21.altinn.cloud/tdd/test/instances/{instanceOwnerId}", instance.SelfLinks.Apps);
+        }
+
+        /// <summary>
         /// Simulates an application owner's instanciation of an app with prefill.
         /// </summary>
         [Fact]
-        public void PostInstanceWithInstanceJsonOnly()
+        public void PostInstanceWithInstanceTemplateAsJson()
         {          
             Instance instanceTemplate = new Instance()
             {
+                InstanceOwnerId = instanceOwnerId,
                 DueDateTime = DateTime.Parse("2020-01-01"),
             };
 
@@ -73,7 +110,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             InstancesController controller = NewInstanceController(context);
             
-            ActionResult<Instance> result = controller.Post(org, app, int.Parse(instanceOwnerId)).Result;               
+            ActionResult<Instance> result = controller.Post(org, app, null).Result;               
 
             Assert.IsType<CreatedResult>(result.Result);
 
@@ -88,7 +125,7 @@ namespace AltinnCore.UnitTest.Runtime
         /// create a multipart request with instance, and xml prefil.
         /// </summary>
         [Fact]
-        public async void PostInstanceWithXmlPrefill()
+        public async void PostInstanceWithInstanceTemplateAndXmlPrefill()
         {
             /* SETUP */
 
@@ -129,7 +166,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             /* TEST */
 
-            ActionResult<Instance> actionResult = controller.Post(org, app, int.Parse(instanceOwnerId)).Result;
+            ActionResult<Instance> actionResult = controller.Post(org, app, null).Result;
 
             Assert.IsType<CreatedResult>(actionResult.Result);
             Instance createdInstance = (Instance)((CreatedResult)actionResult.Result).Value;
