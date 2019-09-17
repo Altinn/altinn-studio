@@ -3,7 +3,7 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { AccessControlContainerClass, IAccessControlContainerProps, IAccessControlContainerState, PartyTypes} from '../src/features/accessControl/containers/AccessControlContainer';
-// kldjflsdf
+
 describe('AccessControl', () => {
   let nextAccessContainerProps: IAccessControlContainerProps;
   let currentAccessContainerProps: IAccessControlContainerProps;

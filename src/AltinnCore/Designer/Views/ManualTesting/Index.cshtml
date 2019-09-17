@@ -64,7 +64,6 @@
     <script>
       var startServiceButton = document.getElementById('btnStartNewService');
       startServiceButton.addEventListener('click', function (event) {
-        //const [org, service] = event.target.value.split('/');
         const org = event.target.value.split('/')[0];
         const service = event.target.value.split('/')[1];
         var win = window.open(window.location.origin + '/' + org + '/' + service, '_blank');

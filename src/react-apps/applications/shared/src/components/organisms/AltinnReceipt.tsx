@@ -11,7 +11,6 @@ import { IAttachment } from '../../types/index.d';
 import AltinnAttachment from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachments from '../molecules/AltinnCollapsibleAttachments';
 
-// TODO: Fix when upgrading to Material-UI v4
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 
 export interface IReceiptComponentProps extends WithStyles<typeof styles> {
