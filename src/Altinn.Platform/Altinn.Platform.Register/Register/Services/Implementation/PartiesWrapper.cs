@@ -56,10 +56,9 @@ namespace Altinn.Platform.Register.Services.Implementation
             return party;
         }
 
+        /// <inheritdoc />
         public async Task<Party> LookupPartyBySSNOrOrgNo(string lookupValue)
         {
-            Party party = new Party();
-
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
             string lookupData = JsonConvert.SerializeObject(lookupValue);
 
@@ -70,7 +69,7 @@ namespace Altinn.Platform.Register.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string partyString = await response.Content.ReadAsStringAsync();
-                    party = JsonConvert.DeserializeObject<Party>(partyString);
+                    return JsonConvert.DeserializeObject<Party>(partyString);
                 }
                 else
                 {
@@ -78,13 +77,12 @@ namespace Altinn.Platform.Register.Services.Implementation
                 }
             }
 
-            return party;
+            return null;
         }
 
         /// <inheritdoc />
         public async Task<int> LookupPartyIdBySSNOrOrgNo(string lookupValue)
         {
-            int partyId = -1;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(int));
             string lookupData = JsonConvert.SerializeObject(lookupValue);
 
@@ -95,7 +93,7 @@ namespace Altinn.Platform.Register.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string partyIdString = await response.Content.ReadAsStringAsync();
-                    partyId = JsonConvert.DeserializeObject<int>(partyIdString);
+                    return JsonConvert.DeserializeObject<int>(partyIdString);
                 }
                 else
                 {
@@ -103,7 +101,7 @@ namespace Altinn.Platform.Register.Services.Implementation
                 }
             }
 
-            return partyId;
+            return -1;
         }
     }
 }

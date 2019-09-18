@@ -48,7 +48,6 @@ namespace Altinn.Platform.Register
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
             services.AddSingleton<IPersons, PersonsWrapper>();
             services.AddSingleton<IParties, PartiesWrapper>();
-
         }
 
         /// <summary>
