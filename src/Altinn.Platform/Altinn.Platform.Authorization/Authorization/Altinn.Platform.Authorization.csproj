@@ -12,7 +12,7 @@
 
  <ItemGroup>
     <PackageReference Include="AltinnCore.ServiceLibrary" Version="10.0.0" />
-    <PackageReference Include="JWTCookieAuthentication" Version="0.8.11-alpha" />
+    <PackageReference Include="JWTCookieAuthentication" Version="0.9.0-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
