@@ -60,7 +60,7 @@ namespace Altinn.Platform.Register.Controllers
         /// Gets the party id for a given social security number or organization number.
         /// </summary>
         /// <param name="lookupValue">SSN or OrgNumber.</param>
-        /// <returns>The party represeting the provided SNN/OrgNumber.</returns>
+        /// <returns>The party id for the party represeting the provided SNN/OrgNumber.</returns>
         [HttpGet("lookup")]
         public async Task<ActionResult> LookupPartyIdBySSNOrOrgNo([FromBody]string lookupValue)
         {
