@@ -97,7 +97,7 @@ namespace Altinn.Platform.Register.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError($"Getting party by lookup value failed with statuscode {response.StatusCode}");
+                    _logger.LogError($"Getting party id by lookup value failed with statuscode {response.StatusCode}");
                 }
             }
 
