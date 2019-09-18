@@ -13,6 +13,8 @@ using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
+using AltinnCore.Authentication.Constants;
+using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +27,7 @@ namespace Altinn.Platform.Authentication.Controllers
     /// <summary>
     /// Handles the authentication of requests to platform
     /// </summary>
-    [Route("authentication/api/v1/authentication")]
+    [Route("authentication/api/v1")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
@@ -48,7 +50,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <param name="goTo">The url to redirect to if everything validates ok</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
-        [HttpGet]
+        [HttpGet("authentication")]
         public async Task<ActionResult> Get(string goTo)
         {
             if (!IsValidRedirectUri(new Uri(goTo).Host))
@@ -123,6 +125,18 @@ namespace Altinn.Platform.Authentication.Controllers
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Checks validity of JWT cookie and refreshes it when valid.
+        /// </summary>
+        /// <returns>Ok response with the refreshed cookie appended.</returns>
+        [HttpGet("refresh")]
+        public ActionResult RefreshJWTCookie()
+        {
+            JwtTokenUtil.
+
+            return Ok();
         }
 
         /// <summary>
