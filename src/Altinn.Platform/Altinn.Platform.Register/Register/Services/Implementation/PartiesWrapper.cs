@@ -59,7 +59,6 @@ namespace Altinn.Platform.Register.Services.Implementation
         /// <inheritdoc />
         public async Task<Party> LookupPartyBySSNOrOrgNo(string lookupValue)
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
             string lookupData = JsonConvert.SerializeObject(lookupValue);
 
             Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}parties/lookupObject");
@@ -83,7 +82,6 @@ namespace Altinn.Platform.Register.Services.Implementation
         /// <inheritdoc />
         public async Task<int> LookupPartyIdBySSNOrOrgNo(string lookupValue)
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(int));
             string lookupData = JsonConvert.SerializeObject(lookupValue);
 
             Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}parties/lookup");
