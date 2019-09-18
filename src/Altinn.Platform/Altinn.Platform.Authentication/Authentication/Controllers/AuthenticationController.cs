@@ -123,12 +123,12 @@ namespace Altinn.Platform.Authentication.Controllers
         }
 
         /// <summary>
-        /// Refreshes JwtToken
+        /// Refreshes JwtToken.
         /// </summary>
-        /// <returns>Ok response with the refreshed cookie appended.</returns>
+        /// <returns>Ok response with the refreshed token appended.</returns>
         [Authorize]
         [HttpGet("refresh")]
-        public async Task<ActionResult> RefreshJWTCookie2()
+        public async Task<ActionResult> RefreshJWTCookie()
         {
             ClaimsPrincipal principal = HttpContext.User;
 
