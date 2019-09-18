@@ -13,9 +13,8 @@ using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Model;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
-using AltinnCore.Authentication.Constants;
-using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -124,13 +123,24 @@ namespace Altinn.Platform.Authentication.Controllers
         }
 
         /// <summary>
-        /// Checks validity of JWT cookie and refreshes it when valid.
+        /// Refreshes JwtToken
         /// </summary>
         /// <returns>Ok response with the refreshed cookie appended.</returns>
+        [Authorize]
         [HttpGet("refresh")]
-        public ActionResult RefreshJWTCookie()
+        public async Task<ActionResult> RefreshJWTCookie2()
         {
-            JwtTokenUtil.
+            ClaimsPrincipal principal = HttpContext.User;
+
+            await HttpContext.SignInAsync(
+                JwtCookieDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
+                    IsPersistent = false,
+                    AllowRefresh = false,
+                });
 
             return Ok();
         }
