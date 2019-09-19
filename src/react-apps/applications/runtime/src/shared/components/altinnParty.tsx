@@ -8,28 +8,28 @@ import { IParty } from '../resources/party';
 
 const styles = createStyles({
   partyPaper: {
-    marginBottom: 12,
+    marginBottom: '1.2rem',
     borderRadius: 0,
     backgroundColor: altinnTheme.altinnPalette.primary.blueLighter,
     boxShadow: altinnTheme.sharedStyles.boxShadow,
     width: '100%',
   },
   partyWrapper: {
-    'paddingLeft': 24,
-    'paddingRight': 24,
+    'paddingLeft': '2.4rem',
+    'paddingRight': '2.4rem',
     '&:hover': {
       cursor: 'pointer',
     },
   },
   partyWrapperDisabled: {
-    'paddingLeft': 24,
-    'paddingRight': 24,
+    'paddingLeft': '2.4rem',
+    'paddingRight': '2.4rem',
     '&:hover': {
       cursor: 'not-allowed',
     },
   },
   partyPaperDisabled: {
-    marginBottom: 12,
+    marginBottom: '1.2rem',
     borderRadius: 0,
     backgroundColor: altinnTheme.altinnPalette.primary.blueLighter,
     boxShadow: altinnTheme.sharedStyles.boxShadow,
@@ -37,17 +37,17 @@ const styles = createStyles({
     width: '100%',
   },
   partyIcon: {
-    padding: 12,
+    padding: '1.2rem',
     fontSize: '42px',
   },
   partyName: {
-    padding: 12,
-    paddingTop: 24,
+    padding: '1.2rem',
+    paddingTop: '2.4rem',
     fontSize: '1.75rem',
     fontWeight: 700,
   },
   partyInfo: {
-    paddingTop: 26,
+    paddingTop: '2.6rem',
     fontSize: '1.5rem',
     fontWeight: 300,
   },
@@ -58,40 +58,40 @@ const styles = createStyles({
     '&:hover': {
       cursor: 'pointer',
     },
-    'paddingTop': 12,
-    'paddingBottom': 12,
+    'paddingTop': '1.2rem',
+    'paddingBottom': '1.2rem',
     'borderTop': `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
   },
   subUnit: {
     'width': '100%',
-    'paddingLeft': 24,
-    'paddingRight': 24,
+    'paddingLeft': '2.4rem',
+    'paddingRight': '2.4rem',
     '&:hover': {
       background: altinnTheme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
     },
   },
   subUnitListHeader: {
-    'paddingLeft': 24,
-    'paddingRight': 24,
+    'paddingLeft': '2.4rem',
+    'paddingRight': '2.4rem',
     '&:hover': {
       background: altinnTheme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
     },
   },
   subUnitListHeaderText: {
-    paddingTop: 12,
+    paddingTop: '1.2rem',
     color: altinnTheme.altinnPalette.primary.black,
   },
   subUnitListHeaderIcon: {
-    padding: 12,
+    padding: '1.2rem',
     fontSize: '1.3rem',
     color: altinnTheme.altinnPalette.primary.blue,
   },
   subUnitTextWrapper: {
     borderTop: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
-    paddingRight: 21,
-    paddingLeft: 48,
+    paddingRight: '2.1rem',
+    paddingLeft: '4.8rem',
   },
   subUnitText: {
     fontSize: '1.6rem',
@@ -101,8 +101,8 @@ const styles = createStyles({
     fontWeight: 700,
   },
   subUnitIcon: {
-    paddingLeft: 28,
-    fontSize: '42px',
+    paddingLeft: '2.8rem',
+    fontSize: '4.2rem',
   },
 });
 
