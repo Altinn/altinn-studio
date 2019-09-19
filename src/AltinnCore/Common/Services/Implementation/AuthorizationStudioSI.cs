@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Authorization service created for service development where test data is located on disk
+    /// Implementation for Authorization created for app development where test data is located on disk
     /// </summary>
     public class AuthorizationStudioSI : IAuthorization
     {

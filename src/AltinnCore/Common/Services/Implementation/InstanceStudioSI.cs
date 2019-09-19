@@ -19,7 +19,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for instance for saving in disk
+    /// Implementation that handles instance functionality for saving in disk
     /// </summary>
     public class InstanceStudioSI : IInstance
     {

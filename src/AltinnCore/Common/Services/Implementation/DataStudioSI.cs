@@ -21,7 +21,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Service implementation for integration test
+    /// Implementation that handles data functionality
     /// </summary>
     public class DataStudioSI : IData
     {

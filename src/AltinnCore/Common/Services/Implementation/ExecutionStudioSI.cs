@@ -26,7 +26,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
+    /// Implementation that handle functionality needed for executing an Altinn Core Application (Functional term)
     /// </summary>
     public class ExecutionStudioSI : IExecution
     {
@@ -38,9 +38,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionStudioSI"/> class
         /// </summary>
-        /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
+        /// <param name="settings">The ServiceRepositorySettings needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
-        /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
+        /// <param name="compilationService">The compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
         /// <param name="hostingEnvironment">the hosting environment</param>
         public ExecutionStudioSI(
@@ -57,16 +57,16 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IServiceImplementation GetServiceImplementation(string org, string app, bool startServiceFlag)
+        public IServiceImplementation GetServiceImplementation(string org, string app, bool startAppFlag)
         {
-            string assemblyName = LoadServiceAssembly(org, app, startServiceFlag);
+            string assemblyName = LoadServiceAssembly(org, app, startAppFlag);
             string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(app)) + ".ServiceImplementation," + assemblyName;
 
             return (IServiceImplementation)Activator.CreateInstance(Type.GetType(implementationTypeName));
         }
 
         /// <inheritdoc/>
-        public ServiceContext GetServiceContext(string org, string app, bool startServiceFlag)
+        public ServiceContext GetServiceContext(string org, string app, bool startAppFlag)
         {
             var context = new ServiceContext
             {
@@ -110,9 +110,9 @@ namespace AltinnCore.Common.Services.Implementation
             return _repository.GetServiceResource(org, app, resource);
         }
 
-        private string LoadServiceAssembly(string org, string app, bool startServiceFlag)
+        private string LoadServiceAssembly(string org, string app, bool startAppFlag)
         {
-            var codeCompilationResult = _compilation.CreateServiceAssembly(org, app, startServiceFlag);
+            var codeCompilationResult = _compilation.CreateServiceAssembly(org, app, startAppFlag);
             if (!codeCompilationResult.Succeeded)
             {
                 var errorMessages = codeCompilationResult?.CompilationInfo?.Where(e => e.Severity == "Error")

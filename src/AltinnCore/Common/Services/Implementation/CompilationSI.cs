@@ -27,7 +27,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Service responsible for compiling the code for an app. This includes the service implementation and the service
+    /// Implementation responsible for compiling the code for an app. This includes the app implementation and the app
     /// model classes
     /// </summary>
     public class CompilationSI : Interfaces.ICompilation
@@ -67,13 +67,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a zip-file containing all files necessary for executing an app.
+        /// Creates a zip file containing all files necessary for executing an app.
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
-        /// <param name="startServiceFlag">Flag to determine if the app should run/re-run.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
         /// <returns>Was the package creation successful.</returns>
-        public bool CreateServicePackage(string org, string app, bool startServiceFlag)
+        public bool CreateServicePackage(string org, string app, bool startAppFlag)
         {
             ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, app);
 
@@ -91,7 +91,7 @@ namespace AltinnCore.Common.Services.Implementation
             Directory.CreateDirectory(packagesDir);
 
             string compileResult = string.Empty;
-            string assemblyName = CreateServiceAssembly(org, app, startServiceFlag, tempDirPath + "/Assemblies/").AssemblyName;
+            string assemblyName = CreateServiceAssembly(org, app, startAppFlag, tempDirPath + "/Assemblies/").AssemblyName;
 
             ServicePackageDetails details = new ServicePackageDetails
             {
@@ -115,13 +115,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the app assembly for an app.
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
-        /// <param name="startServiceFlag">Flag to determine if the app should run/re-run.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
         /// <param name="outputLocation">The directory where the resulting assembly should be saved.</param>
         /// <param name="loadAssemblyContext">Defines if assembly should be loaded in context.</param>
         /// <returns>The assembly name.</returns>
-        public CodeCompilationResult CreateServiceAssembly(string org, string app, bool startServiceFlag, string outputLocation = null, bool loadAssemblyContext = true)
+        public CodeCompilationResult CreateServiceAssembly(string org, string app, bool startAppFlag, string outputLocation = null, bool loadAssemblyContext = true)
         {
             CodeCompilationResult compilationResult = new CodeCompilationResult() { CompileStarted = DateTime.Now };
             string assemblykey = org + "_" + CompileHelper.GetCSharpValidAppId(app);
@@ -268,8 +268,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Read all source documents for a given app and put it in a syntax tree array.
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The syntax tree.</returns>
         private SyntaxTree[] GetSyntaxTrees(string org, string app)
         {

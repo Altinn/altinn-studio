@@ -18,7 +18,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for instance events for saving to and retrieving from disk
+    /// Implementation that handles instance events functionality for saving to and retrieving from disk
     /// </summary>
     public class InstanceEventStudioSI : IInstanceEvent
     {

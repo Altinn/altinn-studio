@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Service for profile functionality under service development
+    /// Implemetation for profile functionality under app development
     /// </summary>
     public class ProfileStudioSI : IProfile
     {

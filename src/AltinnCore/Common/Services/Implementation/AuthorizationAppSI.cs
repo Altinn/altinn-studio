@@ -18,7 +18,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for authorization service where the app uses the altinn platform api
+    /// Implementation for authorization where the app uses the altinn platform api
     /// </summary>
     public class AuthorizationAppSI : IAuthorization
     {

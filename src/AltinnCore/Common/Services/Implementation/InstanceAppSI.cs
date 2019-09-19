@@ -26,7 +26,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for instance
+    /// Implementation that handles instance functionality
     /// </summary>
     public class InstanceAppSI : IInstance
     {

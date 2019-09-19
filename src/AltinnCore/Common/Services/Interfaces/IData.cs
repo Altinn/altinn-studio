@@ -21,8 +21,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="dataToSerialize">The app model to serialize</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="type">The type for serialization</param>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId);
 
@@ -33,8 +33,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="dataToSerialize">The form data to serialize</param>
         /// <param name="instanceGuid">The instanceid</param>
         /// <param name="type">The type for serialization</param>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="dataId">the data id</param>
         void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId);
@@ -44,8 +44,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="instanceGuid">The instanceid</param>
         /// <param name="type">The type for serialization</param>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="dataId">the data id</param>
         object GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId);
@@ -53,8 +53,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets the data as is.
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instanceid</param>
         /// <param name="dataId">the data id</param>
@@ -63,8 +63,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Method that gets metadata on form attachments ordered by attachmentType
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <returns>A list with attachments metadata ordered by attachmentType</returns>
@@ -73,8 +73,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Method that removes a form attachments from disk/storage
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="attachmentType">The attachment type</param>
@@ -84,8 +84,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Method that saves a form attachments to disk/storage and returns its id
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="app">The application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="attachmentType">The attachment type</param>

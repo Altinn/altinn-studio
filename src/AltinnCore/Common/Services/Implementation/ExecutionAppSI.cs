@@ -27,7 +27,7 @@ namespace AltinnCore.Common.Services.Implementation
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
+    /// Implementation that handle functionality needed for executing a Altinn Core Application (Functional term)
     /// </summary>
     public class ExecutionAppSI : IExecution
     {
@@ -41,7 +41,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionAppSI"/> class.
         /// </summary>
-        /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
+        /// <param name="settings">The ServiceRepositorySettings needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
@@ -58,7 +58,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IServiceImplementation GetServiceImplementation(string org, string app, bool startServiceFlag)
+        public IServiceImplementation GetServiceImplementation(string org, string app, bool startAppFlag)
         {
             string assemblykey = $"{org}_{app}";
             string implementationTypeName = null;
@@ -92,11 +92,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceContext GetServiceContext(string org, string app, bool startServiceFlag)
+        public ServiceContext GetServiceContext(string org, string app, bool startAppFlag)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(org, app, startServiceFlag).GetServiceModelType(),
+                ServiceModelType = GetServiceImplementation(org, app, startAppFlag).GetServiceModelType(),
                 ServiceMetaData = _repository.GetServiceMetaData(org, app),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
                 WorkFlow = _repository.GetWorkFlow(org, app),
@@ -119,7 +119,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public string GetCodelist(string org, string app, string name)
         {
-            // Not relevant in a app scenario.
+            // Not relevant in an app scenario.
             return null;
         }
 
