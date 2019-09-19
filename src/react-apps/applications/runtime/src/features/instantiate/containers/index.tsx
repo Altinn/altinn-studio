@@ -166,7 +166,14 @@ function InstantiateContainer(props: IServiceInfoProps) {
       );
     } else {
       return (
-        <Redirect to={'/partyselection'}/>
+        <Redirect
+          to={{
+            pathname: '/partyselection',
+            state: {
+              errorType: PartySelectionReason.NotValid,
+            },
+          }}
+        />
       );
     }
   }
@@ -178,7 +185,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
           state: {
             message: instantiation.error,
           },
-      }}
+        }}
       />
     );
   }
