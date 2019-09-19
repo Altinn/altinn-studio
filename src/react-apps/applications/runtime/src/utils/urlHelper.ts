@@ -11,10 +11,10 @@ export const updateCookieUrl: (partyId: string) => string = (partyId: string) =>
   ${origin}/${org}/${service}/api/v1/parties/${partyId}
 `;
 export const validPartiesUrl: string =
-  `${window.location.origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=true`;
+  `${origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const allPartiesUrl: string =
-`${window.location.origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=false`;
-export const instantiateUrl: string = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
-export const currentPartyUrl: string = `${window.location.origin}/${org}/${service}/api/authorization/parties/current`;
-export const instancesControllerUrl: string = `${window.location.origin}/${org}/${service}/instances`;
-export const partySelectionUrl: string = `${window.location.origin}/${org}/${service}/#/partyselection`;
+`${origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=false`;
+export const instantiateUrl: string = `${origin}/${org}/${service}/Instance/InstantiateApp`;
+export const currentPartyUrl: string = `${origin}/${org}/${service}/api/authorization/parties/current`;
+export const instancesControllerUrl: string = `${origin}/${org}/${service}/instances`;
+export const partySelectionUrl: string = `${origin}/${org}/${service}/#/partyselection`;
