@@ -25,7 +25,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Refreshed the AltinnStudioRuntime JwtToken when not in AltinnStudio mode.
+        /// Refreshes the AltinnStudioRuntime JwtToken when not in AltinnStudio mode.
         /// </summary>
         /// <returns>Ok result with updated token.</returns>
         [HttpGet("{org}/{service}/api/{controller}/keepAlive")]
