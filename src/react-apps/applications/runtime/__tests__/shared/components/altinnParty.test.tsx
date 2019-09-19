@@ -46,7 +46,16 @@ describe('altinnParty', () => {
   });
 
   it('should use callback to select party', () => {
-    mountedComponent.simulate('click');
+    mountedComponent.findWhere(
+      (n: ReactWrapper<any, any>) => {
+        if (n.type() === 'div') {
+          if (n.getDOMNode().id === `party-${mockParty.partyId}`) {
+            return true;
+          }
+          return false;
+        }
+        return false;
+      }).simulate('click');
     expect(selectedParty).toEqual(mockParty);
   });
 

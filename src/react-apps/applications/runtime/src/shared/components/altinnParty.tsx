@@ -221,14 +221,15 @@ function AltinnParty(props: IAltinnPartyProps) {
   return (
     <Paper
       className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}
-      onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
       tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
-      onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
     >
       <Grid
+        id={`party-${party.partyId}`}
         container={true}
         direction={'row'}
         className={party.onlyHierarchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
+        onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
+        onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
       >
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')} />
         <Typography className={classes.partyName}>
