@@ -92,6 +92,7 @@ function PartySelection(props: IPartySelectionProps) {
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
   const appMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) =>
     state.applicationMetadata.applicationMetadata);
+  const selectedParty: IParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
@@ -168,10 +169,10 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function getRepresentedPartyName(): string {
-    if (profile.party.name === null) {
+    if (selectedParty.name === null) {
       return '';
     }
-    return capitalizeName(profile.party.name);
+    return capitalizeName(selectedParty.name);
   }
 
   function templateErrorMessage() {
@@ -181,23 +182,23 @@ function PartySelection(props: IPartySelectionProps) {
     if (location.state !== undefined &&
       (location.state as IRedirectReason) &&
       (location.state as IRedirectReason) !== undefined) {
-      switch ((location.state as IRedirectReason).errorType) {
-        // Keeping the switch statement because we might extends the enums to handle more errors
-        case PartySelectionReason.NotValid: {
-          return (
-            <Typography className={classes.partySelectionError}>
-              {`
-                ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
-                ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
-                ${language.party_selection.invalid_selection_third_part}
-              `}
-            </Typography>
-          );
+        switch ((location.state as IRedirectReason).errorType) {
+          // Keeping the switch statement because we might extends the enums to handle more errors
+          case PartySelectionReason.NotValid: {
+            return (
+              <Typography className={classes.partySelectionError}>
+                {`
+                  ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
+                  ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
+                  ${language.party_selection.invalid_selection_third_part}
+                `}
+              </Typography>
+            );
+          }
+          default: {
+            return null;
+          }
         }
-        default: {
-          return null;
-        }
-      }
     }
   }
 
