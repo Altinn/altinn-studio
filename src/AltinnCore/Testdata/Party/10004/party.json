@@ -1,10 +1,13 @@
 ﻿{
-  "PartyId": "10004",
-  "PartyTypeName": "Organization",
-  "Name": "Frisk & Sporty Trondheim",
-  "Organization": {
-    "OrganizationId": "4",
-    "OrganizationNumber": "900000004",
-    "OrganizationName": "Frisk & Sporty Trondheim"
-  }
+	"partyId": 10004,
+	"partyTypeName": 2,
+	"orgNumber": "900000004",
+	"ssn": null,
+	"unitType": "BEDR",
+	"name": "Frisk & Sporty Trondheim",
+	"isDeleted": false,
+	"onlyHierarchyElementWithNoAccess": false,
+	"person": null,
+	"organization": null,
+	"childParties": null
 }

@@ -4,11 +4,11 @@ exports[`ProfileMenu should match snapshot 1`] = `
 <div>
   <button
     aria-haspopup="true"
-    className="MuiButtonBase-root-9 MuiIconButton-root-3"
+    className="MuiButtonBase-root MuiIconButton-root"
     disabled={false}
     onBlur={[Function]}
     onClick={[Function]}
-    onContextMenu={[Function]}
+    onDragLeave={[Function]}
     onFocus={[Function]}
     onKeyDown={[Function]}
     onKeyUp={[Function]}
@@ -18,15 +18,15 @@ exports[`ProfileMenu should match snapshot 1`] = `
     onTouchEnd={[Function]}
     onTouchMove={[Function]}
     onTouchStart={[Function]}
-    tabIndex="0"
+    tabIndex={0}
     type="button"
   >
     <span
-      className="MuiIconButton-label-8"
+      className="MuiIconButton-label"
     >
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-12"
+        className="MuiSvgIcon-root"
         focusable="false"
         role="presentation"
         viewBox="0 0 24 24"
@@ -34,15 +34,8 @@ exports[`ProfileMenu should match snapshot 1`] = `
         <path
           d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
         />
-        <path
-          d="M0 0h24v24H0z"
-          fill="none"
-        />
       </svg>
     </span>
-    <span
-      className="MuiTouchRipple-root-25"
-    />
   </button>
 </div>
 `;
@@ -51,11 +44,11 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
 <div>
   <button
     aria-haspopup="true"
-    className="MuiButtonBase-root-9 MuiIconButton-root-3"
+    className="MuiButtonBase-root MuiIconButton-root"
     disabled={false}
     onBlur={[Function]}
     onClick={[Function]}
-    onContextMenu={[Function]}
+    onDragLeave={[Function]}
     onFocus={[Function]}
     onKeyDown={[Function]}
     onKeyUp={[Function]}
@@ -65,15 +58,15 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
     onTouchEnd={[Function]}
     onTouchMove={[Function]}
     onTouchStart={[Function]}
-    tabIndex="0"
+    tabIndex={0}
     type="button"
   >
     <span
-      className="MuiIconButton-label-8"
+      className="MuiIconButton-label"
     >
       <svg
         aria-hidden="true"
-        className="MuiSvgIcon-root-12"
+        className="MuiSvgIcon-root"
         focusable="false"
         role="presentation"
         viewBox="0 0 24 24"
@@ -81,15 +74,8 @@ exports[`ProfileMenu should match snapshot with logout text 1`] = `
         <path
           d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
         />
-        <path
-          d="M0 0h24v24H0z"
-          fill="none"
-        />
       </svg>
     </span>
-    <span
-      className="MuiTouchRipple-root-25"
-    />
   </button>
 </div>
 `;

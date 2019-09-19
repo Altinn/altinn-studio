@@ -1,25 +1,31 @@
 using System;
-using System.Net.Http;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.RequestHandling;
-using AltinnCore.Runtime.RestControllers;
+using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Common.Helpers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Storage.Interface.Clients;
+using Storage.Interface.Enums;
 using Storage.Interface.Models;
 
-namespace AltinnCore.Runtime
+namespace AltinnCore.Runtime.RestControllers
 {
     /// <summary>
-    /// Handles and dispatches operations to platform storage for the application instance resources
+    /// Controller for application instances for app-backend.
+    /// You can create a new instance (POST), update it (PUT) and retreive a specific instance (GET).
     /// </summary>
     [Route("{org}/{app}/instances")]
     [Authorize]
@@ -27,43 +33,64 @@ namespace AltinnCore.Runtime
     public class InstancesController : ControllerBase
     {
         private readonly ILogger<InstancesController> logger;
-        private readonly HttpClient storageClient;
-        private readonly IInstance instanceService;        
+        private readonly IInstance instanceService;
         private readonly IData dataService;
+
+        private readonly IExecution executionService;
+        private readonly UserHelper userHelper;
+        private readonly IRegister registerService;
+        private readonly IRepository repositoryService;
+        private readonly IPlatformServices platformService;
+        private readonly IInstanceEvent eventService;
+        private readonly IWorkflow processService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         public InstancesController(
+            IOptions<GeneralSettings> generalSettings,
             ILogger<InstancesController> logger,
-            IHttpClientAccessor httpClientAccessor,
+            IRegister registerService,
             IInstance instanceService,
-            IData dataService)
+            IData dataService,
+            IExecution executionService,
+            IProfile profileService,
+            IPlatformServices platformService,
+            IInstanceEvent eventService,
+            IRepository repositoryService,
+            IWorkflow processService)
         {
             this.logger = logger;
-            if (httpClientAccessor != null)
-            {
-                this.storageClient = httpClientAccessor.StorageClient;
-            }
-
             this.instanceService = instanceService;
             this.dataService = dataService;
+            this.executionService = executionService;
+            this.registerService = registerService;
+            this.platformService = platformService;
+            this.eventService = eventService;
+            this.repositoryService = repositoryService;
+            this.processService = processService;
+
+            userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
-        ///  Gets one application instance from platform storage.
+        ///  Gets an instance object from storage.
         /// </summary>
-        /// <param name="org">the org</param>
-        /// <param name="app">the app name</param>
-        /// <param name="instanceOwnerId">the instance owner id (partyId)</param>
-        /// <param name="instanceGuid">the instance guid</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> Get(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public async Task<ActionResult> Get(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid)
         {
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
@@ -71,18 +98,18 @@ namespace AltinnCore.Runtime
                 return NotFound();
             }
 
-            GetAndSetAppSelfLink(instance);
+            SetAppSelfLinks(instance, Request);
 
             return Ok(instance);
         }
 
         /// <summary>
-        ///  Updates an application instance in platform storage.
+        ///  Updates an instance object in storage.
         /// </summary>
-        /// <param name="org">the organisation id, the owner of the app</param>
-        /// <param name="app">the app name</param>
-        /// <param name="instanceOwnerId">the instance owner id (partyId)</param>
-        /// <param name="instanceGuid">the instance guid</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="instance">the instance with attributes that should be updated</param>
         /// <returns>the updated instance</returns>
         [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
@@ -104,7 +131,7 @@ namespace AltinnCore.Runtime
                 return NotFound();
             }
 
-            GetAndSetAppSelfLink(instance);
+            SetAppSelfLinks(instance, Request);
 
             return Ok(instance);
         }
@@ -112,13 +139,12 @@ namespace AltinnCore.Runtime
         /// <summary>
         /// Creates a new instance of an application in platform storage. Clients can send a instance as a json or send a
         /// multipart form-data with the instance in the first part named "instance" and the prefill data in the next parts, with
-        /// names that corresponds to the element types defined in the application metadata.
-        /// The content is dispatched to storage. Currently calculate and validate is not implemented. 
-        /// 
+        /// names that correspond to the element types defined in the application metadata.
+        /// The data elements are stored. Currently calculate and validate is not implemented. 
         /// </summary>
-        /// <param name="org">the organisation id</param>
-        /// <param name="app">the application name</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <returns>the created instance</returns>
         [HttpPost]
         [DisableFormValueModelBinding]
@@ -126,7 +152,10 @@ namespace AltinnCore.Runtime
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Instance> Post([FromRoute] string org, [FromRoute] string app, [FromQuery] int? instanceOwnerId)
+        public async Task<ActionResult<Instance>> Post(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromQuery] int? instanceOwnerId)
         {
             if (string.IsNullOrEmpty(org))
             {
@@ -138,43 +167,186 @@ namespace AltinnCore.Runtime
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            string appId = $"{org}/{app}";
-
-            MultipartRequestReader multipartRequestReader = new MultipartRequestReader(Request);
-            multipartRequestReader.Read().Wait();
-
-            //// TODO: Validate multipartRequestReader.Parts
-
-            Uri storageUri = GetStorageUri(appId, instanceOwnerId);
-
-            // dispatch request to platform storage
-            Instance instance = DispatchCreateInstanceToStorage(storageUri, Request, out ActionResult dispatchError);
-            if (dispatchError != null)
+            Application application = repositoryService.GetApplication(org, app);
+            if (application == null)
             {
-                return dispatchError;
+                return NotFound($"AppId {org}/{app} was not found");
             }
 
-            if (instance.Data != null)
+            MultipartRequestReader parsedRequest = new MultipartRequestReader(Request);
+            parsedRequest.Read().Wait();
+
+            if (parsedRequest.Errors.Any())
             {
-                instance = CalculateAndValidate(instance, out ActionResult calculateOrValidateError);
-                if (calculateOrValidateError != null)
+                return BadRequest($"Error when reading content: {parsedRequest.Errors}");
+            }
+
+            Instance instanceTemplate = ExtractInstanceTemplate(parsedRequest);
+
+            if (!instanceOwnerId.HasValue && instanceTemplate == null)
+            {
+                return BadRequest("Cannot create an instance without an instanceOwnerId. Either provide instanceOwnerId as a query parameter or an instanceTemplate object in the body.");
+            }
+
+            if (instanceOwnerId.HasValue && instanceTemplate != null)
+            {
+                return BadRequest("You cannot provide an instanceOwnerId as a query param as well as an instance template in the body. Choose one or the other.");
+            }
+
+            RequestPartValidator requestValidator = new RequestPartValidator(application);
+
+            string multipartError = requestValidator.ValidateParts(parsedRequest.Parts);
+
+            if (!string.IsNullOrEmpty(multipartError))
+            {
+                return BadRequest($"Error when comparing content to application metadata: {multipartError}");
+            }
+
+            // extract or create instance template
+            if (instanceTemplate != null)
+            {
+                InstanceOwnerLookup lookup = instanceTemplate.InstanceOwnerLookup;
+
+                if (string.IsNullOrEmpty(instanceTemplate.InstanceOwnerId) && (lookup == null || (lookup.PersonNumber == null && lookup.OrganisationNumber == null)))
                 {
-                    return calculateOrValidateError;
+                    return BadRequest($"Error: instanceOwnerId is empty and InstanceOwnerLookup is missing. You must populate instanceOwnerId or InstanceOwnerLookup");
                 }
-            }            
-
-            if (instance != null)
+            }
+            else
             {
-                return Created(GetAndSetAppSelfLink(instance), instance);
+                instanceTemplate = new Instance();
+                instanceTemplate.InstanceOwnerId = instanceOwnerId.Value.ToString();
             }
 
-            return StatusCode(500, "Unknown error!");
+            Party party = null;
+
+            if (instanceTemplate.InstanceOwnerId != null)
+            {
+                party = await registerService.GetParty(int.Parse(instanceTemplate.InstanceOwnerId));
+            }
+            else
+            {
+                /* todo - lookup personNumber or organisationNumber - awaiting registry endpoint implementation */
+            }
+
+            if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
+            {
+                return Forbid($"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
+            }
+
+            // set initial task
+            instanceTemplate.Process = instanceTemplate.Process ?? new ProcessState()
+            {
+                CurrentTask = processService.GetInitialServiceState(org, app).State.ToString(),
+                IsComplete = false,
+            };
+
+            Instance instance = await instanceService.CreateInstance(org, app, instanceTemplate);           
+            
+            if (instance == null)
+            {
+                return StatusCode(500, "Unable to create instance. Unknown error!");                
+            }
+
+            try
+            {
+                Instance instanceWithData = await StorePrefillParts(instance, parsedRequest.Parts);
+
+                if (instanceWithData != null)
+                {
+                    instance = instanceWithData;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Failure storing multpart prefil when instantiating {org}/{app} for {instanceOwnerId}. Because {ex}");
+
+                // todo add compensating transaction (delete instance)                
+                return StatusCode(500, $"Failure storing multpart prefil when instantiating {org}/{app} for {instanceOwnerId}. Because {ex.Message}");
+            }
+
+            SetAppSelfLinks(instance, Request);
+            string url = instance.SelfLinks.Apps;
+
+            await DispatchEvent(InstanceEventType.Created.ToString(), instance);
+
+            return Created(url, instance);
         }
 
-        private string GetAndSetAppSelfLink(Instance instance)
+        private async Task<Instance> StorePrefillParts(Instance instance, List<RequestPart> parts)
         {
-            string host = $"{Request.Scheme}://{Request.Host.ToUriComponent()}";
-            string url = Request.Path;
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
+            int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwnerId);
+            Instance instanceWithData = null;
+            string org = instance.Org;
+            string app = instance.AppId.Split("/")[1];
+
+            foreach (RequestPart part in parts)
+            {
+                logger.LogInformation($"Storing part {part.Name}");
+                object data = new StreamReader(part.Stream).ReadToEnd();
+
+                IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, part.Name, true);
+
+                instanceWithData = await dataService.InsertData(
+                    data,
+                    instanceGuid,
+                    serviceImplementation.GetServiceModelType(),
+                    org,
+                    app,
+                    instanceOwnerIdAsInt);
+
+                if (instanceWithData == null)
+                {
+                    throw new InvalidOperationException($"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
+                }
+            }
+
+            return instanceWithData;
+        }
+
+        /// <summary>
+        /// Extracts the instance template from a multipart reader, which contains a number of parts. If the reader contains
+        /// only one part and it has no name and contentType application/json it is assumed to be an instance template.
+        ///
+        /// If found the method removes the part corresponding to the instance template form the parts list.
+        /// </summary>
+        /// <param name="reader">multipart reader object</param>
+        /// <returns>the instance template or null if none is found</returns>
+        private Instance ExtractInstanceTemplate(MultipartRequestReader reader)
+        {
+            Instance instanceTemplate = null;
+
+            RequestPart instancePart = reader.Parts.Find(part => part.Name == "instance");
+
+            // assume that first part with no name is an instanceTemplate
+            if (instancePart == null && reader.Parts.Count == 1 && reader.Parts[0].ContentType.Contains("application/json") && reader.Parts[0].Name == null)
+            {
+                instancePart = reader.Parts[0];
+            }
+                        
+            if (instancePart != null)
+            {
+                reader.Parts.Remove(instancePart);
+
+                StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
+                string content = streamReader.ReadToEnd();
+
+                instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);                
+            }                        
+
+            return instanceTemplate;
+        }
+
+        /// <summary>
+        /// Sets the application specific self links.
+        /// </summary>
+        /// <param name="instance">the instance to set links for</param>
+        /// <param name="request">the http request to extract host and path name</param>
+        internal static void SetAppSelfLinks(Instance instance, HttpRequest request)
+        {
+            string host = $"https://{request.Host.ToUriComponent()}";
+            string url = request.Path;
 
             string selfLink = $"{host}{url}";
 
@@ -186,7 +358,12 @@ namespace AltinnCore.Runtime
 
             selfLink += $"/{instance.Id}";            
 
-            instance.SelfLinks = instance.SelfLinks ?? new Storage.Interface.Models.ResourceLinks();
+            if (!selfLink.EndsWith(instance.Id))
+            {
+                selfLink += instance.Id;
+            }
+
+            instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
             instance.SelfLinks.Apps = selfLink;
 
             if (instance.Data != null)
@@ -198,72 +375,57 @@ namespace AltinnCore.Runtime
                     dataElement.DataLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
                 }
             }
-
-            return selfLink;
         }
 
-        private Instance CalculateAndValidate(Instance instance, out ActionResult calculateOrValidateError)
+        /// <summary>
+        /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="elementType">the data element type</param>
+        /// <param name="startService">indicates if the service should be started or just opened</param>
+        /// <returns>the serviceImplementation object which represents the application business logic</returns>
+        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startService = false)
         {
-            Instance changedInstance = instance;
-            calculateOrValidateError = null;
+            logger.LogInformation($"Preparing data element instantiation for {elementType}");
 
-            foreach (DataElement dataElement in instance.Data)
-            {
-                logger.LogInformation($"Calculate and validate: {dataElement.ElementType}");
+            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startService);
 
-                Uri dataUri = new Uri($"instances/{instance.Id}/data/{dataElement.Id}", UriKind.Relative);
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
+            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
+            requestContext.Party = requestContext.UserContext.Party;
 
-                // Get data element
-                // Todo - Calulate and Validate
-                logger.LogInformation($"calculate: {dataUri}");
+            ServiceContext serviceContext = executionService.GetServiceContext(org, app, startService);
 
-                bool validationOk = true;
-                if (validationOk)
-                {
-                    // update data object if changed by calculation - dispatch to storage, set lastChangedInstance
-                }
-                else
-                {
-                    // Todo delete instance in storage
-                    calculateOrValidateError = Conflict("Data element is not valid!");
-                }
-            }
-            
-            return changedInstance;
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
+            serviceImplementation.SetPlatformServices(platformService);
+
+            return serviceImplementation;
         }
 
-        private Uri GetStorageUri(string appId, int? instanceOwnerId)
-        {            
-            if (instanceOwnerId.HasValue)
+        /// <summary>
+        /// Creates an event and dispatches it to the eventService for storage.
+        /// </summary>
+        private async Task DispatchEvent(string eventType, Instance instance)
+        { 
+            UserContext userContext = await userHelper.GetUserContext(HttpContext);
+
+            string app = instance.AppId.Split("/")[1];
+            int authenticationLevel = userContext.AuthenticationLevel;
+            int userId = userContext.UserId;
+
+            // Create and store the instance created event
+            InstanceEvent instanceEvent = new InstanceEvent
             {
-                return new Uri($"instances?appId={appId}&instanceOwnerId={instanceOwnerId.Value}", UriKind.Relative);
-            }
-            else
-            {
-                return new Uri($"instances?appId={appId}", UriKind.Relative);
-            }
+                AuthenticationLevel = authenticationLevel,
+                EventType = eventType,
+                InstanceId = instance.Id,
+                InstanceOwnerId = instance.InstanceOwnerId,
+                UserId = userId,
+                WorkflowStep = instance.Process?.CurrentTask,
+            };
+
+            await eventService.SaveInstanceEvent(instanceEvent, instance.Org, app);
         }
-
-        private Instance DispatchCreateInstanceToStorage(Uri storageUri, HttpRequest request, out ActionResult dispatchError)
-        {
-            dispatchError = null;
-            StreamContent content = new StreamContent(request.Body);
-            if (!string.IsNullOrEmpty(request.ContentType))
-            {
-                content.Headers.Add("Content-Type", request.ContentType);
-            }
-
-            HttpResponseMessage httpResponse = storageClient.PostAsync(storageUri, content).Result;
-
-            if (httpResponse.IsSuccessStatusCode)
-            {
-                Instance instance = JsonConvert.DeserializeObject<Instance>(httpResponse.Content.ReadAsStringAsync().Result);
-                return instance;
-            }
-
-            dispatchError = StatusCode((int)httpResponse.StatusCode, httpResponse.ReasonPhrase);
-
-            return null;
-        }        
     }
 }

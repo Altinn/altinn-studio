@@ -16,7 +16,7 @@
 {
     <form asp-action="Index" asp-controller="ManualTesting">
         <input type="hidden" asp-for="ServiceID" />
-        <input name="UserId" type="hidden" value="2" /> 
+        <input name="UserId" type="hidden" value="2" />
         <div class="form-group">
             <label asp-for="PartyId">Velg avgiver</label>
             <select asp-for="PartyId" asp-items="@Model.PartyList" class="form-control"></select>
@@ -64,8 +64,9 @@
     <script>
       var startServiceButton = document.getElementById('btnStartNewService');
       startServiceButton.addEventListener('click', function (event) {
-        const [org, service] = event.target.value.split('/');
-        var win = window.open(`${window.location.origin}/${org}/${service}`, '_blank');
+        const org = event.target.value.split('/')[0];
+        const service = event.target.value.split('/')[1];
+        var win = window.open(window.location.origin + '/' + org + '/' + service, '_blank');
         win.focus();
       });
     </script>

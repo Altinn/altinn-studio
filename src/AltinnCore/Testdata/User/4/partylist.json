@@ -10,7 +10,7 @@
 		"ssn": "01047512345",
 		"name": "Pål Revisor",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -24,7 +24,7 @@
 		"ssn": null,
 		"name": "Frisk & Sporty Oslo",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -38,7 +38,7 @@
 		"ssn": null,
 		"name": "Frisk & Sporty Bergen",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -52,7 +52,7 @@
 		"ssn": null,
 		"name": "Frisk & Sporty Trondheim",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -66,7 +66,7 @@
 		"ssn": "02017512345",
 		"name": "Kari Selvstendig",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
 	{
@@ -80,7 +80,7 @@
 		"ssn": "02017512345",
 		"name": "Kari Consulting",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	}
 ]

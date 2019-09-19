@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "9658a289-db42-438c-b19c-61a3f6b40647",
+		"_postman_id": "aad4d690-36b7-4fff-9097-3f1d51f333bd",
 		"name": "Platform",
 		"description": "Collection that tests the full integration between current Altinn platform and SBL bridge",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -726,7 +726,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&process.isComplete=false&process.currentTask=FormFilling_1",
+									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&process.isComplete=false&process.currentTask=FormFilling",
 									"host": [
 										"{{platformUrl}}"
 									],
@@ -747,7 +747,7 @@
 										},
 										{
 											"key": "process.currentTask",
-											"value": "FormFilling_1"
+											"value": "FormFilling"
 										}
 									]
 								}

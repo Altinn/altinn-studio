@@ -43,7 +43,7 @@ describe('Testing functions in ReceiptContainer', () => {
             unitType: null,
             name: 'Ola Privatperson',
             isDeleted: false,
-            onlyHiearhyElementWithNoAccess: false,
+            onlyHierarchyElementWithNoAccess: false,
             person: {
               ssn: '01017512345',
               name: null,
