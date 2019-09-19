@@ -90,7 +90,7 @@ const styles = createStyles({
   },
   subUnitTextWrapper: {
     borderTop: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
-    padding: 21,
+    paddingRight: 21,
     paddingLeft: 48,
   },
   subUnitText: {
@@ -199,10 +199,10 @@ function AltinnParty(props: IAltinnPartyProps) {
               tabIndex={subUnitsExpanded ? 0 : undefined}
             >
               <Grid container={true} direction={'row'} className={classes.subUnitTextWrapper}>
-                <Typography className={`${classes.subUnitTextBold}`}>
+                <Typography className={`${classes.partyName}`}>
                   {childParty.name}
                 </Typography>
-                <Typography className={classes.subUnitText}>
+                <Typography className={classes.partyInfo}>
                   {/* tslint:disable-next-line:max-line-length*/}
                   &nbsp;{!language.party_selection ?
                     'party_selection.unit_org_number' :
@@ -221,7 +221,6 @@ function AltinnParty(props: IAltinnPartyProps) {
   return (
     <Paper
       className={party.onlyHierarchyElementWithNoAccess ? classes.partyPaperDisabled : classes.partyPaper}
-      tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
     >
       <Grid
         id={`party-${party.partyId}`}
@@ -230,6 +229,7 @@ function AltinnParty(props: IAltinnPartyProps) {
         className={party.onlyHierarchyElementWithNoAccess ? classes.partyWrapperDisabled : classes.partyWrapper}
         onClick={!party.onlyHierarchyElementWithNoAccess ? onClickParty.bind(null, party) : undefined}
         onKeyPress={!party.onlyHierarchyElementWithNoAccess ? onKeyPress.bind(null, party) : undefined}
+        tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
       >
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')} />
         <Typography className={classes.partyName}>
