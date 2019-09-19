@@ -31,7 +31,7 @@ namespace AltinnCore.Runtime.Controllers
         [HttpGet("{org}/{service}/api/{controller}/keepAlive")]
         public async Task<IActionResult> KeepAlive()
         {
-            if (_settings.RuntimeMode != "AlinnStudio")
+            if (_settings.RuntimeMode != "AltinnStudio")
             {
                 HttpStatusCode result = await _authentication.RefreshToken();
                 return result == HttpStatusCode.OK ? Ok() : StatusCode((int)result);
