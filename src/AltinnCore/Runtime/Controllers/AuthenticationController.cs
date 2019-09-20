@@ -40,7 +40,8 @@ namespace AltinnCore.Runtime.Controllers
                     return StatusCode((int)result.StatusCode);
                 }
 
-                HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, result.Content.ToString());
+                string token = await result.Content.ReadAsStringAsync();
+                HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token);
             }
 
             return Ok();
