@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace AltinnCore.Common.Services.Interfaces
 {
     /// <summary>
-    /// Authentication interface for altinn Studio.
+    /// Authentication interface.
     /// </summary>
     public interface IAuthentication
     {
