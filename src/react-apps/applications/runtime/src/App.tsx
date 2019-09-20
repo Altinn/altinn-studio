@@ -13,6 +13,7 @@ import ProfileActions from './shared/resources/profile/profileActions';
 import TextResourcesActions from './shared/resources/textResources/actions';
 import { get } from './utils/networking';
 import {
+  getEnvironmentLoginUrl,
   languageUrl,
   profileApiUrl,
   refreshJwtTokenUrl,
@@ -42,11 +43,13 @@ export default function() {
     if ((timeNow - lastRefreshTokenTimestamp) > ONE_MINUTE_IN_MILLISECONDS) {
       lastRefreshTokenTimestamp = timeNow;
       get(refreshJwtTokenUrl)
-      .then(() => {
-        console.log('token refreshed');
-      })
       .catch((err) => {
-        console.error('token not refreshed', err);
+        // Most likely the user has an expired token, so we redirect to the login-page
+        try {
+          window.location.href = getEnvironmentLoginUrl();
+        } catch (error) {
+          console.error(err, error);
+        }
       });
     }
   }
