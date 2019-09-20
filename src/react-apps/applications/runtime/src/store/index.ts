@@ -18,8 +18,8 @@ function configureStore(initialState?: any): Store<any> {
   let enhancer: any;
 
   if (process.env.NODE_ENV === 'development') {
-    const { logger } = require('redux-logger');
-    middlewares.push(logger);
+    // const { logger } = require('redux-logger');
+    // middlewares.push(logger);
     enhancer = composeWithDevTools(applyMiddleware(...middlewares));
   } else {
     enhancer = compose(applyMiddleware(...middlewares));

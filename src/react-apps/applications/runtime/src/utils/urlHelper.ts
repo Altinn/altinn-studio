@@ -18,3 +18,4 @@ export const instantiateUrl: string = `${origin}/${org}/${service}/Instance/Inst
 export const currentPartyUrl: string = `${origin}/${org}/${service}/api/authorization/parties/current`;
 export const instancesControllerUrl: string = `${origin}/${org}/${service}/instances`;
 export const partySelectionUrl: string = `${origin}/${org}/${service}/#/partyselection`;
+export const refreshJwtTokenUrl: string = `${origin}/${org}/${service}/api/authentication/keepAlive`;
