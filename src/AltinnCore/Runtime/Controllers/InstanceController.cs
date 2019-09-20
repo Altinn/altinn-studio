@@ -197,7 +197,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask,
+                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
@@ -375,12 +375,12 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask
+                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
 
-                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask, out WorkflowStep currentStep);
+                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ProcessElementId, out WorkflowStep currentStep);
 
                 return JsonConvert.SerializeObject(
                     new
@@ -488,11 +488,11 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask
+                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
-                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask, out WorkflowStep currentStep);
+                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ProcessElementId, out WorkflowStep currentStep);
 
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
                 return Redirect(redirectUrl);

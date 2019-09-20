@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Storage.Interface.Enums;
+using Storage.Interface.Models;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -438,7 +439,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask
+                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
@@ -447,10 +448,14 @@ namespace AltinnCore.Runtime.Controllers
             if (apiMode.Equals(ApiMode.Complete))
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.PartyId);
-                instance.Process = new Storage.Interface.Models.ProcessState()
+                instance.Process = new ProcessState()
                 {
-                    CurrentTask = currentState.State.ToString(),
-                    IsComplete = false,
+                    Started = DateTime.UtcNow,
+                    CurrentTask = new TaskInfo
+                    {
+                        Started = DateTime.UtcNow,
+                        ProcessElementId = currentState.State.ToString(),
+                    }
                 };
 
                 Instance updatedInstance = await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.PartyId, instanceId);
