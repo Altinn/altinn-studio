@@ -130,7 +130,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     app = applicationClient.UpdateApplication(testApplication);
                 }
             }
-            catch (Exception e)
+            catch
             {
                 app = applicationClient.CreateApplication(testApplication);
             }             
