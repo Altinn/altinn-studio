@@ -58,9 +58,12 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string refreshedToken = GetCookieValueFromResponse(response, Common.Constants.General.RuntimeCookieName);
-                HttpResponseMessage m = new HttpResponseMessage(response.StatusCode);
-                m.Content = new StringContent(refreshedToken);
+                string refreshedToken = GetCookieValueFromResponse(response, Constants.General.RuntimeCookieName);
+                using (HttpResponseMessage result = new HttpResponseMessage(response.StatusCode))
+                {
+                    result.Content = new StringContent(refreshedToken);
+                    return result;
+                }
             }
 
             _logger.LogError($"Refreshing JwtToken failed with status code {response.StatusCode}");

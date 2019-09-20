@@ -89,6 +89,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IProfile, ProfileStudioSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
                 services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
+                services.AddSingleton<IAuthentication, AuthenticationStudioSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             }
             else
