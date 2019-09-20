@@ -20,8 +20,10 @@ import {
 
 const theme = createMuiTheme(AltinnAppTheme);
 
+const ONE_MINUTE_IN_MILLISECONDS: number = 60000;
+
 export default function() {
-  const [refreshTimestamp, setRefreshTimestamp] = React.useState<number>(Date.now());
+  let lastRefreshTokenTimestamp: number = 0;
 
   function setUpEventListeners() {
     window.addEventListener('mousemove', refreshJwtToken);
@@ -29,17 +31,16 @@ export default function() {
     window.addEventListener('onfocus', refreshJwtToken);
   }
 
-  function refreshJwtToken(event: MouseEvent | null) {
-    console.log('Maybe update token?', (Date.now() - refreshTimestamp) > 60000);
-    if ((Date.now() - refreshTimestamp) > 60000) {
+  function refreshJwtToken() {
+    const timeNow = Date.now();
+    if ((timeNow - lastRefreshTokenTimestamp) > ONE_MINUTE_IN_MILLISECONDS) {
+      lastRefreshTokenTimestamp = timeNow;
       get(refreshJwtTokenUrl)
       .then(() => {
         console.log('token refreshed');
-        setRefreshTimestamp(Date.now());
       })
       .catch((err) => {
         console.error('token not refreshed', err);
-        setRefreshTimestamp(Date.now());
       });
     }
   }
