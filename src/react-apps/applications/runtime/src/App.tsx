@@ -31,6 +31,12 @@ export default function() {
     window.addEventListener('onfocus', refreshJwtToken);
   }
 
+  function removeEventListeners() {
+    window.removeEventListener('mousemove', refreshJwtToken);
+    window.removeEventListener('scroll', refreshJwtToken);
+    window.removeEventListener('onfocus', refreshJwtToken);
+  }
+
   function refreshJwtToken() {
     const timeNow = Date.now();
     if ((timeNow - lastRefreshTokenTimestamp) > ONE_MINUTE_IN_MILLISECONDS) {
@@ -52,6 +58,9 @@ export default function() {
     ApplicationMetadataActions.getApplicationMetadata();
     PartyActions.getParties();
     setUpEventListeners();
+    return function cleanup() {
+      removeEventListeners();
+    };
   }, []);
 
   return (
