@@ -49,7 +49,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// Collection of authorization decision results.See Section 5.48.
+        /// Gets Collection of authorization decision results.See Section 5.48.
         /// </summary>
         public ICollection<XacmlContextResult> Results
         {

@@ -46,11 +46,14 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpPost]
         public ActionResult Post([FromBody] XacmlRequestApiModel model)
         {
-            XacmlContextRequest request = null;
+            XacmlContextRequest decisionRequest = null;
             XacmlContextResponse xacmlContextResponse = null;
+            XacmlPolicy policy = null;
             try
             {
-                request = ParseApiBody(model);
+                decisionRequest = ParseApiBody(model);
+                decisionRequest = this._contextHandler.Enrich(decisionRequest);
+                policy = this._prp.GetPolicy(decisionRequest);
             }
             catch (Exception)
             {
@@ -61,10 +64,10 @@ namespace Altinn.Platform.Authorization.Controllers
                 xacmlContextResponse = new XacmlContextResponse(result);
             }
 
-            if (request != null)
+            if (decisionRequest != null && policy != null)
             {
-                PolicyDecisionPoint pdp = new PolicyDecisionPoint(_contextHandler, _prp);
-                xacmlContextResponse = pdp.Authorize(request);
+                PolicyDecisionPoint pdp = new PolicyDecisionPoint();
+                xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
             }
 
             string accept = HttpContext.Request.Headers["Accept"];
