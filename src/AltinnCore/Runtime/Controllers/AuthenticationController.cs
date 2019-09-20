@@ -41,7 +41,11 @@ namespace AltinnCore.Runtime.Controllers
                 }
 
                 string token = await result.Content.ReadAsStringAsync();
-                HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token);
+
+                if (string.IsNullOrWhiteSpace(token))
+                {
+                    HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token);
+                }              
             }
 
             return Ok();
