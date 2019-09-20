@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
@@ -33,8 +34,13 @@ namespace AltinnCore.Runtime.Controllers
         {
             if (_settings.RuntimeMode != "AltinnStudio")
             {
-                HttpStatusCode result = await _authentication.RefreshToken();
-                return result == HttpStatusCode.OK ? Ok() : StatusCode((int)result);
+                HttpResponseMessage result = await _authentication.RefreshToken();
+                if (result.StatusCode != HttpStatusCode.OK)
+                {
+                    return StatusCode((int)result.StatusCode);
+                }
+
+                HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, result.Content.ToString());
             }
 
             return Ok();

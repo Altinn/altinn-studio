@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -11,6 +12,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Refreshes the AltinnStudioRuntime JwtToken.
         /// </summary>
-        Task<HttpStatusCode> RefreshToken();
+        /// <returns>Response message from Altinn Platform with refreshed token.</returns>
+        Task<HttpResponseMessage> RefreshToken();
     }
 }
