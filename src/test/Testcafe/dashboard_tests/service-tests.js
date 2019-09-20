@@ -27,9 +27,9 @@ fixture('Creating/Reading/Updating/Deleting services')
 test('Cannot create new app, as app name already exists', async () => {
   await t
     .click(dash.newServiceButton)
-    .click(dash.tjenesteEier)
-    .pressKey('enter')
-    .pressKey('down')
+    .click(dash.tjenesteEier)        
+    .expect(dash.serviceOwnerList.withText('Testdepartementet').exists).ok()
+    .click(dash.serviceOwnerList.withText('Testdepartementet'))
     .click(dash.tjenesteNavn)
     .typeText(dash.tjenesteNavn, t.ctx.existingService)
     .pressKey("tab")
