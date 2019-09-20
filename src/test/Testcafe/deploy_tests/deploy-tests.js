@@ -31,7 +31,7 @@ fixture('Deploy of app to a test environment tests')
 test('Happy case; deploy an app to a test environment after a change', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/uieditor')
-    await designer.deleteUIComponentsMethod(t);
+  await designer.deleteUIComponentsMethod(t);
   await t   
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
