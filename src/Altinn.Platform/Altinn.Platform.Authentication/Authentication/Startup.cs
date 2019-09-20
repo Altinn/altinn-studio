@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Altinn.Platform.Authentication.Configuration;
 using AltinnCore.Authentication.Constants;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Authentication
 {
@@ -41,6 +43,10 @@ namespace Altinn.Platform.Authentication
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            // Configure Authentication
+            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            SecurityKey key = new X509SecurityKey(cert);
+
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
@@ -48,12 +54,21 @@ namespace Altinn.Platform.Authentication
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                     {
                         options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                         options.Cookie.Name = "AltinnStudioRuntime";
                         options.Cookie.Domain = "at21.altinn.cloud";
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = key,
+                            ValidateIssuer = false,
+                            ValidateAudience = false,
+                            RequireExpirationTime = true,
+                            ValidateLifetime = true
+                        };
                     });
         }
 
@@ -73,6 +88,7 @@ namespace Altinn.Platform.Authentication
                 app.UseExceptionHandler("/Error");
             }
 
+            app.UseAuthentication();
             app.UseMvc();
         }
     }
