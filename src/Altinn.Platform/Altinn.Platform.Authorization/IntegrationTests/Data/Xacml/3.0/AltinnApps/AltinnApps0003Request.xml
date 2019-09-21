@@ -12,7 +12,7 @@
   </Attributes>
   <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action">
     <Attribute IncludeInResult="false" AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id">
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Sign</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">sign</AttributeValue>
     </Attribute>
   </Attributes>
   <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:environment" />

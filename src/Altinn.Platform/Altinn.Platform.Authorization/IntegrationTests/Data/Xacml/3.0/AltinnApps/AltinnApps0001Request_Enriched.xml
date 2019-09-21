@@ -5,8 +5,8 @@
       <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">1</AttributeValue>
     </Attribute>
     <Attribute IncludeInResult="false" AttributeId="urn:altinn:rolecode">
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DAGL</AttributeValue>
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">REGNA</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dagl</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regna</AttributeValue>
     </Attribute>
   </Attributes>
   <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource">
@@ -14,13 +14,13 @@
       <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">cbdc7b44-9442-4fe0-854b-da278bf0b0e</AttributeValue>
     </Attribute>
     <Attribute IncludeInResult="false" AttributeId="urn:altinn:org">
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SKD</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</AttributeValue>
     </Attribute>
     <Attribute IncludeInResult="false" AttributeId="urn:altinn:app">
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">TaxReport</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">taxreport</AttributeValue>
     </Attribute>
     <Attribute IncludeInResult="false" AttributeId="urn:altinn:task">
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">FormFilling</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">formfilling</AttributeValue>
     </Attribute>
     <Attribute IncludeInResult="false" AttributeId="urn:altinn:partyid">
       <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#integer">123456</AttributeValue>
@@ -28,7 +28,7 @@
   </Attributes>
   <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action">
     <Attribute IncludeInResult="false" AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id">
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Read</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
     </Attribute>
   </Attributes>
   <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:environment" />
