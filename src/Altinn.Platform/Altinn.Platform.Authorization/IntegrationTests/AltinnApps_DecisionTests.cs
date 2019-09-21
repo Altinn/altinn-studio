@@ -86,6 +86,51 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
 
+        [Fact]
+        public async Task PDP_Decision_AltinnApps0004()
+        {
+            string testCase = "AltinnApps0004";
+            HttpClient client = GetTestClient();
+            HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateXacmlRequest(testCase);
+            XacmlContextResponse expected = TestSetupUtil.ReadExpectedResponse(testCase);
+
+            // Act
+            XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
+            // Assert
+            AssertionUtil.AssertEqual(expected, contextResponse);
+        }
+
+        [Fact]
+        public async Task PDP_Decision_AltinnApps0005()
+        {
+            string testCase = "AltinnApps0005";
+            HttpClient client = GetTestClient();
+            HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateXacmlRequest(testCase);
+            XacmlContextResponse expected = TestSetupUtil.ReadExpectedResponse(testCase);
+
+            // Act
+            XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
+            // Assert
+            AssertionUtil.AssertEqual(expected, contextResponse);
+        }
+
+        [Fact]
+        public async Task PDP_Decision_AltinnApps0006()
+        {
+            string testCase = "AltinnApps0006";
+            HttpClient client = GetTestClient();
+            HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateXacmlRequest(testCase);
+            XacmlContextResponse expected = TestSetupUtil.ReadExpectedResponse(testCase);
+
+            // Act
+            XacmlContextResponse contextResponse = await TestSetupUtil.GetXacmlContextResponseAsync(client, httpRequestMessage);
+
+            // Assert
+            AssertionUtil.AssertEqual(expected, contextResponse);
+        }
+
         private HttpClient GetTestClient()
         {
             HttpClient client = _factory.WithWebHostBuilder(builder =>
