@@ -81,7 +81,7 @@ namespace AltinnCore.Common.Services.Implementation
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 Process = new ProcessState()
                 {
-                    CurrentTask = _workflow.GetInitialServiceState(org, appName).State.ToString(),
+                    CurrentTask = _workflow.GetInitialServiceState(org, app).State.ToString(),
                     IsComplete = false,
                 },
             };

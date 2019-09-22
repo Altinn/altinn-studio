@@ -61,7 +61,7 @@ namespace AltinnCore.Common.Services.Implementation
         [Obsolete("Method is deprecated, please use CreateInstance instead")]
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
-            string appName = startServiceModel.Service;
+            string app = startServiceModel.Service;
             string org = startServiceModel.Org;
             int instanceOwnerId = startServiceModel.PartyId;
 
@@ -70,12 +70,12 @@ namespace AltinnCore.Common.Services.Implementation
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 Process = new ProcessState()
                 {
-                    CurrentTask = _workflow.GetInitialServiceState(org, appName).State.ToString(),
+                    CurrentTask = _workflow.GetInitialServiceState(org, app).State.ToString(),
                     IsComplete = false,
                 },
             };
 
-            Instance instance = await CreateInstance(org, appName, instanceTemplate);
+            Instance instance = await CreateInstance(org, app, instanceTemplate);
 
             if (instance == null)
             {
