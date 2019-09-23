@@ -130,8 +130,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
-                FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();               
-
+                FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
                 if (!feedResponse.Any())
                 {
                     queryResponse.Count = 0;
@@ -208,7 +207,15 @@ namespace Altinn.Platform.Storage.Repository
 
                         case "process.isComplete":
                             bool isComplete = bool.Parse(queryValue);
-                            queryBuilder = queryBuilder.Where(i => i.Process.Ended != null);
+                            if (isComplete)
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Process.Ended != null);
+                            }
+                            else
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Process.Ended == null);
+                            }
+
                             break;
 
                         case "labels":
