@@ -90,7 +90,7 @@ namespace AltinnCore.Common.Services.Implementation
                             ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
                             : _settings.RepositoryLocation + serviceMetadata.Org.AsFileName();
 
-            string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName;
+            string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
 
             if (!Directory.Exists(serviceOrgPath))
             {
