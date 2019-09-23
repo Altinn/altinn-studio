@@ -90,6 +90,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
                 services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
+                services.AddSingleton<IApplication, ApplicationStudioSI>();
             }
             else
             {
@@ -106,6 +107,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
                 services.AddSingleton<IAuthorization, AuthorizationAppSI>();
+                services.AddSingleton<IApplication, ApplicationAppSI>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
