@@ -1,9 +1,8 @@
 #microsoft/dotnet:2.2-sdk
 FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a7633d0b374470 AS build
-WORKDIR Authentication/
+WORKDIR /Authentication
 
-COPY Authentication ./Authentication
-WORKDIR Authentication/
+COPY Authentication .
 
 RUN dotnet build Altinn.Platform.Authentication.csproj -c Release -o /app_output
 RUN dotnet publish Altinn.Platform.Authentication.csproj -c Release -o /app_output

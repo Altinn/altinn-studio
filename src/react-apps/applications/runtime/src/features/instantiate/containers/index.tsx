@@ -197,7 +197,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
     return (
       <>
         <AltinnAppHeader profile={profile} language={language}/>
-        {subscriptionHookValid === null && renderModalAndLoader()}
+        {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
         {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
       </>
     );

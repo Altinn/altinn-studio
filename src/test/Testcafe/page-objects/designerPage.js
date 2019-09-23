@@ -160,14 +160,14 @@ export default class DesignerPage {
 
   async deleteUIComponentsMethod (t) {
     var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable','true');
-    var numberOfComponents = await addedUIComponents.count;    
-    if (numberOfComponents > 0) {
-    for (var i = 0; i < numberOfComponents; i++) {
-      await t.hover(addedUIComponents.nth(i));
-      await t.click(addedUIComponents.nth(i));
-      }
-    await t.hover(this.removeComponentsButton.parent('button'));
-    await t.click(this.removeComponentsButton.parent('button'));
+    var numberOfComponents = await addedUIComponents.count;      
+    if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {      
+        for (var i = 0; i < numberOfComponents; i++) {
+          await t.hover(addedUIComponents.nth(i));
+          await t.click(addedUIComponents.nth(i));
+        }
+        await t.hover(this.removeComponentsButton.parent('button'));
+        await t.click(this.removeComponentsButton.parent('button'));            
     }
   }
 }

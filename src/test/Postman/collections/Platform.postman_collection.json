@@ -121,7 +121,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "\"01023102389\""
+							"raw": "\"{{SSN}}\""
 						},
 						"url": {
 							"raw": "{{platformUrl}}/register/api/v1/persons",
@@ -133,6 +133,214 @@
 								"api",
 								"v1",
 								"persons"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Party Id by SSN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "db2a3525-6d7c-447c-8254-497db124f622",
+								"exec": [
+									"pm.test(\"Platform - Register - Get Party Id by SSN - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(pm.response.text()).not.equal('');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\"{{SSN}}\""
+						},
+						"url": {
+							"raw": "{{platformUrl}}/register/api/v1/parties/lookup",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"lookup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Party Id by Org",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "db2a3525-6d7c-447c-8254-497db124f622",
+								"exec": [
+									"pm.test(\"Platform - Register - Get Party Id by Org - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    pm.expect(pm.response.text()).not.equal('');\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\"{{orgNr}}\""
+						},
+						"url": {
+							"raw": "{{platformUrl}}/register/api/v1/parties/lookup",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"lookup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Party info by SSN",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5019eb00-bfb3-4b33-a6a4-57884c85dd81",
+								"exec": [
+									"pm.test(\"Platform - Register - Get Party Info by SSN - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Platform - Register - Get Party Info by SSN - Content - 200\", function (){\r",
+									"   var response = pm.response.json();\r",
+									"   var ssnToCheck = pm.environment.get(\"SSN\");\r",
+									"   pm.expect(response.person.ssn).equal(ssnToCheck);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\"{{SSN}}\""
+						},
+						"url": {
+							"raw": "{{platformUrl}}/register/api/v1/parties/lookupobject",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"lookupobject"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Party info by Org",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "5019eb00-bfb3-4b33-a6a4-57884c85dd81",
+								"exec": [
+									"pm.test(\"Platform - Register - Get Party Info by SSN - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Platform - Register - Get Party Info by SSN - Content - 200\", function (){\r",
+									"   var response = pm.response.json();\r",
+									"   var orgToCheck = pm.environment.get(\"orgNr\");\r",
+									"   pm.expect(response.organization.orgNumber).equal(orgToCheck);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\"{{orgNr}}\""
+						},
+						"url": {
+							"raw": "{{platformUrl}}/register/api/v1/parties/lookupobject",
+							"host": [
+								"{{platformUrl}}"
+							],
+							"path": [
+								"register",
+								"api",
+								"v1",
+								"parties",
+								"lookupobject"
 							]
 						}
 					},

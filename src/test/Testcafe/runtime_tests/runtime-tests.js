@@ -133,6 +133,7 @@ test('Attachment dropdown and download on receipt page', async () => {
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .clearUpload(runtime.fileDropComponent)    
     .setFilesToUpload(runtime.fileDropComponent, [
       '../testdata/ServiceModel.xsd',
@@ -147,6 +148,7 @@ test('Attachment dropdown and download on receipt page', async () => {
   await t
     .expect(files.exists).ok()
     .expect(files.count).eql(5, {timeout: 180000})
+    .expect(runtime.saveButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 1000 })
     .click(runtime.saveButton)
     .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
     .click(runtime.sendInnButton)
