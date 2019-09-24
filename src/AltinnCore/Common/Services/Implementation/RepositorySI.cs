@@ -863,7 +863,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if the delete was a success</returns>
         public bool DeleteLanguage(string org, string app, string id)
         {
-            string filename = string.Format(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id.AsFileName()}.json";
+            string filename = string.Format(_settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id.AsFileName()}.json";
 
             bool deleted = false;
 
