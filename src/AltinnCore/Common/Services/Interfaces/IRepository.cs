@@ -16,28 +16,28 @@ namespace AltinnCore.Common.Services.Interfaces
     public interface IRepository : IServicePackageRepository
     {
         /// <summary>
-        /// Creates the ServiceModel based on XSD
+        /// Creates the service model based on XSD.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="serviceMetadata">The serviceMetadata to generate the model based on</param>
+        /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/> to generate the model based on.</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
         /// <returns>A boolean indicating the result</returns>
         bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd);
 
         /// <summary>
-        /// Method that creates serviceMetadata for a new app
+        /// Method that creates service metadata for a new app
         /// </summary>
-        /// <param name="serviceMetadata">The serviceMetadata</param>
-        /// <returns>A boolean indicating if creation of serviceMetadata went ok</returns>
+        /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/>.</param>
+        /// <returns>A boolean indicating if creation of service metadata went ok</returns>
         bool CreateServiceMetadata(ServiceMetadata serviceMetadata);
 
         /// <summary>
-        /// Returns the serviceMetadata for an app.
+        /// Returns the <see cref="ServiceMetadata"/> for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The serviceMetadata for an app.</returns>
+        /// <returns>The service metadata for an app.</returns>
         ServiceMetadata GetServiceMetaData(string org, string app);
 
         /// <summary>

@@ -27,7 +27,7 @@ namespace AltinnCore.Common.Services.Implementation
     using Microsoft.Extensions.Logging;
 
     /// <summary>
-    /// Implementation that handle functionality needed for executing a Altinn Core Application (Functional term)
+    /// App implementation of the execution service needed for executing an Altinn Core Application (Functional term).
     /// </summary>
     public class ExecutionAppSI : IExecution
     {
@@ -41,8 +41,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionAppSI"/> class.
         /// </summary>
-        /// <param name="settings">The ServiceRepositorySettings needed (set in startup.cs)</param>
-        /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
+        /// <param name="settings">The app repository settings.</param>
+        /// <param name="repositoryService">The repository service needed</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
         public ExecutionAppSI(

@@ -11,11 +11,11 @@ namespace AltinnCore.Common.Services.Interfaces
     public interface IServicePackageRepository
     {
         /// <summary>
-        /// Gets all ServicePackageDetails for the given app
+        /// Gets all <see cref="ServicePackageDetails"/> for the given app
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>A list of all the ServicePackageDetails for the given app</returns>
+        /// <returns>A list of all the <see cref="ServicePackageDetails"/> for the given app</returns>
         IList<ServicePackageDetails> GetServicePackages(string org, string app);
     }
 }

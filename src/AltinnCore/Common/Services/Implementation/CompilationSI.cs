@@ -27,7 +27,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation responsible for compiling the code for an app. This includes the app implementation and the app
+    /// Implementation of the compilation service. the code for an app. This includes the app implementation and the app
     /// model classes
     /// </summary>
     public class CompilationSI : Interfaces.ICompilation
@@ -47,7 +47,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="configuration">The configuration.</param>
         /// <param name="partManager">The part manager.</param>
         /// <param name="compilationService">The compilation service.</param>
-        /// <param name="repositoryService">The app repository service.</param>
+        /// <param name="repositoryService">The repository service.</param>
         /// <param name="logger">The logger.</param>
         /// <param name="httpContextAccessor">the http context accessor.</param>
         public CompilationSI(
@@ -113,7 +113,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates the app assembly for an app.
+        /// Creates the assembly for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -266,7 +266,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Read all source documents for a given app and put it in a syntax tree array.
+        /// Read all source code for a given app and put it in a syntax tree array.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>

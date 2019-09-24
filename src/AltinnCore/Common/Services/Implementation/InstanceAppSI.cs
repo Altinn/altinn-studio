@@ -25,7 +25,7 @@ using Storage.Interface.Models;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation that handles instance functionality
+    /// App implementation of the instance service.
     /// </summary>
     public class InstanceAppSI : IInstance
     {

@@ -22,7 +22,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// implementation for data handling
+    /// App implementation of the data handling service.
     /// </summary>
     public class DataAppSI : IData
     {

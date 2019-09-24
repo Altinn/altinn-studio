@@ -26,7 +26,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation that handle functionality needed for executing an Altinn Core Application (Functional term)
+    /// Studio implementation of the execution service needed for executing an Altinn Core Application (Functional term).
     /// </summary>
     public class ExecutionStudioSI : IExecution
     {
@@ -38,9 +38,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionStudioSI"/> class
         /// </summary>
-        /// <param name="settings">The ServiceRepositorySettings needed (set in startup.cs)</param>
-        /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
-        /// <param name="compilationService">The compilation service needed (set in startup.cs)</param>
+        /// <param name="settings">The app repository settings.</param>
+        /// <param name="repositoryService">The repository service needed</param>
+        /// <param name="compilationService">The compilation service needed</param>
         /// <param name="partManager">The part manager</param>
         /// <param name="hostingEnvironment">the hosting environment</param>
         public ExecutionStudioSI(

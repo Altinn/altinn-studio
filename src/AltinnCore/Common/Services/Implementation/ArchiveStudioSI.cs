@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for archive
+    /// Studio implementation of the archive service.
     /// </summary>
     public class ArchiveStudioSI : IArchive
     {

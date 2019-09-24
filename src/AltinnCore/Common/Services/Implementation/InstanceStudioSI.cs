@@ -21,7 +21,7 @@ using Task = System.Threading.Tasks.Task;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation that handles instance functionality for saving in disk
+    /// Studio implementation of the instance service, for saving to and retrieving from disk.
     /// </summary>
     public class InstanceStudioSI : IInstance
     {

@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implmentation for source control
+    /// Implementation of the source control service.
     /// </summary>
     public class SourceControlSI : ISourceControl
     {

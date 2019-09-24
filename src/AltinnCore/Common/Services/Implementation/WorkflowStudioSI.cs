@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation that handles workflow functionality
+    /// Studio implementation of the workflow service.
     /// </summary>
     public class WorkflowStudioSI : IWorkflow
     {

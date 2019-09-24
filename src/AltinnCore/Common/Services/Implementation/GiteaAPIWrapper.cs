@@ -19,7 +19,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for gitea wrapper
+    /// Implementation of the gitea wrapper service.
     /// </summary>
     public class GiteaAPIWrapper : IGitea
     {

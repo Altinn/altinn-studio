@@ -19,7 +19,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation that handles test data functionality
+    /// App implementation of the test data service.
     /// </summary>
     public class TestdataAppSI : ITestdata
     {

@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation that handles form functionality
+    /// Implementation of the form service.
     /// </summary>
     public class FormStudioSI : IForm
     {

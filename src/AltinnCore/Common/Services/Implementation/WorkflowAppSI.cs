@@ -22,7 +22,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for workflow functionality for deployed application
+    /// App implementation of the workflow service for deployed application.
     /// </summary>
     public class WorkflowAppSI : IWorkflow
     {

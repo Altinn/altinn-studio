@@ -29,7 +29,7 @@ using Newtonsoft.Json.Linq;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation that handles functionality needed for creating and updating apps in AltinnCore
+    /// Implementation of the repository service needed for creating and updating apps in AltinnCore.
     /// </summary>
     public class RepositorySI : Interfaces.IRepository
     {
@@ -74,11 +74,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Method that creates serviceMetadata for a new app
+        /// Method that creates service metadata for a new app
         /// </summary>
-        /// <param name="serviceMetadata">The serviceMetadata</param>
-        /// <returns>A boolean indicating if creation of serviceMetadata went ok</returns>
-        #region Service metadata
+        /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/></param>
+        /// <returns>A boolean indicating if creation of service metadata went ok</returns>
+        #region Service metadata0
         public bool CreateServiceMetadata(ServiceMetadata serviceMetadata)
         {
             string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
@@ -341,11 +341,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the serviceMetadata for an app.
+        /// Returns the <see cref="ServiceMetadata"/> for an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The serviceMetadata for an app.</returns>
+        /// <returns>The service metadata for an app.</returns>
         public ServiceMetadata GetServiceMetaData(string org, string app)
         {
             string filedata = string.Empty;
@@ -932,7 +932,7 @@ namespace AltinnCore.Common.Services.Implementation
                     return false;
                 }
 
-                // Create the .json file for the model
+                // Create the json schema file for the model
                 try
                 {
                     XsdToJsonSchema xsdToJsonSchemaConverter;
@@ -990,11 +990,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gets the content of the ServiceModel as string
+        /// Gets the content of the service model as string.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>ServiceModel content</returns>
+        /// <returns>Service model content.</returns>
         public string GetServiceModel(string org, string app)
         {
             string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
