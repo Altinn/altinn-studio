@@ -31,7 +31,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly ILogger _logger;
         private readonly IAuthorization _authorization;
         private readonly UserHelper _userHelper;
-        private readonly IRepository _repository;
+        private readonly IApplication _application;
         private readonly IProfile _profile;
         private readonly GeneralSettings _settings;
 
@@ -41,7 +41,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="authorization">the authorization service handler</param>
         /// <param name="profileService">the profile service</param>
         /// <param name="registerService">the register service</param>
-        /// <param name="repository">The repository service</param>
+        /// <param name="application">The repository service</param>
         /// <param name="settings">The general settings</param>
         /// </summary>
         public PartiesController(
@@ -49,13 +49,13 @@ namespace AltinnCore.Runtime.Controllers
                     IAuthorization authorization,
                     IProfile profileService,
                     IRegister registerService,
-                    IRepository repository,
+                    IApplication application,
                     IOptions<GeneralSettings> settings)
         {
             _logger = logger;
             _authorization = authorization;
             _userHelper = new UserHelper(profileService, registerService, settings);
-            _repository = repository;
+            _application = application;
             _profile = profileService;
             _settings = settings.Value;
         }
@@ -68,14 +68,14 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="allowedToInstantiateFilter">when set to true returns parties that are allowed to instantiate</param>
         /// <returns>parties</returns>
         [HttpGet("{org}/{app}/api/v1/parties")]
-        public IActionResult Get(string org, string app, bool allowedToInstantiateFilter = false)
+        public async Task<IActionResult> Get(string org, string app, bool allowedToInstantiateFilter = false)
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
 
             if (allowedToInstantiateFilter)
             {
-                Application application = _repository.GetApplication(org, app);
+                Application application = await _application.GetApplication(org, app);
                 List<Party> validParties = InstantiationHelper.FilterPartiesByAllowedPartyTypes(partyList, application.PartyTypesAllowed);
                 return Ok(validParties);
             }
@@ -91,12 +91,12 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="partyId">The selected partyId</param>
         /// <returns>A validation status</returns>
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]
-        public IActionResult ValidateInstantiation(string org, string app, [FromQuery] int partyId)
+        public async Task<IActionResult> ValidateInstantiation(string org, string app, [FromQuery] int partyId)
         {
             UserContext userContext = _userHelper.GetUserContext(HttpContext).Result;
             UserProfile user = _profile.GetUserProfile(userContext.UserId).Result;
             List<Party> partyList = _authorization.GetPartyList(userContext.UserId);
-            Application application = _repository.GetApplication(org, app);
+            Application application = await _application.GetApplication(org, app);
 
             if (application == null)
             {
