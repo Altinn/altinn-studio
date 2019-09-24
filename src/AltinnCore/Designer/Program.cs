@@ -75,7 +75,7 @@ namespace AltinnCore.Designer
                     try
                     {
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
-                            keyVaultEndpoint, "ApplicationInsightsStudio--InstrumentationKey").Result;
+                            keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
                         SetTelemetry(secretBundle.Value);
                     }
                     catch (Exception vaultException)
@@ -98,7 +98,7 @@ namespace AltinnCore.Designer
 
         private static void SetTelemetry(string instrumentationKey)
         {
-            logger.Information($"Setting application insights telemetry with instrumationKey='{instrumentationKey}'");
+            logger.Information($"Setting application insights telemetry with instrumentationKey='{instrumentationKey}'");
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
