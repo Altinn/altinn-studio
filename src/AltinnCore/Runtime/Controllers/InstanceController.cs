@@ -31,6 +31,7 @@ namespace AltinnCore.Runtime.Controllers
     public class InstanceController : Controller
     {
         private readonly IRepository _repository;
+        private readonly IApplication _application;
         private readonly IAuthorization _authorization;
         private readonly IRegister _register;
         private readonly IProfile _profile;
@@ -72,6 +73,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="eventSI">the instance event service handler</param>
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
+        /// <param name="application">the application service handler</param>
         /// <param name="repositorySettings">the repository settings</param>
         /// <param name="generalSettings">the general settings</param>
         public InstanceController(
@@ -91,6 +93,7 @@ namespace AltinnCore.Runtime.Controllers
             IInstanceEvent eventSI,
             IPlatformServices platformSI,
             IData dataSI,
+            IApplication application,
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings)
         {
@@ -111,6 +114,7 @@ namespace AltinnCore.Runtime.Controllers
             _event = eventSI;
             _platformSI = platformSI;
             _data = dataSI;
+            _application = application;
             _settings = repositorySettings.Value;
             _generalSettings = generalSettings.Value;
         }
@@ -307,9 +311,9 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.UserContext.Party = await _register.GetParty(startServiceModel.PartyId);
             requestContext.Party = requestContext.UserContext.Party;
 
-            // Checks if the reportee is allowed to initiate the application
-            Application application = _repository.GetApplication(startServiceModel.Org, startServiceModel.Service);
-            if (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Party, application.PartyTypesAllowed))
+            // Checks if the reportee is allowed to instantiate the application
+            Application application = await _application.GetApplication(startServiceModel.Org, startServiceModel.Service);
+            if (application == null || (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Party, application.PartyTypesAllowed)))
             {
                  return new StatusCodeResult(403);
             }
