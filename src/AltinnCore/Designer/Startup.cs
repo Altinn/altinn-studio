@@ -74,6 +74,7 @@ namespace AltinnCore.Designer
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton<ITestdata, TestdataStudioSI>();
+            services.AddSingleton<IApplication, ApplicationStudioSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

@@ -87,7 +87,7 @@ namespace AltinnCore.Common.Services.Implementation
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             serviceOrgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org
+                            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
                             : _settings.RepositoryLocation + serviceMetadata.Org.AsFileName();
 
             string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName;
@@ -434,7 +434,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The resource file content</returns>
         public string GetResource(string org, string app, string id)
         {
-            string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
+            string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
+
             string filedata = null;
 
             if (File.Exists(filename))
@@ -862,7 +863,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if the delete was a success</returns>
         public bool DeleteLanguage(string org, string app, string id)
         {
-            string filename = string.Format(_settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id}.json";
+            string filename = string.Format(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id.AsFileName()}.json";
+
             bool deleted = false;
 
             if (File.Exists(filename))
@@ -1168,6 +1170,9 @@ namespace AltinnCore.Common.Services.Implementation
 
                 string directoryPath = null;
 
+                org = org.AsFileName();
+                service = service.AsFileName();
+
                 directoryPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
                                 ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}/{developerUserName}/{org}"
                                 : $"{_settings.RepositoryLocation}/{developerUserName}/{org}";
@@ -1308,6 +1313,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         public void CreateAndCloneOrgCodeLists(string org)
         {
+            org = org.AsFileName();
+
             try
             {
                 string localServiceRepoFolder =
@@ -1415,6 +1422,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if the code list was successfully saved</returns>
         public bool SaveCodeList(string org, string app, string name, string codelist)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            name = name.AsFileName();
+
             try
             {
                 string filePath =
@@ -1449,6 +1460,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if the Code List was deleted</returns>
         public bool DeleteCodeList(string org, string app, string name)
         {
+            org = org.AsFileName();
+            service = service.AsFileName();
+            name = name.AsFileName();
+
             try
             {
                 string filePath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
