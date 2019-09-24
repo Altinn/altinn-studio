@@ -9,6 +9,7 @@ import FormValidationActions from '../../../validation/actions';
 import FormDataActions from '../../actions';
 import * as FormDataActionTypes from '../../actions/types';
 import { IUpdateFormData } from '../../actions/update';
+import FormDynamicActions from '../../../dynamics/actions';
 
 function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): SagaIterator {
   try {
@@ -26,6 +27,7 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
       yield call(FormDataActions.updateFormDataFulfilled, field, data);
     }
     yield call(FormValidationActions.updateComponentValidations, componentValidations, componentId);
+    yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
   } catch (err) {
     console.error(err);
     yield call(FormDataActions.updateFormDataRejected, err);
