@@ -1,13 +1,17 @@
+using System;
 using System.IO;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Extensions.Logging;
 
 namespace AltinnCore.Designer
@@ -17,6 +21,10 @@ namespace AltinnCore.Designer
     /// </summary>
     public static class Program
     {
+        private static Logger logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
+
         /// <summary>
         /// The main method
         /// </summary>
@@ -63,6 +71,17 @@ namespace AltinnCore.Designer
                             azureServiceTokenProvider.KeyVaultTokenCallback));
                     config.AddAzureKeyVault(
                         keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+
+                    try
+                    {
+                        SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
+                            keyVaultEndpoint, "ApplicationInsightsStudio--InstrumentationKey").Result;
+                        SetTelemetry(secretBundle.Value);
+                    }
+                    catch (Exception vaultException)
+                    {
+                        logger.Error($"Could not find secretBundle for application insights {vaultException}");
+                    }
                 }
             })
             .ConfigureLogging((hostingContext, logging) =>
@@ -76,5 +95,14 @@ namespace AltinnCore.Designer
             })
                 .UseStartup<Startup>()
                 .CaptureStartupErrors(true);
+
+        private static void SetTelemetry(string instrumentationKey)
+        {
+            logger.Information($"Setting application insights telemetry with instrumationKey='{instrumentationKey}'");
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+            }
+        }
     }
 }
