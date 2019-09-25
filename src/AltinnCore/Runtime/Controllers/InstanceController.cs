@@ -356,8 +356,7 @@ namespace AltinnCore.Runtime.Controllers
                 UserId = requestContext.UserContext.UserId
             };
             string prefillConfiguration = _repository.GetJsonFile(startServiceModel.Org, startServiceModel.Service, "prefill.json");
-            _logger.LogInformation(prefillConfiguration);
-            await _prefill.PrefillDataModel(prefillConfiguration, _register, _profile, prefillContext);
+            await _prefill.PrefillDataModel(prefillConfiguration, _register, _profile, prefillContext, serviceModel);
 
             // Run Instansiation event
             await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
