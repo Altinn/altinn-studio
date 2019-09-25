@@ -17,7 +17,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Runtime", "src\AltinnCore\Runtime\AltinnCore.Runtime.csproj", "{05798ABD-2FDC-48B4-8D69-780A0A4D4977}"
 	ProjectSection(ProjectDependencies) = postProject
 		{3AA4860C-E86B-488F-AE89-B0A28BC1F701} = {3AA4860C-E86B-488F-AE89-B0A28BC1F701}
-		{D9F6DAB7-E921-44B6-A1A6-5796DCAE0D07} = {D9F6DAB7-E921-44B6-A1A6-5796DCAE0D07}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.RepositoryClient", "src\AltinnCore\RepositoryClient\AltinnCore.RepositoryClient.csproj", "{D643F218-0EEA-45A0-88E5-36D077B758A8}"

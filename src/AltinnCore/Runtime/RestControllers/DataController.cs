@@ -143,17 +143,30 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
-        /// <param name="elementType">identifies the type of the data element that should be returned</param>
         /// <param name="dataGuid">unique id to identify the data element to get</param>
-        [HttpGet("{elementType}/{dataGuid:guid?}")]
+        [HttpGet("{dataGuid:guid?}")]
         public async Task<ActionResult> GetSomething(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid,
-            [FromRoute] string elementType = "default",
             [FromRoute] Guid dataGuid = default(Guid))
         {
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            if (instance == null)
+            {
+                return NotFound("Did not find instance");
+            }
+
+            DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
+
+            if (dataElement == null)
+            {
+                return NotFound("Did not find data element");
+            }
+
+            string elementType = dataElement.ElementType;
+
             bool? appLogic = await RequiresAppLogic(org, app, elementType);
 
             if (appLogic == null)
