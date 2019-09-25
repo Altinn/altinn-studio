@@ -22,7 +22,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// workflow Service implementation for deployed application
+    /// App implementation of the workflow service for deployed application.
     /// </summary>
     public class WorkflowAppSI : IWorkflow
     {
@@ -63,21 +63,21 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState GetInitialServiceState(string org, string appName)
+        public ServiceState GetInitialServiceState(string org, string app)
         {            
             // Read the workflow template
-            string workflowData = File.ReadAllText(_settings.GetWorkflowPath(org, appName, null) + _settings.WorkflowFileName, Encoding.UTF8);
+            string workflowData = File.ReadAllText(_settings.GetWorkflowPath(org, app, null) + _settings.WorkflowFileName, Encoding.UTF8);
             return WorkflowHelper.GetInitialWorkflowState(workflowData);
         }
 
         /// <inheritdoc/>
-        public string GetUrlForCurrentState(Guid instanceId, string org, string appName, WorkflowStep currentState)
+        public string GetUrlForCurrentState(Guid instanceId, string org, string app, WorkflowStep currentState)
         {
-            return WorkflowHelper.GetUrlForCurrentState(instanceId, org, appName, currentState);
+            return WorkflowHelper.GetUrlForCurrentState(instanceId, org, app, currentState);
         }
 
         /// <inheritdoc/>
-        public ServiceState GetCurrentState(Guid instanceId, string org, string appName, int instanceOwnerId)
+        public ServiceState GetCurrentState(Guid instanceId, string org, string app, int instanceOwnerId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             Instance instance;
@@ -106,10 +106,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string org, string appName, int instanceOwnerId)
+        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string org, string app, int instanceOwnerId)
         {
-            ServiceState currentState = GetCurrentState(instanceId, org, appName, instanceOwnerId);
-            string workflowData = File.ReadAllText(_settings.GetWorkflowPath(org, appName, null) + _settings.WorkflowFileName, Encoding.UTF8);
+            ServiceState currentState = GetCurrentState(instanceId, org, app, instanceOwnerId);
+            string workflowData = File.ReadAllText(_settings.GetWorkflowPath(org, app, null) + _settings.WorkflowFileName, Encoding.UTF8);
             return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }
     }
