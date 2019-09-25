@@ -310,7 +310,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             JObject jsonObject = JObject.Parse(json);
 
             int totalHits = jsonObject["totalHits"].Value<int>();
-            Assert.True(totalHits > 1000);
+            Assert.True(totalHits >= 1000);
 
             List<Instance> instances = jsonObject["instances"].ToObject<List<Instance>>();
             Assert.True(instances.Count >= 100);

@@ -237,8 +237,12 @@ namespace AltinnCore.Runtime.RestControllers
             // set initial task
             instanceTemplate.Process = instanceTemplate.Process ?? new ProcessState()
             {
-                CurrentTask = processService.GetInitialServiceState(org, app).State.ToString(),
-                IsComplete = false,
+                Started = DateTime.UtcNow,
+                CurrentTask = new TaskInfo
+                {
+                    Started = DateTime.UtcNow,
+                    ProcessElementId = processService.GetInitialServiceState(org, app).State.ToString(),
+                }
             };
 
             Instance instance = await instanceService.CreateInstance(org, app, instanceTemplate);           
@@ -422,7 +426,7 @@ namespace AltinnCore.Runtime.RestControllers
                 InstanceId = instance.Id,
                 InstanceOwnerId = instance.InstanceOwnerId,
                 UserId = userId,
-                WorkflowStep = instance.Process?.CurrentTask,
+                WorkflowStep = instance.Process?.CurrentTask?.ProcessElementId,
             };
 
             await eventService.SaveInstanceEvent(instanceEvent, instance.Org, app);

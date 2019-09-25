@@ -70,8 +70,11 @@ namespace AltinnCore.Common.Services.Implementation
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 Process = new ProcessState()
                 {
-                    CurrentTask = _workflow.GetInitialServiceState(org, appName).State.ToString(),
-                    IsComplete = false,
+                    CurrentTask = new TaskInfo
+                    {
+                        Started = DateTime.UtcNow,
+                        ProcessElementId = _workflow.GetInitialServiceState(org, appName).State.ToString(),
+                    }
                 },
             };
 
@@ -181,9 +184,10 @@ namespace AltinnCore.Common.Services.Implementation
 
             Instance instance = await GetInstance(appName, org, instanceOwnerId, instanceId);
 
-            instance.Process = instance.Process ?? new Storage.Interface.Models.ProcessState();
-            instance.Process.IsComplete = true;
-            instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
+            instance.Process = instance.Process ?? new ProcessState();
+            instance.Process.CurrentTask = instance.Process.CurrentTask ?? new TaskInfo();
+            instance.Process.CurrentTask.ProcessElementId = WorkflowStep.Archived.ToString();
+            instance.Process.Ended = DateTime.UtcNow;
 
             instance.InstanceState = instance.InstanceState ?? new Storage.Interface.Models.InstanceState();
             instance.InstanceState.IsArchived = true;

@@ -468,7 +468,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                createdInstance.Process = new ProcessState { CurrentTask = StepType.FormFilling.ToString(), IsComplete = false };
+                createdInstance.Process = new ProcessState();
             }
 
             return createdInstance;

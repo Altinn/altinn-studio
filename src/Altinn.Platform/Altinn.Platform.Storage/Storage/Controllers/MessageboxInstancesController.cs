@@ -27,6 +27,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// Initializes a new instance of the <see cref="MessageBoxInstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
+        /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         public MessageBoxInstancesController(
             IInstanceRepository instanceRepository,

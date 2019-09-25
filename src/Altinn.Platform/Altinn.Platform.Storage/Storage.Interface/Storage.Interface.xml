@@ -339,6 +339,16 @@
             If null or empty all content types are allowed.
             </summary>
         </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.AppLogic">
+            <summary>
+            Does the data element require application logic or should it be streamed directly to storage.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.Task">
+            <summary>
+            A reference to the process element id of the task where this data element should be updated.
+            </summary>
+        </member>
         <member name="P:Altinn.Platform.Storage.Models.ElementType.MaxSize">
             <summary>
             Maximum allowed size of the file in bytes. If missing there is no limit on file size.
@@ -841,24 +851,24 @@
             Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 
             </summary>
         </member>
+        <member name="P:Storage.Interface.Models.ProcessState.Started">
+            <summary>
+            Indicates the date and time when the process was initialized
+            </summary>
+        </member>
         <member name="P:Storage.Interface.Models.ProcessState.CurrentTask">
             <summary>
-            Refers to the current task id of an ongoing process. If process is completed or is in error it will not have value. 
+            Contains the task info of the currentTask of an ongoing process. If process is ended/completed it will not have value. 
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.ProcessState.IsComplete">
+        <member name="P:Storage.Interface.Models.ProcessState.Ended">
             <summary>
-            If process is completed and in a valid end state the value is true, otherwise false or not present. 
+            The date time the process was ended/completed. 
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.ProcessState.IsInError">
+        <member name="P:Storage.Interface.Models.ProcessState.EndEvent">
             <summary>
-            If process has reached an error end event this value is true.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.ProcessState.EndState">
-            <summary>
-            Refers to the id of an end state of the process. If the process is completed it should be a valid end state. If process is in error it should be a valid error end event.
+            Refers to the id of the reached end event of the process. 
             </summary>
         </member>
         <member name="T:Storage.Interface.Models.ResourceLinks">
@@ -874,6 +884,51 @@
         <member name="P:Storage.Interface.Models.ResourceLinks.Platform">
             <summary>
             platform resource link
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.TaskInfo">
+            <summary>
+            Contains information about the current task of a process
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.TaskInfo.SequenceNumber">
+            <summary>
+            The sequence number of the various tasks and events that have been reached by this process.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.TaskInfo.Started">
+            <summary>
+            Date and time when the task is started.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.TaskInfo.ProcessElementId">
+            <summary>
+            Reference to the current Task/event in the process definition.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.TaskInfo.AltinnTaskType">
+            <summary>
+            An altinn specific task type which specifies the wanted behaviour of the task.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.TaskInfo.Validated">
+            <summary>
+            Validation status.
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.ValidationStatus">
+            <summary>
+            Validation status section.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ValidationStatus.Timestamp">
+            <summary>
+            The date and time of the last validation of task.
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ValidationStatus.CanCompleteTask">
+            <summary>
+            Indicates if the validation was successfull and that the task can be completed.
             </summary>
         </member>
     </members>
