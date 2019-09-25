@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 
-using Altinn.Process.Workflow;
+using Altinn.Process.Elements;
 
 using Xunit;
 

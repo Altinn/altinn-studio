@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace Altinn.Process.Workflow
+namespace Altinn.Process.Elements
 {
     /// <summary>
     /// Class representing the process of a workflow

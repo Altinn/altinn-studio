@@ -1,6 +1,6 @@
 using System;
 
-namespace Altinn.Process.Workflow
+namespace Altinn.Process.Elements
 {
     /// <summary>
     /// Represents information about an element in a BPMN description.

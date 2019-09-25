@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace Altinn.Process.Workflow
+namespace Altinn.Process.Elements
 {
     /// <summary>
     /// Class representing the task of a process

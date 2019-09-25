@@ -1,14 +1,14 @@
 using System.Xml.Serialization;
 
-namespace Altinn.Process.Workflow
+namespace Altinn.Process.Elements
 {
     /// <summary>
-    /// Class representing the end event of a process
+    /// Class representing the start event of a process
     /// </summary>
-    public class EndEvent
+    public class StartEvent
     {
         /// <summary>
-        /// Gets or sets the ID of a end event
+        /// Gets or sets the ID of the start event of a process
         /// </summary>
         [XmlAttribute("id")]
         public string Id { get; set; }
@@ -20,9 +20,9 @@ namespace Altinn.Process.Workflow
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the incoming id of a end event
+        /// Gets or sets the outgoing id of the start event of a process
         /// </summary>
-        [XmlElement("incoming")]
-        public string Incoming { get; set; }
+        [XmlElement("outgoing")]
+        public string Outgoing { get; set; }
     }
 }
