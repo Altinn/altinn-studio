@@ -93,6 +93,7 @@ namespace AltinnCore.Designer
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
+                .UseApplicationInsights()
                 .UseStartup<Startup>()
                 .CaptureStartupErrors(true);
 
