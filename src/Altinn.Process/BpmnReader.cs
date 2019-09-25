@@ -104,13 +104,28 @@ namespace Altinn.Process
 
             List<string> elementIds = new List<string>();
 
+            string currentStepId = null;
             ProcessTask currentTask = definitions.Process.Tasks.Find(task => task.Id == elementId);
-            if (currentTask == null)
+            if (currentTask != null)
             {
-                throw new ProcessException($"Unable to find a task using the element id {elementId}.");
+                currentStepId = currentTask.Id;
             }
 
-            foreach (SequenceFlow sequenceFlow in definitions.Process.SequenceFlow.FindAll(s => s.SourceRef == currentTask.Id))
+            if (currentStepId == null)
+            {
+                StartEvent startEvent = definitions.Process.StartEvents.Find(se => se.Id == elementId);
+                if (startEvent != null)
+                {
+                    currentStepId = startEvent.Id;
+                }
+            }
+
+            if (currentStepId == null)
+            {
+                throw new ProcessException($"Unable to find a start event or task using element id {elementId}.");
+            }
+
+            foreach (SequenceFlow sequenceFlow in definitions.Process.SequenceFlow.FindAll(s => s.SourceRef == currentStepId))
             {
                 ProcessTask task = definitions.Process.Tasks.Find(t => t.Id == sequenceFlow.TargetRef);
                 if (task != null)

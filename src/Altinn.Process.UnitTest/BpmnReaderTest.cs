@@ -235,6 +235,31 @@ namespace Altinn.Process.UnitTest
         /// <summary>
         /// Scenario:
         ///   Initialized with a process that has two start events, two tasks and two end events.
+        ///   Attempt to determine correct task based on the id of a start event.
+        /// Expected result:
+        ///   Method returns successfully
+        /// Success criteria:
+        ///   Returned value match the expected task.
+        /// </summary>
+        [Fact]
+        public void NextElements_AskForNextStepFromStartEvent_ReturnsNextTaskId()
+        {
+            // Arrange
+            string definitions = LoadResourceAsString("Altinn.Process.UnitTest.TestData.multiple_events.bpmn");
+            BpmnReader target = BpmnReader.Create(definitions);
+
+            // Act
+            List<string> actual = target.NextElements("StartEvent_0mau26i");
+
+            // Assert
+            Assert.NotNull(actual);
+            Assert.Single(actual);
+            Assert.Equal("Task_14svrga", actual[0]);
+        }
+
+        /// <summary>
+        /// Scenario:
+        ///   Initialized with a process that has two start events, two tasks and two end events.
         ///   Ask for next element giving in the id of last task
         /// Expected result:
         ///   Method returns successfully.
