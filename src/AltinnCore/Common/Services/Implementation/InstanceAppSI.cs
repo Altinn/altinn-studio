@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -11,9 +10,7 @@ using AltinnCore.Authentication.Utils;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
@@ -22,11 +19,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Storage.Interface.Clients;
+using Storage.Interface.Models;
 
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for instance
+    /// App implementation of the instance service.
     /// </summary>
     public class InstanceAppSI : IInstance
     {
@@ -67,55 +66,55 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
+        [Obsolete("Method is deprecated, please use CreateInstance instead")]
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
             Guid instanceId;
             Instance instance = null;
             string org = startServiceModel.Org;
-            string appId = ApplicationHelper.GetFormattedApplicationId(org, startServiceModel.Service);
-            string appName = startServiceModel.Service;
+            string app = startServiceModel.Service;
+            string appId = ApplicationHelper.GetFormattedApplicationId(org, app);
             int instanceOwnerId = startServiceModel.PartyId;
 
-            string apiUrl = $"instances/?appId={appId}&instanceOwnerId={instanceOwnerId}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
-
-            try
+            Instance instanceTemplate = new Instance()
             {
-                HttpResponseMessage response = await _client.PostAsync(apiUrl, new StringContent("{}", Encoding.UTF8, "application/json"));
-                Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
-                instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
-            }
-            catch
+                InstanceOwnerId = instanceOwnerId.ToString(),
+                Process = new ProcessState()
+                {
+                    Started = DateTime.UtcNow,
+                    CurrentTask = new TaskInfo
+                    {
+                        Started = DateTime.UtcNow,
+                        ProcessElementId = _workflow.GetInitialServiceState(org, app).State.ToString(),
+                    }
+                },
+            };
+
+            Instance createdInstance = await CreateInstance(org, appId, instanceTemplate);
+
+            if (createdInstance == null)
             {
-                return instance;
+                return null;
             }
 
+            instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
+           
             // Save instantiated form model
             instance = await _data.InsertData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
-                appName,
+                app,
                 instanceOwnerId);
 
-            ServiceState currentState = _workflow.GetInitialServiceState(org, appName);
-
-            // set initial workflow state
-            instance.Process = new Storage.Interface.Models.ProcessState()
-            {
-                CurrentTask = currentState.State.ToString(),
-                IsComplete = false,
-            };
-
-            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
 
             return instance;
         }
 
         /// <inheritdoc />
-        public async Task<Instance> GetInstance(string appName, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
 
@@ -142,12 +141,12 @@ namespace AltinnCore.Common.Services.Implementation
 
         /// <inheritdoc />
         /// TODO - fix logic, what are you using this for? It will only get instances for a instance owners the way storage is implemented now
-        public async Task<List<Instance>> GetInstances(string appName, string org, int instanceOwnerId)
+        public async Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerId)
         {
             List<Instance> instances = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            appName = ApplicationHelper.GetFormattedApplicationId(org, appName);
-            string apiUrl = $"instances?instanceOwnerId={instanceOwnerId}&appId={appName}";
+            string appId = ApplicationHelper.GetFormattedApplicationId(org, app);
+            string apiUrl = $"instances?instanceOwnerId={instanceOwnerId}&appId={appId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -170,7 +169,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> UpdateInstance(object dataToSerialize, string appName, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> UpdateInstance(object dataToSerialize, string app, string org, int instanceOwnerId, Guid instanceId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             Instance instance = new Instance();
@@ -195,15 +194,42 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string appName, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string app, string org, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance = GetInstance(appName, org, instanceOwnerId, instanceId).Result;
+            Instance instance = GetInstance(app, org, instanceOwnerId, instanceId).Result;
 
-            instance.Process.IsComplete = true;
-            instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
+            instance.Process.Ended = DateTime.UtcNow;
+            instance.Process.CurrentTask = new TaskInfo
+            {
+                ProcessElementId = WorkflowStep.Archived.ToString(),
+            };
 
-            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
+            instance.InstanceState.IsArchived = true;
+            instance.InstanceState.ArchivedDateTime = DateTime.UtcNow;
+
+            instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
             return instance;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
+        {
+            string apiUrl = $"instances?appId={app}&instanceOwnerId={instanceTemplate.InstanceOwnerId}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            try
+            {
+                StringContent content = instanceTemplate.AsJson();
+                HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+                Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
+
+                return createdInstance;
+            }
+            catch
+            {                
+                return null;
+            }
         }
     }
 }

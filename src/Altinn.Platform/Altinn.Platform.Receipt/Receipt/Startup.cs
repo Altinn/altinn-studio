@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -71,6 +72,26 @@ namespace Altinn.Platform.Receipt
         /// <param name="env">the hosting environment.</param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            string runtimeMode = string.Empty;
+            if (Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != null)
+            {
+                runtimeMode = Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode");
+            }
+            else
+            {
+                runtimeMode = Configuration["GeneralSettings:RuntimeMode"];
+            }
+
+            string authenticationEndpoint = string.Empty;
+            if (Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint") != null)
+            {
+                authenticationEndpoint = Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpoint");
+            }
+            else
+            {
+                authenticationEndpoint = Configuration["PlatformSettings:ApiAuthenticationEndpoint"];
+            }
+
             app.UseAuthentication();
             if (env.IsDevelopment())
             {
@@ -81,6 +102,19 @@ namespace Altinn.Platform.Receipt
                 app.UseExceptionHandler("/Error");
             }
             app.UseStaticFiles();
+            app.UseStatusCodePages(async context =>
+            {
+                var request = context.HttpContext.Request;
+                var response = context.HttpContext.Response;
+                string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
+
+                // you may also check requests path to do this only for specific methods
+                // && request.Path.Value.StartsWith("/specificPath")
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized && runtimeMode != "AltinnStudio")
+                {
+                    response.Redirect(($"{authenticationEndpoint}authentication?goto={url}"));
+                }
+            });
             app.UseMvc(routes =>
             {
                 routes.MapRoute(

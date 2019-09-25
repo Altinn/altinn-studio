@@ -2,11 +2,11 @@
 
 exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot there are no changes in master 1`] = `
 <button
-  className="MuiButtonBase-root-31 MuiButton-root-5 MuiButton-text-7 MuiButton-flat-10 FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2"
+  className="MuiButtonBase-root MuiButton-root FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2 MuiButton-text"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -16,17 +16,17 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-6"
+    className="MuiButton-label"
   >
     <div
-      className="MuiGrid-container-34 MuiGrid-align-items-xs-center-42"
+      className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
     >
       <div
-        className="MuiGrid-item-35"
+        className="MuiGrid-root MuiGrid-item"
       >
         <i
           className="fa fa-download"
@@ -42,10 +42,10 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
         />
       </div>
       <div
-        className="MuiGrid-item-35"
+        className="MuiGrid-root MuiGrid-item"
       >
         <p
-          className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponent-color_blueDark-4"
+          className="MuiTypography-root FetchChangesComponent-color_blueDark-4 MuiTypography-body1"
           id="fetch_changes_btn"
         >
           sync_header.fetch_changes
@@ -53,19 +53,16 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
       </div>
     </div>
   </span>
-  <span
-    className="MuiTouchRipple-root-168"
-  />
 </button>
 `;
 
 exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot when changes in master 1`] = `
 <button
-  className="MuiButtonBase-root-31 MuiButton-root-5 MuiButton-text-7 MuiButton-flat-10 FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2"
+  className="MuiButtonBase-root MuiButton-root FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2 MuiButton-text"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -75,17 +72,17 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-6"
+    className="MuiButton-label"
   >
     <div
-      className="MuiGrid-container-34 MuiGrid-align-items-xs-center-42"
+      className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
     >
       <div
-        className="MuiGrid-item-35"
+        className="MuiGrid-root MuiGrid-item"
       >
         <i
           className="fa fa-download"
@@ -101,10 +98,10 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
         />
       </div>
       <div
-        className="MuiGrid-item-35"
+        className="MuiGrid-root MuiGrid-item"
       >
         <p
-          className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponent-color_blueDark-4 FetchChangesComponent-bold-1"
+          className="MuiTypography-root FetchChangesComponent-color_blueDark-4 FetchChangesComponent-bold-1 MuiTypography-body1"
           id="fetch_changes_btn"
         >
           sync_header.fetch_changes
@@ -112,8 +109,5 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
       </div>
     </div>
   </span>
-  <span
-    className="MuiTouchRipple-root-168"
-  />
 </button>
 `;

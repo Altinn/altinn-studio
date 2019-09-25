@@ -10,57 +10,51 @@
 		"ssn": "01047512345",
 		"name": "Pål Revisor",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
-  {
-    "partyTypeName": "Organization",
-    "orgNumber": "900000002",
-    "person": null,
-    "organization": {
-      "orgNumber": "900000002"
-    },
-    "partyID": "10002",
-    "organizationNumber": null,
-    "unitType": null,
-    "ssn": null,
-    "name": "Frisk & Sporty Oslo",
-    "isDeleted": false,
-    "onlyHiearhyElementWithNoAccess": false,
-    "childActors": null
-  },
-  {
-    "partyTypeName": "Organization",
-    "orgNumber": "900000003",
-    "person": null,
-    "organization": {
-      "orgNumber": "900000003"
-    },
-    "partyID": "10003",
-    "organizationNumber": null,
-    "unitType": null,
-    "ssn": null,
-    "name": "Frisk & Sporty Bergen",
-    "isDeleted": false,
-    "onlyHiearhyElementWithNoAccess": false,
-    "childActors": null
-  },
-  {
-    "partyTypeName": "Organization",
-    "orgNumber": "900000004",
-    "person": null,
-    "organization": {
-      "orgNumber": "900000004"
-    },
-    "partyID": "10004",
-    "organizationNumber": null,
-    "unitType": null,
-    "ssn": null,
-    "name": "Frisk & Sporty Trondheim",
-    "isDeleted": false,
-    "onlyHiearhyElementWithNoAccess": false,
-    "childActors": null
-  },
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000002",
+		"person": null,
+		"organization": null,
+		"partyID": "10002",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Oslo",
+		"isDeleted": false,
+		"onlyHierarchyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000003",
+		"person": null,
+		"organization": null,
+		"partyID": "10003",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Bergen",
+		"isDeleted": false,
+		"onlyHierarchyElementWithNoAccess": false,
+		"childActors": null
+	},
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000004",
+		"person": null,
+		"organization": null,
+		"partyID": "10004",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": null,
+		"name": "Frisk & Sporty Trondheim",
+		"isDeleted": false,
+		"onlyHierarchyElementWithNoAccess": false,
+		"childActors": null
+	},
 	{
 		"partyTypeName": "Person",
 		"orgNumber": null,
@@ -72,23 +66,21 @@
 		"ssn": "02017512345",
 		"name": "Kari Selvstendig",
 		"isDeleted": false,
-		"onlyHiearhyElementWithNoAccess": false,
+		"onlyHierarchyElementWithNoAccess": false,
 		"childActors": null
 	},
-  {
-    "partyTypeName": "Organization",
-    "orgNumber": "900000001",
-    "person": null,
-    "organization": {
-      "orgNumber": "900000001"
-    },
-    "partyID": "10001",
-    "organizationNumber": null,
-    "unitType": null,
-    "ssn": "02017512345",
-    "name": "Kari Consulting",
-    "isDeleted": false,
-    "onlyHiearhyElementWithNoAccess": false,
-    "childActors": null
-  }
+	{
+		"partyTypeName": "Organization",
+		"orgNumber": "900000001",
+		"person": null,
+		"organization": null,
+		"partyID": "10001",
+		"organizationNumber": null,
+		"unitType": null,
+		"ssn": "02017512345",
+		"name": "Kari Consulting",
+		"isDeleted": false,
+		"onlyHierarchyElementWithNoAccess": false,
+		"childActors": null
+	}
 ]

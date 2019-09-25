@@ -133,6 +133,7 @@ test('Attachment dropdown and download on receipt page', async () => {
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .clearUpload(runtime.fileDropComponent)    
     .setFilesToUpload(runtime.fileDropComponent, [
       '../testdata/ServiceModel.xsd',
@@ -147,6 +148,7 @@ test('Attachment dropdown and download on receipt page', async () => {
   await t
     .expect(files.exists).ok()
     .expect(files.count).eql(5, {timeout: 180000})
+    .expect(runtime.saveButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 1000 })
     .click(runtime.saveButton)
     .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
     .click(runtime.sendInnButton)
@@ -173,20 +175,6 @@ test('Check that cookie for Altinn Party is set correctly', async () => {
   const cookies = await getCookie();
 
   await t.expect(JSON.stringify(cookies).includes("AltinnPartyId")).ok();
-});
-
-test('axe UI accessibility test for runtime', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
-    .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
-    .click(runtime.startNewButton)
-    .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
-  axeCheck(t);
 });
 
 test('Receipt page test', async t => {

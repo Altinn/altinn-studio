@@ -33,7 +33,7 @@ fixture('Instantiation tests')
 
   test("Party Selection page with error message and party list", async () => {
     await t
-      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+      .navigateTo(app.baseUrl + 'designer/tdd/partydisplaytest#/uieditor')
       .click(designer.testeNavigationTab)
       .switchToIframe(runtime.testBrukerIframe)
       .expect(runtime.testUsers[1].exists).ok()
@@ -45,17 +45,4 @@ fixture('Instantiation tests')
       .expect(Selector('p').withText('Velg ny aktør under').exists).ok({timeout:5000})
       .expect(Selector('p').withText('Dine aktører').exists).ok()
       .expect(Selector('p').withText('Kari Consulting').exists).ok()
-  });
-
-  test('axe UI accessibility test for party selection page', async t => {
-    await t
-      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/test')
-      .switchToIframe(runtime.testBrukerIframe)
-      .expect(runtime.testUsers[1].exists).ok()
-      .hover(runtime.testUsers[1])
-      .click(runtime.testUsers[1])
-      .expect(runtime.startNewButton.exists).ok()
-      .click(runtime.startNewButton)
-      .switchToMainWindow()      
-    axeCheck(t);
   });

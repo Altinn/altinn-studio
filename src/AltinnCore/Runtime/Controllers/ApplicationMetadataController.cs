@@ -26,7 +26,7 @@ namespace AltinnCore.Runtime.Controllers
     {
         private readonly ILogger _logger;
         private readonly IAuthorization _authorization;
-        private readonly IRepository _repository;
+        private readonly IApplication _application;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class
@@ -37,11 +37,11 @@ namespace AltinnCore.Runtime.Controllers
         public ApplicationMetadataController(
             ILogger<ApplicationMetadataController> logger,
             IAuthorization authorization,
-            IRepository repository)
+            IApplication application)
         {
             _logger = logger;
             _authorization = authorization;
-            _repository = repository;
+            _application = application;
         }
 
         /// <summary>
@@ -51,9 +51,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="app">The application</param>
         /// <returns>Application metadata</returns>
         [HttpGet("{org}/{app}/api/v1/applicationmetadata")]
-        public IActionResult GetAction(string org, string app)
+        public async Task<IActionResult> GetAction(string org, string app)
         {
-            Application application = _repository.GetApplication(org, app);
+            Application application = await _application.GetApplication(org, app);
             return Ok(application);
         }
     }

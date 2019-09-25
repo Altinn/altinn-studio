@@ -13,6 +13,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
+    using AltinnCore.ServiceLibrary.Enums;
     using global::Storage.Interface.Models;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Http;
@@ -467,7 +468,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                createdInstance.Process = new ProcessState { CurrentTask = "FormFilling_1", IsComplete = false };
+                createdInstance.Process = new ProcessState();
             }
 
             return createdInstance;
@@ -645,7 +646,7 @@ namespace Altinn.Platform.Storage.Controllers
                     return null;
                 }
 
-                string contentFileName = contentDisposition.FileName.HasValue ? contentDisposition.Name.Value : null;
+                string contentFileName = contentDisposition.FileName.HasValue ? contentDisposition.FileName.Value : null;
                 long fileSize = contentDisposition.Size ?? 0;
 
                 // copy the section.Body stream since this stream cannot be rewind
@@ -943,7 +944,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 instance.InstanceState.IsDeleted = true;
                 instance.LastChangedBy = User.Identity.Name;
-                instance.LastChangedDateTime = DateTime.UtcNow;
+                instance.LastChangedDateTime = instance.InstanceState.DeletedDateTime = DateTime.UtcNow;
 
                 try
                 {

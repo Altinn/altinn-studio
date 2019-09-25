@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary.Enums;
 
 namespace AltinnCore.ServiceLibrary.Models
@@ -45,7 +46,7 @@ namespace AltinnCore.ServiceLibrary.Models
         /// <summary>
         /// Gets or sets a value indicating whether if the reportee in the list is only there for showing the hierarchy (a parent unit with no access)
         /// </summary>
-        public bool OnlyHiearhyElementWithNoAccess { get; set; }
+        public bool OnlyHierarchyElementWithNoAccess { get; set; }
 
         /// <summary>
         /// Gets or sets the person details for this party (will only be set if the party type is Person)
@@ -56,5 +57,10 @@ namespace AltinnCore.ServiceLibrary.Models
         /// Gets or sets the organization details for this party (will only be set if the party type is Organization)
         /// </summary>
         public Organization Organization { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value of ChildParties
+        /// </summary>
+        public List<Party> ChildParties { get; set; }
     }
 }

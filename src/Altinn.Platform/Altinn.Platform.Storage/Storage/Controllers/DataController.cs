@@ -176,10 +176,13 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             List<DataElement> dataList = new List<DataElement>();
-            foreach (DataElement data in instance.Data)
-            {
-                dataList.Add(data);
-            }
+            await Task.Run(() =>
+                {
+                    foreach (DataElement data in instance.Data)
+                    {
+                        dataList.Add(data);
+                    }
+                });
 
             return Ok(dataList);
         }
@@ -252,51 +255,6 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return StatusCode(500, $"Unable to create instance data in storage: {e}");
             }
-        }
-
-        /// <summary>
-        /// Creates a data element by reading the first multipart element or body of the request.
-        /// </summary>
-        private DataElement GetDataElementFromRequest(HttpRequest request, string elementType, Instance instance, out Stream theStream)
-        {
-            DateTime creationTime = DateTime.UtcNow;
-
-            theStream = null;
-            string contentType = null;
-            string contentFileName = null;
-            long fileSize = 0;
-
-            if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
-            {
-                // Only read the first section of the mulitpart message.
-                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
-                string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
-
-                MultipartReader reader = new MultipartReader(boundary, request.Body);
-                MultipartSection section = reader.ReadNextSectionAsync().Result;
-
-                theStream = section.Body;
-                contentType = section.ContentType;
-
-                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
-
-                if (hasContentDisposition)
-                {
-                    contentFileName = contentDisposition.FileName.ToString();
-                    fileSize = contentDisposition.Size ?? 0;
-                }
-            }
-            else
-            {
-                theStream = request.Body;
-                contentType = request.ContentType;
-            }
-
-            string user = null;
-
-            DataElement newData = DataElementHelper.CreateDataElement(elementType, instance, creationTime, contentType, contentFileName, fileSize, user);
-
-            return newData;
         }
 
         /// <summary>
@@ -380,6 +338,51 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return BadRequest("Cannot update data element that is not registered");
+        }
+        
+        /// <summary>
+        /// Creates a data element by reading the first multipart element or body of the request.
+        /// </summary>
+        private DataElement GetDataElementFromRequest(HttpRequest request, string elementType, Instance instance, out Stream theStream)
+        {
+            DateTime creationTime = DateTime.UtcNow;
+
+            theStream = null;
+            string contentType = null;
+            string contentFileName = null;
+            long fileSize = 0;
+
+            if (MultipartRequestHelper.IsMultipartContentType(request.ContentType))
+            {
+                // Only read the first section of the mulitpart message.
+                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
+                string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+
+                MultipartReader reader = new MultipartReader(boundary, request.Body);
+                MultipartSection section = reader.ReadNextSectionAsync().Result;
+
+                theStream = section.Body;
+                contentType = section.ContentType;
+
+                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
+
+                if (hasContentDisposition)
+                {
+                    contentFileName = contentDisposition.FileName.ToString();
+                    fileSize = contentDisposition.Size ?? 0;
+                }
+            }
+            else
+            {
+                theStream = request.Body;
+                contentType = request.ContentType;
+            }
+
+            string user = null;
+
+            DataElement newData = DataElementHelper.CreateDataElement(elementType, instance, creationTime, contentType, contentFileName, fileSize, user);
+
+            return newData;
         }
 
         private Application GetApplication(string appId, string org, out ActionResult errorMessage)

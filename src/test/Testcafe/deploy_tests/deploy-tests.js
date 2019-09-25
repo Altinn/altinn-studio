@@ -24,12 +24,12 @@ fixture('Deploy of app to a test environment tests')
     t.ctx.ikkeTilgang = "Du har ikke tilgang til å legge ut tjenesten";
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
     await t
-      .useRole(AutoTestUser)
       .resizeWindow(1536, 864)
   });
 
 test('Happy case; deploy an app to a test environment after a change', async () => {
   await t
+    .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/uieditor')
   await designer.deleteUIComponentsMethod(t);
   await t   
@@ -60,6 +60,7 @@ test('Happy case; deploy an app to a test environment after a change', async () 
 
 test('App cannot deploy due to compilation error', async () => {
   await t
+    .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/uieditor')    
     .click(designer.hentEndringer)
     .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
@@ -73,6 +74,7 @@ test('App cannot deploy due to compilation error', async () => {
 
 test('App cannot be deployed due to local changes', async () => {
   await t
+    .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
@@ -113,17 +115,9 @@ test('User does not have write access to app, and cannot deploy', async () => {
     .expect(Selector("h2").withText(t.ctx.ikkeTilgang).visible).ok()
 });
 
-test('Accessibility testing for deployment to test environment page', async t => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/deploytotest')
-    .click(designer.testeNavigationTab)
-    .hover(designer.leftDrawerMenu)
-    .click(designer.testeLeftMenuItems[1])
-  axeCheck(t);
-});
-
 test('Clone modal functionality', async () => {
   await t
+    .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)
@@ -135,6 +129,7 @@ test('Clone modal functionality', async () => {
 
 test('Validation of missing datamodel in clone modal', async () => {
   await t
+    .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + 'designer/AutoTest/withoutdatamodel#/uieditor')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)

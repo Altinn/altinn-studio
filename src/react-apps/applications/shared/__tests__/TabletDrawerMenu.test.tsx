@@ -33,7 +33,7 @@ describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
       tabletDrawerMenu.find('button').simulate('click');
       expect(mockHandleTabletDrawerMenu).toHaveBeenCalled();
       expect(tabletDrawerMenu.find('button').text()).toEqual('lukk');
-      expect(tabletDrawerMenu.find('Drawer[variant="persistent"]').prop('open')).toEqual(true);
+      expect(tabletDrawerMenu.find('WithStyles(ForwardRef(Drawer))[variant="persistent"]').prop('open')).toEqual(true);
       tabletDrawerMenu.unmount();
     });
   });

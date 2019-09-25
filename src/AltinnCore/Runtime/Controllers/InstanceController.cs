@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -22,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Storage.Interface.Enums;
 using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Runtime.Controllers
@@ -32,6 +32,7 @@ namespace AltinnCore.Runtime.Controllers
     public class InstanceController : Controller
     {
         private readonly IRepository _repository;
+        private readonly IApplication _application;
         private readonly IAuthorization _authorization;
         private readonly IRegister _register;
         private readonly IProfile _profile;
@@ -74,6 +75,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="eventSI">the instance event service handler</param>
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
+        /// <param name="application">the application service handler</param>
         /// <param name="prefill">The prefill service handler</param>
         /// <param name="repositorySettings">the repository settings</param>
         /// <param name="generalSettings">the general settings</param>
@@ -94,6 +96,7 @@ namespace AltinnCore.Runtime.Controllers
             IInstanceEvent eventSI,
             IPlatformServices platformSI,
             IData dataSI,
+            IApplication application,
             IPrefill prefill,
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings)
@@ -116,6 +119,7 @@ namespace AltinnCore.Runtime.Controllers
             _platformSI = platformSI;
             _data = dataSI;
             _prefill = prefill;
+            _application = application;
             _settings = repositorySettings.Value;
             _generalSettings = generalSettings.Value;
         }
@@ -202,7 +206,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask,
+                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
@@ -312,9 +316,9 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.UserContext.Party = await _register.GetParty(startServiceModel.PartyId);
             requestContext.Party = requestContext.UserContext.Party;
 
-            // Checks if the reportee is allowed to initiate the application
-            Application application = _repository.GetApplication(startServiceModel.Org, startServiceModel.Service);
-            if (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Party, application.PartyTypesAllowed))
+            // Checks if the reportee is allowed to instantiate the application
+            Application application = await _application.GetApplication(startServiceModel.Org, startServiceModel.Service);
+            if (application == null || (application != null && !InstantiationHelper.IsPartyAllowedToInstantiate(requestContext.UserContext.Party, application.PartyTypesAllowed)))
             {
                  return new StatusCodeResult(403);
             }
@@ -390,12 +394,12 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask
+                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
 
-                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask, out WorkflowStep currentStep);
+                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ProcessElementId, out WorkflowStep currentStep);
 
                 return JsonConvert.SerializeObject(
                     new
@@ -503,11 +507,11 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask
+                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
-                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask, out WorkflowStep currentStep);
+                Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ProcessElementId, out WorkflowStep currentStep);
 
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
                 return Redirect(redirectUrl);
@@ -621,9 +625,14 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, int partyId, Guid instanceGuid, string attachmentType, string attachmentName)
+        public async Task<IActionResult> SaveFormAttachment(string org, string service, int partyId, Guid instanceGuid, string attachmentType, string attachmentName)
         {
             Guid guid = await _data.SaveFormAttachment(org, service, partyId, instanceGuid, attachmentType, attachmentName, Request);
+
+            if (guid == Guid.Empty)
+            {
+                return StatusCode(500, $"Cannot store form attachment on instance {partyId}/{instanceGuid}");
+            }
 
             return Ok(new { id = guid });
         }

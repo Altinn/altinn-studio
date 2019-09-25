@@ -55,7 +55,7 @@ describe('HandleMergeConflictFileList', () => {
     expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(true);
 
     // Expect to have 3 listitems
-    expect(wrapper.find('ListItem')).toHaveLength(mockRepostatus.contentStatus.length);
+    expect(wrapper.find('WithStyles(ForwardRef(ListItem))')).toHaveLength(mockRepostatus.contentStatus.length);
 
   });
 
@@ -187,7 +187,7 @@ describe('HandleMergeConflictFileList', () => {
     // Expect file list to exist
     expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(true);
 
-    wrapper.find('ListItem#handleMergeConflictFileListItem0').simulate('click');
+    wrapper.find('.MuiButtonBase-root#handleMergeConflictFileListItem0').simulate('click');
     expect(spyOnHandleListItemClick).toHaveBeenCalled();
     expect(instance.state.selectedIndex).toEqual(0);
     expect(mockChangeSelectedFile).toHaveBeenCalled();

@@ -1,16 +1,16 @@
 ﻿{
-  "PartyId": "50003",
-  "PartyTypeName": "Person",
-  "Name": "Anne Sophie Næringslivsleder",
-  "Person": {
-    "PersonId": "3",
-    "SSN": "01039012345",
-    "FirstName": "Anne Sophie",
-    "LastName": "Næringslivsleder"
-  },
-  "PostAdress": {
-    "Street": "Anne Sophie Gata 1",
-    "PostalCode": "1337",
-    "City": "Sandvika"
-  }
+	"partyID": "50003",
+	"partyTypeName": 1,
+	"orgNumber": null,
+	"person": {
+		"ssn": "01039012345",
+		"firstName": "Anne Sophie",
+		"LastName": "Næringslivsleder"
+	},
+	"organization": null,
+	"ssn": "01039012345",
+	"name": "Anne Sophie Næringslivsleder",
+	"isDeleted": false,
+	"onlyHierarchyElementWithNoAccess": false,
+	"childParties": null
 }

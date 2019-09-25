@@ -19,7 +19,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for gitea wrapper
+    /// Implementation of the gitea wrapper service.
     /// </summary>
     public class GiteaAPIWrapper : IGitea
     {
@@ -215,7 +215,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching service {owner}/{repository} failed with reponsecode {response.StatusCode}");
+                    _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {owner}/{repository} failed with reponsecode {response.StatusCode}");
                 }
             }
 
@@ -500,14 +500,14 @@ namespace AltinnCore.Common.Services.Implementation
             return htmlValues;
         }
 
-        private bool IsLocalRepo(string org, string service)
+        private bool IsLocalRepo(string org, string app)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (Directory.Exists(localServiceRepoFolder))
+            string localAppRepoFolder = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            if (Directory.Exists(localAppRepoFolder))
             {
                 try
                 {
-                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localAppRepoFolder))
                     {
                         return true;
                     }

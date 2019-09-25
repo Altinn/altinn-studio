@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Authorization service created for service development where test data is located on disk
+    /// Studio implementation of the authorization service. Created for app development where test data is located on disk
     /// </summary>
     public class AuthorizationStudioSI : IAuthorization
     {
@@ -58,7 +58,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (partyList.Count > 0)
             {
-                result = partyList.Any(p => p.PartyId == partyId);
+                result = partyList.Any(p => p.PartyId == partyId) || partyList.Any( p => p.ChildParties != null && p.ChildParties.Count > 0 && p.ChildParties.Any(cp => cp.PartyId == partyId));
             }
 
             return await Task.FromResult(result);

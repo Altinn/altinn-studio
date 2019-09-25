@@ -2,12 +2,12 @@
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when its less than an hour since last push and there are changes in the repo 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
+  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -17,17 +17,17 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-7"
+    className="MuiButton-label"
   >
     <div
-      className="MuiGrid-container-35 MuiGrid-align-items-xs-center-43"
+      className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
     >
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <i
           className="fa fa-upload"
@@ -43,10 +43,10 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         />
       </div>
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1"
+          className="MuiTypography-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1 MuiTypography-body1"
           id="changes_to_share_btn"
         >
           sync_header.changes_to_share
@@ -54,20 +54,17 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       </div>
     </div>
   </span>
-  <span
-    className="MuiTouchRipple-root-169"
-  />
 </button>
 `;
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when its more than an hour since last push and there are changes in the repo 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
+  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -77,17 +74,17 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-7"
+    className="MuiButton-label"
   >
     <div
-      className="MuiGrid-container-35 MuiGrid-align-items-xs-center-43"
+      className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
     >
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <i
           className="fa fa-upload"
@@ -103,10 +100,10 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         />
       </div>
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1"
+          className="MuiTypography-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1 MuiTypography-body1"
           id="changes_to_share_btn"
         >
           sync_header.changes_to_share
@@ -114,20 +111,17 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       </div>
     </div>
   </span>
-  <span
-    className="MuiTouchRipple-root-169"
-  />
 </button>
 `;
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user has a mergeconflict 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
+  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -137,17 +131,17 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-7"
+    className="MuiButton-label"
   >
     <div
-      className="MuiGrid-container-35 MuiGrid-align-items-xs-center-43"
+      className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
     >
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <i
           className="fa fa-circlecancel"
@@ -163,30 +157,27 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         />
       </div>
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1"
+          className="MuiTypography-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1 MuiTypography-body1"
         >
           sync_header.merge_conflict
         </p>
       </div>
     </div>
   </span>
-  <span
-    className="MuiTouchRipple-root-169"
-  />
 </button>
 `;
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user has no changes in local repo 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
+  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -196,17 +187,17 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-7"
+    className="MuiButton-label"
   >
     <div
-      className="MuiGrid-container-35 MuiGrid-align-items-xs-center-43"
+      className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
     >
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <i
           className="fa fa-upload"
@@ -222,10 +213,10 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
         />
       </div>
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5"
+          className="MuiTypography-root ShareChangesComponent-color_blueDark-5 MuiTypography-body1"
           id="no_changes_to_share_btn"
         >
           sync_header.no_changes_to_share
@@ -233,20 +224,17 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       </div>
     </div>
   </span>
-  <span
-    className="MuiTouchRipple-root-169"
-  />
 </button>
 `;
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user only has read access to service 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
+  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
   onClick={[Function]}
-  onContextMenu={[Function]}
+  onDragLeave={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -256,23 +244,23 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   onTouchEnd={[Function]}
   onTouchMove={[Function]}
   onTouchStart={[Function]}
-  tabIndex="0"
+  tabIndex={0}
   type="button"
 >
   <span
-    className="MuiButton-label-7"
+    className="MuiButton-label"
   >
     <div
-      className="MuiGrid-container-35 MuiGrid-align-items-xs-center-43"
+      className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center"
     >
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       />
       <div
-        className="MuiGrid-item-36"
+        className="MuiGrid-root MuiGrid-item"
       >
         <p
-          className="MuiTypography-root-133 MuiTypography-body1-142 ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1"
+          className="MuiTypography-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-bold-1 MuiTypography-body1"
           id="changes_to_share_btn"
         >
           sync_header.changes_to_share
@@ -280,8 +268,5 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       </div>
     </div>
   </span>
-  <span
-    className="MuiTouchRipple-root-169"
-  />
 </button>
 `;

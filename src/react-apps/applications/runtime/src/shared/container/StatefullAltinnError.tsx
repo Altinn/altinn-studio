@@ -89,7 +89,7 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
       if (i === 0) {
         returnString += partyTypes[i];
       } else if (i === (partyTypes.length - 1)) {
-        returnString += ` ${language.party_selection.error_binding_word} ${partyTypes[i]}`;
+        returnString += ` ${language.party_selection.no_valid_selection_binding_word} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
       }

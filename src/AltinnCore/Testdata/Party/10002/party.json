@@ -1,12 +1,13 @@
-{
-  "PartyId": "10002",
-  "PartyTypeName": "Organization",
-  "Name": "Frisk & Sporty Oslo",
-  "OrgNumber": "900000002",
-  "Organization": {
-    "OrganizationId": "2",
-    "OrganizationNumber": "900000002",
-    "OrgNumber": "900000002",
-    "OrganizationName": "Frisk & Sporty Oslo"
-  }
+﻿{
+	"partyId": 10002,
+	"partyTypeName": 2,
+	"orgNumber": "900000002",
+	"ssn": null,
+	"unitType": "BEDR",
+	"name": "Frisk & Sporty Oslo",
+	"isDeleted": false,
+	"onlyHierarchyElementWithNoAccess": false,
+	"person": null,
+	"organization": null,
+	"childParties": null
 }

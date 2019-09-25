@@ -15,11 +15,13 @@ using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Storage.Interface.Models;
+using Task = System.Threading.Tasks.Task;
 
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for instance for saving in disk
+    /// Studio implementation of the instance service, for saving to and retrieving from disk.
     /// </summary>
     public class InstanceStudioSI : IInstance
     {
@@ -56,46 +58,34 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
+        [Obsolete("Method is deprecated, please use CreateInstance instead")]
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
-            Guid instanceGuid = Guid.NewGuid();
-            string appName = startServiceModel.Service;
+            string app = startServiceModel.Service;
             string org = startServiceModel.Org;
             int instanceOwnerId = startServiceModel.PartyId;
-            int userId = startServiceModel.UserId;
 
-            ServiceState currentTask = _workflow.GetInitialServiceState(org, appName);
-
-            Instance instance = new Instance
+            Instance instanceTemplate = new Instance()
             {
-                Id = $"{instanceOwnerId}/{instanceGuid}",
                 InstanceOwnerId = instanceOwnerId.ToString(),
-                AppId = $"{org}/{appName}",
-                Org = org,
-                CreatedBy = userId.ToString(),
-                CreatedDateTime = DateTime.UtcNow,
-                Process = new Storage.Interface.Models.ProcessState()
+                Process = new ProcessState()
                 {
-                    CurrentTask = currentTask.State.ToString(),
-                    IsComplete = false,
+                    CurrentTask = new TaskInfo
+                    {
+                        Started = DateTime.UtcNow,
+                        ProcessElementId = _workflow.GetInitialServiceState(org, app).State.ToString(),
+                    }
                 },
-                InstanceState = new Storage.Interface.Models.InstanceState()
-                {
-                    IsArchived = false,
-                    IsDeleted = false,
-                    IsMarkedForHardDelete = false,
-                },
-                LastChangedDateTime = DateTime.UtcNow,
-                LastChangedBy = userId.ToString(),
             };
 
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}";
-            string folderForInstance = Path.Combine(testDataForParty, instanceGuid.ToString());
-            Directory.CreateDirectory(folderForInstance);
-            string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
+            Instance instance = await CreateInstance(org, app, instanceTemplate);
 
-            File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
+            if (instance == null)
+            {
+                return null;
+            }
+
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
             // Save instantiated form model
             instance = await _data.InsertData(
@@ -103,17 +93,17 @@ namespace AltinnCore.Common.Services.Implementation
                 instanceGuid,
                 serviceImplementation.GetServiceModelType(),
                 org,
-                appName,
+                app,
                 instanceOwnerId);
 
             return instance;
         }
 
         /// <inheritdoc/>
-        public Task<Instance> UpdateInstance(object dataToSerialize, string appName, string org, int instanceOwnerId, Guid instanceId)
+        public Task<Instance> UpdateInstance(object dataToSerialize, string app, string org, int instanceOwnerId, Guid instanceId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}";
+            string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}";
             string folderForInstance = Path.Combine(testDataForParty, instanceId.ToString());
             if (!Directory.Exists(folderForInstance))
             {
@@ -128,11 +118,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<Instance> GetInstance(string appName, string org, int instanceOwnerId, Guid instanceId)
+        public Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             Instance instance;
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = _settings.GetTestdataForPartyPath(org, appName, developer);
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
             string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
             string instanceData = File.ReadAllText(formDataFilePath, Encoding.UTF8);
             instance = JsonConvert.DeserializeObject<Instance>(instanceData);
@@ -140,11 +130,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<List<Instance>> GetInstances(string appName, string org, int instanceOwnerId)
+        public Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerId)
         {
             List<Instance> formInstances = new List<Instance>();
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string instancesPath = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}";
+            string instancesPath = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}";
             string archiveFolderPath = $"{instancesPath}/Archive/";
             if (!Directory.Exists(archiveFolderPath))
             {
@@ -176,10 +166,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string appName, string org,  int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string app, string org,  int instanceOwnerId, Guid instanceId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/Archive/";
+            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/Archive/";
             if (!Directory.Exists(archiveDirectory))
             {
                 Directory.CreateDirectory(archiveDirectory);
@@ -192,16 +182,60 @@ namespace AltinnCore.Common.Services.Implementation
                 serializer.Serialize(stream, dataToSerialize);
             }
 
-            Instance instance = await GetInstance(appName, org, instanceOwnerId, instanceId);
+            Instance instance = await GetInstance(app, org, instanceOwnerId, instanceId);
 
-            instance.Process = instance.Process ?? new Storage.Interface.Models.ProcessState();
-            instance.Process.IsComplete = true;
-            instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
+            instance.Process = instance.Process ?? new ProcessState();
+            instance.Process.CurrentTask = instance.Process.CurrentTask ?? new TaskInfo();
+            instance.Process.CurrentTask.ProcessElementId = WorkflowStep.Archived.ToString();
+            instance.Process.Ended = DateTime.UtcNow;
 
             instance.InstanceState = instance.InstanceState ?? new Storage.Interface.Models.InstanceState();
             instance.InstanceState.IsArchived = true;
+            instance.InstanceState.ArchivedDateTime = DateTime.UtcNow;
 
-            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
+            return instance;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
+        {
+            Guid instanceGuid = Guid.NewGuid();
+
+            string userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext).ToString();
+            string instanceOwnerId = instanceTemplate.InstanceOwnerId;
+
+            Instance instance = new Instance
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = instanceOwnerId.ToString(),
+                AppId = $"{org}/{app}",
+                Org = org,
+                CreatedBy = userId,
+                CreatedDateTime = DateTime.UtcNow,
+                Process = instanceTemplate.Process,
+                InstanceState = new Storage.Interface.Models.InstanceState()
+                {
+                    IsArchived = false,
+                    IsDeleted = false,
+                    IsMarkedForHardDelete = false,
+                },
+                LastChangedDateTime = DateTime.UtcNow,
+                LastChangedBy = userId,
+            };
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}";
+            string folderForInstance = Path.Combine(testDataForParty, instanceGuid.ToString());
+
+            await Task.Run(() =>
+            {
+                Directory.CreateDirectory(folderForInstance);
+                string instanceFilePath = $"{testDataForParty}/{instanceGuid}/{instanceGuid}.json";
+
+                File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
+            });
+
             return instance;
         }
     }

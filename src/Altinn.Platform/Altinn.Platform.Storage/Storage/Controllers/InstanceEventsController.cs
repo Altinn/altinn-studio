@@ -123,7 +123,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return BadRequest("Unable to perform query. Invalid format for time span. Use string format of UTC.");
                 }
-            }            
+            }
 
             List<InstanceEvent> result = await _repository.ListInstanceEvents(instanceId, eventTypes, fromDateTime, toDateTime);
 
@@ -134,7 +134,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             return Ok(result);
         }
-      
+
         /// <summary>
         /// Deletes all events related to an instance id.
         /// </summary>

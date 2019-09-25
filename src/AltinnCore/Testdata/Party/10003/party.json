@@ -1,12 +1,13 @@
-{
-  "PartyId": "10003",
-  "PartyTypeName": "Organization",
-  "Name": "Frisk & Sporty Bergen",
-  "OrgNumber": "900000003",
-  "Organization": {
-    "OrganizationId": "3",
-    "OrganizationNumber": "900000003",
-    "OrgNumber": "900000003",
-    "OrganizationName": "Frisk & Sporty Bergen"
-  }
+﻿{
+	"partyId": 10003,
+	"partyTypeName": 2,
+	"orgNumber": "900000003",
+	"ssn": null,
+	"unitType": "BEDR",
+	"name": "Frisk & Sporty Bergen",
+	"isDeleted": false,
+	"onlyHierarchyElementWithNoAccess": false,
+	"person": null,
+	"organization": null,
+	"childParties": null
 }

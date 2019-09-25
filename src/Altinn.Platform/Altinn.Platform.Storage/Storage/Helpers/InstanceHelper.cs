@@ -27,7 +27,7 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 messageBoxInstances.Add(new MessageBoxInstance()
                 {
-                    CreatedDateTime = instance.CreatedDateTime,
+                    CreatedDateTime = (instance.VisibleDateTime != null && instance.VisibleDateTime > instance.CreatedDateTime) ? (DateTime)instance.VisibleDateTime : instance.CreatedDateTime,
                     DueDateTime = instance.DueDateTime,
                     Id = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId,
@@ -35,9 +35,13 @@ namespace Altinn.Platform.Storage.Helpers
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
                     Title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language] : appTitles[instance.AppId]["nb"],
-                    ProcessCurrentTask = instance.Process.CurrentTask,
+                    ProcessCurrentTask = instance.Process?.CurrentTask?.ProcessElementId,
                     AuthorizedForWrite = true,
-                    AllowDelete = true
+                    AllowDelete = true,
+                    AllowNewCopy = false,
+                    DeletedDateTime = instance.InstanceState.DeletedDateTime,
+                    ArchivedDateTime = instance.InstanceState.ArchivedDateTime,
+                    DeleteStatus = instance.InstanceState.IsDeleted ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
                 });
             }
 

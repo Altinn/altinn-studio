@@ -31,8 +31,37 @@ namespace Common.Helpers
 
             parties.ForEach(party =>
             {
-                if (IsPartyAllowedToInstantiate(party, partyTypesAllowed))
+                bool isChildPartyAllowed = false;
+                List<Party> allowedChildParties = null;
+                if (party.ChildParties != null)
                 {
+                    allowedChildParties = new List<Party>();
+                    foreach (Party childParty in party.ChildParties)
+                    {
+                        if (IsPartyAllowedToInstantiate(childParty, partyTypesAllowed))
+                        {
+                            allowedChildParties.Add(childParty);
+                            isChildPartyAllowed = true;
+                        }
+                    }
+                }
+
+                if (IsPartyAllowedToInstantiate(party, partyTypesAllowed) && isChildPartyAllowed)
+                {
+                    party.ChildParties = new List<Party>();
+                    party.ChildParties.AddRange(allowedChildParties);
+                    allowed.Add(party);
+                }
+                else if (!IsPartyAllowedToInstantiate(party, partyTypesAllowed) && isChildPartyAllowed)
+                {
+                    party.ChildParties = new List<Party>();
+                    party.OnlyHierarchyElementWithNoAccess = true;
+                    party.ChildParties.AddRange(allowedChildParties);
+                    allowed.Add(party);
+                }
+                else if (IsPartyAllowedToInstantiate(party, partyTypesAllowed))
+                {
+                    party.ChildParties = new List<Party>();
                     allowed.Add(party);
                 }
             });
@@ -60,6 +89,11 @@ namespace Common.Helpers
 
             PartyType partyType = party.PartyTypeName;
             bool isAllowed = false;
+
+            bool isSubUnit = party.UnitType != null && (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim()));
+            bool isMainUnit = !isSubUnit;
+            bool isKbo = party.UnitType != null && BANKRUPTCY_CODE.Equals(party.UnitType.Trim());
+
             switch (partyType)
             {
                 case PartyType.Person:
@@ -70,27 +104,18 @@ namespace Common.Helpers
 
                     break;
                 case PartyType.Organization:
-                    if (partyTypesAllowed.Organization == true)
+
+                    if (isMainUnit && partyTypesAllowed.Organization)
                     {
                         isAllowed = true;
                     }
-                    else if (partyTypesAllowed.BankruptcyEstate == true)
+                    else if (isSubUnit && partyTypesAllowed.SubUnit)
                     {
-                        // BankruptcyEstate is a sub group of organization
-                        if (party.UnitType != null && BANKRUPTCY_CODE.Equals(party.UnitType.Trim()))
-                        {
-                            // The org is a BankruptcyEstate, and BankruptcyEstate are allowed to initiate
-                            isAllowed = true;
-                        }
+                        isAllowed = true;
                     }
-                    else if (partyTypesAllowed.SubUnit == true)
+                    else if (isKbo && partyTypesAllowed.BankruptcyEstate)
                     {
-                        // SubUnit is a sub group of organization
-                        if (party.UnitType != null && (SUB_UNIT_CODE.Equals(party.UnitType.Trim()) || SUB_UNIT_CODE_AAFY.Equals(party.UnitType.Trim())))
-                        {
-                            // The org is a SubUnit, and SubUnits are allowed to initiate
-                            isAllowed = true;
-                        }
+                        isAllowed = true;
                     }
 
                     break;
@@ -111,7 +136,7 @@ namespace Common.Helpers
         /// </summary>
         /// <param name="partyList">The party list</param>
         /// <param name="partyId">The party id</param>
-        /// <returns>True or false</returns>
+        /// <returns>party from the party list</returns>
         public static Party GetPartyByPartyId(List<Party> partyList, int partyId)
         {
             if (partyList == null)
@@ -119,10 +144,21 @@ namespace Common.Helpers
                 return null;
             }
 
-            return partyList.Find(party =>
+            Party validParty = null;
+
+            foreach (Party party in partyList)
             {
-                return party.PartyId == partyId;
-            });
+                if (party.PartyId == partyId)
+                {
+                    validParty = party;
+                }
+                else if (party.ChildParties != null && party.ChildParties.Count > 0)
+                {
+                    validParty = party.ChildParties.Find(cp => cp.PartyId == partyId);
+                }
+            }
+
+            return validParty;
         }
     }
 }

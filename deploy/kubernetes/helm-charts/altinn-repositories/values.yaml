@@ -6,9 +6,14 @@ image:
   repositoryStaging: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-staging
   tag: latest
   pullPolicy: Always
-  containerPorts:
-    port: 3000
+  containerPort: 3000
   imagePullSecret: acrsecret
+  lifecyclePostStartCommand: "adduser git -D"
+
+host: staging.altinn.studio
+
+service:
+  externalPort: 3000
 
 environmentVariables:
   - name: USER_UID
@@ -64,8 +69,11 @@ volumes:
     persistentVolumeClaim:
       claimName: altinn-storage-gitea-volume-claim
 
-service:
-  ports:
-    - port: 3000
-      targetPort: 3000
-      protocol: TCP
+ingress:
+  - metadata:
+      name: altinn-repositories-base-path
+      annotations:
+        traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
+        traefik.frontend.priority: "500"
+    paths:
+      - path: /repos/

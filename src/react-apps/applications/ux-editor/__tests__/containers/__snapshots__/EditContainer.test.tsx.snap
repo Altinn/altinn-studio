@@ -2,29 +2,29 @@
 
 exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] = `
 <div
-  className="MuiGrid-container-20"
+  className="MuiGrid-root MuiGrid-container"
 >
   <div
-    className="MuiGrid-container-20 Connect-Edit--wrapper-18"
+    className="MuiGrid-root Connect(Edit)-wrapper-18 MuiGrid-container"
   >
     <div
-      className="MuiGrid-item-21 MuiGrid-grid-xs-11-59 Connect-Edit--gridWrapper-7"
+      className="MuiGrid-root Connect(Edit)-gridWrapper-7 MuiGrid-item MuiGrid-grid-xs-11"
     >
       <div
-        className="Connect-Edit--noOutline-14"
+        className="Connect(Edit)-noOutline-14"
       >
         <li
-          className="MuiListItem-root-117 MuiListItem-default-120 MuiListItem-gutters-125 Connect-Edit--active-1"
+          className="MuiListItem-root Connect(Edit)-active-1 MuiListItem-gutters"
           disabled={false}
           onClick={[Function]}
           onKeyPress={[Function]}
           tabIndex={0}
         >
           <div
-            className="Connect-Edit--textPrimaryDark-16 Connect-Edit--formComponentTitle-6"
+            className="Connect(Edit)-textPrimaryDark-16 Connect(Edit)-formComponentTitle-6"
           >
             <i
-              className="Connect-Edit--icon-19 fa fa-short-answer"
+              className="Connect(Edit)-icon-19 fa fa-short-answer"
             />
             Input
           </div>
@@ -32,20 +32,20 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
       </div>
     </div>
     <div
-      className="MuiGrid-item-21 MuiGrid-grid-xs-1-49"
+      className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-1"
     >
       <div
-        className="MuiGrid-container-20 Connect-Edit--gridForBtnSingleActive-11"
+        className="MuiGrid-root Connect(Edit)-gridForBtnSingleActive-11 MuiGrid-container"
       >
         <div
-          className="MuiGrid-item-21 MuiGrid-grid-xs-12-60"
+          className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
         >
           <button
-            className="MuiButtonBase-root-135 MuiIconButton-root-129 Connect-Edit--formComponentsBtn-5 Connect-Edit--specialBtn-15"
+            className="MuiButtonBase-root MuiIconButton-root Connect(Edit)-formComponentsBtn-5 Connect(Edit)-specialBtn-15"
             disabled={false}
             onBlur={[Function]}
             onClick={[Function]}
-            onContextMenu={[Function]}
+            onDragLeave={[Function]}
             onFocus={[Function]}
             onKeyDown={[Function]}
             onKeyUp={[Function]}
@@ -59,26 +59,23 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
             type="button"
           >
             <span
-              className="MuiIconButton-label-134"
+              className="MuiIconButton-label"
             >
               <i
                 className="fa fa-circletrash"
               />
             </span>
-            <span
-              className="MuiTouchRipple-root-138"
-            />
           </button>
         </div>
         <div
-          className="MuiGrid-item-21 MuiGrid-grid-xs-12-60"
+          className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
         >
           <button
-            className="MuiButtonBase-root-135 MuiIconButton-root-129 Connect-Edit--formComponentsBtn-5"
+            className="MuiButtonBase-root MuiIconButton-root Connect(Edit)-formComponentsBtn-5"
             disabled={false}
             onBlur={[Function]}
             onClick={[Function]}
-            onContextMenu={[Function]}
+            onDragLeave={[Function]}
             onFocus={[Function]}
             onKeyDown={[Function]}
             onKeyUp={[Function]}
@@ -92,15 +89,12 @@ exports[`>>> containers/EditContainer >>> Capture snapshot of EditContainer 1`] 
             type="button"
           >
             <span
-              className="MuiIconButton-label-134"
+              className="MuiIconButton-label"
             >
               <i
                 className="fa fa-edit"
               />
             </span>
-            <span
-              className="MuiTouchRipple-root-138"
-            />
           </button>
         </div>
       </div>

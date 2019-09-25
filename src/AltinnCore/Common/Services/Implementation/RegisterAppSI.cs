@@ -16,7 +16,7 @@ using IRegister = AltinnCore.ServiceLibrary.Services.Interfaces.IRegister;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Register service for service development. Uses local disk to store register data
+    /// App implementation of the register service, for app development. Uses local disk to store register data.
     /// </summary>
     public class RegisterAppSI : IRegister
     {
@@ -31,7 +31,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterAppSI"/> class
         /// </summary>
-        /// <param name="dfs">The dfs</param>
+        /// <param name="dsf">The dsf</param>
         /// <param name="er">The er</param>
         /// <param name="logger">The logger</param>
         /// <param name="platformSettings">The platform settings</param>
@@ -39,7 +39,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="cookieOptions">The cookie options </param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public RegisterAppSI(
-            IDSF dfs,
+            IDSF dsf,
             IER er,
             ILogger<RegisterAppSI> logger,
             IOptions<PlatformSettings> platformSettings,
@@ -47,7 +47,7 @@ namespace AltinnCore.Common.Services.Implementation
             IOptions<JwtCookieOptions> cookieOptions,
             IHttpClientAccessor httpClientAccessor)
         {
-            _dsf = dfs;
+            _dsf = dsf;
             _er = er;
             _logger = logger;
             _platformSettings = platformSettings.Value;

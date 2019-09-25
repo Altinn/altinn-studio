@@ -45,9 +45,9 @@ export const styles = (theme: Theme) => createStyles({
       duration: theme.transitions.duration.leavingScreen,
     }),
     overflowX: 'hidden',
-    width: theme.spacing.unit * 7 + 1,
+    width: 8 * 7 + 1,
     [theme.breakpoints.up('sm')]: {
-      width: theme.spacing.unit * 8 + 1,
+      width: 8 * 8 + 1,
     },
   },
   toolbar: {
@@ -59,7 +59,7 @@ export const styles = (theme: Theme) => createStyles({
   },
   content: {
     flexGrow: 1,
-    padding: theme.spacing.unit * 3,
+    padding: 8 * 3,
   },
   paper: {
     position: 'absolute',

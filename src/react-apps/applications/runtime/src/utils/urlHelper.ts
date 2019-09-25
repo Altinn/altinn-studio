@@ -10,7 +10,26 @@ export const textResourcesUrl = `${origin}/${org}/${service}/api/textresources`;
 export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
   ${origin}/${org}/${service}/api/v1/parties/${partyId}
 `;
-export const partiesUrl: string = `${window.location.origin}/${org}/${service}/api/v1/parties`;
-export const instantiateUrl: string = `${window.location.origin}/${org}/${service}/Instance/InstantiateApp`;
-export const currentPartyUrl: string = `${window.location.origin}/${org}/${service}/api/authorization/parties/current`;
-export const instancesControllerUrl: string = `${window.location.origin}/${org}/${service}/instances`;
+export const validPartiesUrl: string =
+  `${origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=true`;
+export const allPartiesUrl: string =
+`${origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=false`;
+export const instantiateUrl: string = `${origin}/${org}/${service}/Instance/InstantiateApp`;
+export const currentPartyUrl: string = `${origin}/${org}/${service}/api/authorization/parties/current`;
+export const instancesControllerUrl: string = `${origin}/${org}/${service}/instances`;
+export const partySelectionUrl: string = `${origin}/${org}/${service}/#/partyselection`;
+export const refreshJwtTokenUrl: string = `${origin}/${org}/${service}/api/authentication/keepAlive`;
+
+export const getEnvironmentLoginUrl: () => string = () => {
+  // First split away the protocol 'https://' and take the last part. Then split on dots.
+  const domainSplitted: string[] = window.location.host.split('.');
+  if (domainSplitted.length === 5) {
+    return `https://platform.${domainSplitted[2]}.${domainSplitted[3]}.${domainSplitted[4]}` +
+      `/authentication/api/v1/authentication?goto=${window.location.href}`;
+  } else if (domainSplitted.length === 4) {
+    return `https://platform${domainSplitted[2]}.${domainSplitted[3]}` +
+      `/authentication/api/v1/authentication?goto=${window.location.href}`;
+  } else {
+    throw new Error('Unknown domain');
+  }
+};

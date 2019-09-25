@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -130,7 +131,6 @@ namespace Altinn.Platform.Storage.Repository
                 IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
                 FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
-
                 if (!feedResponse.Any())
                 {
                     queryResponse.Count = 0;
@@ -202,12 +202,20 @@ namespace Altinn.Platform.Storage.Repository
 
                         case "process.currentTask":
                             string currentTaskId = queryValue;
-                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask == currentTaskId);
+                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask.ProcessElementId == currentTaskId);
                             break;
 
                         case "process.isComplete":
                             bool isComplete = bool.Parse(queryValue);
-                            queryBuilder = queryBuilder.Where(i => i.Process.IsComplete == isComplete);
+                            if (isComplete)
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Process.Ended != null);
+                            }
+                            else
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Process.Ended == null);
+                            }
+
                             break;
 
                         case "labels":
@@ -444,15 +452,16 @@ namespace Altinn.Platform.Storage.Repository
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime <= DateTime.UtcNow))
                         .Where(i => !i.InstanceState.IsDeleted)
                         .Where(i => !i.InstanceState.IsArchived);
             }
             else if (instanceState.Equals("deleted"))
             {
-                // what about hard delete. Should we account for that too?
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => i.InstanceState.IsDeleted);
+                        .Where(i => i.InstanceState.IsDeleted)
+                        .Where(i => !i.InstanceState.IsMarkedForHardDelete);
             }
             else if (instanceState.Equals("archived"))
             {
