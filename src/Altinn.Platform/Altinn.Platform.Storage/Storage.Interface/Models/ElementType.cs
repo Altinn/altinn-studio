@@ -9,7 +9,6 @@ namespace Altinn.Platform.Storage.Models
     /// <summary>
     /// Model for application element type.
     /// </summary>
-    [Serializable]
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ElementType
     {
@@ -34,6 +33,18 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "allowedContentType")]
         public List<string> AllowedContentType { get; set; }
+
+        /// <summary>
+        /// Does the data element require application logic or should it be streamed directly to storage.
+        /// </summary>
+        [JsonProperty(PropertyName = "appLogic")]
+        public bool AppLogic { get; set; }
+
+        /// <summary>
+        /// A reference to the process element id of the task where this data element should be updated.
+        /// </summary>
+        [JsonProperty(PropertyName = "task")]
+        public string Task { get; set; }
 
         /// <summary>
         /// Maximum allowed size of the file in bytes. If missing there is no limit on file size.

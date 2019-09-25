@@ -263,6 +263,12 @@ namespace Altinn.Platform.Storage.Controllers
             existingApplication.WorkflowId = application.WorkflowId;
             existingApplication.MaxSize = application.MaxSize;
             existingApplication.ElementTypes = application.ElementTypes;
+            if (existingApplication.PartyTypesAllowed == null)
+            {
+                existingApplication.PartyTypesAllowed = new PartyTypesAllowed();
+            }
+
+            existingApplication.PartyTypesAllowed = application.PartyTypesAllowed;
 
             try
             {

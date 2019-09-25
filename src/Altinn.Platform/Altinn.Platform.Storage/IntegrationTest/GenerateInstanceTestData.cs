@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.Models;
-using Storage.Interface.Clients;
 using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
@@ -36,25 +33,35 @@ namespace Altinn.Platform.Storage.Helpers
 
             for (int i = 0; i < 1000; i++)
             {
-                ProcessState processState = new ProcessState();                
+                ProcessState processState = new ProcessState();
 
                 if (i < 200)
                 {
-                    processState.CurrentTask = processTaskIds[0];
+                    processState.CurrentTask = new TaskInfo
+                    {
+                        Started = start,
+                        ProcessElementId = processTaskIds[0],
+                    };
                 }
                 else if (i < 400)
                 {
-                    processState.CurrentTask = processTaskIds[1];                    
+                    processState.CurrentTask = new TaskInfo
+                    {
+                        Started = start,
+                        ProcessElementId = processTaskIds[1],
+                    };
                 }
                 else if (i < 900)
-                {                   
-                    processState.IsComplete = true;
-                    processState.EndState = processEndStateIds[0];
+                {
+                    processState.Started = start;
+                    processState.Ended = start.AddDays(2);
+                    processState.EndEvent = processEndStateIds[0];
                 }
                 else
                 {
-                    processState.IsInError = true;
-                    processState.EndState = "ErrorEvent_1";
+                    processState.Started = start;
+                    processState.EndEvent = "ErrorEvent_1";
+                    processState.Ended = start.AddDays(4);
                 }              
 
                 DateTime dueDate = start.AddDays(randomDay.Next(31, 366));

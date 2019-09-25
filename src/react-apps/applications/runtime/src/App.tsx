@@ -11,15 +11,48 @@ import LanguageActions from './shared/resources/language/languageActions';
 import PartyActions from './shared/resources/party/partyActions';
 import ProfileActions from './shared/resources/profile/profileActions';
 import TextResourcesActions from './shared/resources/textResources/actions';
-
+import { get } from './utils/networking';
 import {
+  getEnvironmentLoginUrl,
   languageUrl,
   profileApiUrl,
+  refreshJwtTokenUrl,
 } from './utils/urlHelper';
 
 const theme = createMuiTheme(AltinnAppTheme);
 
+const ONE_MINUTE_IN_MILLISECONDS: number = 60000;
+
 export default function() {
+  let lastRefreshTokenTimestamp: number = 0;
+
+  function setUpEventListeners() {
+    window.addEventListener('mousemove', refreshJwtToken);
+    window.addEventListener('scroll', refreshJwtToken);
+    window.addEventListener('onfocus', refreshJwtToken);
+  }
+
+  function removeEventListeners() {
+    window.removeEventListener('mousemove', refreshJwtToken);
+    window.removeEventListener('scroll', refreshJwtToken);
+    window.removeEventListener('onfocus', refreshJwtToken);
+  }
+
+  function refreshJwtToken() {
+    const timeNow = Date.now();
+    if ((timeNow - lastRefreshTokenTimestamp) > ONE_MINUTE_IN_MILLISECONDS) {
+      lastRefreshTokenTimestamp = timeNow;
+      get(refreshJwtTokenUrl)
+      .catch((err) => {
+        // Most likely the user has an expired token, so we redirect to the login-page
+        try {
+          window.location.href = getEnvironmentLoginUrl();
+        } catch (error) {
+          console.error(err, error);
+        }
+      });
+    }
+  }
 
   React.useEffect(() => {
     TextResourcesActions.fetchTextResources();
@@ -27,7 +60,11 @@ export default function() {
     LanguageActions.fetchLanguage(languageUrl, 'nb');
     ApplicationMetadataActions.getApplicationMetadata();
     PartyActions.getParties();
-  });
+    setUpEventListeners();
+    return function cleanup() {
+      removeEventListeners();
+    };
+  }, []);
 
   return (
     <MuiThemeProvider theme={theme}>

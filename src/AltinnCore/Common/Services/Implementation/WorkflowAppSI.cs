@@ -97,7 +97,7 @@ namespace AltinnCore.Common.Services.Implementation
                 throw new Exception("Unable to fetch workflow state");
             }
 
-            Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask, out WorkflowStep currentWorkflowState);
+            Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ProcessElementId, out WorkflowStep currentWorkflowState);
 
             return new ServiceState
             {
