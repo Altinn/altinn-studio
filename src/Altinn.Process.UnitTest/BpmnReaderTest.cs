@@ -10,7 +10,7 @@ using Xunit;
 namespace Altinn.Process.UnitTest
 {
     /// <summary>
-    /// Represents a collection of unit test with all unit tests of the <see cref="BpmnProcessEngine"/> class.
+    /// Represents a collection of unit test with all unit tests of the <see cref="BpmnReader"/> class.
     /// </summary>
     public class BpmnReaderTest
     {
@@ -65,11 +65,11 @@ namespace Altinn.Process.UnitTest
         ///   Returned element info have the expected property values.
         /// </summary>
         [Theory]
-        [InlineData("Submit_1", "Task")]
-        [InlineData("FormFilling_1", "Task")]
-        [InlineData("EndEvent_1", "EndEvent")]
-        [InlineData("StartEvent_1", "StartEvent")]
-        public void GetElementInfo_AskForExistingElement_ReturnsInfoAboutElement(string id, string elementType)
+        [InlineData("Submit_1", "Task", "submit")]
+        [InlineData("FormFilling_1", "Task", "formfilling")]
+        [InlineData("EndEvent_1", "EndEvent", null)]
+        [InlineData("StartEvent_1", "StartEvent", null)]
+        public void GetElementInfo_AskForExistingElement_ReturnsInfoAboutElement(string id, string elementType, string taskType)
         {
             // Arrange
             string definitions = LoadResourceAsString("Altinn.Process.UnitTest.TestData.default_process.bpmn");
@@ -82,6 +82,7 @@ namespace Altinn.Process.UnitTest
             Assert.NotNull(actual);
             Assert.Equal(id, actual.Id);
             Assert.Equal(elementType, actual.ElementType);
+            Assert.Equal(taskType, actual.AltinnTaskType);
         }
 
         /// <summary>

@@ -72,7 +72,7 @@ namespace Altinn.Process
             ProcessTask task = definitions.Process.Tasks.Find(t => t.Id == elementId);
             if (task != null)
             {
-                return new ElementInfo { Id = task.Id, ElementType = "Task", Name = task.Name };
+                return new ElementInfo { Id = task.Id, ElementType = "Task", Name = task.Name, AltinnTaskType = task.TaskType };
             }
 
             EndEvent endEvent = definitions.Process.EndEvents.Find(e => e.Id == elementId);

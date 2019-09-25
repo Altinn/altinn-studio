@@ -1,4 +1,4 @@
-﻿using System.Xml.Serialization;
+using System.Xml.Serialization;
 
 namespace Altinn.Process.Elements
 {
@@ -30,5 +30,11 @@ namespace Altinn.Process.Elements
         /// </summary>
         [XmlElement("outgoing")]
         public string Outgoing { get; set; }
+
+        /// <summary>
+        /// Gets or sets the outgoing id of a task
+        /// </summary>
+        [XmlAttribute("tasktype", Namespace = "http://altinn")]
+        public string TaskType { get; set; }
     }
 }
