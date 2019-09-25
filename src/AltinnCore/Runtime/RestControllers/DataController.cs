@@ -7,19 +7,15 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Storage.Interface.Enums;
 
@@ -34,12 +30,11 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly ILogger<DataController> logger;
         private readonly IData dataService;
         private readonly IInstance instanceService;
-
         private readonly IExecution executionService;
         private readonly UserHelper userHelper;
         private readonly IPlatformServices platformService;
-        private readonly IRepository repositoryService;
         private readonly IInstanceEvent eventService;
+        private readonly IApplication appService;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -54,8 +49,8 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="executionService">execution service to execute data element logic</param>
         /// <param name="profileService">profile service to access profile information about users and parties</param>
         /// <param name="platformService">platform</param>
-        /// <param name="repositoryService">repository for accessing applicaiton metadata</param>
         /// <param name="eventService">event service for dispatching data events</param>
+        /// <param name="appService">application service for accessing application metadata.</param>
         public DataController(
             IOptions<GeneralSettings> generalSettings,
             ILogger<DataController> logger,
@@ -65,8 +60,8 @@ namespace AltinnCore.Runtime.RestControllers
             IExecution executionService,
             IProfile profileService,
             IPlatformServices platformService,
-            IRepository repositoryService,
-            IInstanceEvent eventService)
+            IInstanceEvent eventService,
+            IApplication appService)
         {
             this.logger = logger;
 
@@ -74,8 +69,8 @@ namespace AltinnCore.Runtime.RestControllers
             this.dataService = dataService;
             this.executionService = executionService;
             this.platformService = platformService;
-            this.repositoryService = repositoryService;
             this.eventService = eventService;
+            this.appService = appService;
             this.userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
@@ -113,7 +108,7 @@ namespace AltinnCore.Runtime.RestControllers
             if (dataElement == null)
             {
                 return NotFound("Did not find data element");
-            }            
+            }
 
             Guid dataId = Guid.Parse(dataElement.Id);
 
@@ -139,6 +134,39 @@ namespace AltinnCore.Runtime.RestControllers
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Calculation);
 
             return Ok(serviceModel);
+        }
+
+        /// <summary>
+        /// Gets a data element from storage and applying business logic if nessesary.
+        /// </summary>     
+        /// <param name="org">unique identfier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="elementType">identifies the type of the data element that should be returned</param>
+        /// <param name="dataGuid">unique id to identify the data element to get</param>
+        [HttpGet("{elementType}/{dataGuid:guid?}")]
+        public async Task<ActionResult> GetSomething(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid,
+            [FromRoute] string elementType = "default",
+            [FromRoute] Guid dataGuid = default(Guid))
+        {
+            bool? appLogic = await RequiresAppLogic(org, app, elementType);
+
+            if (appLogic == null)
+            {
+                logger.LogError($"Could not determine if {elementType} requires app logic for application {org}/{app}");
+                return BadRequest("Could not determine if element type requires application logic.");
+            }
+            else if ((bool)appLogic)
+            {
+                return await GetFormElement();
+            }
+
+            return await GetBinaryElement(org, app, instanceOwnerId, instanceGuid, dataGuid);
         }
 
         /// <summary>
@@ -196,7 +224,7 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid)
-        {           
+        {
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
 
             if (instance == null)
@@ -259,7 +287,7 @@ namespace AltinnCore.Runtime.RestControllers
             await DispatchEvent(InstanceEventType.Saved.ToString(), instance, dataGuid);
 
             return Ok(serviceModel);
-        }       
+        }
 
         /// <summary>
         /// Creates and instantiates a data element of a given element-type. Clients can upload the data element in the request content.
@@ -284,8 +312,8 @@ namespace AltinnCore.Runtime.RestControllers
             bool startService = true;
 
             IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType, startService);
-                
-            Application application = repositoryService.GetApplication(org, app);
+
+            Application application = await appService.GetApplication(org, app);
             if (application != null)
             {
                 return NotFound($"AppId {org}/{app} was not found");
@@ -295,13 +323,13 @@ namespace AltinnCore.Runtime.RestControllers
             if (instanceBefore == null)
             {
                 return BadRequest("Unknown instance");
-            }       
+            }
 
             object serviceModel = null;
 
             if (Request.ContentType == null)
             {
-               serviceModel = serviceImplementation.CreateNewServiceModel();
+                serviceModel = serviceImplementation.CreateNewServiceModel();
             }
             else
             {
@@ -319,11 +347,11 @@ namespace AltinnCore.Runtime.RestControllers
             await serviceImplementation.RunServiceEvent(ServiceEventType.ValidateInstantiation);
 
             InstancesController.SetAppSelfLinks(instanceBefore, Request);
-           
+
             Instance instanceAfter = await dataService.InsertData(serviceModel, instanceGuid, serviceImplementation.GetServiceModelType(), org, app, instanceOwnerId);
 
             InstancesController.SetAppSelfLinks(instanceAfter, Request);
-            List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);           
+            List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);
             string dataUrl = createdElements.First().DataLinks.Apps;
 
             return Created(dataUrl, instanceAfter);
@@ -438,6 +466,59 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             return elementsCreated;
+        }
+
+        private async Task<bool?> RequiresAppLogic(string org, string app, string elementTypeId)
+        {
+            bool? appLogic = false;
+
+            Application application = await appService.GetApplication(org, app);
+            try
+            {
+                appLogic = application.ElementTypes.Where(e => e.Id == elementTypeId).Select(e => e.AppLogic).First();
+            }
+            catch (Exception)
+            {
+                appLogic = null;
+            }
+
+            return appLogic;
+        }
+
+        private async Task<ActionResult> GetFormElement()
+        {
+            return Ok();
+        }
+
+        private async Task<ActionResult> GetBinaryElement(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid,
+            [FromRoute] Guid dataGuid)
+        {
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+
+            DataElement dataElement;
+            if (dataGuid == Guid.Empty)
+            {
+                dataElement
+            }
+            else
+            {
+                dataElement = instance.Data.Find(d => d.Id == dataGuid.ToString());
+            }            
+
+            Stream dataStream = await dataService.GetData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+
+            if (dataStream != null)
+            {
+                return File(dataStream, dataElement.ContentType, dataElement.FileName);
+            }
+            else
+            {
+                return NotFound();
+            }
         }
     }
 }
