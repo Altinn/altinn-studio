@@ -122,7 +122,7 @@ namespace AltinnCore.Designer
 
             string ApplicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(ApplicationInsightTelemetryKey)) {
-                services.AddApplicationInsightsTelemetry("");
+                services.AddApplicationInsightsTelemetry(ApplicationInsightTelemetryKey);
                 services.AddApplicationInsightsKubernetesEnricher();
             }
 
