@@ -4,11 +4,15 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Authentication.Constants;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.RestControllers;
+using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Storage.Interface.Models;
 using Xunit;
@@ -167,12 +171,30 @@ namespace AltinnCore.UnitTest.Runtime
                 })
                 .Returns(Task.FromResult("EventId"));
 
+            Mock<IRegister> registerServiceMock = new Mock<IRegister>();
+            registerServiceMock
+                .Setup(x => x.GetParty(It.IsAny<int>()))
+                .Returns(Task.FromResult(new Party() { PartyId = int.Parse(instanceOwnerId) }));
+
+            Mock<IProfile> profileServiceMock = new Mock<IProfile>();
+            profileServiceMock
+                .Setup(x => x.GetUserProfile(It.IsAny<int>()))
+                .Returns(Task.FromResult(new UserProfile() { UserId = int.Parse(userId) }));
+
+            Mock<IOptions<GeneralSettings>> generalSettingsMock = new Mock<IOptions<GeneralSettings>>();
+            generalSettingsMock.Setup(s => s.Value).Returns(new GeneralSettings()
+            {
+                AltinnPartyCookieName = "AltinnPartyId",
+            });
+
             return new ProcessController(
                 new Mock<ILogger<ProcessController>>().Object,
                 instanceServiceMock.Object,
                 processServiceMock.Object,
                 eventServiceMock.Object,
-                )
+                profileServiceMock.Object,
+                registerServiceMock.Object,
+                generalSettingsMock.Object)
             {
                 ControllerContext = new ControllerContext()
                 {

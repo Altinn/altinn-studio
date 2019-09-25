@@ -19,7 +19,7 @@ namespace AltinnCore.Common.Clients
         private HttpClient _registerClient;
         private HttpClient _profileClient;
         private HttpClient _authorizationClient;
-        private HttpClient _sblClient;
+        private HttpClient _authenticationClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpClientAccessor"/> class.
@@ -96,6 +96,22 @@ namespace AltinnCore.Common.Clients
 
                 return _authorizationClient;
             }
-        }      
+        }
+
+        /// <inheritdoc />
+        public HttpClient AuthenticationClient
+        {
+            get
+            {
+                if (_authenticationClient == null)
+                {
+                    _authenticationClient = new HttpClient();
+                    _authenticationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthenticationEndpoint}");
+                    _authenticationClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                }
+
+                return _authenticationClient;
+            }
+        }
     }
 }

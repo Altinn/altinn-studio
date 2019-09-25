@@ -90,7 +90,9 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IProfile, ProfileStudioSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
                 services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
+                services.AddSingleton<IAuthentication, AuthenticationStudioSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
+                services.AddSingleton<IApplication, ApplicationStudioSI>();
             }
             else
             {
@@ -108,6 +110,8 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
                 services.AddSingleton<IAuthorization, AuthorizationAppSI>();
+                services.AddSingleton<IAuthentication, AuthenticationAppSI>();
+                services.AddSingleton<IApplication, ApplicationAppSI>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
@@ -465,7 +469,7 @@ namespace AltinnCore.Runtime
                     {
                         controller = "Language",
                     });
-                
+
                 routes.MapRoute(
                   name: "authorization",
                   template: "{org}/{service}/api/{controller}/parties/{partyId}/validate",

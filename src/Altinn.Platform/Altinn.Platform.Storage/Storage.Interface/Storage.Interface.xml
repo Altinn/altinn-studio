@@ -328,6 +328,12 @@
             Examples are: main, subschema-x, cv, attachement
             </summary>
         </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.Type">
+            <summary>
+            The element type. Only used for form data and represents the class name for the form. 
+            Formated as {org}.{app}.model.{id}. 
+            </summary>
+        </member>
         <member name="P:Altinn.Platform.Storage.Models.ElementType.Description">
             <summary>
             Description of the element type with language description.
@@ -357,6 +363,12 @@
         <member name="P:Altinn.Platform.Storage.Models.ElementType.MaxCount">
             <summary>
             Maximum number of instances of same element. Default is 1.
+            If negative no limit on number of data elements.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Models.ElementType.MinCount">
+            <summary>
+            Minimum number of instances of same element. Default is 1.
             If negative no limit on number of data elements.
             </summary>
         </member>

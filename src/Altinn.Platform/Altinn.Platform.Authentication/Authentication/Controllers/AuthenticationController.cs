@@ -14,6 +14,7 @@ using Altinn.Platform.Authentication.Model;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,7 @@ namespace Altinn.Platform.Authentication.Controllers
     /// <summary>
     /// Handles the authentication of requests to platform
     /// </summary>
-    [Route("authentication/api/v1/authentication")]
+    [Route("authentication/api/v1")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
@@ -48,7 +49,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <param name="goTo">The url to redirect to if everything validates ok</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
-        [HttpGet]
+        [HttpGet("authentication")]
         public async Task<ActionResult> Get(string goTo)
         {
             if (!IsValidRedirectUri(new Uri(goTo).Host))
@@ -119,6 +120,29 @@ namespace Altinn.Platform.Authentication.Controllers
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Refreshes JwtToken.
+        /// </summary>
+        /// <returns>Ok response with the refreshed token appended.</returns>
+        [Authorize]
+        [HttpGet("refresh")]
+        public async Task<ActionResult> RefreshJWTCookie()
+        {
+            ClaimsPrincipal principal = HttpContext.User;
+
+            await HttpContext.SignInAsync(
+                JwtCookieDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
+                    IsPersistent = false,
+                    AllowRefresh = false,
+                });
+
+            return Ok();
         }
 
         /// <summary>
