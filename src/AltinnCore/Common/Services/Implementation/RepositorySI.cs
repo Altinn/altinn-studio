@@ -199,7 +199,7 @@ namespace AltinnCore.Common.Services.Implementation
                 AllowedContentType = new List<string>() { "application/xml" },
                 ShouldEncrypt = true,
             });
-
+            appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
             string metaDataDir = _settings.GetMetadataPath(
                                     org,
                                     app,

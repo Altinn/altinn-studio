@@ -169,7 +169,7 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function getRepresentedPartyName(): string {
-    if (selectedParty.name === null) {
+    if (!selectedParty || selectedParty.name === null) {
       return '';
     }
     return capitalizeName(selectedParty.name);
