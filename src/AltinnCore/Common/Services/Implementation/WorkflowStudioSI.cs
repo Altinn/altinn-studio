@@ -15,7 +15,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Service that handles functionality used for workflow
+    /// Studio implementation of the workflow service.
     /// </summary>
     public class WorkflowStudioSI : IWorkflow
     {
@@ -40,35 +40,35 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState GetInitialServiceState(string org, string appName)
+        public ServiceState GetInitialServiceState(string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string workflowFullFilePath = _settings.GetWorkflowPath(org, appName, developer) + _settings.WorkflowFileName;
+            string workflowFullFilePath = _settings.GetWorkflowPath(org, app, developer) + _settings.WorkflowFileName;
             string workflowData = File.ReadAllText(workflowFullFilePath, Encoding.UTF8);
             return WorkflowHelper.GetInitialWorkflowState(workflowData);
         }
 
         /// <inheritdoc/>
-        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string org, string appName, int instanceOwnerId)
+        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string org, string app, int instanceOwnerId)
         {
-            ServiceState currentState = GetCurrentState(instanceId, org, appName, instanceOwnerId);
+            ServiceState currentState = GetCurrentState(instanceId, org, app, instanceOwnerId);
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string workflowFullFilePath = _settings.GetWorkflowPath(org, appName, developer) + _settings.WorkflowFileName;
+            string workflowFullFilePath = _settings.GetWorkflowPath(org, app, developer) + _settings.WorkflowFileName;
             string workflowData = File.ReadAllText(workflowFullFilePath, Encoding.UTF8);
             return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }
 
         /// <inheritdoc/>
-        public string GetUrlForCurrentState(Guid instanceId, string org, string appName, WorkflowStep currentState)
+        public string GetUrlForCurrentState(Guid instanceId, string org, string app, WorkflowStep currentState)
         {
-            return WorkflowHelper.GetUrlForCurrentState(instanceId, org, appName, currentState);
+            return WorkflowHelper.GetUrlForCurrentState(instanceId, org, app, currentState);
         }
 
         /// <inheritdoc/>
-        public ServiceState GetCurrentState(Guid instanceId, string org, string appName, int instanceOwnerId)
+        public ServiceState GetCurrentState(Guid instanceId, string org, string app, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceId}/{instanceId}.json";
             string currentStateAsString = File.ReadAllText(serviceStatePath, Encoding.UTF8);
             Instance instance = JsonConvert.DeserializeObject<Instance>(currentStateAsString);
             Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ProcessElementId, out WorkflowStep current);

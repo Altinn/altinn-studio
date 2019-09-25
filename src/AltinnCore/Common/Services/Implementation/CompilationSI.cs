@@ -27,7 +27,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Service responsible for compiling the code for a service. This included the service implementation and the service
+    /// Implementation of the compilation service. the code for an app. This includes the app implementation and the app
     /// model classes
     /// </summary>
     public class CompilationSI : Interfaces.ICompilation
@@ -47,7 +47,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="configuration">The configuration.</param>
         /// <param name="partManager">The part manager.</param>
         /// <param name="compilationService">The compilation service.</param>
-        /// <param name="repositoryService">The service repository service.</param>
+        /// <param name="repositoryService">The repository service.</param>
         /// <param name="logger">The logger.</param>
         /// <param name="httpContextAccessor">the http context accessor.</param>
         public CompilationSI(
@@ -67,37 +67,37 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a zip-file containing all files necessary for executing a service.
+        /// Creates a zip file containing all files necessary for executing an app.
         /// </summary>
-        /// <param name="org">The organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
         /// <returns>Was the package creation successful.</returns>
-        public bool CreateServicePackage(string org, string service, bool startServiceFlag)
+        public bool CreateServicePackage(string org, string app, bool startAppFlag)
         {
-            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
+            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, app);
 
-            string packagesDir = _settings.GetServicePackagesPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string tempDir = _settings.GetTemporaryPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string packagesDir = _settings.GetServicePackagesPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string tempDir = _settings.GetTemporaryPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             string tempDirName = Path.GetRandomFileName();
             string tempDirPath = tempDir + tempDirName + "/";
 
-            CopyDirectoryContents(_settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.METADATA_FOLDER_NAME);
-            CopyDirectoryContents(_settings.GetCodelistPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.CODELISTS_FOLDER_NAME);
-            CopyDirectoryContents(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.RESOURCE_FOLDER_NAME);
+            CopyDirectoryContents(_settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.METADATA_FOLDER_NAME);
+            CopyDirectoryContents(_settings.GetCodelistPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.CODELISTS_FOLDER_NAME);
+            CopyDirectoryContents(_settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.RESOURCE_FOLDER_NAME);
 
             Directory.CreateDirectory(tempDirPath + "/Assemblies/");
             Directory.CreateDirectory(packagesDir);
 
             string compileResult = string.Empty;
-            string assemblyName = CreateServiceAssembly(org, service, startServiceFlag, tempDirPath + "/Assemblies/").AssemblyName;
+            string assemblyName = CreateServiceAssembly(org, app, startAppFlag, tempDirPath + "/Assemblies/").AssemblyName;
 
             ServicePackageDetails details = new ServicePackageDetails
             {
                 AssemblyName = assemblyName,
                 Organization = org,
-                Service = service,
+                Service = app,
                 CreatedDateTime = DateTime.Now,
             };
 
@@ -113,19 +113,19 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates the service assembly for a service.
+        /// Creates the assembly for an app.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
         /// <param name="outputLocation">The directory where the resulting assembly should be saved.</param>
         /// <param name="loadAssemblyContext">Defines if assembly should be loaded in context.</param>
         /// <returns>The assembly name.</returns>
-        public CodeCompilationResult CreateServiceAssembly(string org, string service, bool startServiceFlag, string outputLocation = null, bool loadAssemblyContext = true)
+        public CodeCompilationResult CreateServiceAssembly(string org, string app, bool startAppFlag, string outputLocation = null, bool loadAssemblyContext = true)
         {
             CodeCompilationResult compilationResult = new CodeCompilationResult() { CompileStarted = DateTime.Now };
-            string assemblykey = org + "_" + CompileHelper.GetCSharpValidAppId(service);
-            List<AltinnCoreFile> implementationFiles = _repository.GetImplementationFiles(org, service);
+            string assemblykey = org + "_" + CompileHelper.GetCSharpValidAppId(app);
+            List<AltinnCoreFile> implementationFiles = _repository.GetImplementationFiles(org, app);
 
             DateTime lastChanged = new DateTime(2000, 01, 01);
             foreach (AltinnCoreFile file in implementationFiles)
@@ -136,7 +136,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            SyntaxTree[] syntaxTrees = GetSyntaxTrees(org, service);
+            SyntaxTree[] syntaxTrees = GetSyntaxTrees(org, app);
             List<MetadataReference> references = new List<MetadataReference>();
             Assembly root = Assembly.GetEntryAssembly();
 
@@ -266,15 +266,15 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Read all source documents for a given service and put it in a syntax tree array.
+        /// Read all source code for a given app and put it in a syntax tree array.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The syntax tree.</returns>
-        private SyntaxTree[] GetSyntaxTrees(string org, string service)
+        private SyntaxTree[] GetSyntaxTrees(string org, string app)
         {
             List<SyntaxTree> syntaxTrees = new List<SyntaxTree>();
-            string dir = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string dir = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var ext = new List<string> { ".cs" };
             var codeFiles = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
                  .Where(s => ext.Any(e => s.EndsWith(e)));

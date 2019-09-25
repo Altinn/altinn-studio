@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Service implementation for form service
+    /// Implementation of the form service.
     /// </summary>
     public class FormStudioSI : IForm
     {
@@ -42,10 +42,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public object GetPrefill(string org, string appName, Type type, int instanceOwnerId, string prefillkey)
+        public object GetPrefill(string org, string app, Type type, int instanceOwnerId, string prefillkey)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string prefillFilePath = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/prefill/{prefillkey}.xml";
+            string prefillFilePath = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/prefill/{prefillkey}.xml";
             try
             {
                 using (Stream stream = File.Open(prefillFilePath, FileMode.Open, FileAccess.Read))

@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for authentication service
+    /// App implementation of the authentication service.
     /// </summary>
     public class AuthenticationAppSI : IAuthentication
     {
