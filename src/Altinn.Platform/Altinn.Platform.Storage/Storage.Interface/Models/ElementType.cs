@@ -22,11 +22,18 @@ namespace Altinn.Platform.Storage.Models
         public string Id { get; set; }
 
         /// <summary>
+        /// The element type. Only used for form data and represents the class name for the form. 
+        /// Formated as {org}.{app}.model.{id}. 
+        /// </summary>
+        [JsonProperty(PropertyName = "type")]
+        public string Type { get; set; }
+
+        /// <summary>
         /// Description of the element type with language description.
         /// </summary>
         [JsonProperty(PropertyName = "description")]
         public LanguageString Description { get; set; }
-        
+
         /// <summary>
         /// List of allowed content types (Mime types).
         /// If null or empty all content types are allowed.
@@ -59,6 +66,14 @@ namespace Altinn.Platform.Storage.Models
         [JsonProperty(PropertyName = "maxCount")]
         [DefaultValue(1)]
         public int MaxCount { get; set; }
+
+        /// <summary>
+        /// Minimum number of instances of same element. Default is 1.
+        /// If negative no limit on number of data elements.
+        /// </summary>
+        [JsonProperty(PropertyName = "minCount")]
+        [DefaultValue(-1)]
+        public int MinCount { get; set; }
 
         /// <summary>
         /// True if signature is required. Default value is false.
