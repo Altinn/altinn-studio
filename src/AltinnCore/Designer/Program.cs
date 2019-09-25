@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -93,16 +92,15 @@ namespace AltinnCore.Designer
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-                .UseApplicationInsights()
                 .UseStartup<Startup>()
                 .CaptureStartupErrors(true);
 
         private static void SetTelemetry(string instrumentationKey)
         {
-            logger.Information($"Setting application insights telemetry with instrumentationKey='{instrumentationKey}'");
+            logger.Information($"Setting application environment variable with insights telemetry key ='{instrumentationKey}'");
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
+                Environment.SetEnvironmentVariable("ApplicationInsights--InstrumentationKey", instrumentationKey);
             }
         }
     }
