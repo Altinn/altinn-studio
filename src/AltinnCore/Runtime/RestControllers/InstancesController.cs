@@ -234,16 +234,8 @@ namespace AltinnCore.Runtime.RestControllers
                 return Forbid($"Party {party?.PartyId} is not allowed to instantiate this application {org}/{app}");
             }
 
-            // set initial task
-            instanceTemplate.Process = instanceTemplate.Process ?? new ProcessState()
-            {
-                Started = DateTime.UtcNow,
-                CurrentTask = new TaskInfo
-                {
-                    Started = DateTime.UtcNow,
-                    ProcessElementId = processService.GetInitialServiceState(org, app).State.ToString(),
-                }
-            };
+            // use process controller to start process
+            instanceTemplate.Process = null;
 
             Instance instance = await instanceService.CreateInstance(org, app, instanceTemplate);           
             
