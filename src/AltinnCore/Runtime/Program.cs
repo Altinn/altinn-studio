@@ -22,7 +22,7 @@ namespace AltinnCore.Runtime
     /// </summary>
     public static class Program
     {
-        private static Logger logger = new LoggerConfiguration()
+        private static Logger _logger = new LoggerConfiguration()
             .WriteTo.Console()
             .CreateLogger();
 
@@ -79,7 +79,7 @@ namespace AltinnCore.Runtime
                     }
                     catch (Exception vaultException)
                     {
-                        logger.Error($"Could not find secretBundle for application insights {vaultException}");
+                        _logger.Error($"Could not find secretBundle for application insights {vaultException}");
                     }
                 }
             })
@@ -92,11 +92,12 @@ namespace AltinnCore.Runtime
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-                .UseStartup<Startup>();
+                .UseStartup<Startup>()
+                .CaptureStartupErrors(true);
 
         private static void SetTelemetry(string instrumentationKey)
         {
-            logger.Information($"Setting application environment variable with insights telemetry key ='{instrumentationKey}'");
+            _logger.Information($"Setting application environment variable with insights telemetry key ='{instrumentationKey}'");
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
                 Environment.SetEnvironmentVariable("ApplicationInsights--InstrumentationKey", instrumentationKey);
