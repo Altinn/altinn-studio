@@ -2,11 +2,7 @@
   "partyID": "50004",
   "partyTypeName": 1,
   "orgNumber": null,
-  "person": {
-    "ssn": "01047512345",
-    "firstName": "Pål",
-    "LastName": "Revisor"
-  },
+  "person":  null,
   "organization": null,
   "ssn": "01047512345",
   "name": "Pål Revisor",

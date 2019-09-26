@@ -3,11 +3,6 @@
 	"partyTypeName": 1,
 	"orgNumber": null,
 	"ssn": "01017512345",
-	"person": {
-		"ssn": "01017512345",
-		"firstName": "Ola",
-		"LastName": "Privatperson"
-	},	
 	"unitType": null,
 	"name": "Ola Privatperson",
 	"isDeleted": false,
