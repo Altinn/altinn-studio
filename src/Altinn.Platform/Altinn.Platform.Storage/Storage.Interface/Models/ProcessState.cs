@@ -16,10 +16,16 @@ namespace Storage.Interface.Models
         public DateTime? Started { get; set; }
 
         /// <summary>
+        /// The start event that was used to start the process. 
+        /// </summary>
+        [JsonProperty(PropertyName = "startEvent")]
+        public string StartEvent { get; set; }
+
+        /// <summary>
         /// Contains the task info of the currentTask of an ongoing process. If process is ended/completed it will not have value. 
         /// </summary>
         [JsonProperty(PropertyName = "currentTask")]
-        public TaskInfo CurrentTask { get; set; }
+        public ProcessElementInfo CurrentTask { get; set; }
 
         /// <summary>
         /// The date time the process was ended/completed. 

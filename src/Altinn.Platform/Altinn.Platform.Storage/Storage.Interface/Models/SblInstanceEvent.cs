@@ -7,10 +7,10 @@ using System.Text;
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
-    /// Model for the instance event.
+    /// Model for the instance event for interaction with the SBL solution
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class InstanceEvent
+    public class SblInstanceEvent
     {
         /// <summary>
         /// unique identifier of the event
@@ -67,12 +67,11 @@ namespace Altinn.Platform.Storage.Models
         public int? EndUserSystemId { get; set; }
 
         /// <summary>
-        /// More information about the process event.
-        /// Contains a snapshot of the changed currentTask element of the instance.
-        /// If event type does not start with process: this field is not present.
+        /// The name of the workflow step which the event occured
         /// </summary>
-        [JsonProperty(PropertyName = "processInfo")]
-        public ProcessElementInfo ProcessInfo { get; set; }
+        [JsonProperty(PropertyName = "workflowStep")]
+        public string WorkFlowStep { get; set; }
+
 
         /// <inheritdoc/>
         public override string ToString()

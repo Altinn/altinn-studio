@@ -22,13 +22,6 @@ namespace Altinn.Platform.Storage.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// The element type. Only used for form data and represents the class name for the form. 
-        /// Formated as {org}.{app}.model.{id}. 
-        /// </summary>
-        [JsonProperty(PropertyName = "type")]
-        public string Type { get; set; }
-
-        /// <summary>
         /// Description of the element type with language description.
         /// </summary>
         [JsonProperty(PropertyName = "description")]
@@ -42,7 +35,7 @@ namespace Altinn.Platform.Storage.Models
         public List<string> AllowedContentType { get; set; }
 
         /// <summary>
-        /// Does the data element require application logic or should it be streamed directly to storage.
+        /// Does the data element require application logic (true) or should it be streamed directly to storage (false).
         /// </summary>
         [JsonProperty(PropertyName = "appLogic")]
         public bool AppLogic { get; set; }
@@ -75,18 +68,5 @@ namespace Altinn.Platform.Storage.Models
         [DefaultValue(-1)]
         public int MinCount { get; set; }
 
-        /// <summary>
-        /// True if signature is required. Default value is false.
-        /// </summary>
-        [JsonProperty(PropertyName = "shouldSign")]
-        [DefaultValue(false)]
-        public bool ShouldSign { get; set; }
-
-        /// <summary>
-        /// Encryption required by application. Default value is false.  
-        /// </summary>
-        [JsonProperty(PropertyName = "shouldEncrypt")]
-        [DefaultValue(false)]
-        public bool ShouldEncrypt { get; set; }
     }
 }
