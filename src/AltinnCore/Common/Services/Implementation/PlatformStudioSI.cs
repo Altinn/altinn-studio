@@ -6,7 +6,7 @@ using IRegister = AltinnCore.ServiceLibrary.Services.Interfaces.IRegister;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// This implements the services available in the platform that can be used by services.
+    /// Studio implementation of the platform service. This is services available in the platform that can be used by apps.
     /// After it is set in production only new methods can be added.
     /// </summary>
     public class PlatformStudioSI : IPlatformServices

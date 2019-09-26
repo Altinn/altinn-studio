@@ -83,12 +83,19 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LastChangedBy = userId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            }
+            Process = CreateProcessState()
         };
+
+        private static ProcessState CreateProcessState()
+        {
+            return new ProcessState
+            {
+                CurrentTask = new TaskInfo
+                {
+                    ProcessElementId = "FormFilling",
+                },
+            };
+        }
 
         // Archived instance of app 1
         private static readonly Instance Instance_1_2 = new Instance()
@@ -106,11 +113,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LastChangedBy = userId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            }
+            Process = CreateProcessState(),
         };
 
         // Soft deleted instance of app 1
@@ -129,11 +132,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LastChangedBy = userId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            },
+            Process = CreateProcessState(),
         };
 
         // Hard deleted instance of app 1
@@ -152,11 +151,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LastChangedBy = userId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            },
+            Process = CreateProcessState(),
         };
 
         // 1st instance of application 2
@@ -175,11 +170,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LastChangedBy = userId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            },
+            Process = CreateProcessState(),
         };
 
         // 2nd instance of application 2
@@ -198,11 +189,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LastChangedBy = userId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            },
+            Process = CreateProcessState(),
         };
 
         // 1st instance of application 3
@@ -221,11 +208,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LastChangedBy = userId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_2,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            },
+            Process = CreateProcessState(),
         };
 
         private static readonly Instance Instance_3_2 = new Instance()
@@ -243,11 +226,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             LastChangedBy = userId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_2,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            },
+            Process = CreateProcessState(),
         };
 
         private readonly static List<Instance> InstanceList_App1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3 };

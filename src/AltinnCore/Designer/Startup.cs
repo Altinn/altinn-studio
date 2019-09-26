@@ -120,6 +120,13 @@ namespace AltinnCore.Designer
                     };
                 });
 
+            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
+            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            {
+                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
+                services.AddApplicationInsightsKubernetesEnricher();
+            }
+
             var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
@@ -248,6 +255,21 @@ namespace AltinnCore.Designer
                     template: "{action=StartPage}/{id?}",
                     defaults: new { controller = "Home" });
             });
+        }
+
+        /// <summary>
+        ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
+        /// </summary>
+        /// <returns>elemetry instrumentation key</returns>
+        public string GetApplicationInsightsKeyFromEnvironment()
+        {
+            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
+            if (string.IsNullOrEmpty(evironmentKey))
+            {
+                return null;
+            }
+
+            return evironmentKey;
         }
     }
 }

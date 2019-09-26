@@ -15,16 +15,16 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Stores the instance event
         /// </summary>
-        Task<string> SaveInstanceEvent(object dataToSerialize, string org, string appName);
+        Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app);
 
         /// <summary>
         /// Gets the instance events related to the instance matching the instance id. 
         /// </summary>
-        Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName, string[] eventTypes, string from, string to);
+        Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to);
 
         /// <summary>
         /// Deletes the instance events related to the instance matching the instance id. 
         /// </summary>
-        Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName);
+        Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string app);
     }
 }

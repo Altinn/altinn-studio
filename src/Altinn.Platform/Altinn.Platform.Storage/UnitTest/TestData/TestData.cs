@@ -83,12 +83,20 @@ namespace Altinn.Platform.Storage.UnitTest
             LastChangedBy = UserId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = Org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            }
+            Process = CreateProcessState()
         };
+
+        private static ProcessState CreateProcessState()
+        {
+            return new ProcessState()
+            {
+                CurrentTask = new TaskInfo
+                {
+                    ProcessElementId = "FormFilling"
+                },
+                
+            };
+        }
 
         // 2nd instance of application 1
         public static Instance Instance_1_2 = new Instance()
@@ -107,11 +115,7 @@ namespace Altinn.Platform.Storage.UnitTest
             LastChangedBy = UserId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = Org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            }
+            Process = CreateProcessState(),
         };
 
         // 1st instance of application 2
@@ -131,11 +135,7 @@ namespace Altinn.Platform.Storage.UnitTest
             LastChangedBy = UserId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = Org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            }
+            Process = CreateProcessState(),
         };
 
         // 2nd instance of application 2
@@ -155,11 +155,7 @@ namespace Altinn.Platform.Storage.UnitTest
             LastChangedBy = UserId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = Org_1,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            }
+            Process = CreateProcessState(),
         };
 
         // 1st instance of application 3
@@ -179,11 +175,7 @@ namespace Altinn.Platform.Storage.UnitTest
             LastChangedBy = UserId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = Org_2,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            }
+            Process = CreateProcessState(),
         };
 
 
@@ -204,11 +196,7 @@ namespace Altinn.Platform.Storage.UnitTest
             LastChangedBy = UserId_1,
             LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = Org_2,
-            Process = new ProcessState()
-            {
-                CurrentTask = "FormFilling",
-                IsComplete = false,
-            }
+            Process = CreateProcessState(),
         };
 
         public static List<Instance> InstanceList_App1 = new List<Instance>() { Instance_1_1, Instance_1_2 };
