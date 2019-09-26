@@ -161,6 +161,13 @@ namespace AltinnCore.Runtime
                     options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
                 });
 
+            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
+            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            {
+                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
+                services.AddApplicationInsightsKubernetesEnricher();
+            }
+
             var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
@@ -504,6 +511,21 @@ namespace AltinnCore.Runtime
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
             });
+        }
+
+        /// <summary>
+        ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
+        /// </summary>
+        /// <returns>elemetry instrumentation key</returns>
+        public string GetApplicationInsightsKeyFromEnvironment()
+        {
+            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
+            if (string.IsNullOrEmpty(evironmentKey))
+            {
+                return null;
+            }
+
+            return evironmentKey;
         }
     }
 }
