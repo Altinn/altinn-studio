@@ -612,8 +612,8 @@ namespace AltinnCore.Runtime.Controllers
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<IActionResult> SaveFormAttachment(string org, string service, int partyId, Guid instanceGuid, string attachmentType, string attachmentName)
         {
-            Guid guid = await _data.SaveFormAttachment(org, service, partyId, instanceGuid, attachmentType, attachmentName, Request);
-
+            DataElement data = await _data.SaveFormAttachment(org, service, partyId, instanceGuid, attachmentType, attachmentName, Request);
+            Guid guid = Guid.Parse(data.Id);
             if (guid == Guid.Empty)
             {
                 return StatusCode(500, $"Cannot store form attachment on instance {partyId}/{instanceGuid}");

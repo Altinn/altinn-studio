@@ -37,7 +37,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="dataId">the data id</param>
-        void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId);
+        Task<Instance> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId);
 
         /// <summary>
         /// Gets the form data
@@ -91,6 +91,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="attachmentType">The attachment type</param>
         /// <param name="attachmentName">The attachment name</param>
         /// <param name="attachment">The attachment to be saved</param>
-        Task<Guid> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment);
+        Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment);
     }
 }

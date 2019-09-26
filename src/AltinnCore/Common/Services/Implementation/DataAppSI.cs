@@ -90,7 +90,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public async Task<Instance> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
@@ -110,7 +110,12 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     _logger.LogError($"Unable to save form model for instance {instanceGuid}");
                 }
+
+                string instanceData = await response.Result.Content.ReadAsStringAsync();
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             }
+
+            return null;
         }
 
         /// <inheritdoc />
@@ -235,7 +240,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Guid> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment)
+        public async Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
@@ -270,11 +275,11 @@ namespace AltinnCore.Common.Services.Implementation
                         using (MultipartFormDataContent formData = new MultipartFormDataContent())
                         {
                             HttpContent fileStreamContent = new StreamContent(input);
-                            
+
                             fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
                             formData.Add(fileStreamContent, attachmentType, attachmentName);
 
-                            response = client.PostAsync(apiUrl, formData).Result;                            
+                            response = client.PostAsync(apiUrl, formData).Result;
                         }
                     }
 
@@ -283,12 +288,12 @@ namespace AltinnCore.Common.Services.Implementation
                         string instancedata = response.Content.ReadAsStringAsync().Result;
                         instance = JsonConvert.DeserializeObject<Instance>(instancedata);
 
-                        return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                        return instance.Data.Find(m => m.FileName.Equals(attachmentName));
                     }
-                }            
+                }
             }
 
-            return Guid.Empty;
+            return new DataElement { Id = Guid.NewGuid().ToString() };
         }
 
         private static object Guard(Guid instanceGuid)

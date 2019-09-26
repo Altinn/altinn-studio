@@ -326,7 +326,7 @@ namespace Altinn.Platform.Storage.Controllers
                     {
                         // update instance
                         Instance result = await _instanceRepository.Update(instance);
-                        InstancesController.AddSelfLinks(Request, instance);
+                        InstancesController.AddSelfLinks(Request, result);
 
                         return Ok(result);
                     }

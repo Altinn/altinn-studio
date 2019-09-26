@@ -128,11 +128,11 @@ namespace AltinnCore.Common.Services.Implementation
                 result = InstanceGuard[instanceGuid];
             }
 
-            return result;             
+            return result;
         }
 
         /// <inheritdoc/>
-        public void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public Task<Instance> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string dataPath = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data";
@@ -149,6 +149,8 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _logger.LogError("Unable to save form model", ex);
             }
+
+            return null;
         }
 
         /// <inheritdoc />
@@ -160,7 +162,7 @@ namespace AltinnCore.Common.Services.Implementation
             return Task.FromResult<Stream>(File.OpenRead(formDataFilePath));
         }
 
-            /// <inheritdoc/>
+        /// <inheritdoc/>
         public object GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -254,7 +256,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Guid> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest request)
+        public async Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest request)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Guid dataId = Guid.NewGuid();
@@ -303,9 +305,8 @@ namespace AltinnCore.Common.Services.Implementation
                 string instanceDataAsString = JsonConvert.SerializeObject(instance);
 
                 File.WriteAllText(instanceFilePath, instanceDataAsString);
-            }          
-
-            return dataId;
+                return data;
+            }
         }
     }
 }
