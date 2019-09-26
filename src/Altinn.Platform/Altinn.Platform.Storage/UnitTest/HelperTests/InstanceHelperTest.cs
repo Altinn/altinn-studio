@@ -30,9 +30,9 @@ namespace Altinn.Platform.Storage.UnitTest
         {
             // Arrange
             string language = "nb";
-            string appName1 = TestData.AppName_1;
-            string appName2 = TestData.AppName_2;
-            string appName3 = TestData.AppName_3;
+            string app1 = TestData.App_1;
+            string app2 = TestData.App_2;
+            string app3 = TestData.App_3;
 
             string expected_title_app1 = "Test applikasjon 1 bokmål";
             string expected_title_app2 = "Test applikasjon 2 bokmål";
@@ -40,9 +40,9 @@ namespace Altinn.Platform.Storage.UnitTest
 
             // Act
             List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstance(TestData.InstanceList_InstanceOwner1, TestData.AppTitles_InstanceList_InstanceOwner1, language);
-            string actual_title_app1 = actual.Where(i => i.AppName.Equals(appName1)).Select(i => i.Title).FirstOrDefault();
-            string actual_title_app2 = actual.Where(i => i.AppName.Equals(appName2)).Select(i => i.Title).FirstOrDefault();
-            string actual_title_app3 = actual.Where(i => i.AppName.Equals(appName3)).Select(i => i.Title).FirstOrDefault();
+            string actual_title_app1 = actual.Where(i => i.AppName.Equals(app1)).Select(i => i.Title).FirstOrDefault();
+            string actual_title_app2 = actual.Where(i => i.AppName.Equals(app2)).Select(i => i.Title).FirstOrDefault();
+            string actual_title_app3 = actual.Where(i => i.AppName.Equals(app3)).Select(i => i.Title).FirstOrDefault();
 
             // Assert
             Assert.Equal(expected_title_app1, actual_title_app1);
@@ -61,12 +61,12 @@ namespace Altinn.Platform.Storage.UnitTest
         {
             // Arrange
             string language = "en";
-            string appName = TestData.AppName_3;
+            string app = TestData.App_3;
             string expected_title = "Test applikasjon 3 bokmål";
 
             // Act
             List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstance(new List<Instance>() { TestData.Instance_3_2 }, TestData.AppTitles_Dict_App3, language);
-            string actual_title = actual.Where(i => i.AppName.Equals(appName)).Select(i => i.Title).FirstOrDefault();
+            string actual_title = actual.Where(i => i.AppName.Equals(app)).Select(i => i.Title).FirstOrDefault();
 
             // Assert
             Assert.Equal(expected_title, actual_title);
@@ -83,14 +83,14 @@ namespace Altinn.Platform.Storage.UnitTest
         {
             // Arrange
             string language = "nn-NO";
-            string appName2 = TestData.AppName_2;
-            string appName3 = TestData.AppName_3;
+            string app2 = TestData.App_2;
+            string app3 = TestData.App_3;
 
             List<Instance> instances = new List<Instance>() { TestData.Instance_2_1, TestData.Instance_3_1 };
             Dictionary<string, Dictionary<string, string>> apptitles = new Dictionary<string, Dictionary<string, string>>()
             {
-                { TestData.App_2.Id, TestData.AppTitles_App2 },
-                { TestData.App_3.Id, TestData.AppTitles_App3 }
+                { TestData.Application_2.Id, TestData.AppTitles_App2 },
+                { TestData.Application_3.Id, TestData.AppTitles_App3 }
             };
 
             string expected_title_app2 = "Test applikasjon 2 bokmål";
@@ -98,8 +98,8 @@ namespace Altinn.Platform.Storage.UnitTest
 
             // Act
             List<MessageBoxInstance> actual = InstanceHelper.ConvertToMessageBoxInstance(instances, TestData.AppTitles_InstanceList_InstanceOwner1, language);
-            string actual_title_app2 = actual.Where(i => i.AppName.Equals(appName2)).Select(i => i.Title).FirstOrDefault();
-            string actual_title_app3 = actual.Where(i => i.AppName.Equals(appName3)).Select(i => i.Title).FirstOrDefault();
+            string actual_title_app2 = actual.Where(i => i.AppName.Equals(app2)).Select(i => i.Title).FirstOrDefault();
+            string actual_title_app3 = actual.Where(i => i.AppName.Equals(app3)).Select(i => i.Title).FirstOrDefault();
 
             // Assert
             Assert.Equal(expected_title_app2, actual_title_app2);
