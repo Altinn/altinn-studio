@@ -16,6 +16,8 @@ namespace AltinnCore.Common.Services.Implementation
     public class PrefillSI : IPrefill
     {
         private readonly ILogger _logger;
+        private readonly IProfile _profile;
+        private readonly IRepository _repository;
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
         private static readonly string USER_PROFILE_KEY = "UserProfile";
@@ -24,30 +26,51 @@ namespace AltinnCore.Common.Services.Implementation
         /// Creates a new instance of the <see cref="PrefillSI"/> class
         /// </summary>
         /// <param name="logger">The logger</param>
-        public PrefillSI(ILogger<PrefillSI> logger)
+        /// <param name="profile">Te profile service</param>
+        /// <param name="repository">The repository service</param>
+        public PrefillSI(ILogger<PrefillSI> logger, IProfile profile, IRepository repository)
         {
             _logger = logger;
+            _profile = profile;
+            _repository = repository;
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string jsonConfig, IRegister register, IProfile profile, PrefillContext prefillContext, object serviceModel)
+        public async Task PrefillDataModel(PrefillContext prefillContext, object dataModel)
         {
-            _logger.LogInformation($"[PREFILL] Started prefill for org: {prefillContext.OrgNumber}, SSN: {prefillContext.SSN}, UserId: {prefillContext.UserId}");
-            JObject prefillConfiguration = JObject.Parse(jsonConfig);
-
-            // Prefill from profile
-            JToken profilePrefill = prefillConfiguration.SelectToken(USER_PROFILE_KEY);
-            Dictionary<string, string> profilePrefillDict;
-            if (profilePrefill != null)
+            string jsonConfig = _repository.GetPrefillJson(prefillContext.Org, prefillContext.App);
+            if (jsonConfig == null || jsonConfig == string.Empty)
             {
-                UserProfile userProfile = await profile.GetUserProfile(prefillContext.UserId);
-                JObject userProfileJsonObject = JObject.FromObject(userProfile);
-                profilePrefillDict = profilePrefill.ToObject<Dictionary<string, string>>();
-                _logger.LogInformation($"[PREFILL] Started prefill from {USER_PROFILE_KEY}");
-                LoopThroughDictionaryAndAssignValuesToDataModel(profilePrefillDict, userProfileJsonObject, serviceModel);
+                return;
             }
 
-            // Prefill from enhetsregisteret
+            JObject prefillConfiguration = JObject.Parse(jsonConfig);
+
+            // Prefill from user profile
+            JToken profilePrefill = prefillConfiguration.SelectToken(USER_PROFILE_KEY);
+            Dictionary<string, string> userProfileDict;
+            if (profilePrefill != null)
+            {
+                userProfileDict = profilePrefill.ToObject<Dictionary<string, string>>();
+                if (userProfileDict.Count > 0)
+                {
+                    UserProfile userProfile = await _profile.GetUserProfile(prefillContext.UserId);
+                    if (userProfile != null)
+                    {
+                        JObject userProfileJsonObject = JObject.FromObject(userProfile);
+                        _logger.LogInformation($"Started prefill from {USER_PROFILE_KEY}");
+                        LoopThroughDictionaryAndAssignValuesToDataModel(userProfileDict, userProfileJsonObject, dataModel);
+                    }
+                    else
+                    {
+                        string errorMessage = $"Could not  prefill from {USER_PROFILE_KEY}, user profile is not defined.";
+                        _logger.LogError(errorMessage);
+                        throw new Exception(errorMessage);
+                    }
+                }
+            }
+
+            // Prefill from ER (enhetsregisteret)
             JToken enhetsregisteret = prefillConfiguration.SelectToken(ER_KEY);
             Dictionary<string, string> enhetsregisterPrefill;
             if (enhetsregisteret != null)
@@ -55,15 +78,22 @@ namespace AltinnCore.Common.Services.Implementation
                 enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>();
                 if (enhetsregisterPrefill.Count > 0)
                 {
-                    Organization org = await register.ER.GetOrganization(prefillContext.OrgNumber);
-                    JObject orgJsonObject = JObject.FromObject(org);
-                    _logger.LogInformation($"[PREFILL] Started prefill from {ER_KEY}");
-                    _logger.LogInformation($"[PREFILL] {orgJsonObject.ToString()}");
-                    LoopThroughDictionaryAndAssignValuesToDataModel(enhetsregisterPrefill, orgJsonObject, serviceModel);
+                    if (prefillContext.Organization != null)
+                    {
+                        JObject orgJsonObject = JObject.FromObject(prefillContext.Organization);
+                        _logger.LogInformation($"Started prefill from {ER_KEY}");
+                        LoopThroughDictionaryAndAssignValuesToDataModel(enhetsregisterPrefill, orgJsonObject, dataModel);
+                    }
+                    else
+                    {
+                        string errorMessage = $"Could not  prefill from {ER_KEY}, organization is not defined.";
+                        _logger.LogError(errorMessage);
+                        throw new Exception(errorMessage);
+                    }
                 }
             }
 
-            // Prefill from folkeregisteret
+            // Prefill from DSF (det sentrale folkeregisteret)
             JToken folkeregisteret = prefillConfiguration.SelectToken(DSF_KEY);
             Dictionary<string, string> folkeregisterPrefill;
             if (folkeregisteret != null)
@@ -71,11 +101,18 @@ namespace AltinnCore.Common.Services.Implementation
                 folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>();
                 if (folkeregisterPrefill.Count > 0)
                 {
-                    Person person = await register.DSF.GetPerson(prefillContext.SSN);
-                    JObject personJsonObject = JObject.FromObject(person);
-                    _logger.LogInformation($"[PREFILL] Started prefill from {DSF_KEY}");
-                    _logger.LogInformation($"[PREFILL] {personJsonObject.ToString()}");
-                    LoopThroughDictionaryAndAssignValuesToDataModel(folkeregisterPrefill, personJsonObject, serviceModel);
+                    if (prefillContext.Person != null)
+                    {
+                        JObject personJsonObject = JObject.FromObject(prefillContext.Person);
+                        _logger.LogInformation($"Started prefill from {DSF_KEY}");
+                        LoopThroughDictionaryAndAssignValuesToDataModel(folkeregisterPrefill, personJsonObject, dataModel);
+                    }
+                    else
+                    {
+                        string errorMessage = $"Could not  prefill from {DSF_KEY}, person is not defined.";
+                        _logger.LogError(errorMessage);
+                        throw new Exception(errorMessage);
+                    }
                 }
             }
         }
@@ -92,8 +129,9 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (property == null)
             {
-                // TODO: Throw error message
-                _logger.LogInformation($"[PREFILL] CAN NOT PREFILL, PROPERTY IS NOT DEFINED IN DATA MODEL");
+                string errorMessage = $"Could not prefill the field {string.Join(".", keys)}, property {key} is not defined in the data model";
+                _logger.LogError(errorMessage);
+                throw new Exception(errorMessage);
             }
             else
             {
@@ -128,10 +166,26 @@ namespace AltinnCore.Common.Services.Implementation
         {
             foreach (KeyValuePair<string, string> keyValuePair in dictionary)
             {
-                JToken sourceValue = sourceObject.SelectToken(keyValuePair.Key);
-                _logger.LogInformation($"[PREFILL] KEY (SOURCE): {keyValuePair.Key}, VALUE (TARGET): {keyValuePair.Value}");
-                _logger.LogInformation($"[PREFILL] VALUE READ FROM SOURCE OBJECT: {sourceValue.ToString()}");
-                string[] keys = keyValuePair.Value.Split(".");
+                string source = keyValuePair.Key;
+                string target = keyValuePair.Value;
+                if (source == null || source == string.Empty)
+                {
+                    string errorMessage = $"Could not prefill, a source value was not set for target: {target}";
+                    _logger.LogError(errorMessage);
+                    throw new Exception(errorMessage);
+                }
+
+                if (target == null || target == string.Empty)
+                {
+                    string errorMessage = $"Could not prefill, a target value was not set for source: {source}";
+                    _logger.LogError(errorMessage);
+                    throw new Exception(errorMessage);
+                }
+
+                JToken sourceValue = sourceObject.SelectToken(source);
+                _logger.LogInformation($"Source: {source}, target: {target}");
+                _logger.LogInformation($"Value read from source object: {sourceValue.ToString()}");
+                string[] keys = target.Split(".");
                 AssignValueToDataModel(keys, sourceValue, serviceModel);
             }
         }

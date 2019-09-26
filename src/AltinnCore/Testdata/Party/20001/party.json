@@ -1,16 +1,12 @@
 {
-	"partyID": "20001",
-	"partyTypeName": 1,
-	"orgNumber": null,
-	"person": {
-		"ssn": "01017512345",
-		"firstName": "Roar",
-		"LastName": "Subunit"
-	},
-	"organization": null,    
-	"ssn": "01017512345",
-	"name": "Roar Subunit",
-	"isDeleted": false,
-	"onlyHierarchyElementWithNoAccess": false,
-	"childParties": null
+  "partyID": "20001",
+  "partyTypeName": 1,
+  "orgNumber": null,
+  "person": null,
+  "organization": null,
+  "ssn": "01057512345",
+  "name": "Roar Subunit",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "childParties": null
 }

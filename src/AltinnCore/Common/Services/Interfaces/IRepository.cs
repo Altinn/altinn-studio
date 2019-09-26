@@ -486,5 +486,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="title"> new application title </param>
         /// <returns>True if the title in application metadata is updated successfully</returns>
         bool UpdateAppTitle(string org, string app, string languageId, string title);
+
+        /// <summary>
+        /// Gets the prefill json file
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <param name="dataModelName">the data model name</param>
+        /// <returns></returns>
+        string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel");
     }
 }

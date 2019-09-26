@@ -1,10 +1,10 @@
-﻿{
+{
 	"partyId": 50001,
 	"partyTypeName": 1,
 	"orgNumber": null,
-	"ssn": "01017512346",
+	"ssn": "01017512345",
 	"person": {
-		"ssn": "01017512346",
+		"ssn": "01017512345",
 		"firstName": "Ola",
 		"LastName": "Privatperson"
 	},	

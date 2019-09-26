@@ -10,18 +10,28 @@ namespace AltinnCore.ServiceLibrary.Models
     public class PrefillContext
     {
         /// <summary>
-        /// Gets or sets the users SSN
+        /// Gets or sets the person
         /// </summary>
-        public string SSN { get; set; }
+        public Person Person { get; set; }
 
         /// <summary>
-        /// Gets or sets the organization number
+        /// Gets or sets the organization 
         /// </summary>
-        public string OrgNumber { get; set; }
+        public Organization Organization { get; set; }
 
         /// <summary>
         /// Gets or sets the userid
         /// </summary>
         public int UserId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the org name
+        /// </summary>
+        public string Org { get; set; }
+
+        /// <summary>
+        /// Gets or sets the app name
+        /// </summary>
+        public string App { get; set; }
     }
 }

@@ -22,7 +22,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Storage.Interface.Enums;
-using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -355,12 +354,13 @@ namespace AltinnCore.Runtime.Controllers
             // Run prefill
             PrefillContext prefillContext = new PrefillContext
             {
-                OrgNumber = requestContext.UserContext.Party.Organization?.OrgNumber,
-                SSN = requestContext.UserContext.Party.Person?.SSN,
-                UserId = requestContext.UserContext.UserId
+                Organization = requestContext.UserContext.Party.Organization,
+                Person = requestContext.UserContext.Party.Person,
+                UserId = requestContext.UserContext.UserId,
+                Org = startServiceModel.Org,
+                App = startServiceModel.Service,
             };
-            string prefillConfiguration = _repository.GetJsonFile(startServiceModel.Org, startServiceModel.Service, "prefill.json");
-            await _prefill.PrefillDataModel(prefillConfiguration, _register, _profile, prefillContext, serviceModel);
+            await _prefill.PrefillDataModel(prefillContext, serviceModel);
 
             // Run Instansiation event
             await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
