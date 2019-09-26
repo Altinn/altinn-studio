@@ -45,6 +45,18 @@ namespace AltinnCore.UnitTest.Runtime
         public void PostDataElement()
         {
             /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "default",
+                        AppLogic = true
+                    }
+                }
+            };
 
             Instance getInstance = new Instance()
             {
@@ -79,6 +91,11 @@ namespace AltinnCore.UnitTest.Runtime
             context.SetupGet(x => x.Request).Returns(request.Object);
             context.SetupGet(x => x.User).Returns(MockUser().Object);
 
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(application));
+
             Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
             instanceServiceMock
                 .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
@@ -89,11 +106,11 @@ namespace AltinnCore.UnitTest.Runtime
                 .Setup(d => d.InsertData(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<Type>(), org, app, instanceOwnerId))
                 .Returns(Task.FromResult(updatedInstance));
 
-            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock);
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
             /* TEST */
 
-            ActionResult result = dataController.CreateDataElement(org, app, instanceOwnerId, instanceGuid, elementType).Result;
+            ActionResult result = dataController.Create(org, app, instanceOwnerId, instanceGuid, elementType).Result;
 
             Assert.IsType<CreatedResult>(result);
 
@@ -107,68 +124,21 @@ namespace AltinnCore.UnitTest.Runtime
         /// Gets a data element which is named.
         /// </summary>
         [Fact]
-        public void GetDataElement()
+        public void GetFormData_TC01()
         {
-            /* SETUP */
-
-            Instance instance = new Instance()
+            /* SETUP TEST DATA */
+            Application application = new Application()
             {
-                Id = $"{instanceOwnerId}/{instanceGuid}",
-                InstanceOwnerId = $"{instanceOwnerId}",
-                AppId = $"{org}/{app}",
-                Org = org,
-
-                Data = new List<DataElement>()
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
                 {
-                    new DataElement()
+                    new ElementType()
                     {
-                        Id = $"{dataGuid}",
-                        ElementType = "default",
+                        Id = "default",
+                        AppLogic = true
                     }
                 }
             };
-
-            Mock<HttpRequest> request = MockRequest();
-
-            var context = new Mock<HttpContext>();
-            context.SetupGet(x => x.Request).Returns(request.Object);
-            context.SetupGet(x => x.User).Returns(MockUser().Object);
-
-            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
-            instanceServiceMock
-                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
-                .Returns(Task.FromResult(instance));
-
-            XmlSerializer serializer = new XmlSerializer(typeof(Skjema));
-            object skjema = serializer.Deserialize(File.OpenRead("Runtime/data/data-element.xml"));
-
-            Mock<IData> dataServiceMock = new Mock<IData>();
-            dataServiceMock
-                .Setup(d => d.GetFormData(instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId, dataGuid))
-                .Returns(skjema);
-
-            /* TEST */
-
-            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock);
-
-            ActionResult result = dataController.GetDataElement(org, app, instanceOwnerId, instanceGuid, elementType).Result;
-
-            Assert.IsType<OkObjectResult>(result);
-
-            OkObjectResult okresult = result as OkObjectResult;
-            Skjema model = (Skjema)okresult.Value;
-
-            Assert.Equal(5800, model.gruppeid);
-            Assert.Equal("Ærlige Øksne Åsheim", model.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonNavndatadef2.value);
-        }
-
-        /// <summary>
-        /// Gets a data element which is named.
-        /// </summary>
-        [Fact]
-        public void GetDataElementWithDataGuid()
-        {
-            /* SETUP */
 
             Instance instance = new Instance()
             {
@@ -188,18 +158,102 @@ namespace AltinnCore.UnitTest.Runtime
                 }
             };
 
+            XmlSerializer serializer = new XmlSerializer(typeof(Skjema));
+            object skjema = serializer.Deserialize(File.OpenRead("Runtime/data/data-element.xml"));
+
+            /* SETUP MOCK SERVICES */
             Mock<HttpRequest> request = MockRequest();
 
             var context = new Mock<HttpContext>();
             context.SetupGet(x => x.Request).Returns(request.Object);
             context.SetupGet(x => x.User).Returns(MockUser().Object);
 
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(application));
+
             Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
             instanceServiceMock
                 .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
                 .Returns(Task.FromResult(instance));
 
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.GetFormData(instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId, dataGuid))
+                .Returns(skjema);
+
+            /* TEST */
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            ActionResult result = dataController.Get(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
+
+            Assert.IsType<OkObjectResult>(result);
+
+            OkObjectResult okresult = result as OkObjectResult;
+            Skjema model = (Skjema)okresult.Value;
+
+            Assert.Equal(5800, model.gruppeid);
+            Assert.Equal("Ærlige Øksne Åsheim", model.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonNavndatadef2.value);
+        }
+
+        /// <summary>
+        /// Gets a data element which is named.
+        /// </summary>
+        [Fact]
+        public void GetBinaryData_TC01()
+        {
+            /* SETUP TEST DATA */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "xml-attachment",
+                        AppLogic = false
+                    }
+                }
+            };
+
+            Instance instance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "xml-attachment",
+                        ContentType = "application/xml",
+                    }
+                }
+            };
+
             Stream dataStream = File.OpenRead("Runtime/data/data-element.xml");
+
+            /* SETUP MOCK SERVICES */
+            Mock<HttpRequest> request = MockRequest();
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(application));
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+                .Returns(Task.FromResult(instance));
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
@@ -207,8 +261,7 @@ namespace AltinnCore.UnitTest.Runtime
                 .Returns(Task.FromResult(dataStream));
 
             /* TEST */
-
-            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock);
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
             ActionResult result = dataController.Get(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
 
@@ -231,6 +284,18 @@ namespace AltinnCore.UnitTest.Runtime
         public void PutDataElement()
         {
             /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "default",
+                        AppLogic = false
+                    }
+                }
+            };
 
             Instance beforeInstance = new Instance()
             {
@@ -252,13 +317,18 @@ namespace AltinnCore.UnitTest.Runtime
             Mock<HttpRequest> request = MockRequest();
 
             FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
-            
+
             request.SetupGet(x => x.Body).Returns(dataElement);
             request.SetupGet(x => x.ContentType).Returns("application/xml");
 
             var context = new Mock<HttpContext>();
             context.SetupGet(x => x.Request).Returns(request.Object);
             context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(new Application()));
 
             Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
             instanceServiceMock
@@ -269,12 +339,12 @@ namespace AltinnCore.UnitTest.Runtime
 
             /* TEST */
 
-            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock);
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
             ActionResult result = dataController.PutDataElement(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
 
             Assert.IsType<OkObjectResult>(result);
-    
+
         }
 
         private Mock<HttpRequest> MockRequest()
@@ -287,8 +357,8 @@ namespace AltinnCore.UnitTest.Runtime
             return request;
         }
 
-        private DataController NewDataController(Mock<HttpContext> context, Mock<IInstance> instanceServiceMock, Mock<IData> dataServiceMock)
-        {            
+        private DataController NewDataController(Mock<HttpContext> context, Mock<IInstance> instanceServiceMock, Mock<IData> dataServiceMock, Mock<IApplication> appServiceMock)
+        {
             Mock<IRegister> registerServiceMock = new Mock<IRegister>();
             registerServiceMock
                 .Setup(x => x.GetParty(It.IsAny<int>()))
@@ -307,9 +377,9 @@ namespace AltinnCore.UnitTest.Runtime
 
             ServiceRepositorySettings serviceRepositorySettings = new ServiceRepositorySettings()
             {
-                RepositoryLocation = repoPath,                
-            };      
-            
+                RepositoryLocation = repoPath,
+            };
+
             Mock<ServiceContext> serviceContextMock = new Mock<ServiceContext>();
             Mock<IExecution> executionServiceMock = new Mock<IExecution>();
             executionServiceMock
@@ -339,8 +409,8 @@ namespace AltinnCore.UnitTest.Runtime
                 executionServiceMock.Object,
                 profileServiceMock.Object,
                 platformServicesMock.Object,
-                new Mock<IRepository>().Object,
-                new Mock<IInstanceEvent>().Object)
+                new Mock<IInstanceEvent>().Object,
+                appServiceMock.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
@@ -383,11 +453,9 @@ namespace AltinnCore.UnitTest.Runtime
                 coreFiles.Add(corefile);
             }
 
-            string[] modelFiles = null;
-
             if (Directory.Exists(path + "/Model"))
             {
-                modelFiles = Directory.GetFiles(path + "/Model");
+                string[] modelFiles = Directory.GetFiles(path + "/Model");
                 foreach (string file in modelFiles)
                 {
                     AltinnCoreFile corefile = new AltinnCoreFile
