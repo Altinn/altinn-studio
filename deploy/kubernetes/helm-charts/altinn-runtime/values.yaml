@@ -152,6 +152,9 @@ environmentVariables:
 volumeMounts:
   - name: altinn-runtime-repo-storage
     mountPath: "/AltinnCore/Repos"
+  - name: altinn-appsettings
+    secret:
+      secretName: altinn-appsettings-secret
 
 volumes:
   - name: altinn-runtime-repo-storage

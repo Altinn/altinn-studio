@@ -5,9 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
+using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Extensions.Logging;
 
 namespace AltinnCore.Runtime
@@ -17,6 +22,10 @@ namespace AltinnCore.Runtime
     /// </summary>
     public static class Program
     {
+        private static Logger _logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
+
         /// <summary>
         /// The main method
         /// </summary>
@@ -33,6 +42,47 @@ namespace AltinnCore.Runtime
         /// <returns>The web host builder</returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+            .ConfigureAppConfiguration((hostingContext, config) =>
+            {
+                string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+                if (basePath == "/")
+                {
+                    config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
+                }
+                else
+                {
+                    config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
+                }
+
+                config.AddEnvironmentVariables();
+                config.AddCommandLine(args);
+                IConfiguration stageOneConfig = config.Build();
+                string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId");
+                string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
+                string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret");
+                string keyVaultEndpoint = stageOneConfig.GetValue<string>("KvSetting:SecretUri");
+                if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
+                    && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
+                {
+                    AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
+                    KeyVaultClient keyVaultClient = new KeyVaultClient(
+                        new KeyVaultClient.AuthenticationCallback(
+                            azureServiceTokenProvider.KeyVaultTokenCallback));
+                    config.AddAzureKeyVault(
+                        keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+
+                    try
+                    {
+                        SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
+                            keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
+                        SetTelemetry(secretBundle.Value);
+                    }
+                    catch (Exception vaultException)
+                    {
+                        _logger.Error($"Could not find secretBundle for application insights {vaultException}");
+                    }
+                }
+            })
             .ConfigureLogging((hostingContext, logging) =>
             {
                 logging.ClearProviders();
@@ -42,6 +92,16 @@ namespace AltinnCore.Runtime
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-                .UseStartup<Startup>();
+                .UseStartup<Startup>()
+                .CaptureStartupErrors(true);
+
+        private static void SetTelemetry(string instrumentationKey)
+        {
+            _logger.Information($"Setting application environment variable with insights telemetry key ='{instrumentationKey}'");
+            if (!string.IsNullOrEmpty(instrumentationKey))
+            {
+                Environment.SetEnvironmentVariable("ApplicationInsights--InstrumentationKey", instrumentationKey);
+            }
+        }
     }
 }
