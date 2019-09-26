@@ -60,10 +60,10 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Returns a given service repository
+        /// Returns a given app repository
         /// </summary>
         /// <param name="owner">The service owner</param>
-        /// <param name="repository">The service repository</param>
+        /// <param name="repository">The app repository</param>
         /// <returns>The given service repository</returns>
         [HttpGet]
         public Repository GetRepository(string owner, string repository)

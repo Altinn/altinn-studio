@@ -198,7 +198,7 @@ namespace AltinnCore.Designer
 
                 routes.MapRoute(
                         name: "serviceDevelopmentRoute",
-                        template: "designer/{org}/{service}",
+                        template: "designer/{org}/{app}",
                         defaults: new { controller = "ServiceDevelopment", action = "index" });
 
                 routes.MapRoute(
@@ -211,7 +211,7 @@ namespace AltinnCore.Designer
                     });
                 routes.MapRoute(
                           name: "serviceRoute",
-                          template: "designer/{org}/{service}/{controller}/{action=Index}/{id?}",
+                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
