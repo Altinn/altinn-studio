@@ -153,8 +153,7 @@ volumeMounts:
   - name: altinn-runtime-repo-storage
     mountPath: "/AltinnCore/Repos"
   - name: altinn-appsettings
-    secret:
-      secretName: altinn-appsettings-secret
+    mountPath: "/altinn-appsettings"
 
 volumes:
   - name: altinn-runtime-repo-storage
