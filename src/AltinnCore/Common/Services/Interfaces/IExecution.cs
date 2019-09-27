@@ -7,30 +7,30 @@ using AltinnCore.ServiceLibrary.Services.Interfaces;
 namespace AltinnCore.Common.Services.Interfaces
 {
     /// <summary>
-    /// Interface for the execution service needed for running AltinnCore services.
+    /// Interface for execution functionality
     /// </summary>
     public interface IExecution
     {
         /// <summary>
-        /// Returns the ServiceImplementation for a service.
+        /// Returns the ServiceImplementation for an app.
         /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="appName">The application name.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
-        /// <returns>The service implementation.</returns>
-        IServiceImplementation GetServiceImplementation(string org, string appName, bool startServiceFlag);
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
+        /// <returns>The ServiceImplementation.</returns>
+        IServiceImplementation GetServiceImplementation(string org, string app, bool startAppFlag);
 
         /// <summary>
-        /// Returns the serviceContext.
+        /// Returns the ServiceContext.
         /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="appName">The application name.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
-        /// <returns>The serviceContext.</returns>
-        ServiceContext GetServiceContext(string org, string appName, bool startServiceFlag);
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
+        /// <returns>The ServiceContext.</returns>
+        ServiceContext GetServiceContext(string org, string app, bool startAppFlag);
 
         /// <summary>
-        /// Returns a new instanceId for a service.
+        /// Returns a new instanceId for an app.
         /// </summary>
         /// <returns>The instanceId.</returns>
         Guid GetNewServiceInstanceID();
@@ -38,28 +38,28 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets the raw content of a code list.
         /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="appName">The application name.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="name">The name of the code list to retrieve.</param>
         /// <returns>Raw contents of a code list file.</returns>
-        string GetCodelist(string org, string appName, string name);
+        string GetCodelist(string org, string app, string name);
 
         /// <summary>
-        /// Get the resource for the given parameters.
+        /// Get the app resource for the given parameters.
         /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="appName">The application name.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="resource">the resource.</param>
-        /// <returns>The service resource.</returns>
-        byte[] GetServiceResource(string org, string appName, string resource);
+        /// <returns>The app resource.</returns>
+        byte[] GetServiceResource(string org, string app, string resource);
 
         /// <summary>
-        /// Returns the service metadata for a service.
+        /// Returns the ServiceMetadata for an app.
         /// </summary>
-        /// <param name="org">The application owner id.</param>
-        /// <param name="appName">The application name.</param>
-        /// <returns>The service metadata for a service.</returns>
-        ServiceMetadata GetServiceMetaData(string org, string appName);
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>The ServiceMetadata for an app.</returns>
+        ServiceMetadata GetServiceMetaData(string org, string app);
 
         /// <summary>
         /// Method that fetches the runtime resources stored in wwwroot

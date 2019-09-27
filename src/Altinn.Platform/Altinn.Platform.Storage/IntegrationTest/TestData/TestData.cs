@@ -16,13 +16,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private static string org_1 = "TDD";
         private static string org_2 = "SPF";
 
-        private static readonly string AppName_1 = "test-applikasjon-1";
-        private static readonly string AppName_2 = "test-applikasjon-2";
-        private static readonly string AppName_3 = "test-applikasjon-3";
+        private static readonly string App_1 = "test-applikasjon-1";
+        private static readonly string App_2 = "test-applikasjon-2";
+        private static readonly string App_3 = "test-applikasjon-3";
 
-        private static readonly string AppId_1 = $"{org_1.ToLower()}/{AppName_1}";
-        private static readonly string AppId_2 = $"{org_1.ToLower()}/{AppName_2}";
-        private static readonly string AppId_3 = $"{org_2.ToLower()}/{AppName_3}";
+        private static readonly string AppId_1 = $"{org_1.ToLower()}/{App_1}";
+        private static readonly string AppId_2 = $"{org_1.ToLower()}/{App_2}";
+        private static readonly string AppId_3 = $"{org_2.ToLower()}/{App_3}";
 
         private static Dictionary<string, string> appTitles_App1 = new Dictionary<string, string>()
         {
@@ -43,7 +43,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             { "nn-NO", "Test applikasjon 3 nynorsk" }
         };
 
-        private static Application app_1 = new Application()
+        private static Application application_1 = new Application()
         {
             Id = AppId_1,
             CreatedDateTime = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
@@ -51,7 +51,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Title = appTitles_App1
         };
 
-        private static Application app_2 = new Application()
+        private static Application application_2 = new Application()
         {
             Id = AppId_2,
             CreatedDateTime = Convert.ToDateTime("2019-06-20T12:26:07.4135026Z"),
@@ -59,7 +59,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Title = appTitles_App2
         };
 
-        private static Application app_3 = new Application()
+        private static Application application_3 = new Application()
         {
             Id = AppId_3,
             CreatedDateTime = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
@@ -234,14 +234,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly static List<Instance> InstanceList_App3 = new List<Instance>() { Instance_3_1, Instance_3_2 };
         private readonly static List<Instance> InstanceList_InstanceOwner1 = new List<Instance>() { Instance_1_1, Instance_1_2, Instance_1_3, Instance_1_4, Instance_2_1, Instance_2_2, Instance_3_1, Instance_3_2 };
 
-        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App1 = new Dictionary<string, Dictionary<string, string>>() { { app_1.Id, appTitles_App1 } };
-        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App2 = new Dictionary<string, Dictionary<string, string>>() { { app_2.Id, appTitles_App2 } };
-        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App3 = new Dictionary<string, Dictionary<string, string>>() { { app_3.Id, appTitles_App3 } };
+        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App1 = new Dictionary<string, Dictionary<string, string>>() { { application_1.Id, appTitles_App1 } };
+        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App2 = new Dictionary<string, Dictionary<string, string>>() { { application_2.Id, appTitles_App2 } };
+        private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_Dict_App3 = new Dictionary<string, Dictionary<string, string>>() { { application_3.Id, appTitles_App3 } };
         private readonly static Dictionary<string, Dictionary<string, string>> AppTitles_InstanceList_InstanceOwner1 = new Dictionary<string, Dictionary<string, string>>()
         {
-            { app_1.Id, appTitles_App1 },
-            { app_2.Id, appTitles_App2 },
-            { app_3.Id, appTitles_App3 },
+            { application_1.Id, appTitles_App1 },
+            { application_2.Id, appTitles_App2 },
+            { application_3.Id, appTitles_App3 },
         };
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         public List<Application> GetApps()
         {
-            return new List<Application> { app_1, app_2, app_3 };
+            return new List<Application> { application_1, application_2, application_3 };
         }
 
         /// <summary>

@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implmentation for source control
+    /// Implementation of the source control service.
     /// </summary>
     public class SourceControlSI : ISourceControl
     {
@@ -54,7 +54,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Clone remote repository
         /// </summary>
-        /// <param name="org">the organisation</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">the name of the repository</param>
         /// <returns>The result of the cloning</returns>
         public string CloneRemoteRepository(string org, string repository)
@@ -154,7 +154,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Gets the number of commits the local repository is behind the remote
         /// </summary>
-        /// <param name="org">The organization owning the repository</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">The repository</param>
         /// <returns>The number of commits behind</returns>
         public int? CheckRemoteUpdates(string org, string repository)
@@ -172,9 +172,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Add all changes in service repo and push to remote
+        /// Add all changes in app repo and push to remote
         /// </summary>
-        /// <param name="commitInfo">the commit information for the service</param>
+        /// <param name="commitInfo">the commit information for the app</param>
         public void PushChangesForRepository(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -464,7 +464,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Return the App Token generated to let AltinnCore contact GITEA on behalf of service developer
+        /// Return the App Token generated to let AltinnCore contact GITEA on behalf of app developer
         /// </summary>
         /// <returns>The app token</returns>
         public string GetAppToken()
@@ -473,7 +473,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Return the App Token id generated to let AltinnCore contact GITEA on behalf of service developer
+        /// Return the App Token id generated to let AltinnCore contact GITEA on behalf of app developer
         /// </summary>
         /// <returns>The app token id</returns>
         public string GetAppTokenId()
@@ -482,7 +482,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of service developer
+        /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of app developer
         /// </summary>
         /// <returns>The deploy app token</returns>
         public string GetDeployToken()

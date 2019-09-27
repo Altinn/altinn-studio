@@ -21,7 +21,8 @@ import {
 
 const theme = createMuiTheme(AltinnAppTheme);
 
-const ONE_MINUTE_IN_MILLISECONDS: number = 60000;
+// 1 minute = 60.000ms
+const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 
 export default function() {
   let lastRefreshTokenTimestamp: number = 0;
@@ -40,7 +41,7 @@ export default function() {
 
   function refreshJwtToken() {
     const timeNow = Date.now();
-    if ((timeNow - lastRefreshTokenTimestamp) > ONE_MINUTE_IN_MILLISECONDS) {
+    if ((timeNow - lastRefreshTokenTimestamp) > TEN_MINUTE_IN_MILLISECONDS) {
       lastRefreshTokenTimestamp = timeNow;
       get(refreshJwtTokenUrl)
       .catch((err) => {
