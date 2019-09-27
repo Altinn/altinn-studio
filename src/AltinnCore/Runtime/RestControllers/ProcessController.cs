@@ -110,8 +110,6 @@ namespace AltinnCore.Runtime.RestControllers
                 return startEventError;
             }
 
-            ElementInfo eventInfo = ProcessKeeper.GetElementInfo(validStartElement);
-
             // trigger start event
             Instance updatedInstance = await StartProcessOfInstance(org, app, instanceOwnerId, instanceGuid, instance, validStartElement);
 
@@ -437,7 +435,10 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (IsTask(previousElementId))
             {
-                flow = currentState.CurrentTask.Flow;
+                if (currentState.CurrentTask != null)
+                {
+                    flow = currentState.CurrentTask.Flow;
+                }
 
                 events.Add(GenerateProcessChangeEvent("process:EndTask", instance, null, now));
             }
@@ -451,11 +452,12 @@ namespace AltinnCore.Runtime.RestControllers
                 events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, previousElementId, now));
             }
             else if (IsTask(nextElementId))
-            {               
+            {
                 currentState.CurrentTask = new ProcessElementInfo
                 {
-                    Flow = ++flow, 
+                    Flow = flow + 1, 
                     ElementId = nextElementId,
+                    Name = nextElementInfo.Name,
                     Started = now,
                     AltinnTaskType = nextElementInfo.AltinnTaskType,
                     Validated = null,
