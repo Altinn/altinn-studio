@@ -209,7 +209,7 @@ function PartySelection(props: IPartySelectionProps) {
     /*
       This method we allways return the strings in an order of:
       1. private person
-      2. organization
+      2. organisation
       3. sub unit
       4. bankruptcy state
     */
@@ -221,7 +221,7 @@ function PartySelection(props: IPartySelectionProps) {
     if (partyTypesAllowed.person) {
       partyTypes.push(language.party_selection.unit_type_private_person);
     }
-    if (partyTypesAllowed.organization) {
+    if (partyTypesAllowed.organisation) {
       partyTypes.push(language.party_selection.unit_type_company);
     }
     if (partyTypesAllowed.subUnit) {
