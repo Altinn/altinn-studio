@@ -126,5 +126,5 @@ namespace Altinn.Platform.Storage.Models
         {
             return JsonConvert.SerializeObject(this);
         }
-    }  
+    }
 }

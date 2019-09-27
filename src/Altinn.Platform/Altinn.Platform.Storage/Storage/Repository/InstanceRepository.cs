@@ -202,7 +202,7 @@ namespace Altinn.Platform.Storage.Repository
 
                         case "process.currentTask":
                             string currentTaskId = queryValue;
-                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask.ProcessElementId == currentTaskId);
+                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask.ElementId == currentTaskId);
                             break;
 
                         case "process.isComplete":

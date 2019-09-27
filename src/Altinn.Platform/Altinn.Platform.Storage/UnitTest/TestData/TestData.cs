@@ -90,9 +90,9 @@ namespace Altinn.Platform.Storage.UnitTest
         {
             return new ProcessState()
             {
-                CurrentTask = new TaskInfo
+                CurrentTask = new ProcessElementInfo
                 {
-                    ProcessElementId = "FormFilling"
+                    ElementId = "FormFilling"
                 },
                 
             };

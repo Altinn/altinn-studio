@@ -462,15 +462,6 @@ namespace Altinn.Platform.Storage.Controllers
                 createdInstance.Data = new List<DataElement>();
             }
 
-            if (instanceTemplate.Process != null)
-            {
-                createdInstance.Process = instanceTemplate.Process;
-            }
-            else
-            {
-                createdInstance.Process = new ProcessState();
-            }
-
             return createdInstance;
         }
 
