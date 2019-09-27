@@ -37,7 +37,7 @@ namespace AltinnCore.UnitTest.Runtime
         private readonly Guid dataGuid = Guid.Parse("16b62641-67b1-4cf0-b26f-61279fbf528d");
         private readonly string elementType = "default";
         private readonly string repoPath = "../../../Runtime/ServiceModels/default";
-        
+
         /// <summary>
         /// Test creation with invalid elementType
         /// </summary>
@@ -96,8 +96,7 @@ namespace AltinnCore.UnitTest.Runtime
                 .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(application));
 
-            Mock<IInstance> instanceServiceMock = new Mock<IInstance>(); 
-
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
             Mock<IData> dataServiceMock = new Mock<IData>();
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
@@ -113,7 +112,7 @@ namespace AltinnCore.UnitTest.Runtime
         /// Test creation of a form data element.
         /// </summary>
         [Fact]
-        public void Post_TC02_FormData()
+        public void Post_TC03_FormData()
         {
             /* SETUP */
             Application application = new Application()
@@ -150,6 +149,7 @@ namespace AltinnCore.UnitTest.Runtime
                     {
                         Id = $"{dataGuid}",
                         ElementType = "default",
+                        StorageUrl = "www.storageuri.com"
                     }
                 }
             };
@@ -163,8 +163,19 @@ namespace AltinnCore.UnitTest.Runtime
             context.SetupGet(x => x.User).Returns(MockUser().Object);
 
             Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(application));
+
             Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+                .Returns(Task.FromResult(getInstance));
+
             Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.InsertData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId))
+                .Returns(Task.FromResult(updatedInstance));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
@@ -185,7 +196,71 @@ namespace AltinnCore.UnitTest.Runtime
         [Fact]
         public void Post_TC02_BinaryData()
         {
-            Assert.True(false);
+            /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "default",
+                        AppLogic = false
+                    }
+                }
+            };
+
+            Instance getInstance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+            };
+
+            DataElement data = new DataElement()
+            {
+                Id = $"{dataGuid}",
+                ElementType = "default",
+                StorageUrl = "www.storageuri.com"
+            };
+
+            /* SETUP MOCK SERVICES */
+            Stream dataStream = File.OpenRead("Runtime/data/data-element.xml");
+
+            Mock<HttpRequest> request = MockRequest();
+            request.SetupGet(x => x.Body).Returns(dataStream);
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(application));
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+                    .Returns(Task.FromResult(getInstance));
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.SaveFormAttachment(org, app, instanceOwnerId, instanceGuid, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<HttpRequest>()))
+                    .Returns(Task.FromResult(data));
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            /* TEST */
+            ActionResult result = dataController.Create(org, app, instanceOwnerId, instanceGuid, elementType).Result;
+
+            Assert.IsType<CreatedResult>(result);
+
+            List<DataElement> createdElements = (List<DataElement>)((CreatedResult)result).Value;
+
+            Assert.NotNull(createdElements);
+            Assert.True(createdElements.Any());
         }
 
         /// <summary>
@@ -418,10 +493,89 @@ namespace AltinnCore.UnitTest.Runtime
         }
 
         /// <summary>
-        /// Updates a dataset happy days.
+        /// Updates a binary data element 
         /// </summary>
         [Fact]
-        public void PutDataElement()
+        public void Put_TC01_BinaryData()
+        {
+            /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "default",
+                        AppLogic = false
+                    }
+                }
+            };
+
+            DataElement data = new DataElement()
+            {
+                Id = $"{dataGuid}",
+                ElementType = "default",
+                StorageUrl = "www.storageuri.com"
+            };
+            Instance beforeInstance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    data
+                }
+            };
+
+            Instance afterInstance = beforeInstance;
+
+            /* SETUP MOCK SERVICES */
+            Stream dataStream = File.OpenRead("Runtime/data/data-element.xml");
+
+            Mock<HttpRequest> request = MockRequest();
+            request.SetupGet(x => x.Body).Returns(dataStream);
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(Task.FromResult(application));
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+                    .Returns(Task.FromResult(beforeInstance));
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.UpdateFormAttachment(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<HttpRequest>()))
+                    .Returns(Task.FromResult(data));
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            /* TEST */
+            ActionResult result = dataController.Put(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
+
+            Assert.IsType<CreatedResult>(result);
+
+            List<DataElement> createdElements = (List<DataElement>)((CreatedResult)result).Value;
+
+            Assert.NotNull(createdElements);
+            Assert.True(createdElements.Any());
+        }
+
+        /// <summary>
+        /// Updates a form data element
+        /// </summary>
+        [Fact]
+        public void Put_TC02_FormData()
         {
             /* SETUP */
             Application application = new Application()
@@ -485,13 +639,11 @@ namespace AltinnCore.UnitTest.Runtime
              .Returns(Task.FromResult(afterInstance));
 
             /* TEST */
-
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
             ActionResult result = dataController.Put(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
 
             Assert.IsType<CreatedResult>(result);
-
         }
 
         private Mock<HttpRequest> MockRequest()
