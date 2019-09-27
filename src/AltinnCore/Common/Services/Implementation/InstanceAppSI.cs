@@ -134,6 +134,7 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
+                throw new PlatformClientException(response);
             }
 
             return instance;
@@ -163,6 +164,7 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 _logger.LogError("Unable to fetch instances");
+                throw new PlatformClientException(response);
             }
 
             return instances;
@@ -188,6 +190,7 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to update instance with instance id {instanceId}");
+                throw new PlatformClientException(response);
             }
 
             return instance;
@@ -218,18 +221,18 @@ namespace AltinnCore.Common.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            try
+            StringContent content = instanceTemplate.AsJson();
+            HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+
+            if (response.IsSuccessStatusCode)
             {
-                StringContent content = instanceTemplate.AsJson();
-                HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
                 Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
 
                 return createdInstance;
             }
-            catch
-            {                
-                return null;
-            }
+
+            _logger.LogError($"Unable to create instance {response.StatusCode} - {response.Content?.ReadAsStringAsync().Result}");
+            throw new PlatformClientException(response);            
         }
     }
 }
