@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
@@ -11,6 +10,7 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,6 +23,7 @@ namespace AltinnCore.Runtime.RestControllers
     /// </summary>
     [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceGuid:guid}/process")]
     [ApiController]
+    [Authorize]
     public class ProcessController : ControllerBase
     {
         private const int MAX_ITERATIONS_ALLOWED = 1000;
@@ -407,6 +408,10 @@ namespace AltinnCore.Runtime.RestControllers
             return nextElement;
         }
 
+        /// <summary>
+        ///  Todo: Fix validation code of the instance's currentTask.
+        /// </summary>        
+        /// <returns>try if validation is OK, false otherwise</returns>
         private bool InstanceIsValid(Instance instance)
         {
             return true;            
