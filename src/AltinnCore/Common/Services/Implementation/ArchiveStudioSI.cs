@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for archive service
+    /// Studio implementation of the archive service.
     /// </summary>
     public class ArchiveStudioSI : IArchive
     {
@@ -35,10 +35,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void ArchiveServiceModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string appName, int instanceOwnerId)
+        public void ArchiveServiceModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string app, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/Archive/";
+            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/Archive/";
             if (!Directory.Exists(archiveDirectory))
             {
                 Directory.CreateDirectory(archiveDirectory);
@@ -60,10 +60,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public object GetArchivedServiceModel(Guid instanceId, Type type, string org, string appName, int instanceOwnerId)
+        public object GetArchivedServiceModel(Guid instanceId, Type type, string org, string app, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, appName, developer)}{instanceOwnerId}/Archive/{instanceId}.xml";
+            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/Archive/{instanceId}.xml";
 
             XmlSerializer serializer = new XmlSerializer(type);
             try

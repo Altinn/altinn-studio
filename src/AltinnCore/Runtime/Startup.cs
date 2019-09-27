@@ -89,6 +89,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IProfile, ProfileStudioSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
                 services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
+                services.AddSingleton<IAuthentication, AuthenticationStudioSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
                 services.AddSingleton<IApplication, ApplicationStudioSI>();
             }
@@ -107,6 +108,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
                 services.AddSingleton<IAuthorization, AuthorizationAppSI>();
+                services.AddSingleton<IAuthentication, AuthenticationAppSI>();
                 services.AddSingleton<IApplication, ApplicationAppSI>();
             }
 
@@ -158,6 +160,13 @@ namespace AltinnCore.Runtime
                     options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                     options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
                 });
+
+            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
+            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            {
+                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
+                services.AddApplicationInsightsKubernetesEnricher();
+            }
 
             var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
@@ -465,7 +474,7 @@ namespace AltinnCore.Runtime
                     {
                         controller = "Language",
                     });
-                
+
                 routes.MapRoute(
                   name: "authorization",
                   template: "{org}/{service}/api/{controller}/parties/{partyId}/validate",
@@ -502,6 +511,21 @@ namespace AltinnCore.Runtime
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
             });
+        }
+
+        /// <summary>
+        ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
+        /// </summary>
+        /// <returns>elemetry instrumentation key</returns>
+        public string GetApplicationInsightsKeyFromEnvironment()
+        {
+            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
+            if (string.IsNullOrEmpty(evironmentKey))
+            {
+                return null;
+            }
+
+            return evironmentKey;
         }
     }
 }

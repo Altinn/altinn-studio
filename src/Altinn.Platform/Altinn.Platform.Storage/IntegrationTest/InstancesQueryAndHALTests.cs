@@ -14,7 +14,7 @@ using Xunit;
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>
-    ///  Tests dataservice REST api.
+    ///  Tests data service REST api.
     /// </summary>
     public class InstancesQueryAndHALTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>
     {
@@ -310,7 +310,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             JObject jsonObject = JObject.Parse(json);
 
             int totalHits = jsonObject["totalHits"].Value<int>();
-            Assert.True(totalHits > 1000);
+            Assert.True(totalHits >= 1000);
 
             List<Instance> instances = jsonObject["instances"].ToObject<List<Instance>>();
             Assert.True(instances.Count >= 100);

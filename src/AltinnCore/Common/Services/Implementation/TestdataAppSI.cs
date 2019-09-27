@@ -19,7 +19,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for application test data
+    /// App implementation of the test data service.
     /// </summary>
     public class TestdataAppSI : ITestdata
     {
@@ -53,10 +53,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string appName)
+        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string app)
         {
             List<ServiceInstance> returnList = new List<ServiceInstance>();
-            List<Instance> instances = _instance.GetInstances(appName, org, instanceOwnerId).Result;
+            List<Instance> instances = _instance.GetInstances(app, org, instanceOwnerId).Result;
             if (instances != null && instances.Count > 0)
             {
                 foreach (Instance instance in instances)
@@ -83,7 +83,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string appName)
+        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string app)
         {
             // TDOD: to be implemented
             return new List<ServicePrefill>();

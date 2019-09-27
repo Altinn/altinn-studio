@@ -25,7 +25,7 @@ using Storage.Interface.Models;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for instance
+    /// App implementation of the instance service.
     /// </summary>
     public class InstanceAppSI : IInstance
     {
@@ -72,8 +72,8 @@ namespace AltinnCore.Common.Services.Implementation
             Guid instanceId;
             Instance instance = null;
             string org = startServiceModel.Org;
-            string appId = ApplicationHelper.GetFormattedApplicationId(org, startServiceModel.Service);
-            string appName = startServiceModel.Service;
+            string app = startServiceModel.Service;
+            string appId = ApplicationHelper.GetFormattedApplicationId(org, app);
             int instanceOwnerId = startServiceModel.PartyId;
 
             Instance instanceTemplate = new Instance()
@@ -81,8 +81,12 @@ namespace AltinnCore.Common.Services.Implementation
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 Process = new ProcessState()
                 {
-                    CurrentTask = _workflow.GetInitialServiceState(org, appName).State.ToString(),
-                    IsComplete = false,
+                    Started = DateTime.UtcNow,
+                    CurrentTask = new TaskInfo
+                    {
+                        Started = DateTime.UtcNow,
+                        ProcessElementId = _workflow.GetInitialServiceState(org, app).State.ToString(),
+                    }
                 },
             };
 
@@ -101,16 +105,16 @@ namespace AltinnCore.Common.Services.Implementation
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
-                appName,
+                app,
                 instanceOwnerId);
 
-            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
 
             return instance;
         }
 
         /// <inheritdoc />
-        public async Task<Instance> GetInstance(string appName, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
 
@@ -130,6 +134,7 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to fetch instance with instance id {instanceId}");
+                throw new PlatformClientException(response);
             }
 
             return instance;
@@ -137,12 +142,12 @@ namespace AltinnCore.Common.Services.Implementation
 
         /// <inheritdoc />
         /// TODO - fix logic, what are you using this for? It will only get instances for a instance owners the way storage is implemented now
-        public async Task<List<Instance>> GetInstances(string appName, string org, int instanceOwnerId)
+        public async Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerId)
         {
             List<Instance> instances = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            appName = ApplicationHelper.GetFormattedApplicationId(org, appName);
-            string apiUrl = $"instances?instanceOwnerId={instanceOwnerId}&appId={appName}";
+            string appId = ApplicationHelper.GetFormattedApplicationId(org, app);
+            string apiUrl = $"instances?instanceOwnerId={instanceOwnerId}&appId={appId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -159,13 +164,14 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 _logger.LogError("Unable to fetch instances");
+                throw new PlatformClientException(response);
             }
 
             return instances;
         }
 
         /// <inheritdoc />
-        public async Task<Instance> UpdateInstance(object dataToSerialize, string appName, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> UpdateInstance(object dataToSerialize, string app, string org, int instanceOwnerId, Guid instanceId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             Instance instance = new Instance();
@@ -184,22 +190,27 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 _logger.LogError($"Unable to update instance with instance id {instanceId}");
+                throw new PlatformClientException(response);
             }
 
             return instance;
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string appName, string org, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string app, string org, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance = GetInstance(appName, org, instanceOwnerId, instanceId).Result;
+            Instance instance = GetInstance(app, org, instanceOwnerId, instanceId).Result;
 
-            instance.Process.IsComplete = true;
-            instance.Process.CurrentTask = WorkflowStep.Archived.ToString();
+            instance.Process.Ended = DateTime.UtcNow;
+            instance.Process.CurrentTask = new TaskInfo
+            {
+                ProcessElementId = WorkflowStep.Archived.ToString(),
+            };
+
             instance.InstanceState.IsArchived = true;
             instance.InstanceState.ArchivedDateTime = DateTime.UtcNow;
 
-            instance = await UpdateInstance(instance, appName, org, instanceOwnerId, instanceId);
+            instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
             return instance;
         }
 
@@ -210,18 +221,18 @@ namespace AltinnCore.Common.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            try
+            StringContent content = instanceTemplate.AsJson();
+            HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+
+            if (response.IsSuccessStatusCode)
             {
-                StringContent content = instanceTemplate.AsJson();
-                HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
                 Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
 
                 return createdInstance;
             }
-            catch
-            {                
-                return null;
-            }
+
+            _logger.LogError($"Unable to create instance {response.StatusCode} - {response.Content?.ReadAsStringAsync().Result}");
+            throw new PlatformClientException(response);            
         }
     }
 }

@@ -399,7 +399,7 @@ namespace AltinnCore.Runtime.RestControllers
         {
             UserContext userContext = await userHelper.GetUserContext(HttpContext);
 
-            string workflowStep = instance.Process?.CurrentTask;
+            string workflowStep = instance.Process?.CurrentTask?.ProcessElementId;
 
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;

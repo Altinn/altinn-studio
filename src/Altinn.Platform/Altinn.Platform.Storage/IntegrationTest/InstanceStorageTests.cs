@@ -15,7 +15,7 @@ using Xunit;
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>
-    ///  Tests dataservice REST api.
+    ///  Tests data service REST api.
     /// </summary>
     public class InstanceStorageTests : IClassFixture<PlatformStorageFixture>, IDisposable
     {
@@ -84,7 +84,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Creates an instance of a service and then asks the service to get the instance. Checks if returned object has
+        /// Creates an instance of an app and then asks the app to get the instance. Checks if returned object has
         /// same values as object which was sent in.
         /// </summary>
         [Fact]

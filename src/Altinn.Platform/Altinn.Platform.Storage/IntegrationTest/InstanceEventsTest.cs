@@ -12,7 +12,7 @@ using Xunit;
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>
-    ///  Tests dataservice REST api for instance events.
+    ///  Tests data service REST api for instance events.
     /// </summary>
     public class InstanceEventsTest : IClassFixture<PlatformStorageFixture>, IDisposable
     {
