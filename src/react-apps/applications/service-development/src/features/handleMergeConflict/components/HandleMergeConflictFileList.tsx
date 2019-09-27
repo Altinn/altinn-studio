@@ -19,7 +19,7 @@ const styles = () => createStyles({
     backgroundColor: theme.altinnPalette.primary.white,
     textDecoration: 'underline',
     color: theme.altinnPalette.primary.blueDark,
-    border: theme.accessability.focusVisible.border,
+    border: theme.accessibility.focusVisible.border,
   },
   listItemIcon: {
     marginRight: 6,
