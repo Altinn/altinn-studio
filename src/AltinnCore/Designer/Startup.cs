@@ -260,7 +260,7 @@ namespace AltinnCore.Designer
         /// <summary>
         ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
         /// </summary>
-        /// <returns>elemetry instrumentation key</returns>
+        /// <returns>Telemetry instrumentation key</returns>
         public string GetApplicationInsightsKeyFromEnvironment()
         {
             string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");

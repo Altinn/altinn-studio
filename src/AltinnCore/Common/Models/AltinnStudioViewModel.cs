@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Models
         public string Org { get; set; }
 
         /// <summary>
-        /// Gets or sets the service (repository name, same as "app"). The ViewModels will phase out, so no need to update to "app" here.
+        /// Gets or sets the app
         /// </summary>
         public string Service { get; set; }
 

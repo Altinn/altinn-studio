@@ -15,7 +15,7 @@ namespace AltinnCore.Common.Helpers
         /// Creates an asynchronous task for compiling an app.
         /// </summary>
         /// <param name="compilation">The ICompilation implementation</param>
-        /// <param name="identifier">The <see cref="ServiceIdentifier"/></param>
+        /// <param name="identifier">The service identifier</param>
         /// <returns>The started compile task</returns>
         public static Task<CodeCompilationResult> CompileService(ICompilation compilation, ServiceIdentifier identifier)
         {
