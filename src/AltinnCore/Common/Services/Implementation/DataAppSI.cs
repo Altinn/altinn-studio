@@ -113,9 +113,8 @@ namespace AltinnCore.Common.Services.Implementation
 
                 string instanceData = await response.Result.Content.ReadAsStringAsync();
                 Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                return instance;
             }
-
-            return null;
         }
 
         /// <inheritdoc />
@@ -268,6 +267,60 @@ namespace AltinnCore.Common.Services.Implementation
                         content.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.ContentType);
 
                         response = client.PostAsync(apiUrl, content).Result;
+                    }
+                    else
+                    {
+                        using (Stream input = attachment.Body)
+                        using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                        {
+                            HttpContent fileStreamContent = new StreamContent(input);
+
+                            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+                            formData.Add(fileStreamContent, attachmentType, attachmentName);
+
+                            response = client.PostAsync(apiUrl, formData).Result;
+                        }
+                    }
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string instancedata = response.Content.ReadAsStringAsync().Result;
+                        instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+
+                        return instance.Data.Find(m => m.FileName.Equals(attachmentName));
+                    }
+                }
+            }
+
+            return new DataElement { Id = Guid.NewGuid().ToString() };
+        }
+
+        /// <inheritdoc />
+        public Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest attachment)
+        {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            Instance instance;
+
+            lock (Guard(instanceGuid))
+            {
+                // using a non-generic client in order to support unknown content type
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(apiUrl);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
+                    JwtTokenUtil.AddTokenToRequestHeader(client, token);
+
+                    HttpResponseMessage response;
+
+                    if (attachment.ContentType.StartsWith("multipart"))
+                    {
+                        StreamContent content = new StreamContent(attachment.Body);
+                        content.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.ContentType);
+
+                        response = client.PutAsync(apiUrl, content).Result;
                     }
                     else
                     {

@@ -114,10 +114,10 @@ namespace AltinnCore.UnitTest.Runtime
 
             Assert.IsType<CreatedResult>(result);
 
-            Instance instance = (Instance)((CreatedResult)result).Value;
+            List<DataElement> createdElements = (List<DataElement>)((CreatedResult)result).Value;
 
-            Assert.NotNull(instance);
-            Assert.True(instance.Data.Any());
+            Assert.NotNull(createdElements);
+            Assert.True(createdElements.Any());
         }
 
         /// <summary>
@@ -292,7 +292,7 @@ namespace AltinnCore.UnitTest.Runtime
                     new ElementType()
                     {
                         Id = "default",
-                        AppLogic = false
+                        AppLogic = true
                     }
                 }
             };
@@ -314,7 +314,11 @@ namespace AltinnCore.UnitTest.Runtime
                 }
             };
 
+            Instance afterInstance = beforeInstance;
+
             Mock<HttpRequest> request = MockRequest();
+            XmlSerializer serializer = new XmlSerializer(typeof(Skjema));
+            object skjema = serializer.Deserialize(File.OpenRead("Runtime/data/data-element.xml"));
 
             FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
 
@@ -328,7 +332,7 @@ namespace AltinnCore.UnitTest.Runtime
             Mock<IApplication> appServiceMock = new Mock<IApplication>();
             appServiceMock
                 .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(Task.FromResult(new Application()));
+                .Returns(Task.FromResult(application));
 
             Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
             instanceServiceMock
@@ -336,14 +340,17 @@ namespace AltinnCore.UnitTest.Runtime
                 .Returns(Task.FromResult(beforeInstance));
 
             Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+             .Setup(d => d.UpdateData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId, dataGuid))
+             .Returns(Task.FromResult(afterInstance));
 
             /* TEST */
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
-            ActionResult result = dataController.PutDataElement(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
+            ActionResult result = dataController.Put(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
 
-            Assert.IsType<OkObjectResult>(result);
+            Assert.IsType<CreatedResult>(result);
 
         }
 

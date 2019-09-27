@@ -82,7 +82,7 @@ namespace AltinnCore.Common.Services.Interfaces
         void DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentId);
 
         /// <summary>
-        /// Method that saves a form attachments to disk/storage and returns its id
+        /// Method that saves a form attachments to disk/storage and returns the new data element.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -92,5 +92,16 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="attachmentName">The attachment name</param>
         /// <param name="attachment">The attachment to be saved</param>
         Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment);
+
+        /// <summary>
+        /// Method that updates a form attachments to disk/storage and returns the updated data element.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="instanceOwnerId">The instance owner id</param>
+        /// <param name="instanceGuid">The instance id</param>
+        /// <param name="dataGuid">The data id</param>
+        /// <param name="attachment">The attachment to be saved</param>
+        Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest attachment);
     }
 }

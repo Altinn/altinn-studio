@@ -144,7 +144,28 @@ namespace AltinnCore.Common.Services.Implementation
                     XmlSerializer serializer = new XmlSerializer(type);
                     serializer.Serialize(stream, dataToSerialize);
                 }
-            }
+
+                string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
+                string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
+                FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
+
+                lock (Guard(instanceGuid))
+                {
+                    string instanceData = File.ReadAllText(instanceFilePath);
+
+                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+                    instance.Data.Where(d => d.Id == dataId.ToString()).ToList().ForEach(d =>
+                    {
+                        d.LastChangedBy = instanceOwnerId.ToString();
+                        d.LastChangedDateTime = DateTime.UtcNow;
+                    });
+
+                    string instanceDataAsString = JsonConvert.SerializeObject(instance);
+
+                    File.WriteAllText(instanceFilePath, instanceDataAsString);
+
+                }
             catch (Exception ex)
             {
                 _logger.LogError("Unable to save form model", ex);
@@ -264,7 +285,7 @@ namespace AltinnCore.Common.Services.Implementation
             string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceId}/data";
             Directory.CreateDirectory(pathToSaveTo);
             string fileToWriteTo = $"{pathToSaveTo}/{dataId}";
-            using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
+            using (Stream streamToWriteTo = File.Open(fileToWriteTo, FileMode.OpenOrCreate))
             {
                 await request.StreamFile(streamToWriteTo);
                 streamToWriteTo.Flush();
@@ -307,6 +328,60 @@ namespace AltinnCore.Common.Services.Implementation
                 File.WriteAllText(instanceFilePath, instanceDataAsString);
                 return data;
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Guid dataId = Guid.NewGuid();
+            long filesize;
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data";
+            string fileToWriteTo = $"{pathToSaveTo}/{dataId}";
+
+            if (!File.Exists(fileToWriteTo))
+            {
+                _logger.LogError("Cannot find file to update.");
+            }
+
+            try
+            {
+                using (Stream streamToWriteTo = File.Open(fileToWriteTo, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    await request.StreamFile(streamToWriteTo);
+                    streamToWriteTo.Flush();
+                    filesize = streamToWriteTo.Length;
+                }
+
+                string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
+                string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
+
+                lock (Guard(instanceGuid))
+                {
+                    string instanceData = File.ReadAllText(instanceFilePath);
+
+                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+                    instance.Data.Where(d => d.Id == dataGuid.ToString()).ToList().ForEach(d =>
+                         {
+                             d.LastChangedBy = instanceOwnerId.ToString();
+                             d.LastChangedDateTime = DateTime.UtcNow;
+                             d.FileSize = filesize;
+                         });
+
+                    string instanceDataAsString = JsonConvert.SerializeObject(instance);
+
+                    File.WriteAllText(instanceFilePath, instanceDataAsString);
+
+                    return instance.Data.Where(d => d.Id == dataGuid.ToString()).First();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unable to save attachment", ex);
+            }
+
+            return null;
         }
     }
 }
