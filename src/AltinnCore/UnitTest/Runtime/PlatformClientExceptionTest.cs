@@ -11,6 +11,17 @@ namespace AltinnCore.UnitTest.Runtime
     public class PlatformClientExceptionTest
     {
         /// <summary>
+        /// Instantiate and format
+        /// </summary>
+        [Fact]
+        public void PlatformClientExceptionWithMessageOk()
+        {
+            PlatformClientException exception = new PlatformClientException("Something is wrong");
+
+            Assert.Equal("Something is wrong", exception.Message);
+        }
+
+        /// <summary>
         /// Instantiate and format the BadRequest message.
         /// </summary>
         [Fact]
