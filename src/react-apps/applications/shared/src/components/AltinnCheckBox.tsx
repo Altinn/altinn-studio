@@ -24,11 +24,14 @@ const styles = () => createStyles({
   altinnCheckBox: {
     'padding': '0px',
     'color': theme.altinnPalette.primary.blueDark + ' !important',
-    '&span': {
-      height: '20px',
-      width: '20px',
-      marginRight: '6px',
-      marginTop: '6px',
+    '& span': {
+      // 'height': '20px',
+      // 'width': '20px',
+      // 'marginRight': '6px',
+      // 'marginTop': '6px',
+      '& svg': {
+        fontSize: '2.5rem',
+      },
     },
   },
 });
@@ -44,6 +47,7 @@ export const AltinnCheckBox = (props: IAltinnCheckBoxComponentProvidedProps) => 
       disabled={props.disabled ? props.disabled : false}
       onKeyPress={props.onKeyPressFunction}
       tabIndex={0}
+      disableRipple={false}
     />
   );
 };
