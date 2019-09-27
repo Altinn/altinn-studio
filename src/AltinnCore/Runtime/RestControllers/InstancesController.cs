@@ -444,7 +444,7 @@ namespace AltinnCore.Runtime.RestControllers
                 InstanceId = instance.Id,
                 InstanceOwnerId = instance.InstanceOwnerId,
                 UserId = userId,
-                WorkflowStep = instance.Process?.CurrentTask?.ProcessElementId,
+                ProcessInfo = instance.Process?.CurrentTask,
             };
 
             await eventService.SaveInstanceEvent(instanceEvent, instance.Org, app);

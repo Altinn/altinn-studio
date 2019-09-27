@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
@@ -66,7 +67,7 @@ namespace AltinnCore.UnitTest.Runtime
             Assert.NotNull(state);
             Assert.NotNull(state.Started);
             Assert.NotNull(state.CurrentTask);
-            Assert.Equal("Data_1", state.CurrentTask.ProcessElementId);
+            Assert.Equal("FormFilling_1", state.CurrentTask.ElementId);
         }
 
         /// <summary>
@@ -99,12 +100,12 @@ namespace AltinnCore.UnitTest.Runtime
             ProcessState currentState = new ProcessState
             {
                 Started = DateTime.Parse("2017-10-10T12:00:00.00Z"),
-                CurrentTask = new TaskInfo
+                CurrentTask = new ProcessElementInfo
                 {
                     Started = DateTime.Parse("2017-10-10T12:01:01.00Z"),
-                    ProcessElementId = "Data_1",
+                    ElementId = "FormFilling_1",
                     AltinnTaskType = "data",
-                    SequenceNumber = 1,
+                    Flow = 1,
                 },                
             };
 
@@ -116,7 +117,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Assert.NotNull(state);
 
-            Assert.Equal("Submit_1", state.CurrentTask.ProcessElementId);
+            Assert.Equal("Submit_1", state.CurrentTask.ElementId);
         }
 
         private Mock<HttpContext> MockContext()
@@ -161,6 +162,9 @@ namespace AltinnCore.UnitTest.Runtime
                 .Returns((Instance i, string app, string org, int ownerId, Guid instanceGuid) => Task.FromResult(i));
 
             Mock<IProcess> processServiceMock = new Mock<IProcess>();
+            processServiceMock
+                .Setup(p => p.GetProcessDefinition(org, app))
+                .Returns(File.OpenRead("Runtime/data/workflow.bpmn"));
 
             Mock<IInstanceEvent> eventServiceMock = new Mock<IInstanceEvent>();
             eventServiceMock
@@ -185,7 +189,7 @@ namespace AltinnCore.UnitTest.Runtime
             generalSettingsMock.Setup(s => s.Value).Returns(new GeneralSettings()
             {
                 AltinnPartyCookieName = "AltinnPartyId",
-            });
+            });         
 
             return new ProcessController(
                 new Mock<ILogger<ProcessController>>().Object,
