@@ -107,8 +107,8 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 return NotFound($"AppId {org}/{app} was not found");
             }
-
-            ElementType elementTypeFromMetadata = application.ElementTypes.Where(e => e.Id.Equals(elementType, StringComparison.InvariantCultureIgnoreCase)).First();
+            
+            ElementType elementTypeFromMetadata = application.ElementTypes.Where(e => e.Id.Equals(elementType, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
             if (elementTypeFromMetadata == null)
             {
@@ -233,7 +233,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return await PutFormData(org, app, instance, dataGuid, elementType);
             }
 
-            return await PutBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid, dataElement);
+            return await PutBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
         }
 
         private async Task<ActionResult> CreateBinaryData(string org, string app, Instance instanceBefore, string elementType, string attachmentName)
@@ -544,9 +544,11 @@ namespace AltinnCore.Runtime.RestControllers
             return Ok(serviceModel);
         }
 
-        private Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, DataElement dataElement)
+        private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
-            throw new NotImplementedException();
+            DataElement dataElement = await dataService.UpdateFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid, Request);
+
+            return Created(dataElement.StorageUrl, new List<DataElement>() { dataElement });
         }
 
         private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, string elementType)
@@ -562,7 +564,7 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             if (serviceModel == null)
-            {  
+            {
                 return BadRequest("No data found in content");
             }
 
@@ -596,7 +598,7 @@ namespace AltinnCore.Runtime.RestControllers
                 dataGuid);
 
             InstancesController.SetAppSelfLinks(instanceAfter, Request);
-            DataElement updatedElement = instanceAfter.Data.Where(d => d.Id == dataGuid.ToString()).First();           
+            DataElement updatedElement = instanceAfter.Data.Where(d => d.Id == dataGuid.ToString()).First();
             string dataUrl = updatedElement.DataLinks.Apps;
 
             return Created(dataUrl, updatedElement);

@@ -37,12 +37,83 @@ namespace AltinnCore.UnitTest.Runtime
         private readonly Guid dataGuid = Guid.Parse("16b62641-67b1-4cf0-b26f-61279fbf528d");
         private readonly string elementType = "default";
         private readonly string repoPath = "../../../Runtime/ServiceModels/default";
-
+        
         /// <summary>
-        /// Test creation of a data element.
+        /// Test creation with invalid elementType
         /// </summary>
         [Fact]
-        public void PostDataElement()
+        public void Post_TC01_InvalidElementType()
+        {
+            /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = elementType,
+                        AppLogic = true
+                    }
+                }
+            };
+
+            Instance getInstance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+            };
+
+            Instance updatedInstance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "default",
+                    }
+                }
+            };
+
+            FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
+            Mock<HttpRequest> request = MockRequest();
+            request.SetupGet(x => x.Body).Returns(dataElement);
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(application));
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>(); 
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            /* TEST */
+
+            ActionResult result = dataController.Create(org, app, instanceOwnerId, instanceGuid, "invalidElementType").Result;
+
+            Assert.IsType<BadRequestObjectResult>(result);
+        }
+
+        /// <summary>
+        /// Test creation of a form data element.
+        /// </summary>
+        [Fact]
+        public void Post_TC02_FormData()
         {
             /* SETUP */
             Application application = new Application()
@@ -92,24 +163,12 @@ namespace AltinnCore.UnitTest.Runtime
             context.SetupGet(x => x.User).Returns(MockUser().Object);
 
             Mock<IApplication> appServiceMock = new Mock<IApplication>();
-            appServiceMock
-                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(Task.FromResult(application));
-
             Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
-            instanceServiceMock
-                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
-                .Returns(Task.FromResult(getInstance));
-
             Mock<IData> dataServiceMock = new Mock<IData>();
-            dataServiceMock
-                .Setup(d => d.InsertData(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<Type>(), org, app, instanceOwnerId))
-                .Returns(Task.FromResult(updatedInstance));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
             /* TEST */
-
             ActionResult result = dataController.Create(org, app, instanceOwnerId, instanceGuid, elementType).Result;
 
             Assert.IsType<CreatedResult>(result);
@@ -121,10 +180,91 @@ namespace AltinnCore.UnitTest.Runtime
         }
 
         /// <summary>
-        /// Gets a data element which is named.
+        /// Create binary data
         /// </summary>
         [Fact]
-        public void GetFormData_TC01()
+        public void Post_TC02_BinaryData()
+        {
+            Assert.True(false);
+        }
+
+        /// <summary>
+        /// Trying to get data element for instance that doesn't exist.
+        /// </summary>
+        [Fact]
+        public void Get_TC01_NotFound()
+        {
+            /* SETUP TEST DATA */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "default",
+                        AppLogic = true
+                    }
+                }
+            };
+
+            Instance instance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "default",
+                        ContentType = "application/xml",
+                    }
+                }
+            };
+
+            XmlSerializer serializer = new XmlSerializer(typeof(Skjema));
+            object skjema = serializer.Deserialize(File.OpenRead("Runtime/data/data-element.xml"));
+
+            /* SETUP MOCK SERVICES */
+            Mock<HttpRequest> request = MockRequest();
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(application));
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.Is<Guid>(g => g.Equals(instanceGuid))))
+                .Returns(Task.FromResult(instance));
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.GetFormData(instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId, dataGuid))
+                .Returns(skjema);
+
+            /* TEST */
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            ActionResult result = dataController.Get(org, app, instanceOwnerId, Guid.NewGuid(), dataGuid).Result;
+
+            Assert.IsType<NotFoundObjectResult>(result);
+        }
+
+        /// <summary>
+        /// Gets a form data element from data id.
+        /// </summary>
+        [Fact]
+        public void Get_TC02_FormData()
         {
             /* SETUP TEST DATA */
             Application application = new Application()
@@ -199,10 +339,10 @@ namespace AltinnCore.UnitTest.Runtime
         }
 
         /// <summary>
-        /// Gets a data element which is named.
+        /// Gets binary data element from data id.
         /// </summary>
         [Fact]
-        public void GetBinaryData_TC01()
+        public void Get_TC03_BinaryData()
         {
             /* SETUP TEST DATA */
             Application application = new Application()
@@ -478,6 +618,5 @@ namespace AltinnCore.UnitTest.Runtime
 
             return coreFiles;
         }
-
     }
 }

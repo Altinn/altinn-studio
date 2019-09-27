@@ -164,8 +164,8 @@ namespace AltinnCore.Common.Services.Implementation
                     string instanceDataAsString = JsonConvert.SerializeObject(instance);
 
                     File.WriteAllText(instanceFilePath, instanceDataAsString);
-
                 }
+            }
             catch (Exception ex)
             {
                 _logger.LogError("Unable to save form model", ex);
@@ -316,6 +316,7 @@ namespace AltinnCore.Common.Services.Implementation
                     LastChangedDateTime = DateTime.UtcNow,
                     FileSize = filesize
                 };
+
                 if (instance.Data == null)
                 {
                     instance.Data = new List<DataElement>();

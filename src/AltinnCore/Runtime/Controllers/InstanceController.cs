@@ -619,7 +619,7 @@ namespace AltinnCore.Runtime.Controllers
                 return StatusCode(500, $"Cannot store form attachment on instance {partyId}/{instanceGuid}");
             }
 
-            return Ok(new { id = guid });
+            return Ok(data);
         }
 
         /// <summary>
