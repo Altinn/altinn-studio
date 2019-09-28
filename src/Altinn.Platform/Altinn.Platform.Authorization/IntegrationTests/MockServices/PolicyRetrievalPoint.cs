@@ -1,3 +1,4 @@
+using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
@@ -14,6 +15,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        private readonly string OrgAttributeId = "urn:altinn:org";
+
+        private readonly string AppAttributeId = "urn:altinn:app";
+
         public PolicyRetrievalPoint(IHttpContextAccessor httpContextAccessor)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -24,6 +29,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             string testID = GetTestId(_httpContextAccessor.HttpContext);
             if (!string.IsNullOrEmpty(testID) && testID.ToLower().Contains("altinnapps"))
             {
+                if (File.Exists(Path.Combine(GetPolicyPath(request),"policy.xml")))
+                {
+                    return ParsePolicy("policy.xml", GetPolicyPath(request));
+                }
+
                 return ParsePolicy(testID + "Policy.xml", GetAltinnAppsPath());
               
             }
@@ -31,6 +41,47 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             {
                 return ParsePolicy(testID + "Policy.xml", GetConformancePath());
             }
+        }
+
+        private string GetPolicyPath(XacmlContextRequest request)
+        {
+            string org = string.Empty;
+            string app = string.Empty;
+            foreach (XacmlContextAttributes attr in request.Attributes)
+            {
+                if (attr.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource))
+                {
+                    foreach(XacmlAttribute asd in attr.Attributes)
+                    {
+                        if (asd.AttributeId.OriginalString.Equals(OrgAttributeId))
+                        {
+                            foreach (var asff in asd.AttributeValues)
+                            {
+                                org = asff.Value;
+                                break;
+                            }
+                        }
+
+                        if (asd.AttributeId.OriginalString.Equals(AppAttributeId))
+                        {
+                            foreach (var asff in asd.AttributeValues)
+                            {
+                                app = asff.Value;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return GetAltinnAppsPolicyPath(org, app);
+        }
+
+
+        private string GetAltinnAppsPolicyPath(string org, string app)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Xacml\3.0\AltinnApps\" + org + @"\" + app + @"\");
         }
 
         private string GetTestId(HttpContext context)
