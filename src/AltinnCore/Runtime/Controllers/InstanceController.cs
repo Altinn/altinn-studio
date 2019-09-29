@@ -192,19 +192,6 @@ namespace AltinnCore.Runtime.Controllers
                     apiResult.NextState = currentState.State;
                     apiResult.Instance = archivedInstance;
                 }
-
-                // Create and store the instance submitted event
-                InstanceEvent instanceEvent = new InstanceEvent
-                {
-                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
-                    EventType = InstanceEventType.Submited.ToString(),
-                    InstanceId = instance.Id,
-                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
-                    UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
-                };
-
-                await _event.SaveInstanceEvent(instanceEvent, org, service);
             }
 
             ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);

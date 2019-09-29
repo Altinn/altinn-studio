@@ -429,22 +429,6 @@ namespace AltinnCore.Runtime.Controllers
                 requestContext.UserContext.PartyId,
                 dataId);
 
-            // Create and store instance saved event
-            if (apiMode.Equals(ApiMode.Update))
-            {
-                InstanceEvent instanceEvent = new InstanceEvent
-                {
-                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
-                    EventType = InstanceEventType.Saved.ToString(),
-                    InstanceId = instance.Id,
-                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
-                    UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
-                };
-
-                await _event.SaveInstanceEvent(instanceEvent, org, service);
-            }
-
             if (apiMode.Equals(ApiMode.Complete))
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.PartyId);
