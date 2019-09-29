@@ -244,16 +244,12 @@ namespace AltinnCore.Common.Services.Implementation
 
                 if (response.IsSuccessStatusCode)
                 {
-                    string instancedata = await response.Content.ReadAsStringAsync();
-                    Instance instance = JsonConvert.DeserializeObject<Instance>(instancedata);
-
                     return true;
                 }
                 else
                 {
                     _logger.LogError($"Deleting data element {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
                 }
-
             }
             finally
             {
@@ -296,6 +292,7 @@ namespace AltinnCore.Common.Services.Implementation
                         content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
 
                         response = await client.PostAsync(apiUrl, content);
+                        content.Dispose();
                     }
                     else
                     {
@@ -361,7 +358,8 @@ namespace AltinnCore.Common.Services.Implementation
                         StreamContent content = new StreamContent(request.Body);
                         content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
 
-                        response = client.PutAsync(apiUrl, content).Result;
+                        response = await client.PutAsync(apiUrl, content);
+                        content.Dispose();
                     }
                     else
                     {
@@ -373,7 +371,7 @@ namespace AltinnCore.Common.Services.Implementation
                             fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
                             attachmentData.Add(fileStreamContent);
 
-                            response = client.PutAsync(apiUrl, attachmentData).Result;
+                            response = await client.PutAsync(apiUrl, attachmentData);
                         }
                     }
 
@@ -391,7 +389,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
             finally
-            {
+            {                
                 instanceLock.Release();
             }
 

@@ -253,13 +253,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Task<bool> DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceId, Guid dataGuid)
+        public Task<bool> DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
-            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
 
-            lock (Guard(instanceId))
+            lock (Guard(instanceGuid))
             {
                 string instanceData = File.ReadAllText(instanceFilePath);
 
@@ -272,7 +272,7 @@ namespace AltinnCore.Common.Services.Implementation
                 File.WriteAllText(instanceFilePath, instanceDataAsString);
             }
 
-            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceId}/data/{dataGuid.ToString().AsFileName()}";
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data/{dataGuid.ToString().AsFileName()}";
             File.Delete(pathToDelete);
 
             return Task.FromResult(true);

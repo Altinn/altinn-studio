@@ -37,7 +37,7 @@ namespace AltinnCore.UnitTest.Runtime
         private readonly Guid dataGuid = Guid.Parse("16b62641-67b1-4cf0-b26f-61279fbf528d");
         private readonly string elementType = "default";
         private readonly string repoPath = "../../../Runtime/ServiceModels/default";
-       
+
         /// <summary>
         /// Test creation of a form data element.
         /// </summary>
@@ -265,94 +265,22 @@ namespace AltinnCore.UnitTest.Runtime
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
             /* TEST */
-            ActionResult invalidElementTypeResult = dataController.Create(org, app, instanceOwnerId, instanceGuid, "invalidElementType").Result;
-            ActionResult badRequestResult = dataController.Create(org, app, instanceOwnerId, instanceGuid, string.Empty).Result;     
-            ActionResult appNotFoundResult = dataController.Create(org, "fake-app-name", instanceOwnerId, instanceGuid, elementType).Result;         
-            ActionResult instanceNotFoundResult = dataController.Create(org, app, instanceOwnerId, Guid.NewGuid(), elementType).Result;          
-            
-            Assert.IsType<BadRequestObjectResult>(invalidElementTypeResult);
-            Assert.IsType<BadRequestObjectResult>(badRequestResult);
+            ActionResult noElementTypeResult = dataController.Create(org, app, instanceOwnerId, instanceGuid, string.Empty).Result;
+            ActionResult appNotFoundResult = dataController.Create(org, "fake-app-name", instanceOwnerId, instanceGuid, elementType).Result;
+            ActionResult invalidElementTypeResult = dataController.Create(org, app, instanceOwnerId, instanceGuid, "invalidElementType").Result;                
+            ActionResult instanceNotFoundResult = dataController.Create(org, app, instanceOwnerId, Guid.NewGuid(), elementType).Result;
+
+            Assert.IsType<BadRequestObjectResult>(noElementTypeResult);
             Assert.IsType<NotFoundObjectResult>(appNotFoundResult);
+            Assert.IsType<BadRequestObjectResult>(invalidElementTypeResult);         
             Assert.IsType<NotFoundObjectResult>(instanceNotFoundResult);
-        }      
-
-        /// <summary>
-        /// Trying to get data element for instance that doesn't exist.
-        /// </summary>
-        [Fact]
-        public void Get_TC01_NotFound()
-        {
-            /* SETUP TEST DATA */
-            Application application = new Application()
-            {
-                Id = $"{org}/{app}",
-                ElementTypes = new List<ElementType>()
-                {
-                    new ElementType()
-                    {
-                        Id = "default",
-                        AppLogic = true
-                    }
-                }
-            };
-
-            Instance instance = new Instance()
-            {
-                Id = $"{instanceOwnerId}/{instanceGuid}",
-                InstanceOwnerId = $"{instanceOwnerId}",
-                AppId = $"{org}/{app}",
-                Org = org,
-
-                Data = new List<DataElement>()
-                {
-                    new DataElement()
-                    {
-                        Id = $"{dataGuid}",
-                        ElementType = "default",
-                        ContentType = "application/xml",
-                    }
-                }
-            };
-
-            XmlSerializer serializer = new XmlSerializer(typeof(Skjema));
-            object skjema = serializer.Deserialize(File.OpenRead("Runtime/data/data-element.xml"));
-
-            /* SETUP MOCK SERVICES */
-            Mock<HttpRequest> request = MockRequest();
-
-            var context = new Mock<HttpContext>();
-            context.SetupGet(x => x.Request).Returns(request.Object);
-            context.SetupGet(x => x.User).Returns(MockUser().Object);
-
-            Mock<IApplication> appServiceMock = new Mock<IApplication>();
-            appServiceMock
-                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(Task.FromResult(application));
-
-            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
-            instanceServiceMock
-                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.Is<Guid>(g => g.Equals(instanceGuid))))
-                .Returns(Task.FromResult(instance));
-
-            Mock<IData> dataServiceMock = new Mock<IData>();
-            dataServiceMock
-                .Setup(d => d.GetFormData(instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId, dataGuid))
-                .Returns(skjema);
-
-            /* TEST */
-
-            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
-
-            ActionResult result = dataController.Get(org, app, instanceOwnerId, Guid.NewGuid(), dataGuid).Result;
-
-            Assert.IsType<NotFoundObjectResult>(result);
         }
 
         /// <summary>
         /// Gets a form data element from data id.
         /// </summary>
         [Fact]
-        public void Get_TC02_FormData()
+        public void Get_TC01_FormData()
         {
             /* SETUP TEST DATA */
             Application application = new Application()
@@ -430,7 +358,7 @@ namespace AltinnCore.UnitTest.Runtime
         /// Gets binary data element from data id.
         /// </summary>
         [Fact]
-        public void Get_TC03_BinaryData()
+        public void Get_TC02_BinaryData()
         {
             /* SETUP TEST DATA */
             Application application = new Application()
@@ -503,6 +431,78 @@ namespace AltinnCore.UnitTest.Runtime
 
             Assert.Equal(5800, model.gruppeid);
             Assert.Equal("Ærlige Øksne Åsheim", model.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonNavndatadef2.value);
+        }
+
+        /// <summary>
+        /// Trying to get data element for instance that doesn't exist.
+        /// </summary>
+        [Fact]
+        public void Get_TC03_ErrorResults()
+        {
+            /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "default"
+                    }
+                }
+            };
+
+            Instance instance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "default",
+                        StorageUrl = "www.storageuri.com"
+                    }
+                }
+            };
+
+            FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
+            Mock<HttpRequest> request = MockRequest();
+            request.SetupGet(x => x.Body).Returns(dataElement);
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.Is<string>(a => a.Equals(app))))
+                .Throws(new Exception());
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.Is<Guid>(g => g.Equals(instanceGuid))))
+                .Returns(Task.FromResult(instance));
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.DeleteFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid))
+                .Returns(Task.FromResult(true));
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            /* TEST */
+            ActionResult instanceNotFoundResult = dataController.Get(org, app, instanceOwnerId, Guid.NewGuid(), dataGuid).Result;
+            ActionResult dataNotFoundResult = dataController.Get(org, app, instanceOwnerId, instanceGuid, Guid.NewGuid()).Result;
+            ActionResult appLogicMissingResult = dataController.Get(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
+
+            Assert.IsType<NotFoundObjectResult>(instanceNotFoundResult);
+            Assert.IsType<NotFoundObjectResult>(dataNotFoundResult);
+            Assert.IsType<BadRequestObjectResult>(appLogicMissingResult);
         }
 
         /// <summary>
@@ -657,6 +657,227 @@ namespace AltinnCore.UnitTest.Runtime
             ActionResult result = dataController.Put(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
 
             Assert.IsType<CreatedResult>(result);
+        }
+        
+        /// <summary>
+        /// Test paths that should result in error.
+        /// </summary>
+        [Fact]
+        public void Put_TC03_ErrorResults()
+        {
+            /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "default",
+                        AppLogic = true
+                    }
+                }
+            };
+
+            Instance instance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "default",
+                        StorageUrl = "www.storageuri.com"
+                    }
+                }
+            };
+
+            FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
+            Mock<HttpRequest> request = MockRequest();
+            request.SetupGet(x => x.Body).Returns(dataElement);
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.Is<string>(a => a.Equals(app))))
+                .Throws(new Exception());
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.Is<Guid>(g => g.Equals(instanceGuid))))
+                .Returns(Task.FromResult(instance));
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.InsertData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId))
+                .Returns(Task.FromResult(instance));
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            /* TEST */
+            ActionResult instanceNotFoundResult = dataController.Get(org, app, instanceOwnerId, Guid.NewGuid(), dataGuid).Result;
+            ActionResult dataNotFoundResult = dataController.Get(org, app, instanceOwnerId, instanceGuid, Guid.NewGuid()).Result;
+            ActionResult appLogicMissingResult = dataController.Get(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
+
+            Assert.IsType<NotFoundObjectResult>(instanceNotFoundResult);
+            Assert.IsType<NotFoundObjectResult>(dataNotFoundResult);
+            Assert.IsType<BadRequestObjectResult>(appLogicMissingResult);
+
+        }
+
+        /// <summary>
+        /// Test delete binary data.
+        /// </summary>
+        [Fact]
+        public void Delete_TC01_BinaryData()
+        {
+            /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "binary",
+                        AppLogic = false
+                    }
+                }
+            };
+
+            Instance beforeInstance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "binary",
+                    }
+                }
+            };
+
+            Instance afterInstance = beforeInstance;
+
+            Mock<HttpRequest> request = MockRequest();
+            XmlSerializer serializer = new XmlSerializer(typeof(Skjema));
+            object skjema = serializer.Deserialize(File.OpenRead("Runtime/data/data-element.xml"));
+
+            FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
+
+            request.SetupGet(x => x.Body).Returns(dataElement);
+            request.SetupGet(x => x.ContentType).Returns("application/xml");
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(application));
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>()))
+                .Returns(Task.FromResult(beforeInstance));
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+             .Setup(d => d.DeleteFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid))
+             .Returns(Task.FromResult(true));
+
+            /* TEST */
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            ActionResult result = dataController.Delete(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
+
+            Assert.IsType<OkResult>(result);
+        }
+
+        /// <summary>
+        /// Test paths that should result in error.
+        /// </summary>
+        [Fact]
+        public void Delete_TC02_ErrorResults()
+        {
+            /* SETUP */
+            Application application = new Application()
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>()
+                {
+                    new ElementType()
+                    {
+                        Id = "default"
+                    }
+                }
+            };
+
+            Instance instance = new Instance()
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+
+                Data = new List<DataElement>()
+                {
+                    new DataElement()
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "default",
+                        StorageUrl = "www.storageuri.com"
+                    }
+                }
+            };
+
+            FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
+            Mock<HttpRequest> request = MockRequest();
+            request.SetupGet(x => x.Body).Returns(dataElement);
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.Is<string>(a => a.Equals(app))))
+                .Throws(new Exception());
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.Is<Guid>(g => g.Equals(instanceGuid))))
+                .Returns(Task.FromResult(instance));
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.DeleteFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid))
+                .Returns(Task.FromResult(true));
+
+            DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+
+            /* TEST */
+            ActionResult instanceNotFoundResult = dataController.Delete(org, app, instanceOwnerId, Guid.NewGuid(), dataGuid).Result;
+            ActionResult dataNotFoundResult = dataController.Delete(org, app, instanceOwnerId, instanceGuid, Guid.NewGuid()).Result;
+            ActionResult appLogicMissingResult = dataController.Delete(org, app, instanceOwnerId, instanceGuid, dataGuid).Result;
+
+            Assert.IsType<NotFoundObjectResult>(instanceNotFoundResult);
+            Assert.IsType<NotFoundObjectResult>(dataNotFoundResult);
+            Assert.IsType<BadRequestObjectResult>(appLogicMissingResult);
         }
 
         private Mock<HttpRequest> MockRequest()

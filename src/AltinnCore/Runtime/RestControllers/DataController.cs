@@ -121,7 +121,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound($"Did not find instance {instance}");
             }
 
-            if ((bool)appLogic)
+            if (appLogic)
             {
                 return await CreateFormData(org, app, instance, elementType);
             }
@@ -155,7 +155,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound($"Did not find instance {instance}");
             }
 
-            DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
+            DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
 
             if (dataElement == null)
             {
@@ -206,7 +206,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound("Did not find instance");
             }
 
-            DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
+            DataElement dataElement = instance.Data.FirstOrDefault(m => m.Id.Equals(dataGuid.ToString()));
 
             if (dataElement == null)
             {
@@ -265,8 +265,9 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (appLogic == null)
             {
-                logger.LogError($"Could not determine if {elementType} requires app logic for application {org}/{app}");
-                return BadRequest($"Could not determine if element type {elementType} requires application logic.");
+                string errorMsg = $"Could not determine if {elementType} requires app logic for application {org}/{app}";
+                logger.LogError(errorMsg);
+                return BadRequest(errorMsg);
             }
             else if ((bool)appLogic)
             {
@@ -462,10 +463,10 @@ namespace AltinnCore.Runtime.RestControllers
         private async Task<bool?> RequiresAppLogic(string org, string app, string elementTypeId)
         {
             bool? appLogic = false;
-
-            Application application = await appService.GetApplication(org, app);
+            
             try
             {
+                Application application = await appService.GetApplication(org, app);
                 appLogic = application.ElementTypes.Where(e => e.Id == elementTypeId).Select(e => e.AppLogic).First();
             }
             catch (Exception)
