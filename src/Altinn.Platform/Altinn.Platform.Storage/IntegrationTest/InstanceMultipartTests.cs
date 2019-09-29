@@ -18,7 +18,7 @@ using Xunit;
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>
-    /// Tests dataservice REST api with MultipartFormDataContent.
+    /// Tests data service REST api with MultipartFormDataContent.
     /// </summary>
     public class InstanceMultipartTests : IClassFixture<PlatformStorageFixture>, IDisposable
     {
@@ -130,7 +130,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     app = applicationClient.UpdateApplication(testApplication);
                 }
             }
-            catch (Exception e)
+            catch
             {
                 app = applicationClient.CreateApplication(testApplication);
             }             

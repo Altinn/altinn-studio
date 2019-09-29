@@ -18,7 +18,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Profile service for service development
+    /// App implementation of the profile service, for service development.
     /// </summary>
     public class ProfileAppSI : IProfile
     {

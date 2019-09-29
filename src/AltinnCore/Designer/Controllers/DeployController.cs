@@ -274,6 +274,13 @@ namespace AltinnCore.Designer.Controllers
 
                     application.ElementTypes = applicationFromRepository.ElementTypes;
 
+                    if (application.PartyTypesAllowed == null)
+                    {
+                        application.PartyTypesAllowed = new PartyTypesAllowed();
+                    }
+
+                    application.PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed;
+
                     HttpResponseMessage response = client.PutAsync(getApplicationMetadataUrl, application.AsJson()).Result;
                     if (response.IsSuccessStatusCode)
                     {
@@ -292,6 +299,7 @@ namespace AltinnCore.Designer.Controllers
                     appMetadata.CreatedDateTime = applicationFromRepository.CreatedDateTime;
                     appMetadata.ElementTypes = applicationFromRepository.ElementTypes;
                     appMetadata.Title = applicationFromRepository.Title;
+                    appMetadata.PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed;
 
                     string createApplicationMetadataUrl = $"{storageEndpoint}applications?appId={appId}";
                     HttpResponseMessage createApplicationMetadataResponse = await client.PostAsync(createApplicationMetadataUrl, appMetadata.AsJson());
@@ -337,6 +345,8 @@ namespace AltinnCore.Designer.Controllers
             };
 
             appMetadata.ElementTypes.Add(elementTypes);
+
+            appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
 
             return appMetadata;
         }

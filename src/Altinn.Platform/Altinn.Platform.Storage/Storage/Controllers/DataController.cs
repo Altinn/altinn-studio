@@ -176,10 +176,13 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             List<DataElement> dataList = new List<DataElement>();
-            foreach (DataElement data in instance.Data)
-            {
-                dataList.Add(data);
-            }
+            await Task.Run(() =>
+                {
+                    foreach (DataElement data in instance.Data)
+                    {
+                        dataList.Add(data);
+                    }
+                });
 
             return Ok(dataList);
         }

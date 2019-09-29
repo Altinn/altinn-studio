@@ -59,7 +59,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             if (partyList.Count > 0)
             {
-                result = partyList.Any(p => p.PartyId == partyId);
+                result = partyList.Any(p => p.PartyId == partyId) || partyList.Any(p => p.ChildParties != null && p.ChildParties.Count > 0 && p.ChildParties.Any(cp => cp.PartyId == partyId));
             }
 
             return result;

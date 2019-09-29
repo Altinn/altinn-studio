@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Register service for service development. Uses local disk to store register data
+    /// Implementation for register functionality for app development. Uses local disk to store register data
     /// </summary>
     public class RegisterStudioSI : IRegister
     {
