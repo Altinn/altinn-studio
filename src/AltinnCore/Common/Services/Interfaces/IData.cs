@@ -77,9 +77,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
-        /// <param name="attachmentType">The attachment type</param>
-        /// <param name="attachmentId">The attachment id</param>
-        void DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentId);
+        /// <param name="dataGuid">The attachment id</param>
+        Task<bool> DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid);
 
         /// <summary>
         /// Method that saves a form attachments to disk/storage and returns the new data element.
@@ -90,8 +89,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="attachmentType">The attachment type</param>
         /// <param name="attachmentName">The attachment name</param>
-        /// <param name="attachment">The attachment to be saved</param>
-        Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment);
+        /// <param name="request">Http request containing the attachment to be saved</param>
+        Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request);
 
         /// <summary>
         /// Method that updates a form attachments to disk/storage and returns the updated data element.
@@ -101,7 +100,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The data id</param>
-        /// <param name="attachment">The attachment to be saved</param>
-        Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest attachment);
+        /// <param name="request">Http request containing the attachment to be saved</param>
+        Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
     }
 }

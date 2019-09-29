@@ -147,7 +147,6 @@ namespace AltinnCore.Common.Services.Implementation
 
                 string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
                 string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
-                FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
 
                 lock (Guard(instanceGuid))
                 {
@@ -164,6 +163,7 @@ namespace AltinnCore.Common.Services.Implementation
                     string instanceDataAsString = JsonConvert.SerializeObject(instance);
 
                     File.WriteAllText(instanceFilePath, instanceDataAsString);
+                    return Task.FromResult(instance);
                 }
             }
             catch (Exception ex)
@@ -171,7 +171,7 @@ namespace AltinnCore.Common.Services.Implementation
                 _logger.LogError("Unable to save form model", ex);
             }
 
-            return null;
+            return Task.FromResult<Instance>(null);
         }
 
         /// <inheritdoc />
@@ -253,7 +253,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
+        public Task<bool> DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceId, Guid dataGuid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
@@ -264,7 +264,7 @@ namespace AltinnCore.Common.Services.Implementation
                 string instanceData = File.ReadAllText(instanceFilePath);
 
                 Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                DataElement removeFile = instance.Data.Find(m => m.Id == attachmentId);
+                DataElement removeFile = instance.Data.Find(m => m.Id == dataGuid.ToString());
 
                 instance.Data.Remove(removeFile);
 
@@ -272,17 +272,19 @@ namespace AltinnCore.Common.Services.Implementation
                 File.WriteAllText(instanceFilePath, instanceDataAsString);
             }
 
-            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentId.AsFileName()}";
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceId}/data/{dataGuid.ToString().AsFileName()}";
             File.Delete(pathToDelete);
+
+            return Task.FromResult(true);
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest request)
+        public async Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Guid dataId = Guid.NewGuid();
             long filesize;
-            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceId}/data";
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data";
             Directory.CreateDirectory(pathToSaveTo);
             string fileToWriteTo = $"{pathToSaveTo}/{dataId}";
             using (Stream streamToWriteTo = File.Open(fileToWriteTo, FileMode.OpenOrCreate))
@@ -293,11 +295,11 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
-            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
             provider.TryGetContentType(attachmentName, out string contentType);
 
-            lock (Guard(instanceId))
+            lock (Guard(instanceGuid))
             {
                 string instanceData = File.ReadAllText(instanceFilePath);
 
@@ -309,7 +311,7 @@ namespace AltinnCore.Common.Services.Implementation
                     ElementType = attachmentType,
                     ContentType = contentType,
                     FileName = attachmentName,
-                    StorageUrl = $"{app}/{instanceId}/data/{dataId}",
+                    StorageUrl = $"{app}/{instanceGuid}/data/{dataId}",
                     CreatedBy = instanceOwnerId.ToString(),
                     CreatedDateTime = DateTime.UtcNow,
                     LastChangedBy = instanceOwnerId.ToString(),
@@ -374,7 +376,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                     File.WriteAllText(instanceFilePath, instanceDataAsString);
 
-                    return instance.Data.Where(d => d.Id == dataGuid.ToString()).First();
+                    return instance.Data.First(d => d.Id == dataGuid.ToString());
                 }
             }
             catch (Exception ex)

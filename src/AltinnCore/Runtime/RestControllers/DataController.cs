@@ -34,7 +34,6 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly IExecution executionService;
         private readonly UserHelper userHelper;
         private readonly IPlatformServices platformService;
-        private readonly IInstanceEvent eventService;
         private readonly IApplication appService;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
@@ -70,7 +69,6 @@ namespace AltinnCore.Runtime.RestControllers
             this.dataService = dataService;
             this.executionService = executionService;
             this.platformService = platformService;
-            this.eventService = eventService;
             this.appService = appService;
             this.userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -107,25 +105,20 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 return NotFound($"AppId {org}/{app} was not found");
             }
-            
-            ElementType elementTypeFromMetadata = application.ElementTypes.Where(e => e.Id.Equals(elementType, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
+
+            ElementType elementTypeFromMetadata = application.ElementTypes.FirstOrDefault(e => e.Id.Equals(elementType, StringComparison.InvariantCultureIgnoreCase));
 
             if (elementTypeFromMetadata == null)
             {
                 return BadRequest($"Element type {elementType} not allowed for instance {instanceGuid}.");
             }
 
-            bool? appLogic = (bool?)elementTypeFromMetadata.AppLogic ?? null;
-            if (appLogic == null)
-            {
-                logger.LogError($"Could not determine if {elementType} requires app logic for application {org}/{app}");
-                return BadRequest($"Could not determine if element type {elementType} requires application logic.");
-            }
+            bool appLogic = elementTypeFromMetadata.AppLogic;
 
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
             {
-                return BadRequest("Unknown instance");
+                return NotFound($"Did not find instance {instance}");
             }
 
             if ((bool)appLogic)
@@ -159,7 +152,7 @@ namespace AltinnCore.Runtime.RestControllers
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
             {
-                return NotFound("Did not find instance");
+                return NotFound($"Did not find instance {instance}");
             }
 
             DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
@@ -175,8 +168,9 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (appLogic == null)
             {
-                logger.LogError($"Could not determine if {elementType} requires app logic for application {org}/{app}");
-                return BadRequest($"Could not determine if element type {elementType} requires application logic.");
+                string error = $"Could not determine if {elementType} requires app logic for application {org}/{app}";
+                logger.LogError(error);
+                return BadRequest(error);
             }
             else if ((bool)appLogic)
             {
@@ -234,6 +228,53 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             return await PutBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+        }
+
+        /// <summary>
+        ///  Delete a data element.
+        /// </summary>
+        /// <param name="org">unique identfier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="dataGuid">unique id to identify the data element to update</param>
+        /// <returns>The updated data element.</returns>
+        public async Task<ActionResult> Delete(
+            [FromRoute] string org,
+            [FromRoute] string app,
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid,
+            [FromRoute] Guid dataGuid)
+        {
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            if (instance == null)
+            {
+                return NotFound("Did not find instance");
+            }
+
+            DataElement dataElement = instance.Data.Find(m => m.Id.Equals(dataGuid.ToString()));
+
+            if (dataElement == null)
+            {
+                return NotFound("Did not find data element");
+            }
+
+            string elementType = dataElement.ElementType;
+
+            bool? appLogic = await RequiresAppLogic(org, app, elementType);
+
+            if (appLogic == null)
+            {
+                logger.LogError($"Could not determine if {elementType} requires app logic for application {org}/{app}");
+                return BadRequest($"Could not determine if element type {elementType} requires application logic.");
+            }
+            else if ((bool)appLogic)
+            {
+                // trying deleting a form element
+                return BadRequest("Deleting form data is not possible at this moment.");
+            }
+
+            return await DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
         }
 
         private async Task<ActionResult> CreateBinaryData(string org, string app, Instance instanceBefore, string elementType, string attachmentName)
@@ -313,6 +354,20 @@ namespace AltinnCore.Runtime.RestControllers
             else
             {
                 return NotFound();
+            }
+        }
+
+        private async Task<ActionResult> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        {
+            bool successfullyDeleted = await dataService.DeleteFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid);
+
+            if (successfullyDeleted)
+            {
+                return Ok();
+            }
+            else
+            {
+                return StatusCode(500, $"Something went wrong when deleting data element {dataGuid} for instance {instanceGuid}");
             }
         }
 
@@ -515,7 +570,7 @@ namespace AltinnCore.Runtime.RestControllers
                 dataGuid);
 
             InstancesController.SetAppSelfLinks(instanceAfter, Request);
-            DataElement updatedElement = instanceAfter.Data.Where(d => d.Id == dataGuid.ToString()).First();
+            DataElement updatedElement = instanceAfter.Data.First(d => d.Id == dataGuid.ToString());
             string dataUrl = updatedElement.DataLinks.Apps;
 
             return Created(dataUrl, updatedElement);

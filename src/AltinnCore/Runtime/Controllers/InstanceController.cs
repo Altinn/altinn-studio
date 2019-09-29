@@ -629,15 +629,14 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="service">The name of the service</param>
         /// <param name="partyId">The party id of the test user</param>
         /// <param name="instanceGuid">The instance guid</param>
-        /// <param name="attachmentType">The attachment type id</param>
         /// <param name="attachmentId">The attachment id</param>
         /// <returns>The status of the deletion</returns>
         [HttpPost]
         [Authorize]
         [DisableFormValueModelBinding]
-        public IActionResult DeleteFormAttachment(string org, string service, int partyId, Guid instanceGuid, string attachmentType, string attachmentId)
+        public IActionResult DeleteFormAttachment(string org, string service, int partyId, Guid instanceGuid, string attachmentId)
         {
-            _data.DeleteFormAttachment(org, service, partyId, instanceGuid, attachmentType, attachmentId);
+            _data.DeleteFormAttachment(org, service, partyId, instanceGuid, Guid.Parse(attachmentId));
             return Ok();
         }
 

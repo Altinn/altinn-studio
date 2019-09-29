@@ -227,20 +227,44 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentId)
+        public async Task<bool> DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
-            List<AttachmentList> attachmentList = new List<AttachmentList>();
-            string apiUrl = $"instances/{instanceIdentifier}/data/{attachmentId}";
+            string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            Task<HttpResponseMessage> response = _client.DeleteAsync(apiUrl);
-            response.Result.EnsureSuccessStatusCode();
+            // Waiting for the instance and subsequently locking it.
+            SemaphoreSlim instanceLock = _instanceLocks.GetOrAdd(instanceGuid, k => new SemaphoreSlim(1, 1));
+            await instanceLock.WaitAsync();
+
+            try
+            {
+                HttpResponseMessage response = await _client.DeleteAsync(apiUrl);              
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string instancedata = await response.Content.ReadAsStringAsync();
+                    Instance instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError($"Deleting data element {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
+                }
+
+            }
+            finally
+            {
+                instanceLock.Release();
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment)
+        public async Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
@@ -266,16 +290,16 @@ namespace AltinnCore.Common.Services.Implementation
 
                     HttpResponseMessage response;
 
-                    if (attachment.ContentType.StartsWith("multipart"))
+                    if (request.ContentType.StartsWith("multipart"))
                     {
-                        StreamContent content = new StreamContent(attachment.Body);
-                        content.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.ContentType);
+                        StreamContent content = new StreamContent(request.Body);
+                        content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
 
                         response = await client.PostAsync(apiUrl, content);
                     }
                     else
                     {
-                        using (Stream input = attachment.Body)
+                        using (Stream input = request.Body)
                         using (MultipartFormDataContent formData = new MultipartFormDataContent())
                         {
                             HttpContent fileStreamContent = new StreamContent(input);
@@ -309,7 +333,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest attachment)
+        public async Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
@@ -327,26 +351,26 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     client.BaseAddress = new Uri(apiUrl);
                     client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeHeaderValue.Parse(attachment.ContentType).ToString()));
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeHeaderValue.Parse(request.ContentType).ToString()));
                     JwtTokenUtil.AddTokenToRequestHeader(client, token);
 
                     HttpResponseMessage response;
 
-                    if (attachment.ContentType.StartsWith("multipart"))
+                    if (request.ContentType.StartsWith("multipart"))
                     {
-                        StreamContent content = new StreamContent(attachment.Body);
-                        content.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.ContentType);
+                        StreamContent content = new StreamContent(request.Body);
+                        content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
 
                         response = client.PutAsync(apiUrl, content).Result;
                     }
                     else
                     {
-                        using (Stream input = attachment.Body)
+                        using (Stream input = request.Body)
                         using (MultipartFormDataContent attachmentData = new MultipartFormDataContent())
                         {
                             HttpContent fileStreamContent = new StreamContent(input);
 
-                            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.ContentType);
+                            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
                             attachmentData.Add(fileStreamContent);
 
                             response = client.PutAsync(apiUrl, attachmentData).Result;
