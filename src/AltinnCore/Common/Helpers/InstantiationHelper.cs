@@ -81,7 +81,7 @@ namespace Common.Helpers
                 return false;
             }
 
-            if (partyTypesAllowed == null || (!partyTypesAllowed.BankruptcyEstate && !partyTypesAllowed.Organization && !partyTypesAllowed.Person && !partyTypesAllowed.SubUnit))
+            if (partyTypesAllowed == null || (!partyTypesAllowed.BankruptcyEstate && !partyTypesAllowed.Organisation && !partyTypesAllowed.Person && !partyTypesAllowed.SubUnit))
             {
                 // if party types not set, all parties are allowed to initiate
                 return true;
@@ -105,7 +105,7 @@ namespace Common.Helpers
                     break;
                 case PartyType.Organization:
 
-                    if (isMainUnit && partyTypesAllowed.Organization)
+                    if (isMainUnit && partyTypesAllowed.Organisation)
                     {
                         isAllowed = true;
                     }
