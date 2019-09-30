@@ -124,7 +124,7 @@ namespace AltinnCore.Runtime.Controllers
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, app, false);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
-            // service developer can implement logic based on information about the request and the user performing
+            // app developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
@@ -141,7 +141,7 @@ namespace AltinnCore.Runtime.Controllers
             ViewBag.FormID = instanceId;
 
             // Assign the RequestContext to the serviceImplementation so
-            // service developer can use the information in any of the service events that is called
+            // app developer can use the information in any of the service events that is called
             serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
@@ -166,12 +166,12 @@ namespace AltinnCore.Runtime.Controllers
             serviceImplementation.SetServiceModel(serviceModel);
 
             // ServiceEvent 1: HandleGetDataEvent
-            // Runs the event where the service developer can implement functionality to retrieve data from internal/external sources
+            // Runs the event where the app developer can implement functionality to retrieve data from internal/external sources
             // based on the data in the service model
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
 
             // ServiceEvent 2: HandleCalculationEvent
-            // Perform Calculation defined by the service developer
+            // Perform Calculation defined by the app developer
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Calculation);
 
             return Ok(serviceModel);
@@ -519,7 +519,7 @@ namespace AltinnCore.Runtime.Controllers
             // the app developer to take use of this information
             serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
 
-            // Run the Data Retriavel event where app developer can potensial load any data without any user input
+            // Run the Data Retrieval event where app developer can potensial load any data without any user input
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
 
             return Ok(serviceModel);
@@ -738,7 +738,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Method that gets the current service state
+        /// Method that gets the current state of an app instance.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>

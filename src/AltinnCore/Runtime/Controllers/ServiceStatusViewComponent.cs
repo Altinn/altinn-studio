@@ -25,8 +25,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceStatusViewComponent"/> class.
         /// </summary>
-        /// <param name="compilation"> The service compilation service.  </param>
-        /// <param name="repository"> The service Repository Service. </param>
+        /// <param name="compilation"> The app compilation service.  </param>
+        /// <param name="repository"> The app repository service. </param>
         /// <param name="generalSettings">the general setting for the repository</param>
         public ServiceStatusViewComponent(ICompilation compilation, IRepository repository, IOptions<GeneralSettings> generalSettings)
         {

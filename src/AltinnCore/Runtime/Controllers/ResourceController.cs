@@ -87,7 +87,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Get the service meta data
+        /// Get the service metadata
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>

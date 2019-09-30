@@ -303,7 +303,7 @@ namespace AltinnCore.Runtime
                     {
                         action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
                         controller = "Instance",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
@@ -360,7 +360,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "Resource",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
@@ -370,7 +370,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "Resource",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
@@ -389,7 +389,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "Resource",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
@@ -399,7 +399,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
@@ -409,7 +409,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "Instance",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
@@ -420,7 +420,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
                 routes.MapRoute(
@@ -431,7 +431,7 @@ namespace AltinnCore.Runtime
                     {
                         controller = "ServiceAPI",
                         partyId = "[0-9]+",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
@@ -442,7 +442,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "Codelist",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
@@ -452,7 +452,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         partyId = "[0-9]{1,20}",
                         instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
@@ -464,7 +464,7 @@ namespace AltinnCore.Runtime
                     constraints: new
                     {
                         controller = @"(Codelist|Config|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         id = "[a-zA-Z0-9_\\-]{1,30}",
                     });
                 routes.MapRoute(
@@ -484,7 +484,7 @@ namespace AltinnCore.Runtime
                   {
                       action = "ValidateSelectedParty",
                       controller = "Authorization",
-                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                      app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                   });
 
                 /* routes.MapRoute(
