@@ -38,18 +38,18 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// The invokes the Component async.
         /// </summary>
-        /// <param name="org"> The org. </param>
-        /// <param name="service"> The service. </param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceMetadata"> The service Metadata. </param>
         /// <param name="codeCompilationResult"> The code Compilation Result. </param>
         /// <returns> The <see cref="Task"/>.  </returns>
         public async Task<IViewComponentResult> InvokeAsync(
             string org,
-            string service,
+            string app,
             ServiceMetadata serviceMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
-            ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
+            ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = app };
             CodeCompilationResult compilation = null;
 
             if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))

@@ -283,7 +283,7 @@ namespace AltinnCore.Runtime
                 // ---------------------------- UI --------------------------- //
                 routes.MapRoute(
                     name: "profileApiRoute",
-                    template: "{org}/{service}/api/v1/{controller}/user/",
+                    template: "{org}/{app}/api/v1/{controller}/user/",
                     defaults: new
                     {
                         action = "GetUser",
@@ -296,7 +296,7 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "uiRoute",
-                    template: "{org}/{service}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
+                    template: "{org}/{app}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
@@ -308,53 +308,53 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                    name: "uiEditRoute",
-                   template: "{org}/{service}/{instanceId?}",
+                   template: "{org}/{app}/{instanceId?}",
                    defaults: new { action = "EditSPA", controller = "Instance" },
                    constraints: new
                    {
                        action = "EditSPA",
                        controller = "Instance",
-                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                    });
 
                 routes.MapRoute(
                    name: "runtimeRoute",
-                   template: "{org}/{service}",
+                   template: "{org}/{app}",
                    defaults: new { action = "EditSPA", controller = "Instance" },
                    constraints: new
                    {
                        action = "EditSPA",
                        controller = "Instance",
-                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
                 routes.MapRoute(
                    name: "instantiateRoute",
-                   template: "{org}/{service}/{controller}/InstantiateApp",
+                   template: "{org}/{app}/{controller}/InstantiateApp",
                    defaults: new { action = "InstantiateApp", controller = "Instance" },
                    constraints: new
                    {
                        action = "InstantiateApp",
                        controller = "Instance",
-                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
                 routes.MapRoute(
                    name: "authentication",
-                   template: "{org}/{service}/{controller}/{action}/{goToUrl?}",
+                   template: "{org}/{app}/{controller}/{action}/{goToUrl?}",
                    defaults: new { action = "Login", controller = "Account" },
                    constraints: new
                    {
                        action = "Login",
                        controller = "Account",
-                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
                 // ---------------------------- API -------------------------- //
                 routes.MapRoute(
                     name: "resourceRoute",
-                    template: "{org}/{service}/api/resource/{id}",
+                    template: "{org}/{app}/api/resource/{id}",
                     defaults: new { action = "Index", controller = "Resource" },
                     constraints: new
                     {
@@ -364,7 +364,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "textresourceRoute",
-                    template: "{org}/{service}/api/textresources",
+                    template: "{org}/{app}/api/textresources",
                     defaults: new { action = "TextResources", controller = "Resource" },
                     constraints: new
                     {
@@ -374,7 +374,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "runtimeResourceRoute",
-                    template: "{org}/{service}/api/runtimeresources/{id}/",
+                    template: "{org}/{app}/api/runtimeresources/{id}/",
                     defaults: new { action = "RuntimeResource", controller = "Resource" },
                     constraints: new
                     {
@@ -383,7 +383,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "metadataRoute",
-                    template: "{org}/{service}/api/metadata/{action=Index}",
+                    template: "{org}/{app}/api/metadata/{action=Index}",
                     defaults: new { controller = "Resource" },
                     constraints: new
                     {
@@ -393,7 +393,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiPostRoute",
-                    template: "{org}/{service}/api/{reportee}/{apiMode}",
+                    template: "{org}/{app}/api/{reportee}/{apiMode}",
                     defaults: new { action = "Index", controller = "ServiceAPI" },
                     constraints: new
                     {
@@ -403,7 +403,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiAttachmentRoute",
-                    template: "{org}/{service}/api/attachment/{partyId}/{instanceGuid}/{action}",
+                    template: "{org}/{app}/api/attachment/{partyId}/{instanceGuid}/{action}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
@@ -414,7 +414,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiPutRoute",
-                    template: "{org}/{service}/api/{reportee}/{instanceId}/{apiMode}",
+                    template: "{org}/{app}/api/{reportee}/{instanceId}/{apiMode}",
                     defaults: new { action = "Index", controller = "ServiceAPI" },
                     constraints: new
                     {
@@ -424,7 +424,7 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "apiWorkflowRoute",
-                    template: "{org}/{service}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
+                    template: "{org}/{app}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
                     defaults: new { controller = "ServiceAPI" },
                     constraints: new
                     {
@@ -436,7 +436,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "codelistRoute",
-                    template: "{org}/{service}/api/{controller}/{action=Index}/{name}",
+                    template: "{org}/{app}/api/{controller}/{action=Index}/{name}",
                     defaults: new { controller = "Codelist" },
                     constraints: new
                     {
@@ -446,7 +446,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "apiRoute",
-                    template: "{org}/{service}/api/{partyId}/{instanceId}",
+                    template: "{org}/{app}/api/{partyId}/{instanceId}",
                     defaults: new { action = "Gindex", controller = "ServiceAPI" },
                     constraints: new
                     {
@@ -458,7 +458,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "serviceRoute",
-                    template: "{org}/{service}/{controller}/{action=Index}/{id?}",
+                    template: "{org}/{app}/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Service" },
                     constraints: new
                     {
@@ -468,7 +468,7 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "languageRoute",
-                    template: "{org}/{service}/api/{controller}/{action=Index}/{id?}",
+                    template: "{org}/{app}/api/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Language" },
                     constraints: new
                     {
@@ -477,7 +477,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                   name: "authorization",
-                  template: "{org}/{service}/api/{controller}/parties/{partyId}/validate",
+                  template: "{org}/{app}/api/{controller}/parties/{partyId}/validate",
                   defaults: new { action = "ValidateSelectedParty", controller = "Authorization" },
                   constraints: new
                   {
@@ -516,7 +516,7 @@ namespace AltinnCore.Runtime
         /// <summary>
         ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
         /// </summary>
-        /// <returns>elemetry instrumentation key</returns>
+        /// <returns>Telemetry instrumentation key</returns>
         public string GetApplicationInsightsKeyFromEnvironment()
         {
             string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
