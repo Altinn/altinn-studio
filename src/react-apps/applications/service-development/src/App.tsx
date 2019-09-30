@@ -104,9 +104,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public render() {
     const { classes, repoStatus } = this.props;
-
-    const altinnWindow: any = window;
-    const { org, service } = altinnWindow;
+    const { org, service } = window as Window as IAltinnWindow;
 
     return (
       <React.Fragment>
