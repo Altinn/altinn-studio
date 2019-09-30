@@ -25,10 +25,6 @@ const styles = () => createStyles({
     'padding': '0px',
     'color': theme.altinnPalette.primary.blueDark + ' !important',
     '& span': {
-      // 'height': '20px',
-      // 'width': '20px',
-      // 'marginRight': '6px',
-      // 'marginTop': '6px',
       '& svg': {
         fontSize: '2.5rem',
       },
