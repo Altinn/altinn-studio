@@ -3,7 +3,7 @@ import * as React from 'react';
 import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
+import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
@@ -181,9 +181,9 @@ function InstantiateContainer(props: IServiceInfoProps) {
     return (
       <Redirect
         to={{
-          pathname: '/error',
+          pathname: '/partyselection',
           state: {
-            message: instantiation.error,
+            errorType: PartySelectionReason.NotValid,
           },
         }}
       />

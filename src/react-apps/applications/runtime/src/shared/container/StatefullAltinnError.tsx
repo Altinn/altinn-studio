@@ -2,10 +2,10 @@ import { createStyles, withStyles, WithStyles } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, RouteProps } from 'react-router-dom';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
-import { IAltinnWindow, IRuntimeState } from 'src/types';
+import { RouteProps } from 'react-router-dom';
+import AltinnAppTheme from '../../../../shared/src/theme/altinnAppTheme';
 import { IApplicationMetadata } from '../../shared/resources/applicationMetadata';
+import { IAltinnWindow, IRuntimeState } from '../../types';
 import { changeBodyBackground } from '../../utils/bodyStyling';
 import AltinnAppHeader from '../components/altinnAppHeader';
 import AltinnError from '../components/altinnError';
@@ -99,6 +99,9 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
   }
 
   if (!props.location || !props.location.state || !props.location.state.message) {
+    if (!language) {
+      return null;
+    }
     return (
       <div className={'container'}>
         <AltinnAppHeader
@@ -109,9 +112,9 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
         <Grid container={true} className={classes.statefulErrorPage}>
           <Grid item={true}>
             <AltinnError
-              title={`${language.instantiation.unknown_error_title}`}
-              content={`${language.instantiation.unknown_error_text}`}
-              statusCode={`${language.instantiation.unknown_error_status}`}
+              title={`${language.instantiate.unknown_error_title}`}
+              content={`${language.instantiate.unknown_error_text}`}
+              statusCode={`${language.instantiate.unknown_error_status}`}
             />
           </Grid>
         </Grid>

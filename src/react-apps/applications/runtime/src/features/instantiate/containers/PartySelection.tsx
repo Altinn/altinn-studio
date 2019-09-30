@@ -3,9 +3,8 @@ import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import { Redirect, RouteProps } from 'react-router';
-import AltinnCheckBox from 'Shared/components/AltinnCheckBox';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
-import { IRuntimeState } from 'src/types';
+import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
+import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import Header from '../../../shared/components/altinnAppHeader';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
@@ -13,6 +12,7 @@ import { IApplicationMetadata } from '../../../shared/resources/applicationMetad
 import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
+import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { capitalizeName } from '../../../utils/stringHelper';
 
