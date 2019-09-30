@@ -128,53 +128,7 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             return StatusCode(500, $"Unknown error. Cannot change process state!");
-        }        
-
-        private string GetNextValidElementOrError(string currentElement, out ActionResult nextElementError)
-        {
-            nextElementError = null;
-            string nextElementId = null;
-
-            List<string> nextElements = ProcessKeeper.NextElements(currentElement);            
-
-            if (nextElements.Count > 1)
-            {
-                nextElementError = Conflict($"There are more than one element reachable from element {currentElement}");
-            }
-            else
-            {
-                nextElementId = nextElements.First();
-            }
-
-            return nextElementId;
-        }
-
-        private string GetValidStartEvenOrError(string proposedStartEvent, out ActionResult startEventError)
-        {
-            startEventError = null;
-            string validStartEvent = null;
-
-            List<string> possibleStartEvents = ProcessKeeper.StartEvents();
-
-            if (!string.IsNullOrEmpty(proposedStartEvent) && possibleStartEvents.Contains(proposedStartEvent))
-            {
-                validStartEvent = proposedStartEvent;
-            }
-            else if (possibleStartEvents.Count == 1)
-            {
-                validStartEvent = possibleStartEvents.First();
-            }
-            else if (!string.IsNullOrEmpty(proposedStartEvent))
-            {
-                startEventError = Conflict($"There is no such start event in the process definition.");
-            }
-            else if (possibleStartEvents.Count > 1)
-            {
-                startEventError = Conflict($"There are more than one start events available. Chose one: {possibleStartEvents}");
-            }
-
-            return validStartEvent;
-        }
+        }                
 
         /// <summary>
         /// Gets a list of the next process elements that can be reached from the current process element.
@@ -249,7 +203,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return Conflict($"Instance does not have current task information!");
             }            
 
-            string nextElement = CheckOrGetValidNextElement(currentElementId, elementId, out ActionResult nextElementError);
+            string nextElement = GetValidNextElementOrError(currentElementId, elementId, out ActionResult nextElementError);
             if (nextElementError != null)
             {
                 return nextElementError;
@@ -310,6 +264,11 @@ namespace AltinnCore.Runtime.RestControllers
             int counter = 0;
             do
             {
+                if (!InstanceIsValid(instance))
+                {
+                    return Conflict($"Instance is not valid in task {currentTaskId}. Automatic completion of process is stopped");
+                }
+
                 List<string> nextElements = ProcessKeeper.NextElements(currentTaskId);
 
                 if (nextElements.Count > 1)
@@ -319,14 +278,7 @@ namespace AltinnCore.Runtime.RestControllers
 
                 string nextElement = nextElements.First();
 
-                if (InstanceIsValid(instance))
-                {
-                    instance = await UpdateProcessStateToNextElement(org, app, instance, instanceOwnerId, instanceGuid, nextElement);                    
-                }
-                else
-                {
-                    return Conflict($"Instance is not valid in task {currentTaskId}. Automatic completeion of process is stopped");
-                }
+                instance = await UpdateProcessStateToNextElement(org, app, instance, instanceOwnerId, instanceGuid, nextElement);
 
                 currentTaskId = instance.Process.CurrentTask?.ElementId;
             }
@@ -338,6 +290,60 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             return Ok(instance.Process);
+        }
+
+        private string GetNextValidElementOrError(string currentElement, out ActionResult nextElementError)
+        {
+            nextElementError = null;
+            string nextElementId = null;
+
+            List<string> nextElements = ProcessKeeper.NextElements(currentElement);
+
+            if (nextElements.Count > 1)
+            {
+                nextElementError = Conflict($"There is more than one element reachable from element {currentElement}");
+            }
+            else
+            {
+                nextElementId = nextElements.First();
+            }
+
+            return nextElementId;
+        }
+
+        private string GetValidStartEvenOrError(string proposedStartEvent, out ActionResult startEventError)
+        {
+            startEventError = null;
+
+            List<string> possibleStartEvents = ProcessKeeper.StartEvents();
+
+            if (!string.IsNullOrEmpty(proposedStartEvent))
+            {
+                if (possibleStartEvents.Contains(proposedStartEvent))
+                {
+                    return proposedStartEvent;
+                }
+                else
+                {
+                    startEventError = Conflict($"There is no such start event as '{proposedStartEvent}' in the process definition.");
+                    return null;
+                }
+            }
+
+            if (possibleStartEvents.Count == 1)
+            {
+                return possibleStartEvents.First();
+            }
+            else if (possibleStartEvents.Count > 1)
+            {
+                startEventError = Conflict($"There are more than one start events available. Chose one: {possibleStartEvents}");
+                return null;
+            }
+            else
+            {
+                startEventError = Conflict($"There is no start events in process definition. Cannot start process!");
+                return null;
+            }
         }
 
         private async Task<Instance> StartProcessOfInstance(string org, string app, int instanceOwnerId, Guid instanceGuid, Instance instance, string validStartElement)
@@ -362,7 +368,7 @@ namespace AltinnCore.Runtime.RestControllers
 
         private async Task<Instance> UpdateProcessStateToNextElement(string org, string app, Instance instance, int instanceOwnerId, Guid instanceGuid, string nextElementId)
         {
-            List<InstanceEvent> events = ChangeProcessState(instance, nextElementId);
+            List<InstanceEvent> events = ChangeProcessStateAndGenerateEvents(instance, nextElementId);
 
             Instance changedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceGuid);
 
@@ -379,31 +385,43 @@ namespace AltinnCore.Runtime.RestControllers
             }
         }
 
-        private string CheckOrGetValidNextElement(string currentElementId, string proposedElementId, out ActionResult nextElementError)
+        private string GetValidNextElementOrError(string currentElementId, string proposedElementId, out ActionResult nextElementError)
         {
             nextElementError = null;
-            string nextElement = null;
 
             List<string> possibleNextElements = ProcessKeeper.NextElements(currentElementId);
-            
-            if (!string.IsNullOrEmpty(proposedElementId) && possibleNextElements.Contains(proposedElementId))
+
+            if (!string.IsNullOrEmpty(proposedElementId))
             {
-                nextElement = proposedElementId;
-            }
-            else if (possibleNextElements.Count == 1)
-            {
-                nextElement = possibleNextElements.First();
-            }
-            else if (!string.IsNullOrEmpty(proposedElementId))
-            {
-                nextElementError = Conflict($"Process element id '{proposedElementId}' is not found in app's process model (bpmn)");
-            }
-            else if (possibleNextElements.Count > 1)
-            {
-                nextElementError = Conflict($"There are more than one outgoing sequence flow, please select one '{possibleNextElements}'");
+                if (possibleNextElements.Contains(proposedElementId))
+                {
+                    return proposedElementId;
+                }
+                else
+                {
+                    nextElementError = Conflict($"Process element id '{proposedElementId}' is not found in app's process model (bpmn)");
+                    return null;
+                }
             }
 
-            return nextElement;
+            if (possibleNextElements.Count == 1)
+            {
+                return possibleNextElements.First();
+            }
+            
+            if (possibleNextElements.Count > 1)
+            {
+                nextElementError = Conflict($"There are more than one outgoing sequence flows, please select one '{possibleNextElements}'");
+                return null;
+            }
+
+            if (possibleNextElements.Count == 0)
+            {
+                nextElementError = Conflict($"There are no outoging sequence flows from current element. Cannot find next process element. Error in bpmn file!");
+                return null;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -415,7 +433,7 @@ namespace AltinnCore.Runtime.RestControllers
             return true;            
         }
 
-        private List<InstanceEvent> ChangeProcessState(Instance instance, string nextElementId)
+        private List<InstanceEvent> ChangeProcessStateAndGenerateEvents(Instance instance, string nextElementId)
         {
             List<InstanceEvent> events = new List<InstanceEvent>();
 
@@ -465,6 +483,9 @@ namespace AltinnCore.Runtime.RestControllers
 
                 events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now));
             }
+
+            // current state points to the instance's process object. The following statement is unnecessary, but clarifies logic.
+            instance.Process = currentState;
 
             return events;
         }
