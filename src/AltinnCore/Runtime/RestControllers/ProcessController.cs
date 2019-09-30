@@ -435,9 +435,9 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (IsTask(previousElementId))
             {
-                if (currentState.CurrentTask != null)
+                if (currentState.CurrentTask != null && currentState.CurrentTask.Flow.HasValue)
                 {
-                    flow = currentState.CurrentTask.Flow;
+                    flow = currentState.CurrentTask.Flow.Value;
                 }
 
                 events.Add(GenerateProcessChangeEvent("process:EndTask", instance, null, now));
