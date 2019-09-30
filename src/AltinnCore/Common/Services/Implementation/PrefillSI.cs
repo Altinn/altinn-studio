@@ -21,6 +21,8 @@ namespace AltinnCore.Common.Services.Implementation
         private static readonly string ER_KEY = "ER";
         private static readonly string DSF_KEY = "DSF";
         private static readonly string USER_PROFILE_KEY = "UserProfile";
+        private static readonly string ALLOW_OVERWRITE_KEY = "allowOverwrite";
+        private bool allowOverwrite = false;
 
         /// <summary>
         /// Creates a new instance of the <see cref="PrefillSI"/> class
@@ -45,6 +47,11 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             JObject prefillConfiguration = JObject.Parse(jsonConfig);
+            JToken allowOverwriteToken = prefillConfiguration.SelectToken(ALLOW_OVERWRITE_KEY);
+            if (allowOverwriteToken != null)
+            {
+                allowOverwrite = allowOverwriteToken.ToObject<bool>();
+            }
 
             // Prefill from user profile
             JToken profilePrefill = prefillConfiguration.SelectToken(USER_PROFILE_KEY);
@@ -138,11 +145,21 @@ namespace AltinnCore.Common.Services.Implementation
                 object propertyValue = property.GetValue(currentObject, null);
                 if (isLastKey)
                 {
-                    // create instance of the property type defined in the datamodel
-                    var instance = value.ToObject(property.PropertyType);
+                    if (propertyValue == null || allowOverwrite)
+                    {
+                        // create instance of the property type defined in the datamodel
+                        var instance = value.ToObject(property.PropertyType);
 
-                    // assign the value, we prefill even though it has a value for now
-                    property.SetValue(currentObject, instance);
+                        // assign the value
+                        property.SetValue(currentObject, instance);
+                    }
+                    else
+                    {
+                        // The target field has a value, and we do not have permission to overwrite values
+                        string errorMessage = $"Could not prefill, the field {string.Join(".", keys)} has a value and {ALLOW_OVERWRITE_KEY} is set to false";
+                        _logger.LogError(errorMessage);
+                        throw new Exception(errorMessage);
+                    }
                 }
                 else
                 {
