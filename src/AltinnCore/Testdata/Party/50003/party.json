@@ -1,16 +1,12 @@
-﻿{
-	"partyID": "50003",
-	"partyTypeName": 1,
-	"orgNumber": null,
-	"person": {
-		"ssn": "01039012345",
-		"firstName": "Anne Sophie",
-		"LastName": "Næringslivsleder"
-	},
-	"organization": null,
-	"ssn": "01039012345",
-	"name": "Anne Sophie Næringslivsleder",
-	"isDeleted": false,
-	"onlyHierarchyElementWithNoAccess": false,
-	"childParties": null
+{
+  "partyID": "50003",
+  "partyTypeName": 1,
+  "orgNumber": null,
+  "person":  null,
+  "organization": null,
+  "ssn": "01039012345",
+  "name": "Anne Sophie Næringslivsleder",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "childParties": null
 }

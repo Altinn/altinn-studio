@@ -1,16 +1,12 @@
-﻿{
-	"partyID": "50004",
-	"partyTypeName": 1,
-	"orgNumber": null,
-	"person": {
-		"ssn": "04017512345",
-		"firstName": "Pål",
-		"LastName": "Revisor"
-	},
-	"organization": null,
-	"ssn": "04017512345",
-	"name": "Pål Revisor",
-	"isDeleted": false,
-	"onlyHierarchyElementWithNoAccess": false,
-	"childParties": null
+{
+  "partyID": "50004",
+  "partyTypeName": 1,
+  "orgNumber": null,
+  "person":  null,
+  "organization": null,
+  "ssn": "01047512345",
+  "name": "Pål Revisor",
+  "isDeleted": false,
+  "onlyHierarchyElementWithNoAccess": false,
+  "childParties": null
 }

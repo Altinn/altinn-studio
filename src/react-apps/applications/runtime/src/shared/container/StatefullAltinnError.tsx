@@ -75,7 +75,7 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
     if (partyTypesAllowed.person) {
       partyTypes.push(language.party_selection.unit_type_private_person);
     }
-    if (partyTypesAllowed.organization) {
+    if (partyTypesAllowed.organisation) {
       partyTypes.push(language.party_selection.unit_type_company);
     }
     if (partyTypesAllowed.subUnit) {
