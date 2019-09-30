@@ -127,9 +127,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                ProcessInfo = new ProcessElementInfo
+                ProcessInfo = new ProcessState
                 {
-                    ElementId = "Step123456"
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Step123456"
+                    }
                 }
             };
 
@@ -141,9 +144,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                ProcessInfo = new ProcessElementInfo
+                ProcessInfo = new ProcessState
                 {
-                    ElementId = "Step123456"
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Step123456"
+                    }
                 }
             };
 
@@ -155,9 +161,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                ProcessInfo = new ProcessElementInfo
+                ProcessInfo = new ProcessState
                 {
-                    ElementId = "Step123456"
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Step123456"
+                    }
                 }
             };
 

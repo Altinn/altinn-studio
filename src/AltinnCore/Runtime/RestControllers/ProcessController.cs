@@ -352,7 +352,7 @@ namespace AltinnCore.Runtime.RestControllers
             Instance updatedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceGuid);
             List<InstanceEvent> events = new List<InstanceEvent>
             {
-                GenerateProcessChangeEvent("process:StartEvent", updatedInstance, validStartElement, now)
+                GenerateProcessChangeEvent("process:StartEvent", updatedInstance, now)
             };
 
             await DispatchEvents(org, app, events);
@@ -440,16 +440,16 @@ namespace AltinnCore.Runtime.RestControllers
                     flow = currentState.CurrentTask.Flow.Value;
                 }
 
-                events.Add(GenerateProcessChangeEvent("process:EndTask", instance, null, now));
+                events.Add(GenerateProcessChangeEvent("process:EndTask", instance, now));
             }
 
             if (IsEndEvent(nextElementId))
             {
                 currentState.CurrentTask = null;
                 currentState.Ended = now;
-                currentState.EndEvent = nextElementId;
+                currentState.EndEvent = nextElementId;                
 
-                events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, previousElementId, now));
+                events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, now));
             }
             else if (IsTask(nextElementId))
             {
@@ -463,13 +463,13 @@ namespace AltinnCore.Runtime.RestControllers
                     Validated = null,
                 };
 
-                events.Add(GenerateProcessChangeEvent("process:StartTask", instance, previousElementId, now));
+                events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now));
             }
 
             return events;
         }
 
-        private InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, string previousElementId, DateTime now)
+        private InstanceEvent GenerateProcessChangeEvent(string eventType, Instance instance, DateTime now)
         {
             UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
 
@@ -481,7 +481,7 @@ namespace AltinnCore.Runtime.RestControllers
                 CreatedDateTime = now,
                 UserId = userContext.UserId,
                 AuthenticationLevel = userContext.AuthenticationLevel,
-                ProcessInfo = instance.Process.CurrentTask,
+                ProcessInfo = instance.Process,
             };
 
             return instanceEvent;

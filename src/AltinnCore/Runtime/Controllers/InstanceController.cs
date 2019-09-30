@@ -201,7 +201,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    ProcessInfo = instance.Process.CurrentTask,
+                    ProcessInfo = instance.Process,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
@@ -379,7 +379,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    ProcessInfo = instance.Process.CurrentTask,
+                    ProcessInfo = instance.Process,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
@@ -492,7 +492,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    ProcessInfo = instance.Process.CurrentTask,
+                    ProcessInfo = instance.Process,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);

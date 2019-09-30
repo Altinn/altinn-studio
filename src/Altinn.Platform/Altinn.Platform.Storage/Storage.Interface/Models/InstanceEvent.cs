@@ -1,6 +1,6 @@
+using System;
 using Newtonsoft.Json;
 using Storage.Interface.Models;
-using System;
 
 namespace Altinn.Platform.Storage.Models
 {
@@ -70,7 +70,7 @@ namespace Altinn.Platform.Storage.Models
         /// If event type does not start with process: this field is not present.
         /// </summary>
         [JsonProperty(PropertyName = "processInfo")]
-        public ProcessElementInfo ProcessInfo { get; set; }
+        public ProcessState ProcessInfo { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()
