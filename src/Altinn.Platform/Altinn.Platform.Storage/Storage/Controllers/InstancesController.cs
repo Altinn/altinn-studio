@@ -982,7 +982,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
-
     }
 
     /// <summary>

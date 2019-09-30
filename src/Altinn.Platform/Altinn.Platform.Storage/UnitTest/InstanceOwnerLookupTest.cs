@@ -174,6 +174,8 @@ namespace Altinn.Platform.Storage.UnitTest
             Mock<IInstanceRepository> mockInstanceRepository = new Mock<IInstanceRepository>();
             mockInstanceRepository.Setup(ir => ir.Create(It.IsAny<Instance>())).Returns(Task.FromResult(instanceToCreate));
 
+            Mock<IInstanceEventRepository> mockInstanceEventRepository = new Mock<IInstanceEventRepository>();
+
             Mock<IApplicationRepository> mockApplicationRepository = new Mock<IApplicationRepository>();
             mockApplicationRepository.Setup(ar => ar.FindOne(It.IsAny<string>(), It.IsAny<string>())).Returns(
                 Task.FromResult(new Application()
@@ -223,6 +225,7 @@ namespace Altinn.Platform.Storage.UnitTest
 
             instanceController = new InstancesController(
                 mockInstanceRepository.Object,
+                mockInstanceEventRepository.Object,
                 mockApplicationRepository.Object,
                 mockDataRepository.Object,
                 mockGeneralSettings.Object,
