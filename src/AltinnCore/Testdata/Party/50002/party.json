@@ -1,13 +1,9 @@
-﻿{
+{
 	"partyID": "50002",
 	"partyTypeName": 1,
 	"orgNumber": null,
-	"person": {
-		"ssn": "02017512345",
-		"firstName": "Kari",
-		"LastName": "Selvstendig"
-	},
-	"organization": null,    
+  "person":  null,
+	"organisation": null,
 	"ssn": "02017512345",
 	"name": "Kari Selvstendig",
 	"isDeleted": false,

@@ -14,7 +14,7 @@ using Xunit;
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>
-    ///  Tests dataservice REST api.
+    ///  Tests data service REST api.
     /// </summary>
     public class InstancesQueryAndHALTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>
     {

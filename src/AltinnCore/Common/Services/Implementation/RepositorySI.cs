@@ -90,7 +90,7 @@ namespace AltinnCore.Common.Services.Implementation
                             ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
                             : _settings.RepositoryLocation + serviceMetadata.Org.AsFileName();
 
-            string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName;
+            string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
 
             if (!Directory.Exists(serviceOrgPath))
             {
@@ -2024,6 +2024,19 @@ namespace AltinnCore.Common.Services.Implementation
                 dynamic jsonFileContent = JsonConvert.DeserializeObject<ResourceCollection>(File.ReadAllText(resourceFile));
                 yield return new ResourceWrapper { FileName = resourceFile, Resources = jsonFileContent };
             }
+        }
+
+        /// <inheritdoc/>
+        public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
+        {
+            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + dataModelName + ".prefill.json";
+            string filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+
+            return filedata;
         }
 
         private class ResourceWrapper

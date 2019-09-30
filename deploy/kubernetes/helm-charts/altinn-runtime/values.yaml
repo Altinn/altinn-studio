@@ -152,6 +152,8 @@ environmentVariables:
 volumeMounts:
   - name: altinn-runtime-repo-storage
     mountPath: "/AltinnCore/Repos"
+  - name: altinn-appsettings
+    mountPath: "/altinn-appsettings"
 
 volumes:
   - name: altinn-runtime-repo-storage

@@ -13,7 +13,7 @@ describe('>>> sharedResources/utils/party.ts', () => {
             middleName: null,
             lastName: 'Privatperson',
           },
-          organization: null,
+          organisation: null,
         },
       },
     };
@@ -33,7 +33,7 @@ describe('>>> sharedResources/utils/party.ts', () => {
       error: null,
       profile: {
         party: {
-          organization: null,
+          organisation: null,
         },
       },
     };

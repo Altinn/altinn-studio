@@ -73,8 +73,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Gets one application
         /// </summary>
-        /// <param name="org">application owner id</param>
-        /// <param name="app">application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         [HttpGet("{org}/{app}")]
         public async Task<ActionResult> GetOne(string org, string app)
@@ -210,8 +210,8 @@ namespace Altinn.Platform.Storage.Controllers
                 return false;
             }
 
-            string appNamePattern = @"^[a-zæøå][a-zæøå0-9\-]*$";
-            if (!Regex.IsMatch(parts[1], appNamePattern))
+            string appPattern = @"^[a-zæøå][a-zæøå0-9\-]*$";
+            if (!Regex.IsMatch(parts[1], appPattern))
             {
                 return false;
             }
@@ -296,8 +296,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Delete an application
         /// </summary>
-        /// <param name="org">the organisation owning the app</param>
-        /// <param name="app">application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="hard">if true hard delete will take place</param>
         /// <returns>updated application object</returns>
         [HttpDelete("{org}/{app}")]

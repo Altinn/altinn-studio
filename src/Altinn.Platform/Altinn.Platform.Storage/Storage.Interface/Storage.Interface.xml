@@ -568,9 +568,9 @@
             Should a bankruptcy estate be allowed to instantiate
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.PartyTypesAllowed.Organization">
+        <member name="P:Altinn.Platform.Storage.Models.PartyTypesAllowed.Organisation">
             <summary>
-            Should a organization be allowed to instantiate
+            Should a organisation be allowed to instantiate
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Models.PartyTypesAllowed.Person">
