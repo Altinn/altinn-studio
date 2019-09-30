@@ -13,7 +13,7 @@ namespace Storage.Interface.Models
         /// The sequence number of the various tasks and event elements that have been reached by this process.
         /// </summary>
         [JsonProperty(PropertyName = "flow")]
-        public int Flow { get; set; }
+        public int? Flow { get; set; }
 
         /// <summary>
         /// Date and time when the task was started.

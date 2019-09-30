@@ -92,7 +92,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 CurrentTask = new ProcessElementInfo
                 {
-                    ElementId = "FormFilling",
+                    ElementId = "FormFilling_1",
+                    Name = "FormFilling",
                 },
             };
         }

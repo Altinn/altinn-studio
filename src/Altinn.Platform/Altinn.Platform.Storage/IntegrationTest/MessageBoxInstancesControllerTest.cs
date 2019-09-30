@@ -126,12 +126,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int actualCount = messageBoxInstances.Count();
             string actualTitle = messageBoxInstances.First().Title;
 
+            // Cleanup
+            await DeleteInstances(testInstances);
+
             // Assert
             Assert.Equal(expectedCount, actualCount);
             Assert.Equal(expectedTitle, actualTitle);
-
-            // Cleanup
-            await DeleteInstances(testInstances);
         }
 
         /// <summary>

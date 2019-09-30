@@ -69,7 +69,6 @@ namespace Altinn.Platform.Storage.Models
         [JsonProperty(PropertyName = "workflowStep")]
         public string WorkFlowStep { get; set; }
 
-
         /// <inheritdoc/>
         public override string ToString()
         {
