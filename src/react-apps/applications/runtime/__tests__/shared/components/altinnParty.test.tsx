@@ -86,7 +86,7 @@ describe('altinnParty', () => {
       );
     });
 
-    it('should render with class \'fa fa-corp\' if party is a organization', () => {
+    it('should render with class \'fa fa-corp\' if party is a organisation', () => {
       mockParty = {
         childParties: [],
         partyId: 'partyId',

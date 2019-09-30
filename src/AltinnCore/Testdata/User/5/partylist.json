@@ -3,7 +3,7 @@
     "partyTypeName": "Person",
     "orgNumber": null,
     "person": null,
-    "organization": null,
+    "organisation": null,
     "partyID": "20001",
     "ssn": "01047512345",
     "name": "Roar Underenhet",
@@ -12,10 +12,10 @@
     "childParties": null
   },
   {
-	"partyTypeName": "Organization",
+	"partyTypeName": "Organisation",
 	"orgNumber": "1001",
 	"person": null,
-	"organization": null,
+	"organisation": null,
 	"partyID": "20002",
 	"unitType": "AS",
 	"ssn": null,
@@ -33,16 +33,16 @@
 			"isDeleted": false,
 			"onlyHierarchyElementWithNoAccess": false,
 			"person": null,
-			"organization": null,
+			"organisation": null,
 			"childParties": null
 		}
 	]
   },
   {
-	"partyTypeName": "Organization",
+	"partyTypeName": "Organisation",
 	"orgNumber": "13381338",
 	"person": null,
-	"organization": null,
+	"organisation": null,
 	"partyID": "20003",
 	"unitType": "KBO",
 	"ssn": null,
