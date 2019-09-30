@@ -79,10 +79,10 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The content of the file.</returns>
         public ActionResult GetServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
         {
-            // if (!ApplicationHelper.IsValidFilename(fileName))
-            // {
-            //     return BadRequest();
-            // }
+            if (!ApplicationHelper.IsValidFilename(fileName))
+            {
+                return BadRequest();
+            }
 
             string file = string.Empty;
             switch (fileEditorMode)
