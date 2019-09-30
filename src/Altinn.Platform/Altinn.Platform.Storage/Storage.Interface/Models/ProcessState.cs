@@ -4,7 +4,8 @@ using System;
 namespace Storage.Interface.Models
 {
     /// <summary>
-    /// Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 
+    /// Holds the process state of an application instance.
+    /// The process is defined by the application's process specification BPMN file. 
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ProcessState
@@ -22,7 +23,8 @@ namespace Storage.Interface.Models
         public string StartEvent { get; set; }
 
         /// <summary>
-        /// Contains the task info of the currentTask of an ongoing process. If process is ended/completed it will not have value. 
+        /// Contains the task info of the currentTask of an ongoing process.
+        /// If process is not started or ended this field will not have value. 
         /// </summary>
         [JsonProperty(PropertyName = "currentTask")]
         public ProcessElementInfo CurrentTask { get; set; }
@@ -34,7 +36,7 @@ namespace Storage.Interface.Models
         public DateTime? Ended { get; set; }
 
         /// <summary>
-        /// Refers to the id of the reached end event of the process. 
+        /// The end event of the process. 
         /// </summary>
         [JsonProperty(PropertyName = "endEvent")]
         public string EndEvent { get; set; }

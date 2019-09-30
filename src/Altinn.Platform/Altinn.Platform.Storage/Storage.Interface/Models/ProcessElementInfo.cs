@@ -16,7 +16,7 @@ namespace Storage.Interface.Models
         public int Flow { get; set; }
 
         /// <summary>
-        /// Date and time when the task is started.
+        /// Date and time when the task was started.
         /// </summary>
         [JsonProperty(PropertyName = "started")]
         public DateTime? Started { get; set; }
@@ -40,7 +40,7 @@ namespace Storage.Interface.Models
         public string AltinnTaskType { get; set; }
 
         /// <summary>
-        /// Date and time when the element was ended (closed/completed)
+        /// Date and time when the task was ended (closed/completed)
         /// </summary>
         [JsonProperty(PropertyName = "ended")]
         public DateTime? Ended { get; set; }

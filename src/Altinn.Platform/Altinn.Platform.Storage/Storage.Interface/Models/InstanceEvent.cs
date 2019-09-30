@@ -1,8 +1,6 @@
 using Newtonsoft.Json;
 using Storage.Interface.Models;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Altinn.Platform.Storage.Models
 {

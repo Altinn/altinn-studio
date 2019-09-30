@@ -1,7 +1,6 @@
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
+
 
 namespace Storage.Interface.Models
 {
@@ -34,7 +33,6 @@ namespace Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName = "archivedDateTime")]
         public DateTime? ArchivedDateTime { get; set; }
-
 
         /// <summary>
         /// Gets or sets the date the instance was deleted
