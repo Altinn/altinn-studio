@@ -1,8 +1,8 @@
 [
 	{
 		"partyTypeName": "Person",
-		"orgNumber": null,
-		"person": null,
+    "orgNumber": null,
+    "person":  null,
 		"organization": null,
 		"partyID": "50002",
 		"organizationNumber": null,
@@ -17,7 +17,7 @@
 		"partyTypeName": "Organization",
 		"orgNumber": "900000001",
 		"person": null,
-		"organization": null,
+    "organization": null,
 		"partyID": "10001",
 		"organizationNumber": null,
 		"unitType": null,

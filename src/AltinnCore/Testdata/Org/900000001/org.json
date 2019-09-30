@@ -1,0 +1,16 @@
+{
+  "OrgNumber": "900000001",
+  "Name": "Kari Consulting",
+  "UnitType": "",
+  "TelephoneNumber": "12345678",
+  "MobileNumber": "1234578",
+  "FaxNumber": "12345678",
+  "EMailAddress": "email@email.com",
+  "InternetAddress": "http://example.com",
+  "MailingAddress": "Postadresse 9",
+  "MailingPostalCode": "0000",
+  "MailingPostalCity": "By",
+  "BusinessAddress": "Forretningsadresse 9",
+  "BusinessPostalCode": "0000",
+  "BusinessPostalCity": "By"
+}
