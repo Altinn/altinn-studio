@@ -30,7 +30,7 @@ export interface IRuntimeState {
   party: IPartyState;
   applicationMetadata: IApplicationMetadataState;
   instantiation: IInstantiationState;
-  organizationMetaData: IOrgsState;
+  organisationMetaData: IOrgsState;
   instanceData: IInstanceDataState;
 }
 

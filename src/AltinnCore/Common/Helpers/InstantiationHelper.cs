@@ -103,7 +103,7 @@ namespace Common.Helpers
                     }
 
                     break;
-                case PartyType.Organization:
+                case PartyType.Organisation:
 
                     if (isMainUnit && partyTypesAllowed.Organisation)
                     {
