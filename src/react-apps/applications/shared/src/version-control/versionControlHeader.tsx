@@ -150,7 +150,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getRepoPermissions = async () => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, service } = window as Window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`;
 
     try {
@@ -161,6 +161,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
     } catch (err) {
       if (axios.isCancel(err)) {
+        // This is handy when debugging axios cancelations when unmounting
+        // TODO: Fix other cancelations when unmounting in this component
         // console.info('Component did unmount. Get canceled.');
       } else {
         // TODO: Handle error
