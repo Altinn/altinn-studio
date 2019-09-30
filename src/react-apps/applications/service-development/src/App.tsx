@@ -28,6 +28,7 @@ import HandleMergeConflictDispatchers from './features/handleMergeConflict/handl
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import applicationMetadataDispatcher from './sharedResources/applicationMetadata/applicationMetadataDispatcher';
 import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
+import { getRepoStatusUrl } from './utils/urlHelper';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -69,8 +70,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   public checkForMergeConflict = () => {
     const altinnWindow: any = window;
     const { org, service } = altinnWindow;
-    // tslint:disable-next-line:max-line-length
-    const repoStatusUrl = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
+    const repoStatusUrl = getRepoStatusUrl();
 
     HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, service);
   }
@@ -105,7 +105,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   public render() {
     const { classes, repoStatus } = this.props;
 
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const altinnWindow: any = window;
     const { org, service } = altinnWindow;
 
     return (
@@ -115,7 +115,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
             <div className={classes.container}>
               <Grid container={true} direction='row'>
                 <Grid item={true} xs={12}>
-                  {repoStatus.hasMergeConflict === false ?
+                  {repoStatus.hasMergeConflict !== true ?
                     redirects.map((route, index) => (
                       <Route
                         key={index}

@@ -161,7 +161,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
     } catch (err) {
       if (axios.isCancel(err)) {
-        // console.error('Component did unmount. Get canceled.');
+        // console.info('Component did unmount. Get canceled.');
       } else {
         // TODO: Handle error
         console.error('getRepoPermissions failed', err);
