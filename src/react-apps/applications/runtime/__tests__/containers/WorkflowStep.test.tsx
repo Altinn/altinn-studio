@@ -55,11 +55,11 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
               middleName: null,
               lastName: 'Privatperson',
             },
-            organization: null,
+            organisation: null,
           },
         },
       },
-      organizationMetaData: {
+      organisationMetaData: {
         allOrgs: null,
       },
       applicationMetadata: {
@@ -179,7 +179,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
       profile: {
         profile: null,
       },
-      organizationMetaData: {
+      organisationMetaData: {
         allOrgs: null,
       },
       applicationMetadata: {
@@ -226,7 +226,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
       profile: {
         profile: null,
       },
-      organizationMetaData: {
+      organisationMetaData: {
         allOrgs: null,
       },
       applicationMetadata: {
@@ -250,7 +250,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     expect(wrapper.find('.d-block').first().text()).toEqual('');
   });
 
-  it('if organization a different icon should show', () => {
+  it('if organisation a different icon should show', () => {
     const createStore = configureStore();
     const newState = {
       language: {
@@ -279,13 +279,13 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
               middleName: null,
               lastName: 'Revisor',
             },
-            organization: {
+            organisation: {
               name: 'Tull og Tøys AS',
             },
           },
         },
       },
-      organizationMetaData: {
+      organisationMetaData: {
         allOrgs: null,
       },
       applicationMetadata: {

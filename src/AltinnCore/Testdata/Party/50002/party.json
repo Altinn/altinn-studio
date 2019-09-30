@@ -3,7 +3,7 @@
 	"partyTypeName": 1,
 	"orgNumber": null,
   "person":  null,
-	"organization": null,    
+	"organisation": null,
 	"ssn": "02017512345",
 	"name": "Kari Selvstendig",
 	"isDeleted": false,
