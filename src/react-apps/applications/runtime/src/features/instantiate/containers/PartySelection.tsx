@@ -71,7 +71,7 @@ const styles = createStyles({
   },
   checkboxLabes: {
     paddingTop: '1.2rem',
-  }
+  },
 });
 
 export enum PartySelectionReason {
