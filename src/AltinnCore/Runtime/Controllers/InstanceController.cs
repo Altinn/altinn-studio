@@ -491,7 +491,7 @@ namespace AltinnCore.Runtime.Controllers
             {
                 if (serviceContext.WorkFlow.Any() && serviceContext.WorkFlow[0].StepType.Equals(StepType.Lookup))
                 {
-                    return RedirectToAction("Lookup", new { org = startServiceModel.Org, service = startServiceModel.Service });
+                    return RedirectToAction("Lookup", new { org = startServiceModel.Org, app = startServiceModel.Service });
                 }
 
                 int instanceOwnerId = requestContext.UserContext.PartyId;
@@ -695,7 +695,7 @@ namespace AltinnCore.Runtime.Controllers
             ViewBag.RequestContext = requestContext;
             ViewBag.ServiceContext = serviceContext;
             ViewBag.Org = org;
-            ViewBag.Service = app;
+            ViewBag.App = app;
             ViewBag.FormID = instanceGuid;
             ViewBag.PlatformServices = platformServices;
 

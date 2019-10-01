@@ -137,7 +137,7 @@ namespace AltinnCore.Runtime.Controllers
             ViewBag.ServiceContext = serviceContext;
             ViewBag.RequestContext = requestContext;
             ViewBag.Org = org;
-            ViewBag.Service = app;
+            ViewBag.App = app;
             ViewBag.FormID = instanceId;
 
             // Assign the RequestContext to the serviceImplementation so

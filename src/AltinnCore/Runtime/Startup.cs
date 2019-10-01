@@ -169,7 +169,7 @@ namespace AltinnCore.Runtime
                 services.AddApplicationInsightsKubernetesEnricher();
             }
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            IMvcBuilder mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
@@ -189,7 +189,7 @@ namespace AltinnCore.Runtime
             services.Configure<RequestLocalizationOptions>(
                 options =>
                 {
-                    var supportedCultures = new List<CultureInfo>
+                    List<CultureInfo> supportedCultures = new List<CultureInfo>
                         {
                             // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
@@ -233,24 +233,24 @@ namespace AltinnCore.Runtime
         /// <summary>
         /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         /// </summary>
-        /// <param name="app">The application builder</param>
+        /// <param name="appBuilder">The application builder</param>
         /// <param name="env">The hosting environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                appBuilder.UseDeveloperExceptionPage();
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                appBuilder.UseExceptionHandler("/Error");
             }
 
-            // app.UseHsts();
-            // app.UseHttpsRedirection();
-            app.UseAuthentication();
+            // appBuilder.UseHsts();
+            // appBuilder.UseHttpsRedirection();
+            appBuilder.UseAuthentication();
 
-            app.UseStatusCodePages(async context =>
+            appBuilder.UseStatusCodePages(async context =>
                {
                    var request = context.HttpContext.Request;
                    var response = context.HttpContext.Response;
@@ -264,13 +264,13 @@ namespace AltinnCore.Runtime
                    }
                });
 
-            app.UseResponseCompression();
-            app.UseRequestLocalization();
-            app.UseStaticFiles(new StaticFileOptions()
+            appBuilder.UseResponseCompression();
+            appBuilder.UseRequestLocalization();
+            appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
                 {
-                    var headers = context.Context.Response.GetTypedHeaders();
+                    Microsoft.AspNetCore.Http.Headers.ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
                     headers.CacheControl = new CacheControlHeaderValue()
                     {
                         Public = true,
@@ -279,7 +279,7 @@ namespace AltinnCore.Runtime
                 },
             });
 
-            app.UseMvc(routes =>
+            appBuilder.UseMvc(routes =>
             {
                 // ---------------------------- UI --------------------------- //
                 routes.MapRoute(
@@ -506,9 +506,9 @@ namespace AltinnCore.Runtime
                     template: "{action=Index}/{id?}");
             });
 
-            app.UseSwagger();
+            appBuilder.UseSwagger();
 
-            app.UseSwaggerUI(c =>
+            appBuilder.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
             });
