@@ -1,10 +1,10 @@
 {
-	"partyId": 20003,
+	"partyId": 10006,
 	"partyTypeName": 2,
-	"orgNumber": "13381338",
+	"orgNumber": "900000006",
 	"ssn": null,
 	"unitType": "KBO",
-	"name": "Konkursbo AS",
+	"name": "Konkursbo KBO",
 	"isDeleted": false,
 	"onlyHierarchyElementWithNoAccess": false,
 	"person": null,
