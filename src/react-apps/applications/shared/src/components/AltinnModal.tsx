@@ -87,7 +87,6 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
   public render() {
     const { classes, printView } = this.props;
     if (!printView) {
-      console.log('AltinnModal.render, no printView');
       return (
         <Modal
           open={this.props.isOpen}
@@ -113,7 +112,6 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
         </Modal>
       );
     } else {
-      console.log('AltinnModal.render, printView');
       return (
         <div className={classes.modal}>
           <div className={classes.header}>

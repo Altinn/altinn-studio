@@ -46,10 +46,13 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
 
   function templateErrorMessageContent(): React.ReactNode {
+    if (!language) {
+      return null;
+    }
     const { party_selection } = language;
     return (
       <>
-        {`${party_selection.no_valid_selection_second_part} ${(window as IAltinnWindow).service}. `}
+        {`${party_selection.no_valid_selection_second_part} ${(window as Window as IAltinnWindow).service}. `}
         {`${party_selection.no_valid_selection_third_part} ${templatePartyTypeString()}.`}
         <br />
         <br />
@@ -62,11 +65,17 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
   }
 
   function templateErrorMessageTitle(): string {
+    if (!language) {
+      return null;
+    }
     const { party_selection } = language;
     return `${party_selection.no_valid_selection_first_part} ${templatePartyTypeString()}`;
   }
 
   function templatePartyTypeString(): string {
+    if (!language) {
+      return null;
+    }
     let returnString: string = '';
     const partyTypes: string[] = [];
 
