@@ -1,7 +1,6 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 import AltinnInformationCard from '../../src/components/AltinnInformationCard';
 
 describe('>>> AltinnInformationCard--- Snapshot', () => {
@@ -18,10 +17,6 @@ describe('>>> AltinnInformationCard--- Snapshot', () => {
     };
   });
 
-  it('+++ Should match snapshot with all the properties', () => {
-    const rendered = renderer.create(<AltinnInformationCard {...props} />);
-    expect(rendered).toMatchSnapshot();
-  });
   it('+++ Should have a header, subtext, image and  a link and shadow', () => {
     const informationComponent = mount(<AltinnInformationCard {...props} />);
     expect(informationComponent.find('h1').text()).toEqual('header');

@@ -1,6 +1,5 @@
 import { shallow } from 'enzyme';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 
 import { InputComponent } from '../../../src/components/base/InputComponent';
 
@@ -23,19 +22,6 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
     };
     mockHandleDataChange = () => null;
     mockIsValid = true;
-  });
-
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <InputComponent
-        id={mockId}
-        component={mockComponent}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
   });
 
   it('+++ should call supplied update data function when value changes', () => {

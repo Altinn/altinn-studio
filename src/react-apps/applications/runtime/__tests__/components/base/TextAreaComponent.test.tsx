@@ -1,7 +1,6 @@
 /* tslint:disable:jsx-wrap-multiline */
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 
 import { mount } from 'enzyme';
 import { TextAreaComponent } from '../../../src/components/base/TextAreaComponent';
@@ -19,19 +18,6 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
     mockHandleDataChange = (data: any) => null;
     mockIsValid = true;
     mockReadOnly = false;
-  });
-
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <TextAreaComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
   });
 
   it('+++ should set formdata on change', () => {

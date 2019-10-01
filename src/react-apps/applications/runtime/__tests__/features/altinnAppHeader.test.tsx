@@ -2,7 +2,6 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 import Header from '../../src/shared/components/altinnAppHeader';
 
 describe('>>> features/altinnAppHeader.tsx', () => {
@@ -31,17 +30,6 @@ describe('>>> features/altinnAppHeader.tsx', () => {
         },
       },
     };
-  });
-
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-        <Header
-          type='partyChoice'
-          language={mockLanguage}
-          profile={mockProfile}
-        />,
-    );
-    expect(rendered).toMatchSnapshot();
   });
 
   // it('+++ should render partyChoice spesific layout', () => {

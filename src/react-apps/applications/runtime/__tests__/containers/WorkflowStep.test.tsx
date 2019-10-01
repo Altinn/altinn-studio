@@ -72,20 +72,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     mockStore = createStore(initialState);
   });
 
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <WorkflowStep
-            header={mockHeader}
-            step={WorkflowSteps.FormFilling}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
-
   it('+++ should render formfiller when step is "formfiller"', () => {
     const wrapper = mount(
       <MemoryRouter>

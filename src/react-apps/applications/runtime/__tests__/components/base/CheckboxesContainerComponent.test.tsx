@@ -2,14 +2,12 @@
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 
 import { CheckboxContainerComponent } from '../../../src/components/base/CheckboxesContainerComponent';
 
 describe('>>> components/base/CheckboxesContainerComponent.tsx', () => {
   let mockId: string;
   let mockOptions: any[];
-  let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockGetTextResource: (resourceKey: string) => string;
   let mockPreselectedOptionIndex: number;
@@ -18,7 +16,6 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx', () => {
 
   beforeEach(() => {
     mockId = 'mock-id';
-    mockFormData = '';
     mockOptions = [{
       label: 'test-label-1',
       value: 'test-1',
@@ -33,22 +30,6 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx', () => {
     mockReadOnly = false;
   });
 
-  it('>>> Capture snapshot of CheckboxesContainerComponent', () => {
-    const rendered = renderer.create(
-      <CheckboxContainerComponent
-        id={mockId}
-        formData={'undefined'}
-        handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
-        isValid={mockIsValid}
-        validationMessages={{}}
-        options={mockOptions}
-        preselectedOptionIndex={mockPreselectedOptionIndex}
-        readOnly={mockReadOnly}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
   it('+++ should render correct states with no formdata', () => {
     const props = {
       id: mockId, formData: null, handleDataChange: mockHandleDataChange,

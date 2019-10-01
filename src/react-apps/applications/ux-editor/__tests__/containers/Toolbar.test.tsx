@@ -3,7 +3,6 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { Toolbar } from '../../src/containers/Toolbar';
 
@@ -68,14 +67,6 @@ describe('>>> containers/Toolbar', () => {
       },
     };
     mockStore = createStore(initialState);
-  });
-  it('>>> Capture snapshot of Toolbar', () => {
-    const rendered = renderer.create(
-      <Provider store={mockStore}>
-        <Toolbar />
-      </Provider>,
-    );
-    expect(rendered).toMatchSnapshot();
   });
   it('+++ should contain schemaComponents', () => {
     const mountedToolbar = mount(

@@ -16,24 +16,6 @@ describe('>>> components/message/MessageComponent.tsx', () => {
     mockMessages = ['this is a message'];
   });
 
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <MessageComponent
-        messageType={mockMessageType}
-        style={{ display: 'block', width: 'fit-content' }}
-        key={'messageType'}
-        id={mockId}
-      >
-        <ol>
-          {mockMessages.map((message: string, idx: number) => {
-            return (
-              <li key={idx}>{message}</li>
-            );
-          })}
-        </ol>
-      </MessageComponent>);
-    expect(rendered).toMatchSnapshot();
-  });
   it('+++ should have class a-message-info when into type', () => {
     mockMessageType = 'info';
     const shallowMessageComponent = shallow(

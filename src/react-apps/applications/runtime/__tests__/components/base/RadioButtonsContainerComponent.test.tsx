@@ -2,7 +2,6 @@
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 
 import { RadioButtonContainerComponent } from '../../../src/components/base/RadioButtonsContainerComponent';
 
@@ -33,21 +32,6 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
     mockReadOnly = false;
   });
 
-  it('>>> Capture snapshot of RadioButtonsContainerComponent', () => {
-    const rendered = renderer.create(
-      <RadioButtonContainerComponent
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        id={mockId}
-        isValid={mockIsValid}
-        getTextResource={mockGetTextResource}
-        options={mockOptions}
-        preselectedOptionIndex={mockPreselectedOptionIndex}
-        readOnly={mockReadOnly}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
   it('+++ should have correct state', () => {
     const shallowRadioButton = shallow(
       <RadioButtonContainerComponent

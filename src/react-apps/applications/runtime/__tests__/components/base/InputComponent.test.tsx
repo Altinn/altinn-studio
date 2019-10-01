@@ -2,7 +2,6 @@
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 
 import { InputComponent } from '../../../src/components/base/InputComponent';
 
@@ -25,20 +24,6 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
     mockType = 'Input';
   });
 
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <InputComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-        required={mockRequired}
-        type={mockType}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
   it('+++ should match snapshot with formData', () => {
     const wrapper = shallow(
       <InputComponent

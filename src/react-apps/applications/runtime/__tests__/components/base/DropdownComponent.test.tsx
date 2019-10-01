@@ -2,7 +2,6 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 
 import { DropdownComponent } from '../../../src/components/base/DropdownComponent';
 
@@ -29,19 +28,6 @@ describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
     mockIsValid = true;
   });
 
-  it('>>> Capture snapshot of DropdownComponent', () => {
-    const rendered = renderer.create(
-      <DropdownComponent
-        id={mockId}
-        options={mockOptions}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
-        isValid={mockIsValid}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
   it('+++ should trigger onDataChanged on change', () => {
     const mountedDropdownComponent = mount(
       <DropdownComponent

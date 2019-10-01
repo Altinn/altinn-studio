@@ -1,7 +1,6 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 import AltinnCheckBox from '../../src/components/AltinnCheckBox';
 
 describe('>>> AltinnCheckBox', () => {
@@ -14,15 +13,6 @@ describe('>>> AltinnCheckBox', () => {
     };
   });
 
-  it('+++ Should match snapshot', () => {
-    const rendered = renderer.create(
-      <AltinnCheckBox
-        onChangeFunction={mockOnChangeFunction}
-        checked={mockChecked}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
   it('+++ Should not be disabled on default', () => {
     const mountedAltinnCheckbox = mount(
       <AltinnCheckBox

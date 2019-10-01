@@ -2,7 +2,6 @@
 import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 import { AddressComponent } from '../../../src/components/advanced/AddressComponent';
 
 export interface ITextResourceBindings {
@@ -58,25 +57,6 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     },
   };
 
-  it('>>> Capture snapshot of AddressComponent', () => {
-    const rendered = renderer.create(
-      <AddressComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
-        isValid={mockIsValid}
-        simplified={mockSimplified}
-        dataModelBindings={mockDataBinding}
-        validationMessages={mockValidationMessages}
-        readOnly={mockReadOnly}
-        required={mockRequired}
-        language={mockLanguage}
-        textResourceBindings={mocktextResourceBindings}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
   it('+++ should have correct state', () => {
     const shallowAddressComponent = shallow(
       <AddressComponent

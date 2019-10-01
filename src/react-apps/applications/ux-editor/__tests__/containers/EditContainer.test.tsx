@@ -3,7 +3,6 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import FormDesignerActionDispatchers from '../../src/actions/formDesignerActions/formDesignerActionDispatcher';
 import { Edit, EditContainer } from '../../src/containers/EditContainer';
@@ -99,23 +98,6 @@ describe('>>> containers/EditContainer', () => {
       }
     };
     mockStore = createStore(initialState);
-  });
-  it('>>> Capture snapshot of EditContainer', () => {
-    const rendered = renderer.create(
-      <Provider store={mockStore}>
-        <EditContainer
-          component={mockComponent}
-          id={mockId}
-          firstInActiveList={false}
-          lastInActiveList={false}
-          sendItemToParent={mockHandleActiveListChange}
-          singleSelected={false}
-        >
-          <div />
-        </EditContainer>
-      </Provider>,
-    );
-    expect(rendered).toMatchSnapshot();
   });
   it('+++ should run handleSetActive when clicked', () => {
     const mountedEditContainer = mount(

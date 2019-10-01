@@ -2,10 +2,8 @@
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
-import { Provider } from 'react-redux';
-import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { bytesInOneMB, FileUploadComponent, FileUploadComponentClass, getFileUploadComponentValidations } from '../../../src/components/base/FileUploadComponent';
+import { bytesInOneMB, FileUploadComponentClass, getFileUploadComponentValidations } from '../../../src/components/base/FileUploadComponent';
 import { mapAttachmentListApiResponseToAttachments } from '../../../src/utils/attachment';
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
@@ -19,10 +17,8 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockAttachments: any[];
   let mockFileList: File[];
   let mockInitialState: any;
-  let mockStore: any;
 
   beforeEach(() => {
-    const createStore = configureStore();
     mockId = 'mockId';
     mockAttachments = [
       { name: 'attachment-name-1', id: 'attachment-id-1', size: '1200', uploaded: true, deleting: false },
@@ -56,25 +52,6 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
       { name: 'mock-name-4.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null },
       { name: 'mock-name-5.txt', lastModified: null, size: 200 * bytesInOneMB, slice: null, type: null },
     ];
-    mockStore = createStore(mockInitialState);
-  });
-
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <Provider store={mockStore}>
-        <FileUploadComponent
-          displayMode={mockDisplayMode}
-          id={mockId}
-          isValid={mockIsValid}
-          language={{}}
-          maxFileSizeInMB={mockMaxFileSizeInMB}
-          maxNumberOfAttachments={mockMaxNumberOfAttachments}
-          minNumberOfAttachments={mockMinNumberOfAttachments}
-          readOnly={mockReadOnly}
-        />
-      </Provider>,
-    );
-    expect(rendered).toMatchSnapshot();
   });
 
   it('+++ should show spinner when file is uploading or deleting', () => {

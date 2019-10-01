@@ -2,7 +2,6 @@ import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 
 import { WorkflowStep, WorkflowSteps } from '../../src/containers/WorkflowStep';
@@ -32,19 +31,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
       },
     };
     mockStore = createStore(initialState);
-  });
-
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <Provider store={mockStore}>
-        <WorkflowStep
-          header={mockHeader}
-          step={WorkflowSteps.FormFilling}
-          onStepChange={null}
-        />
-      </Provider>,
-    );
-    expect(rendered).toMatchSnapshot();
   });
 
   it('+++ should render formfiller when step is "formfiller"', () => {

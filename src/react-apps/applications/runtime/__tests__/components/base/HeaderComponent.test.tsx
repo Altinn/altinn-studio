@@ -1,6 +1,5 @@
 import 'jest';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 
 import { mount } from 'enzyme';
 
@@ -9,23 +8,10 @@ import { HeaderComponent } from '../../../src/components/base/HeaderComponent';
 describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
   let mockId: string;
   let mockText: string;
-  let mockSize: string;
 
   beforeEach(() => {
     mockId = 'mock-id';
     mockText = 'test';
-    mockSize = 'S';
-  });
-
-  it('+++ should match snapshot', () => {
-    const rendered = renderer.create(
-      <HeaderComponent
-        id={mockId}
-        text={mockText}
-        size={mockSize}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
   });
 
   it('+++ should render <h2> if size is \'L\'', () => {
