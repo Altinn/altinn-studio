@@ -83,7 +83,7 @@ test('Validations when uploading file', async () => {
     .expect(runtime.errorMessage).ok()
 });
 
-test.only('Person cannot preview an app that has been access controlled to subunits only', async () => {
+test('Person cannot preview an app that has been access controlled to subunits only', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/autosubunit#/test')
     .switchToIframe(runtime.testBrukerIframe)
