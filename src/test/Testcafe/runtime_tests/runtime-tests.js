@@ -33,7 +33,6 @@ test('Instantiate an app in runtime', async () => {
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .wait(5000)
     .expect(runtime.testUserHeader[0].exists).ok()
 });
 
@@ -82,6 +81,22 @@ test('Validations when uploading file', async () => {
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_pdf.pdf')
     .expect(runtime.errorMessage).ok()
 });
+
+test.only('Preview an app that has been access controlled to subunits only', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/autosubunit#/test')
+    .switchToIframe(runtime.testBrukerIframe)
+    .click(runtime.testUsers[2])
+    .switchToMainWindow()
+    .switchToIframe(runtime.avgiverIframe)
+    .expect(runtime.partyList).ok()
+    .click(runtime.partyList)
+    .click(runtime.partiesInTheList.withText('Oslo'))
+    .expect(runtime.startNewButton.exists).ok()
+    .click(runtime.startNewButton)
+    .wait(2500)
+    .takeScreenshot()
+})
 
 test('Person cannot preview an app that has been access controlled to subunits only', async () => {
   await t
