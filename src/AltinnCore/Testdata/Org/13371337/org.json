@@ -1,7 +1,7 @@
 {
   "OrgNumber": "13371337",
   "Name": "Underenhet AS",
-  "UnitType": "",
+  "UnitType": "BEDR",
   "TelephoneNumber": "12345678",
   "MobileNumber": "1234578",
   "FaxNumber": "12345678",
