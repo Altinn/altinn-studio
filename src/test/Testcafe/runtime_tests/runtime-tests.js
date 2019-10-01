@@ -33,6 +33,7 @@ test('Instantiate an app in runtime', async () => {
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
+    .wait(5000)
     .expect(runtime.testUserHeader[0].exists).ok()
 });
 
@@ -82,6 +83,21 @@ test('Validations when uploading file', async () => {
     .expect(runtime.errorMessage).ok()
 });
 
+test.only('Person cannot preview an app that has been access controlled to subunits only', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/autosubunit#/test')
+    .switchToIframe(runtime.testBrukerIframe)
+    .click(runtime.testUsers[0])
+    .switchToMainWindow()
+    .switchToIframe(runtime.avgiverIframe)
+    .expect(runtime.startNewButton.exists).ok()
+    .expect(runtime.startNewButton.visible).ok()
+    .click(runtime.startNewButton)
+    .takeScreenshot()
+    .switchToMainWindow()
+    .expect(Selector('span').withText('Feil 403').exists).ok()
+    .expect(Selector('h1').withText('Dette er en tjeneste for underenhet').exists).ok()
+})
 
 test('Read-only components test in runtime', async () => {
   await t
