@@ -176,7 +176,7 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function templateErrorMessage() {
-    if (!language.party_selection) {
+    if (!language || !language.party_selection) {
       return null;
     }
     if (location.state !== undefined &&
@@ -203,7 +203,7 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function templatePartyTypesString() {
-    if (!language.party_selection) {
+    if (!language || !language.party_selection) {
       return null;
     }
     /*
@@ -257,6 +257,9 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function renderShowMoreButton() {
+    if (!language) {
+      return null;
+    }
     return (
       <button
         className={classes.loadMoreButton}
@@ -281,6 +284,10 @@ function PartySelection(props: IPartySelectionProps) {
 
   function toggleShowSubUnits() {
     setShowSubUnits(!showSubUnits);
+  }
+
+  if (!language) {
+    return null;
   }
 
   return (
