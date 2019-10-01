@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -29,6 +30,7 @@ namespace AltinnCore.Runtime.Controllers
         /// Refreshes the AltinnStudioRuntime JwtToken when not in AltinnStudio mode.
         /// </summary>
         /// <returns>Ok result with updated token.</returns>
+        [Authorize]
         [HttpGet("{org}/{service}/api/{controller}/keepAlive")]
         public async Task<IActionResult> KeepAlive()
         {
@@ -45,7 +47,7 @@ namespace AltinnCore.Runtime.Controllers
                 if (string.IsNullOrWhiteSpace(token))
                 {
                     HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token);
-                }              
+                }
             }
 
             return Ok();

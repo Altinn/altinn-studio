@@ -51,6 +51,16 @@ namespace AltinnCore.Common.Services.Implementation
             string path = _testdataRepositorySettings.RepositoryLocation + TESTDATA_PARTY_DIRECTORY + partyId + @"/" + PARTY_FILENAME;
             string textData = File.ReadAllText(path, Encoding.UTF8);
             Party party = JsonConvert.DeserializeObject<Party>(textData);
+            if (party.OrgNumber != null && party.OrgNumber != string.Empty)
+            {
+                party.Organization = await _erService.GetOrganization(party.OrgNumber);
+            }
+
+            if (party.SSN != null && party.SSN != string.Empty)
+            {
+                party.Person = await _dsfService.GetPerson(party.SSN);
+            }
+
             return await Task.FromResult(party);
         }
     }

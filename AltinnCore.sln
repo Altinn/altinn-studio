@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.539
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2A3CDEF9-2C3D-409D-A1F5-FCB4B3E81F6D}"
 EndProject
@@ -36,6 +36,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Authentication", "src\AltinnCore\Authentication\AltinnCore.Authentication.csproj", "{3AA4860C-E86B-488F-AE89-B0A28BC1F701}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrefillClient", "src\Altinn.ExampleClients\PrefillClient\PrefillClient.csproj", "{7D5C7252-B316-4DC6-B7E7-18613DAB367C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Process", "src\Altinn.Process\Altinn.Process.csproj", "{3C0822D1-4E9A-4C93-8B67-D94BDFD7767C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Process.UnitTest", "src\Altinn.Process.UnitTest\Altinn.Process.UnitTest.csproj", "{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,6 +83,14 @@ Global
 		{7D5C7252-B316-4DC6-B7E7-18613DAB367C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D5C7252-B316-4DC6-B7E7-18613DAB367C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D5C7252-B316-4DC6-B7E7-18613DAB367C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C0822D1-4E9A-4C93-8B67-D94BDFD7767C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C0822D1-4E9A-4C93-8B67-D94BDFD7767C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C0822D1-4E9A-4C93-8B67-D94BDFD7767C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C0822D1-4E9A-4C93-8B67-D94BDFD7767C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

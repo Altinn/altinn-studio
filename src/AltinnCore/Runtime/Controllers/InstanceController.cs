@@ -48,6 +48,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IInstanceEvent _event;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
+        private readonly IPrefill _prefill;
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
 
@@ -74,6 +75,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
         /// <param name="application">the application service handler</param>
+        /// <param name="prefill">The prefill service handler</param>
         /// <param name="repositorySettings">the repository settings</param>
         /// <param name="generalSettings">the general settings</param>
         public InstanceController(
@@ -94,6 +96,7 @@ namespace AltinnCore.Runtime.Controllers
             IPlatformServices platformSI,
             IData dataSI,
             IApplication application,
+            IPrefill prefill,
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings)
         {
@@ -114,6 +117,7 @@ namespace AltinnCore.Runtime.Controllers
             _event = eventSI;
             _platformSI = platformSI;
             _data = dataSI;
+            _prefill = prefill;
             _application = application;
             _settings = repositorySettings.Value;
             _generalSettings = generalSettings.Value;
@@ -346,6 +350,17 @@ namespace AltinnCore.Runtime.Controllers
 
             // Assign service model to the implementation
             serviceImplementation.SetServiceModel(serviceModel);
+
+            // Run prefill
+            PrefillContext prefillContext = new PrefillContext
+            {
+                Organization = requestContext.UserContext.Party.Organization,
+                Person = requestContext.UserContext.Party.Person,
+                UserId = requestContext.UserContext.UserId,
+                Org = startServiceModel.Org,
+                App = startServiceModel.Service,
+            };
+            await _prefill.PrefillDataModel(prefillContext, serviceModel);
 
             // Run Instansiation event
             await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);

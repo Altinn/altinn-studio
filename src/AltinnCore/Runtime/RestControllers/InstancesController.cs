@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.RequestHandling;
 using AltinnCore.ServiceLibrary.Models;
@@ -92,15 +93,22 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
-            if (instance == null)
+            try
             {
-                return NotFound();
+                Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+                if (instance == null)
+                {
+                    return NotFound();
+                }
+
+                SetAppSelfLinks(instance, Request);
+
+                return Ok(instance);
             }
-
-            SetAppSelfLinks(instance, Request);
-
-            return Ok(instance);
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"{ex.Message}");
+            }            
         }
 
         /// <summary>
@@ -124,16 +132,23 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] Guid instanceGuid,
             [FromBody] Instance instance)
         {
-            Instance updatedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceGuid);
-
-            if (instance == null)
+            try
             {
-                return NotFound();
+                Instance updatedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceGuid);
+
+                if (instance == null)
+                {
+                    return NotFound();
+                }
+
+                SetAppSelfLinks(instance, Request);
+
+                return Ok(instance);
             }
-
-            SetAppSelfLinks(instance, Request);
-
-            return Ok(instance);
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"{ex.Message}");
+            }
         }
 
         /// <summary>
@@ -245,11 +260,21 @@ namespace AltinnCore.Runtime.RestControllers
                 }
             };
 
-            Instance instance = await instanceService.CreateInstance(org, app, instanceTemplate);           
-            
-            if (instance == null)
+            Instance instance = null;
+            try
             {
-                return StatusCode(500, "Unable to create instance. Unknown error!");                
+                instance = await instanceService.CreateInstance(org, app, instanceTemplate);
+                if (instance == null)
+                {
+                    throw new PlatformClientException("Failure instantiating instance. UnknownError");
+                }
+            }
+            catch (Exception instanceException)
+            {
+                string message = $"Failure in multpart prefil. Could not create an instance of {org}/{app} for {instanceOwnerId}. App-backend has problem accessing platform storage.";
+
+                logger.LogError($"{message} - {instanceException}");
+                return StatusCode(500, $"{message} - {instanceException.Message}");
             }
 
             try
@@ -261,13 +286,14 @@ namespace AltinnCore.Runtime.RestControllers
                     instance = instanceWithData;
                 }
             }
-            catch (Exception ex)
+            catch (Exception dataException)
             {
-                logger.LogError($"Failure storing multpart prefil when instantiating {org}/{app} for {instanceOwnerId}. Because {ex}");
+                string message = $"Failure storing multpart prefil. Could not create a data element for {instance.Id} of {org}/{app}. App-backend has problem accessing platform storage.";
+                logger.LogError($"{message} - {dataException}");
 
                 // todo add compensating transaction (delete instance)                
-                return StatusCode(500, $"Failure storing multpart prefil when instantiating {org}/{app} for {instanceOwnerId}. Because {ex.Message}");
-            }
+                return StatusCode(500, $"{message} - {dataException.Message}");
+            }            
 
             SetAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;

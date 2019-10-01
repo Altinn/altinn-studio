@@ -282,8 +282,8 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
     );
   }
 }
-const combineCurrentUserAndOrg = (organizations: any, user: any) => {
-  const allUsers = organizations.map(({ username, full_name }: any) => ({ name: username, full_name }));
+const combineCurrentUserAndOrg = (organisations: any, user: any) => {
+  const allUsers = organisations.map(({ username, full_name }: any) => ({ name: username, full_name }));
   const currentUserName = { name: user.login, full_name: user.full_name };
   allUsers.push(currentUserName);
   return allUsers;
@@ -296,7 +296,7 @@ const mapStateToProps = (
   return {
     classes: props.classes,
     language: state.language.language,
-    selectableUser: combineCurrentUserAndOrg(state.dashboard.organizations, state.dashboard.user),
+    selectableUser: combineCurrentUserAndOrg(state.dashboard.organisations, state.dashboard.user),
   };
 };
 
