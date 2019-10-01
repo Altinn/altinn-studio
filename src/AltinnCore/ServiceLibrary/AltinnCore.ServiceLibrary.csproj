@@ -25,7 +25,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.1.14-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.3-alpha" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

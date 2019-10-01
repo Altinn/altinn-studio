@@ -2026,6 +2026,19 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
+        public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
+        {
+            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + dataModelName + ".prefill.json";
+            string filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+
+            return filedata;
+        }
+
         private class ResourceWrapper
         {
             public string FileName { get; set; }

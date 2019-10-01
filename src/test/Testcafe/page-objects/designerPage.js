@@ -53,6 +53,9 @@ export default class DesignerPage {
       this.leftMenuList.withExactText('Kode'),
       this.leftMenuList.withExactText('Tilgangsstyring')
     ];
+    this.dataModelIFrame = Selector("#root > div > div > div:nth-child(2) > div > div > iframe");
+    this.dataModelUpload = Selector("#filelabel");
+    this.dataModelTabs = Selector("#tabs");
 
     //Tilgangstyring tab selectors
     this.konkursBo = Selector("span").withExactText("Konkursbo").sibling(0);
@@ -119,7 +122,8 @@ export default class DesignerPage {
 
     //Clone modal
     this.cloneButton = Selector('button').withExactText('Clone');
-    this.copyUrlRepoButton = Selector('#copy-repository-url-button')
+    this.copyUrlRepoButton = Selector('#copy-repository-url-button');
+    this.dataModelMissing = Selector('div > p').withText('Datamodell mangler');
     this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
     this.dataModellLink = Selector('a').withExactText('Gå til datamodell side');
 
