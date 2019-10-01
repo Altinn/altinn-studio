@@ -1,7 +1,7 @@
 @{
     ViewBag.Title = "Datamodell";
     string org = ViewContext.RouteData.Values["org"] as string;
-    string service = ViewContext.RouteData.Values["service"] as string;
+    string service = ViewContext.RouteData.Values["app"] as string;
 }
 
 @section scripts {
@@ -15,7 +15,7 @@
     </style>
 }
 
-<form method="POST" asp-action="Upload" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" enctype="multipart/form-data">
+<form method="POST" asp-action="Upload" asp-controller="Model" asp-route-org="@org" asp-route-app="@service" enctype="multipart/form-data">
     <div class="">
         <label id="filelabel" class="btn btn-primary form-control-label" for="thefile">
             <span id="filebtn">Velg XSD</span>
@@ -83,7 +83,7 @@
     </div>
 
     <div class="tab-pane fade in" id="json" role="tabpanel"> 
-        <a title="Last ned JSON-modell" asp-action="GetJson" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" download="@service-model.json">
+        <a title="Last ned JSON-modell" asp-action="GetJson" asp-controller="Model" asp-route-org="@org" asp-route-app="@service" download="@service-model.json">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned JSON-modell</span>
         </a>
         <div id="json-container" class="editor-frame">
@@ -93,7 +93,7 @@
     </div>
 
     <div class="tab-pane fade" id="csharp" role="tabpanel">
-        <a title="Last ned C# modell" asp-action="GetModel" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" download="@service-model.cs">
+        <a title="Last ned C# modell" asp-action="GetModel" asp-controller="Model" asp-route-org="@org" asp-route-app="@service" download="@service-model.cs">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned C# modell</span>
         </a>
         <div id="csharp-container" class="editor-frame">
@@ -103,7 +103,7 @@
     </div>
 
     <div class="tab-pane fade" id="xml" role="tabpanel">
-        <a title="Last ned XSD" asp-action="GetXsd" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" download="@service-model.xsd">
+        <a title="Last ned XSD" asp-action="GetXsd" asp-controller="Model" asp-route-org="@org" asp-route-app="@service" download="@service-model.xsd">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned XSD</span>
         </a>
         <div id="xml-container" class="editor-frame">  
@@ -113,7 +113,7 @@
     </div>
 
     <div class="tab-pane fade" id="jsonschema" role="tabpanel">
-        <a title="Last ned Json Schema" asp-action="GetJsonSchema" asp-controller="Model" asp-route-org="@org" asp-route-service="@service" download="@service-model.schema.json">
+        <a title="Last ned Json Schema" asp-action="GetJsonSchema" asp-controller="Model" asp-route-org="@org" asp-route-app="@service" download="@service-model.schema.json">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned Json Schema</span>
         </a>
         <div id="jsonschema-container" class="editor-frame">

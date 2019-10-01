@@ -5,12 +5,12 @@
 @{
     ViewBag.Title = "Velg avgiver og testdata";
     string org = ViewContext.RouteData.Values["org"] as string;
-    string service = ViewContext.RouteData.Values["service"] as string;
+    string app = ViewContext.RouteData.Values["app"] as string;
 
     List<AltinnCore.ServiceLibrary.Models.ServiceInstance> instanceList = ViewBag.InstanceList;
 }
 
-@await Component.InvokeAsync("ServiceStatus", new { org, service })
+@await Component.InvokeAsync("ServiceStatus", new { org, app })
 
 @if (Model.PartyList.Count > 1)
 {
@@ -60,13 +60,13 @@
     </form>
 
 
-    <button id="btnStartNewService" class="btn btn-primary" value="@org/@service">Instansier i ny fane</button>
+    <button id="btnStartNewService" class="btn btn-primary" value="@org/@app">Instansier i ny fane</button>
     <script>
       var startServiceButton = document.getElementById('btnStartNewService');
       startServiceButton.addEventListener('click', function (event) {
         const org = event.target.value.split('/')[0];
-        const service = event.target.value.split('/')[1];
-        var win = window.open(window.location.origin + '/' + org + '/' + service, '_blank');
+        const app = event.target.value.split('/')[1];
+        var win = window.open(window.location.origin + '/' + org + '/' + app, '_blank');
         win.focus();
       });
     </script>
@@ -76,7 +76,7 @@
       <input type="hidden" asp-for="ServiceID" />
       <div class="form-group">
         <input type="hidden" asp-for="ReporteeID" />
-        <input type="hidden" asp-for="Service" value="@service" />
+        <input type="hidden" asp-for="Service" value="@app" />
         <input type="hidden" asp-for="Org" value="@org" />
         <label asp-for="ReporteeID">Preutfylling</label>
         <select asp-for="PrefillList" asp-items="@Model.PrefillList" class="form-control"></select>
@@ -105,11 +105,11 @@
                 <td>
                     @if (instance.IsArchived)
                     {
-                        <a href="/@org/@service#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID (Arktivert)</a>
+                        <a href="/@org/@app#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID (Arktivert)</a>
                     }
                     else
                     {
-                        <a href="/@org/@service#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID</a>
+                        <a href="/@org/@app#/instance/@instance.ServiceInstanceID" target="_blank">@instance.ServiceInstanceID</a>
                     }
                 </td>
                 <td>

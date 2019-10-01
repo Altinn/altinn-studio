@@ -10,10 +10,10 @@ namespace AltinnCore.Common.Models
         /// <summary>  Gets or sets the org. </summary>
         public string Org { get; set; }
 
-        /// <summary> Gets or sets the service. </summary>
+        /// <summary> Gets or sets the app. </summary>
         public string Service { get; set; }
 
-        /// <summary> Asserts that Org and Service got values. </summary>
+        /// <summary> Asserts that org and app got values. </summary>
         public bool Ok => !string.IsNullOrWhiteSpace(Org) && !string.IsNullOrWhiteSpace(Service);
 
         /// <summary> Checks equality. Case insensitive. </summary>

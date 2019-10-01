@@ -73,7 +73,6 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = null;
             string org = startServiceModel.Org;
             string app = startServiceModel.Service;
-            string appId = ApplicationHelper.GetFormattedApplicationId(org, app);
             int instanceOwnerId = startServiceModel.PartyId;
 
             Instance instanceTemplate = new Instance()
@@ -90,7 +89,7 @@ namespace AltinnCore.Common.Services.Implementation
                 },
             };
 
-            Instance createdInstance = await CreateInstance(org, appId, instanceTemplate);
+            Instance createdInstance = await CreateInstance(org, app, instanceTemplate);
 
             if (createdInstance == null)
             {
@@ -217,7 +216,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
-            string apiUrl = $"instances?appId={app}&instanceOwnerId={instanceTemplate.InstanceOwnerId}";
+            string apiUrl = $"instances?appId={org}/{app}&instanceOwnerId={instanceTemplate.InstanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 

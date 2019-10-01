@@ -16,7 +16,7 @@ namespace AltinnCore.Common.Helpers
     public static class AuthenticationHelper
     {
         /// <summary>
-        /// Gets the service developer's user name
+        /// Gets the app developer's user name
         /// </summary>
         /// <param name="context">the http context</param>
         /// <returns>The developer user name</returns>
