@@ -90,7 +90,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     this._isMounted = true;
     const altinnWindow: any = window as any;
     // tslint:disable-next-line:max-line-length
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Branch?owner=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}&branch=master`;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Branch?org=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}&branch=master`;
     get(url).then((result: any) => {
       if (result && this._isMounted) {
         this.setState({
@@ -129,7 +129,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     }
 
     // tslint:disable-next-line:max-line-length
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/CloneRemoteRepository?owner=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}`;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/CloneRemoteRepository?org=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}`;
     this.setState({
       isLoading: true,
     });

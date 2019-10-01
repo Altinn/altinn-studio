@@ -242,12 +242,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gets a list over the organizations that the current user has access to.
+        /// Gets a list over the organisations that the current user has access to.
         /// </summary>
         /// <returns>A list over all</returns>
         public async Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations()
         {
-            List<AltinnCore.RepositoryClient.Model.Organization> organizations = null;
+            List<AltinnCore.RepositoryClient.Model.Organization> organisations = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<AltinnCore.RepositoryClient.Model.Organization>));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/user/orgs");
 
@@ -257,7 +257,7 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
-                    organizations = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.Organization>;
+                    organisations = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.Organization>;
                 }
                 else
                 {
@@ -265,7 +265,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            return organizations;
+            return organisations;
         }
 
         /// <summary>

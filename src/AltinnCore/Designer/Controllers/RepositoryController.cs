@@ -62,13 +62,13 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Returns a given app repository
         /// </summary>
-        /// <param name="owner">The service owner</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
-        public Repository GetRepository(string owner, string repository)
+        public Repository GetRepository(string org, string repository)
         {
-            Repository returnRepository = _giteaApi.GetRepository(owner, repository).Result;
+            Repository returnRepository = _giteaApi.GetRepository(org, repository).Result;
             return returnRepository;
         }
 

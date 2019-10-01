@@ -37,7 +37,7 @@ export function* fetchMasterRepoStatusSaga({
 }: DeployActions.IFetchMasterRepoStatus): SagaIterator {
   try {
     const result = yield call(get,
-      `/designerapi/Repository/Branch?owner=${org}&repository=${repo}&branch=master`);
+      `/designerapi/Repository/Branch?org=${org}&repository=${repo}&branch=master`);
 
     yield call(DeployDispatchers.fetchMasterRepoStatusFulfilled, result);
   } catch (err) {

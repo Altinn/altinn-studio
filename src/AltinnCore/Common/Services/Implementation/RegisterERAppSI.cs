@@ -63,7 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
             else
             {
-                _logger.LogError($"Getting organization with orgnr {OrgNr} failed with statuscode {response.StatusCode}");
+                _logger.LogError($"Getting organisation with orgnr {OrgNr} failed with statuscode {response.StatusCode}");
             }
 
             return organization;

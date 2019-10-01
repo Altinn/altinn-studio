@@ -1041,30 +1041,30 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a list of all application owners present in the local repository
+        /// Returns a list of all organisations present in the local repository
         /// </summary>
-        /// <returns>A list of all application owners</returns>
+        /// <returns>A list of all organisations</returns>
         public IList<OrgConfiguration> GetOwners()
         {
-            List<OrgConfiguration> serviceOwners = new List<OrgConfiguration>();
+            List<OrgConfiguration> organisations = new List<OrgConfiguration>();
 
-            string[] serviceOwnerDirectories = null;
+            string[] organisationDirectories = null;
 
-            serviceOwnerDirectories = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+            organisationDirectories = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
             ? Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
             : Directory.GetDirectories(_settings.RepositoryLocation);
 
-            foreach (string serviceOwnerDirectory in serviceOwnerDirectories)
+            foreach (string organisationDirectory in organisationDirectories)
             {
-                string filename = serviceOwnerDirectory + "/" + Path.GetFileName(serviceOwnerDirectory) + "/config.json";
+                string filename = organisationDirectory + "/" + Path.GetFileName(organisationDirectory) + "/config.json";
                 if (File.Exists(filename))
                 {
                     string textData = File.ReadAllText(filename);
-                    serviceOwners.Add(JsonConvert.DeserializeObject<OrgConfiguration>(textData));
+                    organisations.Add(JsonConvert.DeserializeObject<OrgConfiguration>(textData));
                 }
             }
 
-            return serviceOwners;
+            return organisations;
         }
 
         /// <summary>
