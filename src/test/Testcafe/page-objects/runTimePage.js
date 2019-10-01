@@ -4,6 +4,7 @@ export default class RunTimePage {
   constructor() {
     this.openManualTestWindow = Selector('#manual-test-button');
     this.testBrukerIframe = Selector('#root > div > div > div:nth-child(2) > div > div > iframe');
+    this.avgiverIframe = Selector('#root > div > div > div:nth-child(2) > div.jss3 > div > iframe');
     this.testUsers = [
       Selector('strong').withText('Ola'),
       Selector('strong').withText('Kari'),
