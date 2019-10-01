@@ -82,22 +82,6 @@ test('Validations when uploading file', async () => {
     .expect(runtime.errorMessage).ok()
 });
 
-test.only('Preview an app that has been access controlled to subunits only', async () => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/autosubunit#/test')
-    .switchToIframe(runtime.testBrukerIframe)
-    .click(runtime.testUsers[2])
-    .switchToMainWindow()
-    .switchToIframe(runtime.avgiverIframe)
-    .expect(runtime.partyList).ok()
-    .click(runtime.partyList)
-    .click(runtime.partiesInTheList.withText('Oslo'))
-    .expect(runtime.startNewButton.exists).ok()
-    .click(runtime.startNewButton)
-    .wait(2500)
-    .takeScreenshot()
-})
-
 test('Person cannot preview an app that has been access controlled to subunits only', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/autosubunit#/test')
@@ -108,7 +92,6 @@ test('Person cannot preview an app that has been access controlled to subunits o
     .expect(runtime.startNewButton.exists).ok()
     .expect(runtime.startNewButton.visible).ok()
     .click(runtime.startNewButton)
-    .takeScreenshot()
     .switchToMainWindow()
     .expect(Selector('span').withText('Feil 403').exists).ok()
     .expect(Selector('h1').withText('Dette er en tjeneste for underenhet').exists).ok()
