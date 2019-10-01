@@ -27,7 +27,7 @@ function Receipt(props: WithStyles<typeof styles>) {
 
   const [party, setParty] = React.useState<IParty>(null);
   const [instance, setInstance] = React.useState<IInstance>(null);
-  const [organizations, setOrganizations] = React.useState(null);
+  const [organisations, setOrganisations] = React.useState(null);
   const [application, setApplication] = React.useState<IApplication>(null);
   const [user, setUser] = React.useState<IProfile>(null);
   const [language, setLanguage] = React.useState(null);
@@ -61,10 +61,10 @@ function Receipt(props: WithStyles<typeof styles>) {
     }
   };
 
-  const fetchOrganizations = async () => {
+  const fetchOrganisations = async () => {
     try {
       const response = await Axios.get(altinnOrganisationsUrl);
-      setOrganizations(response.data);
+      setOrganisations(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -115,7 +115,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   };
 
   const isLoading = (): boolean => {
-    return (!party || !instance || !organizations || !application || !language || !user);
+    return (!party || !instance || !organisations || !application || !language || !user);
   };
 
   React.useEffect(() => {
@@ -127,7 +127,7 @@ function Receipt(props: WithStyles<typeof styles>) {
   React.useEffect(() => {
     fetchInstance();
     fetchParty();
-    fetchOrganizations();
+    fetchOrganisations();
     fetchUser();
     fetchLanguage();
   }, []);
@@ -158,7 +158,7 @@ function Receipt(props: WithStyles<typeof styles>) {
             body={getLanguageFromKey('receipt_platform.helper_text', language)}
             collapsibleTitle={getLanguageFromKey('receipt_platform.attachments', language)}
             attachments={getAttachments()}
-            instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organizations)}
+            instanceMetaDataObject={getInstanceMetaDataObject(instance, party, language, organisations)}
             titleSubmitted={getLanguageFromKey('receipt_platform.sent_content', language)}
           />
         }

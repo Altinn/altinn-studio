@@ -57,7 +57,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = React.useState('nb');
 
-  const allOrgs: any = useSelector((state: IRuntimeState) => state.organizationMetaData.allOrgs);
+  const allOrgs: any = useSelector((state: IRuntimeState) => state.organisationMetaData.allOrgs);
   const applicationMetadata: any = useSelector((state: IRuntimeState) => state.applicationMetadata.applicationMetadata);
   const instance: IInstance = useSelector((state: IRuntimeState) => state.instanceData.instance);
   const language: any = useSelector((state: IRuntimeState) => state.language.language);

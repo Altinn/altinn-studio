@@ -29,7 +29,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller with functionality for manual testing of applicaiton developed
+    /// Controller with functionality for manual testing of application developed
     /// </summary>
     [Authorize]
     public class ManualTestingController : Controller
@@ -85,27 +85,27 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// This methods list the instances for a given party for a service. This can be looked
+        /// This methods list the instances for a given party for an app. This can be looked
         /// at as a simplified message box
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="partyId">The party id</param>
         /// <param name="userId">The user id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public async Task<IActionResult> Index(string org, string service, int partyId, int userId)
+        public async Task<IActionResult> Index(string org, string app, int partyId, int userId)
         {
             if (userId == 0 || partyId == 0)
             {
-                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+                return LocalRedirect($"/designer/{org}/{app}/ManualTesting/Users/");
             }
 
             bool? isValidSelection = await _authorization.ValidateSelectedParty(userId, partyId);
 
             if (isValidSelection != true)
             {
-                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+                return LocalRedirect($"/designer/{org}/{app}/ManualTesting/Users/");
             }
 
             Response.Cookies.Append(
@@ -116,14 +116,14 @@ namespace AltinnCore.Designer.Controllers
                 Domain = _generalSettings.HostName
             });
 
-            CheckAndUpdateWorkflowFile(org, service);
+            CheckAndUpdateWorkflowFile(org, app);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.CreateUserContextBasedOnUserAndParty(HttpContext, userId, partyId);
             requestContext.Party = requestContext.UserContext.Party;
 
             StartServiceModel startServiceModel = new StartServiceModel
             {
-                ServiceID = org + "_" + service,
+                ServiceID = org + "_" + app,
                 PartyList = _authorization.GetPartyList(requestContext.UserContext.UserId)
                     .Select(x => new SelectListItem
                     {
@@ -131,12 +131,12 @@ namespace AltinnCore.Designer.Controllers
                         Value = x.PartyId.ToString()
                     })
                     .ToList(),
-                PrefillList = _testdata.GetServicePrefill(requestContext.Party.PartyId, org, service)
+                PrefillList = _testdata.GetServicePrefill(requestContext.Party.PartyId, org, app)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
                 PartyId = requestContext.Party.PartyId,
                 Org = org,
-                Service = service,
+                Service = app,
             };
 
             if (partyId != 0 && partyId != startServiceModel.PartyId && startServiceModel.PartyList.Any(r => r.Value.Equals(partyId.ToString())))
@@ -147,7 +147,7 @@ namespace AltinnCore.Designer.Controllers
                 requestContext.UserContext.Party = requestContext.Party;
             }
 
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Party.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Party.PartyId, org, app);
             ViewBag.InstanceList = formInstances.OrderBy(r => r.LastChanged).ToList();
 
             return View(startServiceModel);
@@ -156,14 +156,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// List the test users
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The view presenting a list of test users</returns>
-        public IActionResult Users(string org, string service)
+        public IActionResult Users(string org, string app)
         {
             List<Testdata> testdata = _testdata.GetTestUsers();
             ViewBag.Org = org;
-            ViewBag.Service = service;
+            ViewBag.Service = app;
             return View(testdata);
         }
 
@@ -186,35 +186,35 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Redirects the user to the correct url given the service instances state
+        /// Redirects the user to the correct url given the app instance state.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceId">The instance id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public IActionResult RedirectToCorrectState(string org, string service, Guid instanceId)
+        public IActionResult RedirectToCorrectState(string org, string app, Guid instanceId)
         {
             if (HttpContext.Request.Cookies[_generalSettings.GetAltinnPartyCookieName] != null)
             {
-                ServiceState currentState = _workflow.GetCurrentState(instanceId, org, service, Convert.ToInt32(HttpContext.Request.Cookies[_generalSettings.GetAltinnPartyCookieName]));
-                string nextUrl = _workflow.GetUrlForCurrentState(instanceId, org, service, currentState.State);
+                ServiceState currentState = _workflow.GetCurrentState(instanceId, org, app, Convert.ToInt32(HttpContext.Request.Cookies[_generalSettings.GetAltinnPartyCookieName]));
+                string nextUrl = _workflow.GetUrlForCurrentState(instanceId, org, app, currentState.State);
                 return Redirect(nextUrl);
             }
             else
             {
-                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+                return LocalRedirect($"/designer/{org}/{app}/ManualTesting/Users/");
             }
         }
 
         /// <summary>
         /// Method that logs inn test user
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="userId">The testUserId</param>
         /// <returns>Redirects to returnUrl</returns>
-        public async Task<IActionResult> LoginTestUser(string org, string service, int userId)
+        public async Task<IActionResult> LoginTestUser(string org, string app, int userId)
         {
             UserProfile profile = await _profile.GetUserProfile(userId);
             int partyId = (profile.ProfileSettingPreference != null && profile.ProfileSettingPreference.PreSelectedPartyId != 0) ?
@@ -249,23 +249,23 @@ namespace AltinnCore.Designer.Controllers
 
             HttpContext.Response.Cookies.Append("AltinnUserId", profile.UserId.ToString());
 
-            return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?userId={userId}&partyId={profile.PartyId}");
+            return LocalRedirect($"/designer/{org}/{app}/ManualTesting/Index?userId={userId}&partyId={profile.PartyId}");
         }
 
         /// <summary>
         /// Method that checks if there is a newer version of the workflow file and updates it if there are
         /// </summary>
-        /// <param name="org">The application owner id</param>
-        /// <param name="appName">The applicaiton id</param>
-        private void CheckAndUpdateWorkflowFile(string org, string appName)
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        private void CheckAndUpdateWorkflowFile(string org, string app)
         {
-            string workflowFullFilePath = _serviceRepositorySettings.GetWorkflowPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _serviceRepositorySettings.WorkflowFileName;
+            string workflowFullFilePath = _serviceRepositorySettings.GetWorkflowPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _serviceRepositorySettings.WorkflowFileName;
             string templateWorkflowData = System.IO.File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
 
             if (!System.IO.File.Exists(workflowFullFilePath))
             {
                 // Create the workflow folder
-                Directory.CreateDirectory(_serviceRepositorySettings.GetWorkflowPath(org, appName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+                Directory.CreateDirectory(_serviceRepositorySettings.GetWorkflowPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
                 System.IO.File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
             }
             else

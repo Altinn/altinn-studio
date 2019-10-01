@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// The service builder API.
+    /// The app builder API.
     /// </summary>
     [Authorize]
     public class ServiceDevelopmentController : Controller
@@ -39,45 +39,45 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Default action for the designer.
         /// </summary>
-        /// <returns>default view for the service builder.</returns>
+        /// <returns>default view for the app builder.</returns>
         public IActionResult Index()
         {
             return View();
         }
 
         /// <summary>
-        /// Gets all service files for specified mode.
+        /// Gets all app files for specified mode.
         /// </summary>
-        /// <param name="org">The organization identifier.</param>
-        /// <param name="service">The service identifier.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileEditorMode">The mode for which files should be fetched.</param>
         /// <returns>A comma-separated list of all the files.</returns>
-        public ActionResult GetServiceFiles(string org, string service, FileEditorMode fileEditorMode)
+        public ActionResult GetServiceFiles(string org, string app, FileEditorMode fileEditorMode)
         {
             switch (fileEditorMode)
             {
                 case FileEditorMode.Implementation:
-                    return GetImplementationFiles(org, service);
+                    return GetImplementationFiles(org, app);
                 case FileEditorMode.Calculation:
-                    return GetCalculationFiles(org, service);
+                    return GetCalculationFiles(org, app);
                 case FileEditorMode.Dynamics:
-                    return GetResourceFiles(org, service, true);
+                    return GetResourceFiles(org, app, true);
                 case FileEditorMode.Validation:
-                    return GetValidationFiles(org, service);
+                    return GetValidationFiles(org, app);
                 default:
                     return Content(string.Empty);
             }
         }
 
         /// <summary>
-        /// Gets the content of a specified file for the service.
+        /// Gets the content of a specified file for the app.
         /// </summary>
-        /// <param name="org">The organization identifier.</param>
-        /// <param name="service">The service identifier.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileEditorMode">The mode for which files should be fetched.</param>
         /// <param name="fileName">The name of the file to fetch.</param>
         /// <returns>The content of the file.</returns>
-        public ActionResult GetServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
+        public ActionResult GetServiceFile(string org, string app, FileEditorMode fileEditorMode, string fileName)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
@@ -88,22 +88,22 @@ namespace AltinnCore.Designer.Controllers
             switch (fileEditorMode)
             {
                 case FileEditorMode.Implementation:
-                    file = _repository.GetImplementationFile(org, service, fileName);
+                    file = _repository.GetImplementationFile(org, app, fileName);
                     break;
                 case FileEditorMode.Calculation:
-                    file = _repository.GetImplementationFile(org, service, "Calculation/" + fileName);
+                    file = _repository.GetImplementationFile(org, app, "Calculation/" + fileName);
                     break;
                 case FileEditorMode.Validation:
-                    file = _repository.GetImplementationFile(org, service, "Validation/" + fileName);
+                    file = _repository.GetImplementationFile(org, app, "Validation/" + fileName);
                     break;
                 case FileEditorMode.Dynamics:
-                    file = _repository.GetResourceFile(org, service, "Dynamics/" + fileName);
+                    file = _repository.GetResourceFile(org, app, "Dynamics/" + fileName);
                     break;
                 case FileEditorMode.All:
-                    file = _repository.GetConfiguration(org, service, fileName);
+                    file = _repository.GetConfiguration(org, app, fileName);
                     break;
                 case FileEditorMode.Root:
-                    file = _repository.GetFileByRelativePath(org, service, fileName);
+                    file = _repository.GetFileByRelativePath(org, app, fileName);
                     break;
                 default:
                     break;
@@ -113,16 +113,16 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the content of a specified file for the service.
+        /// Gets the content of a specified file for the app.
         /// </summary>
-        /// <param name="org">The organization identifier.</param>
-        /// <param name="service">The service identifier.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileEditorMode">The mode for which files should be saved.</param>
         /// <param name="fileName">The name of the file to save.</param>
         /// <param name="stageFile">true if the file needs to be staged</param>
         /// <returns>The content of the file.</returns>
         [HttpPost]
-        public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName, bool stageFile)
+        public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string app, FileEditorMode fileEditorMode, string fileName, bool stageFile)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
@@ -143,28 +143,28 @@ namespace AltinnCore.Designer.Controllers
                     case FileEditorMode.Implementation:
                         if (fileName == "RuleHandler.js")
                         {
-                            _repository.SaveResourceFile(org, service, fileName, content);
+                            _repository.SaveResourceFile(org, app, fileName, content);
                         }
                         else
                         {
-                            _repository.SaveImplementationFile(org, service, fileName, content);
+                            _repository.SaveImplementationFile(org, app, fileName, content);
                         }
 
                         break;
                     case FileEditorMode.Dynamics:
-                        _repository.SaveResourceFile(org, service, "Dynamics/" + fileName, content);
+                        _repository.SaveResourceFile(org, app, "Dynamics/" + fileName, content);
                         break;
                     case FileEditorMode.Calculation:
-                        _repository.SaveImplementationFile(org, service, "Calculation/" + fileName, content);
+                        _repository.SaveImplementationFile(org, app, "Calculation/" + fileName, content);
                         break;
                     case FileEditorMode.Validation:
-                        _repository.SaveImplementationFile(org, service, "Validation/" + fileName, content);
+                        _repository.SaveImplementationFile(org, app, "Validation/" + fileName, content);
                         break;
                     case FileEditorMode.All:
-                        _repository.SaveConfiguration(org, service, fileName, content);
+                        _repository.SaveConfiguration(org, app, fileName, content);
                         break;
                     case FileEditorMode.Root:
-                        _repository.SaveFile(org, service, fileName, content);
+                        _repository.SaveFile(org, app, fileName, content);
                         break;
                     default:
                         // Return 501 Not Implemented
@@ -173,7 +173,7 @@ namespace AltinnCore.Designer.Controllers
 
                 if (stageFile)
                 {
-                    _sourceControl.StageChange(org, service, fileName);
+                    _sourceControl.StageChange(org, app, fileName);
                 }
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
@@ -184,34 +184,34 @@ namespace AltinnCore.Designer.Controllers
             }
         }
 
-        private ActionResult GetImplementationFiles(string org, string service)
+        private ActionResult GetImplementationFiles(string org, string app)
         {
-            List<AltinnCoreFile> files = _repository.GetImplementationFiles(org, service);
+            List<AltinnCoreFile> files = _repository.GetImplementationFiles(org, app);
 
             return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
-        private ActionResult GetCalculationFiles(string org, string service)
+        private ActionResult GetCalculationFiles(string org, string app)
         {
-          List<AltinnCoreFile> files = _repository.GetCalculationFiles(org, service);
+          List<AltinnCoreFile> files = _repository.GetCalculationFiles(org, app);
 
           return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
-        private ActionResult GetValidationFiles(string org, string service)
+        private ActionResult GetValidationFiles(string org, string app)
         {
-            List<AltinnCoreFile> files = _repository.GetValidationFiles(org, service);
+            List<AltinnCoreFile> files = _repository.GetValidationFiles(org, app);
 
             return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
-        private ActionResult GetResourceFiles(string org, string service, bool dynamics)
+        private ActionResult GetResourceFiles(string org, string app, bool dynamics)
         {
             List<AltinnCoreFile> files = null;
 
             if (dynamics)
             {
-                files = _repository.GetDynamicsFiles(org, service);
+                files = _repository.GetDynamicsFiles(org, app);
             }
             else
             {

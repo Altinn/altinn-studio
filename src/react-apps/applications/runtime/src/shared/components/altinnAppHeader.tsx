@@ -155,16 +155,16 @@ const AltinnAppHeader = (props: IHeaderProps) => {
               </span>
               <span className={type ? classes.blueDark : classes.blueDarker}>
                 {
-                  party && party.organization &&
+                  party && party.organisation &&
                   getLanguageFromKey('general.for', props.language) + ' ' +
-                  party.organization.name.toUpperCase()
+                  party.organisation.name.toUpperCase()
                 }
               </span>
             </>
             }
             <span className='d-block' />
           </span>
-          {party && party.organization ?
+          {party && party.organisation ?
             <i
               className={'fa fa-corp-circle-big ' + classes.partyIcon + ' ' +
                 (type ? classes.blueDark : classes.blueDarker)}

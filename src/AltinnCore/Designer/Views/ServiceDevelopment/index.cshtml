@@ -15,12 +15,12 @@
 
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
-  string service = ViewContext.RouteData.Values["service"] as string;
+  string app = ViewContext.RouteData.Values["app"] as string;
 }
 
 <script>
     window.org = '@org';
-    window.service = '@service';
+    window.service = '@app';
 </script>
 
 <!-- These imports are imported multiple times, we will need to clean up afterwards -->

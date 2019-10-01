@@ -1241,7 +1241,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A list of all packages created for the given app.</returns>
         public IList<ServicePackageDetails> GetServicePackages(string org, string app)
         {
-            Guard.AssertOrgService(org, app);
+            Guard.AssertOrgApp(org, app);
             List<ServicePackageDetails> packageDetails = new List<ServicePackageDetails>();
             string packageDirectory = _settings.GetServicePackagesPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
@@ -2024,6 +2024,19 @@ namespace AltinnCore.Common.Services.Implementation
                 dynamic jsonFileContent = JsonConvert.DeserializeObject<ResourceCollection>(File.ReadAllText(resourceFile));
                 yield return new ResourceWrapper { FileName = resourceFile, Resources = jsonFileContent };
             }
+        }
+
+        /// <inheritdoc/>
+        public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
+        {
+            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + dataModelName + ".prefill.json";
+            string filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+
+            return filedata;
         }
 
         private class ResourceWrapper

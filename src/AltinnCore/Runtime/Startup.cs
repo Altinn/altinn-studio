@@ -126,6 +126,7 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
+            services.AddSingleton<IPrefill, PrefillSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddResponseCompression();
