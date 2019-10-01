@@ -32,7 +32,7 @@ namespace AltinnCore.Runtime.Controllers
         /// Initializes a new instance of the <see cref="ApplicationMetadataController"/> class
         /// <param name="logger">The logger</param>
         /// <param name="authorization">the authorization service handler</param>
-        /// <param name="repository">The repository service</param>
+        /// <param name="application">The application service handler</param>
         /// </summary>
         public ApplicationMetadataController(
             ILogger<ApplicationMetadataController> logger,

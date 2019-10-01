@@ -251,7 +251,7 @@ namespace AltinnCore.Runtime.Controllers
 
             serviceImplementation.SetPlatformServices(_platformSI);
 
-            // Assign data to the ViewBag so it is available to the service views or service implementation
+            // Assign data to the ViewBag so it is available to the app views or service implementation
             PopulateViewBag(org, app, instanceGuid, 0, requestContext, serviceContext, _platformSI);
 
             object serviceModel = _archive.GetArchivedServiceModel(instanceGuid, serviceImplementation.GetServiceModelType(), org, app, requestContext.Party.PartyId);
