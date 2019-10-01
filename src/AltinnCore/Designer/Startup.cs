@@ -159,26 +159,26 @@ namespace AltinnCore.Designer
         /// Configure the application.
         /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/>
         /// </summary>
-        /// <param name="app">The application builder</param>
+        /// <param name="appBuilder">The application builder</param>
         /// <param name="env">Hosting environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                appBuilder.UseDeveloperExceptionPage();
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                appBuilder.UseExceptionHandler("/Error");
             }
 
-            // app.UseHsts();
-            // app.UseHttpsRedirection();
-            app.UseAuthentication();
+            // appBuilder.UseHsts();
+            // appBuilder.UseHttpsRedirection();
+            appBuilder.UseAuthentication();
 
-            app.UseResponseCompression();
-            app.UseRequestLocalization();
-            app.UseStaticFiles(new StaticFileOptions()
+            appBuilder.UseResponseCompression();
+            appBuilder.UseRequestLocalization();
+            appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
                 {
@@ -191,7 +191,7 @@ namespace AltinnCore.Designer
                 },
             });
 
-            app.UseMvc(routes =>
+            appBuilder.UseMvc(routes =>
             {
                 // ------------------------- DEV ----------------------------- //
                 routes.MapRoute(
@@ -223,7 +223,7 @@ namespace AltinnCore.Designer
                           constraints: new
                           {
                               controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
-                              service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                              app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
                 routes.MapRoute(
