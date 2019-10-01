@@ -69,6 +69,9 @@ const styles = createStyles({
     paddingTop: 24,
     padding: 12,
   },
+  checkboxLabes: {
+    paddingTop: '1.2rem',
+  }
 });
 
 export enum PartySelectionReason {
@@ -352,7 +355,9 @@ function PartySelection(props: IPartySelectionProps) {
                     checked={showDeleted}
                     onChangeFunction={toggleShowDeleted}
                   />
-                  <Typography>
+                  <Typography
+                    className={classes.checkboxLabes}
+                  >
                     {
                       !language.party_selection ?
                         'party_selection.show_deleted' :
@@ -370,7 +375,9 @@ function PartySelection(props: IPartySelectionProps) {
                     checked={showSubUnits}
                     onChangeFunction={toggleShowSubUnits}
                   />
-                  <Typography>
+                  <Typography
+                    className={classes.checkboxLabes}
+                  >
                     {
                       !language.party_selection ?
                         'party_selection.show_sub_unit' :
