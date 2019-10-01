@@ -58,7 +58,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
+        public Task<Instance> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
@@ -175,7 +175,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Task<Stream> GetData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/data/{dataId}";
@@ -203,7 +203,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<List<AttachmentList>> GetFormAttachments(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             Instance instance;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
@@ -253,7 +253,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Task<bool> DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        public Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
@@ -279,7 +279,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Guid dataId = Guid.NewGuid();
@@ -334,7 +334,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
+        public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Guid dataId = Guid.NewGuid();
@@ -342,13 +342,13 @@ namespace AltinnCore.Common.Services.Implementation
             string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data";
             string fileToWriteTo = $"{pathToSaveTo}/{dataId}";
 
-            if (!File.Exists(fileToWriteTo))
-            {
-                _logger.LogError("Cannot find file to update.");
-            }
-
             try
             {
+                if (!File.Exists(fileToWriteTo))
+                {
+                    throw new FileNotFoundException("Cannot find file to update.");
+                }
+
                 using (Stream streamToWriteTo = File.Open(fileToWriteTo, FileMode.Create, FileAccess.ReadWrite))
                 {
                     await request.StreamFile(streamToWriteTo);
@@ -381,10 +381,9 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unable to save attachment", ex);
+                _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed. Exception message: {ex.Message}");
+                return null;
             }
-
-            return null;
         }
     }
 }

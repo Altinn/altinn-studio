@@ -88,7 +88,7 @@ namespace AltinnCore.Common.Services.Implementation
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
             // Save instantiated form model
-            instance = await _data.InsertData(
+            instance = await _data.InsertFormData(
                 serviceModel,
                 instanceGuid,
                 serviceImplementation.GetServiceModelType(),

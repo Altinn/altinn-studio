@@ -104,7 +104,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.InsertData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId))
+                .Setup(d => d.InsertFormData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId))
                 .Returns(Task.FromResult(updatedInstance));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
@@ -177,7 +177,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.SaveFormAttachment(org, app, instanceOwnerId, instanceGuid, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<HttpRequest>()))
+                .Setup(d => d.InsertBinaryData(org, app, instanceOwnerId, instanceGuid, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<HttpRequest>()))
                     .Returns(Task.FromResult(data));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
@@ -259,7 +259,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.InsertData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId))
+                .Setup(d => d.InsertFormData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId))
                 .Returns(Task.FromResult(updatedInstance));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
@@ -413,7 +413,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.GetData(org, app, instanceOwnerId, instanceGuid, dataGuid))
+                .Setup(d => d.GetBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid))
                 .Returns(Task.FromResult(dataStream));
 
             /* TEST */
@@ -490,7 +490,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.DeleteFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid))
+                .Setup(d => d.DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid))
                 .Returns(Task.FromResult(true));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
@@ -568,7 +568,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.UpdateFormAttachment(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<HttpRequest>()))
+                .Setup(d => d.UpdateBinaryData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<HttpRequest>()))
                     .Returns(Task.FromResult(data));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
@@ -717,7 +717,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.InsertData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId))
+                .Setup(d => d.InsertFormData(It.IsAny<object>(), instanceGuid, It.IsAny<Type>(), org, app, instanceOwnerId))
                 .Returns(Task.FromResult(instance));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);
@@ -797,7 +797,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-             .Setup(d => d.DeleteFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid))
+             .Setup(d => d.DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid))
              .Returns(Task.FromResult(true));
 
             /* TEST */
@@ -865,7 +865,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.DeleteFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid))
+                .Setup(d => d.DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid))
                 .Returns(Task.FromResult(true));
 
             DataController dataController = NewDataController(context, instanceServiceMock, dataServiceMock, appServiceMock);

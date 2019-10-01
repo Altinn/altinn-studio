@@ -283,7 +283,7 @@ namespace AltinnCore.Runtime.RestControllers
             int instanceOwnerId = int.Parse(instanceBefore.Id.Split("/")[0]);
             Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
 
-            DataElement dataElement = await dataService.SaveFormAttachment(org, app, instanceOwnerId, instanceGuid, elementType, attachmentName, Request);
+            DataElement dataElement = await dataService.InsertBinaryData(org, app, instanceOwnerId, instanceGuid, elementType, attachmentName, Request);
 
             if (Guid.Parse(dataElement.Id) == Guid.Empty)
             {
@@ -326,7 +326,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             InstancesController.SetAppSelfLinks(instanceBefore, Request);
 
-            Instance instanceAfter = await dataService.InsertData(serviceModel, instanceGuid, serviceImplementation.GetServiceModelType(), org, app, int.Parse(instanceBefore.InstanceOwnerId));
+            Instance instanceAfter = await dataService.InsertFormData(serviceModel, instanceGuid, serviceImplementation.GetServiceModelType(), org, app, int.Parse(instanceBefore.InstanceOwnerId));
             InstancesController.SetAppSelfLinks(instanceAfter, Request);
             List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);
             string dataUrl = createdElements.First().DataLinks.Apps;
@@ -346,7 +346,7 @@ namespace AltinnCore.Runtime.RestControllers
             Guid dataGuid,
             DataElement dataElement)
         {
-            Stream dataStream = await dataService.GetData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+            Stream dataStream = await dataService.GetBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
 
             if (dataStream != null)
             {
@@ -360,7 +360,7 @@ namespace AltinnCore.Runtime.RestControllers
 
         private async Task<ActionResult> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
-            bool successfullyDeleted = await dataService.DeleteFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid);
+            bool successfullyDeleted = await dataService.DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
 
             if (successfullyDeleted)
             {
@@ -519,7 +519,7 @@ namespace AltinnCore.Runtime.RestControllers
 
         private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
-            DataElement dataElement = await dataService.UpdateFormAttachment(org, app, instanceOwnerId, instanceGuid, dataGuid, Request);
+            DataElement dataElement = await dataService.UpdateBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid, Request);
 
             return Created(dataElement.StorageUrl, new List<DataElement>() { dataElement });
         }

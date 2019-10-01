@@ -61,7 +61,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
+        public async Task<Instance> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data?elementType={FORM_ID}";
@@ -119,7 +119,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Task<Stream> GetData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
@@ -167,7 +167,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<AttachmentList>> GetFormAttachments(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public async Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data";
@@ -227,7 +227,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<bool> DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        public async Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}";
@@ -240,7 +240,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             try
             {
-                HttpResponseMessage response = await _client.DeleteAsync(apiUrl);              
+                HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -248,8 +248,12 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError($"Deleting data element {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
+                    _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed. Exception message: {ex.Message}");
             }
             finally
             {
@@ -260,7 +264,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
@@ -317,9 +321,13 @@ namespace AltinnCore.Common.Services.Implementation
                     }
                     else
                     {
-                        _logger.LogError($"Storing attachment {attachmentName} for instance {instanceGuid} failes with status code {response.StatusCode}");
+                        _logger.LogError($"Storing attachment {attachmentName} for instance {instanceGuid} failed with status code {response.StatusCode}");
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Storing attachment {attachmentName} for instance {instanceGuid} failed. Exception message: {e.Message}");
             }
             finally
             {
@@ -330,7 +338,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> UpdateFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
+        public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
@@ -384,12 +392,16 @@ namespace AltinnCore.Common.Services.Implementation
                     }
                     else
                     {
-                        _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failes with status code {response.StatusCode}");
+                        _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed. Exception message: {ex.Message}");
+            }
             finally
-            {                
+            {
                 instanceLock.Release();
             }
 

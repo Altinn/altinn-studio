@@ -627,7 +627,7 @@ namespace AltinnCore.Runtime.Controllers
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<IActionResult> SaveFormAttachment(string org, string service, int partyId, Guid instanceGuid, string attachmentType, string attachmentName)
         {
-            DataElement data = await _data.SaveFormAttachment(org, service, partyId, instanceGuid, attachmentType, attachmentName, Request);
+            DataElement data = await _data.InsertBinaryData(org, service, partyId, instanceGuid, attachmentType, attachmentName, Request);
             Guid guid = Guid.Parse(data.Id);
             if (guid == Guid.Empty)
             {
@@ -651,7 +651,7 @@ namespace AltinnCore.Runtime.Controllers
         [DisableFormValueModelBinding]
         public IActionResult DeleteFormAttachment(string org, string service, int partyId, Guid instanceGuid, string attachmentId)
         {
-            _data.DeleteFormAttachment(org, service, partyId, instanceGuid, Guid.Parse(attachmentId));
+            _data.DeleteBinaryData(org, service, partyId, instanceGuid, Guid.Parse(attachmentId));
             return Ok();
         }
 
@@ -669,7 +669,7 @@ namespace AltinnCore.Runtime.Controllers
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<IActionResult> GetFormAttachments(string org, string service, int partyId, Guid instanceGuid)
         {
-            List<AttachmentList> allAttachments = await _data.GetFormAttachments(org, service, partyId, instanceGuid);
+            List<AttachmentList> allAttachments = await _data.GetBinaryDataList(org, service, partyId, instanceGuid);
             return Ok(allAttachments);
         }
 
