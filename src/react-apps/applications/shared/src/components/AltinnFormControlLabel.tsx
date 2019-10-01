@@ -17,7 +17,7 @@ const styles = () => createStyles({
     fontSize: 16,
   },
   root: {
-    marginRight: 48,
+    marginRight: 24,
     marginLeft: 0,
   },
 });
