@@ -1068,29 +1068,29 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a new app folder under the given <paramref name="owner">owner</paramref> and saves the
+        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
-        /// <param name="owner">The app owner to create the new app under</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <param name="repoCreated">Whether the repo is created or not</param>
         /// <returns>The repository created in gitea</returns>
-        public RepositoryClient.Model.Repository CreateService(string owner, ServiceConfiguration serviceConfig, bool repoCreated = false)
+        public RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
-            string filename = _settings.GetServicePath(owner, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
+            string filename = _settings.GetServicePath(org, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
             AltinnCore.RepositoryClient.Model.Repository repository = null;
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
 
             if (!repoCreated)
             {
-                repository = CreateRepository(owner, createRepoOption);
+                repository = CreateRepository(org, createRepoOption);
             }
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
                 if (!File.Exists(filename))
                 {
-                    _sourceControl.CloneRemoteRepository(owner, serviceConfig.RepositoryName);
+                    _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
 
                     // Verify if directory exist. Should Exist if Cloning of new repository worked
                     if (!new FileInfo(filename).Directory.Exists)
@@ -1119,13 +1119,13 @@ namespace AltinnCore.Common.Services.Implementation
 
                 ServiceMetadata metadata = new ServiceMetadata
                 {
-                    Org = owner,
+                    Org = org,
                     ServiceName = serviceConfig.ServiceName,
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
                 CreateServiceMetadata(metadata);
-                CreateApplication(owner, serviceConfig.RepositoryName, serviceConfig.ServiceName);
+                CreateApplication(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
@@ -1143,10 +1143,10 @@ namespace AltinnCore.Common.Services.Implementation
                             new { id = "subscription_hook_error_statusCode", value = string.Empty }
                         },
                     });
-                    SaveResource(owner, serviceConfig.RepositoryName, "nb-NO", json.ToString());
+                    SaveResource(org, serviceConfig.RepositoryName, "nb-NO", json.ToString());
                 }
 
-                CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "App created" };
+                CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
                 _sourceControl.PushChangesForRepository(commitInfo);
             }
@@ -1206,31 +1206,31 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a list of all apps for a given organisation present in the local repository
+        /// Returns a list of all apps for a given org present in the local repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <returns>A list of all apps for the given org</returns>
+        /// <returns>A list of all apps for the given org.</returns>
         public IList<ServiceConfiguration> GetServices(string org)
         {
-            List<ServiceConfiguration> services = new List<ServiceConfiguration>();
-            IList<OrgConfiguration> owners = GetOwners();
-            OrgConfiguration owner = owners.FirstOrDefault(so => so.Code == org);
+            List<ServiceConfiguration> apps = new List<ServiceConfiguration>();
+            IList<OrgConfiguration> organisations = GetOwners();
+            OrgConfiguration organisation = organisations.FirstOrDefault(so => so.Code == org);
 
-            if (owner != null)
+            if (organisation != null)
             {
-                string[] serviceRepos = Directory.GetDirectories(_settings.GetOrgPath(org));
+                string[] appRepositoryPaths = Directory.GetDirectories(_settings.GetOrgPath(org));
 
-                foreach (string serviceRepo in serviceRepos)
+                foreach (string appRepositoryPath in appRepositoryPaths)
                 {
-                    if (File.Exists(serviceRepo + "/config.json") && Path.GetFileName(serviceRepo) != org)
+                    if (File.Exists(appRepositoryPath + "/config.json") && Path.GetFileName(appRepositoryPath) != org)
                     {
-                        string textData = File.ReadAllText(serviceRepo + "/config.json");
-                        services.Add(JsonConvert.DeserializeObject<ServiceConfiguration>(textData));
+                        string textData = File.ReadAllText(appRepositoryPath + "/config.json");
+                        apps.Add(JsonConvert.DeserializeObject<ServiceConfiguration>(textData));
                     }
                 }
             }
 
-            return services;
+            return apps;
         }
 
         /// <summary>
@@ -1355,14 +1355,14 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// create a repository in gitea for the given organisation and options
+        /// create a repository in gitea for the given org and options
         /// </summary>
-        /// <param name="owner">the owner</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
-            return _gitea.CreateRepository(owner, createRepoOption).Result;
+            return _gitea.CreateRepository(org, createRepoOption).Result;
         }
 
         /// <summary>
