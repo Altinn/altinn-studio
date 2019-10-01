@@ -123,9 +123,9 @@ export class AdministrationComponent extends
     const { org, service } = altinnWindow;
 
     handleServiceInformationActionDispatchers.fetchService(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`);
+      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${service}`);
     handleServiceInformationActionDispatchers.fetchInitialCommit(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?owner=${org}&repository=${service}`);
+      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${service}`);
     handleServiceInformationActionDispatchers.fetchServiceConfig(
       `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceConfig`);
   }

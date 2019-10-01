@@ -82,24 +82,24 @@ namespace AltinnCore.Common.Services.Implementation
         public bool CreateServiceMetadata(ServiceMetadata serviceMetadata)
         {
             string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
-            string serviceOrgPath = null;
+            string orgPath = null;
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            serviceOrgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+            orgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
                             ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
                             : _settings.RepositoryLocation + serviceMetadata.Org.AsFileName();
 
-            string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
+            string appPath = orgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
 
-            if (!Directory.Exists(serviceOrgPath))
+            if (!Directory.Exists(orgPath))
             {
-                Directory.CreateDirectory(serviceOrgPath);
+                Directory.CreateDirectory(orgPath);
             }
 
-            if (!Directory.Exists(servicePath))
+            if (!Directory.Exists(appPath))
             {
-                Directory.CreateDirectory(servicePath);
+                Directory.CreateDirectory(appPath);
             }
 
             string metaDataDir = _settings.GetMetadataPath(
@@ -406,7 +406,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the content of a file path relative to the root folder
+        /// Returns the content of a file path relative to the app folder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -453,22 +453,22 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The text</returns>
         public Dictionary<string, Dictionary<string, string>> GetServiceTexts(string org, string app)
         {
-            Dictionary<string, Dictionary<string, string>> serviceTextsAllLanguages =
+            Dictionary<string, Dictionary<string, string>> appTextsAllLanguages =
                 new Dictionary<string, Dictionary<string, string>>();
 
             // Get app level text resources
             string resourcePath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            serviceTextsAllLanguages = GetResourceTexts(resourcePath, serviceTextsAllLanguages);
+            appTextsAllLanguages = GetResourceTexts(resourcePath, appTextsAllLanguages);
 
             // Get Org level text resources
             string orgResourcePath = _settings.GetOrgTextResourcePath(org, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            serviceTextsAllLanguages = GetResourceTexts(orgResourcePath, serviceTextsAllLanguages);
+            appTextsAllLanguages = GetResourceTexts(orgResourcePath, appTextsAllLanguages);
 
             // Get Altinn common level text resources
             string commonResourcePath = _settings.GetCommonTextResourcePath(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            serviceTextsAllLanguages = GetResourceTexts(commonResourcePath, serviceTextsAllLanguages);
+            appTextsAllLanguages = GetResourceTexts(commonResourcePath, appTextsAllLanguages);
 
-            return serviceTextsAllLanguages;
+            return appTextsAllLanguages;
         }
 
         /// <summary>
@@ -1014,30 +1014,30 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A list of apps</returns>
         public List<ServiceMetadata> GetAvailableServices()
         {
-            List<ServiceMetadata> services = new List<ServiceMetadata>();
-            string[] serviceOwners = null;
+            List<ServiceMetadata> apps = new List<ServiceMetadata>();
+            string[] orgPaths = null;
 
-            serviceOwners = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                            ? serviceOwners = Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
-                            : serviceOwners = Directory.GetDirectories(_settings.RepositoryLocation);
+            orgPaths = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                            ? orgPaths = Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
+                            : orgPaths = Directory.GetDirectories(_settings.RepositoryLocation);
 
-            foreach (string serviceOwner in serviceOwners)
+            foreach (string orgPath in orgPaths)
             {
-                string serviceOwnerFileName = Path.GetFileName(serviceOwner);
-                string[] serviceRepos = Directory.GetDirectories(serviceOwner);
+                string org = Path.GetFileName(orgPath);
+                string[] appPaths = Directory.GetDirectories(orgPath);
 
-                foreach (string serviceRepo in serviceRepos)
+                foreach (string appPath in appPaths)
                 {
-                    string serviceRepoFileName = Path.GetFileName(serviceRepo);
-                    string serviceDirectory = _settings.GetMetadataPath(serviceOwnerFileName, serviceRepoFileName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                    if (Directory.Exists(serviceDirectory))
+                    string app = Path.GetFileName(appPath);
+                    string metadataPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                    if (Directory.Exists(metadataPath))
                     {
-                        services.Add(GetServiceMetaData(serviceOwnerFileName, serviceRepoFileName));
+                        apps.Add(GetServiceMetaData(org, app));
                     }
                 }
             }
 
-            return services;
+            return apps;
         }
 
         /// <summary>
@@ -1315,12 +1315,12 @@ namespace AltinnCore.Common.Services.Implementation
 
             try
             {
-                string localServiceRepoFolder =
+                string localOrgRepoFolder =
                     (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
                     ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists"
                     : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
 
-                using (Repository repo = new Repository(localServiceRepoFolder))
+                using (Repository repo = new Repository(localOrgRepoFolder))
                 {
                     // User has a local repo for codelist.
                     return;
@@ -1781,10 +1781,10 @@ namespace AltinnCore.Common.Services.Implementation
             }
             else
             {
-                string serviceResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                if (File.Exists(serviceResourceDirectoryPath + resource))
+                string appResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                if (File.Exists(appResourceDirectoryPath + resource))
                 {
-                    fileContent = File.ReadAllBytes(serviceResourceDirectoryPath + resource);
+                    fileContent = File.ReadAllBytes(appResourceDirectoryPath + resource);
                 }
             }
 
@@ -1870,10 +1870,10 @@ namespace AltinnCore.Common.Services.Implementation
             Directory.CreateDirectory(_settings.GetTestDataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
             // Copy default Dockerfile
-            string servicePath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Copy(_generalSettings.DefaultRepoDockerfile, servicePath + _settings.DockerfileFileName);
-            File.Copy(_generalSettings.DefaultProjectFile, servicePath + _settings.ProjectFileName);
-            File.Copy(_generalSettings.DefaultGitIgnoreFile, servicePath + _settings.GitIgnoreFileName);
+            string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            File.Copy(_generalSettings.DefaultRepoDockerfile, appPath + _settings.DockerfileFileName);
+            File.Copy(_generalSettings.DefaultProjectFile, appPath + _settings.ProjectFileName);
+            File.Copy(_generalSettings.DefaultGitIgnoreFile, appPath + _settings.GitIgnoreFileName);
         }
 
         private void CreateInitialServiceImplementation(string org, string app)

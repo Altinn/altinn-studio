@@ -60,7 +60,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="fileName">The name of file path relative to service root directory</param>
+        /// <param name="fileName">The name of file path relative to app directory</param>
         /// <returns>The fileContent</returns>
         string GetFileByRelativePath(string org, string app, string fileName);
 
@@ -100,7 +100,7 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetServiceModel(string org, string app);
 
         /// <summary>
-        /// Returns the workflow of a service
+        /// Returns the workflow of an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -186,7 +186,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The rules for a service</returns>
+        /// <returns>The rules for an app.</returns>
         List<RuleContainer> GetRules(string org, string app);
 
         /// <summary>
