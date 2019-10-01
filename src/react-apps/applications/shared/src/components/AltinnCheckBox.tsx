@@ -22,7 +22,6 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
   altinnCheckBox: {
-    'padding': '0px',
     'color': theme.altinnPalette.primary.blueDark + ' !important',
     '& span': {
       '& svg': {
