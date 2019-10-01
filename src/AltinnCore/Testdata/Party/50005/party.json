@@ -1,11 +1,11 @@
 {
-  "partyID": "20001",
+  "partyID": "50005",
   "partyTypeName": 1,
   "orgNumber": null,
   "person": null,
   "organisation": null,
   "ssn": "01057512345",
-  "name": "Roar Subunit",
+  "name": "Roar Underenhet",
   "isDeleted": false,
   "onlyHierarchyElementWithNoAccess": false,
   "childParties": null
