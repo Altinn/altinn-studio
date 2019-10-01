@@ -4,7 +4,7 @@
     "orgNumber": null,
     "person": null,
     "organisation": null,
-    "partyID": "20001",
+    "partyID": "50005",
     "ssn": "01047512345",
     "name": "Roar Underenhet",
     "isDeleted": false,
@@ -12,41 +12,40 @@
     "childParties": null
   },
   {
-	"partyTypeName": "Organisation",
-	"orgNumber": "1001",
-	"person": null,
-	"organisation": null,
-	"partyID": "20002",
-	"unitType": "AS",
-	"ssn": null,
-	"name": "Underenhet AS",
-	"isDeleted": false,
-	"onlyHierarchyElementWithNoAccess": false,
-	"childParties": [
-		{
-			"partyId": 10001,
-			"partyTypeName": 2,
-			"orgNumber": "900000001",
-			"ssn": null,
-			"unitType": "BEDR",
-			"name": "Kari Consulting",
-			"isDeleted": false,
-			"onlyHierarchyElementWithNoAccess": false,
-			"person": null,
-			"organisation": null,
-			"childParties": null
-		}
-	]
+    "partyTypeName": "Organisation",
+    "orgNumber": 900000007,
+    "person": null,
+    "organisation": null,
+    "partyID": "10007",
+    "unitType": "AS",
+    "name": "Hovedenhet AS",
+    "isDeleted": false,
+    "onlyHierarchyElementWithNoAccess": true,
+    "childParties": [
+      {
+      "partyTypeName": "Organisation",
+      "orgNumber": "900000005",
+      "person": null,
+      "organisation": null,
+      "partyID": "10005",
+      "unitType": "BEDR",
+      "ssn": null,
+      "name": "Underenhet BEDR",
+      "isDeleted": false,
+      "onlyHierarchyElementWithNoAccess": false,
+      "childParties":null
+      }
+    ]
   },
   {
 	"partyTypeName": "Organisation",
-	"orgNumber": "13381338",
+	"orgNumber": "900000006",
 	"person": null,
 	"organisation": null,
-	"partyID": "20003",
+	"partyID": "10006",
 	"unitType": "KBO",
 	"ssn": null,
-	"name": "Konkursbo AS",
+	"name": "Konkursbo KBO",
 	"isDeleted": false,
 	"onlyHierarchyElementWithNoAccess": false,
 	"childParties": null

@@ -72,7 +72,7 @@ namespace AltinnCore.Common.Configuration
         public const string TEXTRESOURCE_COMMON_FOLDER_NAME = "/altinn/common/text/";
 
         /// <summary>
-        /// Constant for the location of service metadata
+        /// Constant for the location of app metadata
         /// </summary>
         public const string METADATA_FOLDER_NAME = "Metadata/";
 
@@ -92,7 +92,7 @@ namespace AltinnCore.Common.Configuration
         public string RepositoryLocation { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating if runtime should fetch service information from database or from disk
+        /// Gets or sets a value indicating if runtime should fetch app information from database or from disk
         /// </summary>
         public bool ShouldFetchFromDatabase { get; set; }
 
@@ -187,12 +187,12 @@ namespace AltinnCore.Common.Configuration
         public string RuntimeCssFileName { get; set; } = "runtime.css";
 
         /// <summary>
-        /// Gets or sets styles config file name for service
+        /// Gets or sets styles config file name for the app.
         /// </summary>
         public string ServiceStylesConfigFileName { get; set; } = "Styles.json";
 
         /// <summary>
-        /// Gets or sets config file name for service
+        /// Gets or sets config file name for the app.
         /// </summary>
         public string ServiceConfigFileName { get; set; } = "config.json";
 
@@ -305,21 +305,21 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the full path to the service directory
+        /// Gets the full path to the app directory.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetServicePath(string org, string service, string developer = null)
+        public string GetServicePath(string org, string app, string developer = null)
         {
             org = org.AsFileName();
-            service = service.AsFileName();
+            app = app.AsFileName();
             developer = developer.AsFileName();
 
             if (developer != null)
             {
-                developer += $"/{org}/{service}/";
+                developer += $"/{org}/{app}/";
             }
 
             string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
@@ -329,14 +329,14 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the full path to the testdata for party directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">The current user, service developer</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">The current user, app developer.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetTestdataForPartyPath(string org, string service, string developer = null)
+        public string GetTestdataForPartyPath(string org, string app, string developer = null)
         {
             org = org.AsFileName();
-            service = service.AsFileName();
+            app = app.AsFileName();
             developer = developer.AsFileName();
 
             if (developer != null)
@@ -344,20 +344,20 @@ namespace AltinnCore.Common.Configuration
                 developer += "/";
             }
 
-            return $"{RepositoryLocation}{developer}{org}/{service}/{TESTDATA_FOR_PARTY_FOLDER_NAME}";
+            return $"{RepositoryLocation}{developer}{org}/{app}/{TESTDATA_FOR_PARTY_FOLDER_NAME}";
         }
 
         /// <summary>
         /// Method that returns the path to the form layout file
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="developer">The current developer</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetFormLayoutPath(string org, string service, string developer)
+        public string GetFormLayoutPath(string org, string app, string developer)
         {
             org = org.AsFileName();
-            service = service.AsFileName();
+            app = app.AsFileName();
             developer = developer.AsFileName();
 
             if (developer != null)
@@ -365,20 +365,20 @@ namespace AltinnCore.Common.Configuration
                 developer += "/";
             }
 
-            return $"{RepositoryLocation}/{developer}{org}/{service}/{FormLayoutJSONFileName}";
+            return $"{RepositoryLocation}/{developer}{org}/{app}/{FormLayoutJSONFileName}";
         }
 
         /// <summary>
         /// Method that returns the path to the third party component file
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="developer">The current developer</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetThirdPartyComponentsPath(string org, string service, string developer)
+        public string GetThirdPartyComponentsPath(string org, string app, string developer)
         {
             org = org.AsFileName();
-            service = service.AsFileName();
+            app = app.AsFileName();
             developer = developer.AsFileName();
         
             if (developer != null)
@@ -386,20 +386,20 @@ namespace AltinnCore.Common.Configuration
                 developer += "/";
             }
 
-            return $"{RepositoryLocation}/{developer}{org}/{service}/{ThirdPartyComponentsJSONFileName}";
+            return $"{RepositoryLocation}/{developer}{org}/{app}/{ThirdPartyComponentsJSONFileName}";
         }
 
         /// <summary>
         /// Get the path to rule handler file
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetRuleHandlerPath(string org, string service, string developer)
+        public string GetRuleHandlerPath(string org, string app, string developer)
         {
             org = org.AsFileName();
-            service = service.AsFileName();
+            app = app.AsFileName();
             developer = developer.AsFileName();
 
             if (developer != null)
@@ -407,139 +407,139 @@ namespace AltinnCore.Common.Configuration
                 developer += "/";
             }
 
-            return $"{RepositoryLocation}/{developer}{org}/{service}/{RESOURCE_FOLDER_NAME}";
+            return $"{RepositoryLocation}/{developer}{org}/{app}/{RESOURCE_FOLDER_NAME}";
         }
 
         /// <summary>
         /// Gets the full path to the directory where all service packages will be placed
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetServicePackagesPath(string org, string service, string developer)
+        public string GetServicePackagesPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + PACKAGES_LOCATION;
+            return GetServicePath(org, app, developer) + PACKAGES_LOCATION;
         }
 
         /// <summary>
         /// Gets the full path to a directory which can be used for temporary storage (for instance during service packaging)
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetTemporaryPath(string org, string service, string developer)
+        public string GetTemporaryPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + TEMP_LOCATION;
+            return GetServicePath(org, app, developer) + TEMP_LOCATION;
         }
 
         /// <summary>
         /// Gets the full path to ResourceDirectory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetResourcePath(string org, string service, string developer)
+        public string GetResourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + RESOURCE_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME;
         }
 
         /// <summary>
         /// Gets the full path to Dynamics directory (within ResourcesDirecory)
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetDynamicsPath(string org, string service, string developer)
+        public string GetDynamicsPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + RESOURCE_FOLDER_NAME + DYNAMICS_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME + DYNAMICS_FOLDER_NAME;
         }
 
         /// <summary>
         /// Gets the full path to Calculation directory (within ImplementationDirectory)
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path to the calculation folder, ending with '/'</returns>
-        public string GetCalculationPath(string org, string service, string developer)
+        public string GetCalculationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + IMPLEMENTATION_FOLDER_NAME + CALCULATION_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + IMPLEMENTATION_FOLDER_NAME + CALCULATION_FOLDER_NAME;
         }
 
         /// <summary>
         /// Gets the full path to Validation directory (within ImplementationDirectory)
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path to the validation folder, ending with '/'</returns>
-        public string GetValidationPath(string org, string service, string developer)
+        public string GetValidationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + IMPLEMENTATION_FOLDER_NAME + VALIDATION_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + IMPLEMENTATION_FOLDER_NAME + VALIDATION_FOLDER_NAME;
         }
 
         /// <summary>
         /// Gets the full path to TestDirectory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetTestPath(string org, string service, string developer)
+        public string GetTestPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + TEST_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + TEST_FOLDER_NAME;
         }
 
         /// <summary>
         /// Gets the full path to deployment directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetDeploymentPath(string org, string service, string developer)
+        public string GetDeploymentPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + DEPLOYMENT_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + DEPLOYMENT_FOLDER_NAME;
         }
 
         /// <summary>
         /// Gets The full path to TestDataDirectory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetTestDataPath(string org, string service, string developer)
+        public string GetTestDataPath(string org, string app, string developer)
         {
-            return GetTestPath(org, service, developer) + TESTDATA_FOLDER_NAME;
+            return GetTestPath(org, app, developer) + TESTDATA_FOLDER_NAME;
         }
 
         /// <summary>
         /// Gets The full path to Metadata directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetMetadataPath(string org, string service, string developer)
+        public string GetMetadataPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + METADATA_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + METADATA_FOLDER_NAME;
         }
 
         /// <summary>
         /// Gets the full path to code list directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetCodelistPath(string org, string service, string developer)
+        public string GetCodelistPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + CODELISTS_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + CODELISTS_FOLDER_NAME;
         }
 
         /// <summary>
@@ -599,68 +599,68 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the full path to model directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetModelPath(string org, string service, string developer)
+        public string GetModelPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + "Model/";
+            return GetServicePath(org, app, developer) + "Model/";
         }
 
         /// <summary>
         /// Gets the full path to the implementation directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetImplementationPath(string org, string service, string developer)
+        public string GetImplementationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + "Implementation/";
+            return GetServicePath(org, app, developer) + "Implementation/";
         }
 
         /// <summary>
         /// Gets the full path to the workflow directory
         /// </summary>
         /// <param name="owner">The owner of the service</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path to the workflow folder, ending with "/"</returns>
-        public string GetWorkflowPath(string owner, string service, string developer)
+        public string GetWorkflowPath(string owner, string app, string developer)
         {
-            return GetServicePath(owner, service, developer) + "Workflow/";
+            return GetServicePath(owner, app, developer) + "Workflow/";
         }
 
         /// <summary>
         /// Gets the full path to the rules directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetRulesPath(string org, string service, string developer)
+        public string GetRulesPath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + "Rules/";
+            return GetServicePath(org, app, developer) + "Rules/";
         }
 
         /// <summary>
         /// Gets the full path to the data source directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetDataSourcePath(string org, string service, string developer)
+        public string GetDataSourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, service, developer) + "DataSource/";
+            return GetServicePath(org, app, developer) + "DataSource/";
         }
 
         /// <summary>
         /// Gets the path to text resources in organisation level
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="developer">The current user, service developer</param>
+        /// <param name="developer">The current user, app developer</param>
         /// <returns>The path to text resources in organisation level, ending with "/"</returns>
         public string GetOrgTextResourcePath(string org, string developer)
         {
@@ -670,7 +670,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the path to common text resources in altinn
         /// </summary>
-        /// <param name="developer">The current user, service developer</param>
+        /// <param name="developer">The current user, app developer.</param>
         /// <returns>The path to common text resources in altinn, ending with "/"</returns>
         public string GetCommonTextResourcePath(string developer)
         {

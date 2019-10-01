@@ -10,7 +10,7 @@ namespace AltinnCore.Common.Enums
     public enum FileEditorMode
     {
         /// <summary>
-        /// All the files associated with the service
+        /// All the files associated with the app
         /// </summary>
         All = 0,
 

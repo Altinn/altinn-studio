@@ -65,7 +65,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Start a new deployment.
         /// </summary>
-        /// <param name="org">Uniqe identfier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The result of trying to start a new deployment.</returns>
         [HttpPost]
@@ -76,7 +76,7 @@ namespace AltinnCore.Designer.Controllers
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "Application owner (org) and application name must be supplied",
+                    Message = "Organisation identifier (org) and application identifier (app) must be supplied",
                 });
             }
 
@@ -176,7 +176,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets deployment status.
         /// </summary>
-        /// <param name="org">Uniqe identfier of the organisation responsible for the app.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="buildId">The id of the build for which the deployment status is to be retrieved.</param>
         /// <returns>The build status of the deployment build.</returns>
@@ -188,7 +188,7 @@ namespace AltinnCore.Designer.Controllers
                 return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "application owner (org), app or buildId not supplied",
+                    Message = "Organisation identifier (org), app identifier or buildId not supplied",
                 });
             }
 

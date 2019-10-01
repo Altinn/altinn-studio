@@ -1,11 +1,11 @@
 {
-	"partyId": "20002",
+	"partyId": "10005",
 	"partyTypeName": 2,
-	"orgNumber": 13371337,
+	"orgNumber": 900000005,
 	"person": null,
 	"organisation": null,
-	"unitType": "AAFY",
-	"name": "Underenhet AS",
+	"unitType": "BEDR",
+	"name": "Underenhet BEDR",
 	"isDeleted": false,
 	"onlyHierarchyElementWithNoAccess": false,
 	"childParties": null

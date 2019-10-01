@@ -68,7 +68,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// The default action presenting a list of available services when the user is logged in
+        /// The default action presenting a list of available apps when the user is logged in
         /// </summary>
         /// <param name="repositorySearch">the search parameter object</param>
         /// <returns>The front page</returns>

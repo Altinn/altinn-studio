@@ -90,7 +90,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           aria-haspopup='true'
           onClick={this.handleClick}
         >
-          <AccountCircle />
+          <AccountCircle fontSize='large' />
         </IconButton>
         <Menu
           id='simple-menu'

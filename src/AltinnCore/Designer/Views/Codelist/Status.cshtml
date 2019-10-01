@@ -3,7 +3,7 @@
 @{ ViewBag.Title = "Kodelister"; }
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
-  string service = ViewContext.RouteData.Values["service"] as string;
+  string app = ViewContext.RouteData.Values["app"] as string;
 }
 @section scripts {
   <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
