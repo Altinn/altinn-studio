@@ -12,13 +12,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>    
-    <AdditionalFiles Include="..\..\stylecop.json">
+    <AdditionalFiles Include="..\..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -52,11 +52,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Altinn.Process\Altinn.Process.csproj" />
+    <EmbeddedResource Include="TestData\multiple_events.bpmn" />
+    <EmbeddedResource Include="TestData\default_process.bpmn" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="TestData\multiple_events.bpmn" />
-    <EmbeddedResource Include="TestData\default_process.bpmn" />
+    <ProjectReference Include="..\Altinn.Process\Altinn.Process.csproj" />
   </ItemGroup>
 </Project>

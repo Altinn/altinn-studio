@@ -7,6 +7,7 @@ COPY src/AltinnCore/ServiceLibrary ./ServiceLibrary
 COPY src/AltinnCore/Templates ./Templates
 COPY src/AltinnCore/Testdata ./Testdata
 COPY src/AltinnCore/RepositoryClient ./RepositoryClient
+COPY src/AltinnCore/Altinn.Process ./Altinn.Process
 COPY src/AltinnCore/Runtime ./Runtime
 WORKDIR /src/AltinnCore/Runtime
 RUN dotnet build AltinnCore.Runtime.csproj -c Release -o /app_output
