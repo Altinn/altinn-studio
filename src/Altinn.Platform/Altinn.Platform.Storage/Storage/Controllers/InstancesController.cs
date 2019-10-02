@@ -100,6 +100,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="processIsComplete">is process complete</param>
         /// <param name="processIsInError">is process in error</param>
         /// <param name="processEndState">process end state</param>
+        /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="labels">labels</param>
         /// <param name="lastChangedDateTime">last changed date</param>
         /// <param name="createdDateTime">created time</param>
@@ -117,6 +118,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
             [FromQuery(Name = "process.isInError")] bool? processIsInError,
             [FromQuery(Name = "process.endState")] string processEndState,
+            [FromQuery] int? instanceOwnerId,
             [FromQuery] string labels,
             [FromQuery] string lastChangedDateTime,
             [FromQuery] string createdDateTime,
@@ -457,19 +459,9 @@ namespace Altinn.Platform.Storage.Controllers
                 createdInstance.PresentationField = presentation;
             }
 
-            if (createdInstance.Data == null)
-            {
-                createdInstance.Data = new List<DataElement>();
-            }
+            createdInstance.Data = new List<DataElement>();
 
-            if (instanceTemplate.Process != null)
-            {
-                createdInstance.Process = instanceTemplate.Process;
-            }
-            else
-            {
-                createdInstance.Process = new ProcessState();
-            }
+            createdInstance.Process = instanceTemplate.Process;
 
             return createdInstance;
         }
