@@ -70,7 +70,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     const altinnWindow: any = window;
     const { org, service } = altinnWindow;
     // tslint:disable-next-line:max-line-length
-    const repoStatusUrl = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
+    const repoStatusUrl = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
 
     HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, service);
   }
