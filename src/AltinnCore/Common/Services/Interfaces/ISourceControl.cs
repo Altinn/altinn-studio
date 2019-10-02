@@ -91,10 +91,10 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets initial commit
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The first commits</returns>
-        Commit GetInitialCommit(string owner, string repository);
+        Commit GetInitialCommit(string org, string repository);
 
         /// <summary>
         /// Gets the latest commit for current user
@@ -107,10 +107,10 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gives the complete repository status
         /// </summary>
-        /// <param name="owner">The owner of the repo, org or user</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns>The repostatus</returns>
-        RepoStatus RepositoryStatus(string owner, string repository);
+        RepoStatus RepositoryStatus(string org, string repository);
 
         /// <summary>
         /// Verifies if developer has a local repo
