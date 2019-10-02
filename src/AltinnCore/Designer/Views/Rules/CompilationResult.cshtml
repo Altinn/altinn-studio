@@ -3,7 +3,7 @@
 @{
   CodeCompilationResult codeResult = ViewBag.CompilationResult;
     string org = ViewContext.RouteData.Values["org"] as string;
-    string service = ViewContext.RouteData.Values["service"] as string;
+    string app = ViewContext.RouteData.Values["app"] as string;
 }
 
 @if (codeResult != null && codeResult.CompilationInfo != null)
@@ -47,7 +47,7 @@
              asp-route-action="File"
              asp-route-name="@info.FileName"
              asp-route-org="@org"
-             asp-route-service="@service">
+             asp-route-app="@app">
             @info.FileName
           </a>
         </td>
