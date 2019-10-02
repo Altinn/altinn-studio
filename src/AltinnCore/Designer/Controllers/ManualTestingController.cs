@@ -163,7 +163,7 @@ namespace AltinnCore.Designer.Controllers
         {
             List<Testdata> testdata = _testdata.GetTestUsers();
             ViewBag.Org = org;
-            ViewBag.Service = app;
+            ViewBag.App = app;
             return View(testdata);
         }
 
