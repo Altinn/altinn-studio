@@ -4,7 +4,7 @@
 }
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
-  string service = ViewContext.RouteData.Values["service"] as string;
+  string app = ViewContext.RouteData.Values["app"] as string;
 }
 
 <button onclick="submitForm()" class="btn btn-primary"> <i class="fa fa-floppy-o fa-lg"></i> Lagre</button>
@@ -18,7 +18,7 @@
 <script>
     var editor;
     $(document).ready(function () {
-        $.ajax("/designer/@org/@service/Rules/GetFile?name=@ViewBag.FileName")
+        $.ajax("/designer/@org/@app/Rules/GetFile?name=@ViewBag.FileName")
     .done(function(data)
     {
         //$('#codecontainer').html(data);
@@ -45,7 +45,7 @@
 
             $.ajax({
                 type: 'post',
-                url: "/designer/@org/@service/Rules/SaveImplementationFile?fileName=@ViewBag.FileName",
+                url: "/designer/@org/@app/Rules/SaveImplementationFile?fileName=@ViewBag.FileName",
                 data: {
                     fileContent : editor.getValue()
                         },
@@ -61,7 +61,7 @@
 
     function compile()
     {
-        $.ajax("/designer/@org/@service/Rules/Compile")
+        $.ajax("/designer/@org/@app/Rules/Compile")
         .done(function(data)
         {
             $("#compilationResult").html(data);
