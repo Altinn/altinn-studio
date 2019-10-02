@@ -1,10 +1,11 @@
+import { AxiosError, AxiosResponse } from 'axios';
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 
 import { IParty } from '../../../../../shared/resources/party';
 import { IRuntimeState } from '../../../../../types';
 import { post } from '../../../../../utils/networking';
-import { instantiateUrl } from '../../../../../utils/urlHelper';
+import { instantiateUrl, reactErrorPage } from '../../../../../utils/urlHelper';
 import InstantiationActions from '../../actions';
 import { IInstantiate } from '../../actions/instantiate';
 import * as InstantiationActionTypes from '../../actions/types';
@@ -28,14 +29,18 @@ function* instantiationSaga({
       formData.append('PartyId', selectedParty.partyId);
       formData.append('Org', org);
       formData.append('Service', service);
-      const response = yield call(post, instantiateUrl, null, formData);
-
-      if (response.data.instanceId) {
-        yield put(InstantiationActions.instantiateFulfilled(response.data.instanceId));
-      } else {
-        const error: Error =  new Error('Server did not respond with new instance');
-        yield call(InstantiationActions.instantiateRejected, error);
-      }
+      post(instantiateUrl, null, formData)
+        .then((response: AxiosResponse) => {
+          if (response.data.instanceId !== null) {
+            InstantiationActions.instantiateFulfilled(response.data.instanceId);
+          }
+        }).catch((response: AxiosError) => {
+          if (response.response.status === 500) {
+            window.location.href = reactErrorPage;
+          } else {
+            InstantiationActions.instantiateRejected(response);
+          }
+        });
     }
   } catch (err) {
     yield call(InstantiationActions.instantiateRejected, err);

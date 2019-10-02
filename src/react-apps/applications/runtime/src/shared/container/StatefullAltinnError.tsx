@@ -2,10 +2,10 @@ import { createStyles, withStyles, WithStyles } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, RouteProps } from 'react-router-dom';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
-import { IAltinnWindow, IRuntimeState } from 'src/types';
+import { RouteProps } from 'react-router-dom';
+import AltinnAppTheme from '../../../../shared/src/theme/altinnAppTheme';
 import { IApplicationMetadata } from '../../shared/resources/applicationMetadata';
+import { IAltinnWindow, IRuntimeState } from '../../types';
 import { changeBodyBackground } from '../../utils/bodyStyling';
 import AltinnAppHeader from '../components/altinnAppHeader';
 import AltinnError from '../components/altinnError';
@@ -46,10 +46,13 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
 
   function templateErrorMessageContent(): React.ReactNode {
+    if (!language) {
+      return null;
+    }
     const { party_selection } = language;
     return (
       <>
-        {`${party_selection.no_valid_selection_second_part} ${(window as IAltinnWindow).service}. `}
+        {`${party_selection.no_valid_selection_second_part} ${(window as Window as IAltinnWindow).service}. `}
         {`${party_selection.no_valid_selection_third_part} ${templatePartyTypeString()}.`}
         <br />
         <br />
@@ -62,11 +65,17 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
   }
 
   function templateErrorMessageTitle(): string {
+    if (!language) {
+      return null;
+    }
     const { party_selection } = language;
     return `${party_selection.no_valid_selection_first_part} ${templatePartyTypeString()}`;
   }
 
   function templatePartyTypeString(): string {
+    if (!language) {
+      return null;
+    }
     let returnString: string = '';
     const partyTypes: string[] = [];
 
@@ -99,6 +108,9 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
   }
 
   if (!props.location || !props.location.state || !props.location.state.message) {
+    if (!language) {
+      return null;
+    }
     return (
       <div className={'container'}>
         <AltinnAppHeader
@@ -109,9 +121,9 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
         <Grid container={true} className={classes.statefulErrorPage}>
           <Grid item={true}>
             <AltinnError
-              title={`${language.instantiation.unknown_error_title}`}
-              content={`${language.instantiation.unknown_error_text}`}
-              statusCode={`${language.instantiation.unknown_error_status}`}
+              title={`${language.instantiate.unknown_error_title}`}
+              content={`${language.instantiate.unknown_error_text}`}
+              statusCode={`${language.instantiate.unknown_error_status}`}
             />
           </Grid>
         </Grid>
