@@ -70,10 +70,10 @@ namespace AltinnCore.Common.Services.Implementation
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 Process = new ProcessState()
                 {
-                    CurrentTask = new TaskInfo
+                    CurrentTask = new ProcessElementInfo
                     {
                         Started = DateTime.UtcNow,
-                        ProcessElementId = _workflow.GetInitialServiceState(org, app).State.ToString(),
+                        ElementId = _workflow.GetInitialServiceState(org, app).State.ToString(),
                     }
                 },
             };
@@ -185,8 +185,8 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = await GetInstance(app, org, instanceOwnerId, instanceId);
 
             instance.Process = instance.Process ?? new ProcessState();
-            instance.Process.CurrentTask = instance.Process.CurrentTask ?? new TaskInfo();
-            instance.Process.CurrentTask.ProcessElementId = WorkflowStep.Archived.ToString();
+            instance.Process.CurrentTask = instance.Process.CurrentTask ?? new ProcessElementInfo();
+            instance.Process.CurrentTask.ElementId = WorkflowStep.Archived.ToString();
             instance.Process.Ended = DateTime.UtcNow;
 
             instance.InstanceState = instance.InstanceState ?? new Storage.Interface.Models.InstanceState();
