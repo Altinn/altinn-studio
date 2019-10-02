@@ -1,7 +1,7 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { Route } from 'react-router-dom';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
+import AltinnAppTheme from '../../shared/src/theme/altinnAppTheme';
 import FormFiller from './features/form/containers';
 import Instantiate from './features/instantiate/containers';
 import PartySelection from './features/instantiate/containers/PartySelection';
