@@ -52,7 +52,7 @@ describe('>>> components/base/shareChanges.tsx --- Snapshot', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ Should match snapshot when user only has read access to service', () => {
+  it('+++ Should match snapshot when user only has read access to app', () => {
     mockHasPushRight = false;
     const rendered = renderer.create(
       <ShareChangesComponent

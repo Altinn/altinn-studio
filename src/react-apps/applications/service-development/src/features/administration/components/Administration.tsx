@@ -120,14 +120,14 @@ export class AdministrationComponent extends
 
   public componentDidMount() {
     const altinnWindow: any = window;
-    const { org, service } = altinnWindow;
+    const { org, app } = altinnWindow;
 
     handleServiceInformationActionDispatchers.fetchService(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`);
+      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${app}`);
     handleServiceInformationActionDispatchers.fetchInitialCommit(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?owner=${org}&repository=${service}`);
+      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?owner=${org}&repository=${app}`);
     handleServiceInformationActionDispatchers.fetchServiceConfig(
-      `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceConfig`);
+      `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`);
   }
 
   public onServiceNameChanged = (event: any) => {
