@@ -2,7 +2,7 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { withRouter, Redirect, RouteComponentProps } from 'react-router';
+import { Redirect, RouteComponentProps, withRouter } from 'react-router';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import Header from '../../../shared/components/altinnAppHeader';
@@ -14,6 +14,7 @@ import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
 import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
 
 const styles = createStyles({
@@ -74,12 +75,8 @@ const styles = createStyles({
   },
 });
 
-export enum PartySelectionReason {
-  NotValidParty = 403,
-}
-
 interface IRedirectParams {
-  errorCode: PartySelectionReason;
+  errorCode: HttpStatusCodes;
 }
 
 export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteComponentProps {
@@ -181,12 +178,13 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     if (!language || !language.party_selection) {
       return null;
     }
-    if ((match.params as IRedirectParams).errorCode !== null) {
+    const errorCoreString: string = (match.params as IRedirectParams).errorCode.toString();
+    if ( errorCoreString !== null) {
       try {
-        const errorCode: number = parseInt((match.params as IRedirectParams).errorCode.toString(), 10);
+        const errorCode: number = parseInt(errorCoreString, 10);
         switch (errorCode) {
           // Keeping the switch statement because we might extends the enums to handle more errors
-          case PartySelectionReason.NotValidParty: {
+          case HttpStatusCodes.Forbidden: {
             return (
               <Typography className={classes.partySelectionError}>
                 {`

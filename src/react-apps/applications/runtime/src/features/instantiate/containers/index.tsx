@@ -9,11 +9,11 @@ import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IParty } from '../../../shared/resources/party';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { HttpStatusCodes } from '../../../utils/networking';
 import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
-import { PartySelectionReason } from './PartySelection';
 
 const styles = () => createStyles({
   modal: {
@@ -160,13 +160,13 @@ function InstantiateContainer(props: IServiceInfoProps) {
       );
     } else {
       return (
-        <Redirect to={`/partyselection/${PartySelectionReason.NotValidParty}`}/>
+        <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
       );
     }
   }
   if (instantiation.error !== null) {
     return (
-      <Redirect to={`/partyselection/${PartySelectionReason.NotValidParty}`}/>
+      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
     );
   }
   if (instantiation.instanceId !== null && instantiation.error === null) {
