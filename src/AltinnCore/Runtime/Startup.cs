@@ -169,7 +169,7 @@ namespace AltinnCore.Runtime
                 services.AddApplicationInsightsKubernetesEnricher();
             }
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            IMvcBuilder mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
@@ -189,7 +189,7 @@ namespace AltinnCore.Runtime
             services.Configure<RequestLocalizationOptions>(
                 options =>
                 {
-                    var supportedCultures = new List<CultureInfo>
+                    List<CultureInfo> supportedCultures = new List<CultureInfo>
                         {
                             // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
@@ -233,24 +233,24 @@ namespace AltinnCore.Runtime
         /// <summary>
         /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         /// </summary>
-        /// <param name="app">The application builder</param>
+        /// <param name="appBuilder">The application builder</param>
         /// <param name="env">The hosting environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                appBuilder.UseDeveloperExceptionPage();
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                appBuilder.UseExceptionHandler("/Error");
             }
 
-            // app.UseHsts();
-            // app.UseHttpsRedirection();
-            app.UseAuthentication();
+            // appBuilder.UseHsts();
+            // appBuilder.UseHttpsRedirection();
+            appBuilder.UseAuthentication();
 
-            app.UseStatusCodePages(async context =>
+            appBuilder.UseStatusCodePages(async context =>
                {
                    var request = context.HttpContext.Request;
                    var response = context.HttpContext.Response;
@@ -264,13 +264,13 @@ namespace AltinnCore.Runtime
                    }
                });
 
-            app.UseResponseCompression();
-            app.UseRequestLocalization();
-            app.UseStaticFiles(new StaticFileOptions()
+            appBuilder.UseResponseCompression();
+            appBuilder.UseRequestLocalization();
+            appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
                 {
-                    var headers = context.Context.Response.GetTypedHeaders();
+                    Microsoft.AspNetCore.Http.Headers.ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
                     headers.CacheControl = new CacheControlHeaderValue()
                     {
                         Public = true,
@@ -279,12 +279,12 @@ namespace AltinnCore.Runtime
                 },
             });
 
-            app.UseMvc(routes =>
+            appBuilder.UseMvc(routes =>
             {
                 // ---------------------------- UI --------------------------- //
                 routes.MapRoute(
                     name: "profileApiRoute",
-                    template: "{org}/{service}/api/v1/{controller}/user/",
+                    template: "{org}/{app}/api/v1/{controller}/user/",
                     defaults: new
                     {
                         action = "GetUser",
@@ -297,85 +297,85 @@ namespace AltinnCore.Runtime
                     });
                 routes.MapRoute(
                     name: "uiRoute",
-                    template: "{org}/{service}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
+                    template: "{org}/{app}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
                         action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
                         controller = "Instance",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
                    name: "uiEditRoute",
-                   template: "{org}/{service}/{instanceId?}",
+                   template: "{org}/{app}/{instanceId?}",
                    defaults: new { action = "EditSPA", controller = "Instance" },
                    constraints: new
                    {
                        action = "EditSPA",
                        controller = "Instance",
-                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                    });
 
                 routes.MapRoute(
                    name: "runtimeRoute",
-                   template: "{org}/{service}",
+                   template: "{org}/{app}",
                    defaults: new { action = "EditSPA", controller = "Instance" },
                    constraints: new
                    {
                        action = "EditSPA",
                        controller = "Instance",
-                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
                 routes.MapRoute(
                    name: "instantiateRoute",
-                   template: "{org}/{service}/{controller}/InstantiateApp",
+                   template: "{org}/{app}/{controller}/InstantiateApp",
                    defaults: new { action = "InstantiateApp", controller = "Instance" },
                    constraints: new
                    {
                        action = "InstantiateApp",
                        controller = "Instance",
-                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
                 routes.MapRoute(
                    name: "authentication",
-                   template: "{org}/{service}/{controller}/{action}/{goToUrl?}",
+                   template: "{org}/{app}/{controller}/{action}/{goToUrl?}",
                    defaults: new { action = "Login", controller = "Account" },
                    constraints: new
                    {
                        action = "Login",
                        controller = "Account",
-                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    });
 
                 // ---------------------------- API -------------------------- //
                 routes.MapRoute(
                     name: "resourceRoute",
-                    template: "{org}/{service}/api/resource/{id}",
+                    template: "{org}/{app}/api/resource/{id}",
                     defaults: new { action = "Index", controller = "Resource" },
                     constraints: new
                     {
                         controller = "Resource",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
                     name: "textresourceRoute",
-                    template: "{org}/{service}/api/textresources",
+                    template: "{org}/{app}/api/textresources",
                     defaults: new { action = "TextResources", controller = "Resource" },
                     constraints: new
                     {
                         controller = "Resource",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
                     name: "runtimeResourceRoute",
-                    template: "{org}/{service}/api/runtimeresources/{id}/",
+                    template: "{org}/{app}/api/runtimeresources/{id}/",
                     defaults: new { action = "RuntimeResource", controller = "Resource" },
                     constraints: new
                     {
@@ -384,92 +384,92 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                     name: "metadataRoute",
-                    template: "{org}/{service}/api/metadata/{action=Index}",
+                    template: "{org}/{app}/api/metadata/{action=Index}",
                     defaults: new { controller = "Resource" },
                     constraints: new
                     {
                         controller = "Resource",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
                     name: "apiPostRoute",
-                    template: "{org}/{service}/api/{reportee}/{apiMode}",
+                    template: "{org}/{app}/api/{reportee}/{apiMode}",
                     defaults: new { action = "Index", controller = "ServiceAPI" },
                     constraints: new
                     {
                         controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
                     name: "apiAttachmentRoute",
-                    template: "{org}/{service}/api/attachment/{partyId}/{instanceGuid}/{action}",
+                    template: "{org}/{app}/api/attachment/{partyId}/{instanceGuid}/{action}",
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
                         controller = "Instance",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
                     name: "apiPutRoute",
-                    template: "{org}/{service}/api/{reportee}/{instanceId}/{apiMode}",
+                    template: "{org}/{app}/api/{reportee}/{instanceId}/{apiMode}",
                     defaults: new { action = "Index", controller = "ServiceAPI" },
                     constraints: new
                     {
                         controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
                 routes.MapRoute(
                     name: "apiWorkflowRoute",
-                    template: "{org}/{service}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
+                    template: "{org}/{app}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
                     defaults: new { controller = "ServiceAPI" },
                     constraints: new
                     {
                         controller = "ServiceAPI",
                         partyId = "[0-9]+",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
                     name: "codelistRoute",
-                    template: "{org}/{service}/api/{controller}/{action=Index}/{name}",
+                    template: "{org}/{app}/api/{controller}/{action=Index}/{name}",
                     defaults: new { controller = "Codelist" },
                     constraints: new
                     {
                         controller = "Codelist",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     });
 
                 routes.MapRoute(
                     name: "apiRoute",
-                    template: "{org}/{service}/api/{partyId}/{instanceId}",
+                    template: "{org}/{app}/api/{partyId}/{instanceId}",
                     defaults: new { action = "Gindex", controller = "ServiceAPI" },
                     constraints: new
                     {
                         controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         partyId = "[0-9]{1,20}",
                         instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
                     name: "serviceRoute",
-                    template: "{org}/{service}/{controller}/{action=Index}/{id?}",
+                    template: "{org}/{app}/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Service" },
                     constraints: new
                     {
                         controller = @"(Codelist|Config|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         id = "[a-zA-Z0-9_\\-]{1,30}",
                     });
                 routes.MapRoute(
                     name: "languageRoute",
-                    template: "{org}/{service}/api/{controller}/{action=Index}/{id?}",
+                    template: "{org}/{app}/api/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Language" },
                     constraints: new
                     {
@@ -478,13 +478,13 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                   name: "authorization",
-                  template: "{org}/{service}/api/{controller}/parties/{partyId}/validate",
+                  template: "{org}/{app}/api/{controller}/parties/{partyId}/validate",
                   defaults: new { action = "ValidateSelectedParty", controller = "Authorization" },
                   constraints: new
                   {
                       action = "ValidateSelectedParty",
                       controller = "Authorization",
-                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                      app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                   });
 
                 /* routes.MapRoute(
@@ -506,9 +506,9 @@ namespace AltinnCore.Runtime
                     template: "{action=Index}/{id?}");
             });
 
-            app.UseSwagger();
+            appBuilder.UseSwagger();
 
-            app.UseSwaggerUI(c =>
+            appBuilder.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
             });
@@ -517,7 +517,7 @@ namespace AltinnCore.Runtime
         /// <summary>
         ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
         /// </summary>
-        /// <returns>elemetry instrumentation key</returns>
+        /// <returns>Telemetry instrumentation key</returns>
         public string GetApplicationInsightsKeyFromEnvironment()
         {
             string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");

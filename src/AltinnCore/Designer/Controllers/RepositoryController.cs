@@ -322,27 +322,26 @@ namespace AltinnCore.Designer.Controllers
         /// Action used to create a new app under the current org.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="serviceName">The name (title) of the app to create.</param>
-        /// <param name="repoName">The repository name of the app to create.</param>
+        /// <param name="repository">The name of repository.</param>
+        /// <param name="appTitle">The title of the app to create.</param>
         /// <returns>
         /// An indication if app was created successful or not.
         /// </returns>
         [Authorize]
         [HttpPost]
-        public Repository CreateService(string org, string serviceName, string repoName)
+        public Repository CreateService(string org, string repository, string appTitle)
         {
             ServiceConfiguration serviceConfiguration = new ServiceConfiguration
             {
-                RepositoryName = repoName,
-                ServiceName = serviceName,
+                RepositoryName = repository,
+                ServiceName = appTitle,
             };
+            
+            IList<ServiceConfiguration> apps = _repository.GetServices(org);
+            List<string> appNames = apps.Select(c => c.RepositoryName.ToLower()).ToList();
+            bool appAlreadyExist = appNames.Contains(serviceConfiguration.RepositoryName.ToLower());
 
-            string serviceName1 = serviceConfiguration.RepositoryName;
-            IList<ServiceConfiguration> services = _repository.GetServices(org);
-            List<string> serviceNames = services.Select(c => c.RepositoryName.ToLower()).ToList();
-            bool serviceNameAlreadyExists = serviceNames.Contains(serviceName1.ToLower());
-
-            if (!serviceNameAlreadyExists)
+            if (!appAlreadyExist)
             {
                 return _repository.CreateService(org, serviceConfiguration);
             }

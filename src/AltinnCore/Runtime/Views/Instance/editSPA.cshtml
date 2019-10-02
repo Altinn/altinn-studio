@@ -39,10 +39,10 @@
 
     <script>
       function loadScript() {
-        var service = window.location.pathname.split('/');
+        var appId = window.location.pathname.split('/');
         window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)AltinnPartyId\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
-        window.org = service[1];
-        window.service = service[2];
+        window.org = appId[1];
+        window.service = appId[2];
       }
 
     </script>

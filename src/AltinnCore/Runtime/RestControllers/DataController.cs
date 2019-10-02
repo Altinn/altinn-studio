@@ -335,19 +335,19 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="elementType">the data element type</param>
-        /// <param name="startService">indicates if the servcie should be started or just opened</param>
+        /// <param name="startApp">indicates if the app should be started or just opened</param>
         /// <returns>the serviceImplementation object which represents the application business logic</returns>
-        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startService = false)
+        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startApp = false)
         {
             logger.LogInformation($"Prepare application model for {elementType}");
 
-            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startService);
+            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startApp);
 
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
             requestContext.Party = requestContext.UserContext.Party;
 
-            ServiceContext serviceContext = executionService.GetServiceContext(org, app, startService);
+            ServiceContext serviceContext = executionService.GetServiceContext(org, app, startApp);
 
             serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
             serviceImplementation.SetPlatformServices(platformService);
