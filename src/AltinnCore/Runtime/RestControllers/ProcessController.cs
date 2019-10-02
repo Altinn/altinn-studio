@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
@@ -34,7 +35,7 @@ namespace AltinnCore.Runtime.RestControllers
 
         private readonly UserHelper userHelper;
 
-        private BpmnReader ProcessKeeper { get; set; }
+        private BpmnReader ProcessModel { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessController"/>
@@ -102,9 +103,9 @@ namespace AltinnCore.Runtime.RestControllers
                 return Conflict($"Process is already started. Use next");
             }
 
-            ProcessKeeper = BpmnReader.Create(processService.GetProcessDefinition(org, app));
+            LoadProcessModel(org, app);
 
-            string validStartElement = GetValidStartEvenOrError(startEvent, out ActionResult startEventError);
+            string validStartElement = GetValidStartEventOrError(startEvent, out ActionResult startEventError);
             if (startEventError != null)
             {
                 return startEventError;
@@ -114,7 +115,7 @@ namespace AltinnCore.Runtime.RestControllers
             Instance updatedInstance = await StartProcessOfInstance(org, app, instanceOwnerId, instanceGuid, instance, validStartElement);
 
             // trigger next task
-            string nextValidElement = GetNextValidElementOrError(validStartElement, out ActionResult nextElementError);
+            string nextValidElement = GetValidNextElementOrError(validStartElement, out ActionResult nextElementError);
             if (nextElementError != null)
             {
                 return nextElementError;
@@ -147,7 +148,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound();
             }
 
-            ProcessKeeper = BpmnReader.Create(processService.GetProcessDefinition(org, app));
+            LoadProcessModel(org, app);
 
             if (instance.Process == null)
             {
@@ -161,7 +162,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return Conflict($"Instance does not have valid info about currentTask");
             }
 
-            List<string> nextElementIds = ProcessKeeper.NextElements(currentTaskId);
+            List<string> nextElementIds = ProcessModel.NextElements(currentTaskId);
 
             if (nextElementIds.Count == 0)
             {
@@ -194,7 +195,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return Conflict($"Process is not started. Use start!");
             }
 
-            ProcessKeeper = BpmnReader.Create(processService.GetProcessDefinition(org, app));
+            LoadProcessModel(org, app);
 
             string currentElementId = instance.Process.CurrentTask?.ElementId;
 
@@ -239,18 +240,18 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound("Cannot find instance");
             }
 
-            ProcessKeeper = BpmnReader.Create(processService.GetProcessDefinition(org, app));
+            LoadProcessModel(org, app);
 
             if (instance.Process == null)
             {
-                string startEvent = GetValidStartEvenOrError(null, out ActionResult startEventError);
+                string startEvent = GetValidStartEventOrError(null, out ActionResult startEventError);
 
                 if (startEventError != null)
                 {
                     return startEventError;
                 }
 
-                instance = await StartProcessOfInstance(org, app, instanceOwnerId, instanceGuid, instance, startEvent);                
+                instance = await StartProcessOfInstance(org, app, instanceOwnerId, instanceGuid, instance, startEvent);
             }
 
             string currentTaskId = instance.Process.CurrentTask?.ElementId ?? instance.Process.StartEvent;
@@ -259,7 +260,7 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 return Conflict($"Instance does not have valid currentTask");
             }
-       
+
             // do next until end event is reached or task cannot be completed.
             int counter = 0;
             do
@@ -269,7 +270,7 @@ namespace AltinnCore.Runtime.RestControllers
                     return Conflict($"Instance is not valid in task {currentTaskId}. Automatic completion of process is stopped");
                 }
 
-                List<string> nextElements = ProcessKeeper.NextElements(currentTaskId);
+                List<string> nextElements = ProcessModel.NextElements(currentTaskId);
 
                 if (nextElements.Count > 1)
                 {
@@ -292,12 +293,20 @@ namespace AltinnCore.Runtime.RestControllers
             return Ok(instance.Process);
         }
 
-        private string GetNextValidElementOrError(string currentElement, out ActionResult nextElementError)
+        private void LoadProcessModel(string org, string app)
+        {
+            using (Stream definitions = processService.GetProcessDefinition(org, app))
+            {
+                ProcessModel = BpmnReader.Create(definitions);
+            }
+        }
+
+        private string GetValidNextElementOrError(string currentElement, out ActionResult nextElementError)
         {
             nextElementError = null;
             string nextElementId = null;
 
-            List<string> nextElements = ProcessKeeper.NextElements(currentElement);
+            List<string> nextElements = ProcessModel.NextElements(currentElement);
 
             if (nextElements.Count > 1)
             {
@@ -311,11 +320,11 @@ namespace AltinnCore.Runtime.RestControllers
             return nextElementId;
         }
 
-        private string GetValidStartEvenOrError(string proposedStartEvent, out ActionResult startEventError)
+        private string GetValidStartEventOrError(string proposedStartEvent, out ActionResult startEventError)
         {
             startEventError = null;
 
-            List<string> possibleStartEvents = ProcessKeeper.StartEvents();
+            List<string> possibleStartEvents = ProcessModel.StartEvents();
 
             if (!string.IsNullOrEmpty(proposedStartEvent))
             {
@@ -389,7 +398,7 @@ namespace AltinnCore.Runtime.RestControllers
         {
             nextElementError = null;
 
-            List<string> possibleNextElements = ProcessKeeper.NextElements(currentElementId);
+            List<string> possibleNextElements = ProcessModel.NextElements(currentElementId);
 
             if (!string.IsNullOrEmpty(proposedElementId))
             {
@@ -441,7 +450,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             string previousElementId = currentState.CurrentTask?.ElementId;
 
-            ElementInfo nextElementInfo = ProcessKeeper.GetElementInfo(nextElementId);
+            ElementInfo nextElementInfo = ProcessModel.GetElementInfo(nextElementId);
 
             DateTime now = DateTime.UtcNow;
             int flow = 1;
@@ -510,20 +519,20 @@ namespace AltinnCore.Runtime.RestControllers
 
         private bool IsTask(string nextElementId)
         {
-            List<string> tasks = ProcessKeeper.Tasks();
+            List<string> tasks = ProcessModel.Tasks();
             return tasks.Contains(nextElementId);            
         }
 
         private bool IsStartEvent(string startEventId)
         {
-            List<string> startEvents = ProcessKeeper.StartEvents();
+            List<string> startEvents = ProcessModel.StartEvents();
 
             return startEvents.Contains(startEventId);
         }
 
         private bool IsEndEvent(string nextElementId)
         {
-            List<string> endEvents = ProcessKeeper.EndEvents();
+            List<string> endEvents = ProcessModel.EndEvents();
 
             return endEvents.Contains(nextElementId);            
         }
