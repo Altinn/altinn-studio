@@ -7,6 +7,7 @@ namespace AltinnCore.Common.Services.Interfaces
     /// <summary>
     /// Interface for workflow functionality
     /// </summary>
+    [Obsolete]
     public interface IWorkflow
     {
         /// <summary>

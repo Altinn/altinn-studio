@@ -328,12 +328,6 @@
             Examples are: main, subschema-x, cv, attachement
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.ElementType.Type">
-            <summary>
-            The element type. Only used for form data and represents the class name for the form. 
-            Formated as {org}.{app}.model.{id}. 
-            </summary>
-        </member>
         <member name="P:Altinn.Platform.Storage.Models.ElementType.Description">
             <summary>
             Description of the element type with language description.
@@ -347,7 +341,7 @@
         </member>
         <member name="P:Altinn.Platform.Storage.Models.ElementType.AppLogic">
             <summary>
-            Does the data element require application logic or should it be streamed directly to storage.
+            Does the data element require application logic (true) or should it be streamed directly to storage (false).
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Models.ElementType.Task">
@@ -370,16 +364,6 @@
             <summary>
             Minimum number of instances of same element. Default is 1.
             If negative no limit on number of data elements.
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Models.ElementType.ShouldSign">
-            <summary>
-            True if signature is required. Default value is false.
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Models.ElementType.ShouldEncrypt">
-            <summary>
-            Encryption required by application. Default value is false.  
             </summary>
         </member>
         <member name="T:Altinn.Platform.Storage.Models.Instance">
@@ -530,9 +514,11 @@
             the end user system that triggered the event
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.WorkflowStep">
+        <member name="P:Altinn.Platform.Storage.Models.InstanceEvent.ProcessInfo">
             <summary>
-            the workflow step during which the event occured
+            More information about the process event.
+            Contains a snapshot of the changed currentTask element of the instance.
+            If event type does not start with process: this field is not present.
             </summary>
         </member>
         <member name="M:Altinn.Platform.Storage.Models.InstanceEvent.ToString">
@@ -763,167 +749,42 @@
             <param name="info">info</param>
             <param name="context">context</param>
         </member>
-        <member name="T:Storage.Interface.Models.MessageBoxInstance">
+        <member name="T:Storage.Interface.Models.ProcessElementInfo">
             <summary>
-            Simplified instance class designed for Altinn 2 messagebox.
+            Contains information about the current task/event element of a process
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.Id">
+        <member name="P:Storage.Interface.Models.ProcessElementInfo.Flow">
             <summary>
-            Unique guid id of the instance.
+            The sequence number of the various tasks and event elements that have been reached by this process.
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.InstanceOwnerId">
+        <member name="P:Storage.Interface.Models.ProcessElementInfo.Started">
             <summary>
-            Owner of the instance.
+            Date and time when the task was started.
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.Org">
+        <member name="P:Storage.Interface.Models.ProcessElementInfo.ElementId">
             <summary>
-            Application owner for the app, should be lower case.
+            Reference to the current task/event element id as given in the process definition.
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.AppName">
+        <member name="P:Storage.Interface.Models.ProcessElementInfo.Name">
             <summary>
-            Application name used to identfify application.
+            The name of the process element
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.Title">
-            <summary>
-            Application title for the instance.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.ProcessCurrentTask">
-            <summary>
-            Current task in processState.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.CreatedDateTime">
-            <summary>
-            Create date and time for the instance.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.LastChangedBy">
-            <summary>
-            User id of the user who last changed the instance.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.DueDateTime">
-            <summary>
-            Due date to submit the instance to application owner.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.DeleteStatus">
-            <summary>
-            Delete status of instance; default or softDeleted.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.AllowDelete">
-            <summary>
-            Boolean indicating if user is allowed to delete instance.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.AllowNewCopy">
-            <summary>
-            Boolean indicating if user is allowed to create a new copy from existing instance.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.AuthorizedForWrite">
-            <summary>
-            Boolean indicating if user is authorized to write on instance.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.ArchivedDateTime">
-            <summary>
-            DateTime the instance was archived 
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.MessageBoxInstance.DeletedDateTime">
-            <summary>
-            DateTime the instance was deleted
-            </summary>
-        </member>
-        <member name="T:Storage.Interface.Models.DeleteStatusType">
-            <summary>
-            Status indicating the deletion status of an instance
-            </summary>
-        </member>
-        <member name="F:Storage.Interface.Models.DeleteStatusType.Default">
-            <summary>
-            Default status, not soft deleted.
-            </summary>
-        </member>
-        <member name="F:Storage.Interface.Models.DeleteStatusType.SoftDeleted">
-            <summary>
-            Instance has been soft deleted.
-            </summary>
-        </member>
-        <member name="T:Storage.Interface.Models.ProcessState">
-            <summary>
-            Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.ProcessState.Started">
-            <summary>
-            Indicates the date and time when the process was initialized
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.ProcessState.CurrentTask">
-            <summary>
-            Contains the task info of the currentTask of an ongoing process. If process is ended/completed it will not have value. 
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.ProcessState.Ended">
-            <summary>
-            The date time the process was ended/completed. 
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.ProcessState.EndEvent">
-            <summary>
-            Refers to the id of the reached end event of the process. 
-            </summary>
-        </member>
-        <member name="T:Storage.Interface.Models.ResourceLinks">
-            <summary>
-            represent actual links to resources in various enpoints
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.ResourceLinks.Apps">
-            <summary>
-            application resource link
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.ResourceLinks.Platform">
-            <summary>
-            platform resource link
-            </summary>
-        </member>
-        <member name="T:Storage.Interface.Models.TaskInfo">
-            <summary>
-            Contains information about the current task of a process
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.TaskInfo.SequenceNumber">
-            <summary>
-            The sequence number of the various tasks and events that have been reached by this process.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.TaskInfo.Started">
-            <summary>
-            Date and time when the task is started.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.TaskInfo.ProcessElementId">
-            <summary>
-            Reference to the current Task/event in the process definition.
-            </summary>
-        </member>
-        <member name="P:Storage.Interface.Models.TaskInfo.AltinnTaskType">
+        <member name="P:Storage.Interface.Models.ProcessElementInfo.AltinnTaskType">
             <summary>
             An altinn specific task type which specifies the wanted behaviour of the task.
             </summary>
         </member>
-        <member name="P:Storage.Interface.Models.TaskInfo.Validated">
+        <member name="P:Storage.Interface.Models.ProcessElementInfo.Ended">
+            <summary>
+            Date and time when the task was ended (closed/completed)
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessElementInfo.Validated">
             <summary>
             Validation status.
             </summary>
@@ -941,6 +802,53 @@
         <member name="P:Storage.Interface.Models.ValidationStatus.CanCompleteTask">
             <summary>
             Indicates if the validation was successfull and that the task can be completed.
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.ProcessState">
+            <summary>
+            Holds the process state of an application instance.
+            The process is defined by the application's process specification BPMN file. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.Started">
+            <summary>
+            Indicates the date and time when the process was initialized
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.StartEvent">
+            <summary>
+            The start event that was used to start the process. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.CurrentTask">
+            <summary>
+            Contains the task info of the currentTask of an ongoing process.
+            If process is not started or ended this field will not have value. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.Ended">
+            <summary>
+            The date time the process was ended/completed. 
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ProcessState.EndEvent">
+            <summary>
+            The end event of the process. 
+            </summary>
+        </member>
+        <member name="T:Storage.Interface.Models.ResourceLinks">
+            <summary>
+            represent actual links to resources in various enpoints
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ResourceLinks.Apps">
+            <summary>
+            application resource link
+            </summary>
+        </member>
+        <member name="P:Storage.Interface.Models.ResourceLinks.Platform">
+            <summary>
+            platform resource link
             </summary>
         </member>
     </members>

@@ -4,34 +4,46 @@ using System;
 namespace Storage.Interface.Models
 {
     /// <summary>
-    /// Contains information about the current task of a process
+    /// Contains information about the current task/event element of a process
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class TaskInfo
+    public class ProcessElementInfo
     {
         /// <summary>
-        /// The sequence number of the various tasks and events that have been reached by this process.
+        /// The sequence number of the various tasks and event elements that have been reached by this process.
         /// </summary>
-        [JsonProperty(PropertyName = "sequenceNumber")]
-        public int SequenceNumber { get; set; }
+        [JsonProperty(PropertyName = "flow")]
+        public int? Flow { get; set; }
 
         /// <summary>
-        /// Date and time when the task is started.
+        /// Date and time when the task was started.
         /// </summary>
         [JsonProperty(PropertyName = "started")]
         public DateTime? Started { get; set; }
 
         /// <summary>
-        /// Reference to the current Task/event in the process definition.
+        /// Reference to the current task/event element id as given in the process definition.
         /// </summary>
-        [JsonProperty(PropertyName = "processElementId")]
-        public string ProcessElementId { get; set; }
+        [JsonProperty(PropertyName = "elementId")]
+        public string ElementId { get; set; }
+
+        /// <summary>
+        /// The name of the process element
+        /// </summary>
+        [JsonProperty(PropertyName = "name")]
+        public string Name { get; set; }
 
         /// <summary>
         /// An altinn specific task type which specifies the wanted behaviour of the task.
         /// </summary>
         [JsonProperty(PropertyName = "altinnTaskType")]
         public string AltinnTaskType { get; set; }
+
+        /// <summary>
+        /// Date and time when the task was ended (closed/completed)
+        /// </summary>
+        [JsonProperty(PropertyName = "ended")]
+        public DateTime? Ended { get; set; }
 
         /// <summary>
         /// Validation status.

@@ -37,18 +37,18 @@ namespace Altinn.Platform.Storage.Helpers
 
                 if (i < 200)
                 {
-                    processState.CurrentTask = new TaskInfo
+                    processState.CurrentTask = new ProcessElementInfo
                     {
                         Started = start,
-                        ProcessElementId = processTaskIds[0],
+                        ElementId = processTaskIds[0],
                     };
                 }
                 else if (i < 400)
                 {
-                    processState.CurrentTask = new TaskInfo
+                    processState.CurrentTask = new ProcessElementInfo
                     {
                         Started = start,
-                        ProcessElementId = processTaskIds[1],
+                        ElementId = processTaskIds[1],
                     };
                 }
                 else if (i < 900)

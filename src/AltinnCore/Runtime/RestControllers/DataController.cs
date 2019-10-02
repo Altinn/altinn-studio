@@ -399,8 +399,6 @@ namespace AltinnCore.Runtime.RestControllers
         {
             UserContext userContext = await userHelper.GetUserContext(HttpContext);
 
-            string workflowStep = instance.Process?.CurrentTask?.ProcessElementId;
-
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
 
@@ -412,7 +410,7 @@ namespace AltinnCore.Runtime.RestControllers
                 InstanceId = instance.Id,
                 InstanceOwnerId = instance.InstanceOwnerId,
                 UserId = userContext.UserId,
-                WorkflowStep = workflowStep,
+                ProcessInfo = instance.Process,
             };
 
             await eventService.SaveInstanceEvent(instanceEvent, org, app);

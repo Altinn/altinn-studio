@@ -35,7 +35,7 @@ namespace Altinn.Platform.Storage.Helpers
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
                     Title = appTitles[instance.AppId].ContainsKey(language) ? appTitles[instance.AppId][language] : appTitles[instance.AppId]["nb"],
-                    ProcessCurrentTask = instance.Process?.CurrentTask?.ProcessElementId,
+                    ProcessCurrentTask = instance.Process?.CurrentTask?.ElementId,
                     AuthorizedForWrite = true,
                     AllowDelete = true,
                     AllowNewCopy = false,
@@ -46,6 +46,29 @@ namespace Altinn.Platform.Storage.Helpers
             }
 
             return messageBoxInstances;
+        }
+
+        /// <summary>
+        /// Converts list of instance events to a list of simplified sbl instance events
+        /// </summary>
+        /// <param name="instanceEvents">List of instance events to convert.</param>
+        public static List<SblInstanceEvent> ConvertToSBLInstanceEvent(List<InstanceEvent> instanceEvents)
+        {
+            List<SblInstanceEvent> simpleEvents = new List<SblInstanceEvent>();
+            foreach (InstanceEvent instanceEvent in instanceEvents)
+            {
+                simpleEvents.Add(
+                    new SblInstanceEvent()
+                    {
+                        Id = instanceEvent.Id,
+                        UserId = instanceEvent.UserId,
+                        CreatedDateTime = instanceEvent.CreatedDateTime,
+                        EndUserSystemId = instanceEvent.EndUserSystemId,
+                        EventType = instanceEvent.EventType
+                    });
+            }
+
+            return simpleEvents;
         }
     }
 }
