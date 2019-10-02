@@ -239,6 +239,8 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <returns>The updated data element.</returns>
+        [Authorize]
+        [HttpDelete("{dataGuid:guid}")]
         public async Task<ActionResult> Delete(
             [FromRoute] string org,
             [FromRoute] string app,
