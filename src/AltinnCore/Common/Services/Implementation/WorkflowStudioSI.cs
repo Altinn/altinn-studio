@@ -17,6 +17,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Studio implementation of the workflow service.
     /// </summary>
+    [Obsolete]
     public class WorkflowStudioSI : IWorkflow
     {
         private readonly ServiceRepositorySettings _settings;

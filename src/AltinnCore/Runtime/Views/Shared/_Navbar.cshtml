@@ -9,21 +9,21 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @{
     string org = ViewContext.RouteData.Values["org"] as string;
-    string service = ViewContext.RouteData.Values["service"] as string;
+    string app = ViewContext.RouteData.Values["app"] as string;
 
     ServiceMetadata _sm = null;
     IList<TestMetadata> _tests = null;
-    bool _hasOrgService = org != null && service != null;
+    bool _hasOrgApp = org != null && app != null;
 
-    if (_hasOrgService)
+    if (_hasOrgApp)
     {
-      _sm = _repository.GetServiceMetaData(org, service);     
+      _sm = _repository.GetServiceMetaData(org, app);     
     }
 }
 
 <!--<script>
     window.org = '@org';
-    window.service = '@service';
+    window.service = '@app';
 </script>-->
 
 <style>
@@ -280,17 +280,17 @@
                     </div>
                 </li>
 
-                @if (service != null)
+                @if (app != null)
                 {
                     <li class="nav-item nav-boxed">
-                        <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" asp-route="serviceRoute" asp-route-controller="Service" asp-route-action="Index" asp-route-service="@service" title="Tjeneste">
-                            @service
+                        <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" asp-route="serviceRoute" asp-route-controller="Service" asp-route-action="Index" asp-route-app="@app" title="Tjeneste">
+                            @app
                         </a>
                     
                         <div class="dropdown-menu">
                             @*@foreach (ServiceConfiguration serviceConfig in _repository.GetServices(org))
                             {
-                                <a class="dropdown-item only-primary" asp-route="serviceRoute" asp-route-controller="Service" asp-route-action="Index" asp-route-org="@org" asp-route-service="@serviceConfig.Code">
+                                <a class="dropdown-item only-primary" asp-route="serviceRoute" asp-route-controller="Service" asp-route-action="Index" asp-route-org="@org" asp-route-app="@serviceConfig.Code">
                                     <i class="fa fa-fw" aria-hidden="true"></i>
                                     @serviceConfig.Code
                                 </a>
@@ -308,51 +308,51 @@
                 }
             }
 
-            @if (_hasOrgService)
+            @if (_hasOrgApp)
             {
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" href="/designer/@org/@service/Model">
+                    <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" href="/designer/@org/@app/Model">
                         Modellering
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="/designer/@org/@service/Model">
+                        <a class="dropdown-item" href="/designer/@org/@app/Model">
                             <i class="fa fa-fw fa-cubes" aria-hidden="true"></i>
                             Datamodell
                         </a>
-                        <a class="dropdown-item" href="/designer/@org/@service/DataSSource">
+                        <a class="dropdown-item" href="/designer/@org/@app/DataSSource">
                             <i class="fa fa-fw fa-cloud-download" aria-hidden="true"></i>
                             Datakilder
                         </a>
-                        <a class="dropdown-item" href="/designer/@org/@service/Codelist">
+                        <a class="dropdown-item" href="/designer/@org/@app/Codelist">
                             <i class="fa fa-fw fa-list" aria-hidden="true"></i>
                             Kodelister
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="/designer/@org/@service/Rules">
+                        <a class="dropdown-item" href="/designer/@org/@app/Rules">
                             <i class="fa fa-fw fa-cogs fa-flip-horizontal" aria-hidden="true"></i>
                             Regler
                         </a>
-                        <a class="dropdown-item" href="/designer/@org/@service/Rules/Code">
+                        <a class="dropdown-item" href="/designer/@org/@app/Rules/Code">
                             <i class="fa fa-fw fa-wrench" aria-hidden="true"></i>
                             Kode
                         </a>
                     </div>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" href="/designer/@org/@service/React">
+                    <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" href="/designer/@org/@app/React">
                         UX
                     </a>
                     <div class="dropdown-menu">
-                      <a class="dropdown-item" href="/designer/@org/@service/React">
+                      <a class="dropdown-item" href="/designer/@org/@app/React">
                         <i class="fa fa-fw fa-edit" aria-hidden="true"></i>
                         Designer
                       </a>
-                      <a class="dropdown-item" href="/designer/@org/@service/React#/Preview">
+                      <a class="dropdown-item" href="/designer/@org/@app/React#/Preview">
                         <i class="fa fa-fw fa-eye" aria-hidden="true"></i>
                         Preview
                       </a>
                       <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="/designer/@org/@service/Text">
+                      <a class="dropdown-item" href="/designer/@org/@app/Text">
                         <i class="fa fa-fw fa-globe" aria-hidden="true"></i>
                         Tekster
                       </a>
@@ -367,7 +367,7 @@
                         </a>
                         <div class="dropdown-menu">
                             <a class="dropdown-item" asp-route="serviceRoute" asp-route-controller="Testing" asp-route-action="Accessibility"><i class="fa fa-fw fa-universal-access" aria-hidden="true"></i> UU</a>
-                            <a class="dropdown-item" asp-route-controller="ManualTesting" asp-route-action="Index" asp-route-org="@org" asp-route-service="@service">
+                            <a class="dropdown-item" asp-route-controller="ManualTesting" asp-route-action="Index" asp-route-org="@org" asp-route-app="@app">
                                 <i class="fa fa-fw fa-play" aria-hidden="true"></i>Manuell
                             </a>
                             <a class="dropdown-item" asp-route-controller="Testing" asp-route-action="Index"><i class="fa fa-fw fa-coffee" aria-hidden="true"></i> Automatisk</a>

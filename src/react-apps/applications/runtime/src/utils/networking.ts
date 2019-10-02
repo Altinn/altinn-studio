@@ -20,7 +20,7 @@ export async function post(
   url: string,
   options?: AxiosRequestConfig,
   data?: any,
-): Promise<any> {
+): Promise<AxiosResponse<any>> {
   try {
     const response: AxiosResponse = await axios.post(url, data, options ? options : null);
     return response;
@@ -34,7 +34,7 @@ export async function put(
   apiMode: string,
   data: any,
   config?: AxiosRequestConfig,
-): Promise<any> {
+): Promise<AxiosResponse<any>> {
   try {
     const response: AxiosResponse = await axios.put(`${url}/${apiMode}`, data, config ? config : null);
     return response.data ? response.data : null;
@@ -45,7 +45,7 @@ export async function put(
 
 export async function putWithoutConfig<ReturnType>(
   url: string,
-): Promise<ReturnType> {
+): Promise<AxiosResponse<ReturnType>> {
   try {
     const response = await axios.put(url);
     return response.data ? response.data : null;

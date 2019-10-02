@@ -20,7 +20,7 @@
     "organisation": null,
 		"partyID": "10001",
 		"organisationNumber": null,
-		"unitType": null,
+		"unitType": "AS",
 		"ssn": "02017512345",
 		"name": "Kari Consulting",
 		"isDeleted": false,

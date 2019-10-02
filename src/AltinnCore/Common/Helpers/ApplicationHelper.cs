@@ -11,14 +11,14 @@ namespace AltinnCore.Common.Helpers
     public static class ApplicationHelper
     {
         /// <summary>
-        /// Gets the application id  (appId) formatted as "org/appName"
+        /// Gets the application id  (appId) formatted as "org/app"
         /// </summary>
-        /// <param name="org">the application owner</param>
-        /// <param name="appName">the application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
-        public static string GetFormattedApplicationId(string org, string appName)
+        public static string GetFormattedApplicationId(string org, string app)
         {
-            return $"{org}/{appName}";
+            return $"{org}/{app}";
         }
 
         /// <summary>

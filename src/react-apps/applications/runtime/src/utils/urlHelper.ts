@@ -19,6 +19,7 @@ export const currentPartyUrl: string = `${origin}/${org}/${service}/api/authoriz
 export const instancesControllerUrl: string = `${origin}/${org}/${service}/instances`;
 export const partySelectionUrl: string = `${origin}/${org}/${service}/#/partyselection`;
 export const refreshJwtTokenUrl: string = `${origin}/${org}/${service}/api/authentication/keepAlive`;
+export const reactErrorPage: string = `${origin}/${org}/${service}/#/error`;
 
 export const getEnvironmentLoginUrl: () => string = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.

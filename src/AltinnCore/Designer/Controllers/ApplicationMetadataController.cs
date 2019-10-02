@@ -31,8 +31,8 @@ namespace Designer.Controllers
         /// <summary>
         /// Gets the application metadata, url GET "/designer/api/v1/org/app/"
         /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The the application</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application metadata</returns>
         [HttpGet]
         [ActionName("ApplicationMetadata")]
@@ -50,8 +50,8 @@ namespace Designer.Controllers
         /// <summary>
         /// Puts the application metadata, url PUT "/designer/api/v1/org/app/
         /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The application</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="applicationMetadata">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
@@ -72,8 +72,8 @@ namespace Designer.Controllers
         /// <summary>
         /// Create an application metadata, url POST "/designer/api/v1/org/app"
         /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The application</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The created application metadata</returns>
         [HttpPost]
         [ActionName("ApplicationMetadata")]

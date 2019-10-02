@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace AltinnCore.Common.Helpers
@@ -53,14 +53,14 @@ namespace AltinnCore.Common.Helpers
         }
 
         /// <summary>
-        /// The assert org and service arguments are present (not null or whitespace).
+        /// Assert that org and app arguments are present (not null or whitespace).
         /// </summary>
-        /// <param name="org"> The org. </param>
-        /// <param name="service"> The service. </param>
-        public static void AssertOrgService(string org, string service)
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        public static void AssertOrgApp(string org, string app)
         {
             AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
-            AssertArgumentNotNullOrWhiteSpace(service, nameof(service));
+            AssertArgumentNotNullOrWhiteSpace(app, nameof(app));
         }
     }
 }

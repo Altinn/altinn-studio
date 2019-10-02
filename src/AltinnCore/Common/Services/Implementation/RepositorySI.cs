@@ -1241,7 +1241,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A list of all packages created for the given app.</returns>
         public IList<ServicePackageDetails> GetServicePackages(string org, string app)
         {
-            Guard.AssertOrgService(org, app);
+            Guard.AssertOrgApp(org, app);
             List<ServicePackageDetails> packageDetails = new List<ServicePackageDetails>();
             string packageDirectory = _settings.GetServicePackagesPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 

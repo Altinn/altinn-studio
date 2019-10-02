@@ -24,6 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// App implementation of the workflow service for deployed application.
     /// </summary>
+    [Obsolete]
     public class WorkflowAppSI : IWorkflow
     {
         private readonly ServiceRepositorySettings _settings;

@@ -57,21 +57,21 @@ namespace AltinnCore.Common.Helpers
         /// Gets the url for the current state
         /// </summary>
         /// <param name="instanceId">the instance id</param>
-        /// <param name="org">the application owner</param>
-        /// <param name="appName">the application name</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="currentState">the current workflow state</param>
         /// <returns></returns>
-        public static string GetUrlForCurrentState(Guid instanceId, string org, string appName, WorkflowStep currentState)
+        public static string GetUrlForCurrentState(Guid instanceId, string org, string app, WorkflowStep currentState)
         {
             switch (currentState)
             {
                 case WorkflowStep.FormFilling:
                 case WorkflowStep.Submit:
                 case WorkflowStep.Archived:
-                    return $"/{org}/{appName}/#/instance/{instanceId}";
+                    return $"/{org}/{app}/#/instance/{instanceId}";
                 default:
                     // TODO: figure out what should be here and update.
-                    return $"/designer/{org}/{appName}/ManualTesting";
+                    return $"/designer/{org}/{app}/ManualTesting";
             }
         }
 
