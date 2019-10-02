@@ -25,9 +25,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceStatusViewComponent"/> class.
         /// </summary>
-        /// <param name="compilation"> The service compilation service.  </param>
-        /// <param name="repository"> The service Repository Service. </param>
-        /// <param name="generalSettings">the general setting for the repository</param>
+        /// <param name="compilation">The app compilation service.</param>
+        /// <param name="repository">The app repository service.</param>
+        /// <param name="generalSettings">the general setting for the repository.</param>
         public ServiceStatusViewComponent(ICompilation compilation, IRepository repository, IOptions<GeneralSettings> generalSettings)
         {
             _compilation = compilation;
@@ -36,20 +36,20 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// The invokes the Component async.
+        /// Invokes the Component async.
         /// </summary>
-        /// <param name="org"> The org. </param>
-        /// <param name="service"> The service. </param>
-        /// <param name="serviceMetadata"> The service Metadata. </param>
-        /// <param name="codeCompilationResult"> The code Compilation Result. </param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="serviceMetadata">The service metadata.</param>
+        /// <param name="codeCompilationResult">The code Compilation result.</param>
         /// <returns> The <see cref="Task"/>.  </returns>
         public async Task<IViewComponentResult> InvokeAsync(
             string org,
-            string service,
+            string app,
             ServiceMetadata serviceMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
-            ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
+            ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = app };
             CodeCompilationResult compilation = null;
 
             if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
@@ -168,13 +168,13 @@ namespace AltinnCore.Runtime.Controllers
                 yield break;
             }
 
-            var routParameters =
-                new { org = serviceMetadata.Org, service = serviceMetadata.RepositoryName };
+            var routeParameters =
+                new { org = serviceMetadata.Org, app = serviceMetadata.RepositoryName };
             if (serviceMetadata.Elements == null || !serviceMetadata.Elements.Any())
             {
                 var dataModellMissing = ServiceStatusViewModel.UserMessage.Error("Tjenestens datamodell mangler");
                 dataModellMissing.Link = new KeyValuePair<string, string>(
-                                             Url.Action("Index", "Model", routParameters),
+                                             Url.Action("Index", "Model", routeParameters),
                                              "Til Datamodell");
                 yield return dataModellMissing;
             }

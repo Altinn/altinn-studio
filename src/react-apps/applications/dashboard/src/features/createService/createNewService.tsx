@@ -178,7 +178,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       // tslint:disable-next-line:max-line-length
       const selectedOrgOrUser = this.props.selectableUser.find((user: any) => (user.full_name === this.state.selectedOrgOrUser || user.name === this.state.selectedOrgOrUser));
       // tslint:disable-next-line:max-line-length
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${selectedOrgOrUser.name}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${selectedOrgOrUser.name}&repository=${this.state.repoName}&appTitle=${this.state.serviceName}`;
       post(url).then((result: any) => {
         if (this._isMounted && result.repositoryCreatedStatus === 422) {
           this.setState({

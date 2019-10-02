@@ -20,7 +20,7 @@
     "unitType": "AS",
     "name": "Hovedenhet AS",
     "isDeleted": false,
-    "onlyHierarchyElementWithNoAccess": true,
+    "onlyHierarchyElementWithNoAccess": false,
     "childParties": [
       {
       "partyTypeName": "Organisation",

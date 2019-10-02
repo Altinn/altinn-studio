@@ -52,7 +52,8 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<HttpResponseMessage> RefreshToken()
         {
             string endpointUrl = $"refresh";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, "AltinnStudioRuntime");
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            _logger.LogInformation($"Token from token utility{token}");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
 
