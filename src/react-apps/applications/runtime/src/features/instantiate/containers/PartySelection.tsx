@@ -2,7 +2,7 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, RouteProps } from 'react-router';
+import { withRouter, Redirect, RouteComponentProps } from 'react-router';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import Header from '../../../shared/components/altinnAppHeader';
@@ -75,20 +75,19 @@ const styles = createStyles({
 });
 
 export enum PartySelectionReason {
-  NotValid,
+  NotValidParty = 403,
 }
 
-interface IRedirectReason {
-  errorType: PartySelectionReason;
+interface IRedirectParams {
+  errorCode: PartySelectionReason;
 }
 
-export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteProps {
+export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteComponentProps {
 }
 
-function PartySelection(props: IPartySelectionProps) {
+const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
-
-  const { classes, location } = props;
+  const { classes, match } = props;
 
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
@@ -172,7 +171,7 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function getRepresentedPartyName(): string {
-    if (!selectedParty || selectedParty.name === null) {
+    if (!selectedParty || selectedParty.name === null) {
       return '';
     }
     return capitalizeName(selectedParty.name);
@@ -182,12 +181,12 @@ function PartySelection(props: IPartySelectionProps) {
     if (!language || !language.party_selection) {
       return null;
     }
-    if (location.state !== undefined &&
-      (location.state as IRedirectReason) &&
-      (location.state as IRedirectReason) !== undefined) {
-        switch ((location.state as IRedirectReason).errorType) {
+    if ((match.params as IRedirectParams).errorCode !== null) {
+      try {
+        const errorCode: number = parseInt((match.params as IRedirectParams).errorCode.toString(), 10);
+        switch (errorCode) {
           // Keeping the switch statement because we might extends the enums to handle more errors
-          case PartySelectionReason.NotValid: {
+          case PartySelectionReason.NotValidParty: {
             return (
               <Typography className={classes.partySelectionError}>
                 {`
@@ -202,6 +201,9 @@ function PartySelection(props: IPartySelectionProps) {
             return null;
           }
         }
+      } catch (err) {
+        console.info('Could not parse number from params');
+      }
     }
   }
 
@@ -394,6 +396,6 @@ function PartySelection(props: IPartySelectionProps) {
       </Grid>
     </Grid>
   );
-}
+});
 
-export default withStyles(styles)(PartySelection);
+export default withStyles(styles)(PartySelectionWithRouter);

@@ -141,14 +141,8 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   if (selectedParty === undefined) {
     return (
-      <Redirect
-        to={{
-          pathname: '/partyselection',
-          state: {
-            errorType: PartySelectionReason.NotValid,
-          },
-        }}
-      />
+      // Since a party is not selected, we shouldn't redirect with an error
+      <Redirect to={`/partyselection`}/>
     );
   }
 
@@ -166,27 +160,13 @@ function InstantiateContainer(props: IServiceInfoProps) {
       );
     } else {
       return (
-        <Redirect
-          to={{
-            pathname: '/partyselection',
-            state: {
-              errorType: PartySelectionReason.NotValid,
-            },
-          }}
-        />
+        <Redirect to={`/partyselection/${PartySelectionReason.NotValidParty}`}/>
       );
     }
   }
   if (instantiation.error !== null) {
     return (
-      <Redirect
-        to={{
-          pathname: '/partyselection',
-          state: {
-            errorType: PartySelectionReason.NotValid,
-          },
-        }}
-      />
+      <Redirect to={`/partyselection/${PartySelectionReason.NotValidParty}`}/>
     );
   }
   if (instantiation.instanceId !== null && instantiation.error === null) {
