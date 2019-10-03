@@ -42,24 +42,24 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// The default action presenting the
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model main page</returns>
-        public ActionResult Index(string org, string service)
+        public ActionResult Index(string org, string app)
         {
-            ServiceMetadata metadata = _repository.GetServiceMetaData(org, service);
+            ServiceMetadata metadata = _repository.GetServiceMetaData(org, app);
             return View(metadata);
         }
 
         /// <summary>
         /// Post action that is used when uploading a XSD and secondary XSD
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="thefile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        public ActionResult Upload(string org, string service, IFormFile thefile)
+        public ActionResult Upload(string org, string app, IFormFile thefile)
         {
             if (thefile == null)
             {
@@ -83,22 +83,22 @@ namespace AltinnCore.Designer.Controllers
             XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
             JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, service, schemaJsonSchema);
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, app, schemaJsonSchema);
             serviceMetadata = converter.GetServiceMetadata();
 
-            HandleTexts(org, service, converter.GetTexts());
+            HandleTexts(org, app, converter.GetTexts());
 
-            if (_repository.CreateModel(org, service, serviceMetadata, mainXsd))
+            if (_repository.CreateModel(org, app, serviceMetadata, mainXsd))
             {
-                return RedirectToAction("Index", new { org, service });
+                return RedirectToAction("Index", new { org, app });
             }
 
             return Json(false);
         }
 
-        private void HandleTexts(string org, string service, Dictionary<string, Dictionary<string, string>> allTexts)
+        private void HandleTexts(string org, string app, Dictionary<string, Dictionary<string, string>> allTexts)
         {
-            Dictionary<string, Dictionary<string, string>> existingTexts = _repository.GetServiceTexts(org, service);
+            Dictionary<string, Dictionary<string, string>> existingTexts = _repository.GetServiceTexts(org, app);
 
             if (existingTexts == null)
             {
@@ -121,34 +121,34 @@ namespace AltinnCore.Designer.Controllers
                 }
             }
 
-            _repository.SaveServiceTexts(org, service, existingTexts);
+            _repository.SaveServiceTexts(org, app, existingTexts);
         }
 
         /// <summary>
         /// Return JSON presentation of the model
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="texts">Boolean indicating if text should be included</param>
         /// <param name="restrictions">Boolean indicating if restrictions should be included</param>
         /// <param name="attributes">Boolean indicating if attributes should be included</param>
         /// <returns>The model as JSON</returns>
         [HttpGet]
-        public ActionResult GetJson(string org, string service, bool texts = true, bool restrictions = true, bool attributes = true)
+        public ActionResult GetJson(string org, string app, bool texts = true, bool restrictions = true, bool attributes = true)
         {
-            ServiceMetadata metadata = _repository.GetServiceMetaData(org, service);
+            ServiceMetadata metadata = _repository.GetServiceMetaData(org, app);
             return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
         }
 
         /// <summary>
         /// Updates the service metadata and regenerates the service model
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceMetadata">The new service metadata</param>
         /// <returns>Was the request a success</returns>
         [HttpPost]
-        public ActionResult UpdateServiceMetadata(string org, string service, string serviceMetadata)
+        public ActionResult UpdateServiceMetadata(string org, string app, string serviceMetadata)
         {
             ServiceMetadata serviceMetadataObject = JsonConvert.DeserializeObject<ServiceMetadata>(serviceMetadata);
 
@@ -157,9 +157,9 @@ namespace AltinnCore.Designer.Controllers
                 return BadRequest("Modelstate is invalid");
             }
 
-            if (_repository.UpdateServiceMetadata(org, service, serviceMetadataObject))
+            if (_repository.UpdateServiceMetadata(org, app, serviceMetadataObject))
             {
-                _repository.CreateModel(org, service, serviceMetadataObject, null);
+                _repository.CreateModel(org, app, serviceMetadataObject, null);
                 return Ok("Metadata was saved and model re-generated");
             }
             else
@@ -171,37 +171,37 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Returns the model as C# code
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model as C#</returns>
         [HttpGet]
-        public ActionResult GetModel(string org, string service)
+        public ActionResult GetModel(string org, string app)
         {
-            return Content(_repository.GetServiceModel(org, service), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetServiceModel(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
         /// Get the model as XSD
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as XSD</returns>
         [HttpGet]
-        public ActionResult GetXsd(string org, string service)
+        public ActionResult GetXsd(string org, string app)
         {
-            return Content(_repository.GetXsdModel(org, service), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetXsdModel(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
         /// Get the model as Json Schema
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as Json Schema</returns>
         [HttpGet]
-        public ActionResult GetJsonSchema(string org, string service)
+        public ActionResult GetJsonSchema(string org, string app)
         {
-            return Content(_repository.GetJsonSchemaModel(org, service), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetJsonSchemaModel(org, app), "text/plain", Encoding.UTF8);
         }
     }
 }

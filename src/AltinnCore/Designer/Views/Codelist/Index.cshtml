@@ -1,11 +1,11 @@
-﻿@model AltinnCore.Common.Models.AltinnStudioViewModel
+@model AltinnCore.Common.Models.AltinnStudioViewModel
 @{ ViewBag.Title = "Kodelister"; }
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
-  string service = ViewContext.RouteData.Values["service"] as string;
+  string app = ViewContext.RouteData.Values["app"] as string;
 
   string routeName = "orgRoute";
-  if (service != null)
+  if (app != null)
   {
     routeName = "serviceRoute";
   }
@@ -50,7 +50,7 @@
 {
 <div class="row my-1">
   <div class="col-12 alert alert-info" role="alert">
-    Det er @Model.RepositoryContent.Count kodelister du har endret som ikke er lagret i Altinn Studio Repository. <a href="/designer/@org/Codelist/Status">Sjekk inn oppdateringer.</a>
+    Det er @Model.RepositoryContent.Count kodelister du har endret som ikke er lagret i Altinn Studio Repository. <a href="/designer/@app/Codelist/Status">Sjekk inn oppdateringer.</a>
   </div>
 </div>
 }

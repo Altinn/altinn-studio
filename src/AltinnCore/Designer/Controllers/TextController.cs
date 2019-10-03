@@ -33,7 +33,7 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="TextController"/> class.
         /// </summary>
         /// <param name="hostingEnvironment">The hosting environment service.</param>
-        /// <param name="repositoryService">The serviceRepository service.</param>
+        /// <param name="repositoryService">The app repository service.</param>
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
@@ -49,16 +49,16 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// The View for text resources
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The view with JSON editor</returns>
-        public IActionResult Index(string org, string service)
+        public IActionResult Index(string org, string app)
         {
-            IList<string> languages = _repository.GetLanguages(org, service);
+            IList<string> languages = _repository.GetLanguages(org, app);
 
             if (Request.Headers["accept"] == "application/json")
             {
-                Dictionary<string, Dictionary<string, string>> resources = _repository.GetServiceTexts(org, service);
+                Dictionary<string, Dictionary<string, string>> resources = _repository.GetServiceTexts(org, app);
                 return Json(resources);
             }
 
@@ -66,14 +66,14 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// /// The languages in the service
+        /// /// The languages in the app
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>List of languages as JSON</returns>
-        public IActionResult GetLanguages(string org, string service)
+        public IActionResult GetLanguages(string org, string app)
         {
-            List<string> languages = _repository.GetLanguages(org, service);
+            List<string> languages = _repository.GetLanguages(org, app);
             return Json(languages);
         }
 
@@ -82,11 +82,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="jsonData">The JSON Data</param>
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code> )</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A View with update status</returns>
         [HttpPost]
-        public IActionResult SaveResource([FromBody]dynamic jsonData, string id, string org, string service)
+        public IActionResult SaveResource([FromBody]dynamic jsonData, string id, string org, string app)
         {
             JObject json = jsonData;
 
@@ -100,10 +100,10 @@ namespace AltinnCore.Designer.Controllers
             if (!(appTitleToken == null))
             {
                 string appTitle = appTitleToken.Value<string>("value");
-                _repository.UpdateAppTitle(org, service, id, appTitle);
+                _repository.UpdateAppTitle(org, app, id, appTitle);
             }
     
-            _repository.SaveResource(org, service, id, json.ToString());
+            _repository.SaveResource(org, app, id, json.ToString());
 
             return Json(new
             {
@@ -115,14 +115,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Deletes a language resource file
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>Deletes a language resource</returns>
         [HttpDelete]
-        public IActionResult DeleteLanguage(string org, string service, string id)
+        public IActionResult DeleteLanguage(string org, string app, string id)
         {
-            bool deleted = _repository.DeleteLanguage(org, service, id);
+            bool deleted = _repository.DeleteLanguage(org, app, id);
             return Json(new { Message = "Språket " + id + " er nå slettet!", Id = id, GikkBra = deleted });
         }
 
@@ -140,14 +140,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Returns the a JSON resource file for the given language id
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>The JSON config</returns>
         [HttpGet]
-        public IActionResult GetResource(string org, string service, string id)
+        public IActionResult GetResource(string org, string app, string id)
         {
-            string resourceJson = _repository.GetResource(org, service, id);
+            string resourceJson = _repository.GetResource(org, app, id);
             if (string.IsNullOrWhiteSpace(resourceJson))
             {
                 resourceJson = string.Empty;
@@ -160,15 +160,15 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method to retrieve service name from textresources file
         /// </summary>
-        /// <param name="org">the owner of the service</param>
-        /// <param name="service">the service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service name of the service</returns>
         [HttpGet]
-        public string GetServiceName(string org, string service)
+        public string GetServiceName(string org, string app)
         {
             string defaultLang = "nb-NO";
             string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             string serviceName = string.Empty;
 
             var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -190,15 +190,15 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method to save the updated service name to the textresources file
         /// </summary>
-        /// <param name="org">the owner of the service</param>
-        /// <param name="service">the service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceName">The service name</param>
         [HttpPost]
-        public void SetServiceName(string org, string service, [FromBody] dynamic serviceName)
+        public void SetServiceName(string org, string app, [FromBody] dynamic serviceName)
         {
             string defaultLang = "nb-NO";
             string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
             {
                 string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
@@ -210,7 +210,7 @@ namespace AltinnCore.Designer.Controllers
                     textResourceObject.Add("ServiceName", serviceName.serviceName.ToString());
                 }
 
-                _repository.SaveResource(org, service, "nb-NO", JObject.FromObject(textResourceObject).ToString());
+                _repository.SaveResource(org, app, "nb-NO", JObject.FromObject(textResourceObject).ToString());
             }
             else
             {
@@ -219,7 +219,7 @@ namespace AltinnCore.Designer.Controllers
                     language = "nb-NO",
                     resources = new[] { new { id = "ServiceName", value = serviceName.serviceName.ToString() } },
                 });
-                _repository.SaveResource(org, service, "nb-NO", json.ToString());
+                _repository.SaveResource(org, app, "nb-NO", json.ToString());
             }
         }
     }

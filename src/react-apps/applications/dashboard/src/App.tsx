@@ -42,7 +42,7 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
     fetchServicesActionDispatchers.fetchCurrentUser(
       `${altinnWindow.location.origin}/designerapi/User/Current`);
 
-    fetchServicesActionDispatchers.fetchOrganizations(
+    fetchServicesActionDispatchers.fetchOrganisations(
       `${altinnWindow.location.origin}/designerapi/Repository/Organizations`);
   }
 

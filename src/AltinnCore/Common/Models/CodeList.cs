@@ -20,7 +20,7 @@ namespace AltinnCore.Common.Models
         public string Org { get; set; }
 
         /// <summary>
-        /// The service the code list belongs to
+        /// The app the code list belongs to
         /// </summary>
         public string Service { get; set; }
 

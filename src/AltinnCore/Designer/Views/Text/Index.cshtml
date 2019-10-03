@@ -5,7 +5,7 @@
 }
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
-  string service = ViewContext.RouteData.Values["service"] as string;
+  string app = ViewContext.RouteData.Values["app"] as string;
 }
 @section styles {
   <style>
@@ -136,8 +136,8 @@ $(document).ready(function () {
 
         var dataCache;
         $.when(
-            $.ajax("/designer/@org/@service/Text/GetResourceSchema"),
-            $.ajax("/designer/@org/@service/Text/GetResource/" + t))
+            $.ajax("/designer/@org/@app/Text/GetResourceSchema"),
+            $.ajax("/designer/@org/@app/Text/GetResource/" + t))
             .done(function (a1, a2) {
                 var defaultJson = { language: t, resources: [] };
                 _schema = a1[0];
@@ -156,7 +156,7 @@ $(document).ready(function () {
             //e.relatedTarget // previous active tab
             if (t != "new") {
                 $.ajax({
-                    url: "/designer/@org/@service/Text/GetResource/" + t,
+                    url: "/designer/@org/@app/Text/GetResource/" + t,
                     contentType: "application/json; charset=UTF-8",
                     success: function (data) {
                         if (_editor) _editor.destroy();
@@ -204,7 +204,7 @@ $(document).ready(function () {
             var jsonString = JSON.stringify(jsonData, null, 3);
 
             jQuery.post({
-                url: "/designer/@org/@service/Text/SaveResource/" + t,
+                url: "/designer/@org/@app/Text/SaveResource/" + t,
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
                 success: function (data) {
@@ -248,7 +248,7 @@ $(document).ready(function () {
         $("#" + code).tab("show");
 
         jQuery.post({
-            url: "/designer/@org/@service/Text/SaveResource/" + code,
+            url: "/designer/@org/@app/Text/SaveResource/" + code,
             contentType: "application/json; charset=UTF-8",
             data: jsonString,
             success: function (data) {
@@ -272,7 +272,7 @@ $(document).ready(function () {
         }
 
         $("#deleteConfirmation").text("Språk '" + currentTab.text() + "' er nå slettet.");
-        var deleteUrl = "/designer/@org/@service/Text/DeleteLanguage/" + t;
+        var deleteUrl = "/designer/@org/@app/Text/DeleteLanguage/" + t;
 
         newTab.click();
         currentTab.parent().hide();

@@ -1,10 +1,10 @@
-﻿@model AltinnStudioViewModel
+@model AltinnStudioViewModel
 @using AltinnCore.Common.Models;
 
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
-  string service = ViewContext.RouteData.Values["service"] as string;
-  ViewBag.Title = service;
+  string app = ViewContext.RouteData.Values["app"] as string;
+  ViewBag.Title = app;
 }
 @section scripts {
   <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
@@ -12,12 +12,12 @@
 
 <div class="text-center">
   <h1 class="my-5 hidden-xs-down">
-    <span style="font-weight: lighter">@org / @service</span>
+    <span style="font-weight: lighter">@org / @app</span>
   </h1>
 </div>
 
 <div class="row no-gutters">
-  <div class="col text-left pt-2 pb-0"><a href="/@org/@service" title="Åpne @service repository">Endringer</a></div>
+  <div class="col text-left pt-2 pb-0"><a href="/@org/@app" title="Åpne @app repository">Endringer</a></div>
   <div class="col-auto" style="width: 16em;">
     <input id="search" type="search" class="form-control" placeholder="Filtrer..." autocomplete="on" />
     <span class="fa fa-search" aria-hidden="true"></span>

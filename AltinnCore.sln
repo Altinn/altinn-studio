@@ -37,9 +37,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Authentication",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrefillClient", "src\Altinn.ExampleClients\PrefillClient\PrefillClient.csproj", "{7D5C7252-B316-4DC6-B7E7-18613DAB367C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Process", "src\Altinn.Process\Altinn.Process.csproj", "{3C0822D1-4E9A-4C93-8B67-D94BDFD7767C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Process", "src\AltinnCore\Altinn.Process\Altinn.Process.csproj", "{3C0822D1-4E9A-4C93-8B67-D94BDFD7767C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Process.UnitTest", "src\Altinn.Process.UnitTest\Altinn.Process.UnitTest.csproj", "{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Process.UnitTest", "src\AltinnCore\Altinn.Process.UnitTest\Altinn.Process.UnitTest.csproj", "{A581FE98-39A1-45DF-B1DE-AFDAC4A165C3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

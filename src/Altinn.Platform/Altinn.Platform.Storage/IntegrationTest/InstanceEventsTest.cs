@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
+using Storage.Interface.Models;
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
@@ -126,7 +127,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                WorkflowStep = "Step123456"
+                ProcessInfo = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Step123456"
+                    }
+                }
             };
 
             InstanceEvent testEvent02 = new InstanceEvent
@@ -137,7 +144,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                WorkflowStep = "Step123456"
+                ProcessInfo = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Step123456"
+                    }
+                }
             };
 
             InstanceEvent testEvent03 = new InstanceEvent
@@ -148,7 +161,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                WorkflowStep = "Step123456"
+                ProcessInfo = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo
+                    {
+                        ElementId = "Step123456"
+                    }
+                }
             };
 
             await storage.PostInstanceEvent(testEvent01);

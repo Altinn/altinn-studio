@@ -233,11 +233,8 @@ function AltinnParty(props: IAltinnPartyProps) {
       >
         <i className={classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')} />
         <Typography className={classes.partyName}>
-          {party.name + (party.isDeleted ? ` (
-            ${!language.party_selection ?
-              'party_selection.unit_deleted' :
-              language.party_selection.unit_deleted
-            }) ` : '')}
+          {/* tslint:disable-next-line:max-line-length */}
+          {party.name + (party.isDeleted ? ` (${!language.party_selection ? 'party_selection.unit_deleted' : language.party_selection.unit_deleted}) ` : '')}
         </Typography>
         <Typography className={classes.partyInfo}>
           {

@@ -26,7 +26,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <summary>
         ///     Initializes a new instance of the <see cref="SeresXsdParser" /> class
         /// </summary>
-        /// <param name="repositoryService">The service repository service</param>
+        /// <param name="repositoryService">The app repository service</param>
         public SeresXsdParser(IRepository repositoryService)
         {
             _repository = repositoryService;
@@ -38,8 +38,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <exception cref="Exception">
         ///     Throws Exception if XSD does not have root element or complexType
         /// </exception>
-        /// <param name="org">The current organization</param>
-        /// <param name="service">The current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="xsd">
         ///     Seres XSD
         /// </param>
@@ -51,14 +51,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// </returns>
         public ServiceMetadata ParseXsdToServiceMetadata(
             string org,
-            string service,
+            string app,
             XDocument xsd,
             Dictionary<string, XDocument> secondaryXsds)
         {
             var serviceMetadata = new ServiceMetadata
             {
                 Elements = new Dictionary<string, ElementMetadata>(),
-                RepositoryName = service,
+                RepositoryName = app,
                 Org = org,                
             };
             this.xsd = xsd;
@@ -117,7 +117,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 throw new Exception("XSD missing root complex type element...");
             }
 
-            var existingTexts = _repository.GetServiceTexts(org, service);
+            var existingTexts = _repository.GetServiceTexts(org, app);
 
             if (existingTexts == null)
             {
@@ -147,7 +147,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            _repository.SaveServiceTexts(org, service, existingTexts);
+            _repository.SaveServiceTexts(org, app, existingTexts);
 
             serviceMetadata.Elements.Add(rootName, rootMetadata);
 

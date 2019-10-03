@@ -122,7 +122,15 @@ test("Fill out Access control information on an app", async () => {
 
 test("User cannot clone an app that does not have a data model", async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/cannotclone#/uieditor')
+    .click(designer.lageNavigationTab)
+    .expect(designer.cloneButton.visible).ok()
+    .click(designer.cloneButton)
+    .expect(designer.dataModelMissing.visible).ok()
+    .click(designer.dataModellLink)
+    .switchToIframe(designer.dataModelIFrame)
+    .expect(designer.dataModelUpload.exists).ok()
+    .expect(designer.dataModelTabs.visible).notOk()
 })
 
 test('Configure and delete rules', async () => {

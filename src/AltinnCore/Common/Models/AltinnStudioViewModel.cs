@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Models
         public string Org { get; set; }
 
         /// <summary>
-        /// Gets or sets the service
+        /// Gets or sets the app
         /// </summary>
         public string Service { get; set; }
 
@@ -68,7 +68,7 @@ namespace AltinnCore.Common.Models
         public RepositorySearch RepositorySearch { get; set; }
 
         /// <summary>
-        /// Gets or sets service meta data for the service
+        /// Gets or sets service meta data for the application
         /// </summary>
         public ServiceMetadata ServiceMetadata { get; set; }
     }

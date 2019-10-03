@@ -24,6 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// App implementation of the workflow service for deployed application.
     /// </summary>
+    [Obsolete]
     public class WorkflowAppSI : IWorkflow
     {
         private readonly ServiceRepositorySettings _settings;
@@ -97,7 +98,7 @@ namespace AltinnCore.Common.Services.Implementation
                 throw new Exception("Unable to fetch workflow state");
             }
 
-            Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ProcessElementId, out WorkflowStep currentWorkflowState);
+            Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ElementId, out WorkflowStep currentWorkflowState);
 
             return new ServiceState
             {

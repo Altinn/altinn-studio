@@ -17,7 +17,7 @@ describe('AccessControl', () => {
         bankruptcyEstate: false,
         subUnit: true,
         person: false,
-        organization: true,
+        organisation: true,
       },
       subscriptionHook: {
         editionCode: 'Current edition code',
@@ -30,7 +30,7 @@ describe('AccessControl', () => {
         bankruptcyEstate: true,
         subUnit: false,
         person: true,
-        organization: false,
+        organisation: false,
       },
       subscriptionHook: {
         editionCode: 'New edition code',
@@ -96,7 +96,7 @@ describe('AccessControl', () => {
       />);
     const instance = wrapper.instance() as AccessControlContainerClass;
     instance.handlePartyTypesAllowedChange(PartyTypes.bankruptcy_estate);
-    instance.handlePartyTypesAllowedChange(PartyTypes.organization);
+    instance.handlePartyTypesAllowedChange(PartyTypes.organisation);
     instance.handlePartyTypesAllowedChange(PartyTypes.person);
     instance.handlePartyTypesAllowedChange(PartyTypes.sub_unit);
     expect(wrapper.state('partyTypesAllowed')).toEqual(newApplicationMetadata.partyTypesAllowed);
@@ -125,7 +125,7 @@ describe('AccessControl', () => {
       />);
     expect(wrapper.state('partyTypesAllowed')).toEqual({
       bankruptcyEstate: false,
-      organization: false,
+      organisation: false,
       person: false,
       subUnit: false,
     });
