@@ -9,6 +9,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
+    using global::Storage.Interface.Enums;
     using global::Storage.Interface.Models;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Features;
@@ -29,6 +30,8 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IInstanceEventRepository instanceEventRepository;
+
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -36,18 +39,21 @@ namespace Altinn.Platform.Storage.Controllers
         /// Initializes a new instance of the <see cref="DataController"/> class
         /// </summary>
         /// <param name="dataRepository">the data repository handler</param>
-        /// <param name="instanceRepository">the repository</param>
+        /// <param name="instanceRepository">the indtance repository</param>
         /// <param name="applicationRepository">the application repository</param>
+        /// <param name="instanceEventRepository">the instance event repository</param>
         /// <param name="logger">The logger</param>
         public DataController(
             IDataRepository dataRepository,
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
+            IInstanceEventRepository instanceEventRepository,
             ILogger<DataController> logger)
         {
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
+            this.instanceEventRepository = instanceEventRepository;
             _logger = logger;
         }
 
@@ -83,8 +89,10 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     // Update instance record
                     DataElement data = instance.Data.Find(m => m.Id == dataIdString);
-                    instance.Data.Remove(data);
+                    instance.Data.Remove(data);                    
                     Instance storedInstance = await _instanceRepository.Update(instance);
+
+                    await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, data);
 
                     return Ok(storedInstance);
                 }
@@ -138,7 +146,7 @@ namespace Altinn.Platform.Storage.Controllers
                         {
                             return NotFound("Unable to read data storage for " + dataIdString);
                         }
-
+                        
                         return File(dataStream, data.ContentType, data.FileName);
                     }
                     catch (Exception e)
@@ -249,6 +257,8 @@ namespace Altinn.Platform.Storage.Controllers
                 Instance result = await _instanceRepository.Update(instance);
                 InstancesController.AddSelfLinks(Request, result);
 
+                await DispatchEvent(InstanceEventType.Created.ToString(), instance, newData);
+
                 return Ok(result);
             }
             catch (Exception e)
@@ -327,6 +337,8 @@ namespace Altinn.Platform.Storage.Controllers
                         // update instance
                         Instance result = await _instanceRepository.Update(instance);
                         InstancesController.AddSelfLinks(Request, result);
+
+                        await DispatchEvent(InstanceEventType.Deleted.ToString(), result, data);
 
                         return Ok(result);
                     }
@@ -441,6 +453,22 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return null;
+        }
+
+        private async Task DispatchEvent(string eventType, Instance instance, DataElement dataElement)
+        {
+            InstanceEvent instanceEvent = new InstanceEvent
+            {
+                AuthenticationLevel = 0, // update when authentication is turned on
+                EventType = eventType,
+                InstanceId = instance.Id,
+                DataId = dataElement.Id,
+                InstanceOwnerId = instance.InstanceOwnerId,
+                UserId = 0, // update when authentication is turned on
+                ProcessInfo = instance.Process,
+            };
+
+            await instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
     }
 }

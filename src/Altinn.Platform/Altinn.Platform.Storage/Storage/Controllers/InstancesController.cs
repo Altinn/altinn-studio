@@ -960,8 +960,6 @@ namespace Altinn.Platform.Storage.Controllers
 
         private async Task DispatchEvent(string eventType, Instance instance)
         {
-            string workflowStep = instance.Process?.CurrentTask?.ProcessElementId;
-
             InstanceEvent instanceEvent = new InstanceEvent
             {
                 AuthenticationLevel = 0, // update when authentication is turned on
@@ -969,7 +967,7 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceId = instance.Id,
                 InstanceOwnerId = instance.InstanceOwnerId,
                 UserId = 0, // update when authentication is turned on
-                WorkflowStep = workflowStep,
+                ProcessInfo = instance.Process,
             };
 
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
