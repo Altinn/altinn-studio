@@ -310,7 +310,7 @@ namespace AltinnCore.Runtime.RestControllers
 
                 IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, part.Name, true);
 
-                instanceWithData = await dataService.InsertData(
+                instanceWithData = await dataService.InsertFormData(
                     data,
                     instanceGuid,
                     serviceImplementation.GetServiceModelType(),

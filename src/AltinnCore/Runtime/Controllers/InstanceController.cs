@@ -627,14 +627,15 @@ namespace AltinnCore.Runtime.Controllers
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<IActionResult> SaveFormAttachment(string org, string app, int partyId, Guid instanceGuid, string attachmentType, string attachmentName)
         {
-            Guid guid = await _data.SaveFormAttachment(org, app, partyId, instanceGuid, attachmentType, attachmentName, Request);
+            DataElement data = await _data.InsertBinaryData(org, app, partyId, instanceGuid, attachmentType, attachmentName, Request);
+            Guid guid = Guid.Parse(data.Id);
 
             if (guid == Guid.Empty)
             {
                 return StatusCode(500, $"Cannot store form attachment on instance {partyId}/{instanceGuid}");
             }
 
-            return Ok(new { id = guid });
+            return Ok(data);
         }
 
         /// <summary>
@@ -644,15 +645,15 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="partyId">The party id of the test user</param>
         /// <param name="instanceGuid">The instance guid</param>
-        /// <param name="attachmentType">The attachment type id</param>
         /// <param name="attachmentId">The attachment id</param>
         /// <returns>The status of the deletion</returns>
         [HttpPost]
         [Authorize]
         [DisableFormValueModelBinding]
-        public IActionResult DeleteFormAttachment(string org, string app, int partyId, Guid instanceGuid, string attachmentType, string attachmentId)
+        public IActionResult DeleteFormAttachment(string org, string app, int partyId, Guid instanceGuid, string attachmentId)
         {
-            _data.DeleteFormAttachment(org, app, partyId, instanceGuid, attachmentType, attachmentId);
+            _data.DeleteBinaryData(org, app, partyId, instanceGuid, Guid.Parse(attachmentId));
+
             return Ok();
         }
 
@@ -670,7 +671,8 @@ namespace AltinnCore.Runtime.Controllers
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         public async Task<IActionResult> GetFormAttachments(string org, string app, int partyId, Guid instanceGuid)
         {
-            List<AttachmentList> allAttachments = await _data.GetFormAttachments(org, app, partyId, instanceGuid);
+            List<AttachmentList> allAttachments = await _data.GetBinaryDataList(org, app, partyId, instanceGuid);
+
             return Ok(allAttachments);
         }
 

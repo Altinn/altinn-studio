@@ -295,7 +295,7 @@ namespace AltinnCore.Runtime.Controllers
             Guid instanceId = _execution.GetNewServiceInstanceID();
 
             // Save Formdata to database
-            Instance instance = this._data.InsertData(
+            Instance instance = this._data.InsertFormData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
