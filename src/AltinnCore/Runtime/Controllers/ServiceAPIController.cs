@@ -439,7 +439,7 @@ namespace AltinnCore.Runtime.Controllers
                     InstanceId = instance.Id,
                     InstanceOwnerId = instance.InstanceOwnerId.ToString(),
                     UserId = requestContext.UserContext.UserId,
-                    WorkflowStep = instance.Process.CurrentTask.ProcessElementId,
+                    ProcessInfo = instance.Process,
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, app);
@@ -451,10 +451,10 @@ namespace AltinnCore.Runtime.Controllers
                 instance.Process = new ProcessState()
                 {
                     Started = DateTime.UtcNow,
-                    CurrentTask = new TaskInfo
+                    CurrentTask = new ProcessElementInfo
                     {
                         Started = DateTime.UtcNow,
-                        ProcessElementId = currentState.State.ToString(),
+                        ElementId = currentState.State.ToString(),
                     }
                 };
 

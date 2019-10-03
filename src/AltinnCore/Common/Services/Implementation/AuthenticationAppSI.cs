@@ -19,8 +19,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ILogger _logger;
         private readonly PlatformSettings _platformSettings;
         private readonly GeneralSettings _generalSettings;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtCookieOptions _cookieOptions;
+        private readonly IHttpContextAccessor _httpContextAccessor;        
         private readonly HttpClient _client;
 
         /// <summary>
@@ -30,21 +29,18 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="cookieOptions">The cookie options </param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public AuthenticationAppSI(
             ILogger<AuthenticationAppSI> logger,
             IOptions<GeneralSettings> generalSettings,
             IOptions<PlatformSettings> platformSettings,
-            IHttpContextAccessor httpContextAccessor,
-            IOptions<JwtCookieOptions> cookieOptions,
+            IHttpContextAccessor httpContextAccessor,            
             IHttpClientAccessor httpClientAccessor)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
             _platformSettings = platformSettings.Value;
-            _httpContextAccessor = httpContextAccessor;
-            _cookieOptions = cookieOptions.Value;
+            _httpContextAccessor = httpContextAccessor;            
             _client = httpClientAccessor.AuthenticationClient;
         }
 
@@ -52,7 +48,7 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<HttpResponseMessage> RefreshToken()
         {
             string endpointUrl = $"refresh";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, Constants.General.RuntimeCookieName);
             _logger.LogInformation($"Token from token utility{token}");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);

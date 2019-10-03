@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -6,7 +6,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.2\Altinn.Process.xml</DocumentationFile>
-    <CodeAnalysisRuleSet>..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors></WarningsAsErrors>
     <NoWarn />
@@ -14,13 +14,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" Version="3.2.1" />
-    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <AdditionalFiles Include="..\..\stylecop.json">
-      <Link>stylecop.json</Link>
-    </AdditionalFiles>
   </ItemGroup>
 
 </Project>

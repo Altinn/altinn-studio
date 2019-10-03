@@ -126,6 +126,37 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Gets all instances in a given state for a given instance owner.
+        /// </summary>
+        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceGuid">the instance guid</param>
+        /// <returns>list of instances</returns>
+        [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}/events")]
+        public async Task<ActionResult> GetMessageBoxInstanceEvents(
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid)
+        {
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string[] eventTypes = new string[]
+            {
+                InstanceEventType.Created.ToString(),
+                InstanceEventType.Deleted.ToString(),
+                InstanceEventType.Saved.ToString(),
+                InstanceEventType.Submited.ToString(),
+                InstanceEventType.Undeleted.ToString()
+            };
+
+            if (string.IsNullOrEmpty(instanceId))
+            {
+                return BadRequest("Unable to perform query.");
+            }
+
+            List<InstanceEvent> result = await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
+
+            return Ok(InstanceHelper.ConvertToSBLInstanceEvent(result));
+        }
+
+        /// <summary>
         /// Undelete a soft deleted instance
         /// </summary>
         /// <param name="instanceOwnerId">instance owner</param>
