@@ -24,7 +24,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
-        Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId);
+        Task<Instance> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId);
 
         /// <summary>
         /// updates the form data
@@ -37,7 +37,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="dataId">the data id</param>
-        void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId);
+        Task<Instance> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId);
 
         /// <summary>
         /// Gets the form data
@@ -58,7 +58,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instanceid</param>
         /// <param name="dataId">the data id</param>
-        Task<Stream> GetData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId);
+        Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId);
 
         /// <summary>
         /// Method that gets metadata on form attachments ordered by attachmentType
@@ -68,7 +68,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <returns>A list with attachments metadata ordered by attachmentType</returns>
-        Task<List<AttachmentList>> GetFormAttachments(string org, string app, int instanceOwnerId, Guid instanceGuid);
+        Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid);
 
         /// <summary>
         /// Method that removes a form attachments from disk/storage
@@ -77,12 +77,11 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
-        /// <param name="attachmentType">The attachment type</param>
-        /// <param name="attachmentId">The attachment id</param>
-        void DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentId);
+        /// <param name="dataGuid">The attachment id</param>
+        Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid);
 
         /// <summary>
-        /// Method that saves a form attachments to disk/storage and returns its id
+        /// Method that saves a form attachments to disk/storage and returns the new data element.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -90,7 +89,18 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="attachmentType">The attachment type</param>
         /// <param name="attachmentName">The attachment name</param>
-        /// <param name="attachment">The attachment to be saved</param>
-        Task<Guid> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment);
+        /// <param name="request">Http request containing the attachment to be saved</param>
+        Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request);
+
+        /// <summary>
+        /// Method that updates a form attachments to disk/storage and returns the updated data element.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="instanceOwnerId">The instance owner id</param>
+        /// <param name="instanceGuid">The instance id</param>
+        /// <param name="dataGuid">The data id</param>
+        /// <param name="request">Http request containing the attachment to be saved</param>
+        Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
     }
 }

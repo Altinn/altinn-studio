@@ -30,7 +30,7 @@ test('Instantiate an app in runtime', async () => {
     .expect(runtime.testUsers[0].exists).ok()
     .hover(runtime.testUsers[0])
     .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
+    .expect(runtime.startNewButton.exists).ok({ timeout:120000 })
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[0].exists).ok()

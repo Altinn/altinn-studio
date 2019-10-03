@@ -3,17 +3,17 @@ import * as React from 'react';
 import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
-import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
+import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IParty } from '../../../shared/resources/party';
+import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { HttpStatusCodes } from '../../../utils/networking';
 import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
-import { PartySelectionReason } from './PartySelection';
 
 const styles = () => createStyles({
   modal: {
@@ -38,7 +38,7 @@ export interface IServiceInfoProps extends WithStyles<typeof styles> {
 
 function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
-  const { org, service } = window as IAltinnWindow;
+  const { org, service } = window as Window as IAltinnWindow;
 
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
@@ -141,14 +141,8 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   if (selectedParty === undefined) {
     return (
-      <Redirect
-        to={{
-          pathname: '/partyselection',
-          state: {
-            errorType: PartySelectionReason.NotValid,
-          },
-        }}
-      />
+      // Since a party is not selected, we shouldn't redirect with an error
+      <Redirect to={`/partyselection`}/>
     );
   }
 
@@ -166,27 +160,13 @@ function InstantiateContainer(props: IServiceInfoProps) {
       );
     } else {
       return (
-        <Redirect
-          to={{
-            pathname: '/partyselection',
-            state: {
-              errorType: PartySelectionReason.NotValid,
-            },
-          }}
-        />
+        <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
       );
     }
   }
   if (instantiation.error !== null) {
     return (
-      <Redirect
-        to={{
-          pathname: '/error',
-          state: {
-            message: instantiation.error,
-          },
-        }}
-      />
+      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
     );
   }
   if (instantiation.instanceId !== null && instantiation.error === null) {

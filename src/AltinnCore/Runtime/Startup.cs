@@ -82,6 +82,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IInstance, InstanceStudioSI>();
                 services.AddSingleton<IData, DataStudioSI>();
                 services.AddSingleton<IWorkflow, WorkflowStudioSI>();
+                services.AddSingleton<IProcess, ProcessStudioSI>();
                 services.AddSingleton<ITestdata, TestdataStudioSI>();
                 services.AddSingleton<IDSF, RegisterDSFStudioSI>();
                 services.AddSingleton<IER, RegisterERStudioSI>();
@@ -104,6 +105,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IInstance, InstanceAppSI>();
                 services.AddSingleton<IData, DataAppSI>();
                 services.AddSingleton<IWorkflow, WorkflowAppSI>();
+                services.AddSingleton<IProcess, ProcessAppSI>();
                 services.AddSingleton<ITestdata, TestdataAppSI>();
                 services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
                 services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
