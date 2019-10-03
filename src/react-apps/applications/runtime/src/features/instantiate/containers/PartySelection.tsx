@@ -178,10 +178,10 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     if (!language || !language.party_selection) {
       return null;
     }
-    const errorCoreString: string = (match.params as IRedirectParams).errorCode.toString();
-    if ( errorCoreString !== null) {
+    const params = match.params as IRedirectParams;
+    if (!!params.errorCode) {
       try {
-        const errorCode: number = parseInt(errorCoreString, 10);
+        const errorCode: number = parseInt(params.errorCode.toString(), 10);
         switch (errorCode) {
           // Keeping the switch statement because we might extends the enums to handle more errors
           case HttpStatusCodes.Forbidden: {
@@ -199,7 +199,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
             return null;
           }
         }
-      } catch (err) {
+      } catch (err){
         console.info('Could not parse number from params');
       }
     }
