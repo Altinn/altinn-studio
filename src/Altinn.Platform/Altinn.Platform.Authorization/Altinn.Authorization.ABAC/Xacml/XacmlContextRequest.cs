@@ -128,5 +128,14 @@ namespace Altinn.Authorization.ABAC.Xacml
         {
             return this.Attributes.FirstOrDefault(a => a.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource));
         }
+
+        /// <summary>
+        /// Return the subject attributes.
+        /// </summary>
+        /// <returns>Attributes.</returns>
+        public XacmlContextAttributes GetSubjectAttributes()
+        {
+            return this.Attributes.FirstOrDefault(a => a.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Subject));
+        }
     }
 }

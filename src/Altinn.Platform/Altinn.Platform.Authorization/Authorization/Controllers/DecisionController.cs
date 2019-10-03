@@ -44,7 +44,7 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         /// <param name="model">A Generic model</param>
         [HttpPost]
-        public ActionResult Post([FromBody] XacmlRequestApiModel model)
+        public async Task<ActionResult> Post([FromBody] XacmlRequestApiModel model)
         {
             XacmlContextRequest decisionRequest = null;
             XacmlContextResponse xacmlContextResponse = null;
@@ -52,10 +52,10 @@ namespace Altinn.Platform.Authorization.Controllers
             try
             {
                 decisionRequest = ParseApiBody(model);
-                decisionRequest = this._contextHandler.Enrich(decisionRequest);
+                decisionRequest = await this._contextHandler.Enrich(decisionRequest);
                 policy = this._prp.GetPolicy(decisionRequest);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {

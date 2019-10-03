@@ -3,6 +3,7 @@ using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
+using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -139,6 +140,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
                 {
                     services.AddScoped<IContextHandler, IntegrationTests.MockServices.ContextHandler>();
                     services.AddScoped<IPolicyRetrievalPoint, IntegrationTests.MockServices.PolicyRetrievalPoint>();
+                    services.AddScoped<IRoles, IntegrationTests.MockServices.PolicyInformationPoint>();
                 });
             })
             .CreateClient();

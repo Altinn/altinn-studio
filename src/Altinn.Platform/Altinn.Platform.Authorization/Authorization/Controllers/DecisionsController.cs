@@ -44,14 +44,14 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         /// <param name="xacmlRequests">A list of request</param>
         [HttpPost]
-        public ActionResult Post([FromBody] List<XacmlJsonRequest> xacmlRequests)
+        public async Task<ActionResult> Post([FromBody] List<XacmlJsonRequest> xacmlRequests)
         {
             List<XacmlJsonResponse> response = new List<XacmlJsonResponse>();
 
             foreach (XacmlJsonRequest request in xacmlRequests)
             {
                 XacmlContextRequest xmlRequest = XacmlJsonXmlConverter.ConvertRequest(request);
-                xmlRequest = _contextHandler.Enrich(xmlRequest);
+                xmlRequest = await _contextHandler.Enrich(xmlRequest);
                 XacmlPolicy policy = _prp.GetPolicy(xmlRequest);
                 PolicyDecisionPoint pdp = new PolicyDecisionPoint();
                 XacmlContextResponse xmlResponse = pdp.Authorize(xmlRequest, policy);

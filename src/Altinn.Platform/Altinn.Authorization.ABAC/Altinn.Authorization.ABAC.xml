@@ -2382,6 +2382,12 @@
             </summary>
             <returns>Attributes.</returns>
         </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.GetSubjectAttributes">
+            <summary>
+            Return the subject attributes.
+            </summary>
+            <returns>Attributes.</returns>
+        </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextRequestReference">
              <summary>
              5.51 Element <RequestReference/>  http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047156
