@@ -2,7 +2,7 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, RouteProps } from 'react-router';
+import { Redirect, RouteComponentProps, withRouter } from 'react-router';
 import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
 import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import Header from '../../../shared/components/altinnAppHeader';
@@ -14,6 +14,7 @@ import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
 import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
 
 const styles = createStyles({
@@ -74,21 +75,16 @@ const styles = createStyles({
   },
 });
 
-export enum PartySelectionReason {
-  NotValid,
+interface IRedirectParams {
+  errorCode: HttpStatusCodes;
 }
 
-interface IRedirectReason {
-  errorType: PartySelectionReason;
+export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteComponentProps {
 }
 
-export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteProps {
-}
-
-function PartySelection(props: IPartySelectionProps) {
+const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
-
-  const { classes, location } = props;
+  const { classes, match } = props;
 
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
@@ -172,7 +168,7 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function getRepresentedPartyName(): string {
-    if (!selectedParty || selectedParty.name === null) {
+    if (!selectedParty || selectedParty.name === null) {
       return '';
     }
     return capitalizeName(selectedParty.name);
@@ -182,12 +178,13 @@ function PartySelection(props: IPartySelectionProps) {
     if (!language || !language.party_selection) {
       return null;
     }
-    if (location.state !== undefined &&
-      (location.state as IRedirectReason) &&
-      (location.state as IRedirectReason) !== undefined) {
-        switch ((location.state as IRedirectReason).errorType) {
+    const params = match.params as IRedirectParams;
+    if (!!params.errorCode) {
+      try {
+        const errorCode: number = parseInt(params.errorCode.toString(), 10);
+        switch (errorCode) {
           // Keeping the switch statement because we might extends the enums to handle more errors
-          case PartySelectionReason.NotValid: {
+          case HttpStatusCodes.Forbidden: {
             return (
               <Typography className={classes.partySelectionError}>
                 {`
@@ -202,6 +199,9 @@ function PartySelection(props: IPartySelectionProps) {
             return null;
           }
         }
+      } catch (err){
+        console.info('Could not parse number from params');
+      }
     }
   }
 
@@ -394,6 +394,6 @@ function PartySelection(props: IPartySelectionProps) {
       </Grid>
     </Grid>
   );
-}
+});
 
-export default withStyles(styles)(PartySelection);
+export default withStyles(styles)(PartySelectionWithRouter);

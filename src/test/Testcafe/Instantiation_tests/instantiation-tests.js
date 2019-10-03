@@ -46,3 +46,17 @@ fixture('Instantiation tests')
       .expect(Selector('p').withText('Dine aktører').exists).ok()
       .expect(Selector('p').withText('Kari Consulting').exists).ok()
   });
+
+  test("Prefill of value from Profile and Register", async () => {
+    await t
+      .navigateTo(app.baseUrl + 'designer/AutoTest/prefillautotest#/uieditor')
+      .click(designer.testeNavigationTab)
+      .switchToIframe(runtime.testBrukerIframe)
+      .click(runtime.testUsers[0])
+      .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
+      .click(runtime.startNewButton)
+      .switchToMainWindow()      
+      .expect(runtime.testUserHeader[0].exists).ok({ timeout:120000 })
+      .expect(runtime.inputButton.exists).ok({ timeout: 120000 })      
+      .expect(runtime.inputButton.withAttribute('value', 'Ola Privatperson').exists).ok({ timeout:120000 })
+  });

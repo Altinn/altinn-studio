@@ -1,5 +1,9 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
+export enum HttpStatusCodes {
+  Forbidden = 403,
+}
+
 export interface IGetRequestResponse {
   body: any;
 }
