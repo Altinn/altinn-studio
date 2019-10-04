@@ -71,7 +71,6 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="testDataService">the test data service handler</param>
         /// <param name="workflowSI">the workflow service handler</param>
         /// <param name="instanceSI">the instance service handler</param>
-        /// <param name="eventSI">the instance event service handler</param>
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
         /// <param name="application">the application service handler</param>
@@ -92,7 +91,6 @@ namespace AltinnCore.Runtime.Controllers
             IHttpContextAccessor httpContextAccessor,
             IWorkflow workflowSI,
             IInstance instanceSI,
-            IInstanceEvent eventSI,
             IPlatformServices platformSI,
             IData dataSI,
             IApplication application,
@@ -114,7 +112,6 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
-            _event = eventSI;
             _platformSI = platformSI;
             _data = dataSI;
             _prefill = prefill;

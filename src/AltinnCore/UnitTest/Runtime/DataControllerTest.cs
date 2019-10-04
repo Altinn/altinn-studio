@@ -942,7 +942,6 @@ namespace AltinnCore.UnitTest.Runtime
                 executionServiceMock.Object,
                 profileServiceMock.Object,
                 platformServicesMock.Object,
-                new Mock<IInstanceEvent>().Object,
                 appServiceMock.Object)
             {
                 ControllerContext = new ControllerContext()
