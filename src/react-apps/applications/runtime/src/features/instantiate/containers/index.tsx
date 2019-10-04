@@ -139,13 +139,6 @@ function InstantiateContainer(props: IServiceInfoProps) {
     }
   }, [selectedParty, partyValidation, subscriptionHookValid, instantiating]);
 
-  if (selectedParty === undefined) {
-    return (
-      // Since a party is not selected, we shouldn't redirect with an error
-      <Redirect to={`/partyselection`}/>
-    );
-  }
-
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
       return (
