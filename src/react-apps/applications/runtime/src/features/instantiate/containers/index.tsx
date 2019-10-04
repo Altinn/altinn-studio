@@ -44,36 +44,36 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
   const [instantiating, setInstantiating] = React.useState(false);
-  const [currentPartyId, setCurrentParty] = React.useState<string>('');
 
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const createNewInstance = () => {
+    if (!selectedParty) {
+      return;
+    }
     setInstantiating(true);
     InstantiationActions.instantiate(org, service);
   };
 
   const validatatePartySelection = async () => {
-    if (currentPartyId !== '') {
-      try {
-        const { data } = await post(
-          `${window.location.origin}/${org}/${service}/api/v1/parties/` +
-          `validateInstantiation?partyId=${currentPartyId}`,
-        );
-        setPartyValidation(data);
-      } catch (err) {
-        console.error(err);
-        throw new Error('Server did not respond with party validation');
-      }
-    } else {
-      const fetchedCurrentPartyId: string = await get(currentPartyUrl);
-      console.log(fetchedCurrentPartyId);
-      setCurrentParty(fetchedCurrentPartyId);
+    if (!selectedParty) {
+      return;
     }
-  };
+    try {
+      const { data } = await post(
+        `${window.location.origin}/${org}/${service}/api/v1/parties/` +
+        `validateInstantiation?partyId=${selectedParty.partyId}`,
+      );
+      setPartyValidation(data);
+    } catch (err) {
+      console.error(err);
+      throw new Error('Server did not respond with party validation');
+    }
+  }
 
   const validateSubscriptionHook = async () => {
     try {
@@ -118,20 +118,17 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   React.useEffect(() => {
-    if (!instantiating) {
-      validatatePartySelection();
-    }
-  }, [currentPartyId]);
+    validatatePartySelection();
+  }, [selectedParty]);
 
   React.useEffect(() => {
-    if (partyValidation !== null && !instantiating) {
+    if (partyValidation !== null) {
       validateSubscriptionHook();
     }
   }, [partyValidation]);
 
   React.useEffect(() => {
     if (
-      currentPartyId !== '' &&
       partyValidation !== null &&
       partyValidation.valid &&
       subscriptionHookValid !== null &&
@@ -142,10 +139,11 @@ function InstantiateContainer(props: IServiceInfoProps) {
     ) {
       createNewInstance();
     }
-  }, [currentPartyId, partyValidation, subscriptionHookValid, instantiating]);
+  }, [partyValidation, subscriptionHookValid, instantiating, selectedParty]);
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
+      console.log('REDIRECTION BECAUSE WE DONT HAVE VALID PARTIES');
       return (
         <Redirect
           to={{
