@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
 
 public class AltinnPDFGenerator {
   private Gson gson;
@@ -36,9 +37,15 @@ public class AltinnPDFGenerator {
   private PDAcroForm form;
   private float pageWidth;
   private float pageHeight;
-  private float endOfComponentWidth;
+  private float width;
   private float yPoint;
   private float xPoint;
+  private float margin = 50;
+  private float componentMargin = 50;
+  private float textFieldMargin = 25;
+  private float fontSize = 12;
+  private float leading = 1.5f * fontSize;
+  private PDFont font;
   private TextResources textResources;
   private Document formData;
   private FormLayout formLayout;
@@ -109,7 +116,7 @@ public class AltinnPDFGenerator {
     info.setCreationDate(Calendar.getInstance());
     document.setDocumentInformation(info);
     PDResources resources = new PDResources();
-    PDFont font = PDType1Font.HELVETICA;
+    font = PDType1Font.HELVETICA;
     resources.put(COSName.getPDFName("Helv"), font);
     form.setDefaultResources(resources);
     String defaultAppearance = "/Helv 12 Tf 0 0 1 rg";
@@ -119,22 +126,22 @@ public class AltinnPDFGenerator {
 
     this.pageWidth = page.getMediaBox().getWidth();
     this.pageHeight = page.getMediaBox().getHeight();
-    this.endOfComponentWidth = this.pageWidth - 250;
+    this.width = this.pageWidth - 2*margin;
 
     // sets background color
-    contents.setNonStrokingColor(Color.decode("#1eaef7"));
+    contents.setNonStrokingColor(Color.decode("#FFFFFF"));
     contents.addRect(0, 0, pageWidth, pageHeight);
     contents.fill();
 
 
     contents.setNonStrokingColor(Color.black);
 
-    xPoint = 125;
-    yPoint = pageHeight - 150;
+    xPoint = margin;
+    yPoint = pageHeight - margin;
     // Loop through all pdfLayout elements and draws them
     for (FormLayoutElement element : formLayout.data.layout) {
       drawLayoutElement(element, contents, page);
-      yPoint -= 100;
+      yPoint -= componentMargin;
       // TODO: Create new page if needed
     }
 
@@ -154,16 +161,22 @@ public class AltinnPDFGenerator {
   private void drawLayoutElement(FormLayoutElement element, PDPageContentStream contents, PDPage page) throws IOException {
 
     // Render label
-    // TODO: Break into multiple lines if needed
     if (element.textResourceBindings.title != null && !element.textResourceBindings.title.isEmpty()) {
       contents.beginText();
       PDFont font = PDType1Font.HELVETICA_BOLD;
-      contents.setFont(font, 12);
-      contents.newLineAtOffset(xPoint, yPoint);
+      contents.setFont(font, fontSize);
       String title = TextUtils.getTextResourceByKey(element.textResourceBindings.title, this.textResources);
+      List<String> lines = TextUtils.splitTextToLines(title, font, fontSize, width);
+      for(String line : lines) {
+        contents.newLineAtOffset(xPoint, yPoint);
+        contents.showText(line);
+        contents.endText();
+        yPoint -=
+      }
+
       contents.showText(title);
       contents.endText();
-      yPoint -= 25;
+      yPoint -= textFieldMargin;
     }
 
     // Render description
@@ -171,25 +184,27 @@ public class AltinnPDFGenerator {
     if (element.textResourceBindings.description != null && !element.textResourceBindings.description.isEmpty()) {
       contents.beginText();
       PDFont font = PDType1Font.HELVETICA;
-      contents.setFont(font, 12);
+      contents.setFont(font, fontSize);
       contents.newLineAtOffset(xPoint, yPoint);
       String description = TextUtils.getTextResourceByKey(element.textResourceBindings.description, this.textResources);
       contents.showText(description);
       contents.endText();
-      yPoint -= 25;
+      yPoint -= textFieldMargin;
+
     }
 
     PDTextField textField = new PDTextField(this.form);
     textField.setPartialName(element.id);
     String defaultAppearance = "/Helv 12 Tf 0 0 0 rg";
-    textField.setDefaultAppearance(defaultAppearance); // TODO: Make this part of pdfLayout.json?
+    textField.setDefaultAppearance(defaultAppearance);
     textField.setReadOnly(true);
 
     this.form.getFields().add(textField);
     PDAnnotationWidget widget = textField.getWidgets().get(0);
-    yPoint -= 10;
-    PDRectangle rect = new PDRectangle(xPoint, yPoint, endOfComponentWidth, 25);
-    widget.setRectangle(rect);
+    String value = FormDataUtils.getFormDataByKey(element.dataModelBindings.simpleBinding, this.formData);
+    float rectHeight = TextUtils.getHeightNeededForText(value, font, fontSize, width);
+    yPoint -= (rectHeight / 2);
+    PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight);
     widget.setRectangle(rect);
     // Sets border color
     PDAppearanceCharacteristicsDictionary fieldAppearance
@@ -200,7 +215,11 @@ public class AltinnPDFGenerator {
     // adds rect around widget and ands to page
     widget.setPage(page);
     page.getAnnotations().add(widget);
-    String value = FormDataUtils.getFormDataByKey(element.dataModelBindings.simpleBinding, this.formData);
+    if (TextUtils.splitTextToLines(value, font, fontSize, width).size() > 1) {
+      textField.setMultiline(true);
+    }
+
+    textField.setDoNotScroll(true);
     textField.setValue(value);
   }
 }
