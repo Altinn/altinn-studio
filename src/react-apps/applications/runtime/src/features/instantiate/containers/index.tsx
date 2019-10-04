@@ -10,8 +10,7 @@ import { IParty } from '../../../shared/resources/party';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
 import { HttpStatusCodes } from '../../../utils/networking';
-import { get, post } from '../../../utils/networking';
-import { currentPartyUrl } from '../../../utils/urlHelper';
+import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
@@ -44,34 +43,34 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
   const [instantiating, setInstantiating] = React.useState(false);
-  const [currentPartyId, setCurrentParty] = React.useState<string>('');
 
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const createNewInstance = () => {
+    if (!selectedParty) {
+      return;
+    }
     setInstantiating(true);
     InstantiationActions.instantiate(org, service);
   };
 
   const validatatePartySelection = async () => {
-    if (currentPartyId !== '') {
-      try {
-        const { data } = await post(
-          `${window.location.origin}/${org}/${service}/api/v1/parties/` +
-          `validateInstantiation?partyId=${currentPartyId}`,
-        );
-        setPartyValidation(data);
-      } catch (err) {
-        console.error(err);
-        throw new Error('Server did not respond with party validation');
-      }
-    } else {
-      const fetchedCurrentPartyId: string = await get(currentPartyUrl);
-      console.log(fetchedCurrentPartyId);
-      setCurrentParty(fetchedCurrentPartyId);
+    if (!selectedParty) {
+      return;
+    }
+    try {
+      const { data } = await post(
+        `${window.location.origin}/${org}/${service}/api/v1/parties/` +
+        `validateInstantiation?partyId=${selectedParty.partyId}`,
+      );
+      setPartyValidation(data);
+    } catch (err) {
+      console.error(err);
+      throw new Error('Server did not respond with party validation');
     }
   };
 
@@ -118,20 +117,17 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   React.useEffect(() => {
-    if (!instantiating) {
-      validatatePartySelection();
-    }
-  }, [currentPartyId]);
+    validatatePartySelection();
+  }, [selectedParty]);
 
   React.useEffect(() => {
-    if (partyValidation !== null && !instantiating) {
+    if (partyValidation !== null) {
       validateSubscriptionHook();
     }
   }, [partyValidation]);
 
   React.useEffect(() => {
     if (
-      currentPartyId !== '' &&
       partyValidation !== null &&
       partyValidation.valid &&
       subscriptionHookValid !== null &&
@@ -142,7 +138,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
     ) {
       createNewInstance();
     }
-  }, [currentPartyId, partyValidation, subscriptionHookValid, instantiating]);
+  }, [partyValidation, subscriptionHookValid, instantiating, selectedParty]);
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
