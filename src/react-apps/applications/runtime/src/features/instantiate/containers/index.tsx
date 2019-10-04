@@ -143,7 +143,6 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
-      console.log('REDIRECTION BECAUSE WE DONT HAVE VALID PARTIES');
       return (
         <Redirect
           to={{
