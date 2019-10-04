@@ -47,7 +47,6 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IWorkflow _workflowSI;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
-        private readonly IInstanceEvent _event;
 
         private const string FORM_ID = "default";
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
@@ -86,8 +85,7 @@ namespace AltinnCore.Runtime.Controllers
             IWorkflow workflowSI,
             IInstance instanceSI,
             IPlatformServices platformSI,
-            IData data,
-            IInstanceEvent eventSI)
+            IData data)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -105,7 +103,6 @@ namespace AltinnCore.Runtime.Controllers
             _instance = instanceSI;
             _platformSI = platformSI;
             _data = data;
-            _event = eventSI;
         }
 
         /// <summary>

@@ -45,7 +45,6 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflow _workflowSI;
         private readonly IInstance _instance;
-        private readonly IInstanceEvent _event;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
         private readonly IPrefill _prefill;
@@ -381,8 +380,6 @@ namespace AltinnCore.Runtime.Controllers
                     ProcessInfo = instance.Process,
                 };
 
-                await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
-
                 Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.Name, out WorkflowStep currentStep);
 
                 return JsonConvert.SerializeObject(
@@ -494,7 +491,6 @@ namespace AltinnCore.Runtime.Controllers
                     ProcessInfo = instance.Process,
                 };
 
-                await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
                 Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.Name, out WorkflowStep currentStep);
 
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
