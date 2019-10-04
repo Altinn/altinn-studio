@@ -60,12 +60,12 @@ test('Sync a service with master', async () => {
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .click(designer.omNavigationTab)
     .click(designer.lageNavigationTab)
-    .expect(designer.delEndringer.exists).ok()
+    .expect(designer.delEndringer.exists).ok({timeout: 120000})
     .click(designer.delEndringer)
-    .expect(designer.commitMessageBox.exists).ok()
+    .expect(designer.commitMessageBox.exists).ok({timeout: 120000})
     .click(designer.commitMessageBox)
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
-    .expect(designer.validerEndringer.exists).ok()
+    .expect(designer.validerEndringer.exists).ok({timeout: 120000})
     .click(designer.validerEndringer)
     .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
     .click(designer.delEndringerBlueButton)
@@ -178,3 +178,17 @@ test('Add and delete conditional rendering connections', async () => {
     .expect(designer.deleteRulesButton.exists).ok()
     .click(designer.deleteRulesButton)
 });
+
+test.skip('Revert local changes to solve a merge conflict', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/mergeconflict#/uieditor')
+    .expect(designer.ingenEndringer.visible).ok()
+    .click(designer.dateComponent)
+    .pressKey('enter')
+    .expect(designer.delEndringer.exists).ok({timeout: 120000})
+    .click(designer.delEndringer)
+    .expect(designer.validerEndringer.exists).ok({timeout: 5000})
+    .click(designer.validerEndringer)
+    .expect(designer.delEndringerBlueButton.innerText.eql('Løs Konflikt')).ok({timeout: 120000})
+    //.click(designer.delEndringerBlueButton)
+})
