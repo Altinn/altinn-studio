@@ -45,7 +45,6 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflow _workflowSI;
         private readonly IInstance _instance;
-        private readonly IInstanceEvent _event;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
         private readonly IPrefill _prefill;
@@ -71,7 +70,6 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="testDataService">the test data service handler</param>
         /// <param name="workflowSI">the workflow service handler</param>
         /// <param name="instanceSI">the instance service handler</param>
-        /// <param name="eventSI">the instance event service handler</param>
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
         /// <param name="application">the application service handler</param>
@@ -92,7 +90,6 @@ namespace AltinnCore.Runtime.Controllers
             IHttpContextAccessor httpContextAccessor,
             IWorkflow workflowSI,
             IInstance instanceSI,
-            IInstanceEvent eventSI,
             IPlatformServices platformSI,
             IData dataSI,
             IApplication application,
@@ -114,7 +111,6 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
-            _event = eventSI;
             _platformSI = platformSI;
             _data = dataSI;
             _prefill = prefill;
@@ -196,19 +192,6 @@ namespace AltinnCore.Runtime.Controllers
                     apiResult.NextState = currentState.State;
                     apiResult.Instance = archivedInstance;
                 }
-
-                // Create and store the instance submitted event
-                InstanceEvent instanceEvent = new InstanceEvent
-                {
-                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
-                    EventType = InstanceEventType.Submited.ToString(),
-                    InstanceId = instance.Id,
-                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
-                    UserId = requestContext.UserContext.UserId,
-                    ProcessInfo = instance.Process,
-                };
-
-                await _event.SaveInstanceEvent(instanceEvent, org, app);
             }
 
             ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);
@@ -397,8 +380,6 @@ namespace AltinnCore.Runtime.Controllers
                     ProcessInfo = instance.Process,
                 };
 
-                await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
-
                 Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.Name, out WorkflowStep currentStep);
 
                 return JsonConvert.SerializeObject(
@@ -510,7 +491,6 @@ namespace AltinnCore.Runtime.Controllers
                     ProcessInfo = instance.Process,
                 };
 
-                await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
                 Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.Name, out WorkflowStep currentStep);
 
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);

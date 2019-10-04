@@ -42,8 +42,6 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly IRegister registerService;
         private readonly IRepository repositoryService;
         private readonly IPlatformServices platformService;
-        private readonly IInstanceEvent eventService;
-        private readonly IWorkflow processService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -57,9 +55,7 @@ namespace AltinnCore.Runtime.RestControllers
             IExecution executionService,
             IProfile profileService,
             IPlatformServices platformService,
-            IInstanceEvent eventService,
-            IRepository repositoryService,
-            IWorkflow processService)
+            IRepository repositoryService)
         {
             this.logger = logger;
             this.instanceService = instanceService;
@@ -67,9 +63,7 @@ namespace AltinnCore.Runtime.RestControllers
             this.executionService = executionService;
             this.registerService = registerService;
             this.platformService = platformService;
-            this.eventService = eventService;
             this.repositoryService = repositoryService;
-            this.processService = processService;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -290,8 +284,6 @@ namespace AltinnCore.Runtime.RestControllers
             SetAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
 
-            await DispatchEvent(InstanceEventType.Created.ToString(), instance);
-
             return Created(url, instance);
         }
 
@@ -423,31 +415,6 @@ namespace AltinnCore.Runtime.RestControllers
             serviceImplementation.SetPlatformServices(platformService);
 
             return serviceImplementation;
-        }
-
-        /// <summary>
-        /// Creates an event and dispatches it to the eventService for storage.
-        /// </summary>
-        private async Task DispatchEvent(string eventType, Instance instance)
-        { 
-            UserContext userContext = await userHelper.GetUserContext(HttpContext);
-
-            string app = instance.AppId.Split("/")[1];
-            int authenticationLevel = userContext.AuthenticationLevel;
-            int userId = userContext.UserId;
-
-            // Create and store the instance created event
-            InstanceEvent instanceEvent = new InstanceEvent
-            {
-                AuthenticationLevel = authenticationLevel,
-                EventType = eventType,
-                InstanceId = instance.Id,
-                InstanceOwnerId = instance.InstanceOwnerId,
-                UserId = userId,
-                ProcessInfo = instance.Process,
-            };
-
-            await eventService.SaveInstanceEvent(instanceEvent, instance.Org, app);
         }
     }
 }
