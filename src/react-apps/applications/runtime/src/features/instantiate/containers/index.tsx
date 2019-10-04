@@ -72,7 +72,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
       console.error(err);
       throw new Error('Server did not respond with party validation');
     }
-  }
+  };
 
   const validateSubscriptionHook = async () => {
     try {
