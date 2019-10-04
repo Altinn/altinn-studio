@@ -56,6 +56,7 @@ namespace AltinnCore.Common.Services.Implementation
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 string refreshedToken = GetCookieValueFromResponse(response, Constants.General.RuntimeCookieName);
+                _logger.LogInformation($"refreshedtoken {refreshedToken}");
                 HttpResponseMessage result = new HttpResponseMessage(response.StatusCode);
                 result.Content = new StringContent(refreshedToken);
                 return result;

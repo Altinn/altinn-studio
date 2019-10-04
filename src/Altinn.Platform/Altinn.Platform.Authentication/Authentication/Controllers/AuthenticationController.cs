@@ -130,6 +130,7 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("refresh")]
         public async Task<ActionResult> RefreshJWTCookie()
         {
+            _logger.LogInformation($"Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
 
             await HttpContext.SignInAsync(
@@ -137,11 +138,12 @@ namespace Altinn.Platform.Authentication.Controllers
                 principal,
                 new AuthenticationProperties
                 {
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(30),
                     IsPersistent = false,
-                    AllowRefresh = false,
+                    AllowRefresh = true,
                 });
-
+            _logger.LogInformation($"JWT signed in");
+            _logger.LogInformation($"Token refreshed");
             return Ok();
         }
 

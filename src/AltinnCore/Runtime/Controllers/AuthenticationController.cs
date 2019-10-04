@@ -5,6 +5,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Runtime.Controllers
@@ -16,14 +17,16 @@ namespace AltinnCore.Runtime.Controllers
     {
         private readonly IAuthentication _authentication;
         private readonly GeneralSettings _settings;
+        private readonly ILogger<AuthenticationController> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthenticationController"/> class
         /// </summary>
-        public AuthenticationController(IAuthentication authentication, IOptions<GeneralSettings> settings)
+        public AuthenticationController(IAuthentication authentication, IOptions<GeneralSettings> settings, ILogger<AuthenticationController> logger)
         {
             _authentication = authentication;
             _settings = settings.Value;
+            _logger = logger;
         }
 
         /// <summary>
@@ -44,9 +47,13 @@ namespace AltinnCore.Runtime.Controllers
 
                 string token = await result.Content.ReadAsStringAsync();
 
-                if (string.IsNullOrWhiteSpace(token))
+                _logger.LogInformation($"token from platform{token}");
+
+                if (!string.IsNullOrWhiteSpace(token))
                 {
+                    _logger.LogInformation($"Starting to Append runtime cookie with token from platform{token}");
                     HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token);
+                    _logger.LogInformation($"Appended runtime cookie with token from platform{token}");                  
                 }
             }
 
