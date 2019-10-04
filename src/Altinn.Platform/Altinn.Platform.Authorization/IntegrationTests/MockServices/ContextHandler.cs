@@ -195,6 +195,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         private XacmlAttribute GetPartyAttribute(Instance instance)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(PartyAttributeId), false);
+            // When Party attribute is missing from input it is good to return it so PEP can get this information
+            attribute.IncludeInResult = true;
             attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.InstanceOwnerId));
             return attribute;
         }

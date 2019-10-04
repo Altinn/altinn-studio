@@ -52,6 +52,7 @@ namespace Altinn.Authorization.ABAC.Utils
                 jsonResult.Status.StatusCode.Value = xacmlResult.Status.StatusCode.Value.OriginalString;
 
                 jsonResult.Obligations = ConvertObligations(xacmlResult.Obligations);
+                jsonResult.Category = ConvertAttributes(xacmlResult.Attributes);
 
                 response.Response.Add(jsonResult);
             }
@@ -155,6 +156,44 @@ namespace Altinn.Authorization.ABAC.Utils
 
                 contextAttributes.Add(xacmlContextAttributes);
             }
+        }
+
+        private static List<XacmlJsonCategory> ConvertAttributes(ICollection<XacmlContextAttributes> attributes)
+        {
+            if (attributes == null || attributes.Count == 0)
+            {
+                return null;
+            }
+
+            List<XacmlJsonCategory> categories = new List<XacmlJsonCategory>();
+            foreach (XacmlContextAttributes contextAttributes in attributes)
+            {
+                XacmlJsonCategory category = new XacmlJsonCategory();
+                category.CategoryId = contextAttributes.Category.OriginalString;
+                category.Id = contextAttributes.Id;
+                category.Attribute = ConvertAttribute(contextAttributes.Attributes);
+                categories.Add(category);
+            }
+
+            return categories;
+        }
+
+        private static List<XacmlJsonAttribute> ConvertAttribute(ICollection<XacmlAttribute> attributes)
+        {
+            List<XacmlJsonAttribute> jsonAttributes = new List<XacmlJsonAttribute>();
+            foreach (XacmlAttribute attribute in attributes)
+            {
+                foreach (XacmlAttributeValue attributeValue in attribute.AttributeValues)
+                {
+                    XacmlJsonAttribute jsonAttribute = new XacmlJsonAttribute();
+                    jsonAttribute.AttributeId = attribute.AttributeId.OriginalString;
+                    jsonAttribute.Value = attributeValue.Value;
+                    jsonAttribute.DataType = attributeValue.DataType.OriginalString;
+                    jsonAttributes.Add(jsonAttribute);
+                }
+            }
+
+            return jsonAttributes;
         }
 
         private static string ConvertDataType(XacmlJsonAttribute jsonAttribute)

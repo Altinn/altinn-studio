@@ -150,6 +150,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.IncludeInResult, actual.IncludeInResult);
             Assert.Equal(expected.Issuer, actual.Issuer);
             Assert.Equal(expected.AttributeValues.Count, actual.AttributeValues.Count);
+            AssertEqual(expected.AttributeValues, actual.AttributeValues);
         }
 
         private static void AssertEqual(ICollection<XacmlAttributeValue> expected, ICollection<XacmlAttributeValue> actual)

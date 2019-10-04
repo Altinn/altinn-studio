@@ -1359,7 +1359,7 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult">
             <summary>
-            The JSON object Result
+            The JSON object Result.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Decision">
@@ -2527,19 +2527,16 @@
             <summary>
             Gets the advices.
             </summary>
-            <remarks>Used only for XACML V3.0</remarks>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.Attributes">
             <summary>
             Gets the attributes.
             </summary>
-            <remarks>Used only for XACML V3.0</remarks>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.PolicyIdReferences">
             <summary>
             Gets the policy identifier references.
             </summary>
-            <remarks>Used only for XACML V3.0</remarks>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.PolicySetIdReferences">
             <summary>
