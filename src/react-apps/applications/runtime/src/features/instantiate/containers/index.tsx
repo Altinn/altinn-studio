@@ -9,11 +9,12 @@ import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IParty } from '../../../shared/resources/party';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
-import { post } from '../../../utils/networking';
+import { HttpStatusCodes } from '../../../utils/networking';
+import { get, post } from '../../../utils/networking';
+import { currentPartyUrl } from '../../../utils/urlHelper';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
 import { verifySubscriptionHook } from '../resources/verifySubscriptionHook';
-import { PartySelectionReason } from './PartySelection';
 
 const styles = () => createStyles({
   modal: {
@@ -43,11 +44,11 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
   const [instantiating, setInstantiating] = React.useState(false);
+  const [currentPartyId, setCurrentParty] = React.useState<string>('');
 
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
 
   const createNewInstance = () => {
@@ -56,17 +57,21 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   const validatatePartySelection = async () => {
-    if (selectedParty !== undefined) {
+    if (currentPartyId !== '') {
       try {
         const { data } = await post(
           `${window.location.origin}/${org}/${service}/api/v1/parties/` +
-          `validateInstantiation?partyId=${selectedParty.partyId}`,
+          `validateInstantiation?partyId=${currentPartyId}`,
         );
         setPartyValidation(data);
       } catch (err) {
         console.error(err);
         throw new Error('Server did not respond with party validation');
       }
+    } else {
+      const fetchedCurrentPartyId: string = await get(currentPartyUrl);
+      console.log(fetchedCurrentPartyId);
+      setCurrentParty(fetchedCurrentPartyId);
     }
   };
 
@@ -113,10 +118,10 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   React.useEffect(() => {
-    if (selectedParty !== null && !instantiating) {
+    if (!instantiating) {
       validatatePartySelection();
     }
-  }, [selectedParty]);
+  }, [currentPartyId]);
 
   React.useEffect(() => {
     if (partyValidation !== null && !instantiating) {
@@ -126,7 +131,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
 
   React.useEffect(() => {
     if (
-      selectedParty !== null &&
+      currentPartyId !== '' &&
       partyValidation !== null &&
       partyValidation.valid &&
       subscriptionHookValid !== null &&
@@ -137,20 +142,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
     ) {
       createNewInstance();
     }
-  }, [selectedParty, partyValidation, subscriptionHookValid, instantiating]);
-
-  if (selectedParty === undefined) {
-    return (
-      <Redirect
-        to={{
-          pathname: '/partyselection',
-          state: {
-            errorType: PartySelectionReason.NotValid,
-          },
-        }}
-      />
-    );
-  }
+  }, [currentPartyId, partyValidation, subscriptionHookValid, instantiating]);
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
@@ -166,27 +158,13 @@ function InstantiateContainer(props: IServiceInfoProps) {
       );
     } else {
       return (
-        <Redirect
-          to={{
-            pathname: '/partyselection',
-            state: {
-              errorType: PartySelectionReason.NotValid,
-            },
-          }}
-        />
+        <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
       );
     }
   }
   if (instantiation.error !== null) {
     return (
-      <Redirect
-        to={{
-          pathname: '/partyselection',
-          state: {
-            errorType: PartySelectionReason.NotValid,
-          },
-        }}
-      />
+      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
     );
   }
   if (instantiation.instanceId !== null && instantiation.error === null) {

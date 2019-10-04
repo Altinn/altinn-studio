@@ -58,7 +58,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
+        public Task<Instance> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
@@ -128,11 +128,11 @@ namespace AltinnCore.Common.Services.Implementation
                 result = InstanceGuard[instanceGuid];
             }
 
-            return result;             
+            return result;
         }
 
         /// <inheritdoc/>
-        public void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public Task<Instance> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string dataPath = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data";
@@ -144,15 +144,38 @@ namespace AltinnCore.Common.Services.Implementation
                     XmlSerializer serializer = new XmlSerializer(type);
                     serializer.Serialize(stream, dataToSerialize);
                 }
+
+                string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
+                string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
+
+                lock (Guard(instanceGuid))
+                {
+                    string instanceData = File.ReadAllText(instanceFilePath);
+
+                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+                    instance.Data.Where(d => d.Id == dataId.ToString()).ToList().ForEach(d =>
+                    {
+                        d.LastChangedBy = instanceOwnerId.ToString();
+                        d.LastChangedDateTime = DateTime.UtcNow;
+                    });
+
+                    string instanceDataAsString = JsonConvert.SerializeObject(instance);
+
+                    File.WriteAllText(instanceFilePath, instanceDataAsString);
+                    return Task.FromResult(instance);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError("Unable to save form model", ex);
             }
+
+            return Task.FromResult<Instance>(null);
         }
 
         /// <inheritdoc />
-        public Task<Stream> GetData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/data/{dataId}";
@@ -160,7 +183,7 @@ namespace AltinnCore.Common.Services.Implementation
             return Task.FromResult<Stream>(File.OpenRead(formDataFilePath));
         }
 
-            /// <inheritdoc/>
+        /// <inheritdoc/>
         public object GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -180,7 +203,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<List<AttachmentList>> GetFormAttachments(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             Instance instance;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
@@ -230,18 +253,18 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
+        public Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
-            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
 
-            lock (Guard(instanceId))
+            lock (Guard(instanceGuid))
             {
                 string instanceData = File.ReadAllText(instanceFilePath);
 
                 Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                DataElement removeFile = instance.Data.Find(m => m.Id == attachmentId);
+                DataElement removeFile = instance.Data.Find(m => m.Id == dataGuid.ToString());
 
                 instance.Data.Remove(removeFile);
 
@@ -249,20 +272,22 @@ namespace AltinnCore.Common.Services.Implementation
                 File.WriteAllText(instanceFilePath, instanceDataAsString);
             }
 
-            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentId.AsFileName()}";
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data/{dataGuid.ToString().AsFileName()}";
             File.Delete(pathToDelete);
+
+            return Task.FromResult(true);
         }
 
         /// <inheritdoc />
-        public async Task<Guid> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Guid dataId = Guid.NewGuid();
             long filesize;
-            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceId}/data";
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data";
             Directory.CreateDirectory(pathToSaveTo);
             string fileToWriteTo = $"{pathToSaveTo}/{dataId}";
-            using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
+            using (Stream streamToWriteTo = File.Open(fileToWriteTo, FileMode.OpenOrCreate))
             {
                 await request.StreamFile(streamToWriteTo);
                 streamToWriteTo.Flush();
@@ -270,11 +295,11 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
-            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
             provider.TryGetContentType(attachmentName, out string contentType);
 
-            lock (Guard(instanceId))
+            lock (Guard(instanceGuid))
             {
                 string instanceData = File.ReadAllText(instanceFilePath);
 
@@ -286,13 +311,14 @@ namespace AltinnCore.Common.Services.Implementation
                     ElementType = attachmentType,
                     ContentType = contentType,
                     FileName = attachmentName,
-                    StorageUrl = $"{app}/{instanceId}/data/{dataId}",
+                    StorageUrl = $"{app}/{instanceGuid}/data/{dataId}",
                     CreatedBy = instanceOwnerId.ToString(),
                     CreatedDateTime = DateTime.UtcNow,
                     LastChangedBy = instanceOwnerId.ToString(),
                     LastChangedDateTime = DateTime.UtcNow,
                     FileSize = filesize
                 };
+
                 if (instance.Data == null)
                 {
                     instance.Data = new List<DataElement>();
@@ -303,9 +329,61 @@ namespace AltinnCore.Common.Services.Implementation
                 string instanceDataAsString = JsonConvert.SerializeObject(instance);
 
                 File.WriteAllText(instanceFilePath, instanceDataAsString);
-            }          
+                return data;
+            }
+        }
 
-            return dataId;
+        /// <inheritdoc />
+        public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Guid dataId = Guid.NewGuid();
+            long filesize;
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data";
+            string fileToWriteTo = $"{pathToSaveTo}/{dataId}";
+
+            try
+            {
+                if (!File.Exists(fileToWriteTo))
+                {
+                    throw new FileNotFoundException("Cannot find file to update.");
+                }
+
+                using (Stream streamToWriteTo = File.Open(fileToWriteTo, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    await request.StreamFile(streamToWriteTo);
+                    streamToWriteTo.Flush();
+                    filesize = streamToWriteTo.Length;
+                }
+
+                string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
+                string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
+
+                lock (Guard(instanceGuid))
+                {
+                    string instanceData = File.ReadAllText(instanceFilePath);
+
+                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+                    instance.Data.Where(d => d.Id == dataGuid.ToString()).ToList().ForEach(d =>
+                         {
+                             d.LastChangedBy = instanceOwnerId.ToString();
+                             d.LastChangedDateTime = DateTime.UtcNow;
+                             d.FileSize = filesize;
+                         });
+
+                    string instanceDataAsString = JsonConvert.SerializeObject(instance);
+
+                    File.WriteAllText(instanceFilePath, instanceDataAsString);
+
+                    return instance.Data.First(d => d.Id == dataGuid.ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed. Exception message: {ex.Message}");
+                return null;
+            }
         }
     }
 }

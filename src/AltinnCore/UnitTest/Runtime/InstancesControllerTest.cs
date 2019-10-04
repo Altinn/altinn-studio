@@ -244,7 +244,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.InsertData(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<Type>(), org, app, It.IsAny<int>()))
+                .Setup(d => d.InsertFormData(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<Type>(), org, app, It.IsAny<int>()))
                 .Returns(Task.FromResult(instanceWithData));
 
             Mock<IWorkflow> processServiceMock = new Mock<IWorkflow>();
