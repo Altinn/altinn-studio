@@ -15,13 +15,25 @@
             {
               "attributeId": "urn:altinn:obligation1-assignment1",
               "value": "2",
-              "category":"urn:altinn:minimum-authenticationlevel",
-              "dataType":"http://www.w3.org/2001/XMLSchema#integer",
+              "category": "urn:altinn:minimum-authenticationlevel",
+              "dataType": "http://www.w3.org/2001/XMLSchema#integer",
               "issuer": null
             }
           ]
         }
-      ]
+      ],
+        "Category": [
+          {
+            "CategoryId": "urn:oasis:names:tc:xacml:3.0:attribute-category:resource",
+            "Attribute": [
+              {
+                "AttributeId": "urn:altinn:partyid",
+                "DataType": "http://www.w3.org/2001/XMLSchema#string",
+                "Value": "1000"
+              }
+            ]
+          }
+        ]
     }
   ]
 }

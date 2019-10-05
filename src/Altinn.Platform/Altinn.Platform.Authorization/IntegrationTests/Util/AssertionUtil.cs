@@ -39,6 +39,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Decision, actual.Decision);
             Assert.Equal(expected.Status.StatusCode.Value, actual.Status.StatusCode.Value);
             AssertEqual(expected.Obligations, actual.Obligations);
+            AssertEqual(expected.Category, actual.Category);
+
         }
 
         private static void AssertEqual(List<XacmlJsonObligationOrAdvice> expected, List<XacmlJsonObligationOrAdvice> actual)
@@ -52,6 +54,29 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Count, actual.Count);
 
             AssertEqual(expected.FirstOrDefault(), actual.FirstOrDefault());
+        }
+
+        private static void AssertEqual(List<XacmlJsonCategory> expected, List<XacmlJsonCategory> actual)
+        {
+            if(expected == null)
+            {
+                Assert.Null(actual);
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i]);
+            }
+                
+        }
+
+        private static void AssertEqual(XacmlJsonCategory expected, XacmlJsonCategory actual)
+        {
+            Assert.Equal(expected.CategoryId, actual.CategoryId);
+            Assert.Equal(expected.Content, actual.Content);
+            Assert.Equal(expected.Id, actual.Id);
+            AssertEqual(expected.Attribute, actual.Attribute);
         }
 
         private static void AssertEqual(XacmlJsonObligationOrAdvice expected, XacmlJsonObligationOrAdvice actual)
@@ -70,6 +95,29 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             Assert.Equal(expected.Value, actual.Value);
         }
 
+        private static void AssertEqual(List<XacmlJsonAttribute> expected, List<XacmlJsonAttribute> actual)
+        {
+            if (expected == null)
+            {
+                Assert.Null(actual);
+                return;
+            }
+
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                AssertEqual(expected[i], actual[i]);
+            }
+        }
+
+        private static void AssertEqual(XacmlJsonAttribute expected, XacmlJsonAttribute actual)
+        {
+            Assert.Equal(expected.AttributeId, actual.AttributeId);
+            Assert.Equal(expected.DataType, actual.DataType);
+            Assert.Equal(expected.IncludeInResult, actual.IncludeInResult);
+            Assert.Equal(expected.Issuer, actual.Issuer);
+            Assert.Equal(expected.Value, actual.Value);
+        }
 
         private static void AssertEqual(XacmlContextResult expected, XacmlContextResult actual)
         {
