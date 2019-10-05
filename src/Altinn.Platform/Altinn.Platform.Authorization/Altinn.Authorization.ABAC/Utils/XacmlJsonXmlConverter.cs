@@ -129,30 +129,34 @@ namespace Altinn.Authorization.ABAC.Utils
                 return;
             }
 
-            foreach (XacmlJsonCategory subjectCategory in categoryList)
+            foreach (XacmlJsonCategory category in categoryList)
             {
-                if (!string.IsNullOrEmpty(subjectCategory.CategoryId))
+                if (!string.IsNullOrEmpty(category.CategoryId))
                 {
-                    categoryId = subjectCategory.CategoryId;
+                    categoryId = category.CategoryId;
                 }
 
                 XacmlContextAttributes xacmlContextAttributes = new XacmlContextAttributes(new Uri(categoryId));
 
-                XacmlAttribute xacmlAttribute = null;
-
                 ICollection<XacmlAttributeValue> attributeValues = new Collection<XacmlAttributeValue>();
 
-                foreach (XacmlJsonAttribute jsonAttribute in subjectCategory.Attribute)
+                Dictionary<string, XacmlAttribute> attributeDictionary = new Dictionary<string, XacmlAttribute>();
+
+                foreach (XacmlJsonAttribute jsonAttribute in category.Attribute)
                 {
-                    if (xacmlAttribute == null)
+                    if (!attributeDictionary.ContainsKey(jsonAttribute.AttributeId))
                     {
-                        xacmlAttribute = new XacmlAttribute(new Uri(jsonAttribute.AttributeId), jsonAttribute.IncludeInResult);
+                        attributeDictionary.Add(jsonAttribute.AttributeId, new XacmlAttribute(new Uri(jsonAttribute.AttributeId), jsonAttribute.IncludeInResult));
                     }
 
                     XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(ConvertDataType(jsonAttribute)), jsonAttribute.Value);
-                    xacmlAttribute.AttributeValues.Add(xacmlAttributeValue);
-                    xacmlContextAttributes.Attributes.Add(xacmlAttribute);
-            }
+                    attributeDictionary[jsonAttribute.AttributeId].AttributeValues.Add(xacmlAttributeValue);
+                }
+
+                foreach (KeyValuePair<string, XacmlAttribute> kvp in attributeDictionary)
+                {
+                    xacmlContextAttributes.Attributes.Add(kvp.Value);
+                }
 
                 contextAttributes.Add(xacmlContextAttributes);
             }

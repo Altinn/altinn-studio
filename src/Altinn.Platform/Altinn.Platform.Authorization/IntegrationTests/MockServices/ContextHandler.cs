@@ -98,7 +98,15 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 {
                     taskAttributeValue = attribute.AttributeValues.First().Value;
                 }
+
+                if (attribute.AttributeId.OriginalString.Equals(PartyAttributeId))
+                {
+                    resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
+                }
             }
+
+
+            bool resourceAttributeComplete = false;
 
             if (!string.IsNullOrEmpty(orgAttributeValue) &&
                 !string.IsNullOrEmpty(appAttributeValue) &&
@@ -107,7 +115,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 !string.IsNullOrEmpty(taskAttributeValue))
             {
                 // The resource attributes are complete
-                return;
+                resourceAttributeComplete = true;
             }
             else if (!string.IsNullOrEmpty(orgAttributeValue) &&
                 !string.IsNullOrEmpty(appAttributeValue) &&
@@ -115,35 +123,38 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
                 string.IsNullOrEmpty(taskAttributeValue))
                 {
-                    // The resource attributes are complete
-                    return;
+                // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
+
+            if (!resourceAttributeComplete)
+            {
+                Instance instanceData = GetTestInstance(instanceAttributeValue);
+
+                if (string.IsNullOrEmpty(orgAttributeValue))
+                {
+                    resourceContextAttributes.Attributes.Add(GetOrgAttribute(instanceData));
                 }
 
-            Instance instanceData = GetTestInstance(instanceAttributeValue);
+                if (string.IsNullOrEmpty(appAttributeValue))
+                {
+                    resourceContextAttributes.Attributes.Add(GetAppAttribute(instanceData));
+                }
 
-            if (string.IsNullOrEmpty(orgAttributeValue))
-            {
-                resourceContextAttributes.Attributes.Add(GetOrgAttribute(instanceData));
+                if (string.IsNullOrEmpty(taskAttributeValue))
+                {
+                    resourceContextAttributes.Attributes.Add(GetProcessElementAttribute(instanceData));
+                }
+
+                if (string.IsNullOrEmpty(resourcePartyAttributeValue))
+                {
+                    resourceContextAttributes.Attributes.Add(GetPartyAttribute(instanceData));
+                }
+
+                resourcePartyAttributeValue = instanceData.InstanceOwnerId;
             }
 
-            if (string.IsNullOrEmpty(appAttributeValue))
-            {
-                resourceContextAttributes.Attributes.Add(GetAppAttribute(instanceData));
-            }
-
-            if (string.IsNullOrEmpty(taskAttributeValue))
-            {
-                resourceContextAttributes.Attributes.Add(GetProcessElementAttribute(instanceData));
-            }
-
-            if (string.IsNullOrEmpty(resourcePartyAttributeValue))
-            {
-                resourceContextAttributes.Attributes.Add(GetPartyAttribute(instanceData));
-            }
-
-            string resourceParty = instanceData.InstanceOwnerId;
-
-            await EnrichSubjectAttributes(request, resourceParty);
+            await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
         }
 
         private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)

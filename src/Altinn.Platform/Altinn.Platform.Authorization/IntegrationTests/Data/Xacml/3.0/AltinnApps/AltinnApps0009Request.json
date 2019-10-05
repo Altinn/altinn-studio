@@ -1,0 +1,56 @@
+{
+  "Request": {
+    "ReturnPolicyIdList": true,
+    "AccessSubject": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:altinn:user-id",
+            "Value": "1"
+          }
+        ]
+      }
+    ],
+    "Action": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+            "Value": "read",
+            "DataType": "http://www.w3.org/2001/XMLSchema#string"
+          }
+        ]
+      }
+    ],
+    "Resource": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:altinn:instance-id",
+            "Value": "1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713",
+            "IncludeInResult": true
+          },
+          {
+            "AttributeId": "urn:altinn:org",
+            "Value": "skd"
+          },
+          {
+            "AttributeId": "urn:altinn:app",
+            "Value": "taxreport"
+          },
+          {
+            "AttributeId": "urn:altinn:partyid",
+            "Value": "1000"
+            
+          },
+          {
+            "AttributeId": "urn:altinn:task",
+            "Value": "formfilling"
+           
+          }
+
+        ]
+      }
+    ]
+  }
+}

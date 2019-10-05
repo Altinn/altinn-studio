@@ -61,6 +61,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             if(expected == null)
             {
                 Assert.Null(actual);
+                return;
             }
 
             Assert.Equal(expected.Count, actual.Count);

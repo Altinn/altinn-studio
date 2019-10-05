@@ -43,9 +43,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         [Fact]
-        public async Task PDP_Decision_JsonProfile_AltinnApps0001()
+        public async Task PDP_Decision_AltinnApps0007()
         {
-            string testCase = "AltinnApps0001";
+            string testCase = "AltinnApps0007";
             HttpClient client = GetTestClient();
             HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateJsonProfileXacmlRequest(testCase);
             XacmlJsonResponse expected = TestSetupUtil.ReadExpectedJsonProfileResponse(testCase);
@@ -131,6 +131,40 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Assert
             AssertionUtil.AssertEqual(expected, contextResponse);
         }
+
+
+        [Fact]
+        public async Task PDP_Decision_AltinnApps0008()
+        {
+            string testCase = "AltinnApps0008";
+            HttpClient client = GetTestClient();
+            HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateJsonProfileXacmlRequest(testCase);
+            XacmlJsonResponse expected = TestSetupUtil.ReadExpectedJsonProfileResponse(testCase);
+
+            // Act
+            XacmlJsonResponse contextResponse = await TestSetupUtil.GetXacmlJsonProfileContextResponseAsync(client, httpRequestMessage);
+
+            // Assert
+            AssertionUtil.AssertEqual(expected, contextResponse);
+        }
+
+        [Fact]
+        public async Task PDP_Decision_AltinnApps0009()
+        {
+            string testCase = "AltinnApps0009";
+            HttpClient client = GetTestClient();
+            HttpRequestMessage httpRequestMessage = TestSetupUtil.CreateJsonProfileXacmlRequest(testCase);
+            XacmlJsonResponse expected = TestSetupUtil.ReadExpectedJsonProfileResponse(testCase);
+
+            // Act
+            XacmlJsonResponse contextResponse = await TestSetupUtil.GetXacmlJsonProfileContextResponseAsync(client, httpRequestMessage);
+
+            // Assert
+            AssertionUtil.AssertEqual(expected, contextResponse);
+        }
+
+
+
 
         private HttpClient GetTestClient()
         {
