@@ -9,8 +9,8 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Authorization;
+using AltinnCore.Designer.Infrastructure;
 using AltinnCore.Designer.ModelBinding;
-using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -52,107 +52,18 @@ namespace AltinnCore.Designer
         /// <param name="services">The services available for asp.net Core</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            // Adding services to Dependency Injection TODO: Make this environment specific
-            services.AddSingleton<IExecution, ExecutionStudioSI>();
-            services.AddSingleton<IInstance, InstanceStudioSI>();
-            services.AddSingleton<IData, DataStudioSI>();
-            services.AddSingleton<IWorkflow, WorkflowStudioSI>();
-            services.AddSingleton<ITestdata, TestdataStudioSI>();
-            services.AddSingleton<IDSF, RegisterDSFStudioSI>();
-            services.AddSingleton<IER, RegisterERStudioSI>();
-            services.AddSingleton<IRegister, RegisterStudioSI>();
-            services.AddSingleton<IProfile, ProfileStudioSI>();
-
-            services.AddSingleton<IArchive, ArchiveStudioSI>();
-            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
-            services.AddSingleton<ICompilation, CompilationSI>();
-            services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IForm, FormStudioSI>();
-            services.AddSingleton<IRepository, RepositorySI>();
-            services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<IGitea, GiteaAPIWrapper>();
-            services.AddSingleton<ISourceControl, SourceControlSI>();
-            services.AddSingleton<ITestdata, TestdataStudioSI>();
-            services.AddSingleton<IApplication, ApplicationStudioSI>();
-            services.AddSingleton(Configuration);
+            services.RegisterServiceImplementations(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
             services.AddMemoryCache();
             services.AddResponseCompression();
 
-            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
-            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
-                                : Configuration["ServiceRepositorySettings:RepositoryLocation"];
+            CreateDirectory();
 
-            if (!Directory.Exists(repoLocation))
-            {
-                Directory.CreateDirectory(repoLocation);
-            }
-
-            services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
-            services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
-            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
-            services.Configure<CertificateSettings>(Configuration);
-            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
-
-            // Configure Authentication
-            // Use [Authorize] to require login on MVC Controller Actions
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                {
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
-                })
-                .AddCookie(options =>
-                {
-                    options.AccessDeniedPath = "/Home/NotAuthorized/";
-                    options.LoginPath = "/Home/Login/";
-                    options.LogoutPath = "/Home/Logout/";
-                    options.Cookie.Name = Common.Constants.General.DesignerCookieName;
-                    options.Events = new CookieAuthenticationEvents
-                    {
-                        // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
-                    };
-                });
-
-            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
-            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
-            {
-                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
-                services.AddApplicationInsightsKubernetesEnricher();
-            }
-
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            mvc.Services.Configure<MvcOptions>(options =>
-            {
-                // Adding custom modelbinders
-                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
-                options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
-            });
-            mvc.AddXmlSerializerFormatters();
-
-            services.AddLocalization();
-            services.Configure<RequestLocalizationOptions>(
-                options =>
-                {
-                    var supportedCultures = new List<CultureInfo>
-                        {
-                            // The current supported languages. Can easily be added more.
-                            new CultureInfo("en-US"),
-                            new CultureInfo("nb-NO"),
-                            new CultureInfo("nn-NO"),
-                        };
-
-                    options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
-                    options.SupportedCultures = supportedCultures;
-                    options.SupportedUICultures = supportedCultures;
-                });
-            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
+            services.ConfigureSettings(Configuration);
+            services.ConfigureAuthentication();
+            services.ConfigureApplicationInsight();
+            services.ConfigureMvc();
+            services.ConfigureLocalization();
         }
 
         /// <summary>
@@ -257,19 +168,18 @@ namespace AltinnCore.Designer
             });
         }
 
-        /// <summary>
-        ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
-        /// </summary>
-        /// <returns>Telemetry instrumentation key</returns>
-        public string GetApplicationInsightsKeyFromEnvironment()
+        private void CreateDirectory()
         {
-            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
-            if (string.IsNullOrEmpty(evironmentKey))
-            {
-                return null;
-            }
+            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
+            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+            string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
+                                : Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
-            return evironmentKey;
+            if (!Directory.Exists(repoLocation))
+            {
+                Directory.CreateDirectory(repoLocation);
+            }
         }
     }
 }
