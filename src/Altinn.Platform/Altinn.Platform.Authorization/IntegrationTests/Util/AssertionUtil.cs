@@ -30,7 +30,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
 
             if (expected.Response.Count > 0)
             {
-                AssertEqual(expected.Response.First(), actual.Response.First());
+                for (int i = 0; i < expected.Response.Count(); i++)
+                {
+                    AssertEqual(expected.Response[i], actual.Response[i]);
+                }
             }
         }
 
