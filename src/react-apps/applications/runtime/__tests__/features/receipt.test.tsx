@@ -63,7 +63,7 @@ describe('Testing functions in ReceiptContainer', () => {
               addressPostalCode: null,
               addressCity: null,
             },
-            organization: null,
+            organisation: null,
           },
           userType: 1,
           profileSettingPreference: null,

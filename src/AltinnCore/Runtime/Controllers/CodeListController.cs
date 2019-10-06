@@ -26,13 +26,13 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Returns
         /// </summary>
-        /// <param name="org">the organisation</param>
-        /// <param name="service">the service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="name">name</param>
         /// <returns>The codelist</returns>
-        public IActionResult Index(string org, string service, string name)
+        public IActionResult Index(string org, string app, string name)
         {
-            string codelist = _execution.GetCodelist(org, service, name);
+            string codelist = _execution.GetCodelist(org, app, name);
             if (string.IsNullOrEmpty(codelist))
             {
               return Json("{}");

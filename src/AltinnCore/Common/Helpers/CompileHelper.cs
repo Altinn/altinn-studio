@@ -12,7 +12,7 @@ namespace AltinnCore.Common.Helpers
     public static class CompileHelper
     {
         /// <summary>
-        /// Creates an asynchronous task for compiling an app
+        /// Creates an asynchronous task for compiling an app.
         /// </summary>
         /// <param name="compilation">The ICompilation implementation</param>
         /// <param name="identifier">The service identifier</param>

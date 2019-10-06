@@ -1,7 +1,7 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
-import { Route } from 'react-router-dom';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
+import { Route, Switch } from 'react-router-dom';
+import AltinnAppTheme from '../../shared/src/theme/altinnAppTheme';
 import FormFiller from './features/form/containers';
 import Instantiate from './features/instantiate/containers';
 import PartySelection from './features/instantiate/containers/PartySelection';
@@ -69,10 +69,12 @@ export default function() {
 
   return (
     <MuiThemeProvider theme={theme}>
-      <Route path={'/'} exact={true} component={Instantiate} />
-      <Route path={'/partyselection'} exact={true} component={PartySelection} />
-      <Route path={'/instance/:partyId/:instanceGuid'} component={FormFiller} />
-      <Route path={'/error'} component={StatefullAltinnError} />
+      <Switch>
+        <Route path={'/'} exact={true} component={Instantiate} />
+        <Route path={'/partyselection/:errorCode?'} exact={true} component={PartySelection} />
+        <Route path={'/instance/:partyId/:instanceGuid'} exact={true} component={FormFiller} />
+        <Route path={'/error'} component={StatefullAltinnError} />
+      </Switch>
     </MuiThemeProvider>
   );
 }

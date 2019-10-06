@@ -10,7 +10,7 @@
     @foreach (Testdata data in Model)
     {
         <li class="list-group-item border-0">
-            <a href="/designer/@ViewBag.Org/@ViewBag.Service/ManualTesting/LoginTestUser?userId=@data.DataId" class="list-group-item-action">
+            <a href="/designer/@ViewBag.Org/@ViewBag.App/ManualTesting/LoginTestUser?userId=@data.DataId" class="list-group-item-action">
                 <div><strong>@data.Title</strong></div>
                 <span class="text-muted">@data.Description</span>
             </a>

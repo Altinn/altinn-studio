@@ -73,7 +73,6 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = null;
             string org = startServiceModel.Org;
             string app = startServiceModel.Service;
-            string appId = ApplicationHelper.GetFormattedApplicationId(org, app);
             int instanceOwnerId = startServiceModel.PartyId;
 
             Instance instanceTemplate = new Instance()
@@ -82,15 +81,16 @@ namespace AltinnCore.Common.Services.Implementation
                 Process = new ProcessState()
                 {
                     Started = DateTime.UtcNow,
-                    CurrentTask = new TaskInfo
+                    CurrentTask = new ProcessElementInfo
                     {
                         Started = DateTime.UtcNow,
-                        ProcessElementId = _workflow.GetInitialServiceState(org, app).State.ToString(),
+                        
+                        ElementId = _workflow.GetInitialServiceState(org, app).State.ToString(),
                     }
                 },
             };
 
-            Instance createdInstance = await CreateInstance(org, appId, instanceTemplate);
+            Instance createdInstance = await CreateInstance(org, app, instanceTemplate);
 
             if (createdInstance == null)
             {
@@ -100,7 +100,7 @@ namespace AltinnCore.Common.Services.Implementation
             instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
            
             // Save instantiated form model
-            instance = await _data.InsertData(
+            instance = await _data.InsertFormData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
@@ -202,9 +202,9 @@ namespace AltinnCore.Common.Services.Implementation
             Instance instance = GetInstance(app, org, instanceOwnerId, instanceId).Result;
 
             instance.Process.Ended = DateTime.UtcNow;
-            instance.Process.CurrentTask = new TaskInfo
+            instance.Process.CurrentTask = new ProcessElementInfo
             {
-                ProcessElementId = WorkflowStep.Archived.ToString(),
+                ElementId = WorkflowStep.Archived.ToString(),
             };
 
             instance.InstanceState.IsArchived = true;
@@ -217,7 +217,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
-            string apiUrl = $"instances?appId={app}&instanceOwnerId={instanceTemplate.InstanceOwnerId}";
+            string apiUrl = $"instances?appId={org}/{app}&instanceOwnerId={instanceTemplate.InstanceOwnerId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 

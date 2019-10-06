@@ -1,0 +1,19 @@
+{
+  "SSN": "01039012345",
+  "Name": "Anne Sophie Næringsdrivende",
+  "FirstName": "Anne",
+  "MiddleName": "Sophie",
+  "LastName": "Næringsdrivende",
+  "TelephoneNumber": "12345678",
+  "MobileNumber": "87654321",
+  "MailingAddress": "Postadresse 9A",
+  "MailingPostalCode": "0000",
+  "MailingPostalCity": "By",
+  "AddressMunicipalNumber": "0301",
+  "AddressMunicipalName": "Oslo",
+  "AddressStreetName": "Engateioslo",
+  "AddressHouseNumber": "9",
+  "AddressHouseLetter": "A",
+  "AddressPostalCode": "0554",
+  "AddressCity": "Oslo"
+}

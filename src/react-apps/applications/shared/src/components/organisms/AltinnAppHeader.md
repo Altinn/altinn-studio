@@ -29,12 +29,12 @@ const party = {partyId: 13, person: {firstName: 'Tine', middleName: '', lastName
 
 ```
 
-### Person for organization
+### Person for organisation
 
 ```jsx
 
 const userParty = {partyId: 12, person: {firstName: 'Ola', middleName: '', lastName: 'Nordmann'}, ssn: '123467'};
-const party = {partyId: 13, organization: {name: 'FIRMA AS'}, orgNumber: '123467'};
+const party = {partyId: 13, organisation: {name: 'FIRMA AS'}, orgNumber: '123467'};
 
 <AltinnAppHeader
   logoColor={'#022F51'}

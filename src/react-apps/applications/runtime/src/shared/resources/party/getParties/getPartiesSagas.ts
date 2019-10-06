@@ -9,6 +9,17 @@ import * as GetPartyActionTypes from './getPartiesActionTypes';
 
 const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedParty);
 
+function findPartyWithPartyId(parties: IParty[], partyId: string): IParty {
+  for (const party of parties) {
+    if (party.partyId === partyId) {
+      return party;
+    }
+    if (party.childParties && party.childParties.length > 0) {
+      return findPartyWithPartyId(party.childParties, partyId);
+    }
+  }
+}
+
 function* getPartiesSaga(): SagaIterator {
   try {
     const validParties: IParty[] = yield call(get, validPartiesUrl);
@@ -16,7 +27,7 @@ function* getPartiesSaga(): SagaIterator {
     if (!selectedParty) {
       const selectedPartyId: string = yield call(get, currentPartyUrl);
       const allParties: IParty[] = yield call(get, allPartiesUrl);
-      const activeParty: IParty = allParties.find((party: IParty) => party.partyId === selectedPartyId);
+      const activeParty: IParty = findPartyWithPartyId(allParties, selectedPartyId);
       // We call the successfull action here because we don't want to update the
       // backend with the same party after selecting it
       yield call(PartyActions.selectPartyFulfilled, activeParty, false);

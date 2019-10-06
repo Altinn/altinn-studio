@@ -4,8 +4,8 @@
 
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
-  string service = ViewContext.RouteData.Values["service"] as string;
-  ViewBag.Title = service;
+  string app = ViewContext.RouteData.Values["app"] as string;
+  ViewBag.Title = app;
 }
 @section scripts {
   <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
@@ -13,7 +13,7 @@
 
 <div class="text-center">
   <h1 class="my-5 hidden-xs-down">
-    <span style="font-weight: lighter">@org / @service</span>
+    <span style="font-weight: lighter">@org / @app</span>
   </h1>
 </div>
 
@@ -24,14 +24,14 @@
   @if (Model.RepositoryContent != null && Model.RepositoryContent.Count > 0)
   {
     <div class="alert alert-info" role="alert">
-      Det er @Model.RepositoryContent.Count filer som er endret som ikke er lagret i Altinn Studio Repository. Se status og mulighet for innsjekking <a href="/designer/@org/@service/Service/Status">her</a>
+      Det er @Model.RepositoryContent.Count filer som er endret som ikke er lagret i Altinn Studio Repository. Se status og mulighet for innsjekking <a href="/designer/@org/@app/Service/Status">her</a>
     </div>
   }
 
   @if (Model.CommitsBehind != null && Model.CommitsBehind.Value > 0)
   {
     <div class="alert alert-info" role="alert">
-      Det er @Model.CommitsBehind.Value endringer utført på tjenesten du ikke har hentet inn. <a href="/designer/@org/@service/Service/PullRemoteChanges">Pull endringer.</a>
+      Det er @Model.CommitsBehind.Value endringer utført på tjenesten du ikke har hentet inn. <a href="/designer/@org/@app/Service/PullRemoteChanges">Pull endringer.</a>
     </div>
   }
 
@@ -39,7 +39,7 @@
 else
 {
 
-  <a href="/designer/@org/@service/Service/Clone">Clone service</a>
+  <a href="/designer/@org/@app/Service/Clone">Clone service</a>
 
 }
 
@@ -105,7 +105,7 @@ else
         <div class="card-body">
           <h4 class="card-title"><a asp-route-controller="Tesing">Test</a></h4>
 
-          <a title="Manuell test (åpnes i ny fane)" href="/@org/@service/ManualTesting"><i class="fa fa-fw fa-2x fa-play" aria-hidden="true"></i></a>
+          <a title="Manuell test (åpnes i ny fane)" href="/@org/@app/ManualTesting"><i class="fa fa-fw fa-2x fa-play" aria-hidden="true"></i></a>
           <a title="Automatiske test" asp-route-controller="Testing"><i class="fa fa-fw fa-2x fa-coffee" aria-hidden="true"></i></a>
           <a title="Universell utforming" asp-route-controller="Testing" asp-route-action="Accessibility"><i class="fa fa-fw fa-2x fa-universal-access" aria-hidden="true"></i></a>
         </div>
@@ -133,7 +133,7 @@ else
     <a asp-route="serviceRoute"
        asp-route-controller="Service"
        asp-route-action="DeleteService"
-       asp-route-id="@service"
+       asp-route-id="@app"
        class="btn btn-danger">
       Slett tjeneste
     </a>
