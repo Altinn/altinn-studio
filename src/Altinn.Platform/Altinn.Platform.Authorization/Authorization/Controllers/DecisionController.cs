@@ -46,14 +46,16 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] XacmlRequestApiModel model)
         {
-            XacmlContextRequest decisionRequest = null;
-            XacmlContextResponse xacmlContextResponse = null;
-            XacmlPolicy policy = null;
             try
             {
-                decisionRequest = ParseApiBody(model);
-                decisionRequest = await this._contextHandler.Enrich(decisionRequest);
-                policy = this._prp.GetPolicy(decisionRequest);
+                if (Request.ContentType.Contains("application/json"))
+                {
+                    return await AuthorizeJsonRequest(model);
+                }
+                else 
+                {
+                    return await AuthorizeXmlRequest(model);
+                }
             }
             catch (Exception ex)
             {
@@ -61,22 +63,52 @@ namespace Altinn.Platform.Authorization.Controllers
                 {
                     Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError)
                 };
-                xacmlContextResponse = new XacmlContextResponse(result);
+                XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
+                return CreateResponse(xacmlContextResponse);
+            }
+        }
+
+        private async Task<XacmlJsonResponse> Authorize(XacmlJsonRequest decisionRequest)
+        {
+            if (decisionRequest.MultiRequests == null || decisionRequest.MultiRequests.RequestReference == null
+                || decisionRequest.MultiRequests.RequestReference.Count < 2)
+            {
+                XacmlContextRequest request = XacmlJsonXmlConverter.ConvertRequest(decisionRequest);
+                XacmlContextResponse xmlResponse = await Authorize(request);
+                return XacmlJsonXmlConverter.ConvertResponse(xmlResponse);
+            }
+            else
+            {
+                XacmlContextRequest request = XacmlJsonXmlConverter.ConvertRequest(decisionRequest);
+                XacmlContextResponse xmlResponse = await Authorize(request);
+                return XacmlJsonXmlConverter.ConvertResponse(xmlResponse);
+            }
+        }
+
+        private async Task<ActionResult> AuthorizeXmlRequest(XacmlRequestApiModel model)
+        {
+            XacmlContextRequest request;
+            using (XmlReader reader = XmlReader.Create(new StringReader(model.BodyContent)))
+            {
+                request = XacmlParser.ReadContextRequest(reader);
             }
 
-            if (decisionRequest != null && policy != null)
-            {
-                PolicyDecisionPoint pdp = new PolicyDecisionPoint();
-                xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
-            }
+            XacmlContextResponse xacmlContextResponse = await Authorize(request);
+            return CreateResponse(xacmlContextResponse);
+        }
 
-            string accept = HttpContext.Request.Headers["Accept"];
-            if (!string.IsNullOrEmpty(accept) && accept.Equals("application/json"))
-            {
-               XacmlJsonResponse jsonReponse = XacmlJsonXmlConverter.ConvertResponse(xacmlContextResponse);
-               return Ok(jsonReponse);
-            }
-                
+        private async Task<ActionResult> AuthorizeJsonRequest(XacmlRequestApiModel model)
+        {
+            XacmlJsonRequestRoot jsonRequest;
+            jsonRequest = (XacmlJsonRequestRoot)JsonConvert.DeserializeObject(model.BodyContent, typeof(XacmlJsonRequestRoot));
+
+            XacmlJsonResponse jsonResponse = await Authorize(jsonRequest.Request);
+
+            return Ok(jsonResponse);
+        }
+
+        private ActionResult CreateResponse(XacmlContextResponse xacmlContextResponse)
+        {
             StringBuilder builder = new StringBuilder();
             using (XmlWriter writer = XmlWriter.Create(builder))
             {
@@ -86,6 +118,16 @@ namespace Altinn.Platform.Authorization.Controllers
             string xml = builder.ToString();
 
             return Content(xml);
+        }
+
+        private async Task<XacmlContextResponse> Authorize(XacmlContextRequest decisionRequest)
+        {
+            decisionRequest = await this._contextHandler.Enrich(decisionRequest);
+            XacmlPolicy policy = this._prp.GetPolicy(decisionRequest);
+
+            PolicyDecisionPoint pdp = new PolicyDecisionPoint();
+            XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
+            return xacmlContextResponse;
         }
 
         private XacmlContextRequest ParseApiBody(XacmlRequestApiModel model)
