@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.6-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="2.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
@@ -21,10 +22,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj" />
     <ProjectReference Include="..\Authorization\Altinn.Platform.Authorization.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>

@@ -8,7 +8,7 @@
   "dueDateTime": "2019-07-05T00:00:00Z",
   "visibleDateTime": "2019-06-05T00:00:00Z",
   "process": {
-    "currentTask": { "processElementId": "formfilling" }
+    "currentTask": { "elementId": "formfilling" }
   },
   "instanceState": {
     "isDeleted": false,

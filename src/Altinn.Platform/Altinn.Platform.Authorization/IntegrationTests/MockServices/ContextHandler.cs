@@ -2,8 +2,8 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Platform.Authorization.IntegrationTests.Models;
 using Altinn.Platform.Authorization.Services.Interface;
+using Altinn.Platform.Storage.Models;
 using Authorization.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -199,7 +199,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
         private XacmlAttribute GetProcessElementAttribute(Instance instance)
         {
             XacmlAttribute attribute = new XacmlAttribute(new Uri(TaskAttributeId), false);
-            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.CurrentTask.ProcessElementId));
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), instance.Process.CurrentTask.ElementId));
             return attribute;
         }
 
