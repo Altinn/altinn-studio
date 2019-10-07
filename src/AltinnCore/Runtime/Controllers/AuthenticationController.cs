@@ -47,21 +47,16 @@ namespace AltinnCore.Runtime.Controllers
                     return StatusCode((int)result.StatusCode);
                 }
 
-                string token = await result.Content.ReadAsStringAsync();
-
-                _logger.LogInformation($"token from platform{token}");
+                string token = await result.Content.ReadAsStringAsync();                
 
                 CookieOptions runtimeCookieSetting = new CookieOptions
                 {
-                    Domain = "at21.altinn.cloud",
-                    Expires = DateTime.UtcNow.AddMinutes(30),
+                    Domain = _settings.HostName,                    
                 };
 
                 if (!string.IsNullOrWhiteSpace(token))
-                {
-                    _logger.LogInformation($"Starting to Append runtime cookie with token from platform{token}");
-                    HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token, runtimeCookieSetting);
-                    _logger.LogInformation($"Appended runtime cookie with token from platform{token}");                  
+                {                    
+                    HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token, runtimeCookieSetting);                                      
                 }
             }
 
