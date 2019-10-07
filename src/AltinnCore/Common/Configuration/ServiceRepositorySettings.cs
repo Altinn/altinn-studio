@@ -323,7 +323,7 @@ namespace AltinnCore.Common.Configuration
             }
 
             string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
-            return developer != null ? $"{repositoryLocation}{developer}" : $"{repositoryLocation}/";
+            return developer != null ? $"{repositoryLocation}{developer}" : $"{repositoryLocation}";
         }
 
         /// <summary>
