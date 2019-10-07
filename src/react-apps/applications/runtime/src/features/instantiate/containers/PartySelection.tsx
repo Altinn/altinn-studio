@@ -149,7 +149,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
               : null
             : null,
         )}
-        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < validParties.length ?
+        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < parties.length ?
           <Grid container={true} direction={'row'}>
             {renderShowMoreButton()}
           </Grid>
