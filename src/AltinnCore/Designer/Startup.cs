@@ -2,9 +2,12 @@ using System;
 using System.IO;
 using System.Reflection;
 using AltinnCore.Designer.Infrastructure;
+using AltinnCore.Designer.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Internal;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -53,6 +56,7 @@ namespace AltinnCore.Designer
             services.ConfigureMvc();
             services.ConfigureLocalization();
 
+            services.AddRouting(options => { options.LowercaseUrls = true; });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "Altinn Designer API", Version = "v1" });
@@ -71,37 +75,48 @@ namespace AltinnCore.Designer
         /// Configure the application.
         /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/>
         /// </summary>
-        /// <param name="appBuilder">The application builder</param>
+        /// <param name="app">The application builder</param>
         /// <param name="env">Hosting environment</param>
-        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                appBuilder.UseDeveloperExceptionPage();
+                app.UseDeveloperExceptionPage();
             }
             else
             {
-                appBuilder.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/Error");
             }
 
-            var swaggerRoutePrefix = "designer/swagger";
-            appBuilder.UseSwagger(c =>
+            app.UseEndpointRouting();
+            app.UseWhen(
+                context =>
+                context.Request.Path.StartsWithSegments("/designer/api/v1") &&
+                context.GetRouteValue("org") != null &&
+                context.GetRouteValue("app") != null,
+                innerAppBuilder =>
+                {
+                    innerAppBuilder.UseMiddleware<GetOrgAppFromRouteMiddleware>();
+                });
+
+            const string swaggerRoutePrefix = "designer/swagger";
+            app.UseSwagger(c =>
             {
                 c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
             });
-            appBuilder.UseSwaggerUI(c =>
+            app.UseSwaggerUI(c =>
             {
                 c.RoutePrefix = swaggerRoutePrefix;
                 c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
             });
 
-            // appBuilder.UseHsts();
-            // appBuilder.UseHttpsRedirection();
-            appBuilder.UseAuthentication();
+            // app.UseHsts();
+            // app.UseHttpsRedirection();
+            app.UseAuthentication();
 
-            appBuilder.UseResponseCompression();
-            appBuilder.UseRequestLocalization();
-            appBuilder.UseStaticFiles(new StaticFileOptions()
+            app.UseResponseCompression();
+            app.UseRequestLocalization();
+            app.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
                 {
@@ -114,7 +129,7 @@ namespace AltinnCore.Designer
                 },
             });
 
-            appBuilder.UseMvc(routes =>
+            app.UseMvc(routes =>
             {
                 // ------------------------- DEV ----------------------------- //
                 routes.MapRoute(
