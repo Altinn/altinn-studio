@@ -31,17 +31,10 @@ namespace AltinnCore.Common.Services.Implementation
         public Stream GetProcessDefinition(string org, string app)
         {
             string bpmnFilePath = repositorySettings.GetWorkflowPath(org, app, null) + repositorySettings.WorkflowFileName;
-            try
-            {
-                Stream processModel = File.OpenRead(bpmnFilePath.AsFileName());
-                return processModel;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError($"Could not open process model file:\n {bpmnFilePath} \n Illegal characters detected: {ex}");
-            }
 
-            return null;
+            Stream processModel = File.OpenRead(bpmnFilePath);
+
+            return processModel;
         }
     }
 }
