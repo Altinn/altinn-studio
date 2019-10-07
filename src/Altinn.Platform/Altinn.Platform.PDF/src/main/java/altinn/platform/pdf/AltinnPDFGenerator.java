@@ -163,31 +163,34 @@ public class AltinnPDFGenerator {
     // Render label
     if (element.textResourceBindings.title != null && !element.textResourceBindings.title.isEmpty()) {
       contents.beginText();
+      contents.newLineAtOffset(xPoint, yPoint);
       PDFont font = PDType1Font.HELVETICA_BOLD;
       contents.setFont(font, fontSize);
       String title = TextUtils.getTextResourceByKey(element.textResourceBindings.title, this.textResources);
       List<String> lines = TextUtils.splitTextToLines(title, font, fontSize, width);
       for(String line : lines) {
-        contents.newLineAtOffset(xPoint, yPoint);
         contents.showText(line);
-        contents.endText();
-        yPoint -=
+        contents.newLineAtOffset(0, -leading);
+        yPoint -= leading;
       }
 
-      contents.showText(title);
       contents.endText();
       yPoint -= textFieldMargin;
     }
 
     // Render description
-    // TODO: Break into multiple lines if needed
     if (element.textResourceBindings.description != null && !element.textResourceBindings.description.isEmpty()) {
       contents.beginText();
       PDFont font = PDType1Font.HELVETICA;
       contents.setFont(font, fontSize);
       contents.newLineAtOffset(xPoint, yPoint);
       String description = TextUtils.getTextResourceByKey(element.textResourceBindings.description, this.textResources);
-      contents.showText(description);
+      List<String> lines = TextUtils.splitTextToLines(description, font, fontSize, width);
+      for(String line: lines) {
+        contents.showText(line);
+        contents.newLineAtOffset(0, -leading);
+        yPoint -= leading;
+      }
       contents.endText();
       yPoint -= textFieldMargin;
 

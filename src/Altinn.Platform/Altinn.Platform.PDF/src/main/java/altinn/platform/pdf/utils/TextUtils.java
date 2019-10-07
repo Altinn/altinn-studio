@@ -29,9 +29,9 @@ public class TextUtils {
   }
 
   /**
-   * Gets the number of needed lines for a given text and font
+   * Gets the height needed for a given test based on the font and font size
    * @param text the text
-   * @return the number of lines needed to make room for the text
+   * @return the the height needed to fit the text
    */
   public static float getHeightNeededForText(String text, PDFont font, float fontSize, float width) throws IOException {
     if (text == null || text.length() == 0) {
@@ -59,31 +59,41 @@ public class TextUtils {
     if (text == null || text.length() == 0) {
       return lines;
     }
-
-    int lastSpace = -1;
-    while (text.length() > 0) {
-      int spaceIndex = text.indexOf(' ', lastSpace  + 1);
-      if (spaceIndex < 0) {
-        // no spaces found => place whole word on line
-        spaceIndex = text.length();
-      }
-      String subString = text.substring(0, spaceIndex);
-      float stringWidth = fontSize * font.getStringWidth(subString) / 1000;
-      if (stringWidth > width) {
-        if (lastSpace < 0) {
+    for (String lineInText: text.split("\n")) {
+      int lastSpace = -1;
+      while (lineInText.length() > 0) {
+        int spaceIndex = lineInText.indexOf(' ', lastSpace  + 1);
+        if (spaceIndex < 0) {
+          // no spaces found => the line contains the whole word
+          spaceIndex = lineInText.length();
+        }
+        String subString = lineInText.substring(0, spaceIndex);
+        float stringWidth = getStringWidth(subString, font, fontSize);
+        if (stringWidth > width) {
+          if (lastSpace < 0) {
+            lastSpace = spaceIndex;
+          }
+          subString = lineInText.substring(0, lastSpace);
+          float subStringWidth = fontSize * font.getStringWidth(subString) / 1000;
+          if (subStringWidth > width) {
+            // the word is wider than the width, we need to split the word itself
+            List<String> splittedWord = splitWordToFitWidth(subString, font, fontSize, width);
+            for (String line: splittedWord) {
+              lines.add(line);
+            }
+          } else {
+            lines.add(subString);
+          }
+          lineInText = lineInText.substring(lastSpace).trim();
+          lastSpace = -1;
+        }
+        else if (spaceIndex == lineInText.length()) {
+          lines.add(lineInText);
+          lineInText = "";
+        }
+        else {
           lastSpace = spaceIndex;
         }
-        subString = text.substring(0, lastSpace);
-        lines.add(subString);
-        text = text.substring(lastSpace).trim();
-        lastSpace = -1;
-      }
-      else if (spaceIndex == text.length()) {
-        lines.add(text);
-        text = "";
-      }
-      else {
-        lastSpace = spaceIndex;
       }
     }
 
@@ -99,4 +109,49 @@ public class TextUtils {
   public static float getFontHeight(PDFont font, float fontSize) {
     return font.getFontDescriptor().getFontBoundingBox().getHeight() / 1000 * fontSize;
   }
+
+  /***
+   * Splits a word to the number if lines it needs to fit inside the given width
+   * @param word the word
+   * @param font the font
+   * @param fontSize the font size
+   * @param width the width
+   * @return a list of lines needed to fit word
+   */
+  public static List<String> splitWordToFitWidth(String word, PDFont font, float fontSize, float width) throws IOException {
+    List<String> lines = new ArrayList();
+    if (word == null || font == null) {
+      return lines;
+    }
+    float wordWidth = getStringWidth(word, font, fontSize);
+    if (wordWidth < width) {
+      lines.add(word);
+      return lines;
+    }
+
+    int start = 0;
+
+    for(int i = 2; i <= word.length(); i ++) {
+      String subString = word.substring(start, i); // inclusive, exclusive
+      if (getStringWidth(subString, font, fontSize) > width) {
+        lines.add(word.substring(start, i));
+        start = i;
+      }
+    }
+
+    return lines;
+  }
+
+  /***
+   * Gets the string width
+   * @param word the string
+   * @param font the font
+   * @param fontSize the font size
+   * @return the width in pixels
+   * @throws IOException
+   */
+  public static float getStringWidth(String word, PDFont font, float fontSize) throws IOException {
+    return fontSize * font.getStringWidth(word) / 1000;
+  }
+
 }
