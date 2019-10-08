@@ -4,7 +4,7 @@ import { IRelease } from './types';
 
 export function fetchReleases(): Action {
   return {
-    type: AppReleaseActionTypes.FETCH_APP_DEPLOYMENTS,
+    type: AppReleaseActionTypes.FETCH_APP_RELEASES,
   };
 }
 
@@ -14,7 +14,7 @@ export interface IFetchReleaseActionFulfilled extends Action {
 
 export function fetchReleasesFulfilled(releases: IRelease[]): IFetchReleaseActionFulfilled {
   return {
-    type: AppReleaseActionTypes.FETCH_APP_DEPLOYMENTS_FULFILLED,
+    type: AppReleaseActionTypes.FETCH_APP_RELEASES_FULFILLED,
     releases,
   };
 }
@@ -25,7 +25,7 @@ export interface IFetchReleaseActionRejected extends Action {
 
 export function fetchReleasesRejected(error: Error): IFetchReleaseActionRejected {
   return {
-    type: AppReleaseActionTypes.FETCH_APP_DEPLOYMENTS_REJECTED,
+    type: AppReleaseActionTypes.FETCH_APP_RELEASES_REJECTED,
     error,
   };
 }
@@ -44,7 +44,7 @@ export function createRelease(
   targetCommitish: string,
 ): ICreateReleaseAction {
   return {
-    type: AppReleaseActionTypes.CREATE_APP_DEPLOYMENT,
+    type: AppReleaseActionTypes.CREATE_APP_RELEASE,
     tag_name: tagName,
     target_commitish: targetCommitish,
     name,
@@ -58,7 +58,7 @@ export interface ICreateReleaseFulfilledAction extends Action {
 
 export function createReleaseFulfilled(id: string): ICreateReleaseFulfilledAction {
   return {
-    type: AppReleaseActionTypes.CREATE_APP_DEPLOTMENT_FULFILLED,
+    type: AppReleaseActionTypes.CREATE_APP_RELEASE_FULFILLED,
     id,
   };
 }
@@ -69,7 +69,7 @@ export interface ICreateReleaseRejectedActions extends Action {
 
 export function createReleaseRejected(error: Error): ICreateReleaseRejectedActions {
   return {
-    type: AppReleaseActionTypes.CREATE_APP_DEPLOTMENT_REJECTED,
+    type: AppReleaseActionTypes.CREATE_APP_RELEASE_REJECTED,
     error,
   };
 }

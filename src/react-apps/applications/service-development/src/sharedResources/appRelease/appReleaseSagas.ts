@@ -13,7 +13,7 @@ function* fetchReleasesSaga(): SagaIterator {
 
 function* watchFetchReleasesSaga(): SagaIterator {
   yield takeLatest(
-    AppReleaseActionTypes.FETCH_APP_DEPLOYMENTS,
+    AppReleaseActionTypes.FETCH_APP_RELEASES,
     fetchReleasesSaga,
   );
 }
@@ -28,7 +28,7 @@ function* createReleaseSaga(): SagaIterator {
 
 function* watchCreateReleaseSaga(): SagaIterator {
   yield takeLatest(
-    AppReleaseActionTypes.CREATE_APP_DEPLOYMENT,
+    AppReleaseActionTypes.CREATE_APP_RELEASE,
     createReleaseSaga,
   );
 }

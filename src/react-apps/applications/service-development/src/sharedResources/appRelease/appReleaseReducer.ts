@@ -26,7 +26,7 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
     return state;
   }
   switch (action.type) {
-    case AppReleaseActionTypes.FETCH_APP_DEPLOYMENTS_FULFILLED: {
+    case AppReleaseActionTypes.FETCH_APP_RELEASES_FULFILLED: {
       const { releases } = action as IFetchReleaseActionFulfilled;
       return update<IAppReleaseState>(state, {
         releases: {
@@ -37,7 +37,7 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
         },
       });
     }
-    case AppReleaseActionTypes.FETCH_APP_DEPLOYMENTS_REJECTED: {
+    case AppReleaseActionTypes.FETCH_APP_RELEASES_REJECTED: {
       const { error } = action as IFetchReleaseActionRejected;
       return update<IAppReleaseState>(state, {
         error: {
@@ -45,7 +45,14 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
         },
       });
     }
-    case AppReleaseActionTypes.CREATE_APP_DEPLOTMENT_REJECTED: {
+    case AppReleaseActionTypes.CREATE_APP_RELEASE_FULFILLED: {
+      return update<IAppReleaseState>(state, {
+        error: {
+          $set: null,
+        },
+      });
+    }
+    case AppReleaseActionTypes.CREATE_APP_RELEASE_REJECTED: {
       const { error } = action as ICreateReleaseRejectedActions;
       return update<IAppReleaseState>(state, {
         error: {
