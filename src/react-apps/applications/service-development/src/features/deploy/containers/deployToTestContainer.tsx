@@ -13,6 +13,7 @@ import DeployPaper from '../components/deployPaper';
 import DeployActionDispatcher from '../deployDispatcher';
 import { makeGetCompileStatusResultSelector, makeGetCompileStatusUniqueFilenames } from '../selectors/compileSelectors';
 import { makeGetImageTags } from '../selectors/deploymentListSelectors';
+import AppClusterDispatcher from './../../../sharedResources/appCluster/appClusterDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -127,23 +128,23 @@ export class DeployToTestContainer extends
   }
 
   public fetchCompileStatus = () => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, service } = window as Window as IAltinnWindow;
     DeployActionDispatcher.fetchCompileStatus(org, service);
   }
 
   // TODO: Change letEnv to enum when environments are defined later
   public fetchDeployments = (letEnv: string) => {
-    const { org, service } = window as IAltinnWindow;
-    DeployActionDispatcher.fetchDeployments(letEnv, org, service);
+    const { org, service } = window as Window as IAltinnWindow;
+    AppClusterDispatcher.getDeployments(letEnv, org, service);
   }
 
   public fetchMasterRepoStatus = () => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, service } = window as Window as IAltinnWindow;
     DeployActionDispatcher.fetchMasterRepoStatus(org, service);
   }
 
   public getRepoPermissions = async () => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, service } = window as Window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${service}`;
 
     try {
@@ -196,13 +197,13 @@ export class DeployToTestContainer extends
   }
 
   public startDeployment = (letEnv: string) => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, service } = window as Window as IAltinnWindow;
     DeployActionDispatcher.deployAltinnApp(letEnv, org, service);
     this.fetchDeploymentStatusInterval(letEnv);
   }
 
   public fetchDeploymentStatusInterval = (letEnv: string) => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, service } = window as Window as IAltinnWindow;
     const interval = setInterval(() => {
       DeployActionDispatcher.fetchDeployAltinnAppStatus(
         letEnv, org, service, this.props.deployStatus[letEnv].result.buildId);
@@ -263,7 +264,7 @@ export class DeployToTestContainer extends
               <DeployPaper
                 cSharpCompileStatusSuccess={compileStatus.result && compileStatus.result.succeeded}
                 cSharpCompileStatusUniqueFilenames={this.props.compileStatusUniqueFilenames}
-                deploymentListFetchStatus={this.props.deploymentList[environment].fetchStatus}
+                deploymentListFetchStatus={this.props.deploymentList[environment].getStatus}
                 deployStatus={this.props.deployStatus[environment]}
                 deploySuccess={this.isDeploySuccessful(this.props.deployStatus[environment])}
                 env={environment}
@@ -324,7 +325,7 @@ const makeMapStateToProps = () => {
     return {
       language: state.language,
       masterRepoStatus: state.deploy.masterRepoStatus,
-      deploymentList: state.deploy.deploymentList,
+      deploymentList: state.appCluster.deploymentList,
       repoStatus: getRepoStatusSelector(state),
       deployStatus: state.deploy.deployStatus,
       compileStatus: getCompileStatusSelector(state),

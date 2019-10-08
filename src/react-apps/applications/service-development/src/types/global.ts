@@ -1,16 +1,18 @@
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
 import { IDeployState } from '../features/deploy/deployReducer';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
+import { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
 import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 
 declare global {
-  export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4, T5> {
+  export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4, T5, T6> {
     language: T1;
     handleMergeConflict: T2;
     serviceInformation: T3;
     deploy: T4;
     applicationMetadataState: T5;
+    appCluster: T6;
   }
 
   export interface IServiceDevelopmentState
@@ -19,7 +21,8 @@ declare global {
     IHandleMergeConflictState,
     IHandleServiceInformationState,
     IDeployState,
-    IApplicationMetadataState> { }
+    IApplicationMetadataState,
+    IAppClusterState> { }
 }
 
 export interface IRepository {
