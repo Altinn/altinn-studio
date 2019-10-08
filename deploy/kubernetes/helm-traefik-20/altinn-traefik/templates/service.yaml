@@ -1,9 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: traefik
+  name: {{ template "altinn-traefik.fullname" . }}
 spec:
   type: {{ .Values.service.type }}
+  {{- if .Values.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.loadBalancerIP }}
+  {{- end }}
   ports:
   {{- range $port := .Values.service.ports }}
     - protocol: {{ $port.protocol }}
@@ -11,4 +14,4 @@ spec:
       port: {{ $port.port }}
   {{- end }}
   selector:
-    app: {{ .Values.name }}
+    app: {{ template "altinn-traefik.name" . }}

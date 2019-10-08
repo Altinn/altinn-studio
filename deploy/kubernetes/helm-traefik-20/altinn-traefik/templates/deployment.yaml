@@ -19,16 +19,64 @@ spec:
         app: {{ .Values.name }}
     spec:
       serviceAccountName: traefik-ingress-controller
+      volumes:
+      - name: config
+        configMap:
+          name: {{ template "altinn-traefik.fullname" . }}
+      {{- if .Values.ssl.enabled }}
+      - name: ssl
+        emptyDir: {}
+      - name: {{ .Values.altinnFlexVol.name }}
+        flexVolume:
+          driver: "azure/kv"
+          options:
+            keyvaultname: {{ .Values.altinnFlexVol.flexVolume.options.keyvaultname }}
+            keyvaultobjectname: {{ .Values.altinnFlexVol.flexVolume.options.keyvaultobjectname }}
+            keyvaultobjecttype: {{ .Values.altinnFlexVol.flexVolume.options.keyvaultobjecttype }}
+            resourcegroup: {{ .Values.altinnFlexVol.flexVolume.options.resourcegroup }}
+            subscriptionid: {{ .Values.altinnFlexVol.flexVolume.options.subscriptionid }}
+            tenantid: {{ .Values.altinnFlexVol.flexVolume.options.tenantid }}
+            usepodidentity: "false"
+          secretRef:
+            name: {{ .Values.altinnFlexVol.flexVolume.secretRef.name }}
+      {{- end }}
+      {{- if .Values.ssl.enabled }}
+      initContainers:
+      - image: tannerfe/alpine-openssl
+        name: convert-certs
+        command: ['sh', '-c', 'cat /certs/star-altinn-studio | base64 -d - > /ssl/certificate.pfx &&
+        openssl pkcs12 -in /ssl/certificate.pfx -out /ssl/certificate.pem -nodes -passin pass:"" &&
+        openssl pkey -in /ssl/certificate.pem -out /ssl/certificate.key']
+        volumeMounts:
+        - name: certs
+          mountPath: /certs
+          readOnly: true
+        - name: ssl
+          mountPath: /ssl
+      {{- end }}
       containers:
         - name: altinn-traefik
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           args:
             - --api
-            - --accesslog
-            - --entrypoints.web.Address=:80
+            # - --accesslog
+            # - --entrypoints.web.Address=:80
+            # - --entrypoints.https.Address=:443
             - --providers.kubernetescrd
+            - --configfile=/config/traefik.toml
           ports:
             - name: web
               containerPort: 80
             - name: admin
               containerPort: 8080
+            {{- if .Values.ssl.enabled }}
+            - name: https
+              containerPort: 443
+            {{- end }}
+          volumeMounts:
+          {{- if .Values.ssl.enabled }}
+          - mountPath: /ssl
+            name: ssl
+          {{- end }}
+          - mountPath: /config
+            name: config
