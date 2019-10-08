@@ -214,8 +214,6 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     return StatusCode(500, $"Unknown exception in restore: {e}");
                 }
-
-                // generate instance event 'Undeleted'
             }
 
             return Ok(true);

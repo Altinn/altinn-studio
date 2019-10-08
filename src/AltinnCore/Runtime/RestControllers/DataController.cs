@@ -49,7 +49,6 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="executionService">execution service to execute data element logic</param>
         /// <param name="profileService">profile service to access profile information about users and parties</param>
         /// <param name="platformService">platform</param>
-        /// <param name="eventService">event service for dispatching data events</param>
         /// <param name="appService">application service for accessing application metadata.</param>
         public DataController(
             IOptions<GeneralSettings> generalSettings,
@@ -60,7 +59,6 @@ namespace AltinnCore.Runtime.RestControllers
             IExecution executionService,
             IProfile profileService,
             IPlatformServices platformService,
-            IInstanceEvent eventService,
             IApplication appService)
         {
             this.logger = logger;

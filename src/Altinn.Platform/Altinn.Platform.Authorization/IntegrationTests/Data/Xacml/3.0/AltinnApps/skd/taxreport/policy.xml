@@ -7,13 +7,13 @@
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">REGNA</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">regna</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DAGL</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dagl</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
@@ -21,43 +21,43 @@
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SKD</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">TaxReport</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">taxreport</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Instansiate</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">instansiate</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:event" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SKD</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">TaxReport</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">taxreport</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">FormFilling</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">formfilling</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SKD</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">TaxReport</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">taxreport</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Signing</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">signing</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
@@ -65,13 +65,13 @@
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Read</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Write</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
@@ -84,7 +84,7 @@
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">DAGL</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">dagl</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:rolecode" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
@@ -92,15 +92,15 @@
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">SKD</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">TaxReport</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">taxreport</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Signing</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">signing</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:altinn:task" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>
@@ -108,7 +108,81 @@
       <xacml:AnyOf>
         <xacml:AllOf>
           <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
-            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Sign</xacml:AttributeValue>
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">sign</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+    </xacml:Target>
+  </xacml:Rule>
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:3" Effect="Permit">
+    <xacml:Description>Example rule that gives org nav and skd read right to the app inn all states</xacml:Description>
+    <xacml:Target>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">nav</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">taxreport</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+    </xacml:Target>
+  </xacml:Rule>
+  <xacml:Rule RuleId="urn:altinn:example:ruleid:4" Effect="Permit">
+    <xacml:Description>Example rule that gives org skd write right for app inn all states</xacml:Description>
+    <xacml:Target>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">skd</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:org" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">taxreport</xacml:AttributeValue>
+            <xacml:AttributeDesignator AttributeId="urn:altinn:app" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
+          </xacml:Match>
+        </xacml:AllOf>
+      </xacml:AnyOf>
+      <xacml:AnyOf>
+        <xacml:AllOf>
+          <xacml:Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+            <xacml:AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</xacml:AttributeValue>
             <xacml:AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="false"/>
           </xacml:Match>
         </xacml:AllOf>

@@ -3,6 +3,7 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from 'src/types';
 import { IParty } from '../';
 import { get } from '../../../../utils/networking';
+import { findSelectedParty } from '../../../../utils/partyUtils';
 import { allPartiesUrl, currentPartyUrl, validPartiesUrl } from '../../../../utils/urlHelper';
 import PartyActions from '../partyActions';
 import * as GetPartyActionTypes from './getPartiesActionTypes';
@@ -16,7 +17,7 @@ function* getPartiesSaga(): SagaIterator {
     if (!selectedParty) {
       const selectedPartyId: string = yield call(get, currentPartyUrl);
       const allParties: IParty[] = yield call(get, allPartiesUrl);
-      const activeParty: IParty = allParties.find((party: IParty) => party.partyId === selectedPartyId);
+      const activeParty: IParty = findSelectedParty(allParties, selectedPartyId);
       // We call the successfull action here because we don't want to update the
       // backend with the same party after selecting it
       yield call(PartyActions.selectPartyFulfilled, activeParty, false);
