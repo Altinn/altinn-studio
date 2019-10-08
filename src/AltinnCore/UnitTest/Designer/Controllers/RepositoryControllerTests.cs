@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -12,7 +10,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace AltinnCore.UnitTest.Designer
+namespace AltinnCore.UnitTest.Designer.Controllers
 {
     /// <summary>
     /// Unit tests for Repository controller

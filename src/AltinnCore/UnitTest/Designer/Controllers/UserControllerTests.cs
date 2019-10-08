@@ -4,10 +4,9 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
 using AltinnCore.UnitTest.Helpers;
 using Microsoft.Extensions.Options;
-using Moq;
 using Xunit;
 
-namespace AltinnCore.UnitTest.Designer
+namespace AltinnCore.UnitTest.Designer.Controllers
 {
     /// <summary>
     /// Unit test for the user controller

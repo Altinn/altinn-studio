@@ -1,13 +1,9 @@
-using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Controllers;
 using AltinnCore.RepositoryClient.Model;
 using AltinnCore.UnitTest.Helpers;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -15,7 +11,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-namespace AltinnCore.UnitTest.Designer
+namespace AltinnCore.UnitTest.Designer.Controllers
 {
     /// <summary>
     /// Tests for HomeController in designer application

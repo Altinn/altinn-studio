@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Xml.Linq;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Controllers;
@@ -12,7 +10,7 @@ using Moq;
 using NUnit.Framework;
 using Xunit;
 
-namespace AltinnCore.UnitTest.Designer
+namespace AltinnCore.UnitTest.Designer.Controllers
 {
     /// <summary>
     ///  tests
