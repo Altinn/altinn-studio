@@ -1,9 +1,9 @@
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
-import { IAppReleaseState } from '../features/appRelease/appReleaseReducer';
 import { IDeployState } from '../features/deploy/deployReducer';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
 import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
+import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 
 declare global {

@@ -3,10 +3,10 @@ import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
 import { watchHandleFetchInitialCommitSaga, watchHandleFetchServiceConfigSaga, watchHandleFetchServiceNameSaga, watchHandleFetchServiceSaga, watchHandleSaveServiceConfigSaga, watchHandleSaveServiceNameSaga } from '../features/administration/handleServiceInformationSagas';
-import AppReleaseSagas from '../features/appRelease/appReleaseSagas';
 import { deploySagas } from '../features/deploy/deploySagas';
 import { watchHandleMergeConflictSaga } from '../features/handleMergeConflict/handleMergeConflictSagas';
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
+import AppReleaseSagas from '../sharedResources/appRelease/appReleaseSagas';
 import languageSagas from '../utils/fetchLanguage/languageSagas';
 import { appClusterSagas } from './../sharedResources/appCluster/appClusterSagas';
 

@@ -1,10 +1,10 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
 import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
-import releaseReducer, { IAppReleaseState } from '../features/appRelease/appReleaseReducer';
 import deployReducer, { IDeployState } from '../features/deploy/deployReducer';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
 import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
+import releaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 
 export interface IServiceDevelopmentReducers
