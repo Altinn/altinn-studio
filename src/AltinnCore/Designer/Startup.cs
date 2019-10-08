@@ -2,12 +2,9 @@ using System;
 using System.IO;
 using System.Reflection;
 using AltinnCore.Designer.Infrastructure;
-using AltinnCore.Designer.Middlewares;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Internal;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -56,7 +53,7 @@ namespace AltinnCore.Designer
             services.ConfigureMvc();
             services.ConfigureLocalization();
 
-            services.AddRouting(options => { options.LowercaseUrls = true; });
+            ////services.AddRouting(options => { options.LowercaseUrls = true; });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "Altinn Designer API", Version = "v1" });
@@ -87,17 +84,6 @@ namespace AltinnCore.Designer
             {
                 app.UseExceptionHandler("/Error");
             }
-
-            app.UseEndpointRouting();
-            app.UseWhen(
-                context =>
-                context.Request.Path.StartsWithSegments("/designer/api/v1") &&
-                context.GetRouteValue("org") != null &&
-                context.GetRouteValue("app") != null,
-                innerAppBuilder =>
-                {
-                    innerAppBuilder.UseMiddleware<GetOrgAppFromRouteMiddleware>();
-                });
 
             const string swaggerRoutePrefix = "designer/swagger";
             app.UseSwagger(c =>
