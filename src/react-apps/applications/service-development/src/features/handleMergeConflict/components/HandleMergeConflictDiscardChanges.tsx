@@ -83,7 +83,7 @@ export class HandleMergeConflictDiscardChanges extends
         },
       });
 
-      const discardUrl = `${altinnWindow.location.origin}/` +
+      const discardUrl = `${window.location.origin}/` +
         `designerapi/Repository/DiscardLocalChanges?org=${org}&repository=${app}`;
       const discardRes = await get(discardUrl);
 

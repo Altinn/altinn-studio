@@ -103,7 +103,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     if (!this.state.moreThanAnHourSinceLastPush) {
       const { org, app } = window as Window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${app}`;
+      const url = `${window.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${app}`;
       get(url).then((result: any) => {
         if (this._isMounted && result) {
           const diff = new Date().getTime() - new Date(result.comitter.when).getTime();

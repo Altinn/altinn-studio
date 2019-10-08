@@ -143,7 +143,7 @@ export class DeployToTestContainer extends
   }
 
   public getRepoPermissions = async () => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
 
     try {
