@@ -1,5 +1,6 @@
 /* tslint:disable: max-line-length */
-const { org, app } = window as Window as IAltinnWindow;
+const altinnWindow = window as any;
+const { org, app } = altinnWindow;
 const origin = window.location.origin;
 
 export const getApplicationMetadataUrl = (): string => {

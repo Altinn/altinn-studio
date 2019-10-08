@@ -136,7 +136,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                         activeSubHeaderSelection={route.activeSubHeaderSelection}
                         logoutButton={repoStatus.hasMergeConflict}
                         org={org}
-                        app={this.props.serviceName || app}
+                        app={app}
                         showBreadcrumbOnTablet={true}
                         showSubHeader={repoStatus.hasMergeConflict ? false : true}
                       />}
