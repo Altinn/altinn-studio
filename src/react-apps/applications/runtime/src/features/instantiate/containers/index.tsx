@@ -47,26 +47,30 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const createNewInstance = () => {
+    if (!selectedParty) {
+      return;
+    }
     setInstantiating(true);
     InstantiationActions.instantiate(org, app);
   };
 
   const validatatePartySelection = async () => {
-    if (selectedParty !== undefined) {
-      try {
-        const { data } = await post(
-          `${window.location.origin}/${org}/${app}/api/v1/parties/` +
-          `validateInstantiation?partyId=${selectedParty.partyId}`,
-        );
-        setPartyValidation(data);
-      } catch (err) {
-        console.error(err);
-        throw new Error('Server did not respond with party validation');
-      }
+    if (!selectedParty) {
+      return;
+    }
+    try {
+      const { data } = await post(
+        `${window.location.origin}/${org}/${app}/api/v1/parties/` +
+        `validateInstantiation?partyId=${selectedParty.partyId}`,
+      );
+      setPartyValidation(data);
+    } catch (err) {
+      console.error(err);
+      throw new Error('Server did not respond with party validation');
     }
   };
 
@@ -113,20 +117,17 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   React.useEffect(() => {
-    if (selectedParty !== null && !instantiating) {
-      validatatePartySelection();
-    }
+    validatatePartySelection();
   }, [selectedParty]);
 
   React.useEffect(() => {
-    if (partyValidation !== null && !instantiating) {
+    if (partyValidation !== null) {
       validateSubscriptionHook();
     }
   }, [partyValidation]);
 
   React.useEffect(() => {
     if (
-      selectedParty !== null &&
       partyValidation !== null &&
       partyValidation.valid &&
       subscriptionHookValid !== null &&
@@ -137,14 +138,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
     ) {
       createNewInstance();
     }
-  }, [selectedParty, partyValidation, subscriptionHookValid, instantiating]);
-
-  if (selectedParty === undefined) {
-    return (
-      // Since a party is not selected, we shouldn't redirect with an error
-      <Redirect to={`/partyselection`}/>
-    );
-  }
+  }, [partyValidation, subscriptionHookValid, instantiating, selectedParty]);
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {

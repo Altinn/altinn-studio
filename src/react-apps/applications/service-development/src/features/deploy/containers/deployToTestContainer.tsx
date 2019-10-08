@@ -143,8 +143,8 @@ export class DeployToTestContainer extends
   }
 
   public getRepoPermissions = async () => {
-    const { org, app } = window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${app}`;
+    const { org, service } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
 
     try {
       const currentRepo = await get(url, { cancelToken: this.source.token });

@@ -59,8 +59,8 @@ export class HandleMergeConflictAbort extends
   public AbortConfirmed = async () => {
     const { org, app } = window as Window as IAltinnWindow;
 
-    const abortUrl = `${window.location.origin}` +
-      `/designerapi/Repository/AbortMerge?owner=${org}&repository=${app}`;
+    const abortUrl = `${altinnWindow.location.origin}` +
+      `/designerapi/Repository/AbortMerge?org=${org}&repository=${app}`;
 
     // Try to abort merge and catch error
     // If successfull merge abort then initiate forceRepoStatusCheck

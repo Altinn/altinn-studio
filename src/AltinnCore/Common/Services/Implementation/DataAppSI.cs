@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.Platform.Storage.Models;
@@ -34,8 +36,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private const string FORM_ID = "default";
 
-        private static readonly Dictionary<Guid, object> InstanceGuard = new Dictionary<Guid, object>();
-        private static object instanceGuardLock = new object();
+        private static readonly ConcurrentDictionary<object, SemaphoreSlim> _instanceLocks = new ConcurrentDictionary<object, SemaphoreSlim>();
 
         /// <summary>
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
@@ -60,7 +61,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
+        public async Task<Instance> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data?elementType={FORM_ID}";
@@ -90,7 +91,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public async Task<Instance> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
@@ -110,11 +111,15 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     _logger.LogError($"Unable to save form model for instance {instanceGuid}");
                 }
+
+                string instanceData = await response.Result.Content.ReadAsStringAsync();
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                return instance;
             }
         }
 
         /// <inheritdoc />
-        public Task<Stream> GetData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public Task<Stream> GetBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data/{dataId}";
@@ -162,7 +167,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<List<AttachmentList>> GetFormAttachments(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        public async Task<List<AttachmentList>> GetBinaryDataList(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"instances/{instanceIdentifier}/data";
@@ -222,20 +227,44 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public void DeleteFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentId)
+        public async Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
-            List<AttachmentList> attachmentList = new List<AttachmentList>();
-            string apiUrl = $"instances/{instanceIdentifier}/data/{attachmentId}";
+            string apiUrl = $"instances/{instanceIdentifier}/data/{dataGuid}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            Task<HttpResponseMessage> response = _client.DeleteAsync(apiUrl);
-            response.Result.EnsureSuccessStatusCode();
+            // Waiting for the instance and subsequently locking it.
+            SemaphoreSlim instanceLock = _instanceLocks.GetOrAdd(instanceGuid, k => new SemaphoreSlim(1, 1));
+            await instanceLock.WaitAsync();
+
+            try
+            {
+                HttpResponseMessage response = await _client.DeleteAsync(apiUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Deleting form attachment {dataGuid} for instance {instanceGuid} failed. Exception message: {ex.Message}");
+            }
+            finally
+            {
+                instanceLock.Release();
+            }
+
+            return false;
         }
 
         /// <inheritdoc />
-        public async Task<Guid> SaveFormAttachment(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest attachment)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
             string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
@@ -245,7 +274,11 @@ namespace AltinnCore.Common.Services.Implementation
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
             provider.TryGetContentType(attachmentName, out string contentType);
 
-            lock (Guard(instanceGuid))
+            // Waiting for the instance and subsequently locking it.
+            SemaphoreSlim instanceLock = _instanceLocks.GetOrAdd(instanceGuid, k => new SemaphoreSlim(1, 1));
+            await instanceLock.WaitAsync();
+
+            try
             {
                 // using a non-generic client in order to support unknown content type
                 using (HttpClient client = new HttpClient())
@@ -257,24 +290,96 @@ namespace AltinnCore.Common.Services.Implementation
 
                     HttpResponseMessage response;
 
-                    if (attachment.ContentType.StartsWith("multipart"))
+                    if (request.ContentType.StartsWith("multipart"))
                     {
-                        StreamContent content = new StreamContent(attachment.Body);
-                        content.Headers.ContentType = MediaTypeHeaderValue.Parse(attachment.ContentType);
+                        StreamContent content = new StreamContent(request.Body);
+                        content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
 
-                        response = client.PostAsync(apiUrl, content).Result;
+                        response = await client.PostAsync(apiUrl, content);
+                        content.Dispose();
                     }
                     else
                     {
-                        using (Stream input = attachment.Body)
+                        using (Stream input = request.Body)
                         using (MultipartFormDataContent formData = new MultipartFormDataContent())
                         {
                             HttpContent fileStreamContent = new StreamContent(input);
-                            
+
                             fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
                             formData.Add(fileStreamContent, attachmentType, attachmentName);
 
-                            response = client.PostAsync(apiUrl, formData).Result;                            
+                            response = await client.PostAsync(apiUrl, formData);
+                        }
+                    }
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string instancedata = await response.Content.ReadAsStringAsync();
+                        instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+
+                        return instance.Data.Find(m => m.FileName.Equals(attachmentName));
+                    }
+                    else
+                    {
+                        _logger.LogError($"Storing attachment {attachmentName} for instance {instanceGuid} failed with status code {response.StatusCode}");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Storing attachment {attachmentName} for instance {instanceGuid} failed. Exception message: {e.Message}");
+            }
+            finally
+            {
+                instanceLock.Release();
+            }
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
+        {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data/{dataGuid}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            Instance instance;
+
+            // Waiting for the instance and subsequently locking it.
+            SemaphoreSlim instanceLock = _instanceLocks.GetOrAdd(instanceGuid, k => new SemaphoreSlim(1, 1));
+            await instanceLock.WaitAsync();
+
+            try
+            {
+                // using a non-generic client in order to support unknown content type
+                using (HttpClient client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(apiUrl);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaTypeHeaderValue.Parse(request.ContentType).ToString()));
+                    JwtTokenUtil.AddTokenToRequestHeader(client, token);
+
+                    HttpResponseMessage response;
+
+                    if (request.ContentType.StartsWith("multipart"))
+                    {
+                        StreamContent content = new StreamContent(request.Body);
+                        content.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
+
+                        response = await client.PutAsync(apiUrl, content);
+                        content.Dispose();
+                    }
+                    else
+                    {
+                        using (Stream input = request.Body)
+                        using (MultipartFormDataContent attachmentData = new MultipartFormDataContent())
+                        {
+                            HttpContent fileStreamContent = new StreamContent(input);
+
+                            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(request.ContentType);
+                            attachmentData.Add(fileStreamContent);
+
+                            response = await client.PutAsync(apiUrl, attachmentData);
                         }
                     }
 
@@ -283,29 +388,24 @@ namespace AltinnCore.Common.Services.Implementation
                         string instancedata = response.Content.ReadAsStringAsync().Result;
                         instance = JsonConvert.DeserializeObject<Instance>(instancedata);
 
-                        return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                        return instance.Data.Find(d => d.Id.Equals(dataGuid.ToString()));
                     }
-                }            
-            }
-
-            return Guid.Empty;
-        }
-
-        private static object Guard(Guid instanceGuid)
-        {
-            object result;
-
-            lock (instanceGuardLock)
-            {
-                if (!InstanceGuard.ContainsKey(instanceGuid))
-                {
-                    InstanceGuard.Add(instanceGuid, new object());
+                    else
+                    {
+                        _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed with status code {response.StatusCode}");
+                    }
                 }
-
-                result = InstanceGuard[instanceGuid];
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed. Exception message: {ex.Message}");
+            }
+            finally
+            {
+                instanceLock.Release();
             }
 
-            return result;
+            return null;
         }
     }
 }

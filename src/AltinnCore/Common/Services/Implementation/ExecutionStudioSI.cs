@@ -97,7 +97,7 @@ namespace AltinnCore.Common.Services.Implementation
             string codeList = _repository.GetCodelist(org, app, name);
             if (string.IsNullOrEmpty(codeList))
             {
-                // Try find the codelist at the service owner level
+                // Try find the codelist at the org level
                 codeList = _repository.GetCodelist(org, null, name);
             }
 
