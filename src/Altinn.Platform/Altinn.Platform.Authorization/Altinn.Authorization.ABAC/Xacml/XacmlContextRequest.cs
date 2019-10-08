@@ -1,6 +1,8 @@
+using Altinn.Authorization.ABAC.Constants;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 
 namespace Altinn.Authorization.ABAC.Xacml
@@ -116,6 +118,24 @@ namespace Altinn.Authorization.ABAC.Xacml
             {
                 return this.requestReferences;
             }
+        }
+
+        /// <summary>
+        /// Return the resource attributes.
+        /// </summary>
+        /// <returns>Attributes.</returns>
+        public XacmlContextAttributes GetResourceAttributes()
+        {
+            return this.Attributes.FirstOrDefault(a => a.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource));
+        }
+
+        /// <summary>
+        /// Return the subject attributes.
+        /// </summary>
+        /// <returns>Attributes.</returns>
+        public XacmlContextAttributes GetSubjectAttributes()
+        {
+            return this.Attributes.FirstOrDefault(a => a.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Subject));
         }
     }
 }

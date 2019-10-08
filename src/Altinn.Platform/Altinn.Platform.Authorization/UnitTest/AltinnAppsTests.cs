@@ -65,14 +65,11 @@ namespace Altinn.Authorization.ABAC.UnitTest
             XacmlPolicy policy = XacmlTestDataParser.ParsePolicy(testCase + "Policy.xml", GetAltinnAppsPath());
 
             Moq.Mock<IContextHandler> moqContextHandler = new Mock<IContextHandler>();
-            moqContextHandler.Setup(c => c.Enrich(It.IsAny<XacmlContextRequest>())).Returns(contextRequestEnriched);
+            moqContextHandler.Setup(c => c.Enrich(It.IsAny<XacmlContextRequest>())).ReturnsAsync(contextRequestEnriched);
 
-            Moq.Mock<IPolicyRetrievalPoint> moqPRP = new Mock<IPolicyRetrievalPoint>();
-            moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Returns(policy);
+            PolicyDecisionPoint pdp = new PolicyDecisionPoint();
 
-            PolicyDecisionPoint pdp = new PolicyDecisionPoint(moqContextHandler.Object, moqPRP.Object);
-
-            XacmlContextResponse xacmlResponse = pdp.Authorize(contextRequest);
+            XacmlContextResponse xacmlResponse = pdp.Authorize(contextRequestEnriched, policy);
 
             return xacmlResponse;
         }

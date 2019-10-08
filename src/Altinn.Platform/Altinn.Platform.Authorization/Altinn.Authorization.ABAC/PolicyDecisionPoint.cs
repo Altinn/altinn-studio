@@ -8,50 +8,22 @@ namespace Altinn.Authorization.ABAC
     using Altinn.Authorization.ABAC.Constants;
     using Altinn.Authorization.ABAC.Interface;
     using Altinn.Authorization.ABAC.Xacml;
+    using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 
     /// <summary>
     /// This is the Policy Decision Point performing validation of request against policies.
     /// </summary>
     public class PolicyDecisionPoint
     {
-        private readonly IContextHandler contextHandler;
-        private readonly IPolicyRetrievalPoint prp;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PolicyDecisionPoint"/> class.
-        /// </summary>
-        /// <param name="contextHandler">The configured contexthandler.</param>
-        /// <param name="prp">The Policy Retrieval Point.</param>
-        public PolicyDecisionPoint(IContextHandler contextHandler, IPolicyRetrievalPoint prp)
-        {
-            this.contextHandler = contextHandler;
-            this.prp = prp;
-         }
-
         /// <summary>
         /// Method that validated if the subject is allwoed to perform the requested operation on a given resource.
         /// </summary>
         /// <param name="decisionRequest">The Xacml Context request.</param>
+        /// <param name="policy">The relevant policy.</param>
         /// <returns>The decision reponse.</returns>
-        public XacmlContextResponse Authorize(XacmlContextRequest decisionRequest)
+        public XacmlContextResponse Authorize(XacmlContextRequest decisionRequest, XacmlPolicy policy)
         {
             XacmlContextResult contextResult;
-            decisionRequest = this.contextHandler.Enrich(decisionRequest);
-
-            XacmlPolicy policy;
-
-            try
-            {
-                policy = this.prp.GetPolicy(decisionRequest);
-            }
-            catch (XmlException)
-            {
-                XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
-                {
-                    Status = new XacmlContextStatus(XacmlContextStatusCode.SyntaxError),
-                };
-                return new XacmlContextResponse(result);
-            }
 
             ICollection<XacmlRule> matchingRules = this.GetMatchingRules(policy, decisionRequest, out bool requiredAttributesMissingFromContextRequest);
 

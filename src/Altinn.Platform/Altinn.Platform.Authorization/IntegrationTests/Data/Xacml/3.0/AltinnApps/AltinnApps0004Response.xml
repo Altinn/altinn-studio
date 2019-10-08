@@ -5,7 +5,7 @@
       xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17
         http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd">
     <Result>
-        <Decision>Permit</Decision>
+      <Decision>Permit</Decision>
         <Status>
             <StatusCode
                   Value="urn:oasis:names:tc:xacml:1.0:status:ok"/>
