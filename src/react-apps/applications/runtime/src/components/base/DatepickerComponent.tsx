@@ -54,7 +54,9 @@ export class DatepickerComponent extends React.Component<IDatePickerProps, IDate
     // TODO: dateFormat and dateLanguage should be retrieved from either datamodel, formlayout or user language.
     const dateFormat = 'dd.mm.yyyy';
     const dateLanguage = 'no';
-    (window as any).initDatePicker(this.props.id, dateFormat, dateLanguage);
+    if (!this.props.readOnly) {
+      (window as any).initDatePicker(this.props.id, dateFormat, dateLanguage);
+    }
   }
 
   public render() {
