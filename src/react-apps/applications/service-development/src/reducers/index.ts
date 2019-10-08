@@ -1,5 +1,6 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
 import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
+import releaseReducer, { IAppReleaseState } from '../features/appRelease/appReleaseReducer';
 import deployReducer, { IDeployState } from '../features/deploy/deployReducer';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
@@ -13,7 +14,8 @@ export interface IServiceDevelopmentReducers
   Reducer<IHandleServiceInformationState>,
   Reducer<IDeployState>,
   Reducer<IApplicationMetadataState>,
-  Reducer<IAppClusterState>
+  Reducer<IAppClusterState>,
+  Reducer<IAppReleaseState>
   >,
   ReducersMapObject { }
 
@@ -24,6 +26,7 @@ const reducers: IServiceDevelopmentReducers = {
   deploy: deployReducer,
   applicationMetadataState: applicationMetadataReducer,
   appCluster: appClusterReducer,
+  appReleases: releaseReducer,
 };
 
 export default combineReducers(reducers);

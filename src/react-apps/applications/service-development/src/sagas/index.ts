@@ -3,6 +3,7 @@ import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
 import { watchHandleFetchInitialCommitSaga, watchHandleFetchServiceConfigSaga, watchHandleFetchServiceNameSaga, watchHandleFetchServiceSaga, watchHandleSaveServiceConfigSaga, watchHandleSaveServiceNameSaga } from '../features/administration/handleServiceInformationSagas';
+import AppReleaseSagas from '../features/appRelease/appReleaseSagas';
 import { deploySagas } from '../features/deploy/deploySagas';
 import { watchHandleMergeConflictSaga } from '../features/handleMergeConflict/handleMergeConflictSagas';
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
@@ -21,6 +22,7 @@ function* root(): SagaIterator {
   yield fork(watchHandleSaveServiceConfigSaga);
   yield fork(applicationMetadataSagas);
   yield fork(appClusterSagas);
+  yield fork(AppReleaseSagas);
 }
 
 export const run: () => Task = () => sagaMiddleware.run(root);
