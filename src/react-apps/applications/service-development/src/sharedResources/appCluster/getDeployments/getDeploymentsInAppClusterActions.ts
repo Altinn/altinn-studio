@@ -8,7 +8,7 @@ export interface IGetDeployments extends Action {
 }
 export interface IGetDeploymentsFulfilled extends Action {
   result: any;
-  env: any;
+  env: string;
 }
 export interface IGetDeploymentsRejected extends Action {
   result: Error;
