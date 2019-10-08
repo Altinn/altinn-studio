@@ -85,7 +85,7 @@ export class HandleMergeConflictDiscardChanges extends
       });
 
       const discardUrl = `${altinnWindow.location.origin}/` +
-        `designerapi/Repository/DiscardLocalChanges?owner=${org}&repository=${service}`;
+        `designerapi/Repository/DiscardLocalChanges?org=${org}&repository=${service}`;
       const discardRes = await get(discardUrl);
 
       if (discardRes.isSuccessStatusCode === true) {

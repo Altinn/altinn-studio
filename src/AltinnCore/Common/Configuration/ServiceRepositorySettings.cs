@@ -288,8 +288,8 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the full path to the org directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="developer">The current user, service developer</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="developer">The current user, app developer</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetOrgPath(string org, string developer = null)
         {
@@ -623,13 +623,13 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the full path to the workflow directory
         /// </summary>
-        /// <param name="owner">The owner of the service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path to the workflow folder, ending with "/"</returns>
-        public string GetWorkflowPath(string owner, string app, string developer)
+        public string GetWorkflowPath(string org, string app, string developer)
         {
-            return GetServicePath(owner, app, developer) + "Workflow/";
+            return GetServicePath(org, app, developer) + "Workflow/";
         }
 
         /// <summary>
@@ -659,7 +659,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the path to text resources in organisation level
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="developer">The current user, app developer</param>
         /// <returns>The path to text resources in organisation level, ending with "/"</returns>
         public string GetOrgTextResourcePath(string org, string developer)

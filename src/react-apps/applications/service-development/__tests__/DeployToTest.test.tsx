@@ -73,7 +73,7 @@ describe('Deploy To Test container', () => {
             },
           },
         ],
-        fetchStatus: {
+        getStatus: {
           error: null,
           success: null,
         },

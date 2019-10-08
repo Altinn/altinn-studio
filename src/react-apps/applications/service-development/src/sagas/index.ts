@@ -7,6 +7,7 @@ import { deploySagas } from '../features/deploy/deploySagas';
 import { watchHandleMergeConflictSaga } from '../features/handleMergeConflict/handleMergeConflictSagas';
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
 import languageSagas from '../utils/fetchLanguage/languageSagas';
+import { appClusterSagas } from './../sharedResources/appCluster/appClusterSagas';
 
 function* root(): SagaIterator {
   yield fork(deploySagas);
@@ -19,6 +20,7 @@ function* root(): SagaIterator {
   yield fork(watchHandleFetchServiceConfigSaga);
   yield fork(watchHandleSaveServiceConfigSaga);
   yield fork(applicationMetadataSagas);
+  yield fork(appClusterSagas);
 }
 
 export const run: () => Task = () => sagaMiddleware.run(root);
