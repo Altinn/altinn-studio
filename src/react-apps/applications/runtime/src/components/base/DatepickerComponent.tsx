@@ -70,7 +70,7 @@ export class DatepickerComponent extends React.Component<IDatePickerProps, IDate
                 'form-control a-hasButton date validation-error')}
             onBlur={this.onDateBlur}
             onChange={this.onDateChange}
-            disabled={this.props.readOnly}
+            readOnly={this.props.readOnly}
             required={this.props.required}
             value={this.state.value}
             ref={this.datePickerRef}

@@ -229,7 +229,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           value={address}
           onChange={this.updateField.bind(null, AddressKeys.address)}
           onBlur={this.onBlurField.bind(null, AddressKeys.address)}
-          disabled={this.props.readOnly}
+          readOnly={this.props.readOnly}
           required={this.props.required}
         />
         {validations ?
@@ -287,7 +287,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
                 value={zipCode}
                 onChange={this.updateField.bind(null, AddressKeys.zipCode)}
                 onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
-                disabled={this.props.readOnly}
+                readOnly={this.props.readOnly}
                 required={this.props.required}
               />
               {validations ?
