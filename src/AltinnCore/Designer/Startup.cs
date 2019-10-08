@@ -5,6 +5,7 @@ using AltinnCore.Designer.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -53,7 +54,6 @@ namespace AltinnCore.Designer
             services.ConfigureMvc();
             services.ConfigureLocalization();
 
-            ////services.AddRouting(options => { options.LowercaseUrls = true; });
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "Altinn Designer API", Version = "v1" });
@@ -106,7 +106,7 @@ namespace AltinnCore.Designer
             {
                 OnPrepareResponse = (context) =>
                 {
-                    var headers = context.Context.Response.GetTypedHeaders();
+                    ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
                     headers.CacheControl = new CacheControlHeaderValue()
                     {
                         Public = true,

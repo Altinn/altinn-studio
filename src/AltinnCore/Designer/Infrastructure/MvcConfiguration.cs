@@ -1,6 +1,7 @@
 using AltinnCore.Designer.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Serialization;
 
 namespace AltinnCore.Designer.Infrastructure
 {
@@ -15,7 +16,10 @@ namespace AltinnCore.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         public static IServiceCollection ConfigureMvc(this IServiceCollection services)
         {
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            IMvcBuilder mvc = services
+                .AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
