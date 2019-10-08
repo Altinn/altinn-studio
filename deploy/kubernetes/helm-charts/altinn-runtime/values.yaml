@@ -167,7 +167,7 @@ ingress:
   - metadata:
       name: altinn-runtime-base-path
       annotations:
-        traefik.ingress.kubernetes.io/request-modifier: "ReplacePathRegex: ^/.*/.*/(.*)$ $1"
+        traefik.ingress.kubernetes.io/request-modifier: "ReplacePathRegex: ^/.*/.*/staticfiles(.*)$ $1"
         traefik.frontend.priority: "100"
     paths:
       - path: /
