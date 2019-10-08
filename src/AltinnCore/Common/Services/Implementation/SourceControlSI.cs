@@ -54,8 +54,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Clone remote repository
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="repository">the name of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository</param>
         /// <returns>The result of the cloning</returns>
         public string CloneRemoteRepository(string org, string repository)
         {
@@ -132,8 +132,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Fetches the remote changes
         /// </summary>
-        /// <param name="org">the organisation</param>
-        /// <param name="repository">the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository.</param>
         public void FetchRemoteChanges(string org, string repository)
         {
             string logMessage = string.Empty;
@@ -154,8 +154,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Gets the number of commits the local repository is behind the remote
         /// </summary>
-        /// <param name="org">The organisation code for the application owner</param>
-        /// <param name="repository">The repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository</param>
         /// <returns>The number of commits behind</returns>
         public int? CheckRemoteUpdates(string org, string repository)
         {
@@ -217,15 +217,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Push commits to repository
         /// </summary>
-        /// <param name="owner">The owner of the repo</param>
-        /// <param name="repository">The repository</param>
-        public void Push(string owner, string repository)
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository</param>
+        public void Push(string org, string repository)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                string remoteUrl = FindRemoteRepoLocation(owner, repository);
+                string remoteUrl = FindRemoteRepoLocation(org, repository);
                 Remote remote = repo.Network.Remotes["origin"];
 
                 if (!remote.PushUrl.Equals(remoteUrl))
@@ -279,7 +279,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// List the GIT status of a repository
         /// </summary>
-        /// <param name="org">The organization owning the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>A list of changed files in the repository</returns>
         public List<RepositoryContent> Status(string org, string repository)
@@ -303,14 +303,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Gives the complete repository status
         /// </summary>
-        /// <param name="owner">The owner of the repo, org or user</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns>The repository status</returns>
-        public RepoStatus RepositoryStatus(string owner, string repository)
+        public RepoStatus RepositoryStatus(string org, string repository)
         {
             RepoStatus repoStatus = new RepoStatus();
             repoStatus.ContentStatus = new List<RepositoryContent>();
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (var repo = new Repository(localServiceRepoFolder))
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -354,13 +354,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Gets the latest commit for current user
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The latest commit</returns>
-        public AltinnCore.Common.Models.Commit GetLatestCommitForCurrentUser(string owner, string repository)
+        public AltinnCore.Common.Models.Commit GetLatestCommitForCurrentUser(string org, string repository)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            List<AltinnCore.Common.Models.Commit> commits = Log(owner, repository);
+            List<AltinnCore.Common.Models.Commit> commits = Log(org, repository);
             var currentUser = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             AltinnCore.Common.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == currentUser);
             watch.Stop();
@@ -371,13 +371,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// List commits
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>List of commits</returns>
-        public List<AltinnCore.Common.Models.Commit> Log(string owner, string repository)
+        public List<AltinnCore.Common.Models.Commit> Log(string org, string repository)
         {
             List<AltinnCore.Common.Models.Commit> commits = new List<Models.Commit>();
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
             using (var repo = new Repository(localServiceRepoFolder))
             {
@@ -410,10 +410,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public Models.Commit GetInitialCommit(string owner, string repository)
+        public Models.Commit GetInitialCommit(string org, string repository)
         {
             List<AltinnCore.Common.Models.Commit> commits = new List<Models.Commit>();
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (var repo = new Repository(localServiceRepoFolder))
             {
                 LibGit2Sharp.Commit firstCommit = repo.Commits.First();
@@ -440,12 +440,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the remote repository
         /// </summary>
-        /// <param name="owner">The owner</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">Options for the remote repository</param>
         /// <returns>The repostory from API</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
-            return _gitea.CreateRepository(owner, createRepoOption).Result;
+            return _gitea.CreateRepository(org, createRepoOption).Result;
         }
 
         /// <summary>
@@ -521,7 +521,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Returns the local
         /// </summary>
-        /// <param name="org">The organization owning the repostory</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>The path to the local repository</returns>
         public string FindLocalRepoLocation(string org, string repository)
@@ -534,8 +534,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Returns the remote repo
         /// </summary>
-        /// <param name="org">The organization owning the repository</param>
-        /// <param name="repository">The repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of the repository</param>
         /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
@@ -547,11 +547,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
-        public void ResetCommit(string owner, string repository)
+        public void ResetCommit(string org, string repository)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
                 if (repo.RetrieveStatus().IsDirty)
@@ -566,12 +566,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// Discards local changes to a specific file and the file is updated with latest remote commit (origin/master)
         /// by checking out the specific file.
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <param name="fileName">the name of the file</param>
-        public void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
+        public void CheckoutLatestCommitForSpecificFile(string org, string repository, string fileName)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
                 CheckoutOptions checkoutOptions = new CheckoutOptions
@@ -586,12 +586,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
-        /// <param name="owner">The owner of the repository.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository.</param>
         /// <param name="fileName">the entire file path with filen name</param>
-        public void StageChange(string owner, string repository, string fileName)
+        public void StageChange(string org, string repository, string fileName)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var watch = System.Diagnostics.Stopwatch.StartNew();
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
@@ -612,11 +612,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Halts the merge operation and keeps local changes.
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
-        public void AbortMerge(string owner, string repository)
+        public void AbortMerge(string org, string repository)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string localServiceRepoFolder = _settings.GetServicePath(org, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
                 if (repo.RetrieveStatus().IsDirty)

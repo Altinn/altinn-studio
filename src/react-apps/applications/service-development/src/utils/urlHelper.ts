@@ -4,5 +4,5 @@ const { org, service } = altinnWindow;
 const origin = window.location.origin;
 
 export const getRepoStatusUrl = (): string => {
-  return `${origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
+  return `${origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
 };

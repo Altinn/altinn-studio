@@ -75,7 +75,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   public getStatus(callbackFunc?: any) {
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
     get(url).then((result: any) => {
       if (this._isMounted) {
         this.setState({
@@ -105,7 +105,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       const altinnWindow: any = window as any;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?owner=${org}&repository=${service}`;
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${service}`;
       get(url).then((result: any) => {
         if (this._isMounted && result) {
           const diff = new Date().getTime() - new Date(result.comitter.when).getTime();
@@ -150,8 +150,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getRepoPermissions = async () => {
-    const { org, service } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`;
+    const { org, service } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${service}`;
 
     try {
       const currentRepo = await get(url, { cancelToken: this.source.token });
@@ -190,7 +190,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${service}`;
 
     get(url).then((result: any) => {
       if (this._isMounted) {
@@ -300,7 +300,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?owner=${org}&repository=${service}`;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?org=${org}&repository=${service}`;
 
     post(url).then((result: any) => {
       if (this._isMounted) {
@@ -340,7 +340,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const bodyData = JSON.stringify({ message: commitMessage, org, repository: service });
 
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Commit`;
-    const pullUrl = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
+    const pullUrl = `${altinnWindow.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${service}`;
     post(url, bodyData, options).then((commitResult: any) => {
       get(pullUrl).then((result: any) => {
         if (this._isMounted) {
