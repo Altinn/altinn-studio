@@ -12,6 +12,7 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -55,13 +56,19 @@ namespace AltinnCore.Runtime.RestControllers
             this.eventService = eventService;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
-        } 
+        }
 
         /// <summary>
         /// Get the process state of an instance.
         /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance's process state</returns>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProcessState>> GetProcessState(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -83,14 +90,22 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         /// Starts the process of an instance.
         /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="startEvent">a specific start event id to start the process, must be used if there are more than one start events</param>
         /// <returns>The process state</returns>
         [HttpPost("start")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ProcessState>> StartProcess(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid,
-            [FromQuery] string startEvent)
+            [FromQuery] string startEvent = null)
         {
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
@@ -129,14 +144,21 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             return StatusCode(500, $"Unknown error. Cannot change process state!");
-        }                
+        }
 
         /// <summary>
         /// Gets a list of the next process elements that can be reached from the current process element.
         /// If process is not started it returns the possible start events.
         /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>list of next process element identifiers (tasks or events)</returns>
         [HttpGet("next")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<List<string>>> GetNextElements(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -174,16 +196,25 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         /// <summary>
-        /// Change the instance's process state to next process element in accordance with process flow.
+        /// Change the instance's process state to next process element in accordance with process definition.
         /// </summary>
         /// <returns>new process state</returns>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
+        /// <param name="elementId">the id of the next element to move to. Query parameter is optional,
+        /// but must be specified if more than one element can be reached from the current process ellement.</param>
         [HttpPut("next")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ProcessState>> NextElement(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid,
-            [FromQuery] string elementId)
+            [FromQuery] string elementId = null)
         {
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
             if (instance == null)
@@ -235,10 +266,17 @@ namespace AltinnCore.Runtime.RestControllers
 
         /// <summary>
         /// Attemts to end the process by running next until an end event is reached.
-        /// Notice that process must have been started.
+        /// Notice that process must have been started.       
         /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>current process status</returns>
         [HttpPut("completeProcess")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<ProcessState>> CompleteProcess(
             [FromRoute] string org,
             [FromRoute] string app,
