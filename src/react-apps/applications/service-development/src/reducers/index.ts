@@ -5,6 +5,7 @@ import handleMergeConflictReducer, { IHandleMergeConflictState } from '../featur
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
 import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
+import repoStatusReducer, { IRepoStatusState } from './../sharedResources/repoStatus/repoStatusReducer';
 
 export interface IServiceDevelopmentReducers
   extends IServiceDevelopmentNameSpace<
@@ -13,7 +14,8 @@ export interface IServiceDevelopmentReducers
   Reducer<IHandleServiceInformationState>,
   Reducer<IDeployState>,
   Reducer<IApplicationMetadataState>,
-  Reducer<IAppClusterState>
+  Reducer<IAppClusterState>,
+  Reducer<IRepoStatusState>
   >,
   ReducersMapObject { }
 
@@ -24,6 +26,7 @@ const reducers: IServiceDevelopmentReducers = {
   deploy: deployReducer,
   applicationMetadataState: applicationMetadataReducer,
   appCluster: appClusterReducer,
+  repoStatus: repoStatusReducer,
 };
 
 export default combineReducers(reducers);
