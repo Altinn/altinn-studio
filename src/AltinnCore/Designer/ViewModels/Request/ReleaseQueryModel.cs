@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
-namespace AltinnCore.Designer.ViewModels
+namespace AltinnCore.Designer.ViewModels.Request
 {
     /// <summary>
     /// Query model for releases
