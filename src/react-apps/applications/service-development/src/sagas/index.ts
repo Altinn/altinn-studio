@@ -7,7 +7,7 @@ import { deploySagas } from '../features/deploy/deploySagas';
 import { watchHandleMergeConflictSaga } from '../features/handleMergeConflict/handleMergeConflictSagas';
 import AppDeploymentSagas from '../sharedResources/appDeploy/appDeploySagas';
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
-import AppReleaseSagas from '../sharedResources/appRelease/appReleaseSagas';
+import { appReleaseSagas } from '../sharedResources/appRelease/appReleaseSagas';
 import languageSagas from '../utils/fetchLanguage/languageSagas';
 import { appClusterSagas } from './../sharedResources/appCluster/appClusterSagas';
 import { repoStatusSagas } from './../sharedResources/repoStatus/repoStatusSagas';
@@ -25,7 +25,7 @@ function* root(): SagaIterator {
   yield fork(applicationMetadataSagas);
   yield fork(appClusterSagas);
   yield fork(repoStatusSagas);
-  yield fork(AppReleaseSagas);
+  yield fork(appReleaseSagas);
   yield fork(AppDeploymentSagas);
 }
 
