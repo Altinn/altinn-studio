@@ -136,7 +136,10 @@
     <None Update="Runtime\data\ServiceModel.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Runtime\data\workflow.bpmn">
+    <None Update="Runtime\data\DataAndSubmitTasks.bpmn">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Runtime\data\SingleDataTask.bpmn">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Runtime\ServiceModels\default\Metadata\applicationmetadata.json">
