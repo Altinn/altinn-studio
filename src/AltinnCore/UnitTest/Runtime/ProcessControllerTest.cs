@@ -76,10 +76,18 @@ namespace AltinnCore.UnitTest.Runtime
         [Fact]
         public void CompleteProcess()
         {
-            ProcessController processController = NewProcessController(MockContext(), null);
+            ProcessState processState = new ProcessState
+            {
+                Started = DateTime.UtcNow,
+                CurrentTask = new ProcessElementInfo
+                {
+                    ElementId = "FormFilling_1",
+                }
+            };
 
-            ActionResult<ProcessState> result = processController.CompleteProcess(org, app, int.Parse(instanceOwnerId), instanceGuid).Result;
+            ProcessController processController = NewProcessController(MockContext(), processState);
 
+            ActionResult<ProcessState> result = processController.CompleteProcess(org, app, int.Parse(instanceOwnerId), instanceGuid).Result;            
             ProcessState state = (ProcessState)((OkObjectResult)result.Result).Value;
 
             Assert.NotNull(state);
@@ -88,7 +96,20 @@ namespace AltinnCore.UnitTest.Runtime
             Assert.Equal("EndEvent_1", state.EndEvent);
             Assert.NotNull(state.Ended);
 
-            Assert.Equal(6, eventList.Count);
+            Assert.Equal(4, eventList.Count);
+        }
+
+        /// <summary>
+        /// Complete the process
+        /// </summary>
+        [Fact]
+        public void CompleteProcessWithoutStart()
+        {
+            ProcessController processController = NewProcessController(MockContext(), null);
+
+            ActionResult<ProcessState> result = processController.CompleteProcess(org, app, int.Parse(instanceOwnerId), instanceGuid).Result;
+
+            Assert.IsType<ConflictObjectResult>(result.Result);            
         }
 
         /// <summary>

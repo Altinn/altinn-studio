@@ -100,7 +100,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (instance.Process != null)
             {
-                return Conflict($"Process is already started. Use next");
+                return Conflict($"Process is already started. Use next.");
             }
 
             LoadProcessModel(org, app);
@@ -133,6 +133,7 @@ namespace AltinnCore.Runtime.RestControllers
 
         /// <summary>
         /// Gets a list of the next process elements that can be reached from the current process element.
+        /// If process is not started it returns the possible start events.
         /// </summary>
         /// <returns>list of next process elements (tasks or events)</returns>
         [HttpGet("next")]
@@ -152,7 +153,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (instance.Process == null)
             {
-                return Conflict($"Process is not started. Use start!");
+                return Ok(ProcessModel.StartEvents());
             }
 
             string currentTaskId = instance.Process.CurrentTask?.ElementId;
@@ -195,6 +196,11 @@ namespace AltinnCore.Runtime.RestControllers
                 return Conflict($"Process is not started. Use start!");
             }
 
+            if (instance.Process.Ended.HasValue)
+            {
+                return Conflict($"Process is ended.");
+            }
+
             LoadProcessModel(org, app);
 
             string currentElementId = instance.Process.CurrentTask?.ElementId;
@@ -224,8 +230,9 @@ namespace AltinnCore.Runtime.RestControllers
 
         /// <summary>
         /// Attemts to close the process by running start and next until an end event is reached.
+        /// Process must have been started.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>current process status</returns>
         [HttpPut("completeProcess")]
         public async Task<ActionResult<ProcessState>> CompleteProcess(
             [FromRoute] string org,
@@ -240,18 +247,16 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound("Cannot find instance");
             }
 
-            LoadProcessModel(org, app);
-
             if (instance.Process == null)
             {
-                string startEvent = GetValidStartEventOrError(null, out ActionResult startEventError);
-
-                if (startEventError != null)
+                return Conflict($"Process is not started. Use start!");
+            }
+            else
+            {
+                if (instance.Process.Ended.HasValue)
                 {
-                    return startEventError;
+                    return Conflict($"Process is ended. It cannot be restarted.");
                 }
-
-                instance = await StartProcessOfInstance(org, app, instanceOwnerId, instanceGuid, instance, startEvent);
             }
 
             string currentTaskId = instance.Process.CurrentTask?.ElementId ?? instance.Process.StartEvent;
@@ -260,6 +265,8 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 return Conflict($"Instance does not have valid currentTask");
             }
+
+            LoadProcessModel(org, app);
 
             // do next until end event is reached or task cannot be completed.
             int counter = 0;
