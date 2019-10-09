@@ -16,7 +16,6 @@ export function* getDeploymentsSaga({
     const result = yield call(get,
       // tslint:disable-next-line:max-line-length
       `https://${org}.apps.${env}.${urls.hostname.apps.test}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${repo}`);
-    console.log('yielded', result);
     yield call(AppClusterDispatcher.getDeploymentsFulfilled, result, env);
   } catch (err) {
     yield call(AppClusterDispatcher.getDeploymentsRejected, err, env);

@@ -9,6 +9,7 @@ import { applicationMetadataSagas } from '../sharedResources/applicationMetadata
 import AppReleaseSagas from '../sharedResources/appRelease/appReleaseSagas';
 import languageSagas from '../utils/fetchLanguage/languageSagas';
 import { appClusterSagas } from './../sharedResources/appCluster/appClusterSagas';
+import { repoStatusSagas } from './../sharedResources/repoStatus/repoStatusSagas';
 
 function* root(): SagaIterator {
   yield fork(deploySagas);
@@ -22,6 +23,7 @@ function* root(): SagaIterator {
   yield fork(watchHandleSaveServiceConfigSaga);
   yield fork(applicationMetadataSagas);
   yield fork(appClusterSagas);
+  yield fork(repoStatusSagas);
   yield fork(AppReleaseSagas);
 }
 
