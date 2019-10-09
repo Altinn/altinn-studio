@@ -1,5 +1,6 @@
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Designer.Infrastructure.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,6 +25,7 @@ namespace AltinnCore.Designer.Infrastructure
             services.Configure<CertificateSettings>(configuration);
             services.Configure<CertificateSettings>(configuration.GetSection("CertificateSettings"));
             services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
+            services.Configure<Integrations>(configuration.GetSection("Integrations"));
 
             return services;
         }
