@@ -17,7 +17,6 @@ export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   type?: 'fetchButton' | 'shareButton' | 'header';
 }
 
-
 export interface IVersionControlHeaderState {
   changesInMaster: boolean;
   changesInLocalRepo: boolean;
