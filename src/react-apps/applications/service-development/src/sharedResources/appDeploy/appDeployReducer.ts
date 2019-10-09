@@ -1,11 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import {
-  ICreateDeploymentRejected,
-  IGetDeploymentsFulfilled,
-  IGetDeploymentsRejected,
-} from './appDeployActions';
 import * as AppReleaseActionTypes from './appDeployActionTypes';
+import { ICreateDeploymentRejected } from './create/createAppDeploymentActions';
+import { IGetDeploymentsFulfilled, IGetDeploymentsRejected } from './get/getAppDeploymentActions';
 import { IDeployment } from './types';
 
 export interface IAppDeploymentState {
