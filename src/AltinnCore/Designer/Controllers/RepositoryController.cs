@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using RepositoryModel = AltinnCore.RepositoryClient.Model.Repository;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -51,12 +51,12 @@ namespace AltinnCore.Designer.Controllers
         /// Returns a list over repositories
         /// </summary>
         /// <param name="repositorySearch">The search params</param>
-        /// <returns>List of repostories that user has access to.</returns>
+        /// <returns>List of repositories that user has access to.</returns>
         [HttpGet]
-        public List<Repository> Search(RepositorySearch repositorySearch)
+        public List<RepositoryModel> Search(RepositorySearch repositorySearch)
         {
-            SearchResults repositorys = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
-            return repositorys.Data;
+            SearchResults repositories = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
+            return repositories.Data;
         }
 
         /// <summary>
@@ -66,9 +66,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
-        public Repository GetRepository(string owner, string repository)
+        public RepositoryModel GetRepository(string owner, string repository)
         {
-            Repository returnRepository = _giteaApi.GetRepository(owner, repository).Result;
+            RepositoryModel returnRepository = _giteaApi.GetRepository(owner, repository).Result;
             return returnRepository;
         }
 
@@ -329,7 +329,7 @@ namespace AltinnCore.Designer.Controllers
         /// </returns>
         [Authorize]
         [HttpPost]
-        public Repository CreateService(string org, string repository, string appTitle)
+        public RepositoryModel CreateService(string org, string repository, string appTitle)
         {
             ServiceConfiguration serviceConfiguration = new ServiceConfiguration
             {
@@ -347,9 +347,9 @@ namespace AltinnCore.Designer.Controllers
             }
             else
             {
-                return new Repository()
+                return new RepositoryModel
                 {
-                    RepositoryCreatedStatus = System.Net.HttpStatusCode.UnprocessableEntity,
+                    RepositoryCreatedStatus = HttpStatusCode.UnprocessableEntity,
                 };
             }
         }
