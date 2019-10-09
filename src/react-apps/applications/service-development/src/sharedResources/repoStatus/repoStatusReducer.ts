@@ -28,7 +28,6 @@ const repoStatusReducer: Reducer<IRepoStatusState> = (
 
     case RepoStatusActionTypes.GET_MASTER_REPO_STATUS_FULFILLED: {
       const { result } = action as GetRepoStatusActions.IGetMasterRepoStatusFulfilled;
-      console.log('action', action.type);
       return update<IRepoStatusState>(state, {
         branch: {
           master: {
