@@ -144,7 +144,7 @@ export class AdministrationComponent extends
         serviceNameAnchorEl: document.getElementById('administrationInputServicename'),
       });
     } else {
-      const { org, app } = window as Window as IAltinnWindow;
+      const { org, app } = window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceName(`${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`, this.state.serviceName);
       handleServiceInformationActionDispatchers.saveServiceConfig(
@@ -160,7 +160,7 @@ export class AdministrationComponent extends
 
   public onBlurServiceDescription = () => {
     if (this.state.editServiceDescription) {
-      const { org, app } = window as Window as IAltinnWindow;
+      const { org, app } = window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
@@ -175,7 +175,7 @@ export class AdministrationComponent extends
 
   public onBlurServiceId = () => {
     if (this.state.editServiceId) {
-      const { org, app } = window as Window as IAltinnWindow;
+      const { org, app } = window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceConfig(
         `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,

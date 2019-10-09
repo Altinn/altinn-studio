@@ -145,7 +145,7 @@ class FormDesigner extends React.Component<
   }
 
   public componentDidMount() {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const appId = `${org}/${app}`;
 
     FormDesignerActionDispatchers.fetchFormLayout(

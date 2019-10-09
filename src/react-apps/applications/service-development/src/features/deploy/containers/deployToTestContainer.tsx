@@ -128,23 +128,23 @@ export class DeployToTestContainer extends
   }
 
   public fetchCompileStatus = () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     DeployActionDispatcher.fetchCompileStatus(org, app);
   }
 
   // TODO: Change letEnv to enum when environments are defined later
   public fetchDeployments = (letEnv: string) => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     AppClusterDispatcher.getDeployments(letEnv, org, app);
   }
 
   public fetchMasterRepoStatus = () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     DeployActionDispatcher.fetchMasterRepoStatus(org, app);
   }
 
   public getRepoPermissions = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
 
     try {
@@ -197,13 +197,13 @@ export class DeployToTestContainer extends
   }
 
   public startDeployment = (letEnv: string) => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     DeployActionDispatcher.deployAltinnApp(letEnv, org, app);
     this.fetchDeploymentStatusInterval(letEnv);
   }
 
   public fetchDeploymentStatusInterval = (letEnv: string) => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const interval = setInterval(() => {
       DeployActionDispatcher.fetchDeployAltinnAppStatus(
         letEnv, org, app, this.props.deployStatus[letEnv].result.buildId);
@@ -332,7 +332,7 @@ const makeMapStateToProps = () => {
       compileStatusUniqueFilenames: getCompileStatusUniqueFilenames(state),
       imageVersions: getImageTags(state),
     };
-  };
+  }
   return mapStateToProps;
 };
 

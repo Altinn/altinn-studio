@@ -316,7 +316,7 @@ function* apiCheckValue(
 }
 
 function getCodeListUri(codeListId: string) {
-  const { org, app } = window as Window as IAltinnWindow;
+  const { org, app } = window as IAltinnWindow;
   const appId = `${org}/${app}`;
   const codeListConfig = appConfig.appConfiguration.getCodeLists(window);
 

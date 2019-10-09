@@ -1,5 +1,5 @@
 /* tslint:disable: max-line-length */
-const { org, app } = window as Window as IAltinnWindow;
+const { org, app } = window as IAltinnWindow;
 const origin = window.location.origin;
 
 export const getRepoStatusUrl = (): string => {

@@ -73,7 +73,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getStatus(callbackFunc?: any) {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
     get(url).then((result: any) => {
       if (this._isMounted) {
@@ -101,7 +101,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public getLastPush() {
     if (!this.state.moreThanAnHourSinceLastPush) {
-      const { org, app } = window as Window as IAltinnWindow;
+      const { org, app } = window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       const url = `${window.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${app}`;
       get(url).then((result: any) => {
@@ -148,7 +148,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getRepoPermissions = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
 
     try {
@@ -186,7 +186,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${app}`;
 
     get(url).then((result: any) => {
@@ -295,7 +295,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const url = `${window.location.origin}/designerapi/Repository/Push?org=${org}&repository=${app}`;
 
     post(url).then((result: any) => {
@@ -325,7 +325,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const options = {
       headers: {
         'Accept': 'application/json',

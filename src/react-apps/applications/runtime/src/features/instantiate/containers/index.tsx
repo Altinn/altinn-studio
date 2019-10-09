@@ -38,7 +38,7 @@ export interface IServiceInfoProps extends WithStyles<typeof styles> {
 
 function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
-  const { org, app } = window as Window as IAltinnWindow;
+  const { org, app } = window as IAltinnWindow;
 
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
