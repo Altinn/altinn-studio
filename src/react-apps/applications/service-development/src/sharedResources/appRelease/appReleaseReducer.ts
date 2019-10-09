@@ -2,8 +2,8 @@ import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import {
   ICreateReleaseRejectedActions,
-  IFetchReleaseActionFulfilled,
-  IFetchReleaseActionRejected,
+  IGetReleaseActionFulfilled,
+  IGetReleaseActionRejected,
 } from './appReleaseActions';
 import * as AppReleaseActionTypes from './appReleaseActionTypes';
 import { IRelease } from './types';
@@ -26,8 +26,8 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
     return state;
   }
   switch (action.type) {
-    case AppReleaseActionTypes.FETCH_APP_RELEASES_FULFILLED: {
-      const { releases } = action as IFetchReleaseActionFulfilled;
+    case AppReleaseActionTypes.GET_APP_RELEASES_FULFILLED: {
+      const { releases } = action as IGetReleaseActionFulfilled;
       return update<IAppReleaseState>(state, {
         releases: {
           $set: releases,
@@ -37,8 +37,8 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
         },
       });
     }
-    case AppReleaseActionTypes.FETCH_APP_RELEASES_REJECTED: {
-      const { error } = action as IFetchReleaseActionRejected;
+    case AppReleaseActionTypes.GET_APP_RELEASES_REJECTED: {
+      const { error } = action as IGetReleaseActionRejected;
       return update<IAppReleaseState>(state, {
         error: {
           $set: error,

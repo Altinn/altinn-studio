@@ -2,30 +2,30 @@ import { Action } from 'redux';
 import * as AppReleaseActionTypes from './appReleaseActionTypes';
 import { IRelease } from './types';
 
-export function fetchReleases(): Action {
+export function getReleases(): Action {
   return {
-    type: AppReleaseActionTypes.FETCH_APP_RELEASES,
+    type: AppReleaseActionTypes.GET_APP_RELEASES,
   };
 }
 
-export interface IFetchReleaseActionFulfilled extends Action {
+export interface IGetReleaseActionFulfilled extends Action {
   releases: IRelease[];
 }
 
-export function fetchReleasesFulfilled(releases: IRelease[]): IFetchReleaseActionFulfilled {
+export function getReleasesFulfilled(releases: IRelease[]): IGetReleaseActionFulfilled {
   return {
-    type: AppReleaseActionTypes.FETCH_APP_RELEASES_FULFILLED,
+    type: AppReleaseActionTypes.GET_APP_RELEASES_FULFILLED,
     releases,
   };
 }
 
-export interface IFetchReleaseActionRejected extends Action {
+export interface IGetReleaseActionRejected extends Action {
   error: Error;
 }
 
-export function fetchReleasesRejected(error: Error): IFetchReleaseActionRejected {
+export function getReleasesRejected(error: Error): IGetReleaseActionRejected {
   return {
-    type: AppReleaseActionTypes.FETCH_APP_RELEASES_REJECTED,
+    type: AppReleaseActionTypes.GET_APP_RELEASES_REJECTED,
     error,
   };
 }

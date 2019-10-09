@@ -4,7 +4,7 @@ import deployReducer, { IDeployState } from '../features/deploy/deployReducer';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
 import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
-import releaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
+import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 
 export interface IServiceDevelopmentReducers
@@ -26,7 +26,7 @@ const reducers: IServiceDevelopmentReducers = {
   deploy: deployReducer,
   applicationMetadataState: applicationMetadataReducer,
   appCluster: appClusterReducer,
-  appReleases: releaseReducer,
+  appReleases: appReleaseReducer,
 };
 
 export default combineReducers(reducers);

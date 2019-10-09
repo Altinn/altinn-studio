@@ -3,18 +3,18 @@ import { call, fork, takeLatest } from 'redux-saga/effects';
 import * as AppReleaseActionTypes from './appReleaseActionTypes';
 import AppReleaseActionDispatcher from './appReleaseDispatcher';
 
-function* fetchReleasesSaga(): SagaIterator {
+function* getReleasesSaga(): SagaIterator {
   try {
-    yield call(AppReleaseActionDispatcher.fetchReleasesFulfilled, []);
+    yield call(AppReleaseActionDispatcher.getReleasesFulfilled, []);
   } catch (err) {
-    yield call(AppReleaseActionDispatcher.fetchReleasesRejected, err);
+    yield call(AppReleaseActionDispatcher.getReleasesRejected, err);
   }
 }
 
-function* watchFetchReleasesSaga(): SagaIterator {
+function* watchGetReleasesSaga(): SagaIterator {
   yield takeLatest(
-    AppReleaseActionTypes.FETCH_APP_RELEASES,
-    fetchReleasesSaga,
+    AppReleaseActionTypes.GET_APP_RELEASES,
+    getReleasesSaga,
   );
 }
 
@@ -34,6 +34,6 @@ function* watchCreateReleaseSaga(): SagaIterator {
 }
 
 export default function*(): SagaIterator {
-  yield fork(watchFetchReleasesSaga);
+  yield fork(watchGetReleasesSaga);
   yield fork(watchCreateReleaseSaga);
 }

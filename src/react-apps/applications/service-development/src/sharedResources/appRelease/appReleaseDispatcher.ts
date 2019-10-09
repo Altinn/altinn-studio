@@ -4,9 +4,9 @@ import * as AppReleaseActions from './appReleaseActions';
 import { IRelease } from './types';
 
 export interface IAppReleaseActionDispatcher extends ActionCreatorsMapObject {
-  fetchReleases: () => Action;
-  fetchReleasesFulfilled: (releases: IRelease[]) => AppReleaseActions.IFetchReleaseActionFulfilled;
-  fetchReleasesRejected: (error: Error) => AppReleaseActions.IFetchReleaseActionRejected;
+  getReleases: () => Action;
+  getReleasesFulfilled: (releases: IRelease[]) => AppReleaseActions.IGetReleaseActionFulfilled;
+  getReleasesRejected: (error: Error) => AppReleaseActions.IGetReleaseActionRejected;
   createRelease: (
     tagName: string,
     name: string,
@@ -18,9 +18,9 @@ export interface IAppReleaseActionDispatcher extends ActionCreatorsMapObject {
 }
 
 const actions: IAppReleaseActionDispatcher = {
-  fetchReleases: AppReleaseActions.fetchReleases,
-  fetchReleasesFulfilled: AppReleaseActions.fetchReleasesFulfilled,
-  fetchReleasesRejected: AppReleaseActions.fetchReleasesRejected,
+  getReleases: AppReleaseActions.getReleases,
+  getReleasesFulfilled: AppReleaseActions.getReleasesFulfilled,
+  getReleasesRejected: AppReleaseActions.getReleasesRejected,
   createRelease: AppReleaseActions.createRelease,
   createReleaseFulfilled: AppReleaseActions.createReleaseFulfilled,
   createReleaseRejected: AppReleaseActions.createReleaseRejected,
