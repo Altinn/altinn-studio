@@ -90,7 +90,7 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
-            Repository repository = _giteaAPI.GetRepository(org, app).Result;
+            RepositoryClient.Model.Repository repository = _giteaAPI.GetRepository(org, app).Result;
 
             if (repository != null && repository.Permissions != null && repository.Permissions.Push != true)
             {
