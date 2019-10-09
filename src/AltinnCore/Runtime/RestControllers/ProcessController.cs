@@ -135,9 +135,9 @@ namespace AltinnCore.Runtime.RestControllers
         /// Gets a list of the next process elements that can be reached from the current process element.
         /// If process is not started it returns the possible start events.
         /// </summary>
-        /// <returns>list of next process elements (tasks or events)</returns>
+        /// <returns>list of next process element identifiers (tasks or events)</returns>
         [HttpGet("next")]
-        public async Task<ActionResult> GetNextElements(
+        public async Task<ActionResult<List<string>>> GetNextElements(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerId,
@@ -208,7 +208,12 @@ namespace AltinnCore.Runtime.RestControllers
             if (currentElementId == null)
             {
                 return Conflict($"Instance does not have current task information!");
-            }            
+            }
+
+            if (currentElementId.Equals(elementId))
+            {
+                return Conflict($"Requested process element {elementId} is same as instance's current task. Cannot change process.");
+            }
 
             string nextElement = GetValidNextElementOrError(currentElementId, elementId, out ActionResult nextElementError);
             if (nextElementError != null)
@@ -229,8 +234,8 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         /// <summary>
-        /// Attemts to close the process by running start and next until an end event is reached.
-        /// Process must have been started.
+        /// Attemts to end the process by running next until an end event is reached.
+        /// Notice that process must have been started.
         /// </summary>
         /// <returns>current process status</returns>
         [HttpPut("completeProcess")]

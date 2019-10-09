@@ -71,6 +71,21 @@ namespace AltinnCore.UnitTest.Runtime
         }
 
         /// <summary>
+        /// Start process and check state
+        /// </summary>
+        [Fact]
+        public void GetStartEventsFromUnstartedProcess()
+        {
+            ProcessController processController = NewProcessController(MockContext(), null);
+
+            ActionResult<List<string>> result = processController.GetNextElements(org, app, int.Parse(instanceOwnerId), instanceGuid).Result;
+            List<string> startEvents = (List<string>)((OkObjectResult)result.Result).Value;
+
+            Assert.NotNull(startEvents);
+            Assert.Contains("StartEvent_1", startEvents[0]);           
+        }
+
+        /// <summary>
         /// Complete the process
         /// </summary>
         [Fact]
@@ -113,7 +128,7 @@ namespace AltinnCore.UnitTest.Runtime
         }
 
         /// <summary>
-        /// Next
+        /// Next returns OK.
         /// </summary>
         [Fact]
         public void Next()
@@ -139,6 +154,31 @@ namespace AltinnCore.UnitTest.Runtime
             Assert.NotNull(state);
 
             Assert.Equal("Submit_1", state.CurrentTask.ElementId);
+        }
+
+        /// <summary>
+        /// Next on same id returns Conflict.
+        /// </summary>
+        [Fact]
+        public void NextOnSameIdReturnsConflict()
+        {
+            ProcessState currentState = new ProcessState
+            {
+                Started = DateTime.Parse("2017-10-10T12:00:00.00Z"),
+                CurrentTask = new ProcessElementInfo
+                {
+                    Started = DateTime.Parse("2017-10-10T12:01:01.00Z"),
+                    ElementId = "FormFilling_1",
+                    AltinnTaskType = "data",
+                    Flow = 1,
+                },
+            };
+
+            ProcessController processController = NewProcessController(MockContext(), currentState);
+
+            ActionResult<ProcessState> result = processController.NextElement(org, app, int.Parse(instanceOwnerId), instanceGuid, "FormFilling_1").Result;
+
+            Assert.IsType<ConflictObjectResult>(result.Result);
         }
 
         private Mock<HttpContext> MockContext()
