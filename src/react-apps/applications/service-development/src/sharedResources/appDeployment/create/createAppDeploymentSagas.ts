@@ -1,9 +1,9 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
-import * as AppDeploymentActionTypes from './../appDeployActionTypes';
-import AppDeploymentActionDispatcher from './../appDeployDispatcher';
+import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
+import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
 
-function* createDeploymentSaga(): SagaIterator {
+function* createAppDeploymentSaga(): SagaIterator {
   try {
     yield call(AppDeploymentActionDispatcher.createDeploymentFulfilled, 'release-id');
   } catch (err) {
@@ -11,13 +11,13 @@ function* createDeploymentSaga(): SagaIterator {
   }
 }
 
-export function* watchCreateDeploymentSaga(): SagaIterator {
+export function* watchCreateAppDeploymentSaga(): SagaIterator {
   yield takeLatest(
     AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT,
-    createDeploymentSaga,
+    createAppDeploymentSaga,
   );
 }
 
 export default function*(): SagaIterator {
-  yield fork(watchCreateDeploymentSaga);
+  yield fork(watchCreateAppDeploymentSaga);
 }

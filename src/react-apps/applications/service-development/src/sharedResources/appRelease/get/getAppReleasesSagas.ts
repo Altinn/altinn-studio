@@ -45,9 +45,9 @@ const mockReleases: IRelease[] = [
 
 function* getReleasesSaga(): SagaIterator {
   try {
-    yield call(AppReleaseActionDispatcher.getReleasesFulfilled, mockReleases);
+    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, mockReleases);
   } catch (err) {
-    yield call(AppReleaseActionDispatcher.getReleasesRejected, err);
+    yield call(AppReleaseActionDispatcher.getAppReleasesRejected, err);
   }
 }
 

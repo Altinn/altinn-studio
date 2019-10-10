@@ -1,8 +1,8 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
-import * as AppDeploymentActionTypes from './../appDeployActionTypes';
-import AppDeploymentActionDispatcher from './../appDeployDispatcher';
-import { IDeployment } from './../types';
+import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
+import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
+import { IDeployment } from '../types';
 
 const mockDeployments: IDeployment[] = [
   {
@@ -37,21 +37,21 @@ const mockDeployments: IDeployment[] = [
   },
 ]
 
-function* getDeploymentSaga(): SagaIterator {
+function* getAppDeploymentSaga(): SagaIterator {
   try {
-    yield call(AppDeploymentActionDispatcher.getDeploymentsFulfilled, mockDeployments);
+    yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, mockDeployments);
   } catch (err) {
-    yield call(AppDeploymentActionDispatcher.getDeploymentsRejected, err);
+    yield call(AppDeploymentActionDispatcher.getAppDeploymentsRejected, err);
   }
 }
 
-export function* watchGetDeploymentSaga(): SagaIterator {
+export function* watchGetAppDeploymentSaga(): SagaIterator {
   yield takeLatest(
     AppDeploymentActionTypes.GET_APP_DEPLOYMENTS,
-    getDeploymentSaga,
+    getAppDeploymentSaga,
   );
 }
 
 export default function*(): SagaIterator {
-  yield fork(watchGetDeploymentSaga);
+  yield fork(watchGetAppDeploymentSaga);
 }
