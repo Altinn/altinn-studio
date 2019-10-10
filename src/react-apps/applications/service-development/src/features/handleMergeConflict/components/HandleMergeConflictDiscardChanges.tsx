@@ -70,8 +70,7 @@ export class HandleMergeConflictDiscardChanges extends
 
   // TODO: Add a spinner
   public discardChangesConfirmed = async () => {
-    const altinnWindow: any = window as any;
-    const { org, service } = altinnWindow;
+    const { org, app } = window as IAltinnWindow;
 
     try {
 
@@ -84,8 +83,8 @@ export class HandleMergeConflictDiscardChanges extends
         },
       });
 
-      const discardUrl = `${altinnWindow.location.origin}/` +
-        `designerapi/Repository/DiscardLocalChanges?org=${org}&repository=${service}`;
+      const discardUrl = `${window.location.origin}/` +
+        `designerapi/Repository/DiscardLocalChanges?org=${org}&repository=${app}`;
       const discardRes = await get(discardUrl);
 
       if (discardRes.isSuccessStatusCode === true) {

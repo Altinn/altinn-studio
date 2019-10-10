@@ -316,16 +316,15 @@ function* apiCheckValue(
 }
 
 function getCodeListUri(codeListId: string) {
-  const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-  const { org, service } = altinnWindow;
-  const servicePath = `${org}/${service}`;
-  const codeListConfig = appConfig.serviceConfiguration.getCodeLists(window);
+  const { org, app } = window as IAltinnWindow;
+  const appId = `${org}/${app}`;
+  const codeListConfig = appConfig.appConfiguration.getCodeLists(window);
 
-  if (altinnWindow.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
+  if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
     return `${codeListConfig.codeListUrlRuntime.replace(
-      codeListConfig.servicePathPlaceholder, servicePath)}${codeListId}`;
+      codeListConfig.appIdPlaceholder, appId)}${codeListId}`;
   }
 
   return `${codeListConfig.codeListUrlPreview.replace(
-    codeListConfig.servicePathPlaceholder, servicePath)}${codeListId}`;
+    codeListConfig.appIdPlaceholder, appId)}${codeListId}`;
 }

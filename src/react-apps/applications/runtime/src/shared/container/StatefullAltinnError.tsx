@@ -52,7 +52,7 @@ function StatefulAltinnError(props: IStateFullAltinnError) {
     const { party_selection } = language;
     return (
       <>
-        {`${party_selection.no_valid_selection_second_part} ${(window as Window as IAltinnWindow).service}. `}
+        {`${party_selection.no_valid_selection_second_part} ${(window as IAltinnWindow).app}. `}
         {`${party_selection.no_valid_selection_third_part} ${templatePartyTypeString()}.`}
         <br />
         <br />

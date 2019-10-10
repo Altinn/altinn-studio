@@ -3,14 +3,14 @@ import * as ActionTypes from '../types';
 
 export interface IInstantiate extends Action {
   org: string;
-  service: string;
+  app: string;
 }
 
-export function instantiate(org: string, service: string): IInstantiate {
+export function instantiate(org: string, app: string): IInstantiate {
   return {
     type: ActionTypes.INSTANTIATE,
     org,
-    service,
+    app,
   };
 }
 
