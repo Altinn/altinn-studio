@@ -288,13 +288,12 @@ namespace AltinnCore.Runtime.RestControllers
 
             DataElement dataElement = await dataService.InsertBinaryData(org, app, instanceOwnerId, instanceGuid, elementType, attachmentName, Request);
 
-            SelfLinkHelper.SetDataAppSelfLinks(instanceGuid, dataElement, Request);
-
             if (Guid.Parse(dataElement.Id) == Guid.Empty)
             {
                 return StatusCode(500, $"Cannot store form attachment on instance {instanceOwnerId}/{instanceGuid}");
             }
 
+            SelfLinkHelper.SetDataAppSelfLinks(instanceGuid, dataElement, Request);
             return Created(dataElement.StorageUrl, new List<DataElement>() { dataElement });
         }
 
@@ -525,6 +524,7 @@ namespace AltinnCore.Runtime.RestControllers
         private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             DataElement dataElement = await dataService.UpdateBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid, Request);
+            SelfLinkHelper.SetDataAppSelfLinks(instanceGuid, dataElement, Request);
 
             return Created(dataElement.StorageUrl, new List<DataElement>() { dataElement });
         }
