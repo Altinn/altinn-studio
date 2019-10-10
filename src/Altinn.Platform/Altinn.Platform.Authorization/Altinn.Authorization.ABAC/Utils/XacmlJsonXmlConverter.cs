@@ -52,6 +52,7 @@ namespace Altinn.Authorization.ABAC.Utils
                 jsonResult.Status.StatusCode.Value = xacmlResult.Status.StatusCode.Value.OriginalString;
 
                 jsonResult.Obligations = ConvertObligations(xacmlResult.Obligations);
+                jsonResult.Category = ConvertAttributes(xacmlResult.Attributes);
 
                 response.Response.Add(jsonResult);
             }
@@ -128,33 +129,75 @@ namespace Altinn.Authorization.ABAC.Utils
                 return;
             }
 
-            foreach (XacmlJsonCategory subjectCategory in categoryList)
+            foreach (XacmlJsonCategory category in categoryList)
             {
-                if (!string.IsNullOrEmpty(subjectCategory.CategoryId))
+                if (!string.IsNullOrEmpty(category.CategoryId))
                 {
-                    categoryId = subjectCategory.CategoryId;
+                    categoryId = category.CategoryId;
                 }
 
                 XacmlContextAttributes xacmlContextAttributes = new XacmlContextAttributes(new Uri(categoryId));
 
-                XacmlAttribute xacmlAttribute = null;
-
                 ICollection<XacmlAttributeValue> attributeValues = new Collection<XacmlAttributeValue>();
 
-                foreach (XacmlJsonAttribute jsonAttribute in subjectCategory.Attribute)
+                Dictionary<string, XacmlAttribute> attributeDictionary = new Dictionary<string, XacmlAttribute>();
+
+                foreach (XacmlJsonAttribute jsonAttribute in category.Attribute)
                 {
-                    if (xacmlAttribute == null)
+                    if (!attributeDictionary.ContainsKey(jsonAttribute.AttributeId))
                     {
-                        xacmlAttribute = new XacmlAttribute(new Uri(jsonAttribute.AttributeId), jsonAttribute.IncludeInResult);
+                        attributeDictionary.Add(jsonAttribute.AttributeId, new XacmlAttribute(new Uri(jsonAttribute.AttributeId), jsonAttribute.IncludeInResult));
                     }
 
                     XacmlAttributeValue xacmlAttributeValue = new XacmlAttributeValue(new Uri(ConvertDataType(jsonAttribute)), jsonAttribute.Value);
-                    xacmlAttribute.AttributeValues.Add(xacmlAttributeValue);
-                    xacmlContextAttributes.Attributes.Add(xacmlAttribute);
-            }
+                    attributeDictionary[jsonAttribute.AttributeId].AttributeValues.Add(xacmlAttributeValue);
+                }
+
+                foreach (KeyValuePair<string, XacmlAttribute> kvp in attributeDictionary)
+                {
+                    xacmlContextAttributes.Attributes.Add(kvp.Value);
+                }
 
                 contextAttributes.Add(xacmlContextAttributes);
             }
+        }
+
+        private static List<XacmlJsonCategory> ConvertAttributes(ICollection<XacmlContextAttributes> attributes)
+        {
+            if (attributes == null || attributes.Count == 0)
+            {
+                return null;
+            }
+
+            List<XacmlJsonCategory> categories = new List<XacmlJsonCategory>();
+            foreach (XacmlContextAttributes contextAttributes in attributes)
+            {
+                XacmlJsonCategory category = new XacmlJsonCategory();
+                category.CategoryId = contextAttributes.Category.OriginalString;
+                category.Id = contextAttributes.Id;
+                category.Attribute = ConvertAttribute(contextAttributes.Attributes);
+                categories.Add(category);
+            }
+
+            return categories;
+        }
+
+        private static List<XacmlJsonAttribute> ConvertAttribute(ICollection<XacmlAttribute> attributes)
+        {
+            List<XacmlJsonAttribute> jsonAttributes = new List<XacmlJsonAttribute>();
+            foreach (XacmlAttribute attribute in attributes)
+            {
+                foreach (XacmlAttributeValue attributeValue in attribute.AttributeValues)
+                {
+                    XacmlJsonAttribute jsonAttribute = new XacmlJsonAttribute();
+                    jsonAttribute.AttributeId = attribute.AttributeId.OriginalString;
+                    jsonAttribute.Value = attributeValue.Value;
+                    jsonAttribute.DataType = attributeValue.DataType.OriginalString;
+                    jsonAttributes.Add(jsonAttribute);
+                }
+            }
+
+            return jsonAttributes;
         }
 
         private static string ConvertDataType(XacmlJsonAttribute jsonAttribute)

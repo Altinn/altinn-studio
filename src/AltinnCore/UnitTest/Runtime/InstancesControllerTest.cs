@@ -75,7 +75,7 @@ namespace AltinnCore.UnitTest.Runtime
         }
 
         /// <summary>
-        /// Simulates an application owner's instanciation of an app with prefill.
+        /// Simulates an organisation's instanciation of an app with prefill.
         /// </summary>
         [Fact]
         public void PostInstanceWithInstanceTemplateAsJson()

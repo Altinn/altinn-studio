@@ -153,7 +153,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   };
 
   const renderCSharpCompilesText = (cSharpCompileSuccess: boolean) => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
 
     switch (cSharpCompileSuccess) {
 
@@ -179,7 +179,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
             </div>
             <Typography variant='body1'>
               {getLanguageFromKey('deploy_to_test.check_csharp_compiles_false_body_part1', props.language)}&nbsp;
-              <a href={`/repos/${org}/${service}`} className={classes.link} target='_blank'>
+              <a href={`/repos/${org}/${app}`} className={classes.link} target='_blank'>
                 {/* TODO: Remember to change text when file edit page is available */}
                 {getLanguageFromKey('deploy_to_test.check_csharp_compiles_false_body_part2', props.language)}<AltinnIcon
                   isActive={true}
@@ -199,9 +199,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   };
 
   const renderDeploySuccess = (env: string, host: string) => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
 
-    const url = `https://${org}.apps.${env}.${host}/${org}/${service}/`;
+    const url = `https://${org}.apps.${env}.${host}/${org}/${app}/`;
     return (
       <React.Fragment>
         <Grid container={true}>

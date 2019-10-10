@@ -522,7 +522,7 @@ namespace AltinnCore.Runtime
 
             appBuilder.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
+                c.SwaggerEndpoint("v1/swagger.json", "Altinn Apps Runtime API");
             });
         }
 

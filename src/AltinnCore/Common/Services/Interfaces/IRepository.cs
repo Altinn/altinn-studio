@@ -60,7 +60,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="fileName">The name of file path relative to service root directory</param>
+        /// <param name="fileName">The name of file path relative to app directory</param>
         /// <returns>The fileContent</returns>
         string GetFileByRelativePath(string org, string app, string fileName);
 
@@ -100,7 +100,7 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetServiceModel(string org, string app);
 
         /// <summary>
-        /// Returns the workflow of a service
+        /// Returns the workflow of an app.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -186,13 +186,13 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The rules for a service</returns>
+        /// <returns>The rules for an app.</returns>
         List<RuleContainer> GetRules(string org, string app);
 
         /// <summary>
-        /// Returns a list of all application owners present in the local repository
+        /// Returns a list of all organisations present in the local repository
         /// </summary>
-        /// <returns>A list of all application owners</returns>
+        /// <returns>A list of all organisations</returns>
         IList<OrgConfiguration> GetOwners();
 
         /// <summary>
@@ -203,14 +203,14 @@ namespace AltinnCore.Common.Services.Interfaces
         IList<ServiceConfiguration> GetServices(string org);
 
         /// <summary>
-        /// Creates a new app folder under the given <paramref name="owner">owner</paramref> and saves the
+        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
-        /// <param name="owner">The app owner to create the new service under</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <param name="repoCreated">whether the repo is created or not</param>
         /// <returns>The repository created in gitea</returns>
-        RepositoryClient.Model.Repository CreateService(string owner, ServiceConfiguration serviceConfig, bool repoCreated = false);
+        RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false);
 
         /// <summary>
         ///  Deletes an app folder from disk
@@ -490,8 +490,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets the prefill json file
         /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The app</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="dataModelName">the data model name</param>
         /// <returns></returns>
         string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel");

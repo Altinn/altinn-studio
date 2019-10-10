@@ -93,7 +93,7 @@ namespace AltinnCore.Common.Services.Implementation
                     }
                     else
                     {
-                        string errorMessage = $"Could not  prefill from {ER_KEY}, organization is not defined.";
+                        string errorMessage = $"Could not  prefill from {ER_KEY}, organisation is not defined.";
                         _logger.LogError(errorMessage);
                         throw new Exception(errorMessage);
                     }
