@@ -332,7 +332,7 @@ const makeMapStateToProps = () => {
       compileStatusUniqueFilenames: getCompileStatusUniqueFilenames(state),
       imageVersions: getImageTags(state),
     };
-  }
+  };
   return mapStateToProps;
 };
 
