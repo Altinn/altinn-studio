@@ -69,13 +69,17 @@ namespace Altinn.Platform.Authentication.Controllers
                 Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}tickets");
                 using (HttpClient client = new HttpClient())
                 {
+                    _logger.LogInformation($"Authentication - Before getting userdata");
                     string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] });
+                    _logger.LogInformation($"Authentication - userdata {userData}");
+                    _logger.LogInformation($"Authentication - endpoint {endpointUrl}");
                     HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
-
+                    _logger.LogInformation($"Authentication - response {response.StatusCode}");
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         Stream stream = await response.Content.ReadAsStreamAsync();
                         userAuthentication = serializer.ReadObject(stream) as UserAuthenticationModel;
+                        _logger.LogInformation($"USerAuthentication: {userAuthentication.IsAuthenticated}");
                         if (userAuthentication.IsAuthenticated)
                         {
                             List<Claim> claims = new List<Claim>();
@@ -90,6 +94,7 @@ namespace Altinn.Platform.Authentication.Controllers
                             identity.AddClaims(claims);
                             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
+                            _logger.LogInformation($"Platform Authentication before signin async");
                             await HttpContext.SignInAsync(
                                 JwtCookieDefaults.AuthenticationScheme,
                                 principal,
@@ -100,6 +105,8 @@ namespace Altinn.Platform.Authentication.Controllers
                                     AllowRefresh = false,
                                 });
 
+                            _logger.LogInformation($"Platform Authentication after signin async{JwtCookieDefaults.AuthenticationScheme}");
+                            _logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
                             if (userAuthentication.TicketUpdated)
                             {
                                 Response.Cookies.Append(_generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
@@ -110,6 +117,7 @@ namespace Altinn.Platform.Authentication.Controllers
                         else
                         {
                             // If user is not authenticated redirect to login
+                            _logger.LogInformation($"USerNotauthenticated");
                             _logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
                             return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
                         }
@@ -130,6 +138,7 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("refresh")]
         public async Task<ActionResult> RefreshJWTCookie()
         {
+            _logger.LogInformation($"Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
 
             await HttpContext.SignInAsync(
@@ -140,7 +149,10 @@ namespace Altinn.Platform.Authentication.Controllers
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
                     IsPersistent = false,
                     AllowRefresh = true,
-                });                        
+                });
+            _logger.LogInformation($"JWTCookie Validity Time: {_generalSettings.GetJwtCookieValidityTime}");
+            _logger.LogInformation($"JWT signed in");
+            _logger.LogInformation($"Token refreshed");
             return Ok();
         }
 

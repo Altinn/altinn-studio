@@ -41,14 +41,16 @@ namespace AltinnCore.Runtime.Controllers
         {
             if (_settings.RuntimeMode != "AltinnStudio")
             {
-                HttpResponseMessage result = await _authentication.RefreshToken();
-                if (result.StatusCode != HttpStatusCode.OK)
-                {
-                    return StatusCode((int)result.StatusCode);
-                }
+                string token = await _authentication.RefreshToken();
 
-                string token = await result.Content.ReadAsStringAsync();                
+                //if (result.StatusCode != HttpStatusCode.OK)
+                //{
+                //    return StatusCode((int)result.StatusCode);
+                //}
 
+                //string token = await result.Content.ReadAsStringAsync();                
+
+                _logger.LogInformation($"Token value in keep alive:{token}");
                 CookieOptions runtimeCookieSetting = new CookieOptions
                 {
                     Domain = _settings.HostName,                    
@@ -56,11 +58,12 @@ namespace AltinnCore.Runtime.Controllers
 
                 if (!string.IsNullOrWhiteSpace(token))
                 {                    
-                    HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token, runtimeCookieSetting);                                      
+                    HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token, runtimeCookieSetting);
+                    return Ok();
                 }
             }
 
-            return Ok();
+            return BadRequest();
         }
     }
 }

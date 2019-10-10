@@ -45,11 +45,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<HttpResponseMessage> RefreshToken()
+        public async Task<string> RefreshToken()
         {
             string endpointUrl = $"refresh";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, Constants.General.RuntimeCookieName);
-            _logger.LogInformation($"Token from token utility{token}");
+            _logger.LogInformation($"Token from context{token}");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
 
@@ -57,13 +57,11 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 string refreshedToken = GetCookieValueFromResponse(response, Constants.General.RuntimeCookieName);
                 _logger.LogInformation($"refreshedtoken {refreshedToken}");
-                HttpResponseMessage result = new HttpResponseMessage(response.StatusCode);
-                result.Content = new StringContent(refreshedToken);
-                return result;
+                return refreshedToken;
             }
 
             _logger.LogError($"Refreshing JwtToken failed with status code {response.StatusCode}");
-            return new HttpResponseMessage(response.StatusCode);
+            return string.Empty;
         }
 
         private string GetCookieValueFromResponse(HttpResponseMessage response, string cookieName)
