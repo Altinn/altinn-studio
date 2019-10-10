@@ -66,6 +66,13 @@ namespace Altinn.Platform.Authorization
             {
                 app.UseExceptionHandler("/Error");
             }
+
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }
