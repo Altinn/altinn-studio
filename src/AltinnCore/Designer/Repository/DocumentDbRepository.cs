@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.TypedHttpClients.Models;
+using AltinnCore.Designer.ViewModels.Request;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;

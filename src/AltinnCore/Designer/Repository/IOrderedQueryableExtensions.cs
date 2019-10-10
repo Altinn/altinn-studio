@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.TypedHttpClients.Models;
+using AltinnCore.Designer.ViewModels.Request;
 using Microsoft.Azure.Documents.Linq;
 
 namespace AltinnCore.Designer.Repository

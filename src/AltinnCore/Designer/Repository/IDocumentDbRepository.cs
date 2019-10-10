@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.TypedHttpClients.Models;
+using AltinnCore.Designer.ViewModels.Request;
 
 namespace AltinnCore.Designer.Repository
 {
