@@ -13,8 +13,8 @@ function* selectPartySaga({party, redirect}: ISelectParty): SagaIterator {
     yield call(putWithoutConfig, url);
     yield call(PartyActions.selectPartyFulfilled, party);
     if (redirect) {
-      const { org, service } = window as IAltinnWindow;
-      window.location.replace(`${window.location.origin}/${org}/${service}#/`);
+      const { org, app } = window as IAltinnWindow;
+      window.location.replace(`${window.location.origin}/${org}/${app}#/`);
     }
   } catch (err) {
     yield call(PartyActions.selectPartyRejected, err);

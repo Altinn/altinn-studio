@@ -17,12 +17,11 @@ export function* uploadAttachmentSaga(
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service, instanceId, reportee } = altinnWindow;
-    const servicePath = `${org}/${service}`;
+    const { org, app, instanceId } = window as IAltinnWindow;
+    const appId = `${org}/${app}`;
     const data = new FormData();
     data.append('file', file);
-    const fileUploadLink = `${altinnWindow.location.origin}/${servicePath}/api/attachment/` +
+    const fileUploadLink = `${window.location.origin}/${appId}/api/attachment/` +
       `${instanceId}/SaveFormAttachment?attachmentType=${attachmentType}&attachmentName=${file.name}`;
     const response = yield call(post, fileUploadLink, null, data);
     if (response.status === 200) {

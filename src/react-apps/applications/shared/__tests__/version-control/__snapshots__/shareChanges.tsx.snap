@@ -227,7 +227,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 </button>
 `;
 
-exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user only has read access to service 1`] = `
+exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user only has read access to app 1`] = `
 <button
   className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
   disabled={false}

@@ -1,11 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import {
-  ICreateReleaseRejectedActions,
-  IGetReleaseActionFulfilled,
-  IGetReleaseActionRejected,
-} from './appReleaseActions';
 import * as AppReleaseActionTypes from './appReleaseActionTypes';
+import { ICreateReleaseRejectedActions } from './create/createAppReleaseActions';
+import { IGetReleaseActionFulfilled, IGetReleaseActionRejected } from './get/getAppReleasesActions';
 import { IRelease } from './types';
 
 export interface IAppReleaseState {

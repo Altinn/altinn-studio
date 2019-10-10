@@ -20,8 +20,8 @@ export const menu = ([
     link: '/test',
   },
   {
-    key: 'Publisere',
-    activeSubHeaderSelection: 'Publisere',
-    link: '/publish',
+    key: 'Deploy',
+    activeSubHeaderSelection: 'Deploy',
+    link: '/deploy',
   },
 ]);

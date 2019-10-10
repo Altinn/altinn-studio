@@ -25,34 +25,34 @@ export default (props) => {
   (window as IAltinnWindow).instanceId = partyId  + '/' + instanceGuid;
 
   React.useEffect(() => {
-    const { org, service, instanceId } = window as IAltinnWindow;
+    const { org, app, instanceId } = window as IAltinnWindow;
     LanguageActions.fetchLanguage(
-      `${window.location.origin}/${org}/${service}/api/Language/GetLanguageAsJSON`,
+      `${window.location.origin}/${org}/${app}/api/Language/GetLanguageAsJSON`,
       'nb',
     );
     FormDataModelActions.fetchDataModel(
-      `${window.location.origin}/${org}/${service}/api/metadata/ServiceMetaData`,
+      `${window.location.origin}/${org}/${app}/api/metadata/ServiceMetaData`,
     );
     FormLayoutActions.fetchFormLayout(
-      `${window.location.origin}/${org}/${service}/api/resource/FormLayout.json`,
+      `${window.location.origin}/${org}/${app}/api/resource/FormLayout.json`,
     );
     FormDataActions.fetchFormData(
-      `${window.location.origin}/${org}/${service}/api/${instanceId}`,
+      `${window.location.origin}/${org}/${app}/api/${instanceId}`,
     );
     FormRuleActions.fetchRuleModel(
-      `${window.location.origin}/${org}/${service}/api/resource/RuleHandler.js`,
+      `${window.location.origin}/${org}/${app}/api/resource/RuleHandler.js`,
     );
     FormWorkflowActions.getCurrentState(
       // tslint:disable-next-line:max-line-length
-      `${window.location.origin}/${org}/${service}/api/workflow/${instanceId}/GetCurrentState`,
+      `${window.location.origin}/${org}/${app}/api/workflow/${instanceId}/GetCurrentState`,
     );
 
     FormDynamicActions.fetchFormDynamics(
-      `${window.location.origin}/${org}/${service}/api/resource/ServiceConfigurations.json`,
+      `${window.location.origin}/${org}/${app}/api/resource/ServiceConfigurations.json`,
     );
 
     ProfileActions.fetchProfile(
-      `${window.location.origin}/${org}/${service}/api/v1/profile/user`,
+      `${window.location.origin}/${org}/${app}/api/v1/profile/user`,
     );
 
     AttachmentActions.fetchAttachments();
