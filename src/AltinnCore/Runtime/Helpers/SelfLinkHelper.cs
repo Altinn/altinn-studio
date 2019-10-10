@@ -1,13 +1,13 @@
+using System;
 using Altinn.Platform.Storage.Models;
 using Microsoft.AspNetCore.Http;
 using Storage.Interface.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AltinnCore.Runtime.Helpers
 {
+    /// <summary>
+    /// Helper class for setting application self links
+    /// </summary>
     public static class SelfLinkHelper
     {
         /// <summary>
@@ -47,7 +47,6 @@ namespace AltinnCore.Runtime.Helpers
                 }
             }
         }
-
 
         /// <summary>
         /// Sets the application specific self links.
