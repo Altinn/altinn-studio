@@ -129,24 +129,24 @@ export class DeployToTestContainer extends
   }
 
   public fetchCompileStatus = () => {
-    const { org, service } = window as Window as IAltinnWindow;
-    DeployActionDispatcher.fetchCompileStatus(org, service);
+    const { org, app } = window as IAltinnWindow;
+    DeployActionDispatcher.fetchCompileStatus(org, app);
   }
 
   // TODO: Change letEnv to enum when environments are defined later
   public fetchDeployments = (letEnv: string) => {
-    const { org, service } = window as Window as IAltinnWindow;
-    AppClusterDispatcher.getDeployments(letEnv, org, service);
+    const { org, app } = window as IAltinnWindow;
+    AppClusterDispatcher.getDeployments(letEnv, org, app);
   }
 
   public fetchMasterRepoStatus = () => {
-    const { org, service } = window as Window as IAltinnWindow;
-    RepoStatusDispatcher.getMasterRepoStatus(org, service);
+    const { org, app } = window as IAltinnWindow;
+    RepoStatusDispatcher.getMasterRepoStatus(org, app);
   }
 
   public getRepoPermissions = async () => {
-    const { org, service } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
 
     try {
       const currentRepo = await get(url, { cancelToken: this.source.token });
@@ -198,16 +198,16 @@ export class DeployToTestContainer extends
   }
 
   public startDeployment = (letEnv: string) => {
-    const { org, service } = window as Window as IAltinnWindow;
-    DeployActionDispatcher.deployAltinnApp(letEnv, org, service);
+    const { org, app } = window as IAltinnWindow;
+    DeployActionDispatcher.deployAltinnApp(letEnv, org, app);
     this.fetchDeploymentStatusInterval(letEnv);
   }
 
   public fetchDeploymentStatusInterval = (letEnv: string) => {
-    const { org, service } = window as Window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const interval = setInterval(() => {
       DeployActionDispatcher.fetchDeployAltinnAppStatus(
-        letEnv, org, service, this.props.deployStatus[letEnv].result.buildId);
+        letEnv, org, app, this.props.deployStatus[letEnv].result.buildId);
       if (this.props.deployStatus[letEnv].result.finishTime ||
         this.props.deployStatus[letEnv].deployStartedSuccess === false) {
 

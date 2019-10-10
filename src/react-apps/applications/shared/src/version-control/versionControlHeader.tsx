@@ -73,9 +73,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getStatus(callbackFunc?: any) {
-    const altinnWindow: any = window as any;
-    const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
     get(url).then((result: any) => {
       if (this._isMounted) {
         this.setState({
@@ -102,10 +101,9 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public getLastPush() {
     if (!this.state.moreThanAnHourSinceLastPush) {
-      const altinnWindow: any = window as any;
-      const { org, service } = altinnWindow;
+      const { org, app } = window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${service}`;
+      const url = `${window.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?org=${org}&repository=${app}`;
       get(url).then((result: any) => {
         if (this._isMounted && result) {
           const diff = new Date().getTime() - new Date(result.comitter.when).getTime();
@@ -150,8 +148,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getRepoPermissions = async () => {
-    const { org, service } = window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
 
     try {
       const currentRepo = await get(url, { cancelToken: this.source.token });
@@ -188,14 +186,13 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const altinnWindow: any = window as any;
-    const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${app}`;
 
     get(url).then((result: any) => {
       if (this._isMounted) {
         if (result.repositoryStatus === 'Ok') {
-          // if pull was successfull, show service is updated message
+          // if pull was successfull, show app is updated message
           this.setState({
             changesInMaster: result.behindBy !== 0,
             changesInLocalRepo: result.contentStatus.length > 0,
@@ -298,9 +295,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const altinnWindow: any = window as any;
-    const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?org=${org}&repository=${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/Push?org=${org}&repository=${app}`;
 
     post(url).then((result: any) => {
       if (this._isMounted) {
@@ -329,22 +325,21 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const altinnWindow: any = window as any;
-    const { org, service } = altinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const options = {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
     };
-    const bodyData = JSON.stringify({ message: commitMessage, org, repository: service });
+    const bodyData = JSON.stringify({ message: commitMessage, org, repository: app });
 
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Commit`;
-    const pullUrl = `${altinnWindow.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${service}`;
+    const url = `${window.location.origin}/designerapi/Repository/Commit`;
+    const pullUrl = `${window.location.origin}/designerapi/Repository/Pull?org=${org}&repository=${app}`;
     post(url, bodyData, options).then((commitResult: any) => {
       get(pullUrl).then((result: any) => {
         if (this._isMounted) {
-          // if pull was successfull, show service updated message
+          // if pull was successfull, show app updated message
           if (result.repositoryStatus === 'Ok') {
             this.setState({
               modalState: {

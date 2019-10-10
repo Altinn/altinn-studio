@@ -38,7 +38,7 @@ export interface IServiceInfoProps extends WithStyles<typeof styles> {
 
 function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
-  const { org, service } = window as Window as IAltinnWindow;
+  const { org, app } = window as IAltinnWindow;
 
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
@@ -55,7 +55,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
       return;
     }
     setInstantiating(true);
-    InstantiationActions.instantiate(org, service);
+    InstantiationActions.instantiate(org, app);
   };
 
   const validatatePartySelection = async () => {
@@ -64,7 +64,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
     }
     try {
       const { data } = await post(
-        `${window.location.origin}/${org}/${service}/api/v1/parties/` +
+        `${window.location.origin}/${org}/${app}/api/v1/parties/` +
         `validateInstantiation?partyId=${selectedParty.partyId}`,
       );
       setPartyValidation(data);

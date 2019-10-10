@@ -8,6 +8,7 @@
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
+    <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}</ProjectGuid>
   </PropertyGroup>

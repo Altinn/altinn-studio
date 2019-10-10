@@ -61,7 +61,7 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
           <div>
             <AppBarComponent
               org={this.props.user ? this.props.user.full_name || this.props.user.login : ''}
-              service=' '
+              app=' '
               logoutButton={true}
               showSubHeader={false}
               backgroundColor={theme.altinnPalette.primary.white}

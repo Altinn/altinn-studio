@@ -1,5 +1,5 @@
 export enum BuildStatus {
-  cancelling = 'candelling',
+  cancelling = 'cancelling',
   completed = 'completed',
   inProgress = 'inProgress',
   none = 'none',

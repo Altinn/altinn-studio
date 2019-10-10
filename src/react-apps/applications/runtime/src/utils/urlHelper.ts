@@ -1,25 +1,25 @@
 const altinnWindow = window as any;
-const { org, service, reportee } = altinnWindow;
+const { org, app, reportee } = altinnWindow;
 const origin = window.location.origin;
 
-export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${service}/verifySubscription?partyId=${reportee}`;
-export const languageUrl = `${origin}/${org}/${service}/api/Language/GetLanguageAsJSON`;
-export const profileApiUrl = `${origin}/${org}/${service}/api/v1/profile/user`;
-export const applicationMetadataApiUrl = `${origin}/${org}/${service}/api/v1/applicationmetadata`;
-export const textResourcesUrl = `${origin}/${org}/${service}/api/textresources`;
+export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${app}/verifySubscription?partyId=${reportee}`;
+export const languageUrl = `${origin}/${org}/${app}/api/Language/GetLanguageAsJSON`;
+export const profileApiUrl = `${origin}/${org}/${app}/api/v1/profile/user`;
+export const applicationMetadataApiUrl = `${origin}/${org}/${app}/api/v1/applicationmetadata`;
+export const textResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
-  ${origin}/${org}/${service}/api/v1/parties/${partyId}
+  ${origin}/${org}/${app}/api/v1/parties/${partyId}
 `;
 export const validPartiesUrl: string =
-  `${origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=true`;
+  `${origin}/${org}/${app}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const allPartiesUrl: string =
-`${origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=false`;
-export const instantiateUrl: string = `${origin}/${org}/${service}/Instance/InstantiateApp`;
-export const currentPartyUrl: string = `${origin}/${org}/${service}/api/authorization/parties/current`;
-export const instancesControllerUrl: string = `${origin}/${org}/${service}/instances`;
-export const partySelectionUrl: string = `${origin}/${org}/${service}/#/partyselection`;
-export const refreshJwtTokenUrl: string = `${origin}/${org}/${service}/api/authentication/keepAlive`;
-export const reactErrorPage: string = `${origin}/${org}/${service}/#/error`;
+`${origin}/${org}/${app}/api/v1/parties?allowedtoinstantiatefilter=false`;
+export const instantiateUrl: string = `${origin}/${org}/${app}/Instance/InstantiateApp`;
+export const currentPartyUrl: string = `${origin}/${org}/${app}/api/authorization/parties/current`;
+export const instancesControllerUrl: string = `${origin}/${org}/${app}/instances`;
+export const partySelectionUrl: string = `${origin}/${org}/${app}/#/partyselection`;
+export const refreshJwtTokenUrl: string = `${origin}/${org}/${app}/api/authentication/keepAlive`;
+export const reactErrorPage: string = `${origin}/${org}/${app}/#/error`;
 
 export const getEnvironmentLoginUrl: () => string = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
