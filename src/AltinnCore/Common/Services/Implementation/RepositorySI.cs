@@ -83,12 +83,13 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
             string orgPath = null;
+            string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             orgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
-                            : _settings.RepositoryLocation + serviceMetadata.Org.AsFileName();
+                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
+                : _settings.GetOrgPath(serviceMetadata.Org.AsFileName(), developerUserName);
 
             string appPath = orgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
 
@@ -105,7 +106,7 @@ namespace AltinnCore.Common.Services.Implementation
             string metaDataDir = _settings.GetMetadataPath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
             {
@@ -115,7 +116,7 @@ namespace AltinnCore.Common.Services.Implementation
             string resourceDir = _settings.GetResourcePath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo resourceDirectoryInfo = new DirectoryInfo(resourceDir);
             if (!resourceDirectoryInfo.Exists)
             {
@@ -125,7 +126,7 @@ namespace AltinnCore.Common.Services.Implementation
             string dynamicsDir = _settings.GetDynamicsPath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo dynamicsDirectoryInfo = new DirectoryInfo(dynamicsDir);
             if (!dynamicsDirectoryInfo.Exists)
             {
@@ -135,7 +136,7 @@ namespace AltinnCore.Common.Services.Implementation
             string calculationDir = _settings.GetCalculationPath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo calculationDirectoryInfo = new DirectoryInfo(calculationDir);
             if (!calculationDirectoryInfo.Exists)
             {
@@ -145,7 +146,7 @@ namespace AltinnCore.Common.Services.Implementation
             string validationDir = _settings.GetValidationPath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo validationDirectoryInfo = new DirectoryInfo(validationDir);
             if (!validationDirectoryInfo.Exists)
             {
