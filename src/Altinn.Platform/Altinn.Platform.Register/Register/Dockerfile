@@ -1,5 +1,5 @@
 #microsoft/dotnet:2.2-sdk
-FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a7633d0b374470 AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS build
 WORKDIR Register/
 
 COPY Register ./Register
