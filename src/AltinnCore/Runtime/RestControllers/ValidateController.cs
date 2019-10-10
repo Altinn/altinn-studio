@@ -1,16 +1,22 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Storage.Models;
+
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.Models;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Runtime.RestControllers
 {
@@ -21,24 +27,37 @@ namespace AltinnCore.Runtime.RestControllers
     [ApiController]
     public class ValidateController : ControllerBase
     {
-        private readonly IRepository repositoryService;
-        private readonly IInstance instanceService;
+        private readonly ILogger<DataController> logger;
         private readonly IData dataService;
+        private readonly IInstance instanceService;
         private readonly IExecution executionService;
         private readonly UserHelper userHelper;
         private readonly IPlatformServices platformService;
+        private readonly IApplication appService;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ValidateController"/> class
         /// </summary>
-        public ValidateController(IRepository repositoryService, IInstance instanceService, IData dataService, IExecution executionService, UserHelper userHelper, IPlatformServices platformService)
+        public ValidateController(
+            IOptions<GeneralSettings> generalSettings,
+            ILogger<DataController> logger,
+            IRegister registerService,
+            IInstance instanceService,
+            IData dataService,
+            IExecution executionService,
+            IProfile profileService,
+            IPlatformServices platformService,
+            IInstanceEvent eventService,
+            IApplication appService)
         {
-            this.repositoryService = repositoryService;
+            this.logger = logger;
+
             this.instanceService = instanceService;
             this.dataService = dataService;
             this.executionService = executionService;
-            this.userHelper = userHelper;
             this.platformService = platformService;
+            this.appService = appService;
+            this.userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
         /// <summary>
@@ -56,18 +75,24 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceId)
         {
+            ServiceContext serviceContext = executionService.GetServiceContext(org, app, false);
+
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
             {
                 return NotFound();
             }
 
-            string stepType = instance.Process.CurrentTask.AltinnTaskType;
+            string taskId = instance.Process.CurrentTask.ElementId;
+            if (taskId == null)
+            {
+                throw new Exception("Unable to validate instance without a started process.");
+            }
 
-            Application application = repositoryService.GetApplication(org, app);
+            Application application = await appService.GetApplication(org, app);
 
             List<ValidationIssue> messages = new List<ValidationIssue>();
-            foreach (ElementType elementType in application.ElementTypes.Where(et => et.Task == stepType))
+            foreach (ElementType elementType in application.ElementTypes.Where(et => et.Task == taskId))
             {
                 List<DataElement> elements = instance.Data.Where(d => d.ElementType == elementType.Id).ToList();
 
@@ -75,11 +100,12 @@ namespace AltinnCore.Runtime.RestControllers
                 {
                     ValidationIssue message = new ValidationIssue
                     {
-                        Code = "TooManyElements",
-                        Scope = $"Instance",
+                        Code = ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType,
+                        Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
-                        Description = $"The instance has too many elements of type '{elementType.Id}' according to the type definition."
-                    };
+                        Description = ServiceTextHelper.GetServiceText(
+                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceContext.ServiceText, null, "nb-NO")
+                    }; // $"The instance has too many elements of type '{elementType.Id}' according to the type definition."
                     messages.Add(message);
                 }
 
@@ -87,17 +113,18 @@ namespace AltinnCore.Runtime.RestControllers
                 {
                     ValidationIssue message = new ValidationIssue
                     {
-                        Code = "TooFewElements",
-                        Scope = $"Instance",
+                        Code = ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType,
+                        Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
-                        Description = $"The instance requires more elements of type '{elementType.Id}' according to the type definition."
-                    };
+                        Description = ServiceTextHelper.GetServiceText(
+                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, serviceContext.ServiceText, null, "nb-NO")
+                    }; // $"The instance requires more elements of type '{elementType.Id}' according to the type definition."
                     messages.Add(message);
                 }
 
                 foreach (DataElement dataElement in elements)
                 {
-                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, dataElement));
+                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, dataElement, serviceContext));
                 }
             }
 
@@ -113,50 +140,66 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="instanceOwnerId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceId">Unique id to identify the instance</param>
         /// <param name="dataGuid">Unique id identifying specific data element</param>
-        [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceGuid:guid}/data/{dataGuid:guid}/validate")]
-        public async Task<ActionResult> ValidateData(
+        [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid}/validate")]
+        public async Task<IActionResult> ValidateData(
             [FromRoute] string org,
             [FromRoute] string app,
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceId,
             [FromRoute] Guid dataGuid)
         {
+            ServiceContext serviceContext = executionService.GetServiceContext(org, app, false);
+
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
             {
                 return NotFound();
             }
 
-            Application application = repositoryService.GetApplication(org, app);
+            if (instance.Process?.CurrentTask == null)
+            {
+                throw new Exception("Unable to validate instance without a started process.");
+            }
 
-            throw new NotImplementedException();
+            List<ValidationIssue> messages = new List<ValidationIssue>();
+
+            DataElement element = instance.Data.FirstOrDefault(d => d.Id == dataGuid.ToString());
+
+            if (element == null)
+            {
+                throw new Exception("Unable to validate data element.");
+            }
+
+            Application application = await appService.GetApplication(org, app);
+
+            ElementType elementType = application.ElementTypes.FirstOrDefault(et => et.Id == element.ElementType);
+
+            if (elementType == null)
+            {
+                throw new Exception("Unknown element type.");
+            }
+
+            messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, element, serviceContext));
+
+            string taskType = instance.Process.CurrentTask.AltinnTaskType;
+            if (!elementType.Task.Equals(taskType, StringComparison.OrdinalIgnoreCase))
+            {
+                ValidationIssue message = new ValidationIssue
+                {
+                    Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
+                    Scope = element.ElementType,
+                    TargetId = element.Id,
+                    Severity = ValidationIssueSeverity.Warning,
+                    Description = ServiceTextHelper.GetServiceText(
+                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceContext.ServiceText, null, "nb-NO")
+                };
+                messages.Add(message);
+            }
+            
+            return Ok(messages);
         }
 
-        /// <summary>
-        /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
-        /// </summary>
-        /// <param name="org">unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="elementType">the data element type</param>
-        /// <param name="startApp">indicates if the app should be started or just opened</param>
-        /// <returns>the serviceImplementation object which represents the application business logic</returns>
-        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startApp = false)
-        {
-            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startApp);
-
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
-            requestContext.Party = requestContext.UserContext.Party;
-
-            ServiceContext serviceContext = executionService.GetServiceContext(org, app, startApp);
-
-            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
-            serviceImplementation.SetPlatformServices(platformService);
-
-            return serviceImplementation;
-        }
-
-        private async Task<List<ValidationIssue>> ValidateDataElement(string org, string app, int instanceOwnerId, Guid instanceId, ElementType elementType, DataElement dataElement)
+        private async Task<List<ValidationIssue>> ValidateDataElement(string org, string app, int instanceOwnerId, Guid instanceId, ElementType elementType, DataElement dataElement, ServiceContext serviceContext)
         {
             List<ValidationIssue> messages = new List<ValidationIssue>();
 
@@ -164,26 +207,30 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 ValidationIssue message = new ValidationIssue
                 {
-                    Code = "MissingContentType",
-                    Scope = $"DataElement",
+                    Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
+                    Scope = dataElement.ElementType,
+                    TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = $"Element {dataElement.Id} is missing a Content-Type"
-                };
+                    Description = ServiceTextHelper.GetServiceText(
+                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceContext.ServiceText, null, "nb-NO")
+                };  // $"Element {dataElement.Id} is missing a Content-Type"
                 messages.Add(message);
             }
             else
             {
                 string contentTypeWithoutEncoding = dataElement.ContentType.Split(";")[0];
 
-                if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
+                if (elementType.AllowedContentType.All(ct => !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)))
                 {
                     ValidationIssue message = new ValidationIssue
                     {
-                        Code = "ContentTypeNotAllowed",
-                        Scope = $"DataElement",
+                        Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
+                        Scope = dataElement.ElementType,
+                        TargetId = dataElement.Id,
                         Severity = ValidationIssueSeverity.Error,
-                        Description = $"Element {dataElement.Id} has a Content-Type not in the list of allowed content types listed for element type '{elementType.Id}'."
-                    };
+                        Description = ServiceTextHelper.GetServiceText(
+                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceContext.ServiceText, null, "nb-NO")
+                    }; // $"Element {dataElement.Id} has a Content-Type not in the list of allowed content types listed for element type '{elementType.Id}'."
                     messages.Add(message);
                 }
             }
@@ -192,20 +239,84 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 ValidationIssue message = new ValidationIssue
                 {
-                    Code = "TooLarge",
-                    Scope = $"DataElement",
+                    Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
+                    Scope = dataElement.ElementType,
+                    TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
-                    Description = $"Element '{dataElement.Id}' is too large as stated by element type '{elementType.Id}'."
-                };
+                    Description = ServiceTextHelper.GetServiceText(
+                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceContext.ServiceText, null, "nb-NO")
+                }; // $"Element '{dataElement.Id}' is too large as stated by element type '{elementType.Id}'."
                 messages.Add(message);
             }
 
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType.Id, serviceContext);
             if (elementType.AppLogic)
             {
-                Stream data = await dataService.GetData(org, app, instanceOwnerId, instanceId, Guid.Parse(dataElement.Id));
+                Type modelType = serviceImplementation.GetServiceModelType();
+                dynamic data = dataService.GetFormData(instanceId, modelType, org, app, instanceOwnerId, Guid.Parse(dataElement.Id));
+                
+                serviceImplementation.SetServiceModel(data);
+
+                TryValidateModel(data);
+
+                if (!ModelState.IsValid)
+                {
+                    messages.AddRange(MapModelStateToIssueList(ModelState, dataElement.Id, dataElement.ElementType, serviceContext));
+                }
             }
 
             return messages;
+        }
+
+        private List<ValidationIssue> MapModelStateToIssueList(ModelStateDictionary modelState, string elementId, string elementType, ServiceContext serviceContext)
+        {
+            List<ValidationIssue> messages = new List<ValidationIssue>();
+            foreach (string modelKey in modelState.Keys)
+            {
+                ModelState.TryGetValue(modelKey, out ModelStateEntry entry);
+
+                if (entry != null && entry.ValidationState == ModelValidationState.Invalid)
+                {
+                    foreach (ModelError error in entry.Errors)
+                    {
+                        ValidationIssue message = new ValidationIssue
+                        {
+                            Code = error.ErrorMessage,
+                            Scope = elementType,
+                            TargetId = elementId,
+                            Field = modelKey,
+                            Severity = ValidationIssueSeverity.Error,
+                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO")
+                        }; 
+                        messages.Add(message);
+                    }
+                }
+            }
+
+            return messages;
+        }
+
+        /// <summary>
+        /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
+        /// </summary>
+        /// <param name="org">unique identifier of the organisation responsible for the app</param>
+        /// <param name="app">application identifier which is unique within an organisation</param>
+        /// <param name="elementType">the data element type</param>
+        /// <param name="serviceContext">The current service context</param>
+        /// <param name="startApp">indicates if the app should be started or just opened</param>
+        /// <returns>the serviceImplementation object which represents the application business logic</returns>
+        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, ServiceContext serviceContext, bool startApp = false)
+        {
+            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startApp);
+
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
+            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
+            requestContext.Party = requestContext.UserContext.Party;
+
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
+            serviceImplementation.SetPlatformServices(platformService);
+
+            return serviceImplementation;
         }
     }
 }

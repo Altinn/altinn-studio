@@ -1,6 +1,7 @@
 using System;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AltinnCore.Runtime.Models
 {
@@ -13,6 +14,7 @@ namespace AltinnCore.Runtime.Models
         /// The seriousness of the identified issue.
         /// </summary>
         [JsonProperty(PropertyName = "severity")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public ValidationIssueSeverity Severity { get; set; }
 
         /// <summary>
@@ -22,7 +24,13 @@ namespace AltinnCore.Runtime.Models
         public string Scope { get; set; }
 
         /// <summary>
-        /// A reference to a property the issue is a bout. E.g.: flyttemelding.boadresse
+        /// The unique id of the specific element with the identified issue.
+        /// </summary>
+        [JsonProperty(PropertyName = "targetId")]
+        public string TargetId { get; set; }
+
+        /// <summary>
+        /// A reference to a property the issue is a bout.
         /// </summary>
         [JsonProperty(PropertyName = "field")]
         public string Field { get; set; }
