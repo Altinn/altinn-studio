@@ -2,7 +2,7 @@ import { IHandleServiceInformationState } from '../features/administration/handl
 import { IDeployState } from '../features/deploy/deployReducer';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
-import { IAppDeploymentState } from '../sharedResources/appDeploy/appDeployReducer';
+import { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentReducer';
 import { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
 import { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';

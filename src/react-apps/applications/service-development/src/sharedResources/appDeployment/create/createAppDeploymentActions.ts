@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import * as AppDeploymentActionTypes from '../appDeployActionTypes';
+import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
 
 export interface ICreateDeployment extends Action {
   tag_name: string;

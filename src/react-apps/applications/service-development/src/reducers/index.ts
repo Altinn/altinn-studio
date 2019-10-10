@@ -3,7 +3,7 @@ import handleServiceInformationReducer, { IHandleServiceInformationState } from 
 import deployReducer, { IDeployState } from '../features/deploy/deployReducer';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
-import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeploy/appDeployReducer';
+import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentReducer';
 import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
 import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';

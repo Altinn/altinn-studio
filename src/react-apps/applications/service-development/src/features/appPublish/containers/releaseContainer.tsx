@@ -8,7 +8,7 @@ export default function() {
   const appReleases: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
 
   React.useEffect(() => {
-    AppReleaseActions.getReleases();
+    AppReleaseActions.getAppReleases();
   }, []);
 
   if (!appReleases.releases || !appReleases.releases.length) {

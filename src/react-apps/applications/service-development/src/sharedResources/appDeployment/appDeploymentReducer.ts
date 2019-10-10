@@ -1,8 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as AppReleaseActionTypes from './appDeployActionTypes';
+import * as AppReleaseActionTypes from './appDeploymentActionTypes';
 import { ICreateDeploymentRejected } from './create/createAppDeploymentActions';
-import { IGetDeploymentsFulfilled, IGetDeploymentsRejected } from './get/getAppDeploymentActions';
+import { IGetAppDeploymentsFulfilled, IGetAppDeploymentsRejected } from './get/getAppDeploymentActions';
 import { IDeployment } from './types';
 
 export interface IAppDeploymentState {
@@ -24,7 +24,7 @@ const appReleaseReducer: Reducer<IAppDeploymentState> = (
   }
   switch (action.type) {
     case AppReleaseActionTypes.GET_APP_DEPLOYMENTS_FULFILLED: {
-      const { deployments } = action as IGetDeploymentsFulfilled;
+      const { deployments } = action as IGetAppDeploymentsFulfilled;
       return update<IAppDeploymentState>(state, {
         deployments: {
           $set: deployments,
@@ -35,7 +35,7 @@ const appReleaseReducer: Reducer<IAppDeploymentState> = (
       });
     }
     case AppReleaseActionTypes.GET_APP_DEPLOYMENTS_REJECTED: {
-      const { error } = action as IGetDeploymentsRejected;
+      const { error } = action as IGetAppDeploymentsRejected;
       return update<IAppDeploymentState>(state, {
         error: {
           $set: error,
