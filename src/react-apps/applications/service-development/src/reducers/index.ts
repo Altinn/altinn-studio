@@ -3,6 +3,7 @@ import handleServiceInformationReducer, { IHandleServiceInformationState } from 
 import deployReducer, { IDeployState } from '../features/deploy/deployReducer';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
+import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeploy/appDeployReducer';
 import applicationMetadataReducer, { IApplicationMetadataState } from '../sharedResources/applicationMetadata/applicationMetadataReducer';
 import appReleaseReducer, { IAppReleaseState } from '../sharedResources/appRelease/appReleaseReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
@@ -17,7 +18,8 @@ export interface IServiceDevelopmentReducers
   Reducer<IApplicationMetadataState>,
   Reducer<IAppClusterState>,
   Reducer<IRepoStatusState>,
-  Reducer<IAppReleaseState>
+  Reducer<IAppReleaseState>,
+  Reducer<IAppDeploymentState>
   >,
   ReducersMapObject { }
 
@@ -30,6 +32,7 @@ const reducers: IServiceDevelopmentReducers = {
   appCluster: appClusterReducer,
   repoStatus: repoStatusReducer,
   appReleases: appReleaseReducer,
+  appDeployments: appDeploymentReducer,
 };
 
 export default combineReducers(reducers);
