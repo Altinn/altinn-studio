@@ -164,7 +164,7 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, serviceMetadata.RepositoryName);
-            CreateInitialXacmlPolicy(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialAuthorizationPolicy(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -1906,20 +1906,20 @@ namespace AltinnCore.Common.Services.Implementation
             File.WriteAllText(workflowFilePath, textData, Encoding.UTF8);
         }
 
-        private void CreateInitialXacmlPolicy(string org, string app)
+        private void CreateInitialAuthorizationPolicy(string org, string app)
         {
-            // Read the XACML policy template.
-            string xacmlPolicyData = File.ReadAllText(_generalSettings.XacmlPolicyTemplate, Encoding.UTF8);
+            // Read the authorization policy template (XACML file).
+            string authorizationPolicyData = File.ReadAllText(_generalSettings.AuthorizationPolicyTemplate, Encoding.UTF8);
 
-            // Replace "org" and "app" in the XACML file.
-            xacmlPolicyData = xacmlPolicyData.Replace("[ORG]", org).Replace("[APP]", app);
+            // Replace "org" and "app" in the authorization policy file.
+            authorizationPolicyData = authorizationPolicyData.Replace("[ORG]", org).Replace("[APP]", app);
 
-            // Create the XACML folder.
-            Directory.CreateDirectory(_settings.GetXacmlPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            // Create the Authorization folder.
+            Directory.CreateDirectory(_settings.GetAuthorizationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
             // Get the file path.
-            string xacmlPolicyFilePath = _settings.GetXacmlPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.XacmlPolicyFileName;
-            File.WriteAllText(xacmlPolicyFilePath, xacmlPolicyData, Encoding.UTF8);
+            string authorizationPolicyFilePath = _settings.GetAuthorizationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.AuthorizationPolicyFileName;
+            File.WriteAllText(authorizationPolicyFilePath, authorizationPolicyData, Encoding.UTF8);
         }
 
         private void CreateInitialCalculationHandler(string org, string app)
