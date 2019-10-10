@@ -140,7 +140,7 @@ export class DeployToTestContainer extends
   }
 
   public fetchMasterRepoStatus = () => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     RepoStatusDispatcher.getMasterRepoStatus(org, app);
   }
 
