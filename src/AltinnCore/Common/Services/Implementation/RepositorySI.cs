@@ -164,6 +164,7 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialAuthorizationPolicy(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -1903,6 +1904,22 @@ namespace AltinnCore.Common.Services.Implementation
             // Get the file path
             string workflowFilePath = _settings.GetWorkflowPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
             File.WriteAllText(workflowFilePath, textData, Encoding.UTF8);
+        }
+
+        private void CreateInitialAuthorizationPolicy(string org, string app)
+        {
+            // Read the authorization policy template (XACML file).
+            string authorizationPolicyData = File.ReadAllText(_generalSettings.AuthorizationPolicyTemplate, Encoding.UTF8);
+
+            // Replace "org" and "app" in the authorization policy file.
+            authorizationPolicyData = authorizationPolicyData.Replace("[ORG]", org).Replace("[APP]", app);
+
+            // Create the Authorization folder.
+            Directory.CreateDirectory(_settings.GetAuthorizationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+
+            // Get the file path.
+            string authorizationPolicyFilePath = _settings.GetAuthorizationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.AuthorizationPolicyFileName;
+            File.WriteAllText(authorizationPolicyFilePath, authorizationPolicyData, Encoding.UTF8);
         }
 
         private void CreateInitialCalculationHandler(string org, string app)
