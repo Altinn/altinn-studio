@@ -262,6 +262,11 @@ namespace AltinnCore.Common.Configuration
         public string GitIgnoreFileName { get; set; } = ".gitignore";
 
         /// <summary>
+        /// Gets or sets the filename for the XACML Policy file
+        /// </summary>
+        public string XacmlPolicyFileName { get; set; } = "policy.xml";
+
+        /// <summary>
         /// Gets or sets the repo search page count used for searching repos
         /// </summary>
         public int RepoSearchPageCount { get; set; } = 1337;
@@ -630,6 +635,18 @@ namespace AltinnCore.Common.Configuration
         public string GetWorkflowPath(string org, string app, string developer)
         {
             return GetServicePath(org, app, developer) + "Workflow/";
+        }
+
+        /// <summary>
+        /// Gets the full path to the XACML directory
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path to the XACML directory, ending with "/"</returns>
+        public string GetXacmlPath(string org, string app, string developer)
+        {
+            return GetServicePath(org, app, developer) + "Xacml/";
         }
 
         /// <summary>

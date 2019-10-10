@@ -164,6 +164,7 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialXacmlPolicy(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -1902,6 +1903,22 @@ namespace AltinnCore.Common.Services.Implementation
             // Get the file path
             string workflowFilePath = _settings.GetWorkflowPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
             File.WriteAllText(workflowFilePath, textData, Encoding.UTF8);
+        }
+
+        private void CreateInitialXacmlPolicy(string org, string app)
+        {
+            // Read the XACML policy template.
+            string xacmlPolicyData = File.ReadAllText(_generalSettings.XacmlPolicyTemplate, Encoding.UTF8);
+
+            // Replace "org" and "app" in the XACML file.
+            xacmlPolicyData = xacmlPolicyData.Replace("[ORG]", org).Replace("[APP]", app);
+
+            // Create the XACML folder.
+            Directory.CreateDirectory(_settings.GetXacmlPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+
+            // Get the file path.
+            string xacmlPolicyFilePath = _settings.GetXacmlPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.XacmlPolicyFileName;
+            File.WriteAllText(xacmlPolicyFilePath, xacmlPolicyData, Encoding.UTF8);
         }
 
         private void CreateInitialCalculationHandler(string org, string app)

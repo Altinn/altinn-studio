@@ -65,6 +65,17 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
+        /// Gets the path to the XACML policy template.
+        /// </summary>
+        public string XacmlPolicyTemplate
+        {
+            get
+            {
+                return TemplateLocation + "/policy.xml";
+            }
+        }
+
+        /// <summary>
         /// Gets the path to the calculation handler template.
         /// </summary>
         public string CalculateHandlerTemplate
