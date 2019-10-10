@@ -26,6 +26,7 @@ namespace AltinnCore.Designer.Infrastructure
             services.Configure<CertificateSettings>(configuration.GetSection("CertificateSettings"));
             services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<Integrations>(configuration.GetSection("Integrations"));
+            services.Configure<AzureDevOpsSettings>(configuration.GetSection("Integrations:AzureDevOpsSettings"));
 
             return services;
         }

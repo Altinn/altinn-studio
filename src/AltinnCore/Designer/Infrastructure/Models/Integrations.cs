@@ -9,5 +9,10 @@ namespace AltinnCore.Designer.Infrastructure.Models
         /// Settings for Azure Cosmos Db
         /// </summary>
         public AzureCosmosDbSettings AzureCosmosDbSettings { get; set; }
+
+        /// <summary>
+        /// Settings for Azure DevOps
+        /// </summary>
+        public AzureDevOpsSettings AzureDevOpsSettings { get; set; }
     }
 }
