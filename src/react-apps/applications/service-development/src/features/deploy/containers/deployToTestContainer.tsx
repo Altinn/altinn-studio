@@ -14,6 +14,7 @@ import DeployActionDispatcher from '../deployDispatcher';
 import { makeGetCompileStatusResultSelector, makeGetCompileStatusUniqueFilenames } from '../selectors/compileSelectors';
 import { makeGetImageTags } from '../selectors/deploymentListSelectors';
 import AppClusterDispatcher from './../../../sharedResources/appCluster/appClusterDispatcher';
+import RepoStatusDispatcher from './../../../sharedResources/repoStatus/repoStatusDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -139,8 +140,8 @@ export class DeployToTestContainer extends
   }
 
   public fetchMasterRepoStatus = () => {
-    const { org, app } = window as IAltinnWindow;
-    DeployActionDispatcher.fetchMasterRepoStatus(org, app);
+    const { org, service } = window as IAltinnWindow;
+    RepoStatusDispatcher.getMasterRepoStatus(org, app);
   }
 
   public getRepoPermissions = async () => {
@@ -324,7 +325,7 @@ const makeMapStateToProps = () => {
   ) => {
     return {
       language: state.language,
-      masterRepoStatus: state.deploy.masterRepoStatus,
+      masterRepoStatus: state.repoStatus.branch.master,
       deploymentList: state.appCluster.deploymentList,
       repoStatus: getRepoStatusSelector(state),
       deployStatus: state.deploy.deployStatus,
