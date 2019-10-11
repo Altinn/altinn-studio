@@ -25,7 +25,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         /// The time that the build was started.
         /// </summary>
         [JsonProperty("startTime")]
-        public DateTime StartTime { get; set; }
+        public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// The status of the build.

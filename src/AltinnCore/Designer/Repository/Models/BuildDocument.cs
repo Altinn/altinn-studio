@@ -24,12 +24,12 @@ namespace AltinnCore.Designer.Repository.Models
         /// Started
         /// </summary>
         [JsonProperty("started")]
-        public DateTime Started { get; set; }
+        public DateTime? Started { get; set; }
 
         /// <summary>
         /// Finished
         /// </summary>
         [JsonProperty("finished")]
-        public DateTime Finished { get; set; }
+        public DateTime? Finished { get; set; }
     }
 }
