@@ -1,18 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Services.Implementation;
 using Altinn.Platform.Register.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.Platform.Register
 {
@@ -41,7 +34,7 @@ namespace Altinn.Platform.Register
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers();
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -55,7 +48,7 @@ namespace Altinn.Platform.Register
         /// </summary>
         /// <param name="app">the application builder</param>
         /// <param name="env">the hosting environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -66,7 +59,11 @@ namespace Altinn.Platform.Register
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseMvc();
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }
