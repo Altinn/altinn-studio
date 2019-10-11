@@ -8,10 +8,10 @@ using Altinn.Platform.Storage.Repository;
 using Halcyon.Web.HAL.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.Platform.Storage
 {
@@ -40,6 +40,7 @@ namespace Altinn.Platform.Storage
         /// <param name="services">the service configuration</param>        
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers().AddNewtonsoftJson();
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.Configure<GeneralSettings>(Configuration.GetSection("BridgeSettings"));
@@ -48,15 +49,14 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddMvc().AddControllersAsServices();
+            services.AddApplicationInsightsTelemetry();
 
             services.AddHttpClient<InstancesController>();
 
             // Add HAL support (Halcyon)
             services.AddMvc().AddMvcOptions(c =>
             {
-                c.OutputFormatters.RemoveType<JsonOutputFormatter>();
+                c.OutputFormatters.RemoveType<SystemTextJsonOutputFormatter>();
                 c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
             });
 
@@ -76,7 +76,7 @@ namespace Altinn.Platform.Storage
                 catch
                 {
                     // Catch swashbuckle exception if it doesn't find the generated XML documentation file
-                }                
+                }
             });
         }
 
@@ -94,7 +94,7 @@ namespace Altinn.Platform.Storage
         /// </summary>
         /// <param name="app">the application builder</param>
         /// <param name="env">the hosting environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -115,7 +115,12 @@ namespace Altinn.Platform.Storage
             });
 
             // app.UseHttpsRedirection();
-            app.UseMvc();
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }
