@@ -50,13 +50,12 @@ namespace Altinn.Platform.Authorization
             services.AddHttpClient<RolesClient>();
             services.AddHttpClient<SBLClient>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-/*
-            services.AddMvc()
-            .Services.Configure<MvcOptions>(options =>
+
+            services.AddMvc(options =>
             {
                 // Adding custom modelbinders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
-            });*/
+            });
         }
 
         /// <summary>
