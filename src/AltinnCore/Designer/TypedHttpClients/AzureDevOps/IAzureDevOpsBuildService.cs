@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 
 namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
 {
@@ -14,7 +15,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
         /// <param name="org">Organisation</param>
         /// <param name="app">App</param>
         /// <param name="deployToken">App deploy token</param>
-        /// <returns></returns>
-        Task<string> QueueAsync(string commitId, string org, string app, string deployToken);
+        /// <returns>The queued Build</returns>
+        Task<Build> QueueAsync(string commitId, string org, string app, string deployToken);
     }
 }

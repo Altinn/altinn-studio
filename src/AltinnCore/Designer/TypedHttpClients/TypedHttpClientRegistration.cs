@@ -1,4 +1,6 @@
 using System;
+using System.Net.Http.Headers;
+using System.Text;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.DelegatingHandlers;
@@ -20,12 +22,16 @@ namespace AltinnCore.Designer.TypedHttpClients
         /// <returns></returns>
         public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
         {
-            var azureDevOpsSettings = config.GetSection("Integrations:AzureDevOpsSettings").Get<AzureDevOpsSettings>();
+            services.AddTransient<EnsureSuccessHandler>();
+
+            AzureDevOpsSettings azureDevOpsSettings = config.GetSection("Integrations:AzureDevOpsSettings").Get<AzureDevOpsSettings>();
+            string token = config["AccessTokenDevOps"];
 
             services.AddHttpClient<IAzureDevOpsBuildService, AzureDevOpsBuildService>(client =>
             {
                 client.BaseAddress = new Uri(azureDevOpsSettings.BaseUri);
-                client.DefaultRequestHeaders.Add("Content-Type", "application/json");
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
 
             return services;
