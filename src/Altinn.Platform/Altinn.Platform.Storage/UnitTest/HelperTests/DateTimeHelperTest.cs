@@ -1,9 +1,5 @@
-using Altinn.Platform.Storage.Helpers;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Threading.Tasks;
+using Altinn.Platform.Storage.Helpers;
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest

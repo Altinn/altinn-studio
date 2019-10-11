@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 
 namespace Altinn.Platform.Storage
 {
@@ -60,24 +61,30 @@ namespace Altinn.Platform.Storage
                 c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
             });
 
-            // Add Swagger support (Swashbuckle)
+            // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
-                {
-                    Title = "Altinn Platform Storage",
-                    Version = "v1"
-                });
-
-                try
-                {
-                    c.IncludeXmlComments(GetXmlCommentsPathForControllers());
-                }
-                catch
-                {
-                    // Catch swashbuckle exception if it doesn't find the generated XML documentation file
-                }
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Platform Storage", Version = "v1" });
             });
+
+            // Add Swagger support (Swashbuckle)
+            //services.AddSwaggerGen(c =>
+            //{
+            //    c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
+            //    {
+            //        Title = "Altinn Platform Storage",
+            //        Version = "v1"
+            //    });
+
+            //    try
+            //    {
+            //        c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+            //    }
+            //    catch
+            //    {
+            //        // Catch swashbuckle exception if it doesn't find the generated XML documentation file
+            //    }
+            //});
         }
 
         private string GetXmlCommentsPathForControllers()
@@ -107,12 +114,22 @@ namespace Altinn.Platform.Storage
                 // app.UseHsts();
             }
 
+            // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
 
+            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+            // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Platform Storage API");
             });
+
+            //app.UseSwagger();
+
+            //app.UseSwaggerUI(c =>
+            //{
+            //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Platform Storage API");
+            //});
 
             // app.UseHttpsRedirection();
             app.UseRouting();
