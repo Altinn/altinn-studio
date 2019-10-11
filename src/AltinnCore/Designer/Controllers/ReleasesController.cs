@@ -1,5 +1,8 @@
 using System.Threading.Tasks;
-using AltinnCore.Designer.ViewModels;
+using AltinnCore.Designer.Repository;
+using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services;
+using AltinnCore.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -11,6 +14,17 @@ namespace AltinnCore.Designer.Controllers
     [Route("/designer/api/v1/{org}/{app}/[controller]")]
     public class ReleasesController : ControllerBase
     {
+        private readonly IReleaseService _releaseService;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="releaseService">Release service</param>
+        public ReleasesController(IReleaseService releaseService)
+        {
+            _releaseService = releaseService;
+        }
+
         /// <summary>
         /// Gets a certain number of releases
         /// </summary>
@@ -23,6 +37,18 @@ namespace AltinnCore.Designer.Controllers
             string org = RouteData.Values["org"].ToString();
             string app = RouteData.Values["app"].ToString();
             return Task.FromResult(string.Empty);
+        }
+
+        /// <summary>
+        /// Creates a release
+        /// </summary>
+        /// <param name="release">Release model</param>
+        /// <returns>Created release</returns>
+        [HttpPost]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        public async Task<ReleaseDocument> Create([FromBody]ReleaseRequestViewModel release)
+        {
+            return await _releaseService.Create(release.ToDocumentModel());
         }
     }
 }

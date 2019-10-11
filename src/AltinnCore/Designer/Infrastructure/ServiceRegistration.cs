@@ -2,6 +2,7 @@ using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Designer.Services;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Configuration;
@@ -46,6 +47,8 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton(configuration);
+
+            services.AddTransient<IReleaseService, ReleaseService>();
 
             return services;
         }
