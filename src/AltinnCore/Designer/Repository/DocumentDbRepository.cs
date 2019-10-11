@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.ViewModels.Request;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -45,7 +44,8 @@ namespace AltinnCore.Designer.Repository
         public async Task<T> CreateAsync<T>(T item)
         {
             Document document = await _documentClient.CreateDocumentAsync(_collectionUri, item);
-            return JsonConvert.DeserializeObject<T>(document.ToString());
+            T obj = (dynamic) document;
+            return obj;
         }
 
         /// <inheritdoc/>
@@ -57,12 +57,10 @@ namespace AltinnCore.Designer.Repository
             {
                 MaxItemCount = count
             };
-            var createdQuery = _documentClient.CreateDocumentQuery<T>(_collectionUri, feedOptions)
+            return await _documentClient
+                .CreateDocumentQuery<T>(_collectionUri, feedOptions)
                 .BuildQuery(query)
-                .AsDocumentQuery();
-
-            var result = await createdQuery.ExecuteNextAsync<T>();
-            return result.ToList();
+                .ToListAsync();
         }
 
         /// <inheritdoc/>
@@ -71,6 +69,15 @@ namespace AltinnCore.Designer.Repository
         {
             var documentUri = UriFactory.CreateDocumentUri(_database, _collection, id);
             return await _documentClient.ReadDocumentAsync<T>(documentUri);
+        }
+
+        /// <inheritdoc/>
+        public async Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec)
+            where T : DocumentBase
+        {
+            return await _documentClient
+                .CreateDocumentQuery<T>(_collectionUri, sqlQuerySpec)
+                .ToListAsync();
         }
 
         /// <inheritdoc/>

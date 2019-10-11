@@ -3,9 +3,9 @@ using Newtonsoft.Json;
 namespace AltinnCore.Designer.ViewModels.Request
 {
     /// <summary>
-    /// Viewmodel for release
+    /// Viewmodel for creating a release
     /// </summary>
-    public class ReleaseRequestViewModel
+    public class CreateReleaseRequestViewModel
     {
         /// <summary>
         /// TagName

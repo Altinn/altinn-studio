@@ -9,11 +9,11 @@ namespace AltinnCore.Designer.ViewModels.Request
     public static class RequestExtensionMethods
     {
         /// <summary>
-        /// Converts from ReleaseRequestViewModel to ReleaseDocument
+        /// Converts from CreateReleaseRequestViewModel to ReleaseDocument
         /// </summary>
-        /// <param name="viewmodel">ViewModel</param>
+        /// <param name="viewmodel">CreateReleaseRequestViewModel</param>
         /// <returns></returns>
-        public static ReleaseDocument ToDocumentModel(this ReleaseRequestViewModel viewmodel)
+        public static ReleaseDocument ToDocumentModel(this CreateReleaseRequestViewModel viewmodel)
             => new ReleaseDocument
             {
                 Created = DateTime.Now,
@@ -21,6 +21,23 @@ namespace AltinnCore.Designer.ViewModels.Request
                 Name = viewmodel.Name,
                 TagName = viewmodel.TagName,
                 TargetCommitish = viewmodel.TargetCommitish
+            };
+
+        /// <summary>
+        /// Converts from UpdateReleaseRequestViewModel to ReleaseDocument
+        /// </summary>
+        /// <param name="viewmodel">UpdateReleaseRequestViewModel</param>
+        /// <returns></returns>
+        public static ReleaseDocument ToDocumentModel(this UpdateReleaseRequestViewModel viewmodel)
+            => new ReleaseDocument
+            {
+                TargetCommitish = viewmodel.TargetCommitish,
+                Build = new BuildDocument
+                {
+                    Status = viewmodel.Status,
+                    Started = viewmodel.Started,
+                    Finished = viewmodel.Finished
+                }
             };
     }
 }

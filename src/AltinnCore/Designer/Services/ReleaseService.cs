@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Repository;
@@ -9,6 +9,9 @@ using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Azure.Documents;
+using SqlParameter = Microsoft.Azure.Documents.SqlParameter;
+using SqlParameterCollection = Microsoft.Azure.Documents.SqlParameterCollection;
 
 namespace AltinnCore.Designer.Services
 {
@@ -53,12 +56,12 @@ namespace AltinnCore.Designer.Services
                 release.TargetCommitish,
                 release.Org,
                 release.App,
-                _sourceControl.GetDeployToken());
+                "asd");
 
             release.Build = new BuildDocument
             {
                 Id = queuedBuild.Id.ToString(),
-                Status = queuedBuild.Status.ToString(),
+                Status = queuedBuild.Status,
                 Started = queuedBuild.StartTime
             };
 
@@ -80,7 +83,18 @@ namespace AltinnCore.Designer.Services
         /// <inheritdoc/>
         public async Task Update(ReleaseDocument release)
         {
-            ReleaseDocument releaseDocument = await _docDbRepository.GetAsync<ReleaseDocument>(release.Id);
+            var sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = "SELECT * FROM db WHERE db.target_commitish = @targetCommitish AND db.app = @app AND db.org = @org",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@targetCommitish", release.TargetCommitish),
+                    new SqlParameter("@app", release.App),
+                    new SqlParameter("@org", release.Org),
+                }
+            };
+            var releaseDocuments = await _docDbRepository.GetWithSqlAsync<ReleaseDocument>(sqlQuerySpec);
+            var releaseDocument = releaseDocuments.Single();
 
             releaseDocument.Build.Status = release.Build.Status;
             releaseDocument.Build.Started = release.Build.Started;

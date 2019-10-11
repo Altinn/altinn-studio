@@ -40,12 +40,12 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Creates a release
         /// </summary>
-        /// <param name="release">Release model</param>
+        /// <param name="createRelease">Release model</param>
         /// <returns>Created release</returns>
         [HttpPost]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ReleaseDocument> Create([FromBody]ReleaseRequestViewModel release)
-            => await _releaseService.Create(release.ToDocumentModel());
+        public async Task<ReleaseDocument> Create([FromBody]CreateReleaseRequestViewModel createRelease)
+            => await _releaseService.Create(createRelease.ToDocumentModel());
 
         /// <summary>
         /// Updates a release document
@@ -53,9 +53,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="release">Release document</param>
         [HttpPut]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
-        public async Task<IActionResult> Update([FromBody] ReleaseDocument release)
+        public async Task<IActionResult> Update([FromBody] UpdateReleaseRequestViewModel release)
         {
-            await _releaseService.Update(release);
+            await _releaseService.Update(release.ToDocumentModel());
             return NoContent();
         }
     }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.ViewModels.Request;
+using Microsoft.Azure.Documents;
 
 namespace AltinnCore.Designer.Repository
 {
@@ -34,6 +35,14 @@ namespace AltinnCore.Designer.Repository
         /// <param name="id">string</param>
         /// <returns></returns>
         Task<T> GetAsync<T>(string id)
+            where T : DocumentBase;
+
+        /// <summary>
+        /// Gets documents based on an sql query
+        /// </summary>
+        /// <typeparam name="T">Type of item to return</typeparam>
+        /// <returns></returns>
+        Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec)
             where T : DocumentBase;
 
         /// <summary>
