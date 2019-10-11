@@ -10,15 +10,18 @@ using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Runtime.Helpers;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Storage.Interface.Enums;
+using Storage.Interface.Models;
 
 namespace AltinnCore.Runtime.RestControllers
 {
@@ -290,6 +293,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return StatusCode(500, $"Cannot store form attachment on instance {instanceOwnerId}/{instanceGuid}");
             }
 
+            SelfLinkHelper.SetDataAppSelfLinks(instanceGuid, dataElement, Request);
             return Created(dataElement.StorageUrl, new List<DataElement>() { dataElement });
         }
 
@@ -324,10 +328,10 @@ namespace AltinnCore.Runtime.RestControllers
             await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
             await serviceImplementation.RunServiceEvent(ServiceEventType.ValidateInstantiation);
 
-            InstancesController.SetAppSelfLinks(instanceBefore, Request);
+            SelfLinkHelper.SetInstanceAppSelfLinks(instanceBefore, Request);
 
             Instance instanceAfter = await dataService.InsertFormData(serviceModel, instanceGuid, serviceImplementation.GetServiceModelType(), org, app, int.Parse(instanceBefore.InstanceOwnerId));
-            InstancesController.SetAppSelfLinks(instanceAfter, Request);
+            SelfLinkHelper.SetInstanceAppSelfLinks(instanceAfter, Request);
             List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);
             string dataUrl = createdElements.First().DataLinks.Apps;
 
@@ -520,6 +524,7 @@ namespace AltinnCore.Runtime.RestControllers
         private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
         {
             DataElement dataElement = await dataService.UpdateBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid, Request);
+            SelfLinkHelper.SetDataAppSelfLinks(instanceGuid, dataElement, Request);
 
             return Created(dataElement.StorageUrl, new List<DataElement>() { dataElement });
         }
@@ -570,11 +575,12 @@ namespace AltinnCore.Runtime.RestControllers
                 int.Parse(instance.InstanceOwnerId),
                 dataGuid);
 
-            InstancesController.SetAppSelfLinks(instanceAfter, Request);
+            SelfLinkHelper.SetInstanceAppSelfLinks(instanceAfter, Request);
             DataElement updatedElement = instanceAfter.Data.First(d => d.Id == dataGuid.ToString());
             string dataUrl = updatedElement.DataLinks.Apps;
 
             return Created(dataUrl, updatedElement);
         }
+
     }
 }
