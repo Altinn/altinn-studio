@@ -42,14 +42,14 @@ namespace AltinnCore.Designer.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<T> Create<T>(T item)
+        public async Task<T> CreateAsync<T>(T item)
         {
             Document document = await _documentClient.CreateDocumentAsync(_collectionUri, item);
             return JsonConvert.DeserializeObject<T>(document.ToString());
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<T>> Get<T>(DocumentQueryModel query)
+        public async Task<IEnumerable<T>> GetAsync<T>(DocumentQueryModel query)
             where T : DocumentBase
         {
             var count = FindMaxItemCount(query.Top, 10);
@@ -66,7 +66,15 @@ namespace AltinnCore.Designer.Repository
         }
 
         /// <inheritdoc/>
-        public async Task Update<T>(T item)
+        public async Task<T> GetAsync<T>(string id)
+            where T : DocumentBase
+        {
+            var documentUri = UriFactory.CreateDocumentUri(_database, _collection, id);
+            return await _documentClient.ReadDocumentAsync<T>(documentUri);
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateAsync<T>(T item)
             where T : DocumentBase
         {
             Uri uri = UriFactory.CreateDocumentUri(_database, _collection, item.Id);

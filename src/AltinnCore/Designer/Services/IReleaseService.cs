@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.ViewModels.Request;
+using AltinnCore.Designer.ViewModels.Response;
 
 namespace AltinnCore.Designer.Services
 {
@@ -23,6 +24,12 @@ namespace AltinnCore.Designer.Services
         /// </summary>
         /// <param name="query">ReleaseQueryModel</param>
         /// <returns></returns>
-        Task<IEnumerable<ReleaseDocument>> Get(DocumentQueryModel query);
+        Task<DocumentResults<ReleaseDocument>> Get(DocumentQueryModel query);
+
+        /// <summary>
+        /// Updates a release document
+        /// </summary>
+        /// <param name="release">ReleaseDocument</param>
+        Task Update(ReleaseDocument release);
     }
 }

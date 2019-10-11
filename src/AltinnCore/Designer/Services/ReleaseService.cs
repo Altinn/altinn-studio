@@ -6,6 +6,7 @@ using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
+using AltinnCore.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
@@ -61,15 +62,31 @@ namespace AltinnCore.Designer.Services
                 Started = queuedBuild.StartTime
             };
 
-            return await _docDbRepository.Create(release);
+            return await _docDbRepository.CreateAsync(release);
         }
 
         /// <inheritdoc/>
-        public async Task<IEnumerable<ReleaseDocument>> Get(DocumentQueryModel query)
+        public async Task<DocumentResults<ReleaseDocument>> Get(DocumentQueryModel query)
         {
             query.Org = _org;
             query.App = _app;
-            return await _docDbRepository.Get<ReleaseDocument>(query);
+            var results = await _docDbRepository.GetAsync<ReleaseDocument>(query);
+            return new DocumentResults<ReleaseDocument>
+            {
+                Results = results
+            };
+        }
+
+        /// <inheritdoc/>
+        public async Task Update(ReleaseDocument release)
+        {
+            ReleaseDocument releaseDocument = await _docDbRepository.GetAsync<ReleaseDocument>(release.Id);
+
+            releaseDocument.Build.Status = release.Build.Status;
+            releaseDocument.Build.Started = release.Build.Started;
+            releaseDocument.Build.Finished = release.Build.Finished;
+
+            await _docDbRepository.UpdateAsync(releaseDocument);
         }
 
         private void PopulateFieldsInRelease(ReleaseDocument release)

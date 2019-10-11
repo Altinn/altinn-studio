@@ -16,7 +16,7 @@ namespace AltinnCore.Designer.Repository
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="item">Document</param>
         /// <returns></returns>
-        Task<T> Create<T>(T item);
+        Task<T> CreateAsync<T>(T item);
 
         /// <summary>
         /// Gets documents that matches the query
@@ -24,7 +24,16 @@ namespace AltinnCore.Designer.Repository
         /// <typeparam name="T">Type of item to return</typeparam>
         /// <param name="query">Query</param>
         /// <returns></returns>
-        Task<IEnumerable<T>> Get<T>(DocumentQueryModel query)
+        Task<IEnumerable<T>> GetAsync<T>(DocumentQueryModel query)
+            where T : DocumentBase;
+
+        /// <summary>
+        /// Get one document specified by id
+        /// </summary>
+        /// <typeparam name="T">Type of item to return</typeparam>
+        /// <param name="id">string</param>
+        /// <returns></returns>
+        Task<T> GetAsync<T>(string id)
             where T : DocumentBase;
 
         /// <summary>
@@ -33,7 +42,7 @@ namespace AltinnCore.Designer.Repository
         /// <typeparam name="T">Type of item</typeparam>
         /// <param name="item">Document</param>
         /// <returns></returns>
-        Task Update<T>(T item)
+        Task UpdateAsync<T>(T item)
             where T : DocumentBase;
     }
 }
