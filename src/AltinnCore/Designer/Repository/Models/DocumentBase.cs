@@ -25,5 +25,17 @@ namespace AltinnCore.Designer.Repository.Models
         /// </summary>
         [JsonProperty("created_by")]
         public string CreatedBy { get; set; }
+
+        /// <summary>
+        /// Application name
+        /// </summary>
+        [JsonProperty("app")]
+        public string App { get; set; }
+
+        /// <summary>
+        /// Organisation name
+        /// </summary>
+        [JsonProperty("org")]
+        public string Org { get; set; }
     }
 }

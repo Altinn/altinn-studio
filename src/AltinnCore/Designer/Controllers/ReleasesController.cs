@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services;
 using AltinnCore.Designer.ViewModels.Request;
+using AltinnCore.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -32,11 +34,13 @@ namespace AltinnCore.Designer.Controllers
         /// <returns></returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public Task<string> Get([FromQuery]ReleaseQueryModel query)
+        public async Task<DocumentResults<ReleaseDocument>> Get([FromQuery]DocumentQueryModel query)
         {
-            string org = RouteData.Values["org"].ToString();
-            string app = RouteData.Values["app"].ToString();
-            return Task.FromResult(string.Empty);
+            var releaseDocuments = await _releaseService.Get(query);
+            return new DocumentResults<ReleaseDocument>
+            {
+                Results = releaseDocuments
+            };
         }
 
         /// <summary>

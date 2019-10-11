@@ -1,15 +1,13 @@
-using System;
-using System.Globalization;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
+using AltinnCore.Designer.ViewModels.Request;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Services
 {
@@ -22,6 +20,8 @@ namespace AltinnCore.Designer.Services
         private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
         private readonly ISourceControl _sourceControl;
         private readonly HttpContext _httpContext;
+        private readonly string _org;
+        private readonly string _app;
 
         /// <summary>
         /// Constructor
@@ -40,6 +40,8 @@ namespace AltinnCore.Designer.Services
             _azureDevOpsBuildService = azureDevOpsBuildService;
             _sourceControl = sourceControl;
             _httpContext = httpContextAccessor.HttpContext;
+            _org = _httpContext.GetRouteValue("org").ToString();
+            _app = _httpContext.GetRouteValue("app").ToString();
         }
 
         /// <inheritdoc/>
@@ -62,10 +64,18 @@ namespace AltinnCore.Designer.Services
             return await _docDbRepository.Create(release);
         }
 
+        /// <inheritdoc/>
+        public async Task<IEnumerable<ReleaseDocument>> Get(DocumentQueryModel query)
+        {
+            query.Org = _org;
+            query.App = _app;
+            return await _docDbRepository.Get<ReleaseDocument>(query);
+        }
+
         private void PopulateFieldsInRelease(ReleaseDocument release)
         {
-            release.Org = _httpContext.GetRouteValue("org").ToString();
-            release.App = _httpContext.GetRouteValue("app").ToString();
+            release.Org = _org;
+            release.App = _app;
             release.CreatedBy = _httpContext.User.Identity.Name;
         }
     }

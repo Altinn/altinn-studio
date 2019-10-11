@@ -1,3 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+using AltinnCore.Designer.ViewModels.Request.Enums;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+
 namespace AltinnCore.Designer.ViewModels.Request
 {
     /// <summary>
@@ -8,17 +13,32 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// <summary>
         /// Number of documents to find
         /// </summary>
-        public int? Count { get; set; }
+        [FromQuery(Name = "top")]
+        public int? Top { get; set; }
 
         /// <summary>
         /// The property to order by
+        /// Properties: created
         /// </summary>
-        public string OrderBy { get; set; }
+        [FromQuery(Name = "sortBy")]
+        public string SortBy { get; set; }
 
         /// <summary>
-        /// The sorting order
-        /// ASCENDING | DESCENDING
+        /// The sort direction
+        /// Ascending | Descending
         /// </summary>
-        public string SortOrder { get; set; }
+        [FromQuery(Name = "sortDirection")]
+        [EnumDataType(typeof(SortDirection))]
+        public SortDirection SortDirection { get; set; }
+
+        /// <summary>
+        /// Organisation
+        /// </summary>
+        internal string Org { get; set; }
+
+        /// <summary>
+        /// Application
+        /// </summary>
+        internal string App { get; set; }
     }
 }

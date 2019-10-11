@@ -52,7 +52,7 @@ namespace AltinnCore.Designer.Repository
         public async Task<IEnumerable<T>> Get<T>(DocumentQueryModel query)
             where T : DocumentBase
         {
-            var count = FindMaxItemCount(query.Count, 10);
+            var count = FindMaxItemCount(query.Top, 10);
             var feedOptions = new FeedOptions
             {
                 MaxItemCount = count

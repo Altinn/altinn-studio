@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.ViewModels.Request;
+using AltinnCore.Designer.ViewModels.Request.Enums;
 using Microsoft.Azure.Documents.Linq;
 
 namespace AltinnCore.Designer.Repository
@@ -9,7 +10,7 @@ namespace AltinnCore.Designer.Repository
     /// <summary>
     /// a
     /// </summary>
-    public static class IOrderedQueryableExtensions
+    public static class QueryableExtensions
     {
         /// <summary>
         /// Extension method to go through query params and add them to the IQueryable
@@ -21,18 +22,27 @@ namespace AltinnCore.Designer.Repository
         public static IQueryable<T> BuildQuery<T>(this IQueryable<T> q, DocumentQueryModel query)
             where T : DocumentBase
         {
-            if (!string.IsNullOrWhiteSpace(query.OrderBy) &&
-                query.OrderBy.Equals("created", StringComparison.OrdinalIgnoreCase))
+            if (!string.IsNullOrWhiteSpace(query.SortBy) &&
+                query.SortBy.Equals("created", StringComparison.OrdinalIgnoreCase))
             {
                 var orderBy = q.OrderByDescending(x => x.Created);
 
-                if (!string.IsNullOrWhiteSpace(query.SortOrder) &&
-                    query.SortOrder.Equals("asc", StringComparison.OrdinalIgnoreCase))
+                if (query.SortDirection == SortDirection.Ascending)
                 {
                     orderBy = q.OrderBy(x => x.Created);
                 }
 
                 q = orderBy;
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.Org))
+            {
+                q = q.Where(x => x.Org == query.Org);
+            }
+
+            if (!string.IsNullOrWhiteSpace(query.App))
+            {
+                q = q.Where(x => x.App == query.App);
             }
 
             return q;
