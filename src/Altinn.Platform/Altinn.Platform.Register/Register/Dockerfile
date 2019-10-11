@@ -1,4 +1,4 @@
-#microsoft/dotnet:2.2-sdk
+#microsoft/dotnet:3.0-sdk
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS build
 WORKDIR Register/
 
@@ -8,8 +8,8 @@ WORKDIR Register/
 RUN dotnet build Altinn.Platform.Register.csproj -c Release -o /app_output
 RUN dotnet publish Altinn.Platform.Register.csproj -c Release -o /app_output
 
-#microsoft/dotnet:2.2-aspnetcore-runtime
-FROM microsoft/dotnet@sha256:7a9dfa52e5c02d1764964bbb034d9467d798020aa3747e2ddaea1ee3d2d386b8 AS final
+#microsoft/dotnet:3.0-aspnetcore-runtime
+FROM FROM mcr.microsoft.com/dotnet/core/runtime:3.0-alpine AS final AS final
 EXPOSE 5020
 WORKDIR /app
 COPY --from=build /app_output .
