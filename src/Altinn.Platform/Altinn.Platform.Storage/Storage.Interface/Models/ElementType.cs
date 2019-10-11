@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+
 using Newtonsoft.Json;
+
 using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Models

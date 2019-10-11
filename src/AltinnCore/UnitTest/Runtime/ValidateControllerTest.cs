@@ -8,6 +8,7 @@ using Altinn.Platform.Storage.Models;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Runtime.Models;
 using AltinnCore.Runtime.RestControllers;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
@@ -78,12 +79,13 @@ namespace AltinnCore.UnitTest.Runtime
                     {
                         Id = $"{dataGuid}",
                         ElementType = "default",
-                        StorageUrl = "www.storageuri.com"
+                        StorageUrl = "www.storageuri.com",
+                        ContentType = "application/xml"
                     }
                 }
             };
 
-            Skjema skjema = new Skjema();
+            Skjema model = new Skjema();
 
             FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
             Mock<HttpRequest> request = MockRequest();
@@ -106,7 +108,7 @@ namespace AltinnCore.UnitTest.Runtime
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
                 .Setup(d => d.GetFormData(It.IsAny<Guid>(), It.IsAny<Type>(), org, app, instanceOwnerId, It.IsAny<Guid>()))
-                .Returns(skjema);
+                .Returns(model);
 
             ValidateController target = NewValidateController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
@@ -117,6 +119,10 @@ namespace AltinnCore.UnitTest.Runtime
 
             // Arrange
             Assert.NotNull(actual);
+
+            List<ValidationIssue> validationIssues = actual.Value as List<ValidationIssue>;
+            Assert.NotNull(validationIssues);
+            Assert.Empty(validationIssues);
         }
 
         /// <summary>
@@ -158,12 +164,13 @@ namespace AltinnCore.UnitTest.Runtime
                     {
                         Id = $"{dataGuid}",
                         ElementType = "default",
-                        StorageUrl = "www.storageuri.com"
+                        StorageUrl = "www.storageuri.com",
+                        ContentType = "application/xml"
                     }
                 }
             };
 
-            Skjema skjema = new Skjema();
+            Skjema model = new Skjema();
 
             FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
             Mock<HttpRequest> request = MockRequest();
@@ -186,7 +193,7 @@ namespace AltinnCore.UnitTest.Runtime
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
                 .Setup(d => d.GetFormData(It.IsAny<Guid>(), It.IsAny<Type>(), org, app, instanceOwnerId, It.IsAny<Guid>()))
-                .Returns(skjema);
+                .Returns(model);
 
             ValidateController target = NewValidateController(context, instanceServiceMock, dataServiceMock, appServiceMock);
 
@@ -197,6 +204,96 @@ namespace AltinnCore.UnitTest.Runtime
 
             // Arrange
             Assert.NotNull(actual);
+
+            List<ValidationIssue> validationIssues = actual.Value as List<ValidationIssue>;
+            Assert.NotNull(validationIssues);
+            Assert.Empty(validationIssues);
+        }
+
+        /// <summary>
+        /// Test that target can validate a simple data element.
+        /// </summary>
+        /// <returns>Returns nothing</returns>
+        [Fact]
+        public async Task ValidateData_ModelStateIsInvalid_ReturnsErrorMessage()
+        {
+            // Arrange
+            Application application = new Application
+            {
+                Id = $"{org}/{app}",
+                ElementTypes = new List<ElementType>
+                {
+                    new ElementType
+                    {
+                        Id = "default",
+                        AppLogic = true,
+                        AllowedContentType = new List<string> { "application/xml" },
+                        Task = "FormFilling_1"
+                    }
+                }
+            };
+
+            Instance instance = new Instance
+            {
+                Id = $"{instanceOwnerId}/{instanceGuid}",
+                InstanceOwnerId = $"{instanceOwnerId}",
+                AppId = $"{org}/{app}",
+                Org = org,
+                Process = new ProcessState
+                {
+                    CurrentTask = new ProcessElementInfo { AltinnTaskType = "FormFilling", ElementId = "FormFilling_1" }
+                },
+                Data = new List<DataElement>
+                {
+                    new DataElement
+                    {
+                        Id = $"{dataGuid}",
+                        ElementType = "default",
+                        StorageUrl = "www.storageuri.com",
+                        ContentType = "application/xml"
+                    }
+                }
+            };
+
+            Skjema model = new Skjema();
+
+            FileStream dataElement = File.OpenRead("Runtime/data/data-element.xml");
+            Mock<HttpRequest> request = MockRequest();
+            request.SetupGet(x => x.Body).Returns(dataElement);
+
+            var context = new Mock<HttpContext>();
+            context.SetupGet(x => x.Request).Returns(request.Object);
+            context.SetupGet(x => x.User).Returns(MockUser().Object);
+
+            Mock<IApplication> appServiceMock = new Mock<IApplication>();
+            appServiceMock
+                .Setup(i => i.GetApplication(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(Task.FromResult(application));
+
+            Mock<IInstance> instanceServiceMock = new Mock<IInstance>();
+            instanceServiceMock
+                .Setup(i => i.GetInstance(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.Is<Guid>(g => g.Equals(instanceGuid))))
+                .Returns(Task.FromResult(instance));
+
+            Mock<IData> dataServiceMock = new Mock<IData>();
+            dataServiceMock
+                .Setup(d => d.GetFormData(It.IsAny<Guid>(), It.IsAny<Type>(), org, app, instanceOwnerId, It.IsAny<Guid>()))
+                .Returns(model);
+
+            ValidateController target = NewValidateController(context, instanceServiceMock, dataServiceMock, appServiceMock);
+            target.ModelState.AddModelError("Field.this.or.that", "Something wrong with field.");
+
+            // Act
+            IActionResult result = await target.ValidateData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+
+            OkObjectResult actual = result as OkObjectResult;
+
+            // Arrange
+            Assert.NotNull(actual);
+
+            List<ValidationIssue> validationIssues = actual.Value as List<ValidationIssue>;
+            Assert.NotNull(validationIssues);
+            Assert.Single(validationIssues);
         }
 
         private ValidateController NewValidateController(Mock<HttpContext> context, Mock<IInstance> instanceServiceMock, Mock<IData> dataServiceMock, Mock<IApplication> appServiceMock)
@@ -244,7 +341,6 @@ namespace AltinnCore.UnitTest.Runtime
 
             ValidateController validateController = new ValidateController(
                 generalSettingsMock.Object,
-                new Mock<ILogger<DataController>>().Object,
                 registerServiceMock.Object,
                 instanceServiceMock.Object,
                 dataServiceMock.Object,

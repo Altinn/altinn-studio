@@ -1,5 +1,3 @@
-using System;
-
 namespace AltinnCore.Runtime.Models
 {
     /// <summary>

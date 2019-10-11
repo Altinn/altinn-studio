@@ -9,13 +9,13 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.Models;
+using AltinnCore.Runtime.Validation;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Runtime.RestControllers
@@ -27,7 +27,6 @@ namespace AltinnCore.Runtime.RestControllers
     [ApiController]
     public class ValidateController : ControllerBase
     {
-        private readonly ILogger<DataController> logger;
         private readonly IData dataService;
         private readonly IInstance instanceService;
         private readonly IExecution executionService;
@@ -40,7 +39,6 @@ namespace AltinnCore.Runtime.RestControllers
         /// </summary>
         public ValidateController(
             IOptions<GeneralSettings> generalSettings,
-            ILogger<DataController> logger,
             IRegister registerService,
             IInstance instanceService,
             IData dataService,
@@ -50,8 +48,6 @@ namespace AltinnCore.Runtime.RestControllers
             IInstanceEvent eventService,
             IApplication appService)
         {
-            this.logger = logger;
-
             this.instanceService = instanceService;
             this.dataService = dataService;
             this.executionService = executionService;
@@ -86,7 +82,7 @@ namespace AltinnCore.Runtime.RestControllers
             string taskId = instance.Process.CurrentTask.ElementId;
             if (taskId == null)
             {
-                throw new Exception("Unable to validate instance without a started process.");
+                throw new ValidationException("Unable to validate instance without a started process.");
             }
 
             Application application = await appService.GetApplication(org, app);
@@ -105,7 +101,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
                             ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceContext.ServiceText, null, "nb-NO")
-                    }; // $"The instance has too many elements of type '{elementType.Id}' according to the type definition."
+                    };
                     messages.Add(message);
                 }
 
@@ -118,7 +114,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
                             ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, serviceContext.ServiceText, null, "nb-NO")
-                    }; // $"The instance requires more elements of type '{elementType.Id}' according to the type definition."
+                    };
                     messages.Add(message);
                 }
 
@@ -158,7 +154,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (instance.Process?.CurrentTask == null)
             {
-                throw new Exception("Unable to validate instance without a started process.");
+                throw new ValidationException("Unable to validate instance without a started process.");
             }
 
             List<ValidationIssue> messages = new List<ValidationIssue>();
@@ -167,7 +163,7 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (element == null)
             {
-                throw new Exception("Unable to validate data element.");
+                throw new ValidationException("Unable to validate data element.");
             }
 
             Application application = await appService.GetApplication(org, app);
@@ -176,13 +172,13 @@ namespace AltinnCore.Runtime.RestControllers
 
             if (elementType == null)
             {
-                throw new Exception("Unknown element type.");
+                throw new ValidationException("Unknown element type.");
             }
 
             messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, element, serviceContext));
 
-            string taskType = instance.Process.CurrentTask.AltinnTaskType;
-            if (!elementType.Task.Equals(taskType, StringComparison.OrdinalIgnoreCase))
+            string taskId = instance.Process.CurrentTask.ElementId;
+            if (!elementType.Task.Equals(taskId, StringComparison.OrdinalIgnoreCase))
             {
                 ValidationIssue message = new ValidationIssue
                 {
@@ -213,7 +209,7 @@ namespace AltinnCore.Runtime.RestControllers
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
                         ValidationIssueCodes.DataElementCodes.MissingContentType, serviceContext.ServiceText, null, "nb-NO")
-                };  // $"Element {dataElement.Id} is missing a Content-Type"
+                };
                 messages.Add(message);
             }
             else
@@ -230,7 +226,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
                             ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceContext.ServiceText, null, "nb-NO")
-                    }; // $"Element {dataElement.Id} has a Content-Type not in the list of allowed content types listed for element type '{elementType.Id}'."
+                    };
                     messages.Add(message);
                 }
             }
@@ -245,11 +241,11 @@ namespace AltinnCore.Runtime.RestControllers
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
                         ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceContext.ServiceText, null, "nb-NO")
-                }; // $"Element '{dataElement.Id}' is too large as stated by element type '{elementType.Id}'."
+                };
                 messages.Add(message);
             }
 
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType.Id, serviceContext);
+            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, serviceContext);
             if (elementType.AppLogic)
             {
                 Type modelType = serviceImplementation.GetServiceModelType();
@@ -301,11 +297,10 @@ namespace AltinnCore.Runtime.RestControllers
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="elementType">the data element type</param>
         /// <param name="serviceContext">The current service context</param>
         /// <param name="startApp">indicates if the app should be started or just opened</param>
         /// <returns>the serviceImplementation object which represents the application business logic</returns>
-        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, ServiceContext serviceContext, bool startApp = false)
+        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, ServiceContext serviceContext, bool startApp = false)
         {
             IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startApp);
 
