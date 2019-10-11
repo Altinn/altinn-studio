@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using Microsoft.Azure.Documents;
@@ -31,7 +32,15 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddSingleton<IDocumentClient>(x =>
             {
                 var documentClient = new DocumentClient(endPointUri, azureCosmosDb.MasterKey, connectionPolicy);
-                documentClient.OpenAsync();
+                documentClient.OpenAsync().GetAwaiter().GetResult();
+                documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = azureCosmosDb.Database }).GetAwaiter().GetResult();
+
+                DocumentCollection documentCollection = new DocumentCollection { Id = azureCosmosDb.Collection };
+                var dbUri = UriFactory.CreateDatabaseUri(azureCosmosDb.Database);
+                documentClient
+                    .CreateDocumentCollectionIfNotExistsAsync(dbUri, documentCollection)
+                    .GetAwaiter()
+                    .GetResult();
                 return documentClient;
             });
             services.AddSingleton<IDocumentDbRepository, DocumentDbRepository>();

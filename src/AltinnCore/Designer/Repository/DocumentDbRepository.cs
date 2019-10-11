@@ -38,18 +38,7 @@ namespace AltinnCore.Designer.Repository
             _database = integrations.AzureCosmosDbSettings.Database;
             _logger = logger;
             _documentClient = documentClient;
-
-            var dbUri = UriFactory.CreateDatabaseUri(_database);
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_database, _collection);
-
-            _documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = _database }).GetAwaiter().GetResult();
-
-            DocumentCollection documentCollection = new DocumentCollection { Id = _collection };
-
-            _documentClient
-                .CreateDocumentCollectionIfNotExistsAsync(dbUri, documentCollection)
-                .GetAwaiter()
-                .GetResult();
         }
 
         /// <inheritdoc/>
