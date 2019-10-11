@@ -593,7 +593,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"appId\": \"tdd/postmantest\",\r\n  \"versionId\": \"\",\r\n  \"org\": \"tdd\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"\",\r\n  \"title\": {\r\n    \"nb\": \"postmanapp\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    }\r\n  ]\r\n}"
+									"raw": "{\r\n  \"appId\": \"tdd/postmantest\",\r\n  \"versionId\": \"\",\r\n  \"org\": \"tdd\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"\",\r\n  \"title\": {\r\n    \"nb\": \"postmanapp\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    },\r\n    {\r\n    \"id\": \"attachment\",\r\n    \"allowedContentType\": [\r\n    \t\"application/octet-stream\"\r\n    ],\r\n    \"appLogic\": true,\r\n    \"maxSize\": 25,\r\n    \"maxCount\": 5,\r\n    \"minCount\": 0\r\n}\r\n  ]\r\n}"
 								},
 								"url": {
 									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
@@ -1341,6 +1341,147 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "POST Add attachment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "4e0a8157-5f87-46a5-8df1-f3097c021797",
+										"exec": [
+											"pm.test(\"Platform - Storage - Instance Data - Add attachment - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"     var jsonData = pm.response.json();\r",
+											"    if(pm.expect(jsonData.data[0].id).not.eql(null))\r",
+											"    {\r",
+											"        pm.environment.set('dataId',jsonData.data[0].id);\r",
+											"    }\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/octet-stream"
+									}
+								],
+								"body": {
+									"mode": "file",
+									"file": {
+										"src": "test_file_pdf.pdf"
+									}
+								},
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=attachment",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data"
+									],
+									"query": [
+										{
+											"key": "elementType",
+											"value": "attachment"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Attachment Data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "62cd01a6-9c8c-4d36-8134-f51512efb018",
+										"exec": [
+											"pm.test(\"Platform - Storage - Instance Data - Get Attachment Data - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data",
+										"{{dataId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE Attachment Data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cc714784-7a38-4224-aad8-11d36fe6c540",
+										"exec": [
+											"pm.test(\"Platform - Storage - Instance Data - Delete Attachment Data - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Platform - Storage - Instance Data - Delete Attachment Data - Status - Content\", function (){\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.data.length).to.equal(0);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data",
+										"{{dataId}}"
+									]
+								}
+							},
+							"response": []
 						}
 					],
 					"_postman_isSubFolder": true
@@ -1812,8 +1953,6 @@
 											"    var jsonData = pm.response.json();\r",
 											"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
 											"    {\r",
-											"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
-											"        pm.environment.set('appId',jsonData.appId);\r",
 											"        var instanceId = jsonData.id;\r",
 											"        instanceId = instanceId.toString();\r",
 											"        instanceId = instanceId.split('/');\r",
@@ -1878,7 +2017,7 @@
 											"pm.test(\"Platform - Storage - SBL - GET Instances for SBL - Content - Does not contain future visible instances\", function () {\r",
 											"    var jsonData = pm.response.json();\r",
 											"    pm.expect(jsonData).to.not.contain(pm.environment.get(\"FutureDateinstanceId\"));\r",
-											"})"
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1937,8 +2076,7 @@
 											"    pm.response.to.have.status(200);\r",
 											"});\r",
 											"pm.test(\"Platform - Storage - SBL - Soft Delete Instance - Content - Matches\", function () {\r",
-											"    var jsonData = pm.response.json();\r",
-											"    pm.expect(jsonData.instanceState.isDeleted).equal(true);\r",
+											"    pm.expect(pm.response.text()).equal('true');\r",
 											"});"
 										],
 										"type": "text/javascript"
@@ -1960,7 +2098,7 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=false",
+									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}?hard=false",
 									"host": [
 										"{{platformUrl}}"
 									],
@@ -1968,6 +2106,7 @@
 										"storage",
 										"api",
 										"v1",
+										"sbl",
 										"instances",
 										"{{instanceOwnerId}}",
 										"{{instanceId}}"
@@ -2066,6 +2205,49 @@
 							"response": []
 						},
 						{
+							"name": "GET Instance Events",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "0967cde0-022c-4148-b82d-5d490cd417e5",
+										"exec": [
+											"pm.test(\"Platform - Storage - SBL - Get Instance Events for SBL - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Platform - Storage - SBL - Get Instance Events for SBL - Status - Content\", function () {\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var eventsCount = jsonData.length;\r",
+											"    pm.expect(eventsCount).to.equal(3);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"host": [
+										"{{platformUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"sbl",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "DELETE Hard Delete Instance",
 							"event": [
 								{
@@ -2094,7 +2276,7 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
 									"host": [
 										"{{platformUrl}}"
 									],
@@ -2102,6 +2284,7 @@
 										"storage",
 										"api",
 										"v1",
+										"sbl",
 										"instances",
 										"{{instanceOwnerId}}",
 										"{{instanceId}}"
@@ -2145,7 +2328,7 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{FutureDateinstanceId}}?hard=true",
+									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{FutureDateinstanceId}}?hard=true",
 									"host": [
 										"{{platformUrl}}"
 									],
@@ -2153,6 +2336,7 @@
 										"storage",
 										"api",
 										"v1",
+										"sbl",
 										"instances",
 										"{{instanceOwnerId}}",
 										"{{FutureDateinstanceId}}"
@@ -2175,9 +2359,9 @@
 									"script": {
 										"id": "3d1598d9-8cc0-418f-9171-22db9db7659c",
 										"exec": [
-											"pm.test(\"Platform - Storage - SBL - Restore Instance - Status - 404\", function () {\r",
-											"    pm.response.to.have.status(404);\r",
-											"    pm.expect(pm.response.text()).to.include(\"Didn't find the object\");\r",
+											"pm.test(\"Platform - Storage - SBL - Restore Instance - Status - 400\", function () {\r",
+											"    pm.response.to.have.status(400);\r",
+											"    pm.expect(pm.response.text()).to.include(\"Instance was permanently deleted and cannot be restored\");\r",
 											"});"
 										],
 										"type": "text/javascript"
