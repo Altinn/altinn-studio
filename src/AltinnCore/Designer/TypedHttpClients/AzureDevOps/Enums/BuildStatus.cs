@@ -1,0 +1,46 @@
+using System.Runtime.Serialization;
+
+namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums
+{
+    /// <summary>
+    /// The Azure DevOps Build Status
+    /// </summary>
+    public enum BuildStatus
+    {
+        /// <summary>
+        /// The build is cancelling
+        /// </summary>
+        [EnumMember(Value = "cancelling")]
+        Cancelling = 1,
+
+        /// <summary>
+        /// The build has completed.
+        /// </summary>
+        [EnumMember(Value = "completed")]
+        Completed = 2,
+
+        /// <summary>
+        /// The build is currently in progress.
+        /// </summary>
+        [EnumMember(Value = "inProgress")]
+        InProgress = 3,
+
+        /// <summary>
+        /// No status.
+        /// </summary>
+        [EnumMember(Value = "none")]
+        None = 4,
+
+        /// <summary>
+        /// The build has not yet started.
+        /// </summary>
+        [EnumMember(Value = "notStarted")]
+        NotStarted = 5,
+
+        /// <summary>
+        /// The build is inactive in the queue.
+        /// </summary>
+        [EnumMember(Value = "postponed")]
+        Postponed = 6,
+    }
+}
