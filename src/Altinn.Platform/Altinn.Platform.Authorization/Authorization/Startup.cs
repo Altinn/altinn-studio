@@ -1,6 +1,7 @@
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Configuration;
+using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Builder;
@@ -38,7 +39,7 @@ namespace Altinn.Platform.Authorization
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().AddControllersAsServices();
+            services.AddControllers();
             services.AddSingleton(Configuration);
             services.AddSingleton<IParties, PartiesWrapper>();
             services.AddSingleton<IRoles, RolesWrapper>();
@@ -49,6 +50,13 @@ namespace Altinn.Platform.Authorization
             services.AddHttpClient<RolesClient>();
             services.AddHttpClient<SBLClient>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+/*
+            services.AddMvc()
+            .Services.Configure<MvcOptions>(options =>
+            {
+                // Adding custom modelbinders
+                options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
+            });*/
         }
 
         /// <summary>
@@ -68,7 +76,6 @@ namespace Altinn.Platform.Authorization
             }
 
             app.UseRouting();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
