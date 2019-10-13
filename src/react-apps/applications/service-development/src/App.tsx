@@ -193,7 +193,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                             render={(props) => <route.subapp
                               {...props}
                               {...route.props}
-                              name={route.path}
                               language={this.props.language}
                             />}
                           />
