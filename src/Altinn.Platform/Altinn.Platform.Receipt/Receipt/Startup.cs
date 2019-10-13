@@ -37,6 +37,8 @@ namespace Altinn.Platform.Receipt
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllers();
+
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
@@ -61,7 +63,6 @@ namespace Altinn.Platform.Receipt
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
-            services.AddControllers();
         }
 
         /// <summary>
@@ -114,9 +115,13 @@ namespace Altinn.Platform.Receipt
                     response.Redirect(($"{authenticationEndpoint}authentication?goto={url}"));
                 }
             });
-
             app.UseRouting();
             app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+      
+      /*      app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute(
@@ -127,7 +132,7 @@ namespace Altinn.Platform.Receipt
                     {
                         controller = "Language",
                     });
-            });
+            }); */
         }
     }
 }
