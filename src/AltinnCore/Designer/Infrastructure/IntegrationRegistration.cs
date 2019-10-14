@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
+using AltinnCore.Designer.Services;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Configuration;
@@ -27,23 +28,18 @@ namespace AltinnCore.Designer.Infrastructure
                 ConnectionMode = ConnectionMode.Gateway,
                 ConnectionProtocol = Protocol.Https,
             };
-            var azureCosmosDb = configuration.GetSection("Integrations").Get<Integrations>().AzureCosmosDbSettings;
-            var endPointUri = new Uri(azureCosmosDb.EndpointUri);
+            AzureCosmosDbSettings azureCosmosDb = configuration.GetSection("Integrations").Get<Integrations>().AzureCosmosDbSettings;
             services.AddSingleton<IDocumentClient>(x =>
             {
-                var documentClient = new DocumentClient(endPointUri, azureCosmosDb.MasterKey, connectionPolicy);
+                Uri endPointUri = new Uri(azureCosmosDb.EndpointUri);
+                DocumentClient documentClient = new DocumentClient(endPointUri, azureCosmosDb.MasterKey, connectionPolicy);
                 documentClient.OpenAsync().GetAwaiter().GetResult();
                 documentClient.CreateDatabaseIfNotExistsAsync(new Database { Id = azureCosmosDb.Database }).GetAwaiter().GetResult();
 
-                DocumentCollection documentCollection = new DocumentCollection { Id = azureCosmosDb.Collection };
-                var dbUri = UriFactory.CreateDatabaseUri(azureCosmosDb.Database);
-                documentClient
-                    .CreateDocumentCollectionIfNotExistsAsync(dbUri, documentCollection)
-                    .GetAwaiter()
-                    .GetResult();
                 return documentClient;
             });
-            services.AddSingleton<IDocumentDbRepository, DocumentDbRepository>();
+            services.AddTransient<ReleaseDbRepository>();
+            services.AddTransient<DeploymentDbRepository>();
 
             return services;
         }

@@ -21,8 +21,13 @@ namespace AltinnCore.Designer.Infrastructure.Models
         public string Database { get; set; }
 
         /// <summary>
-        /// Collection
+        /// ReleaseCollection
         /// </summary>
-        public string Collection { get; set; }
+        public string ReleaseCollection { get; set; }
+
+        /// <summary>
+        /// DeploymentCollection
+        /// </summary>
+        public string DeploymentCollection { get; set; }
     }
 }

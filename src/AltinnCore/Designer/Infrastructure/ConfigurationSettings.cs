@@ -27,6 +27,7 @@ namespace AltinnCore.Designer.Infrastructure
             services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<Integrations>(configuration.GetSection("Integrations"));
             services.Configure<AzureDevOpsSettings>(configuration.GetSection("Integrations:AzureDevOpsSettings"));
+            services.Configure<AzureCosmosDbSettings>(configuration.GetSection("Integrations:AzureCosmosDbSettings"));
 
             return services;
         }

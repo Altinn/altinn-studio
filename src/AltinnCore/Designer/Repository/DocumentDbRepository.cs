@@ -16,7 +16,7 @@ namespace AltinnCore.Designer.Repository
     /// <summary>
     /// Implementation of IDocumentDbRepository
     /// </summary>
-    public class DocumentDbRepository : IDocumentDbRepository
+    public abstract class DocumentDbRepository : IDocumentDbRepository
     {
         private readonly IDocumentClient _documentClient;
         private readonly string _collection;
@@ -27,17 +27,24 @@ namespace AltinnCore.Designer.Repository
         /// <summary>
         /// Constructor
         /// </summary>
-        public DocumentDbRepository(
-            IOptions<Integrations> options,
+        protected DocumentDbRepository(
+            string collectionName,
+            IOptions<AzureCosmosDbSettings> options,
             IDocumentClient documentClient,
             ILogger<DocumentDbRepository> logger)
         {
-            Integrations integrations = options.Value;
-            _collection = integrations.AzureCosmosDbSettings.Collection;
-            _database = integrations.AzureCosmosDbSettings.Database;
+            _collection = collectionName;
+            _database = options.Value.Database;
             _logger = logger;
             _documentClient = documentClient;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_database, _collection);
+
+            DocumentCollection documentCollection = new DocumentCollection { Id = collectionName };
+            Uri dbUri = UriFactory.CreateDatabaseUri(_database);
+            documentClient
+                .CreateDocumentCollectionIfNotExistsAsync(dbUri, documentCollection)
+                .GetAwaiter()
+                .GetResult();
         }
 
         /// <inheritdoc/>
