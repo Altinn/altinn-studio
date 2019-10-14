@@ -96,13 +96,8 @@ export default class DesignerPage {
       this.leftMenuList.withExactText('Test i testmiljø')
     ];
 
-    //"publisere" navigation tab selectors
-    this.publisereNavigationTab = Selector('div > a').withExactText('Publisere');
-    this.publisereButton = Selector('#startDeploymentBtn'); //.withText('Start deployment');
-    this.publisereLeftMenuItems = [
-      this.leftMenuList.withExactText('Produksjonsette'),
-      this.leftMenuList.withExactText('Status')
-    ];
+    //"Deploy" navigation tab selectors
+    this.deployNavigationTab = Selector('div > a').withExactText('Deploy');    
 
     //preview tab
     this.previewSaveButton = Selector(".a-btn-success").withText("Save");
