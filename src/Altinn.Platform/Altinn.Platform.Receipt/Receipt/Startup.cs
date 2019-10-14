@@ -1,14 +1,14 @@
 using System;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Configuration;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Altinn.Platform.Receipt
 {
@@ -59,7 +59,7 @@ namespace Altinn.Platform.Receipt
                     options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                     options.Cookie.Name = "AltinnStudioRuntime";
                 });
-                
+
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
@@ -92,8 +92,8 @@ namespace Altinn.Platform.Receipt
                 authenticationEndpoint = Configuration["PlatformSettings:ApiAuthenticationEndpoint"];
             }
 
-          //  app.UseAuthentication();
-          //  app.UseAuthorization();
+            // app.UseAuthentication();
+            app.UseAuthorization();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -113,7 +113,7 @@ namespace Altinn.Platform.Receipt
                 // && request.Path.Value.StartsWith("/specificPath")
                 if (response.StatusCode == (int)HttpStatusCode.Unauthorized && runtimeMode != "AltinnStudio")
                 {
-                    response.Redirect(($"{authenticationEndpoint}authentication?goto={url}"));
+                    response.Redirect($"{authenticationEndpoint}authentication?goto={url}");
                 }
             });
             app.UseRouting();
