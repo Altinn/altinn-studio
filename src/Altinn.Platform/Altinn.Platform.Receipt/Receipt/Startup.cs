@@ -18,7 +18,7 @@ namespace Altinn.Platform.Receipt
     public class Startup
     {
         /// <summary>
-        ///  Initializes a new instance of the <see cref="Config"/> class
+        ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
         /// <param name="configuration">The configuration for the config component</param>
         public Startup(IConfiguration configuration)
@@ -102,6 +102,7 @@ namespace Altinn.Platform.Receipt
             {
                 app.UseExceptionHandler("/Error");
             }
+
             app.UseStaticFiles();
             app.UseStatusCodePages(async context =>
             {

@@ -39,6 +39,5 @@ namespace Altinn.Platform.Receipt
           {
               webBuilder.UseStartup<Startup>();
           });
-
     }
 }
