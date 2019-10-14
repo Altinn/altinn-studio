@@ -158,7 +158,6 @@ namespace AltinnCore.Runtime.RestControllers
         /// <returns>the created instance</returns>
         [HttpPost]
         [DisableFormValueModelBinding]
-        [Consumes("application/json", otherContentTypes: new string[] { "multipart/form-data", })]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
