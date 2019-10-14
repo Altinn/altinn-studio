@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.ViewModels.Request;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace AltinnCore.Designer.Repository
 {
@@ -32,7 +32,7 @@ namespace AltinnCore.Designer.Repository
             IDocumentClient documentClient,
             ILogger<DocumentDbRepository> logger)
         {
-            var integrations = options.Value;
+            Integrations integrations = options.Value;
             _collection = integrations.AzureCosmosDbSettings.Collection;
             _database = integrations.AzureCosmosDbSettings.Database;
             _logger = logger;
@@ -44,45 +44,52 @@ namespace AltinnCore.Designer.Repository
         public async Task<T> CreateAsync<T>(T item)
         {
             Document document = await _documentClient.CreateDocumentAsync(_collectionUri, item);
-            T obj = (dynamic) document;
+            T obj = (dynamic)document;
             return obj;
         }
 
         /// <inheritdoc/>
         public async Task<IEnumerable<T>> GetAsync<T>(DocumentQueryModel query)
-            where T : DocumentBase
+            where T : EntityBase
         {
-            var count = FindMaxItemCount(query.Top, 10);
-            var feedOptions = new FeedOptions
+            int count = FindMaxItemCount(query.Top, 10);
+            FeedOptions feedOptions = new FeedOptions
             {
                 MaxItemCount = count
             };
-            return await _documentClient
+
+            IDocumentQuery<T> documentQuery = _documentClient
                 .CreateDocumentQuery<T>(_collectionUri, feedOptions)
                 .BuildQuery(query)
-                .ToListAsync();
+                .AsDocumentQuery();
+
+            FeedResponse<T> response = await documentQuery.ExecuteNextAsync<T>();
+            return response.AsEnumerable();
         }
 
         /// <inheritdoc/>
         public async Task<T> GetAsync<T>(string id)
-            where T : DocumentBase
+            where T : EntityBase
         {
-            var documentUri = UriFactory.CreateDocumentUri(_database, _collection, id);
+            Uri documentUri = UriFactory.CreateDocumentUri(_database, _collection, id);
             return await _documentClient.ReadDocumentAsync<T>(documentUri);
         }
 
         /// <inheritdoc/>
         public async Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec)
-            where T : DocumentBase
+            where T : EntityBase
         {
-            return await _documentClient
+            IDocumentQuery<T> documentQuery = _documentClient
                 .CreateDocumentQuery<T>(_collectionUri, sqlQuerySpec)
-                .ToListAsync();
-        }
+                .AsDocumentQuery();
+
+            FeedResponse<T> response = await documentQuery.ExecuteNextAsync<T>();
+            return response.AsEnumerable();
+        } 
 
         /// <inheritdoc/>
         public async Task UpdateAsync<T>(T item)
-            where T : DocumentBase
+            where T : EntityBase
         {
             Uri uri = UriFactory.CreateDocumentUri(_database, _collection, item.Id);
             await _documentClient.ReplaceDocumentAsync(uri, item);

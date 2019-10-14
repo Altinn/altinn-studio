@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
@@ -10,6 +14,7 @@ using AltinnCore.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Documents;
+using Microsoft.Extensions.Options;
 using SqlParameter = Microsoft.Azure.Documents.SqlParameter;
 using SqlParameterCollection = Microsoft.Azure.Documents.SqlParameterCollection;
 
@@ -23,6 +28,7 @@ namespace AltinnCore.Designer.Services
         private readonly IDocumentDbRepository _docDbRepository;
         private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
         private readonly ISourceControl _sourceControl;
+        private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly string _org;
         private readonly string _app;
@@ -34,12 +40,15 @@ namespace AltinnCore.Designer.Services
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildService">IAzureDevOpsBuildService</param>
         /// <param name="sourceControl">ISourceControl</param>
+        /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
         public ReleaseService(
             IDocumentDbRepository docDbRepository,
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildService azureDevOpsBuildService,
-            ISourceControl sourceControl)
+            ISourceControl sourceControl,
+            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions)
         {
+            _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _docDbRepository = docDbRepository;
             _azureDevOpsBuildService = azureDevOpsBuildService;
             _sourceControl = sourceControl;
@@ -49,16 +58,17 @@ namespace AltinnCore.Designer.Services
         }
 
         /// <inheritdoc/>
-        public async Task<ReleaseDocument> Create(ReleaseDocument release)
+        public async Task<ReleaseEntity> CreateAsync(ReleaseEntity release)
         {
             PopulateFieldsInRelease(release);
             Build queuedBuild = await _azureDevOpsBuildService.QueueAsync(
                 release.TargetCommitish,
                 release.Org,
                 release.App,
-                "asd");
+                _sourceControl.GetDeployToken(),
+                _azureDevOpsSettings.BuildDefinitionId);
 
-            release.Build = new BuildDocument
+            release.Build = new BuildEntity
             {
                 Id = queuedBuild.Id.ToString(),
                 Status = queuedBuild.Status,
@@ -69,45 +79,44 @@ namespace AltinnCore.Designer.Services
         }
 
         /// <inheritdoc/>
-        public async Task<DocumentResults<ReleaseDocument>> Get(DocumentQueryModel query)
+        public async Task<DocumentResults<ReleaseEntity>> GetAsync(DocumentQueryModel query)
         {
             query.Org = _org;
             query.App = _app;
-            var results = await _docDbRepository.GetAsync<ReleaseDocument>(query);
-            return new DocumentResults<ReleaseDocument>
+            IEnumerable<ReleaseEntity> results = await _docDbRepository.GetAsync<ReleaseEntity>(query);
+            return new DocumentResults<ReleaseEntity>
             {
                 Results = results
             };
         }
 
         /// <inheritdoc/>
-        public async Task Update(ReleaseDocument release)
+        public async Task UpdateAsync(ReleaseEntity release)
         {
-            var sqlQuerySpec = new SqlQuerySpec
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
             {
-                QueryText = "SELECT * FROM db WHERE db.target_commitish = @targetCommitish AND db.app = @app AND db.org = @org",
+                QueryText = "SELECT * FROM db WHERE db.build.id = @buildId",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@targetCommitish", release.TargetCommitish),
-                    new SqlParameter("@app", release.App),
-                    new SqlParameter("@org", release.Org),
+                    new SqlParameter("@buildId", release.Build.Id),
                 }
             };
-            var releaseDocuments = await _docDbRepository.GetWithSqlAsync<ReleaseDocument>(sqlQuerySpec);
-            var releaseDocument = releaseDocuments.Single();
+            IEnumerable<ReleaseEntity> releaseDocuments = await _docDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
+            ReleaseEntity releaseEntity = releaseDocuments.Single();
 
-            releaseDocument.Build.Status = release.Build.Status;
-            releaseDocument.Build.Started = release.Build.Started;
-            releaseDocument.Build.Finished = release.Build.Finished;
+            releaseEntity.Build.Status = release.Build.Status;
+            releaseEntity.Build.Started = release.Build.Started;
+            releaseEntity.Build.Finished = release.Build.Finished;
 
-            await _docDbRepository.UpdateAsync(releaseDocument);
+            await _docDbRepository.UpdateAsync(releaseEntity);
         }
 
-        private void PopulateFieldsInRelease(ReleaseDocument release)
+        private void PopulateFieldsInRelease(EntityBase release)
         {
+            List<Claim> claims = _httpContext.User.Claims.ToList();
             release.Org = _org;
             release.App = _app;
-            release.CreatedBy = _httpContext.User.Identity.Name;
+            release.CreatedBy = claims.FirstOrDefault(x => x.Type == AltinnCoreClaimTypes.Developer)?.Value;
         }
     }
 }

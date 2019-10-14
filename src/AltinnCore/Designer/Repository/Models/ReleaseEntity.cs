@@ -3,9 +3,9 @@ using Newtonsoft.Json;
 namespace AltinnCore.Designer.Repository.Models
 {
     /// <summary>
-    /// Release document for Document db
+    /// Release entity for a db
     /// </summary>
-    public class ReleaseDocument : DocumentBase
+    public class ReleaseEntity : EntityBase
     {
         /// <summary>
         /// TagName
@@ -35,6 +35,6 @@ namespace AltinnCore.Designer.Repository.Models
         /// Build
         /// </summary>
         [JsonProperty("build")]
-        public BuildDocument Build { get; set; }
+        public BuildEntity Build { get; set; }
     }
 }

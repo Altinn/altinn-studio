@@ -16,12 +16,6 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         public int Id { get; set; }
 
         /// <summary>
-        /// The build number/name of the build.
-        /// </summary>
-        [JsonProperty("buildNumber")]
-        public int BuildNumber { get; set; }
-
-        /// <summary>
         /// The time that the build was started.
         /// </summary>
         [JsonProperty("startTime")]

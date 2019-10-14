@@ -13,8 +13,8 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// </summary>
         /// <param name="viewmodel">CreateReleaseRequestViewModel</param>
         /// <returns></returns>
-        public static ReleaseDocument ToDocumentModel(this CreateReleaseRequestViewModel viewmodel)
-            => new ReleaseDocument
+        public static ReleaseEntity ToDocumentModel(this CreateReleaseRequestViewModel viewmodel)
+            => new ReleaseEntity
             {
                 Created = DateTime.Now,
                 Body = viewmodel.Body,
@@ -28,12 +28,12 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// </summary>
         /// <param name="viewmodel">UpdateReleaseRequestViewModel</param>
         /// <returns></returns>
-        public static ReleaseDocument ToDocumentModel(this UpdateReleaseRequestViewModel viewmodel)
-            => new ReleaseDocument
+        public static ReleaseEntity ToDocumentModel(this UpdateReleaseRequestViewModel viewmodel)
+            => new ReleaseEntity
             {
-                TargetCommitish = viewmodel.TargetCommitish,
-                Build = new BuildDocument
+                Build = new BuildEntity
                 {
+                    Id = viewmodel.Id,
                     Status = viewmodel.Status,
                     Started = viewmodel.Started,
                     Finished = viewmodel.Finished

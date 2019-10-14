@@ -5,9 +5,9 @@ using Newtonsoft.Json;
 namespace AltinnCore.Designer.Repository.Models
 {
     /// <summary>
-    /// Build document for Document db
+    /// Build entity for a db
     /// </summary>
-    public class BuildDocument
+    public class BuildEntity
     {
         /// <summary>
         /// Id

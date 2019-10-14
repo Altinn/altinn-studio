@@ -10,6 +10,12 @@ namespace AltinnCore.Designer.ViewModels.Request
     public class UpdateReleaseRequestViewModel
     {
         /// <summary>
+        /// Id
+        /// </summary>
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        /// <summary>
         /// Status of the build in Azure DevOps
         /// </summary>
         [JsonProperty("status")]
@@ -26,11 +32,5 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// </summary>
         [JsonProperty("finished")]
         public DateTime? Finished { get; set; }
-
-        /// <summary>
-        /// TargetCommitish
-        /// </summary>
-        [JsonProperty("target_commitish")]
-        public string TargetCommitish { get; set; }
     }
 }

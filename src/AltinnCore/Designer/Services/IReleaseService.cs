@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.ViewModels.Request;
@@ -17,19 +16,19 @@ namespace AltinnCore.Designer.Services
         /// </summary>
         /// <param name="release">Release containing data from client</param>
         /// <returns>The created document in db</returns>
-        Task<ReleaseDocument> Create(ReleaseDocument release);
+        Task<ReleaseEntity> CreateAsync(ReleaseEntity release);
 
         /// <summary>
         /// Gets releases based on a query
         /// </summary>
         /// <param name="query">ReleaseQueryModel</param>
         /// <returns></returns>
-        Task<DocumentResults<ReleaseDocument>> Get(DocumentQueryModel query);
+        Task<DocumentResults<ReleaseEntity>> GetAsync(DocumentQueryModel query);
 
         /// <summary>
         /// Updates a release document
         /// </summary>
         /// <param name="release">ReleaseDocument</param>
-        Task Update(ReleaseDocument release);
+        Task UpdateAsync(ReleaseEntity release);
     }
 }

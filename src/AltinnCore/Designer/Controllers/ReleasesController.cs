@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services;
 using AltinnCore.Designer.ViewModels.Request;
@@ -34,8 +32,8 @@ namespace AltinnCore.Designer.Controllers
         /// <returns></returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<DocumentResults<ReleaseDocument>> Get([FromQuery]DocumentQueryModel query)
-            => await _releaseService.Get(query);
+        public async Task<DocumentResults<ReleaseEntity>> Get([FromQuery]DocumentQueryModel query)
+            => await _releaseService.GetAsync(query);
 
         /// <summary>
         /// Creates a release
@@ -44,8 +42,8 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>Created release</returns>
         [HttpPost]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ReleaseDocument> Create([FromBody]CreateReleaseRequestViewModel createRelease)
-            => await _releaseService.Create(createRelease.ToDocumentModel());
+        public async Task<ReleaseEntity> Create([FromBody]CreateReleaseRequestViewModel createRelease)
+            => await _releaseService.CreateAsync(createRelease.ToDocumentModel());
 
         /// <summary>
         /// Updates a release document
@@ -55,7 +53,7 @@ namespace AltinnCore.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
         public async Task<IActionResult> Update([FromBody] UpdateReleaseRequestViewModel release)
         {
-            await _releaseService.Update(release.ToDocumentModel());
+            await _releaseService.UpdateAsync(release.ToDocumentModel());
             return NoContent();
         }
     }
