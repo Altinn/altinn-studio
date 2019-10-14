@@ -33,7 +33,7 @@ fixture('Instantiation tests')
 
   test("Party Selection page with error message and party list", async () => {
     await t
-      .navigateTo(app.baseUrl + 'designer/tdd/partydisplaytest#/uieditor')
+      .navigateTo(app.baseUrl + 'designer/ttd/party-selection-app#/uieditor')
       .click(designer.testeNavigationTab)
       .switchToIframe(runtime.testBrukerIframe)
       .expect(runtime.testUsers[1].exists).ok()

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "aad4d690-36b7-4fff-9097-3f1d51f333bd",
+		"_postman_id": "39b9f33a-4063-4972-99e1-015e9e387e3f",
 		"name": "Platform",
 		"description": "Collection that tests the full integration between current Altinn platform and SBL bridge",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -346,7 +346,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Profile",
@@ -388,7 +389,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Authentication",
@@ -428,7 +430,7 @@
 							"raw": "{\r\n    \"encryptedTicket\": \"CD4E027814113A483207C670A4\"\r\n}"
 						},
 						"url": {
-							"raw": "{{platformUrl}}/authentication/api/v1/authentication?goto=http://www.vg.no",
+							"raw": "{{platformUrl}}/authentication/api/v1/authentication?goto=http://www.altinn.no",
 							"host": [
 								"{{platformUrl}}"
 							],
@@ -441,14 +443,15 @@
 							"query": [
 								{
 									"key": "goto",
-									"value": "http://www.vg.no"
+									"value": "http://www.altinn.no"
 								}
 							]
 						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Authorization",
@@ -539,7 +542,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Storage",
@@ -593,7 +597,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"appId\": \"tdd/postmantest\",\r\n  \"versionId\": \"\",\r\n  \"org\": \"tdd\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"\",\r\n  \"title\": {\r\n    \"nb\": \"postmanapp\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    },\r\n    {\r\n    \"id\": \"attachment\",\r\n    \"allowedContentType\": [\r\n    \t\"application/octet-stream\"\r\n    ],\r\n    \"appLogic\": true,\r\n    \"maxSize\": 25,\r\n    \"maxCount\": 5,\r\n    \"minCount\": 0\r\n}\r\n  ]\r\n}"
+									"raw": "{\r\n  \"appId\": \"{{appId}}\",\r\n  \"versionId\": \"1\",\r\n  \"org\": \"{{org}}\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"AutomatedTest\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"AutomatedTest\",\r\n  \"title\": {\r\n    \"nb\": \"{{app}}\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    },\r\n    {\r\n    \"id\": \"attachment\",\r\n    \"allowedContentType\": [\r\n    \t\"application/octet-stream\"\r\n    ],\r\n    \"appLogic\": true,\r\n    \"maxSize\": 25,\r\n    \"maxCount\": 5,\r\n    \"minCount\": 0\r\n}\r\n  ]\r\n}"
 								},
 								"url": {
 									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
@@ -665,7 +669,8 @@
 											"\r",
 											"pm.test(\"Platform - Storage - Applications - Get App by name - Content - Matches\", function () {\r",
 											"    var jsonData = pm.response.json();\r",
-											"    pm.expect(jsonData.id).to.eql(\"tdd/postmanapp\");\r",
+											"    var expectedAppName = pm.environment.get(\"appId\");\r",
+											"    pm.expect(jsonData.id).to.eql(expectedAppName);\r",
 											"});"
 										],
 										"type": "text/javascript"
@@ -724,7 +729,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"appId\": \"tdd/postmanapp\",\t\r\n  \"org\": \"tdd\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 100,\r\n      \"maxCount\": 50,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    }\r\n  ]\r\n}"
+									"raw": "{\r\n  \"appId\": \"{{appId}}\",\r\n  \"versionId\": \"2\",\r\n  \"org\": \"{{org}}\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"AutomatedTest\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"AutomatedTest\",\r\n  \"title\": {\r\n    \"nb\": \"{{app}}\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    },\r\n    {\r\n    \"id\": \"attachment\",\r\n    \"allowedContentType\": [\r\n    \t\"application/octet-stream\"\r\n    ],\r\n    \"appLogic\": true,\r\n    \"maxSize\": 25,\r\n    \"maxCount\": 5,\r\n    \"minCount\": 0\r\n}\r\n  ]\r\n}"
 								},
 								"url": {
 									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
@@ -748,6 +753,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1116,6 +1122,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1484,6 +1491,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1811,6 +1819,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1872,6 +1881,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2391,6 +2401,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2435,7 +2446,9 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }
