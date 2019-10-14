@@ -59,7 +59,7 @@ namespace Altinn.Platform.Receipt
                     options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                     options.Cookie.Name = "AltinnStudioRuntime";
                 });
-
+                
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
@@ -92,7 +92,8 @@ namespace Altinn.Platform.Receipt
                 authenticationEndpoint = Configuration["PlatformSettings:ApiAuthenticationEndpoint"];
             }
 
-            app.UseAuthentication();
+          //  app.UseAuthentication();
+          //  app.UseAuthorization();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -116,23 +117,19 @@ namespace Altinn.Platform.Receipt
                 }
             });
             app.UseRouting();
+
             app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
-      
-      /*      app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-                endpoints.MapControllerRoute(
-                    name: "languageRoute",
-                    pattern: "receipt/api/v1/{controller}/{action=Index}",
-                    defaults: new { controller = "Language" },
-                    constraints: new
-                    {
-                        controller = "Language",
-                    });
-            }); */
+              {
+                  endpoints.MapControllers();
+                  endpoints.MapControllerRoute(
+                      name: "languageRoute",
+                      pattern: "receipt/api/v1/{controller}/{action=Index}",
+                      defaults: new { controller = "Language" },
+                      constraints: new
+                      {
+                          controller = "Language",
+                      });
+              });
         }
     }
 }

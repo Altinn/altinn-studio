@@ -1,23 +1,24 @@
-using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using System.Linq;
+using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.Utils;
+using System.Net.Http;
 using AltinnCore.ServiceLibrary.Models;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
 using AltinnCore.Common.Configuration;
 using Microsoft.Extensions.Options;
+using System;
 
 namespace Altinn.Platform.Receipt
 {
     /// <summary>
     /// Contains all actions for receipt
     /// </summary>
-    [Authorize]
+    // [Authorize]
     [ApiController]
     public class ReceiptController : Controller
     {
