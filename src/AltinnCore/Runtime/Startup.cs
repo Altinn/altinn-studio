@@ -171,7 +171,7 @@ namespace AltinnCore.Runtime
                 services.AddApplicationInsightsKubernetesEnricher();
             }
 
-            IMvcBuilder mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            IMvcBuilder mvc = services.AddControllers();
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
@@ -237,7 +237,7 @@ namespace AltinnCore.Runtime
         /// </summary>
         /// <param name="appBuilder">The application builder</param>
         /// <param name="env">The hosting environment</param>
-        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder appBuilder, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -247,6 +247,12 @@ namespace AltinnCore.Runtime
             {
                 appBuilder.UseExceptionHandler("/Error");
             }
+
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             // appBuilder.UseHsts();
             // appBuilder.UseHttpsRedirection();

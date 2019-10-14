@@ -142,13 +142,21 @@ namespace AltinnCore.Common.Services.Implementation
 
             string assemblyName = Path.GetRandomFileName();
 
-            MetadataReferenceFeature referenceFeature = new MetadataReferenceFeature();
-            _partManager.PopulateFeature(referenceFeature);
+            //MetadataReferenceFeature referenceFeature = new MetadataReferenceFeature();
+            //_partManager.PopulateFeature(referenceFeature);
+
+            var referenceFeature = new MetadataReference[]
+            {
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo).Assembly.Location),
+            };
 
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: syntaxTrees,
-                references: referenceFeature.MetadataReferences,
+                references: referenceFeature,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             using (var pdbMs = new MemoryStream())
