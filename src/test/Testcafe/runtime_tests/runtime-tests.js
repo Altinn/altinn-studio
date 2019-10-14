@@ -20,7 +20,7 @@ fixture('Regression tests of apps in runtime')
     await t
       .useRole(AutoTestUser)
       .resizeWindow(1536, 864)
-  })
+  });
 
 
 test('Instantiate an app in runtime', async () => {
@@ -95,7 +95,7 @@ test('Person cannot preview an app that has been access controlled to subunits o
     .switchToMainWindow()
     .expect(Selector('span').withText('Feil 403').exists).ok()
     .expect(Selector('h1').withText('Dette er en tjeneste for underenhet').exists).ok()
-})
+});
 
 test('Read-only components test in runtime', async () => {
   await t
@@ -140,13 +140,13 @@ test('Attachment dropdown and download on receipt page', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtimemanual#/test')
     .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
+    .expect(runtime.testUsers[1].exists).ok()
+    .hover(runtime.testUsers[1])
+    .click(runtime.testUsers[1])
     .expect(runtime.startNewButton.exists).ok()
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.testUserHeader[1].exists).ok()
     .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .clearUpload(runtime.fileDropComponent)    
     .setFilesToUpload(runtime.fileDropComponent, [
@@ -195,9 +195,9 @@ test('Receipt page test', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/formfilling#/test')
     .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
+    .expect(runtime.testUsers[1].exists).ok()
+    .hover(runtime.testUsers[1])
+    .click(runtime.testUsers[1])
   await runtime.findAndOpenArchivedMessage(t);
   await t
     .switchToMainWindow()
