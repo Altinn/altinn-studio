@@ -38,10 +38,12 @@ test('Cannot create new app, as app name already exists', async () => {
     .expect(dash.serviceExistsDialogue.exists).ok()
 });
 
-test('Search for only my users app', async () => {
+test('Error messages when app does not exist', async () => {
   await t
     .click(dash.serviceSearch)
-    .typeText(dash.serviceSearch, "autotest")
+    .expect(Selector('h3').withExactText('servicedeploy').exists).ok({ timeout:120000 }) //To wait until the apps are loaded
+    .typeText(dash.serviceSearch, "cannotfindapp")
     .pressKey("enter")
-    .expect(dash.rettigheterMelding.exists).ok()
+    .expect(dash.skriveRettigheter.exists).ok({ timeout:120000 })
+    .expect(dash.rettigheterMelding.exists).ok({ timeout:120000 })
 });
