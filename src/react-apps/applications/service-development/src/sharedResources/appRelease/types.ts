@@ -4,7 +4,7 @@ export enum BuildStatus {
   inProgress = 'inProgress',
   none = 'none',
   notStarted = 'notStarted',
-  postposed = 'postponed'
+  postponed = 'postponed',
 }
 
 export interface IBuild {
