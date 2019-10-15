@@ -61,6 +61,7 @@ namespace Altinn.Platform.Receipt
         [Route("receipt/api/v1/users/current")]
         public async Task<IActionResult> GetCurrentUser()
         {
+            _logger.LogInformation($"// ReceiptController // GetCurrentUser // Claim count: {Request.HttpContext.User.Claims.Count()}");
             string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
            .Select(c => c.Value).SingleOrDefault();
 

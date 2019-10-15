@@ -92,7 +92,7 @@ namespace Altinn.Platform.Receipt
                 authenticationEndpoint = Configuration["PlatformSettings:ApiAuthenticationEndpoint"];
             }
 
-            // app.UseAuthentication();
+            app.UseAuthentication();
             app.UseAuthorization();
             if (env.IsDevelopment())
             {
