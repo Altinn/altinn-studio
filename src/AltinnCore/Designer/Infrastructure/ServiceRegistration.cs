@@ -45,7 +45,7 @@ namespace AltinnCore.Designer.Infrastructure
 
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IGitea, GiteaAPIWrapper>();
+            ////services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton(configuration);
 
             services.AddTransient<IReleaseService, ReleaseService>();

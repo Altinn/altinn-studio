@@ -85,6 +85,7 @@ namespace AltinnCore.Designer.Controllers
 
         /// <summary>
         /// Returns a specic organization
+        /// TODO Can potentially be deleted
         /// </summary>
         /// <param name="id">The organization name</param>
         /// <returns>The organization</returns>
@@ -208,31 +209,6 @@ namespace AltinnCore.Designer.Controllers
         public Commit GetLatestCommitFromCurrentUser(string owner, string repository)
         {
             return _sourceControl.GetLatestCommitForCurrentUser(owner, repository);
-        }
-
-        /// <summary>
-        /// List all branches for a repository
-        /// </summary>
-        /// <param name="owner">The owner of the repo</param>
-        /// <param name="repository">The repository</param>
-        /// <returns>List of repos</returns>
-        [HttpGet]
-        public List<Branch> Branches(string owner, string repository)
-        {
-            return _giteaApi.GetBranches(owner, repository).Result;
-        }
-
-        /// <summary>
-        /// Returns information about a given branch
-        /// </summary>
-        /// <param name="owner">The owner of the repository</param>
-        /// <param name="repository">The name of repository</param>
-        /// <param name="branch">Name of branch</param>
-        /// <returns>The branch info</returns>
-        [HttpGet]
-        public Branch Branch(string owner, string repository, string branch)
-        {
-            return _giteaApi.GetBranch(owner, repository, branch).Result;
         }
 
         /// <summary>

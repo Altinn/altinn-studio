@@ -105,7 +105,7 @@ namespace AltinnCore.Designer.Controllers
             string credentials = _configuration["AccessTokenDevOps"];
 
             string result = string.Empty;
-            Branch masterBranch = _giteaAPI.GetBranch(org, app, "master").Result;
+            Branch masterBranch = null; //_giteaAPI.GetBranch(org, app, "master").Result;
             if (masterBranch == null)
             {
                 _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {app}");
