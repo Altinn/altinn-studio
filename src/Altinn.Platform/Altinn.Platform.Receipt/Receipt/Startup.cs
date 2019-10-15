@@ -92,8 +92,6 @@ namespace Altinn.Platform.Receipt
                 authenticationEndpoint = Configuration["PlatformSettings:ApiAuthenticationEndpoint"];
             }
 
-            app.UseAuthentication();
-            app.UseAuthorization();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -117,8 +115,10 @@ namespace Altinn.Platform.Receipt
                     response.Redirect($"{authenticationEndpoint}authentication?goto={url}");
                 }
             });
-            app.UseRouting();
 
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.UseEndpoints(endpoints =>
               {
                   endpoints.MapControllers();
