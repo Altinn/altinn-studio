@@ -1,14 +1,11 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Xml.XPath;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Controllers;
 using Altinn.Platform.Storage.Repository;
-using Halcyon.Web.HAL.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -52,11 +49,11 @@ namespace Altinn.Platform.Storage
             services.AddApplicationInsightsTelemetry();
             services.AddHttpClient<InstancesController>();
 
+            // Need to find out how to add hal with .net core 3.0, is used in IntergrationTest
             // Add HAL support (Halcyon)
             /*services.AddMvc().AddMvcOptions(c =>
             {
                 //c.OutputFormatters.RemoveType<NewtonsoftJsonOutputFormatter>();
-
                 //c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
             });*/
 
