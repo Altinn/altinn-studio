@@ -10,6 +10,7 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.Models;
 using AltinnCore.Runtime.Validation;
+using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 
@@ -17,6 +18,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
+
+using Storage.Interface.Models;
 
 namespace AltinnCore.Runtime.RestControllers
 {
@@ -122,6 +125,13 @@ namespace AltinnCore.Runtime.RestControllers
                 {
                     messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, dataElement, serviceContext));
                 }
+            }
+
+            if (messages.Count == 0)
+            {
+                instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = true, Timestamp = DateTime.Now };
+
+                await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
             }
 
             return Ok(messages);
@@ -254,6 +264,8 @@ namespace AltinnCore.Runtime.RestControllers
                 serviceImplementation.SetServiceModel(data);
 
                 TryValidateModel(data);
+
+                await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
 
                 if (!ModelState.IsValid)
                 {
