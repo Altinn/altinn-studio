@@ -49,42 +49,31 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
-
             services.AddApplicationInsightsTelemetry();
-
             services.AddHttpClient<InstancesController>();
 
             // Add HAL support (Halcyon)
-            services.AddMvc().AddMvcOptions(c =>
+            /*services.AddMvc().AddMvcOptions(c =>
             {
-                c.OutputFormatters.RemoveType<SystemTextJsonOutputFormatter>();
-                c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
-            });
+                //c.OutputFormatters.RemoveType<NewtonsoftJsonOutputFormatter>();
 
-            // Register the Swagger generator, defining 1 or more Swagger documents
+                //c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
+            });*/
+
+            // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Platform Storage", Version = "v1" });
+
+                try
+                {
+                    c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                }
+                catch
+                {
+                    // catch swashbuckle exception if it doesn't find the generated xml documentation file
+                }
             });
-
-            // Add Swagger support (Swashbuckle)
-            //services.AddSwaggerGen(c =>
-            //{
-            //    c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
-            //    {
-            //        Title = "Altinn Platform Storage",
-            //        Version = "v1"
-            //    });
-
-            //    try
-            //    {
-            //        c.IncludeXmlComments(GetXmlCommentsPathForControllers());
-            //    }
-            //    catch
-            //    {
-            //        // Catch swashbuckle exception if it doesn't find the generated XML documentation file
-            //    }
-            //});
         }
 
         private string GetXmlCommentsPathForControllers()
@@ -114,22 +103,12 @@ namespace Altinn.Platform.Storage
                 // app.UseHsts();
             }
 
-            // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
 
-            // Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
-            // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Platform Storage API");
             });
-
-            //app.UseSwagger();
-
-            //app.UseSwaggerUI(c =>
-            //{
-            //    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Platform Storage API");
-            //});
 
             // app.UseHttpsRedirection();
             app.UseRouting();
