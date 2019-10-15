@@ -30,7 +30,7 @@ fixture('Deploy of app to a test environment tests')
 test('Happy case; deploy an app to a test environment after a change', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/ttd/servicedeploy#/uieditor')
   await designer.deleteUIComponentsMethod(t);
   await t   
     .click(designer.hentEndringer)
@@ -61,7 +61,7 @@ test('Happy case; deploy an app to a test environment after a change', async () 
 test('App cannot deploy due to compilation error', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/uieditor')    
+    .navigateTo(app.baseUrl + 'designer/ttd/CompileError#/uieditor')    
     .click(designer.hentEndringer)
     .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
     .click(designer.testeNavigationTab) //click twice to remove pop up from "del"
@@ -75,7 +75,7 @@ test('App cannot deploy due to compilation error', async () => {
 test('App cannot be deployed due to local changes', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/ttd/servicedeploy#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
     .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
@@ -118,7 +118,7 @@ test('User does not have write access to app, and cannot deploy', async () => {
 test('Clone modal functionality', async () => {
   await t
     .useRole(AutoTestUser)
-    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/ttd/servicedeploy#/aboutservice')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)
     .click(designer.cloneButton)

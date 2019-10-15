@@ -1,18 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Extensions.Logging;
 
 namespace Altinn.Platform.Authorization
 {
-   /// <summary>
+    /// <summary>
     /// This is the main method for running this asp.net core application
     /// </summary>
     public static class Program
@@ -23,7 +17,7 @@ namespace Altinn.Platform.Authorization
         /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+            CreateHostBuilder(args).Build().Run();
         }
 
         /// <summary>
@@ -31,16 +25,19 @@ namespace Altinn.Platform.Authorization
         /// </summary>
         /// <param name="args">arguments for creating build configuration</param>
         /// <returns>The web host builder</returns>
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-            .ConfigureLogging((hostingContext, logging) =>
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+                 Host.CreateDefaultBuilder(args)
+                 .ConfigureLogging((hostingContext, logging) =>
+                 {
+                     logging.ClearProviders();
+                     Serilog.ILogger logger = new LoggerConfiguration()
+                                     .WriteTo.Console()
+                                     .CreateLogger();
+                     logging.AddProvider(new SerilogLoggerProvider(logger));
+                 })
+            .ConfigureWebHostDefaults(webBuilder =>
             {
-                logging.ClearProviders();
-                Serilog.ILogger logger = new LoggerConfiguration()
-                                .WriteTo.Console()
-                                .CreateLogger();
-                logging.AddProvider(new SerilogLoggerProvider(logger));
-            })
-                .UseStartup<Startup>();
+                webBuilder.UseStartup<Startup>();
+            });
     }
 }
