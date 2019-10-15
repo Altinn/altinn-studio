@@ -18,7 +18,7 @@ namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
         /// <returns>HttpResponseMessage</returns>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var response = await base.SendAsync(request, cancellationToken);
+            HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
             return response;
         }
