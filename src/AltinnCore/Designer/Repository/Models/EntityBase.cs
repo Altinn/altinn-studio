@@ -23,7 +23,7 @@ namespace AltinnCore.Designer.Repository.Models
         /// <summary>
         /// CreatedBy
         /// </summary>
-        [JsonProperty("created_by")]
+        [JsonProperty("createdBy")]
         public string CreatedBy { get; set; }
 
         /// <summary>

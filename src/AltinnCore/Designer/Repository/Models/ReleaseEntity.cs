@@ -10,7 +10,7 @@ namespace AltinnCore.Designer.Repository.Models
         /// <summary>
         /// TagName
         /// </summary>
-        [JsonProperty("tag_name")]
+        [JsonProperty("tagName")]
         public string TagName { get; set; }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace AltinnCore.Designer.Repository.Models
         /// <summary>
         /// TargetCommitish
         /// </summary>
-        [JsonProperty("target_commitish")]
+        [JsonProperty("targetCommitish")]
         public string TargetCommitish { get; set; }
 
         /// <summary>
