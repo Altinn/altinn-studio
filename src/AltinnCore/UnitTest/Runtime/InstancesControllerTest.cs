@@ -135,7 +135,7 @@ namespace AltinnCore.UnitTest.Runtime
                 DueDateTime = DateTime.Parse("2020-01-01"),
             };
             string instance = JsonConvert.SerializeObject(instanceTemplate);
-            string xml = "<xml><is><no><good></good></no></is></xml>";
+            string xml = File.ReadAllText("Runtime/data/data-element.xml");
 
             string boundary = "abcdefgh";
             MultipartFormDataContent formData = new MultipartFormDataContent(boundary)
