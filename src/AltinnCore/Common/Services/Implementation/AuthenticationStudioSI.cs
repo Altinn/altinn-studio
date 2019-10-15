@@ -17,7 +17,7 @@ namespace AltinnCore.Common.Services.Implementation
     public class AuthenticationStudioSI : IAuthentication
     {
         /// <inheritdoc />
-        public Task<HttpResponseMessage> RefreshToken()
+        public Task<string> RefreshToken()
         {
             throw new System.NotImplementedException();
         }

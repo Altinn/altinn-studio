@@ -32,16 +32,19 @@ namespace Altinn.Platform.Authentication.Controllers
     {
         private readonly ILogger _logger;
         private readonly GeneralSettings _generalSettings;
+        private readonly JwtCookieHandler _jwtHandler;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthenticationController"/> class
         /// </summary>
         /// <param name="logger">the logger</param>
         /// <param name="generalSettings">the general settings</param>
-        public AuthenticationController(ILogger<AuthenticationController> logger, IOptions<GeneralSettings> generalSettings)
+        /// <param name="jwtHandler">the handler for jwt cookie authentication</param>
+        public AuthenticationController(ILogger<AuthenticationController> logger, IOptions<GeneralSettings> generalSettings, JwtCookieHandler jwtHandler)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
+            _jwtHandler = jwtHandler;
         }
 
         /// <summary>
@@ -69,13 +72,16 @@ namespace Altinn.Platform.Authentication.Controllers
                 Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}tickets");
                 using (HttpClient client = new HttpClient())
                 {
+                    _logger.LogInformation($"Authentication - Before getting userdata");
                     string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] });
+                    _logger.LogInformation($"Authentication - endpoint {endpointUrl}");
                     HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
-
+                    _logger.LogInformation($"Authentication - response {response.StatusCode}");
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         Stream stream = await response.Content.ReadAsStreamAsync();
                         userAuthentication = serializer.ReadObject(stream) as UserAuthenticationModel;
+                        _logger.LogInformation($"USerAuthentication: {userAuthentication.IsAuthenticated}");
                         if (userAuthentication.IsAuthenticated)
                         {
                             List<Claim> claims = new List<Claim>();
@@ -90,6 +96,7 @@ namespace Altinn.Platform.Authentication.Controllers
                             identity.AddClaims(claims);
                             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
+                            _logger.LogInformation($"Platform Authentication before signin async");
                             await HttpContext.SignInAsync(
                                 JwtCookieDefaults.AuthenticationScheme,
                                 principal,
@@ -100,6 +107,8 @@ namespace Altinn.Platform.Authentication.Controllers
                                     AllowRefresh = false,
                                 });
 
+                            _logger.LogInformation($"Platform Authentication after signin async");
+                            _logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
                             if (userAuthentication.TicketUpdated)
                             {
                                 Response.Cookies.Append(_generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
@@ -110,6 +119,7 @@ namespace Altinn.Platform.Authentication.Controllers
                         else
                         {
                             // If user is not authenticated redirect to login
+                            _logger.LogInformation($"USerNotauthenticated");
                             _logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
                             return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
                         }
@@ -130,19 +140,13 @@ namespace Altinn.Platform.Authentication.Controllers
         [HttpGet("refresh")]
         public async Task<ActionResult> RefreshJWTCookie()
         {
+            _logger.LogInformation($"Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
-
-            await HttpContext.SignInAsync(
-                JwtCookieDefaults.AuthenticationScheme,
-                principal,
-                new AuthenticationProperties
-                {
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
-                    IsPersistent = false,
-                    AllowRefresh = false,
-                });
-
-            return Ok();
+            _logger.LogInformation("Refreshing token....");
+           
+            string token = _jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(_generalSettings.GetJwtCookieValidityTime), 0));
+            _logger.LogInformation($"End of refreshing token");
+            return Ok(token);
         }
 
         /// <summary>
