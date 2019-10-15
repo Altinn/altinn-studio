@@ -3,6 +3,7 @@ using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services;
 using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -11,6 +12,7 @@ namespace AltinnCore.Designer.Controllers
     /// Controller for creating, getting and updating releases
     /// </summary>
     [ApiController]
+    [Authorize]
     [Route("/designer/api/v1/{org}/{app}/[controller]")]
     public class ReleasesController : ControllerBase
     {
