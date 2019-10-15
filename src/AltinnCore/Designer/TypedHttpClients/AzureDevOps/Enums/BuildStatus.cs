@@ -4,6 +4,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums
 {
     /// <summary>
     /// The Azure DevOps Build Status
+    /// https://docs.microsoft.com/en-us/rest/api/azure/devops/build/builds/queue?view=azure-devops-rest-5.1#buildstatus
     /// </summary>
     public enum BuildStatus
     {

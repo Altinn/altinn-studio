@@ -22,6 +22,12 @@ namespace AltinnCore.Designer.Repository.Models
         public BuildStatus Status { get; set; }
 
         /// <summary>
+        /// Result
+        /// </summary>
+        [JsonProperty("result")]
+        public BuildResult Result { get; set; }
+
+        /// <summary>
         /// Started
         /// </summary>
         [JsonProperty("started")]
