@@ -32,7 +32,7 @@
     </Content>
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Sdk="Microsoft.NET.Sdk">
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
   </ItemGroup>
 
