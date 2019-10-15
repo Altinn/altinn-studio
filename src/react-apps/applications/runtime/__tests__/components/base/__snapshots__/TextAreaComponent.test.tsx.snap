@@ -6,10 +6,10 @@ exports[`>>> components/base/TextAreaComponent.tsx +++ should match snapshot 1`]
 >
   <textarea
     className="form-control a-textarea "
-    disabled={false}
     id="mock-id"
     onBlur={[Function]}
     onChange={[Function]}
+    readOnly={false}
     style={
       Object {
         "resize": "none",
