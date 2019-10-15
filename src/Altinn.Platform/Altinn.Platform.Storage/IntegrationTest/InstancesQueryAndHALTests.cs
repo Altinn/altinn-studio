@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessCurrentTaskSubmit()
         {
             HttpClient client = fixture.CreateClient();
@@ -62,7 +62,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with query param. gt: - greater than, lt: - less than
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessVisibleDateTimeGt()
         {
             HttpClient client = fixture.CreateClient();
@@ -85,7 +85,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with labels.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessLabels()
         {
             HttpClient client = fixture.CreateClient();
@@ -108,7 +108,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with labels.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessTwoLabels()
         {
             HttpClient client = fixture.CreateClient();
@@ -131,7 +131,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with labels.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessOneLabelWithOne()
         {
             HttpClient client = fixture.CreateClient();
@@ -152,7 +152,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with labels.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessOneLabelWithOneCommaTwo()
         {
             HttpClient client = fixture.CreateClient();
@@ -175,7 +175,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that wrong syntax is ignored
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessIllegalVisibleDateTime()
         {
             HttpClient client = fixture.CreateClient();
@@ -191,7 +191,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with no result set
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessNoResult()
         {
             HttpClient client = fixture.CreateClient();
@@ -208,7 +208,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessVisibleDateTimeEq()
         {
             HttpClient client = fixture.CreateClient();
@@ -231,7 +231,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that a local date performs ok.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessVisibleLocalDate()
         {
             HttpClient client = fixture.CreateClient();
@@ -254,7 +254,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void QueryProcessVisibleDateTimeBetween()
         {
             HttpClient client = fixture.CreateClient();
@@ -277,7 +277,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that the GET returns an instance owners codes
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void GetInstancesForInstanceOwner()
         {
             HttpClient client = fixture.CreateClient();
@@ -297,7 +297,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with org query param.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void GetInstancesForOrg()
         {
             HttpClient client = fixture.CreateClient();
@@ -319,7 +319,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that requested HAL return hal+json.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void GetInstancesWithAcceptHAL()
         {
             HttpClient client = fixture.CreateClient();
@@ -339,7 +339,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void GetInstancesWithContinuationTokenAndGetNext()
         {
             HttpClient client = fixture.CreateClient();
@@ -407,7 +407,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with org query param.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void GetInstancesWithAcceptJson()
         {
             HttpClient client = fixture.CreateClient();
