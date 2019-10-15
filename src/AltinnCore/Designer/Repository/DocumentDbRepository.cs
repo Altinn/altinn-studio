@@ -59,10 +59,9 @@ namespace AltinnCore.Designer.Repository
         public async Task<IEnumerable<T>> GetAsync<T>(DocumentQueryModel query)
             where T : EntityBase
         {
-            int count = FindMaxItemCount(query.Top, 10);
             FeedOptions feedOptions = new FeedOptions
             {
-                MaxItemCount = count
+                MaxItemCount = query.Top ?? int.MaxValue
             };
 
             IDocumentQuery<T> documentQuery = _documentClient
@@ -100,16 +99,6 @@ namespace AltinnCore.Designer.Repository
         {
             Uri uri = UriFactory.CreateDocumentUri(_database, _collection, item.Id);
             await _documentClient.ReplaceDocumentAsync(uri, item);
-        }
-
-        private static int FindMaxItemCount(int? queryCount, int maxItemCount)
-        {
-            if (queryCount.HasValue && queryCount < maxItemCount)
-            {
-                return queryCount.Value;
-            }
-
-            return maxItemCount;
         }
     }
 }
