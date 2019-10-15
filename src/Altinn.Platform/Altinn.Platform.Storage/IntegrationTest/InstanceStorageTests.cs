@@ -87,7 +87,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Creates an instance of an app and then asks the app to get the instance. Checks if returned object has
         /// same values as object which was sent in.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void CreateInstanceReturnsNewIdAndNextGetReturnsSameId()
         {           
             Instance instanceData = new Instance
@@ -123,7 +123,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that the GET returns a proper encoding.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void GetInstancesAndCheckEncoding()
         {
             await storageClient.PostInstances(testAppId, testInstanceOwnerId);
@@ -138,7 +138,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Store a json file.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void StoreAForm()
         {
             object jsonContent = new
@@ -162,7 +162,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Store a binary file.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void StoreABinaryFile()
         {
             string applicationId = testAppId;
@@ -220,7 +220,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Read a binary file.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void GetABinaryFile()
         {
             string applicationId = testAppId;
@@ -250,7 +250,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Read a binary file.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void StoreAndGetImageFile()
         {
             string applicationId = testAppId;
@@ -280,7 +280,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  update an existing data file.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async void UpdateDataFile()
         {
             string applicationId = testAppId;

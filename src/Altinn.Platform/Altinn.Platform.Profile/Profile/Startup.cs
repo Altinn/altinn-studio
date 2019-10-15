@@ -4,7 +4,6 @@ using Altinn.Platform.Profile.Services.Implementation;
 using Altinn.Platform.Profile.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,8 +37,6 @@ namespace Altinn.Platform.Profile
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddMvc().AddControllersAsServices();
-
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.AddSingleton(Configuration);
             services.AddSingleton<IUserProfiles, UserProfilesWrapper>();

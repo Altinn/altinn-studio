@@ -148,6 +148,16 @@ namespace AltinnCore.Runtime
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
             SecurityKey key = new X509SecurityKey(cert);
 
+            string hostName = string.Empty;
+            if (Environment.GetEnvironmentVariable("GeneralSettings__HostName") != null)
+            {
+                hostName = Environment.GetEnvironmentVariable("GeneralSettings__HostName");
+            }
+            else
+            {
+                hostName = Configuration["GeneralSettings:HostName"];
+            }
+
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
                 {
@@ -160,7 +170,7 @@ namespace AltinnCore.Runtime
                         RequireExpirationTime = true,
                         ValidateLifetime = true
                     };
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Domain = hostName;
                     options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
                 });
 

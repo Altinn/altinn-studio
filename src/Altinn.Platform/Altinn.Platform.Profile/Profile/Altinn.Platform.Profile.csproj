@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
-    <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{d32c4ee9-e827-467a-b116-8ef0ba08a11f}</ProjectGuid>
   </PropertyGroup>
