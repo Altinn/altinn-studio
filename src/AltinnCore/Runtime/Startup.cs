@@ -15,21 +15,17 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.Authorization;
 using AltinnCore.Runtime.ModelBinding;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 
@@ -158,6 +154,8 @@ namespace AltinnCore.Runtime
                 hostName = Configuration["GeneralSettings:HostName"];
             }
 
+            services.AddMvc(options => options.EnableEndpointRouting = false);
+            services.AddRazorPages();
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
                 {
@@ -185,8 +183,7 @@ namespace AltinnCore.Runtime
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
-                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
-                options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
+                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());                
             });
             mvc.AddXmlSerializerFormatters();
 
@@ -258,8 +255,8 @@ namespace AltinnCore.Runtime
                 appBuilder.UseExceptionHandler("/Error");
             }
 
-            app.UseRouting();
-            app.UseEndpoints(endpoints =>
+            appBuilder.UseRouting();
+            appBuilder.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });

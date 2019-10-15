@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 
 namespace AltinnCore.Designer
@@ -92,12 +93,15 @@ namespace AltinnCore.Designer
                 Directory.CreateDirectory(repoLocation);
             }
 
+            services.AddMvc(options => options.EnableEndpointRouting = false);
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+
+            services.AddRazorPages();
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
@@ -127,12 +131,11 @@ namespace AltinnCore.Designer
                 services.AddApplicationInsightsKubernetesEnricher();
             }
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            var mvc = services.AddMvc().AddControllersAsServices();
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
-                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
-                options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
+                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());                
             });
             mvc.AddXmlSerializerFormatters();
 
@@ -161,7 +164,7 @@ namespace AltinnCore.Designer
         /// </summary>
         /// <param name="appBuilder">The application builder</param>
         /// <param name="env">Hosting environment</param>
-        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder appBuilder, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {

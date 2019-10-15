@@ -142,9 +142,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             string assemblyName = Path.GetRandomFileName();
 
-            //MetadataReferenceFeature referenceFeature = new MetadataReferenceFeature();
-            //_partManager.PopulateFeature(referenceFeature);
-
             var referenceFeature = new MetadataReference[]
             {
                 MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
