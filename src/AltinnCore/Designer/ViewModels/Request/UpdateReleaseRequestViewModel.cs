@@ -22,6 +22,12 @@ namespace AltinnCore.Designer.ViewModels.Request
         public BuildStatus Status { get; set; }
 
         /// <summary>
+        /// Result of the build in Azure DevOps
+        /// </summary>
+        [JsonProperty("result")]
+        public BuildResult Result { get; set; }
+
+        /// <summary>
         /// When the build in Azure DevOps started building
         /// </summary>
         [JsonProperty("started")]

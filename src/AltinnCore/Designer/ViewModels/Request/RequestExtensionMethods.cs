@@ -35,6 +35,7 @@ namespace AltinnCore.Designer.ViewModels.Request
                 {
                     Id = viewmodel.Id,
                     Status = viewmodel.Status,
+                    Result = viewmodel.Result,
                     Started = viewmodel.Started,
                     Finished = viewmodel.Finished
                 }

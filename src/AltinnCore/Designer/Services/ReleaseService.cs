@@ -7,7 +7,9 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services.Mapping;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
+using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Response;
@@ -28,6 +30,7 @@ namespace AltinnCore.Designer.Services
         private readonly ReleaseDbRepository _releaseDbRepository;
         private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
         private readonly ISourceControl _sourceControl;
+        private readonly IGitea _gitea;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly string _org;
@@ -41,17 +44,20 @@ namespace AltinnCore.Designer.Services
         /// <param name="azureDevOpsBuildService">IAzureDevOpsBuildService</param>
         /// <param name="sourceControl">ISourceControl</param>
         /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
+        /// <param name="gitea">IGitea</param>
         public ReleaseService(
             ReleaseDbRepository releaseDbRepository,
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildService azureDevOpsBuildService,
             ISourceControl sourceControl,
-            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions)
+            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
+            IGitea gitea)
         {
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _releaseDbRepository = releaseDbRepository;
             _azureDevOpsBuildService = azureDevOpsBuildService;
             _sourceControl = sourceControl;
+            _gitea = gitea;
             _httpContext = httpContextAccessor.HttpContext;
             _org = _httpContext.GetRouteValue("org").ToString();
             _app = _httpContext.GetRouteValue("app").ToString();
@@ -110,10 +116,20 @@ namespace AltinnCore.Designer.Services
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
             releaseEntity.Build.Status = release.Build.Status;
+            releaseEntity.Build.Result = release.Build.Result;
             releaseEntity.Build.Started = release.Build.Started;
             releaseEntity.Build.Finished = release.Build.Finished;
 
             await _releaseDbRepository.UpdateAsync(releaseEntity);
+
+            BuildEntity build = releaseEntity.Build;
+            if (build.Status == BuildStatus.Completed && build.Result == BuildResult.Succeeded)
+            {
+                await _gitea.CreateReleaseAsync(
+                    releaseEntity.Org,
+                    releaseEntity.App,
+                    releaseEntity.ToCreateReleaseOption());
+            }
         }
 
         private void PopulateFieldsInRelease(EntityBase release)
