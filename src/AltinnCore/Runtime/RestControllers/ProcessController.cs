@@ -234,6 +234,15 @@ namespace AltinnCore.Runtime.RestControllers
 
             LoadProcessModel(org, app);
 
+            if (!string.IsNullOrEmpty(elementId))
+            {
+                ElementInfo elemInfo = ProcessModel.GetElementInfo(elementId);
+                if (elemInfo == null)
+                {
+                    return BadRequest($"Requested element id {elementId} is not found in process definition");
+                }
+            }
+
             string currentElementId = instance.Process.CurrentTask?.ElementId;
 
             if (currentElementId == null)
@@ -457,8 +466,8 @@ namespace AltinnCore.Runtime.RestControllers
                     return proposedElementId;
                 }
                 else
-                {
-                    nextElementError = Conflict($"Process element id '{proposedElementId}' is not found in app's process model (bpmn)");
+                {                    
+                    nextElementError = Conflict($"The proposed next element id '{proposedElementId}' is not among the available next process elements");
                     return null;
                 }
             }

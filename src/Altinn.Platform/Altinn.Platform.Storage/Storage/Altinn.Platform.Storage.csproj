@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <UserSecretsId>8c2ac76a-d8b4-498d-867a-0ac18639f275</UserSecretsId>
     <!-- SonarCloud needs this -->
@@ -16,8 +16,8 @@
     <PackageReference Include="AltinnCore.ServiceLibrary" Version="10.0.0" />
     <PackageReference Include="Halcyon.Mvc" Version="2.5.1" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.6-alpha" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.8.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.2.2" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.3" />
     <PackageReference Include="Microsoft.Azure.KeyVault.Core" Version="3.0.3" />
@@ -25,6 +25,7 @@
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="9.4.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.1.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="2.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="2.0.2" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
@@ -34,7 +35,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.0.0-rc4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

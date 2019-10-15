@@ -7,7 +7,6 @@ using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest
 {
-
     /// <summary>
     /// This is a test class for InstanceHelper and is intended
     /// to contain all InstanceHelper Unit Tests
