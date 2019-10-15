@@ -25,7 +25,7 @@ namespace AltinnCore.Designer.Repository
             if (!string.IsNullOrWhiteSpace(query.SortBy) &&
                 query.SortBy.Equals("created", StringComparison.OrdinalIgnoreCase))
             {
-                var orderBy = q.OrderByDescending(x => x.Created);
+                IOrderedQueryable<T> orderBy = q.OrderByDescending(x => x.Created);
 
                 if (query.SortDirection == SortDirection.Ascending)
                 {
