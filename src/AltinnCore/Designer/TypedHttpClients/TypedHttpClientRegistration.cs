@@ -1,9 +1,15 @@
 using System;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using AltinnCore.Common.Constants;
+using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Services.Implementation;
+using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.DelegatingHandlers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -33,6 +39,22 @@ namespace AltinnCore.Designer.TypedHttpClients
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
+
+            services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
+            {
+                IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                IConfigurationSection serviceRepSettings = config.GetSection("ServiceRepositorySettings");
+                string uriString = Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint") ?? serviceRepSettings["ApiEndPoint"];
+                Uri uri = new Uri(uriString + "/");
+                httpClient.BaseAddress = uri;
+                httpClient.DefaultRequestHeaders.Add(
+                    General.AuthorizationTokenHeaderName,
+                    AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
+            }).ConfigurePrimaryHttpMessageHandler(() =>
+                new HttpClientHandler
+                {
+                    AllowAutoRedirect = true
+                });
 
             return services;
         }
