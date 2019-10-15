@@ -145,16 +145,15 @@ class FormDesigner extends React.Component<
   }
 
   public componentDidMount() {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
-    const servicePath = `${org}/${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const appId = `${org}/${app}`;
 
     FormDesignerActionDispatchers.fetchFormLayout(
-      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetFormLayout`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);
     AppDataActionDispatcher.setDesignMode(true);
     ManageServiceConfigurationDispatchers.fetchJsonFile(
-      `${altinnWindow.location.origin}/designer/${
-      servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
+      `${window.location.origin}/designer/${
+        appId}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
   }
   public toggleMenu = () => {
     this.setState({

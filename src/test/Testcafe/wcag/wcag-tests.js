@@ -23,7 +23,7 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 
 	test('Accessibility testing for preview page', async t => {
 		await t
-			.navigateTo(app.baseUrl + 'designer/tdd/wcag#/test')
+			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/test')
 			.switchToIframe(runtime.testBrukerIframe)
 			.expect(runtime.testUsers[0].exists).ok()
 			.hover(runtime.testUsers[0])
@@ -38,7 +38,7 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 
 	test('Accessibility testing for deployment to test environment page', async t => {
 		await t
-			.navigateTo(app.baseUrl + 'designer/tdd/wcag#/test')
+			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/test')
 			.click(designerPage.testeNavigationTab)
 			.hover(designerPage.leftDrawerMenu)
 			.click(designerPage.testeLeftMenuItems[1])
@@ -48,7 +48,7 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 
 	test('Accessibility testing for party selection page', async t => {
     await t
-      .navigateTo(app.baseUrl + 'designer/tdd/wcag#/test')
+      .navigateTo(app.baseUrl + 'designer/ttd/wcag#/test')
       .switchToIframe(runtime.testBrukerIframe)
       .expect(runtime.testUsers[1].exists).ok()
       .hover(runtime.testUsers[1])
@@ -62,14 +62,14 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 
 	test('Accessibility testing for designer page', async t => {
 		await t
-		  .navigateTo(app.baseUrl + 'designer/tdd/wcag#/test')
+		  .navigateTo(app.baseUrl + 'designer/ttd/wcag#/test')
 		const { error, violations } = await axeCheck(t);
 		await t.expect(violations.length === 0).ok(createReport(violations));	
 	});
 
 	test('Om tab accessibility test', async t => {
 		await t
-			.navigateTo(app.baseUrl + 'designer/tdd/wcag#/aboutservice')
+			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/aboutservice')
 			.click(designerPage.omNavigationTab)
 			.hover(designerPage.leftDrawerMenu)
 			.expect(designerPage.omLeftMenuItems[0].visible).ok()
@@ -84,7 +84,7 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 
 	test('Lage tab accessibility test', async t => {
 		await t
-			.navigateTo(app.baseUrl + 'designer/tdd/wcag#/aboutservice')
+			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/aboutservice')
 			.click(designerPage.lageNavigationTab)
 			.hover(designerPage.leftDrawerMenu)
 			.expect(designerPage.lageLeftMenuItems[0].visible).ok()
@@ -98,7 +98,7 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 
 	test('Språk tab accessibility test', async t => {
 		await t
-			.navigateTo(app.baseUrl + 'designer/tdd/wcag#/aboutservice')
+			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/aboutservice')
 			.click(designerPage.spraakNavigationTab)
 			.hover(designerPage.leftDrawerMenu)
 			.expect(designerPage.spraakLeftMenuItems[0].visible).ok()
@@ -109,7 +109,7 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 
 	test('Teste tab accessibility test', async t => {
 		await t
-			.navigateTo(app.baseUrl + 'designer/tdd/wcag#/aboutservice')
+			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/aboutservice')
 			.click(designerPage.testeNavigationTab)
 			.hover(designerPage.leftDrawerMenu)
 			.expect(getLocation()).contains('test');
@@ -119,7 +119,7 @@ fixture('WCAG 2.0 tests for Altinn Studio')
 
 	test('Publisere tab accessibility test', async t => {
 		await t
-			.navigateTo(app.baseUrl + 'designer/tdd/wcag#/aboutservice')
+			.navigateTo(app.baseUrl + 'designer/ttd/wcag#/aboutservice')
 			.click(designerPage.publisereNavigationTab)
 			.hover(designerPage.leftDrawerMenu)
 			.expect(getLocation()).contains('publish');

@@ -32,7 +32,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(httpContextAccessor.HttpContext);
             string bpmnFilePath = repositorySettings.GetWorkflowPath(org, app, developer) + repositorySettings.WorkflowFileName;
-            return File.OpenRead(bpmnFilePath.AsFileName());
+            return File.OpenRead(bpmnFilePath);
         }
     }
 }

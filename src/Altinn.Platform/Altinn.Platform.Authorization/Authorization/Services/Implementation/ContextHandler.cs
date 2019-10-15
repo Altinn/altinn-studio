@@ -23,9 +23,9 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// </summary>
         /// <param name="request">The original Xacml Context Request</param>
         /// <returns></returns>
-        public XacmlContextRequest Enrich(XacmlContextRequest request)
+        public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request)
         {
-            return request;
+            return await Task.FromResult(request);
         }
     }
 }

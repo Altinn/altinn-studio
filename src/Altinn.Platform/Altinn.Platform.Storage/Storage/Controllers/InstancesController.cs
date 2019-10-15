@@ -13,7 +13,8 @@ namespace Altinn.Platform.Storage.Controllers
     using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
-    using AltinnCore.ServiceLibrary.Enums;
+    using AltinnCore.ServiceLibrary.Models;
+    using global::Storage.Interface.Enums;
     using global::Storage.Interface.Models;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Http;
@@ -36,6 +37,7 @@ namespace Altinn.Platform.Storage.Controllers
     public class InstancesController : ControllerBase
     {
         private readonly IInstanceRepository _instanceRepository;
+        private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
         private readonly IDataRepository _dataRepository;
         private readonly ILogger logger;
@@ -46,6 +48,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
+        /// <param name="instanceEventRepository">the instance event repository service</param>        
         /// <param name="applicationRepository">the application repository handler</param>
         /// <param name="dataRepository">the data repository handler</param>
         /// <param name="generalSettings">the platform settings which has the url to the registry</param>
@@ -53,6 +56,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="bridgeClient">the client to call bridge service</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
+            IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
             IDataRepository dataRepository,
             IOptions<GeneralSettings> generalSettings,
@@ -60,6 +64,7 @@ namespace Altinn.Platform.Storage.Controllers
             HttpClient bridgeClient)
         {
             _instanceRepository = instanceRepository;
+            _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
             _dataRepository = dataRepository;
             this.logger = logger;
@@ -349,6 +354,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instanceTemplate, ownerId, creationTime, userId);
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
+                await DispatchEvent(InstanceEventType.Created.ToString(), storedInstance);
                 logger.LogInformation($"Created instance: {storedInstance.Id}");
 
                 if (parts.Any())
@@ -877,6 +883,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
+                await DispatchEvent(instance.InstanceState.IsArchived ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
                 AddSelfLinks(Request, result);
             }
             catch (Exception e)
@@ -949,6 +956,21 @@ namespace Altinn.Platform.Storage.Controllers
                     return StatusCode(500, $"Unknown exception in delete: {e}");
                 }
             }
+        }
+
+        private async Task DispatchEvent(string eventType, Instance instance)
+        {
+            InstanceEvent instanceEvent = new InstanceEvent
+            {
+                AuthenticationLevel = 0, // update when authentication is turned on
+                EventType = eventType,
+                InstanceId = instance.Id,
+                InstanceOwnerId = instance.InstanceOwnerId,
+                UserId = 0, // update when authentication is turned on
+                ProcessInfo = instance.Process,
+            };
+
+            await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
     }
 

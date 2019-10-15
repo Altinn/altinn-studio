@@ -1,28 +1,34 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <!-- SonarCloud needs this -->
     <ProjectGuid>{3aa4860c-e86b-488f-ae89-b0a28bc1f701}</ProjectGuid>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.3" />
     <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.0.5" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.3.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="5.5.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="5.5.0" />    
   </ItemGroup>
 
   <PropertyGroup>
-    <Version>0.9.0-alpha</Version>
+    <Version>1.0.2-alpha</Version>
     <Description>JWTCookieAuthentication is a package for usage of JWT token for authentication both as bearer token and inside cookie</Description>
     <PackageTags>altinn studio, authentication, jwt, JWTCookieAuthentication</PackageTags>
     <PackageId>JWTCookieAuthentication</PackageId>
     <Company>Altinn</Company>
     <Product>JWTCookieAuthentication</Product>
-    <AssemblyVersion>0.9.0.0</AssemblyVersion>
-    <FileVersion>0.9.0.0</FileVersion>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
+    <FileVersion>1.0.2.0</FileVersion>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
@@ -40,7 +46,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.2\AltinnCore.Authentication.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp3.0\AltinnCore.Authentication.xml</DocumentationFile>
   </PropertyGroup>
   
 </Project>

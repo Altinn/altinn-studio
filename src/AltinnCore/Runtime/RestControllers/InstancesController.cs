@@ -9,6 +9,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Runtime.Helpers;
 using AltinnCore.Runtime.RequestHandling;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
@@ -42,8 +43,6 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly IRegister registerService;
         private readonly IRepository repositoryService;
         private readonly IPlatformServices platformService;
-        private readonly IInstanceEvent eventService;
-        private readonly IWorkflow processService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -57,9 +56,7 @@ namespace AltinnCore.Runtime.RestControllers
             IExecution executionService,
             IProfile profileService,
             IPlatformServices platformService,
-            IInstanceEvent eventService,
-            IRepository repositoryService,
-            IWorkflow processService)
+            IRepository repositoryService)
         {
             this.logger = logger;
             this.instanceService = instanceService;
@@ -67,9 +64,7 @@ namespace AltinnCore.Runtime.RestControllers
             this.executionService = executionService;
             this.registerService = registerService;
             this.platformService = platformService;
-            this.eventService = eventService;
             this.repositoryService = repositoryService;
-            this.processService = processService;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -101,7 +96,7 @@ namespace AltinnCore.Runtime.RestControllers
                     return NotFound();
                 }
 
-                SetAppSelfLinks(instance, Request);
+                SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 return Ok(instance);
             }
@@ -141,7 +136,7 @@ namespace AltinnCore.Runtime.RestControllers
                     return NotFound();
                 }
 
-                SetAppSelfLinks(instance, Request);
+                SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 return Ok(instance);
             }
@@ -163,7 +158,6 @@ namespace AltinnCore.Runtime.RestControllers
         /// <returns>the created instance</returns>
         [HttpPost]
         [DisableFormValueModelBinding]
-        [Consumes("application/json", otherContentTypes: new string[] { "multipart/form-data", })]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -285,12 +279,10 @@ namespace AltinnCore.Runtime.RestControllers
 
                 // todo add compensating transaction (delete instance)                
                 return StatusCode(500, $"{message} - {dataException.Message}");
-            }            
+            }
 
-            SetAppSelfLinks(instance, Request);
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
-
-            await DispatchEvent(InstanceEventType.Created.ToString(), instance);
 
             return Created(url, instance);
         }
@@ -361,45 +353,6 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         /// <summary>
-        /// Sets the application specific self links.
-        /// </summary>
-        /// <param name="instance">the instance to set links for</param>
-        /// <param name="request">the http request to extract host and path name</param>
-        internal static void SetAppSelfLinks(Instance instance, HttpRequest request)
-        {
-            string host = $"https://{request.Host.ToUriComponent()}";
-            string url = request.Path;
-
-            string selfLink = $"{host}{url}";
-
-            int start = selfLink.IndexOf("/instances");
-            if (start > 0)
-            {
-                selfLink = selfLink.Substring(0, start) + "/instances";
-            }
-
-            selfLink += $"/{instance.Id}";            
-
-            if (!selfLink.EndsWith(instance.Id))
-            {
-                selfLink += instance.Id;
-            }
-
-            instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
-            instance.SelfLinks.Apps = selfLink;
-
-            if (instance.Data != null)
-            {
-                foreach (DataElement dataElement in instance.Data)
-                {
-                    dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
-
-                    dataElement.DataLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
-                }
-            }
-        }
-
-        /// <summary>
         /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
@@ -423,31 +376,6 @@ namespace AltinnCore.Runtime.RestControllers
             serviceImplementation.SetPlatformServices(platformService);
 
             return serviceImplementation;
-        }
-
-        /// <summary>
-        /// Creates an event and dispatches it to the eventService for storage.
-        /// </summary>
-        private async Task DispatchEvent(string eventType, Instance instance)
-        { 
-            UserContext userContext = await userHelper.GetUserContext(HttpContext);
-
-            string app = instance.AppId.Split("/")[1];
-            int authenticationLevel = userContext.AuthenticationLevel;
-            int userId = userContext.UserId;
-
-            // Create and store the instance created event
-            InstanceEvent instanceEvent = new InstanceEvent
-            {
-                AuthenticationLevel = authenticationLevel,
-                EventType = eventType,
-                InstanceId = instance.Id,
-                InstanceOwnerId = instance.InstanceOwnerId,
-                UserId = userId,
-                ProcessInfo = instance.Process,
-            };
-
-            await eventService.SaveInstanceEvent(instanceEvent, instance.Org, app);
         }
     }
 }

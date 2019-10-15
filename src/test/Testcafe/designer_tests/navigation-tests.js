@@ -62,15 +62,10 @@ test('Teste tab navigation', async () => {
     .expect(getLocation()).contains('test');
 });
 
-test('Publisere tab navigation', async () => {
+test('Deploy tab navigation', async () => {
   await t
-    .click(designerPage.publisereNavigationTab)
-    .hover(designerPage.leftDrawerMenu)
-    .expect(getLocation()).contains('publish');
-});
-
-test('Automated accesibility testing', async t => {
-  axeCheck(t);
+    .click(designerPage.deployNavigationTab)    
+    .expect(getLocation()).contains('deploy');
 });
 
 test('Open Gitea repository Navigation', async () => {

@@ -7,12 +7,12 @@
   </Attributes>
   <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource">
     <Attribute IncludeInResult="false" AttributeId="urn:altinn:instance-id">
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">cbdc7b44-9442-4fe0-854b-da278bf0b0e</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713</AttributeValue>
     </Attribute>
   </Attributes>
   <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action">
     <Attribute IncludeInResult="false" AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id">
-      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">Read</AttributeValue>
+      <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
     </Attribute>
   </Attributes>
   <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:environment" />

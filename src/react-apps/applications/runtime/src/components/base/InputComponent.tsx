@@ -43,7 +43,7 @@ export class InputComponent
         type={this.props.type}
         onBlur={this.onDataChangeSubmit}
         onChange={this.onDataChanged}
-        disabled={this.props.readOnly}
+        readOnly={this.props.readOnly}
         required={this.props.required}
         className={classNames('form-control',
           { 'validation-error': !this.props.isValid, 'disabled': this.props.readOnly },

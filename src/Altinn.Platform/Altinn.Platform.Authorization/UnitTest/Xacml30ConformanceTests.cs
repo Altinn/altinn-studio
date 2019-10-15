@@ -53,18 +53,6 @@ namespace Altinn.Authorization.ABAC.UnitTest
         }
 
         [Fact]
-        public void PDP_AuthorizeAccess_IIA004()
-        {
-            bool contextRequstIsEnriched = false;
-            string testCase = "IIA004";
-
-            XacmlContextResponse contextResponeExpected = XacmlTestDataParser.ParseResponse(testCase + "Response.xml", GetConformancePath());
-            XacmlContextResponse xacmlResponse = SetuUpPolicyDecisionPoint(testCase, contextRequstIsEnriched);
-
-            AssertionUtil.AssertEqual(contextResponeExpected, xacmlResponse);
-        }
-
-        [Fact]
         public void PDP_AuthorizeAccess_IIA006()
         {
             bool contextRequstIsEnriched = false;
@@ -99,13 +87,14 @@ namespace Altinn.Authorization.ABAC.UnitTest
             }
 
             Moq.Mock<IContextHandler> moqContextHandler = new Mock<IContextHandler>();
-            moqContextHandler.Setup(c => c.Enrich(It.IsAny<XacmlContextRequest>())).Returns(contextRequestEnriched);
+            moqContextHandler.Setup(c => c.Enrich(It.IsAny<XacmlContextRequest>())).ReturnsAsync(contextRequestEnriched);
             
             Moq.Mock<IPolicyRetrievalPoint> moqPRP = new Mock<IPolicyRetrievalPoint>();
 
+            XacmlPolicy policy = null;
             try
             {
-                XacmlPolicy policy = XacmlTestDataParser.ParsePolicy(testCase + "Policy.xml", GetConformancePath());
+                policy = XacmlTestDataParser.ParsePolicy(testCase + "Policy.xml", GetConformancePath());
                 moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Returns(policy);
             }
             catch(XmlException ex)
@@ -113,9 +102,9 @@ namespace Altinn.Authorization.ABAC.UnitTest
                 moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Throws(ex);
             }
 
-            PolicyDecisionPoint pdp = new PolicyDecisionPoint(moqContextHandler.Object, moqPRP.Object);
+            PolicyDecisionPoint pdp = new PolicyDecisionPoint();
 
-            XacmlContextResponse xacmlResponse = pdp.Authorize(contextRequest);
+            XacmlContextResponse xacmlResponse = pdp.Authorize(contextRequestEnriched, policy);
 
             return xacmlResponse;
         }

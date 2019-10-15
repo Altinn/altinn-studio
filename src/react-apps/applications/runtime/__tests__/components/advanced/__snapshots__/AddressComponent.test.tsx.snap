@@ -18,9 +18,9 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
   </label>
   <input
     className="form-control"
-    disabled={false}
     onBlur={[Function]}
     onChange={[Function]}
+    readOnly={false}
     required={false}
     value="adresse 1"
   />
@@ -44,9 +44,9 @@ exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snaps
       </label>
       <input
         className="address-component-small-inputs form-control"
-        disabled={false}
         onBlur={[Function]}
         onChange={[Function]}
+        readOnly={false}
         required={false}
         value=""
       />
