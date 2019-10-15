@@ -219,7 +219,7 @@ namespace AltinnCore.Authentication.JwtCookie
                 signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();
             }
 
-            string jwtToken = GetToken(user, Options.ExpireTimeSpan);
+            string jwtToken = GenerateToken(user, Options.ExpireTimeSpan);
 
             Options.CookieManager.AppendResponseCookie(
             Context,
@@ -251,7 +251,13 @@ namespace AltinnCore.Authentication.JwtCookie
             throw new NotImplementedException();
         }
 
-        private string GetToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        /// <summary>
+        /// Generates a token
+        /// </summary>
+        /// <param name="principal">the claims principal</param>
+        /// <param name="tokenExipry">validity time span for the token</param>
+        /// <returns></returns>
+        public string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
         {
             // authentication successful so generate jwt token
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();

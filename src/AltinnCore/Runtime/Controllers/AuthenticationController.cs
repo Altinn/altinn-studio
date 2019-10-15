@@ -42,15 +42,7 @@ namespace AltinnCore.Runtime.Controllers
             if (_settings.RuntimeMode != "AltinnStudio")
             {
                 string token = await _authentication.RefreshToken();
-
-                //if (result.StatusCode != HttpStatusCode.OK)
-                //{
-                //    return StatusCode((int)result.StatusCode);
-                //}
-
-                //string token = await result.Content.ReadAsStringAsync();                
-
-                _logger.LogInformation($"Token value in keep alive:{token}");
+             
                 CookieOptions runtimeCookieSetting = new CookieOptions
                 {
                     Domain = _settings.HostName,                    
