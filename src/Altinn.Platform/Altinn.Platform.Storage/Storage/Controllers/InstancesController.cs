@@ -667,7 +667,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private MemoryStream CopyStreamIntoMemoryStream(Stream stream)
         {
-            var syncIOFeature = HttpContext.Features.Get<IHttpBodyControlFeature>();
+            IHttpBodyControlFeature syncIOFeature = HttpContext.Features.Get<IHttpBodyControlFeature>();
             if (syncIOFeature != null)
             {
                 syncIOFeature.AllowSynchronousIO = true;
