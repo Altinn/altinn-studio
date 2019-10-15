@@ -47,7 +47,6 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddApplicationInsightsTelemetry();
-            services.AddHttpClient<InstancesController>();
 
             // Need to find out how to add hal with .net core 3.0, is used in IntergrationTest
             // Add HAL support (Halcyon)
