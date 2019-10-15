@@ -37,7 +37,7 @@ namespace Altinn.Platform.Receipt
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllersWithViews();
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
