@@ -1,14 +1,14 @@
 using System;
 using System.Net;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography.X509Certificates;
-using Microsoft.IdentityModel.Tokens;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Configuration;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Receipt
 {
@@ -18,7 +18,7 @@ namespace Altinn.Platform.Receipt
     public class Startup
     {
         /// <summary>
-        ///  Initializes a new instance of the <see cref="Config"/> class
+        ///  Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
         /// <param name="configuration">The configuration for the config component</param>
         public Startup(IConfiguration configuration)
@@ -37,6 +37,8 @@ namespace Altinn.Platform.Receipt
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddControllersWithViews();
+
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
@@ -58,8 +60,6 @@ namespace Altinn.Platform.Receipt
                     options.Cookie.Name = "AltinnStudioRuntime";
                 });
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
@@ -70,7 +70,7 @@ namespace Altinn.Platform.Receipt
         /// </summary>
         /// <param name="app">the application builder.</param>
         /// <param name="env">the hosting environment.</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             string runtimeMode = string.Empty;
             if (Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != null)
@@ -92,7 +92,6 @@ namespace Altinn.Platform.Receipt
                 authenticationEndpoint = Configuration["PlatformSettings:ApiAuthenticationEndpoint"];
             }
 
-            app.UseAuthentication();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -101,6 +100,7 @@ namespace Altinn.Platform.Receipt
             {
                 app.UseExceptionHandler("/Error");
             }
+
             app.UseStaticFiles();
             app.UseStatusCodePages(async context =>
             {
@@ -112,21 +112,25 @@ namespace Altinn.Platform.Receipt
                 // && request.Path.Value.StartsWith("/specificPath")
                 if (response.StatusCode == (int)HttpStatusCode.Unauthorized && runtimeMode != "AltinnStudio")
                 {
-                    response.Redirect(($"{authenticationEndpoint}authentication?goto={url}"));
+                    response.Redirect($"{authenticationEndpoint}authentication?goto={url}");
                 }
             });
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "languageRoute",
-                    template: "receipt/api/v1/{controller}/{action=Index}",
-                    defaults: new { controller = "Language" },
-                    constraints: new
-                    {
-                        controller = "Language",
-                    }
-                );
-            });
+
+            app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+              {
+                  endpoints.MapControllers();
+                  endpoints.MapControllerRoute(
+                      name: "languageRoute",
+                      pattern: "receipt/api/v1/{controller}/{action=Index}",
+                      defaults: new { controller = "Language" },
+                      constraints: new
+                      {
+                          controller = "Language",
+                      });
+              });
         }
     }
 }

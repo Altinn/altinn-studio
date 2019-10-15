@@ -35,7 +35,6 @@ namespace Altinn.Platform.Register
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
