@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AltinnCore.Common.Models;
 using AltinnCore.RepositoryClient.Model;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -26,6 +27,14 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
 
         /// <summary>
+        /// Creates a release for a specific owner and repository
+        /// </summary>
+        /// <param name="owner">the organisation or user</param>
+        /// <param name="repository">the repository name</param>
+        /// <returns>The newly created release</returns>
+        Task<RepositoryReleaseModel> CreateReleaseAsync(string owner, string repository, RepositoryCreateReleaseOption createReleaseOption);
+
+        /// <summary>
         /// Search the repository for the given parameters
         /// </summary>
         /// <param name="onlyAdmin">search parameter to search only admin repositories</param>
@@ -47,6 +56,23 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <returns>A list over organizations</returns>
         Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations();
+
+        /// <summary>
+        /// List all branches with commit for a repo
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repo">The name of the repo</param>
+        /// <returns>The repoList</returns>
+        Task<List<Branch>> GetBranches(string org, string repo);
+
+        /// <summary>
+        /// Returns information about a given branch
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branch info</returns>
+        Task<Branch> GetBranch(string org, string repository, string branch);
 
         /// <summary>
         /// This method screen scrapes the user from the profile ui in GITEA.

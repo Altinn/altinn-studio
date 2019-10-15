@@ -8,6 +8,7 @@ using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
 using Microsoft.AspNetCore.Http;
@@ -92,6 +93,21 @@ namespace AltinnCore.Common.Services.Implementation
             repository.RepositoryCreatedStatus = HttpStatusCode.Created;
 
             return repository;
+        }
+
+        /// <inheritdoc/>
+        public async Task<RepositoryReleaseModel> CreateReleaseAsync(string owner, string repository, RepositoryCreateReleaseOption createReleaseOption)
+        {
+            string requestUri = $"repos/{owner}/{repository}/releases";
+            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(requestUri, createReleaseOption);
+            if (response.StatusCode == HttpStatusCode.Created)
+            {
+                return await response.Content.ReadAsAsync<RepositoryReleaseModel>();
+            }
+
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Create repository failed with statuscode " + response.StatusCode + " for " + owner + " and reponame " + repository);
+
+            return null;
         }
 
         /// <inheritdoc/>
@@ -237,6 +253,39 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Get Organizations failed with statuscode " + response.StatusCode);
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns all branch information for a repository
+        /// </summary>
+        /// <param name="owner">The owner</param>
+        /// <param name="repo">The name of the repo</param>
+        /// <returns>The branches</returns>
+        public async Task<List<Branch>> GetBranches(string owner, string repo)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{owner}/{repo}/branches");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsAsync<List<Branch>>();
+            }
+
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + owner + " " + repo);
+
+            return new List<Branch>();
+        }
+
+        /// <inheritdoc />
+        public async Task<Branch> GetBranch(string owner, string repository, string branch)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{owner}/{repository}/branches/{branch}");
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsAsync<Branch>();
+            }
+
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + owner + " / " + repository + " branch: " + branch);
 
             return null;
         }
@@ -455,14 +504,24 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (!_cache.TryGetValue(cachekey, out org))
             {
-                org = await GetOrganization(orgName);
+                try
+                {
+                    org = await GetOrganization(orgName);
+                }
+                catch
+                {
+                    org = new Organization
+                    {
+                        Id = -1
+                    };
+                }
 
                 // Null value is not cached. so set id property to -1
-                if (org == null)
-                {
-                    org = new Organization();
-                    org.Id = -1;
-                }
+                ////if (org == null)
+                ////{
+                ////    org = new Organization();
+                ////    org.Id = -1;
+                ////}
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
 

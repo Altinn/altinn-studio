@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -81,24 +82,6 @@ namespace AltinnCore.Designer.Controllers
         {
             List<Organization> orglist = _giteaApi.GetUserOrganizations().Result;
             return orglist == null ? new List<Organization>() : orglist;
-        }
-
-        /// <summary>
-        /// Returns a specic organization
-        /// TODO Can potentially be deleted
-        /// </summary>
-        /// <param name="id">The organization name</param>
-        /// <returns>The organization</returns>
-        [HttpGet]
-        public ActionResult<Organization> Organization(string id)
-        {
-            Organization org = _giteaApi.GetOrganization(id).Result;
-            if (org != null)
-            {
-                return org;
-            }
-
-            return NotFound();
         }
 
         /// <summary>
@@ -210,6 +193,27 @@ namespace AltinnCore.Designer.Controllers
         {
             return _sourceControl.GetLatestCommitForCurrentUser(owner, repository);
         }
+
+        /// <summary>
+        /// List all branches for a repository
+        /// </summary>
+        /// <param name="owner">The owner of the repo</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>List of repos</returns>
+        [HttpGet]
+        public async Task<List<Branch>> Branches(string owner, string repository)
+            => await _giteaApi.GetBranches(owner, repository);
+
+        /// <summary>
+        /// Returns information about a given branch
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branch info</returns>
+        [HttpGet]
+        public async Task<Branch> Branch(string owner, string repository, string branch)
+            => await _giteaApi.GetBranch(owner, repository, branch);
 
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
