@@ -50,7 +50,9 @@ namespace AltinnCore.Designer.TypedHttpClients
                 httpClient.DefaultRequestHeaders.Add(
                     General.AuthorizationTokenHeaderName,
                     AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
-            }).ConfigurePrimaryHttpMessageHandler(() =>
+            })
+                .AddHttpMessageHandler<EnsureSuccessHandler>()
+                .ConfigurePrimaryHttpMessageHandler(() =>
                 new HttpClientHandler
                 {
                     AllowAutoRedirect = true
