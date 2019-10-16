@@ -53,28 +53,24 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataRepository">the data repository handler</param>
         /// <param name="generalSettings">the platform settings which has the url to the registry</param>
         /// <param name="logger">the logger</param>
-        /// <param name="bridgeClient">the client to call bridge service</param>
         public InstancesController(
             IInstanceRepository instanceRepository,
             IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository,
             IDataRepository dataRepository,
             IOptions<GeneralSettings> generalSettings,
-            ILogger<InstancesController> logger,
-            HttpClient bridgeClient)
+            ILogger<InstancesController> logger)
         {
             _instanceRepository = instanceRepository;
             _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
             _dataRepository = dataRepository;
             this.logger = logger;
-            this.bridgeRegistryClient = bridgeClient;
-
             string bridgeUri = generalSettings.Value.GetBridgeRegisterApiEndpoint();
-            if (bridgeUri != null)
+            this.bridgeRegistryClient = new HttpClient()
             {
-                this.bridgeRegistryClient.BaseAddress = new Uri(bridgeUri);
-            }
+                BaseAddress = new Uri(bridgeUri)
+            };
         }
 
         /// <summary>
@@ -671,6 +667,12 @@ namespace Altinn.Platform.Storage.Controllers
 
         private MemoryStream CopyStreamIntoMemoryStream(Stream stream)
         {
+            IHttpBodyControlFeature syncIOFeature = HttpContext.Features.Get<IHttpBodyControlFeature>();
+            if (syncIOFeature != null)
+            {
+                syncIOFeature.AllowSynchronousIO = true;
+            }
+
             MemoryStream memoryStream = new MemoryStream();
             stream.CopyTo(memoryStream);
             memoryStream.Position = 0;
