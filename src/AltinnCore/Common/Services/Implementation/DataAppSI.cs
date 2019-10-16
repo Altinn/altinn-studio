@@ -68,12 +68,13 @@ namespace AltinnCore.Common.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             Instance instance;
-
-            XmlSerializer serializer = new XmlSerializer(type);
+            
             using (MemoryStream stream = new MemoryStream())
             {
+                XmlSerializer serializer = new XmlSerializer(type);
                 serializer.Serialize(stream, dataToSerialize);
                 stream.Position = 0;
+
                 StreamContent streamContent = new StreamContent(stream);
                 streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
                 Task<HttpResponseMessage> response = _client.PostAsync(apiUrl, streamContent);

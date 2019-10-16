@@ -298,9 +298,14 @@ namespace AltinnCore.Runtime.RestControllers
             foreach (RequestPart part in parts)
             {
                 logger.LogInformation($"Storing part {part.Name}");
-                object data = new StreamReader(part.Stream).ReadToEnd();
-
+                
                 IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, part.Name, true);
+                object data = DataController.DeserializeModel(part.Stream, part.ContentType, serviceImplementation.GetServiceModelType(), out string errorText);
+
+                if (!string.IsNullOrEmpty(errorText))
+                {
+                    throw new InvalidOperationException(errorText);
+                }
 
                 instanceWithData = await dataService.InsertFormData(
                     data,
