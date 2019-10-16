@@ -39,7 +39,8 @@
     <DocumentationFile>bin\Debug\netcoreapp3.0\AltinnCore.Common.xml</DocumentationFile>
   </PropertyGroup>
 
-  <ItemGroup>    
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Manatee.Json" Version="10.1.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
     <PackageReference Include="Moq" Version="4.10.1" />
