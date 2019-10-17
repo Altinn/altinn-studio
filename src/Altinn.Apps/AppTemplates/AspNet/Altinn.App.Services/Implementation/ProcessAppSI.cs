@@ -1,11 +1,10 @@
-using System;
 using System.IO;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Common.Services.Implementation
+namespace Altinn.App.Services.Implementation
 {
     /// <summary>
     /// The app implementation of the process service.

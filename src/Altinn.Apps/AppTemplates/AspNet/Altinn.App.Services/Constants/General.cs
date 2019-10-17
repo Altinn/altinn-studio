@@ -1,5 +1,3 @@
-
-
 namespace Altinn.App.Services.Constants
 {
     /// <summary>

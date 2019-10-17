@@ -10,18 +10,18 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
-using AltinnCore.Common.Services.Interface;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Common.Services.Implementation
+namespace Altinn.App.Services.Implementation
 {
     /// <summary>
     /// App implementation of the data handling service.

@@ -11,7 +11,6 @@ using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
-using AltinnCore.Common.Services.Interface;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
