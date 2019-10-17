@@ -208,7 +208,7 @@ namespace Altinn.Platform.Storage.Client
         /// <returns>the instance just created</returns>
         public async Task<Instance> PostInstances(string appId, Instance instanceTemplate)
         {
-            string requestUri = $"{versionPrefix}/instances?appId={appId}";
+            string requestUri = $"{versionPrefix}/instances?appId={appId}&instanceOwnerId={instanceTemplate.InstanceOwnerId}";
 
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, instanceTemplate.AsJson());
             if (response.IsSuccessStatusCode)
