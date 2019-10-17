@@ -34,9 +34,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/organizations/{{orgNr}}",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/organizations/{{orgNr}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -74,9 +76,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/{{partyID}}",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/{{partyID}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -124,9 +128,11 @@
 							"raw": "\"{{SSN}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/persons",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/persons",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -173,9 +179,11 @@
 							"raw": "\"{{SSN}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/lookup",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookup",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -223,9 +231,11 @@
 							"raw": "\"{{orgNr}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/lookup",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookup",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -277,9 +287,11 @@
 							"raw": "\"{{SSN}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/lookupobject",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookupobject",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -331,9 +343,11 @@
 							"raw": "\"{{orgNr}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/lookupobject",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookupobject",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -373,9 +387,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/profile/api/v1/users/{{userID}}",
+							"raw": "https://platform.{{envUrl}}/profile/api/v1/users/{{userID}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"profile",
@@ -430,9 +446,11 @@
 							"raw": "{\r\n    \"encryptedTicket\": \"CD4E027814113A483207C670A4\"\r\n}"
 						},
 						"url": {
-							"raw": "{{platformUrl}}/authentication/api/v1/authentication?goto=http://www.altinn.no",
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://www.altinn.no",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"authentication",
@@ -443,7 +461,7 @@
 							"query": [
 								{
 									"key": "goto",
-									"value": "http://www.altinn.no"
+									"value": "https://www.altinn.no"
 								}
 							]
 						}
@@ -477,9 +495,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/authorization/api/v1/parties?userid={{userID}}",
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/parties?userid={{userID}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"authorization",
@@ -518,9 +538,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/authorization/api/v1/roles?coveredbyuserid={{userID}}&offeredbypartyid={{partyID}}",
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/roles?coveredbyuserid={{userID}}&offeredbypartyid={{partyID}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"authorization",
@@ -600,9 +622,11 @@
 									"raw": "{\r\n  \"appId\": \"{{appId}}\",\r\n  \"versionId\": \"1\",\r\n  \"org\": \"{{org}}\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"AutomatedTest\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"AutomatedTest\",\r\n  \"title\": {\r\n    \"nb\": \"{{app}}\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    },\r\n    {\r\n    \"id\": \"attachment\",\r\n    \"allowedContentType\": [\r\n    \t\"application/octet-stream\"\r\n    ],\r\n    \"appLogic\": true,\r\n    \"maxSize\": 25,\r\n    \"maxCount\": 5,\r\n    \"minCount\": 0\r\n}\r\n  ]\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -640,9 +664,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -681,9 +707,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -732,9 +760,11 @@
 									"raw": "{\r\n  \"appId\": \"{{appId}}\",\r\n  \"versionId\": \"2\",\r\n  \"org\": \"{{org}}\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"AutomatedTest\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"AutomatedTest\",\r\n  \"title\": {\r\n    \"nb\": \"{{app}}\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    },\r\n    {\r\n    \"id\": \"attachment\",\r\n    \"allowedContentType\": [\r\n    \t\"application/octet-stream\"\r\n    ],\r\n    \"appLogic\": true,\r\n    \"maxSize\": 25,\r\n    \"maxCount\": 5,\r\n    \"minCount\": 0\r\n}\r\n  ]\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -802,9 +832,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&instanceOwnerId={{instanceOwnerId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}&instanceOwnerId={{instanceOwnerId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -852,9 +884,11 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -899,9 +933,11 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -909,60 +945,6 @@
 										"v1",
 										"instances",
 										"{{instanceOwnerId}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET Instances with process filters",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
-										"exec": [
-											"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter - Status - 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Accept",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&process.isComplete=false&process.currentTask=FormFilling",
-									"host": [
-										"{{platformUrl}}"
-									],
-									"path": [
-										"storage",
-										"api",
-										"v1",
-										"instances"
-									],
-									"query": [
-										{
-											"key": "appId",
-											"value": "{{appId}}"
-										},
-										{
-											"key": "process.isComplete",
-											"value": "false"
-										},
-										{
-											"key": "process.currentTask",
-											"value": "FormFilling"
-										}
 									]
 								}
 							},
@@ -994,9 +976,11 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&createdDateTime=gt:{{current_timestamp}}&lastChangedDateTime=gte:2019-08-12T11:20:10.2003387Z",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}&createdDateTime=gt:{{current_timestamp}}&lastChangedDateTime=gte:2019-08-12T11:20:10.2003387Z",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1054,9 +1038,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1105,9 +1091,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1159,9 +1147,11 @@
 									"raw": "{}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1207,9 +1197,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1255,9 +1247,11 @@
 									"raw": "{}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1293,9 +1287,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1331,9 +1327,11 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1387,9 +1385,11 @@
 									}
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=attachment",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=attachment",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1430,9 +1430,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1472,9 +1474,11 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1535,9 +1539,11 @@
 									"raw": "{    \n   \"instanceOwnerId\": \"{{instanceOwnerId}}\",\n   \"instanceId\": \"{{instanceOwnerId}}/{{instanceId}}\",\n   \"eventType\": \"created\",\n   \"userId\": 3,\n   \"authenticationLevel\": 1,\n   \"workflowStep\": \"8\",\n   \"enduserSystemId\": 2\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1572,9 +1578,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/{{EventId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/{{EventId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1628,9 +1636,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1680,9 +1690,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?eventTypes=created",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?eventTypes=created",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1746,9 +1758,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1801,9 +1815,11 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1858,9 +1874,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1930,9 +1948,11 @@
 									"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n                <Skattyterinfor-grp-5801 gruppeid=\"5801\">                               \r\n                               <klagefrist-grp-5804 gruppeid=\"5804\">\r\n                                               <KlageGjeldendeInntektsar-datadef-25455 orid=\"25455\">2010</KlageGjeldendeInntektsar-datadef-25455>\r\n                                               <KlagemeldingSendtInnenKlagefrist-datadef-25454 orid=\"25454\" xsi:nil=\"true\" />\r\n                                               <KlageUtloptKlagefristBegrunnelse-datadef-25456 orid=\"25456\">åøæ123£$</KlageUtloptKlagefristBegrunnelse-datadef-25456>\r\n                               </klagefrist-grp-5804>\r\n                </Skattyterinfor-grp-5801>\r\n                <klage-grp-5805 gruppeid=\"5805\">\r\n                               <spesifisering-grp-5836 gruppeid=\"5836\">\r\n                                               <KlageSpesifisering-datadef-25457 orid=\"25457\">Orker ikke.</KlageSpesifisering-datadef-25457>\r\n                               </spesifisering-grp-5836>\r\n                </klage-grp-5805>\r\n</Skjema>\r\n--abcdefg--"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1991,9 +2011,11 @@
 									"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n                <Skattyterinfor-grp-5801 gruppeid=\"5801\">                               \r\n                               <klagefrist-grp-5804 gruppeid=\"5804\">\r\n                                               <KlageGjeldendeInntektsar-datadef-25455 orid=\"25455\">2010</KlageGjeldendeInntektsar-datadef-25455>\r\n                                               <KlagemeldingSendtInnenKlagefrist-datadef-25454 orid=\"25454\" xsi:nil=\"true\" />\r\n                                               <KlageUtloptKlagefristBegrunnelse-datadef-25456 orid=\"25456\">åøæ123£$</KlageUtloptKlagefristBegrunnelse-datadef-25456>\r\n                               </klagefrist-grp-5804>\r\n                </Skattyterinfor-grp-5801>\r\n                <klage-grp-5805 gruppeid=\"5805\">\r\n                               <spesifisering-grp-5836 gruppeid=\"5836\">\r\n                                               <KlageSpesifisering-datadef-25457 orid=\"25457\">Orker ikke.</KlageSpesifisering-datadef-25457>\r\n                               </spesifisering-grp-5836>\r\n                </klage-grp-5805>\r\n</Skjema>\r\n--abcdefg--"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2048,9 +2070,11 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2108,9 +2132,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}?hard=false",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}?hard=false",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2153,9 +2179,11 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2197,9 +2225,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2222,10 +2252,10 @@
 									"script": {
 										"id": "0967cde0-022c-4148-b82d-5d490cd417e5",
 										"exec": [
-											"pm.test(\"Platform - Storage - SBL - Get Instance Events for SBL - Status - 200\", function () {\r",
+											"pm.test(\"Platform - Storage - SBL - Get Instance events - Status - 200\", function () {\r",
 											"    pm.response.to.have.status(200);\r",
 											"});\r",
-											"pm.test(\"Platform - Storage - SBL - Get Instance Events for SBL - Status - Content\", function () {\r",
+											"pm.test(\"Platform - Storage - SBL - Get Instance Events for SBL - Status - Content\", function (){\r",
 											"    var jsonData = pm.response.json();\r",
 											"    var eventsCount = jsonData.length;\r",
 											"    pm.expect(eventsCount).to.equal(3);\r",
@@ -2239,9 +2269,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2286,9 +2318,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2338,9 +2372,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{FutureDateinstanceId}}?hard=true",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{FutureDateinstanceId}}?hard=true",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2382,9 +2418,11 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2424,9 +2462,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}/{{app}}?hard=true",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}?hard=true",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"storage",

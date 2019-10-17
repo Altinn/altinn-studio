@@ -27,13 +27,13 @@ test('Instantiate an app in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
     .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
+    .expect(runtime.testUsers[1].exists).ok()
+    .hover(runtime.testUsers[1])
+    .click(runtime.testUsers[1])
     .expect(runtime.startNewButton.exists).ok({ timeout:120000 })
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.testUserHeader[1].exists).ok()
 });
 
 test('Direct link navigation to runtime', async () => {
