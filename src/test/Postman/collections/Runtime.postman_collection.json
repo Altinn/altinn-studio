@@ -830,14 +830,14 @@
 			"name": "Data",
 			"item": [
 				{
-					"name": "POST Add Data",
+					"name": "POST Add Form Data",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"id": "dd484dcc-cd50-417c-9601-7b971fe28e68",
 								"exec": [
-									"pm.test(\"Runtime - Data - Add attachment - Status - 201\", function () {\r",
+									"pm.test(\"Runtime - Data - Add Form Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
@@ -945,14 +945,14 @@
 					"response": []
 				},
 				{
-					"name": "PUT Edit Data Guid",
+					"name": "PUT Edit Form Data",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"id": "68318696-e879-4d73-ac94-439390675fac",
 								"exec": [
-									"pm.test(\"Runtime - Data - Add attachment - Status - 201\", function () {\r",
+									"pm.test(\"Runtime - Data - Edit Form Data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
 									"    var jsonData = pm.response.json();\r",
 									"    var envDataId = pm.environment.get(\"dataGuid\");\r",
