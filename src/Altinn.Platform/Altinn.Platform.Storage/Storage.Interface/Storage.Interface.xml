@@ -356,15 +356,19 @@
         </member>
         <member name="P:Altinn.Platform.Storage.Models.ElementType.MaxCount">
             <summary>
-            Maximum number of instances of same element. Default is 1.
-            If negative no limit on number of data elements.
+            Maximum number of allowed elements of this type on the same application instance. Default is 1.
             </summary>
+            <remarks>
+            Zero or below indicate unbounded maximum number of elements.
+            </remarks>
         </member>
         <member name="P:Altinn.Platform.Storage.Models.ElementType.MinCount">
             <summary>
-            Minimum number of instances of same element. Default is 1.
-            If negative no limit on number of data elements.
+            Minimum number of required elements of this type on the same application instance. Default is 1.
             </summary>
+            <remarks>
+            Zero or below indicate that the element type is optional.
+            </remarks>
         </member>
         <member name="T:Altinn.Platform.Storage.Models.Instance">
             <summary>
