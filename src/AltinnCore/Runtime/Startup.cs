@@ -28,6 +28,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 
 namespace AltinnCore.Runtime
 {
@@ -183,7 +184,7 @@ namespace AltinnCore.Runtime
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
-                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());                
+                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
             });
             mvc.AddXmlSerializerFormatters();
 
@@ -213,20 +214,20 @@ namespace AltinnCore.Runtime
 
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
+                options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "Altinn Runtime",
                     Version = "v1"
                 });
 
-                try
+               /* try
                 {
                     options.IncludeXmlComments(GetXmlCommentsPathForControllers());
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine($"Cannot read XML file for SWAGGER Config! {e.Message}");
-                }
+                }*/
             });
         }
 
@@ -255,7 +256,15 @@ namespace AltinnCore.Runtime
                 appBuilder.UseExceptionHandler("/Error");
             }
 
+            appBuilder.UseSwagger();
+            appBuilder.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
+            });
+
             appBuilder.UseRouting();
+            appBuilder.UseAuthentication();
+            appBuilder.UseAuthorization();
             appBuilder.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
@@ -263,7 +272,6 @@ namespace AltinnCore.Runtime
 
             // appBuilder.UseHsts();
             // appBuilder.UseHttpsRedirection();
-            appBuilder.UseAuthentication();
 
             appBuilder.UseStatusCodePages(async context =>
                {
@@ -271,8 +279,8 @@ namespace AltinnCore.Runtime
                    var response = context.HttpContext.Response;
                    string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
 
-                    // you may also check requests path to do this only for specific methods
-                    // && request.Path.Value.StartsWith("/specificPath")
+                   // you may also check requests path to do this only for specific methods
+                   // && request.Path.Value.StartsWith("/specificPath")
                    if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
                    {
                        response.Redirect($"account/login?gotoUrl={url}");
@@ -519,13 +527,6 @@ namespace AltinnCore.Runtime
                 routes.MapRoute(
                     name: "defaultRoute",
                     template: "{action=Index}/{id?}");
-            });
-
-            appBuilder.UseSwagger();
-
-            appBuilder.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("v1/swagger.json", "Altinn Apps Runtime API");
             });
         }
 

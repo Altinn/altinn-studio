@@ -36,20 +36,20 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <returns>Ok result with updated token.</returns>
         [Authorize]
-        [HttpGet("{org}/{app}/api/{controller}/keepAlive")]
+        [HttpGet("{org}/{app}/api/[controller]/keepAlive")]
         public async Task<IActionResult> KeepAlive()
         {
             if (_settings.RuntimeMode != "AltinnStudio")
             {
                 string token = await _authentication.RefreshToken();
-             
+
                 CookieOptions runtimeCookieSetting = new CookieOptions
                 {
-                    Domain = _settings.HostName,                    
+                    Domain = _settings.HostName,
                 };
 
                 if (!string.IsNullOrWhiteSpace(token))
-                {                    
+                {
                     HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token, runtimeCookieSetting);
                     return Ok();
                 }
