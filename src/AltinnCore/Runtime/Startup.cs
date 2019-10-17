@@ -262,14 +262,13 @@ namespace AltinnCore.Runtime
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
             });
 
-            appBuilder.UseRouting();
+            // appBuilder.UseRouting();
             appBuilder.UseAuthentication();
             appBuilder.UseAuthorization();
             appBuilder.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-           // appBuilder.UseRouting();
 
             // appBuilder.UseHsts();
             // appBuilder.UseHttpsRedirection();
