@@ -24,15 +24,18 @@ function* instantiationSaga({
       yield put(InstantiationActions.instantiateToggle());
 
       const selectedParty: IParty = yield select(SelectedPartySelector);
-      const formData = new FormData();
 
-      formData.append('PartyId', selectedParty.partyId);
-      formData.append('Org', org);
-      formData.append('Service', app);
+      // TODO: What is presentationField, is it mandatory? Other parameters that should be in object?
+      const formData = {
+          instanceOwnerId: selectedParty.partyId,
+          appId : `${org}/${app}`,
+          presentationField: { nb: 'Arbeidsmelding' },
+      };
+
       post(instantiateUrl, null, formData)
         .then((response: AxiosResponse) => {
-          if (response.data.instanceId !== null) {
-            InstantiationActions.instantiateFulfilled(response.data.instanceId);
+          if (response.data.id !== null) {
+            InstantiationActions.instantiateFulfilled(response.data.id);
           }
         }).catch((response: AxiosError) => {
           if (response.response.status === 500) {
