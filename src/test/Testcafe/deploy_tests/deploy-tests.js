@@ -78,7 +78,7 @@ test('App cannot be deployed due to local changes', async () => {
     .navigateTo(app.baseUrl + 'designer/ttd/servicedeploy#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
-    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
+    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
     .click(designer.omNavigationTab) //remove pop up
     .dragToElement(designer.radioButtonComponent, designer.dragToArea)
   await t.eval(() => location.reload(true))

@@ -1,0 +1,1186 @@
+{
+	"info": {
+		"_postman_id": "f5ccfcdf-441a-4513-bea0-8dd2816ed48e",
+		"name": "Runtime",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "SetUp Cookies",
+			"item": [
+				{
+					"name": "Authenticate user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "405f0af9-b1dd-42cb-acad-8835c9f15dd3",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/hal+json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"UserName\": \"at21testuser\",\r\n    \"UserPassword\": \"Altinn123\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{envUrl}}/api/authentication/authenticatewithpassword",
+							"protocol": "https",
+							"host": [
+								"{{envUrl}}"
+							],
+							"path": [
+								"api",
+								"authentication",
+								"authenticatewithpassword"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Runtime Cookie",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authentication",
+								"api",
+								"v1",
+								"authentication"
+							],
+							"query": [
+								{
+									"key": "goto",
+									"value": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Party Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"var partyId = jsonData.partyId;",
+									"pm.environment.set(\"instanceOwnerId\",partyId);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/api/v1/profile/user",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"api",
+								"v1",
+								"profile",
+								"user"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Instances",
+			"item": [
+				{
+					"name": "POST Create Instances",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Add app instance - Status - 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+									"        var instanceId = jsonData.id;\r",
+									"        instanceId = instanceId.toString();\r",
+									"        instanceId = instanceId.split('/');\r",
+									"        instanceId = instanceId[1];\r",
+									"        pm.environment.set('instanceId',instanceId);\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appOwner}}/{{appName}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Instance by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Get app instance by ID - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Runtime - Instances - Get app instance by ID - Content - matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var envInstanceId = pm.environment.get(\"instanceId\");\r",
+									"    var responseInstanceId = jsonData.id;\r",
+									"    responseInstanceId = responseInstanceId.toString();\r",
+									"    responseInstanceId = responseInstanceId.split(\"/\");\r",
+									"    responseInstanceId = responseInstanceId[1];\r",
+									"    pm.expect(responseInstanceId).to.equal(envInstanceId);\r",
+									"});\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Edit Instance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "49c4d8df-75ca-450e-be67-db55129f6ecc",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Get app instance by ID - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": \"{{instanceOwnerId}}/{{instanceId}}\",\r\n    \"instanceOwnerId\": \"50015432\",\r\n    \"selfLinks\": {\r\n        \"apps\": \"https://tdd.apps.at21.altinn.cloud/tdd/apptest/instances/50015432/791c6963-3d6d-44e9-9481-d81d19bf0b4b\",\r\n        \"platform\": \"http://platform.at21.altinn.cloud/storage/api/v1/instances/50015432/791c6963-3d6d-44e9-9481-d81d19bf0b4b\"\r\n    },\r\n    \"appId\": \"tdd/apptest\",\r\n    \"org\": \"tdd\",\r\n    \"labels\": [\r\n        \"gr\",\r\n        \"asdfg\"\r\n    ],\r\n    \"createdDateTime\": \"2019-10-03T10:57:46.2640542Z\",\r\n    \"lastChangedDateTime\": \"2019-10-03T10:57:46.2640542Z\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": {\r\n        \"nb\": \"Arbeidsmelding\"\r\n    },\r\n    \"instanceState\": {\r\n        \"isDeleted\": false,\r\n        \"isMarkedForHardDelete\": false,\r\n        \"isArchived\": false\r\n    },\r\n    \"data\": []\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Process",
+			"item": [
+				{
+					"name": "POST Start Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
+								"exec": [
+									"pm.test(\"Runtime - Process - Start Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/start",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Start Process again - Negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
+								"exec": [
+									"pm.test(\"Runtime - Process - Start Process again - negative test - Status - 409\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
+									"    pm.expect(pm.response.text()).contains('Process is already started');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/start",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Current Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
+								"exec": [
+									"pm.test(\"Runtime - Process - Get Current Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var elementId = jsonData.currentTask.elementId;\r",
+									"    pm.environment.set(\"processElementId\", elementId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Move process to same element  - Negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a4bf7083-3188-447c-aafe-64b383b1693a",
+								"exec": [
+									"pm.test(\"Runtime - Process - Start Process again - negative test - Status - 409\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
+									"    pm.expect(pm.response.text()).contains('Cannot change process');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"next"
+							],
+							"query": [
+								{
+									"key": "elementId",
+									"value": "{{processElementId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Next Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ebe6fdbe-764b-4809-93f3-7869055f3f52",
+								"exec": [
+									"pm.test(\"Runtime - Process - Get Next Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var nextProcessElementId = jsonData[0];\r",
+									"    pm.environment.set(\"processElementId\", nextProcessElementId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"next"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Instances with process filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"exec": [
+									"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{org}}/{{app}}&process.currentTask=FormFilling",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances"
+							],
+							"query": [
+								{
+									"key": "appId",
+									"value": "{{org}}/{{app}}"
+								},
+								{
+									"key": "process.currentTask",
+									"value": "FormFilling"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Next Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "94e0d202-99c7-4371-91e9-412910df847a",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Move instance to next process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"next"
+							],
+							"query": [
+								{
+									"key": "elementId",
+									"value": "{{processElementId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Complete Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Complete process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"completeProcess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Complete Process again - Negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Complete process again - negative test - Status - 409\", function () {\r",
+									"    pm.response.to.have.status(409);\r",
+									"    pm.expect(pm.response.text()).contains(\"cannot be restarted\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"completeProcess"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Data",
+			"item": [
+				{
+					"name": "POST Add Form Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dd484dcc-cd50-417c-9601-7b971fe28e68",
+								"exec": [
+									"pm.test(\"Runtime - Data - Add Form Data - Status - 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1243\" spesifikasjonsnummer=\"10702\" blankettnummer=\"RF-1117\" tittel=\"Klage på likningen\" gruppeid=\"5800\">\r\n  <Skattyterinfor-grp-5801 gruppeid=\"5801\">\r\n    <info-grp-5802 gruppeid=\"5802\">\r\n      <OppgavegiverNavnPreutfylt-datadef-25795 orid=\"25795\">test</OppgavegiverNavnPreutfylt-datadef-25795>\r\n    </info-grp-5802>\r\n  </Skattyterinfor-grp-5801>\r\n</Skjema>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data"
+							],
+							"query": [
+								{
+									"key": "elementType",
+									"value": "default"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Form Data by id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"exec": [
+									"pm.test(\"Runtime - Data - Get Form Data by id - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Edit Form Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "68318696-e879-4d73-ac94-439390675fac",
+								"exec": [
+									"pm.test(\"Runtime - Data - Edit Form Data - Status - 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var envDataId = pm.environment.get(\"dataGuid\");\r",
+									"    pm.expect(jsonData.id).to.equal(envDataId);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1243\" spesifikasjonsnummer=\"10702\" blankettnummer=\"RF-1117\" tittel=\"Klage på likningen\" gruppeid=\"5800\">\r\n  <Skattyterinfor-grp-5801 gruppeid=\"5801\">\r\n    <info-grp-5802 gruppeid=\"5802\">\r\n      <OppgavegiverNavnPreutfylt-datadef-25795 orid=\"25795\">test æåø</OppgavegiverNavnPreutfylt-datadef-25795>\r\n    </info-grp-5802>\r\n  </Skattyterinfor-grp-5801>\r\n</Skjema>"
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Form Data - Negative",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e2d79115-5c93-41c9-b60f-8fc17eaa1f2d",
+								"exec": [
+									"pm.test(\"Runtime - Data - Delete Form Data - Status - 400\", function () {\r",
+									"    pm.response.to.have.status(400);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Enkeltpersonforetakregistrering xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n    <UserFirstName>45678</UserFirstName>\r\n</Enkeltpersonforetakregistrering>"
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Add attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8c637fd5-88b9-4aec-9bdc-d6a566a131e1",
+								"exec": [
+									"pm.test(\"Runtime - Data - Add attachment - Status - 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/octet-stream",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "test_file_pdf.pdf"
+							},
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=f550edf8-31f7-457e-8f81-af11e87289c0&attachmentName=test.pdf",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data"
+							],
+							"query": [
+								{
+									"key": "elementType",
+									"value": "f550edf8-31f7-457e-8f81-af11e87289c0"
+								},
+								{
+									"key": "attachmentName",
+									"value": "test.pdf"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "CleanUp",
+			"item": [
+				{
+					"name": "DELETE App Instance by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							],
+							"query": [
+								{
+									"key": "hard",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	]
+}
