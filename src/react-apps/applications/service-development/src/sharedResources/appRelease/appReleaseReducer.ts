@@ -1,7 +1,7 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import * as AppReleaseActionTypes from './appReleaseActionTypes';
-import { ICreateReleaseRejectedActions } from './create/createAppReleaseActions';
+import { ICreateReleaseFulfilledAction, ICreateReleaseRejectedActions } from './create/createAppReleaseActions';
 import { IGetReleaseActionFulfilled, IGetReleaseActionRejected } from './get/getAppReleasesActions';
 import { IRelease } from './types';
 
@@ -14,6 +14,10 @@ const initialState: IAppReleaseState = {
   releases: [],
   error: null,
 };
+
+update.extend<IRelease[]>('$addFirstIndex', (param: IRelease, old: IRelease[]) => {
+  return new Array().concat(param, ...old);
+});
 
 const appReleaseReducer: Reducer<IAppReleaseState> = (
   state: IAppReleaseState = initialState,
@@ -43,7 +47,11 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
       });
     }
     case AppReleaseActionTypes.CREATE_APP_RELEASE_FULFILLED: {
+      const { release } = action as ICreateReleaseFulfilledAction;
       return update<IAppReleaseState>(state, {
+        releases: {
+          $addFirstIndex: release,
+        },
         error: {
           $set: null,
         },
