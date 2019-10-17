@@ -157,7 +157,13 @@ namespace AltinnCore.Common.Services.Implementation
             var refFeature = new MetadataReference[assembliesPath.Count];
             for (int i = 0; i < assembliesPath.Count(); i++)
             {
-                refFeature[i] = MetadataReference.CreateFromFile(assembliesPath[i]);
+                if (!string.IsNullOrEmpty(assembliesPath[i]))
+                {
+                    if (MetadataReference.CreateFromFile(assembliesPath[i]) != null)
+                    {
+                        refFeature[i] = MetadataReference.CreateFromFile(assembliesPath[i]);
+                    }                    
+                }                
             }
 
             CSharpCompilation compilation = CSharpCompilation.Create(

@@ -36,7 +36,7 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <returns>Ok result with updated token.</returns>
         [Authorize]
-        [HttpGet("{org}/{app}/api/{controller}/keepAlive")]
+        [HttpGet("{org}/{app}/api/[controller]/keepAlive")]
         public async Task<IActionResult> KeepAlive()
         {
             if (_settings.RuntimeMode != "AltinnStudio")

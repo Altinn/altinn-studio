@@ -255,11 +255,7 @@ namespace AltinnCore.Runtime
                 appBuilder.UseExceptionHandler("/Error");
             }
 
-            appBuilder.UseRouting();
-            appBuilder.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+           // appBuilder.UseRouting();
 
             // appBuilder.UseHsts();
             // appBuilder.UseHttpsRedirection();
