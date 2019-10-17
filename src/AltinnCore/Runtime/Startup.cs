@@ -211,23 +211,23 @@ namespace AltinnCore.Runtime
                     options.SupportedUICultures = supportedCultures;
                 });
 
-            services.AddSwaggerGen(options =>
-            {
-                options.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
-                {
-                    Title = "Altinn Runtime",
-                    Version = "v1"
-                });
+            // services.AddSwaggerGen(options =>
+            //{
+            //    options.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info
+            //    {
+            //        Title = "Altinn Runtime",
+            //        Version = "v1"
+            //    });
 
-                try
-                {
-                    options.IncludeXmlComments(GetXmlCommentsPathForControllers());
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Cannot read XML file for SWAGGER Config! {e.Message}");
-                }
-            });
+            //    try
+            //    {
+            //        options.IncludeXmlComments(GetXmlCommentsPathForControllers());
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Console.WriteLine($"Cannot read XML file for SWAGGER Config! {e.Message}");
+            //    }
+            //});
         }
 
         private string GetXmlCommentsPathForControllers()
@@ -521,12 +521,12 @@ namespace AltinnCore.Runtime
                     template: "{action=Index}/{id?}");
             });
 
-            appBuilder.UseSwagger();
+           // appBuilder.UseSwagger();
 
-            appBuilder.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("v1/swagger.json", "Altinn Apps Runtime API");
-            });
+            //appBuilder.UseSwaggerUI(c =>
+            //{
+            //    c.SwaggerEndpoint("v1/swagger.json", "Altinn Apps Runtime API");
+            //});
         }
 
         /// <summary>

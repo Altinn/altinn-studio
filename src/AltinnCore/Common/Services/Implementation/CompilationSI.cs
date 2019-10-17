@@ -142,21 +142,28 @@ namespace AltinnCore.Common.Services.Implementation
 
             string assemblyName = Path.GetRandomFileName();
 
-            var referenceFeature = new MetadataReference[]
-            {
-                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
 
-                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(ValueTuple<>).GetTypeInfo().Assembly.Location)
-            };
+            List<string> assembliesPath = new List<string>();
+         
+            for (int i = 0; i < assemblies.Count(); i++)
+            {
+                if (!assemblies[i].IsDynamic)
+                {
+                    assembliesPath.Add(assemblies[i].Location);
+                }
+            }
+
+            var refFeature = new MetadataReference[assembliesPath.Count];
+            for (int i = 0; i < assembliesPath.Count(); i++)
+            {
+                refFeature[i] = MetadataReference.CreateFromFile(assembliesPath[i]);
+            }
 
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: syntaxTrees,
-                references: referenceFeature,
+                references: refFeature,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             using (var pdbMs = new MemoryStream())
