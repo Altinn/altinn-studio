@@ -33,13 +33,13 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// Gets or Sets Data
         /// </summary>
-        [DataMember(Name = "data")]
+        [JsonProperty("data")]
         public List<Repository> Data { get; set; }
 
         /// <summary>
         /// Gets or Sets Ok
         /// </summary>
-        [DataMember(Name = "ok")]
+        [JsonProperty("ok")]
         public bool? Ok { get; set; }
 
         /// <summary>

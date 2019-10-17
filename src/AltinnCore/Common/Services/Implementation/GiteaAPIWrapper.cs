@@ -145,8 +145,7 @@ namespace AltinnCore.Common.Services.Implementation
                         Stream stream = await response.Content.ReadAsStreamAsync();
                         if (resultPage == 1 || page == resultPage)
                         {
-                            // This is the first or a specific page requested
-                            //repository = serializer.ReadObject(stream) as SearchResults;
+                            // This is the first or a specific page requested                            
                             SearchResults pageResultRepository = new SearchResults();
                             StreamReader reader = new StreamReader(stream);
                             string searchResultText = reader.ReadToEnd();
