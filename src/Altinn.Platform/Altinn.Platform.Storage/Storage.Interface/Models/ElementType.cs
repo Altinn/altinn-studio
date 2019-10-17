@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+
 using Newtonsoft.Json;
+
 using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Models
@@ -53,19 +54,23 @@ namespace Altinn.Platform.Storage.Models
         public int? MaxSize { get; set; }
 
         /// <summary>
-        /// Maximum number of instances of same element. Default is 1.
-        /// If negative no limit on number of data elements.
+        /// Maximum number of allowed elements of this type on the same application instance. Default is 1.
         /// </summary>
+        /// <remarks>
+        /// Zero or below indicate unbounded maximum number of elements.
+        /// </remarks>
         [JsonProperty(PropertyName = "maxCount")]
         [DefaultValue(1)]
         public int MaxCount { get; set; }
 
         /// <summary>
-        /// Minimum number of instances of same element. Default is 1.
-        /// If negative no limit on number of data elements.
+        /// Minimum number of required elements of this type on the same application instance. Default is 1.
         /// </summary>
+        /// <remarks>
+        /// Zero or below indicate that the element type is optional.
+        /// </remarks>
         [JsonProperty(PropertyName = "minCount")]
-        [DefaultValue(-1)]
+        [DefaultValue(1)]
         public int MinCount { get; set; }
 
     }

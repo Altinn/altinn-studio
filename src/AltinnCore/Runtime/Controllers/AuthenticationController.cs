@@ -42,14 +42,14 @@ namespace AltinnCore.Runtime.Controllers
             if (_settings.RuntimeMode != "AltinnStudio")
             {
                 string token = await _authentication.RefreshToken();
-             
+
                 CookieOptions runtimeCookieSetting = new CookieOptions
                 {
-                    Domain = _settings.HostName,                    
+                    Domain = _settings.HostName,
                 };
 
                 if (!string.IsNullOrWhiteSpace(token))
-                {                    
+                {
                     HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token, runtimeCookieSetting);
                     return Ok();
                 }

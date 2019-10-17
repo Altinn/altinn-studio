@@ -28,7 +28,6 @@ namespace Altinn.Platform.Storage.UnitTest
         {            
         }
 
-        [Fact]
         public async void InstanceLookupPersonNumberTest()
         {
             Instance instanceToCreate = new Instance()
@@ -59,7 +58,6 @@ namespace Altinn.Platform.Storage.UnitTest
             Assert.Null(resultInstance.InstanceOwnerLookup);
         }
 
-        [Fact]
         public async void InstanceLookupPersonNumberFails()
         {
             Instance instanceTemplate = new Instance()
@@ -79,8 +77,6 @@ namespace Altinn.Platform.Storage.UnitTest
             Assert.NotNull(badResult);
         }
 
-
-        [Fact]
         public async void InstanceOrganisationNumberTest()
         {
             Instance instanceToCreate = new Instance()
@@ -112,7 +108,6 @@ namespace Altinn.Platform.Storage.UnitTest
         }
 
 
-        [Fact]
         public async void InstanceLookupWithNoNumberFailsTest()
         {
             Instance instanceToCreate = new Instance()
@@ -138,9 +133,6 @@ namespace Altinn.Platform.Storage.UnitTest
             Assert.NotNull(badResult);
         }
 
-
-
-        [Fact]
         public async void InstanceLookupWithBothPersonAndOrganisationNumberFailsTest()
         {
             Instance instanceToCreate = new Instance()
@@ -229,8 +221,7 @@ namespace Altinn.Platform.Storage.UnitTest
                 mockApplicationRepository.Object,
                 mockDataRepository.Object,
                 mockGeneralSettings.Object,
-                mockLogger.Object,
-                httpClient)
+                mockLogger.Object)
             {
                 ControllerContext = new ControllerContext()
                 {
