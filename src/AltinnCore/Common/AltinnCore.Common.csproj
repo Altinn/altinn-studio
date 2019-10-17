@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />    
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.6-alpha" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.4" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.8.2" />    
     <PackageReference Include="LibGit2Sharp" Version="0.26.1" />    
     <PackageReference Include="JWTCookieAuthentication" Version="1.0.2-alpha" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
   </ItemGroup>
 
   <ItemGroup>

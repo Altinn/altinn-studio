@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -85,7 +86,9 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.Created)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
-                    repository = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.Repository;
+                    StreamReader reader = new StreamReader(stream);
+                    string repo = reader.ReadToEnd();
+                    repository = JsonConvert.DeserializeObject<Repository>(repo);
                 }
                 else
                 {
@@ -143,11 +146,20 @@ namespace AltinnCore.Common.Services.Implementation
                         if (resultPage == 1 || page == resultPage)
                         {
                             // This is the first or a specific page requested
-                            repository = serializer.ReadObject(stream) as SearchResults;
+                            //repository = serializer.ReadObject(stream) as SearchResults;
+                            SearchResults pageResultRepository = new SearchResults();
+                            StreamReader reader = new StreamReader(stream);
+                            string searchResultText = reader.ReadToEnd();
+                            repository = JsonConvert.DeserializeObject<SearchResults>(searchResultText);
                         }
                         else
                         {
-                            SearchResults pageResultRepository = serializer.ReadObject(stream) as SearchResults;
+                            SearchResults pageResultRepository = new SearchResults();
+                            StreamReader reader = new StreamReader(stream);
+                            string searchResultText = reader.ReadToEnd();
+                            pageResultRepository = JsonConvert.DeserializeObject<SearchResults>(searchResultText);
+
+                            //SearchResults pageResultRepository = serializer.ReadObject(stream) as SearchResults;
                             repository.Data.AddRange(pageResultRepository.Data);
                         }
 
@@ -198,8 +210,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<Repository> GetRepository(string org, string repository)
         {
-            Repository returnRepository = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Repository));
+            Repository returnRepository = null;            
 
             Uri giteaUrl = new Uri(GetApiBaseUrl() + $"/repos/{org}/{repository}");
 
@@ -209,8 +220,11 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
-                    {
-                        returnRepository = serializer.ReadObject(stream) as Repository;
+                    {                        
+                        StreamReader reader = new StreamReader(stream);
+                        string repo = reader.ReadToEnd();
+                        returnRepository = JsonConvert.DeserializeObject<Repository>(repo);
+
                     }
                 }
                 else

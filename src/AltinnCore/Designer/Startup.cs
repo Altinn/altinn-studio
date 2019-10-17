@@ -93,6 +93,7 @@ namespace AltinnCore.Designer
                 Directory.CreateDirectory(repoLocation);
             }
 
+            services.AddControllers().AddNewtonsoftJson();
             services.AddMvc(options => options.EnableEndpointRouting = false);
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
