@@ -27,16 +27,17 @@ const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
 export default function() {
   let lastRefreshTokenTimestamp: number = 0;
 
+  // TODO: These are commented out as they cause an error as of now (getEnvLoginUrl always sending user to platform)
   function setUpEventListeners() {
-    window.addEventListener('mousemove', refreshJwtToken);
-    window.addEventListener('scroll', refreshJwtToken);
-    window.addEventListener('onfocus', refreshJwtToken);
+    // window.addEventListener('mousemove', refreshJwtToken);
+    // window.addEventListener('scroll', refreshJwtToken);
+    // window.addEventListener('onfocus', refreshJwtToken);
   }
 
   function removeEventListeners() {
-    window.removeEventListener('mousemove', refreshJwtToken);
-    window.removeEventListener('scroll', refreshJwtToken);
-    window.removeEventListener('onfocus', refreshJwtToken);
+    // window.removeEventListener('mousemove', refreshJwtToken);
+    // window.removeEventListener('scroll', refreshJwtToken);
+    // window.removeEventListener('onfocus', refreshJwtToken);
   }
 
   function refreshJwtToken() {
