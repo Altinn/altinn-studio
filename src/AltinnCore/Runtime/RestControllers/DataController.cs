@@ -403,14 +403,32 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         private object ParseContentAndDeserializeServiceModel(Type modelType, out ActionResult error)
-        {
-            error = null;
-            object serviceModel = null;
-
+        {            
             Stream contentStream = Request.Body;
+            string contentType = Request.ContentType;
+            error = null;
+
+            object serviceModel = DeserializeModel(contentStream, contentType, modelType, out string errorText);
+            if (errorText != null)
+            {
+                error = BadRequest(errorText);
+            }
+
+            return serviceModel;
+        }
+
+        /// <summary>
+        /// Deserializes a character stream to a model object
+        /// </summary>
+        /// <returns>the model object</returns>
+        public static object DeserializeModel(Stream contentStream, string contentType, Type modelType, out string error)
+        {
+            object serviceModel = null;
+            error = null;
+
             if (contentStream != null)
             {
-                if (Request.ContentType.Contains("application/json"))
+                if (contentType.Contains("application/json"))
                 {
                     try
                     {
@@ -420,11 +438,11 @@ namespace AltinnCore.Runtime.RestControllers
                     }
                     catch (Exception ex)
                     {
-                        error = BadRequest($"Cannot parse json content due to {ex.Message}");
+                        error = $"Cannot parse json content due to {ex.Message}";
                         return null;
                     }
                 }
-                else if (Request.ContentType.Contains("application/xml"))
+                else if (contentType.Contains("application/xml"))
                 {
                     try
                     {
@@ -433,7 +451,7 @@ namespace AltinnCore.Runtime.RestControllers
                     }
                     catch (Exception ex)
                     {
-                        error = BadRequest($"Cannot parse xml content due to {ex.Message}");
+                        error = $"Cannot parse xml content due to {ex.Message}";
                         return null;
                     }
                 }
