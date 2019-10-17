@@ -1,8 +1,9 @@
 using System;
 using System.IO;
 using System.Xml.Serialization;
-using AltinnCore.ServiceLibrary.Enums;
-using AltinnCore.ServiceLibrary.Models.Workflow;
+using Altinn.App.Services.Enums;
+using Altinn.App.Services.Models.Workflow;
+using Altinn.App.Services.Workflow;
 using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Services.Helpers

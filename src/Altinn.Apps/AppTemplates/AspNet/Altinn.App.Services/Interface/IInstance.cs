@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.ServiceLibrary.Models;
-using AltinnCore.ServiceLibrary.Services.Interfaces;
 
 namespace Altinn.App.Services.Interface
 {
