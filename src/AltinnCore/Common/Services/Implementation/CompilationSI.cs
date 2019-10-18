@@ -150,7 +150,10 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 if (!assemblies[i].IsDynamic)
                 {
-                    assembliesPath.Add(assemblies[i].Location);
+                    if (!string.IsNullOrEmpty(assemblies[i].FullName) && !string.IsNullOrEmpty(assemblies[i].Location))
+                    {
+                        assembliesPath.Add(assemblies[i].Location);
+                    }
                 }
             }
 

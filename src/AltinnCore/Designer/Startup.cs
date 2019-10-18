@@ -132,9 +132,7 @@ namespace AltinnCore.Designer
                 services.AddApplicationInsightsKubernetesEnricher();
             }
 
-            // var mvc = services.AddMvc().AddControllersAsServices();
-
-            var mvc = services.AddControllers().AddControllersAsServices();
+            IMvcBuilder mvc = services.AddControllers().AddControllersAsServices();
             mvc.Services.AddRazorPages();
 
             mvc.Services.Configure<MvcOptions>(options =>
@@ -148,7 +146,7 @@ namespace AltinnCore.Designer
             services.Configure<RequestLocalizationOptions>(
                 options =>
                 {
-                    var supportedCultures = new List<CultureInfo>
+                    List<CultureInfo> supportedCultures = new List<CultureInfo>
                         {
                             // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
@@ -180,7 +178,6 @@ namespace AltinnCore.Designer
                 appBuilder.UseExceptionHandler("/Error");
             }
 
-            // UseStaticFiles must appear before UseRouting()
             appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
@@ -268,71 +265,6 @@ namespace AltinnCore.Designer
                     pattern: "{action=StartPage}/{id?}",
                     defaults: new { controller = "Home" });
             });
-
-            //appBuilder.UseMvc(routes =>
-            //{
-            //    // ------------------------- DEV ----------------------------- //
-            //    routes.MapRoute(
-            //        name: "orgRoute",
-            //        template: "designer/{org}/{controller}/{action=Index}/",
-            //        defaults: new { controller = "Config" },
-            //        constraints: new
-            //        {
-            //            controller = "Codelist|Config",
-            //        });
-
-            //    routes.MapRoute(
-            //            name: "serviceDevelopmentRoute",
-            //            template: "designer/{org}/{app}",
-            //            defaults: new { controller = "ServiceDevelopment", action = "index" });
-
-            //    routes.MapRoute(
-            //        name: "designerApiRoute",
-            //        template: "designerapi/{controller}/{action=Index}/{id?}",
-            //        defaults: new { controller = "Repository" },
-            //        constraints: new
-            //        {
-            //            controller = @"(Repository|Language|User)",
-            //        });
-            //    routes.MapRoute(
-            //              name: "serviceRoute",
-            //              template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
-            //              defaults: new { controller = "Service" },
-            //              constraints: new
-            //              {
-            //                  controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
-            //                  app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-            //                  id = "[a-zA-Z0-9_\\-]{1,30}",
-            //              });
-            //    routes.MapRoute(
-            //              name: "appRoute",
-            //              template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
-            //              defaults: new { controller = "Deploy" },
-            //              constraints: new
-            //              {
-            //                  controller = @"(Deploy)",
-            //              });
-            //    routes.MapRoute(
-            //            name: "applicationMetadataApiRoute",
-            //            template: "designer/api/v1/{org}/{app}",
-            //            defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
-
-            //    routes.MapRoute(
-            //            name: "reposRoute",
-            //            template: "{controller}/{action}/",
-            //            defaults: new { controller = "RedirectController" });
-
-            //    // -------------------------- DEFAULT ------------------------- //
-            //    routes.MapRoute(
-            //       name: "defaultRoute2",
-            //       template: "{controller}/{action=StartPage}/{id?}",
-            //       defaults: new { controller = "Home" });
-
-            //    routes.MapRoute(
-            //        name: "defaultRoute",
-            //        template: "{action=StartPage}/{id?}",
-            //        defaults: new { controller = "Home" });
-            //});
         }
 
         /// <summary>
