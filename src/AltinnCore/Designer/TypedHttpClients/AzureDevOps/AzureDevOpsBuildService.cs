@@ -31,30 +31,40 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
 
         /// <inheritdoc/>
         public async Task<Build> QueueAsync(
-            string commitId,
-            string org,
-            string app,
-            string deployToken,
+            QueueBuildParameters queueBuildParameters,
             int buildDefinitionId)
         {
-            QueueBuildParameters queueBuildParameters = new QueueBuildParameters
+            queueBuildParameters.GiteaEnvironment = $"{_generalSettings.HostName}/repos";
+
+            QueueBuildRequest queueBuildRequest = CreateBuildRequest(queueBuildParameters, buildDefinitionId);
+            return await SendRequest(queueBuildRequest);
+        }
+
+        /// <inheritdoc/>
+        public async Task<Build> Get(string buildId)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private static QueueBuildRequest CreateBuildRequest(QueueBuildParameters queueBuildParameters, int buildDefinitionId)
+        {
+            JsonSerializerSettings jsonSerializerSettings = new JsonSerializerSettings
             {
-                AppCommitId = commitId,
-                AppDeployToken = deployToken,
-                AppOwner = org,
-                AppRepo = app,
-                GiteaEnvironment = $"{_generalSettings.HostName}/repos"
+                NullValueHandling = NullValueHandling.Ignore
             };
 
-            QueueBuildRequest queueBuildRequest = new QueueBuildRequest
+            return new QueueBuildRequest
             {
                 DefinitionReference = new DefinitionReference
                 {
                     Id = buildDefinitionId
                 },
-                Parameters = JsonConvert.SerializeObject(queueBuildParameters)
+                Parameters = JsonConvert.SerializeObject(queueBuildParameters, jsonSerializerSettings)
             };
+        }
 
+        private async Task<Build> SendRequest(QueueBuildRequest queueBuildRequest)
+        {
             string requestBody = JsonConvert.SerializeObject(queueBuildRequest);
             StringContent httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
 

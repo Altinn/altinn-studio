@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Rest.TransientFaultHandling;
 
 namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
 {
@@ -19,7 +20,14 @@ namespace AltinnCore.Designer.TypedHttpClients.DelegatingHandlers
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             HttpResponseMessage response = await base.SendAsync(request, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestWithStatusException(response.ReasonPhrase)
+                {
+                    StatusCode = response.StatusCode
+                };
+            }
+
             return response;
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services.Models;
 
 namespace AltinnCore.Designer.ViewModels.Request
 {
@@ -9,14 +10,13 @@ namespace AltinnCore.Designer.ViewModels.Request
     public static class RequestExtensionMethods
     {
         /// <summary>
-        /// Converts from CreateReleaseRequestViewModel to ReleaseDocument
+        /// Converts from CreateReleaseRequestViewModel to ReleaseEntity
         /// </summary>
         /// <param name="viewmodel">CreateReleaseRequestViewModel</param>
         /// <returns></returns>
-        public static ReleaseEntity ToDocumentModel(this CreateReleaseRequestViewModel viewmodel)
+        public static ReleaseEntity ToEntityModel(this CreateReleaseRequestViewModel viewmodel)
             => new ReleaseEntity
             {
-                Created = DateTime.Now,
                 Body = viewmodel.Body,
                 Name = viewmodel.Name,
                 TagName = viewmodel.TagName,
@@ -24,11 +24,11 @@ namespace AltinnCore.Designer.ViewModels.Request
             };
 
         /// <summary>
-        /// Converts from UpdateReleaseRequestViewModel to ReleaseDocument
+        /// Converts from UpdateReleaseRequestViewModel to ReleaseEntity
         /// </summary>
         /// <param name="viewmodel">UpdateReleaseRequestViewModel</param>
         /// <returns></returns>
-        public static ReleaseEntity ToDocumentModel(this UpdateReleaseRequestViewModel viewmodel)
+        public static ReleaseEntity ToEntityModel(this UpdateReleaseRequestViewModel viewmodel)
             => new ReleaseEntity
             {
                 Build = new BuildEntity
@@ -39,6 +39,18 @@ namespace AltinnCore.Designer.ViewModels.Request
                     Started = viewmodel.Started,
                     Finished = viewmodel.Finished
                 }
+            };
+
+        /// <summary>
+        /// Converts from CreateDeploymentRequestViewModel to DeploymentModel
+        /// </summary>
+        /// <param name="viewmodel">CreateDeploymentRequestViewModel</param>
+        /// <returns></returns>
+        public static DeploymentModel ToDomainModel(this CreateDeploymentRequestViewModel viewmodel)
+            => new DeploymentModel
+            {
+                TagName = viewmodel.TagName,
+                Environment = viewmodel.Environment
             };
     }
 }

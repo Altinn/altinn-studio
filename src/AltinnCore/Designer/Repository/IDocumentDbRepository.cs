@@ -26,7 +26,7 @@ namespace AltinnCore.Designer.Repository
         /// <param name="query">Query</param>
         /// <returns></returns>
         Task<IEnumerable<T>> GetAsync<T>(DocumentQueryModel query)
-            where T : EntityBase;
+            where T : BaseEntity;
 
         /// <summary>
         /// Get one document specified by id
@@ -35,7 +35,7 @@ namespace AltinnCore.Designer.Repository
         /// <param name="id">string</param>
         /// <returns></returns>
         Task<T> GetAsync<T>(string id)
-            where T : EntityBase;
+            where T : BaseEntity;
 
         /// <summary>
         /// Gets documents based on an sql query
@@ -43,7 +43,7 @@ namespace AltinnCore.Designer.Repository
         /// <typeparam name="T">Type of item to return</typeparam>
         /// <returns></returns>
         Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec)
-            where T : EntityBase;
+            where T : BaseEntity;
 
         /// <summary>
         /// Updates a specific item
@@ -52,6 +52,6 @@ namespace AltinnCore.Designer.Repository
         /// <param name="item">Document</param>
         /// <returns></returns>
         Task UpdateAsync<T>(T item)
-            where T : EntityBase;
+            where T : BaseEntity;
     }
 }

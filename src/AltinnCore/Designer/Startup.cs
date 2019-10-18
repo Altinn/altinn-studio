@@ -1,16 +1,23 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure;
+using AltinnCore.Designer.Infrastructure.Authorization;
 using AltinnCore.Designer.TypedHttpClients;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace AltinnCore.Designer
@@ -45,7 +52,7 @@ namespace AltinnCore.Designer
             services.RegisterServiceImplementations(Configuration);
             services.RegisterIntegrations(Configuration);
 
-            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddHttpContextAccessor();
             services.AddMemoryCache();
             services.AddResponseCompression();
 
@@ -57,6 +64,7 @@ namespace AltinnCore.Designer
             services.ConfigureApplicationInsight();
             services.ConfigureMvc();
             services.ConfigureLocalization();
+            services.AddPolicyBasedAuthorization();
 
             services.AddSwaggerGen(c =>
             {
@@ -82,11 +90,11 @@ namespace AltinnCore.Designer
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseExceptionHandler("/error-local-development");
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                app.UseExceptionHandler("/error");
             }
 
             const string swaggerRoutePrefix = "designer/swagger";

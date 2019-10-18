@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
+using System.Net;
 using System.Threading.Tasks;
-using AltinnCore.Authentication.Constants;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
@@ -14,9 +13,11 @@ using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Options;
+using Microsoft.Rest.TransientFaultHandling;
 using SqlParameter = Microsoft.Azure.Documents.SqlParameter;
 using SqlParameterCollection = Microsoft.Azure.Documents.SqlParameterCollection;
 
@@ -63,26 +64,30 @@ namespace AltinnCore.Designer.Services
             _app = _httpContext.GetRouteValue("app").ToString();
         }
 
-        /// <summary>
-        /// Collection that this service connects to
-        /// </summary>
-        public string Collection { get; set; }
-
         /// <inheritdoc/>
         public async Task<ReleaseEntity> CreateAsync(ReleaseEntity release)
         {
-            PopulateFieldsInRelease(release);
+            release.PopulateBaseProperties(_org, _app, _httpContext);
+
+            await ValidateUniquenessOfRelease(release);
+
+            QueueBuildParameters queueBuildParameters = new QueueBuildParameters
+            {
+                AppCommitId = release.TargetCommitish,
+                AppDeployToken = _sourceControl.GetDeployToken(),
+                AppOwner = release.Org,
+                AppRepo = release.App,
+            };
+
             Build queuedBuild = await _azureDevOpsBuildService.QueueAsync(
-                release.TargetCommitish,
-                release.Org,
-                release.App,
-                _sourceControl.GetDeployToken(),
+                queueBuildParameters,
                 _azureDevOpsSettings.BuildDefinitionId);
 
             release.Build = new BuildEntity
             {
                 Id = queuedBuild.Id.ToString(),
                 Status = queuedBuild.Status,
+                Result = BuildResult.None,
                 Started = queuedBuild.StartTime
             };
 
@@ -132,12 +137,42 @@ namespace AltinnCore.Designer.Services
             }
         }
 
-        private void PopulateFieldsInRelease(EntityBase release)
+        private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
         {
-            List<Claim> claims = _httpContext.User.Claims.ToList();
-            release.Org = _org;
-            release.App = _app;
-            release.CreatedBy = claims.FirstOrDefault(x => x.Type == AltinnCoreClaimTypes.Developer)?.Value;
+            SqlQuerySpec sqlQuery = CreateSqlQueryForUniqueness(release);
+            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuery);
+            ProblemDetails x = new ProblemDetails();
+            if (existingReleaseEntity.Any())
+            {
+                throw new HttpRequestWithStatusException("A release with the same properties already exist.")
+                {
+                    StatusCode = HttpStatusCode.Conflict
+                };
+            }
+        }
+
+        private SqlQuerySpec CreateSqlQueryForUniqueness(ReleaseEntity release)
+        {
+            string resultSucceeded = BuildResult.Succeeded.ToEnumMemberAttributeValue();
+            string statusInProgress = BuildStatus.InProgress.ToEnumMemberAttributeValue();
+            string statusNotStarted = BuildStatus.NotStarted.ToEnumMemberAttributeValue();
+            string queryString = "SELECT * FROM db WHERE " +
+                                 "db.org = @org AND " +
+                                 "db.app = @app AND " +
+                                 "db.tagName = @tagName AND (" +
+                                 $"db.build.result = '{resultSucceeded}' OR " +
+                                 $"db.build.status = '{statusInProgress}' OR " +
+                                 $"db.build.status = '{statusNotStarted}')";
+            return new SqlQuerySpec
+            {
+                QueryText = queryString,
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@org", _org),
+                    new SqlParameter("@app", _app),
+                    new SqlParameter("@tagName", release.TagName),
+                }
+            };
         }
     }
 }

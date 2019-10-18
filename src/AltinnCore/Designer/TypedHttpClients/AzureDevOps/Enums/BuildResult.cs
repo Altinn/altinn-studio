@@ -11,8 +11,8 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums
         /// <summary>
         /// The build is cancelling
         /// </summary>
-        [EnumMember(Value = "cancelled")]
-        Cancelled = 1,
+        [EnumMember(Value = "canceled")]
+        Canceled = 1,
 
         /// <summary>
         /// The build is cancelling

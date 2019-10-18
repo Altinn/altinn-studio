@@ -2,16 +2,19 @@ using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
+using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.DelegatingHandlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.TypedHttpClients
 {
@@ -30,35 +33,49 @@ namespace AltinnCore.Designer.TypedHttpClients
         {
             services.AddTransient<EnsureSuccessHandler>();
 
+            services.AddAzureDevOpsTypedHttpClient(config);
+            services.AddGiteaTypedHttpClient(config);
+            services.AddAltinnStorageTypedHttpClient();
+
+            return services;
+        }
+
+        private static IHttpClientBuilder AddAzureDevOpsTypedHttpClient(this IServiceCollection services, IConfiguration config)
+        {
             AzureDevOpsSettings azureDevOpsSettings = config.GetSection("Integrations:AzureDevOpsSettings").Get<AzureDevOpsSettings>();
             string token = config["AccessTokenDevOps"];
-
-            services.AddHttpClient<IAzureDevOpsBuildService, AzureDevOpsBuildService>(client =>
+            return services.AddHttpClient<IAzureDevOpsBuildService, AzureDevOpsBuildService>(client =>
             {
                 client.BaseAddress = new Uri(azureDevOpsSettings.BaseUri);
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", token);
             }).AddHttpMessageHandler<EnsureSuccessHandler>();
+        }
 
-            services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
-            {
-                IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-                IConfigurationSection serviceRepSettings = config.GetSection("ServiceRepositorySettings");
-                string uriString = Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint") ?? serviceRepSettings["ApiEndPoint"];
-                Uri uri = new Uri(uriString + "/");
-                httpClient.BaseAddress = uri;
-                httpClient.DefaultRequestHeaders.Add(
-                    General.AuthorizationTokenHeaderName,
-                    AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
-            })
+        private static IHttpClientBuilder AddGiteaTypedHttpClient(this IServiceCollection services, IConfiguration config)
+            => services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
+                {
+                    IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                    IConfigurationSection serviceRepSettings = config.GetSection("ServiceRepositorySettings");
+                    string uriString = Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint") ?? serviceRepSettings["ApiEndPoint"];
+                    Uri uri = new Uri(uriString + "/");
+                    httpClient.BaseAddress = uri;
+                    httpClient.DefaultRequestHeaders.Add(
+                        General.AuthorizationTokenHeaderName,
+                        AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
+                })
                 .AddHttpMessageHandler<EnsureSuccessHandler>()
                 .ConfigurePrimaryHttpMessageHandler(() =>
-                new HttpClientHandler
-                {
-                    AllowAutoRedirect = true
-                });
+                    new HttpClientHandler
+                    {
+                        AllowAutoRedirect = true
+                    });
 
-            return services;
-        }
+        private static IHttpClientBuilder AddAltinnStorageTypedHttpClient(this IServiceCollection services)
+            => services.AddHttpClient<IAltinnApplicationStorageService, AltinnApplicationStorageService>((sp, client) =>
+            {
+                PlatformSettings platformSettings = sp.GetRequiredService<IOptions<PlatformSettings>>().Value;
+                client.BaseAddress = new Uri($"{platformSettings.GetApiStorageEndpoint}applications/");
+            }).AddHttpMessageHandler<EnsureSuccessHandler>();
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
@@ -39,7 +40,10 @@ namespace AltinnCore.Designer.Repository
             _documentClient = documentClient;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_database, _collection);
 
-            DocumentCollection documentCollection = new DocumentCollection { Id = collectionName };
+            DocumentCollection documentCollection = new DocumentCollection
+            {
+                Id = collectionName
+            };
             Uri dbUri = UriFactory.CreateDatabaseUri(_database);
             documentClient
                 .CreateDocumentCollectionIfNotExistsAsync(dbUri, documentCollection)
@@ -57,7 +61,7 @@ namespace AltinnCore.Designer.Repository
 
         /// <inheritdoc/>
         public async Task<IEnumerable<T>> GetAsync<T>(DocumentQueryModel query)
-            where T : EntityBase
+            where T : BaseEntity
         {
             FeedOptions feedOptions = new FeedOptions
             {
@@ -75,7 +79,7 @@ namespace AltinnCore.Designer.Repository
 
         /// <inheritdoc/>
         public async Task<T> GetAsync<T>(string id)
-            where T : EntityBase
+            where T : BaseEntity
         {
             Uri documentUri = UriFactory.CreateDocumentUri(_database, _collection, id);
             return await _documentClient.ReadDocumentAsync<T>(documentUri);
@@ -83,19 +87,19 @@ namespace AltinnCore.Designer.Repository
 
         /// <inheritdoc/>
         public async Task<IEnumerable<T>> GetWithSqlAsync<T>(SqlQuerySpec sqlQuerySpec)
-            where T : EntityBase
+            where T : BaseEntity
         {
             IDocumentQuery<T> documentQuery = _documentClient
                 .CreateDocumentQuery<T>(_collectionUri, sqlQuerySpec)
                 .AsDocumentQuery();
 
             FeedResponse<T> response = await documentQuery.ExecuteNextAsync<T>();
-            return response.AsEnumerable();
+            return response.ToList().AsEnumerable();
         } 
 
         /// <inheritdoc/>
         public async Task UpdateAsync<T>(T item)
-            where T : EntityBase
+            where T : BaseEntity
         {
             Uri uri = UriFactory.CreateDocumentUri(_database, _collection, item.Id);
             await _documentClient.ReplaceDocumentAsync(uri, item);

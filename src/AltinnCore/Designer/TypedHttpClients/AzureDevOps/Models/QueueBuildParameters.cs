@@ -37,17 +37,11 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonProperty("APP_COMMIT_ID")]
         public string AppCommitId { get; set; }
-
+            
         /// <summary>
-        /// Whether or not the build should deploy after finishing
+        /// The name of the environment the app should deploy to
         /// </summary>
-        [JsonProperty("should_deploy")]
-        public bool ShouldDeploy { get; set; }
-
-        /// <summary>
-        /// Whether or not it should trigger a build
-        /// </summary>
-        [JsonProperty("should_build")]
-        public bool ShouldBuild { get; set; } = true;
+        [JsonProperty("APP_ENVIRONMENT")]
+        public string AppEnvironment { get; set; }
     }
 }

@@ -6,7 +6,7 @@ namespace AltinnCore.Designer.Repository.Models
     /// <summary>
     /// Base class for entities in a db
     /// </summary>
-    public class EntityBase
+    public class BaseEntity
     {
         /// <summary>
         /// Id

@@ -62,14 +62,14 @@ namespace AltinnCore.UnitTest.Helpers
             moqGiteaWrapper.Setup(gitea => gitea.GetCurrentUser()).ReturnsAsync(user);
         }
 
-        /// <summary>
-        /// Add a Mock organization to the mock
-        /// </summary>
-        /// <param name="moqGiteaWrapper">The Gitea mock</param>
-        public static void AddOneOrg(Mock<IGitea> moqGiteaWrapper)
-        {
-            Organization organization = new Organization() { Username = "MockOrg" };
-            moqGiteaWrapper.Setup(gitea => gitea.GetOrganization(It.IsAny<string>())).ReturnsAsync(organization);
-        }
+        /////// <summary>
+        /////// Add a Mock organization to the mock
+        /////// </summary>
+        /////// <param name="moqGiteaWrapper">The Gitea mock</param>
+        ////public static void AddOneOrg(Mock<IGitea> moqGiteaWrapper)
+        ////{
+        ////    Organization organization = new Organization() { Username = "MockOrg" };
+        ////    moqGiteaWrapper.Setup(gitea => gitea.GetOrganization(It.IsAny<string>())).ReturnsAsync(organization);
+        ////}
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AltinnCore.Designer.Repository.Models
 {
@@ -19,12 +20,14 @@ namespace AltinnCore.Designer.Repository.Models
         /// Status
         /// </summary>
         [JsonProperty("status")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public BuildStatus Status { get; set; }
 
         /// <summary>
         /// Result
         /// </summary>
         [JsonProperty("result")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public BuildResult Result { get; set; }
 
         /// <summary>

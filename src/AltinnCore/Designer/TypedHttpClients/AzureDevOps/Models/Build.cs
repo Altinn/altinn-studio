@@ -1,6 +1,7 @@
 using System;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
 {
@@ -22,9 +23,23 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         public DateTime? StartTime { get; set; }
 
         /// <summary>
+        /// The time that the build was completed.
+        /// </summary>
+        [JsonProperty("finishTime")]
+        public DateTime? FinishTime { get; set; }
+
+        /// <summary>
         /// The status of the build.
         /// </summary>
         [JsonProperty("status")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public BuildStatus Status { get; set; }
+
+        /// <summary>
+        /// The result of the build.
+        /// </summary>
+        [JsonProperty("result")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public BuildResult Result { get; set; }
     }
 }

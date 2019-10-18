@@ -5,7 +5,7 @@ namespace AltinnCore.Designer.Repository.Models
     /// <summary>
     /// Release entity for a db
     /// </summary>
-    public class ReleaseEntity : EntityBase
+    public class ReleaseEntity : BaseEntity
     {
         /// <summary>
         /// TagName

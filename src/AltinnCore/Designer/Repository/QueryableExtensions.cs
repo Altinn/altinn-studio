@@ -20,7 +20,7 @@ namespace AltinnCore.Designer.Repository
         /// <param name="query">The query model</param>
         /// <returns></returns>
         public static IQueryable<T> BuildQuery<T>(this IQueryable<T> q, DocumentQueryModel query)
-            where T : EntityBase
+            where T : BaseEntity
         {
             if (!string.IsNullOrWhiteSpace(query.SortBy) &&
                 query.SortBy.Equals("created", StringComparison.OrdinalIgnoreCase))

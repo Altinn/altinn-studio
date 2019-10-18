@@ -11,17 +11,18 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
         /// <summary>
         /// Queues a build with a certain build definition id
         /// </summary>
-        /// <param name="commitId">Commit id that the build bases itself on</param>
-        /// <param name="org">Organisation</param>
-        /// <param name="app">App</param>
-        /// <param name="deployToken">App deploy token</param>
-        /// <param name="buildDefinitionId">The id of the build definition in Azure DevOps</param>
+        /// <param name="queueBuildParameters">QueueBuildParameters</param>
+        /// <param name="buildDefinitionId">int</param>
         /// <returns>The queued Build</returns>
         Task<Build> QueueAsync(
-            string commitId,
-            string org,
-            string app,
-            string deployToken,
+            QueueBuildParameters queueBuildParameters,
             int buildDefinitionId);
+
+        /// <summary>
+        /// Gets a build by buildId
+        /// </summary>
+        /// <param name="buildId">string</param>
+        /// <returns></returns>
+        Task<Build> Get(string buildId);
     }
 }

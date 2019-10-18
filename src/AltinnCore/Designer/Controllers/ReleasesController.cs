@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AltinnCore.Designer.ModelBinding.Constants;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services;
 using AltinnCore.Designer.ViewModels.Request;
@@ -12,7 +13,6 @@ namespace AltinnCore.Designer.Controllers
     /// Controller for creating, getting and updating releases
     /// </summary>
     [ApiController]
-    [Authorize]
     [Route("/designer/api/v1/{org}/{app}/[controller]")]
     public class ReleasesController : ControllerBase
     {
@@ -43,9 +43,10 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="createRelease">Release model</param>
         /// <returns>Created release</returns>
         [HttpPost]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ReleaseEntity> Create([FromBody]CreateReleaseRequestViewModel createRelease)
-            => await _releaseService.CreateAsync(createRelease.ToDocumentModel());
+            => await _releaseService.CreateAsync(createRelease.ToEntityModel());
 
         /// <summary>
         /// Updates a release document
@@ -55,7 +56,7 @@ namespace AltinnCore.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
         public async Task<IActionResult> Update([FromBody] UpdateReleaseRequestViewModel release)
         {
-            await _releaseService.UpdateAsync(release.ToDocumentModel());
+            await _releaseService.UpdateAsync(release.ToEntityModel());
             return NoContent();
         }
     }

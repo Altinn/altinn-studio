@@ -49,6 +49,8 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddSingleton(configuration);
 
             services.AddTransient<IReleaseService, ReleaseService>();
+            services.AddTransient<IDeploymentService, DeploymentService>();
+            services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
 
             return services;
         }

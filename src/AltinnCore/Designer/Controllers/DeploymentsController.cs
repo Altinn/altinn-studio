@@ -1,0 +1,41 @@
+using System.Threading.Tasks;
+using AltinnCore.Designer.ModelBinding.Constants;
+using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services;
+using AltinnCore.Designer.ViewModels.Request;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AltinnCore.Designer.Controllers
+{
+    /// <summary>
+    /// Controller for creating, getting and updating deployments
+    /// </summary>
+    [ApiController]
+    [Authorize]
+    [Route("/designer/api/v1/{org}/{app}/[controller]")]
+    public class DeploymentsController : ControllerBase
+    {
+        private readonly IDeploymentService _deploymentService;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="deploymentService">IDeploymentService</param>
+        public DeploymentsController(IDeploymentService deploymentService)
+        {
+            _deploymentService = deploymentService;
+        }
+
+        /// <summary>
+        /// Creates a release
+        /// </summary>
+        /// <param name="createDeployment">Release model</param>
+        /// <returns>Created release</returns>
+        [HttpPost]
+        [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        public async Task<ActionResult<DeploymentEntity>> Create([FromBody]CreateDeploymentRequestViewModel createDeployment)
+            => await _deploymentService.CreateAsync(createDeployment.ToDomainModel());
+    }
+}

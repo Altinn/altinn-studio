@@ -68,29 +68,29 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             Assert.Single(result);
         }
 
-        /// <summary>
-        /// A unit test that verifies that a given organization is returned
-        /// </summary>
-        [Fact]
-        public void Organization_GetOrg_Valid()
-        {
-            // Arrange
-            Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
-            IGiteaMockHelper.AddOneOrg(moqGitea);
-            Moq.Mock<ISourceControl> moqSourceControl = SourceControlMockHelper.GetMock();
+        /////// <summary>
+        /////// A unit test that verifies that a given organization is returned
+        /////// </summary>
+        ////[Fact]
+        ////public void Organization_GetOrg_Valid()
+        ////{
+        ////    // Arrange
+        ////    Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
+        ////    IGiteaMockHelper.AddOneOrg(moqGitea);
+        ////    Moq.Mock<ISourceControl> moqSourceControl = SourceControlMockHelper.GetMock();
 
-            Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
-            Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        ////    Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
+        ////    Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
+        ////    Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
 
-            AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object, moqSourceControl.Object, moqRepository.Object, moqHttpContextAccessor.Object) { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", false) };
-            RepositorySearch repositorySearch = new RepositorySearch();
+        ////    AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object, moqSourceControl.Object, moqRepository.Object, moqHttpContextAccessor.Object) { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", false) };
+        ////    RepositorySearch repositorySearch = new RepositorySearch();
 
-            // Act
-            ActionResult<Organization> result = controller.Organization("MockOrg");
+        ////    // Act
+        ////    ActionResult<Organization> result = controller.Organization("MockOrg");
 
-            // Assert
-            Assert.NotNull(result.Value);
-        }
+        ////    // Assert
+        ////    Assert.NotNull(result.Value);
+        ////}
     }
 }
