@@ -17,7 +17,7 @@ RUN dotnet publish AltinnCore.Runtime.csproj -c Release -o /app_output
 FROM altinn-runtime-app:latest AS generate-runtime-app
 
 #dotnet:3.0-sdk
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS final
 EXPOSE 80
 WORKDIR /AltinnService
 COPY src/AltinnCore/Testdata /Testdata
