@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Altinn.App.Services.Interfaces;
+using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 
 namespace Altinn.App.Services.Helpers

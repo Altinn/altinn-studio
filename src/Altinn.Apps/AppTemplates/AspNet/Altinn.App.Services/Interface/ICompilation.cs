@@ -1,6 +1,6 @@
 using Altinn.App.Services.Models;
 
-namespace Altinn.App.Services.Interfaces
+namespace Altinn.App.Services.Interface
 {
     /// <summary>
     /// Interface for assembly compilation
