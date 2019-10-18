@@ -2,30 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Services.Configuration;
+using Altinn.App.Services.Enums;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Runtime.Helpers;
-using AltinnCore.ServiceLibrary.Enums;
-using AltinnCore.ServiceLibrary.Models;
-using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Storage.Interface.Enums;
-using Storage.Interface.Models;
 
-namespace AltinnCore.Runtime.RestControllers
+namespace Altinn.App.Api.Controllers
 {
     /// <summary>
     /// The data controller handles creation, update, validation and calculation of data elements.

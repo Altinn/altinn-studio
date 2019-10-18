@@ -4,4 +4,9 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
+    <ProjectReference Include="..\Altinn.App.Services\Altinn.App.Services.csproj" />
+  </ItemGroup>
+
 </Project>
