@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
             QueueBuildParameters queueBuildParameters,
             int buildDefinitionId)
         {
-            queueBuildParameters.GiteaEnvironment = $"{_generalSettings.HostName}/repos";
+            queueBuildParameters.GiteaEnvironment = (Environment.GetEnvironmentVariable("GeneralSettings__HostName") ?? _generalSettings.HostName) + "/repos";
 
             QueueBuildRequest queueBuildRequest = CreateBuildRequest(queueBuildParameters, buildDefinitionId);
             return await SendRequest(queueBuildRequest);
