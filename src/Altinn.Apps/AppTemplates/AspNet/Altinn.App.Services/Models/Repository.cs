@@ -9,21 +9,16 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Text.RegularExpressions;
+using Altinn.App.Services.Models;
+using AltinnCore.RepositoryClient.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using SwaggerDateConverter = AltinnCore.RepositoryClient.Client.SwaggerDateConverter;
 
-namespace AltinnCore.RepositoryClient.Model
+namespace Altinn.App.Services.Models
 {
     /// <summary>
     /// Repository represents a repository

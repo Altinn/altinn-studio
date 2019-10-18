@@ -3,16 +3,9 @@ using System.Xml.Linq;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Workflow;
-using Altinn.App.Services.ServiceMetadata;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.Common.Models;
-using AltinnCore.ServiceLibrary.Configuration;
-using AltinnCore.ServiceLibrary.Models;
-using AltinnCore.ServiceLibrary.Models.Workflow;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
-using Microsoft.AspNetCore.Mvc;
 
-namespace Altinn.App.Services.Interfaces
+namespace Altinn.App.Services.Interface
 {
     /// <summary>
     /// Interface for repository functionality
@@ -214,7 +207,7 @@ namespace Altinn.App.Services.Interfaces
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <param name="repoCreated">whether the repo is created or not</param>
         /// <returns>The repository created in gitea</returns>
-        RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false);
+        Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false);
 
         /// <summary>
         ///  Deletes an app folder from disk

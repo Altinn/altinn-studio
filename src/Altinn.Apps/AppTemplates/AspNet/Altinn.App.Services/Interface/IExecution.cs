@@ -1,6 +1,5 @@
 using System;
 using Altinn.App.Services.Models;
-using Altinn.App.Services.ServiceMetadata;
 
 namespace Altinn.App.Services.Interface
 {

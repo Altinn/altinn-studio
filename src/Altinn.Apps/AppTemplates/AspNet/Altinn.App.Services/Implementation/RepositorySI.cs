@@ -7,19 +7,15 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Interfaces;
+using Altinn.App.Services.Constants;
+using Altinn.App.Services.Factories.ModelFactory;
+using Altinn.App.Services.Helpers;
+using Altinn.App.Services.Helpers.Extensions;
+using Altinn.App.Services.Interface;
+using Altinn.App.Services.Models;
+using Altinn.App.Services.Models.Workflow;
+using Altinn.App.Services.ServiceMetadata;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Constants;
-using AltinnCore.Common.Factories.ModelFactory;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Helpers.Extensions;
-using AltinnCore.Common.Models;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary.Configuration;
-using AltinnCore.ServiceLibrary.Models;
-using AltinnCore.ServiceLibrary.Models.Workflow;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using LibGit2Sharp;
 using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Http;
@@ -33,7 +29,7 @@ namespace Altinn.App.Services.Implementation
     /// <summary>
     /// Implementation of the repository service needed for creating and updating apps in AltinnCore.
     /// </summary>
-    public class RepositorySI : IRepository
+    public class RepositorySI : Interface.IRepository
     {
         private readonly IDefaultFileFactory _defaultFileFactory;
         private readonly ServiceRepositorySettings _settings;
@@ -81,7 +77,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/></param>
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
         #region Service metadata0
-        public bool CreateServiceMetadata(ServiceMetadata serviceMetadata)
+        public bool CreateServiceMetadata(ServiceMetadata.ServiceMetadata serviceMetadata)
         {
             string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
             string orgPath = null;
@@ -243,7 +239,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceMetadata">The serviceMetadata</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool UpdateServiceMetadata(string org, string app, ServiceMetadata serviceMetadata)
+        public bool UpdateServiceMetadata(string org, string app, ServiceMetadata.ServiceMetadata serviceMetadata)
         {
             try
             {
@@ -350,14 +346,14 @@ namespace Altinn.App.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service metadata for an app.</returns>
-        public ServiceMetadata GetServiceMetaData(string org, string app)
+        public ServiceMetadata.ServiceMetadata GetServiceMetaData(string org, string app)
         {
             string filedata = string.Empty;
             string filename = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceMetadataFileName;
             try
             {
                 filedata = File.ReadAllText(filename, Encoding.UTF8);
-                return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
+                return JsonConvert.DeserializeObject<ServiceMetadata.ServiceMetadata>(filedata);
             }
             catch (Exception ex)
             {
@@ -886,7 +882,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="serviceMetadata">The serviceMetadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
         /// <returns>A value indicating if everything went ok</returns>
-        public bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd)
+        public bool CreateModel(string org, string app, ServiceMetadata.ServiceMetadata serviceMetadata, XDocument mainXsd)
         {
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
 
@@ -896,7 +892,7 @@ namespace Altinn.App.Services.Implementation
             string classes = modelGenerator.CreateModelFromMetadata(serviceMetadata);
 
             // Load currently stored serviceMetadata
-            ServiceMetadata original = GetServiceMetaData(org, app);
+            ServiceMetadata.ServiceMetadata original = GetServiceMetaData(org, app);
             string oldRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
             // Update the serviceMetadata with new elements
@@ -1016,9 +1012,9 @@ namespace Altinn.App.Services.Implementation
         /// List the available apps on local disk
         /// </summary>
         /// <returns>A list of apps</returns>
-        public List<ServiceMetadata> GetAvailableServices()
+        public List<ServiceMetadata.ServiceMetadata> GetAvailableServices()
         {
-            List<ServiceMetadata> apps = new List<ServiceMetadata>();
+            List<ServiceMetadata.ServiceMetadata> apps = new List<ServiceMetadata.ServiceMetadata>();
             string[] orgPaths = null;
 
             orgPaths = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
@@ -1079,11 +1075,11 @@ namespace Altinn.App.Services.Implementation
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <param name="repoCreated">Whether the repo is created or not</param>
         /// <returns>The repository created in gitea</returns>
-        public RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
+        public Altinn.App.Services.Models.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
             string filename = _settings.GetServicePath(org, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
-            AltinnCore.RepositoryClient.Model.Repository repository = null;
-            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
+            Altinn.App.Services.Models.Repository repository = null;
+            CreateRepoOption createRepoOption = new CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
 
             if (!repoCreated)
             {
@@ -1121,7 +1117,7 @@ namespace Altinn.App.Services.Implementation
                     }
                 }
 
-                ServiceMetadata metadata = new ServiceMetadata
+                ServiceMetadata.ServiceMetadata metadata = new ServiceMetadata.ServiceMetadata
                 {
                     Org = org,
                     ServiceName = serviceConfig.ServiceName,
@@ -1324,7 +1320,7 @@ namespace Altinn.App.Services.Implementation
                     ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists"
                     : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
 
-                using (Repository repo = new Repository(localOrgRepoFolder))
+                using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localOrgRepoFolder))
                 {
                     // User has a local repo for codelist.
                     return;
@@ -1345,7 +1341,7 @@ namespace Altinn.App.Services.Implementation
                 _logger.LogError("Unable to verify if there exist a remote repo for codelist", ex);
             }
 
-            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: Constants.General.CodeListRepository, Readme: "Kodelister", Description: "Dette er repository for kodelister for " + org);
+            CreateRepoOption createRepoOption = new CreateRepoOption(Name: Constants.General.CodeListRepository, Readme: "Kodelister", Description: "Dette er repository for kodelister for " + org);
             CreateRepository(org, createRepoOption);
 
             try
@@ -1364,7 +1360,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public Altinn.App.Services.Models.Repository CreateRepository(string org, Altinn.App.Services.Models.CreateRepoOption createRepoOption)
         {
             return _gitea.CreateRepository(org, createRepoOption).Result;
         }
