@@ -220,14 +220,14 @@ namespace AltinnCore.Runtime
                     Version = "v1"
                 });
 
-                //try
-                //{
-                //    options.IncludeXmlComments(GetXmlCommentsPathForControllers());
-                //}
-                //catch (Exception e)
-                //{
-                //    Console.WriteLine($"Cannot read XML file for SWAGGER Config! {e.Message}");
-                //}
+                try
+                {
+                    options.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Cannot read XML file for SWAGGER Config! {e.Message}");
+                }
             });
         }
 
