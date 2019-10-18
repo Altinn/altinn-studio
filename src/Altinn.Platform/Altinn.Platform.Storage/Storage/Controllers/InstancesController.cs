@@ -262,14 +262,13 @@ namespace Altinn.Platform.Storage.Controllers
         /// Inserts new instance into the instance collection.
         /// </summary>
         /// <param name="appId">the application id</param>
-        /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instance">instance</param>
         /// <returns>instance object</returns>
-        /// <!-- POST /instances?appId={appId}&instanceOwnerId={instanceOwnerId} -->
+        /// <!-- POST /instances?appId={appId} -->
         [HttpPost]
         [Consumes("application/json")]
         [Produces("application/json")]
-        public async Task<ActionResult> Post(string appId, int instanceOwnerId, [FromBody] Instance instance)
+        public async Task<ActionResult> Post(string appId, [FromBody] Instance instance)
         {
             // check if metadata exists
             Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
@@ -278,7 +277,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return appInfoError;
             }
 
-            if (instanceOwnerId == 0)
+            if (string.IsNullOrWhiteSpace(instance.InstanceOwnerId))
             {
                 return BadRequest("Cannot create an instance without an instanceOwnerId.");
             }
@@ -289,7 +288,7 @@ namespace Altinn.Platform.Storage.Controllers
                 DateTime creationTime = DateTime.UtcNow;
                 string userId = null;
 
-                Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, instanceOwnerId, creationTime, userId);
+                Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
                 storedInstance = await _instanceRepository.Create(instanceToCreate);
                 await DispatchEvent(InstanceEventType.Created.ToString(), storedInstance);
                 logger.LogInformation($"Created instance: {storedInstance.Id}");
@@ -300,13 +299,13 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception storageException)
             {
-                logger.LogError($"Unable to create {appId} instance for {instanceOwnerId} due to {storageException}");
+                logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwnerId} due to {storageException}");
 
                 // compensating action - delete instance
                 await _instanceRepository.Delete(storedInstance);
                 logger.LogError($"Deleted instance {storedInstance.Id}");
 
-                return StatusCode(500, $"Unable to create {appId} instance for {instanceOwnerId} due to {storageException.Message}");
+                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwnerId} due to {storageException.Message}");
             }
         }
 
@@ -426,11 +425,11 @@ namespace Altinn.Platform.Storage.Controllers
             }
         }
 
-        private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, int ownerId, DateTime creationTime, string userId)
+        private Instance CreateInstanceFromTemplate(Application appInfo, Instance instanceTemplate, DateTime creationTime, string userId)
         {
             Instance createdInstance = new Instance()
             {
-                InstanceOwnerId = ownerId.ToString(),
+                InstanceOwnerId = instanceTemplate.InstanceOwnerId.ToString(),
                 CreatedBy = userId,
                 CreatedDateTime = creationTime,
                 LastChangedBy = userId,
