@@ -155,7 +155,8 @@ namespace AltinnCore.Runtime
                 hostName = Configuration["GeneralSettings:HostName"];
             }
 
-            services.AddMvc(options => options.EnableEndpointRouting = false);
+            // services.AddMvc(options => options.EnableEndpointRouting = false);
+            services.AddControllers(options => options.EnableEndpointRouting = false);
             services.AddRazorPages();
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(options =>
@@ -262,12 +263,251 @@ namespace AltinnCore.Runtime
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
             });
 
-            // appBuilder.UseRouting();
+            // UseStaticFiles() needs to be placed before UseRouting()
+            appBuilder.UseStaticFiles(new StaticFileOptions()
+            {
+                OnPrepareResponse = (context) =>
+                {
+                    Microsoft.AspNetCore.Http.Headers.ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
+                    headers.CacheControl = new CacheControlHeaderValue()
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromMinutes(60),
+                    };
+                },
+            });
+
+            appBuilder.UseRouting();
             appBuilder.UseAuthentication();
             appBuilder.UseAuthorization();
+
             appBuilder.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                // endpoints.MapControllers();
+
+                // ---------------------------- UI --------------------------- //
+                endpoints.MapControllerRoute(
+                    name: "profileApiRoute",
+                    pattern: "{org}/{app}/api/v1/{controller}/user/",
+                    defaults: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile"
+                    },
+                    constraints: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile",
+                    });
+                endpoints.MapControllerRoute(
+                    name: "uiRoute",
+                    pattern: "{org}/{app}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
+                    defaults: new { controller = "Instance" },
+                    constraints: new
+                    {
+                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
+                        controller = "Instance",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                    });
+
+                endpoints.MapControllerRoute(
+                   name: "uiEditRoute",
+                   pattern: "{org}/{app}/{instanceId?}",
+                   defaults: new { action = "EditSPA", controller = "Instance" },
+                   constraints: new
+                   {
+                       action = "EditSPA",
+                       controller = "Instance",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                   });
+
+                endpoints.MapControllerRoute(
+                   name: "runtimeRoute",
+                   pattern: "{org}/{app}",
+                   defaults: new { action = "EditSPA", controller = "Instance" },
+                   constraints: new
+                   {
+                       action = "EditSPA",
+                       controller = "Instance",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                   });
+
+                endpoints.MapControllerRoute(
+                   name: "instantiateRoute",
+                   pattern: "{org}/{app}/{controller}/InstantiateApp",
+                   defaults: new { action = "InstantiateApp", controller = "Instance" },
+                   constraints: new
+                   {
+                       action = "InstantiateApp",
+                       controller = "Instance",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                   });
+
+                endpoints.MapControllerRoute(
+                   name: "authentication",
+                   pattern: "{org}/{app}/{controller}/{action}/{goToUrl?}",
+                   defaults: new { action = "Login", controller = "Account" },
+                   constraints: new
+                   {
+                       action = "Login",
+                       controller = "Account",
+                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                   });
+
+                // ---------------------------- API -------------------------- //
+                endpoints.MapControllerRoute(
+                    name: "resourceRoute",
+                    pattern: "{org}/{app}/api/resource/{id}",
+                    defaults: new { action = "Index", controller = "Resource" },
+                    constraints: new
+                    {
+                        controller = "Resource",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "textresourceRoute",
+                    pattern: "{org}/{app}/api/textresources",
+                    defaults: new { action = "TextResources", controller = "Resource" },
+                    constraints: new
+                    {
+                        controller = "Resource",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "runtimeResourceRoute",
+                    pattern: "{org}/{app}/api/runtimeresources/{id}/",
+                    defaults: new { action = "RuntimeResource", controller = "Resource" },
+                    constraints: new
+                    {
+                        controller = "Resource",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "metadataRoute",
+                    pattern: "{org}/{app}/api/metadata/{action=Index}",
+                    defaults: new { controller = "Resource" },
+                    constraints: new
+                    {
+                        controller = "Resource",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "apiPostRoute",
+                    pattern: "{org}/{app}/api/{reportee}/{apiMode}",
+                    defaults: new { action = "Index", controller = "ServiceAPI" },
+                    constraints: new
+                    {
+                        controller = "ServiceAPI",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "apiAttachmentRoute",
+                    pattern: "{org}/{app}/api/attachment/{partyId}/{instanceGuid}/{action}",
+                    defaults: new { controller = "Instance" },
+                    constraints: new
+                    {
+                        controller = "Instance",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "apiPutRoute",
+                    pattern: "{org}/{app}/api/{reportee}/{instanceId}/{apiMode}",
+                    defaults: new { action = "Index", controller = "ServiceAPI" },
+                    constraints: new
+                    {
+                        controller = "ServiceAPI",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                    });
+                endpoints.MapControllerRoute(
+                    name: "apiWorkflowRoute",
+                    pattern: "{org}/{app}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
+                    defaults: new { controller = "ServiceAPI" },
+                    constraints: new
+                    {
+                        controller = "ServiceAPI",
+                        partyId = "[0-9]+",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "codelistRoute",
+                    pattern: "{org}/{app}/api/{controller}/{action=Index}/{name}",
+                    defaults: new { controller = "Codelist" },
+                    constraints: new
+                    {
+                        controller = "Codelist",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "apiRoute",
+                    pattern: "{org}/{app}/api/{partyId}/{instanceId}",
+                    defaults: new { action = "Gindex", controller = "ServiceAPI" },
+                    constraints: new
+                    {
+                        controller = "ServiceAPI",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        partyId = "[0-9]{1,20}",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                    });
+
+                endpoints.MapControllerRoute(
+                    name: "serviceRoute",
+                    pattern: "{org}/{app}/{controller}/{action=Index}/{id?}",
+                    defaults: new { controller = "Service" },
+                    constraints: new
+                    {
+                        controller = @"(Codelist|Config|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
+                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        id = "[a-zA-Z0-9_\\-]{1,30}",
+                    });
+                endpoints.MapControllerRoute(
+                    name: "languageRoute",
+                    pattern: "{org}/{app}/api/{controller}/{action=Index}/{id?}",
+                    defaults: new { controller = "Language" },
+                    constraints: new
+                    {
+                        controller = "Language",
+                    });
+
+                endpoints.MapControllerRoute(
+                  name: "authorization",
+                  pattern: "{org}/{app}/api/{controller}/parties/{partyId}/validate",
+                  defaults: new { action = "ValidateSelectedParty", controller = "Authorization" },
+                  constraints: new
+                  {
+                      action = "ValidateSelectedParty",
+                      controller = "Authorization",
+                      app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                  });
+
+                /* endpoints.MapControllerRoute(
+                     name: "authenticationRoute",
+                     pattern: "{controller}/{action}/{gotourl?}",
+                     defaults: new { controller = "Account" },
+                     constraints: new
+                     {
+                         controller = "Account",
+                     }); */
+
+                // -------------------------- DEFAULT ------------------------- //
+                endpoints.MapControllerRoute(
+                     name: "defaultRoute2",
+                     pattern: "{controller}/{action=Index}/{id?}");
+
+                endpoints.MapControllerRoute(
+                    name: "defaultRoute",
+                    pattern: "{action=Index}/{id?}");
             });
 
             // appBuilder.UseHsts();
@@ -289,245 +529,233 @@ namespace AltinnCore.Runtime
 
             appBuilder.UseResponseCompression();
             appBuilder.UseRequestLocalization();
-            appBuilder.UseStaticFiles(new StaticFileOptions()
-            {
-                OnPrepareResponse = (context) =>
-                {
-                    Microsoft.AspNetCore.Http.Headers.ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-                    headers.CacheControl = new CacheControlHeaderValue()
-                    {
-                        Public = true,
-                        MaxAge = TimeSpan.FromMinutes(60),
-                    };
-                },
-            });
+            
+            //appBuilder.UseMvc(routes =>
+            //{
+            //    // ---------------------------- UI --------------------------- //
+            //    routes.MapRoute(
+            //        name: "profileApiRoute",
+            //        template: "{org}/{app}/api/v1/{controller}/user/",
+            //        defaults: new
+            //        {
+            //            action = "GetUser",
+            //            controller = "Profile"
+            //        },
+            //        constraints: new
+            //        {
+            //            action = "GetUser",
+            //            controller = "Profile",
+            //        });
+            //    routes.MapRoute(
+            //        name: "uiRoute",
+            //        template: "{org}/{app}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
+            //        defaults: new { controller = "Instance" },
+            //        constraints: new
+            //        {
+            //            action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
+            //            controller = "Instance",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //            instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+            //        });
 
-            appBuilder.UseMvc(routes =>
-            {
-                // ---------------------------- UI --------------------------- //
-                routes.MapRoute(
-                    name: "profileApiRoute",
-                    template: "{org}/{app}/api/v1/{controller}/user/",
-                    defaults: new
-                    {
-                        action = "GetUser",
-                        controller = "Profile"
-                    },
-                    constraints: new
-                    {
-                        action = "GetUser",
-                        controller = "Profile",
-                    });
-                routes.MapRoute(
-                    name: "uiRoute",
-                    template: "{org}/{app}/{partyId}/{instanceGuid}/{action}/{view|validation?}/{itemId?}",
-                    defaults: new { controller = "Instance" },
-                    constraints: new
-                    {
-                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
-                        controller = "Instance",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                    });
+            //    routes.MapRoute(
+            //       name: "uiEditRoute",
+            //       template: "{org}/{app}/{instanceId?}",
+            //       defaults: new { action = "EditSPA", controller = "Instance" },
+            //       constraints: new
+            //       {
+            //           action = "EditSPA",
+            //           controller = "Instance",
+            //           app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //           instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+            //       });
 
-                routes.MapRoute(
-                   name: "uiEditRoute",
-                   template: "{org}/{app}/{instanceId?}",
-                   defaults: new { action = "EditSPA", controller = "Instance" },
-                   constraints: new
-                   {
-                       action = "EditSPA",
-                       controller = "Instance",
-                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                       instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                   });
+            //    routes.MapRoute(
+            //       name: "runtimeRoute",
+            //       template: "{org}/{app}",
+            //       defaults: new { action = "EditSPA", controller = "Instance" },
+            //       constraints: new
+            //       {
+            //           action = "EditSPA",
+            //           controller = "Instance",
+            //           app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //       });
 
-                routes.MapRoute(
-                   name: "runtimeRoute",
-                   template: "{org}/{app}",
-                   defaults: new { action = "EditSPA", controller = "Instance" },
-                   constraints: new
-                   {
-                       action = "EditSPA",
-                       controller = "Instance",
-                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                   });
+            //    routes.MapRoute(
+            //       name: "instantiateRoute",
+            //       template: "{org}/{app}/{controller}/InstantiateApp",
+            //       defaults: new { action = "InstantiateApp", controller = "Instance" },
+            //       constraints: new
+            //       {
+            //           action = "InstantiateApp",
+            //           controller = "Instance",
+            //           app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //       });
 
-                routes.MapRoute(
-                   name: "instantiateRoute",
-                   template: "{org}/{app}/{controller}/InstantiateApp",
-                   defaults: new { action = "InstantiateApp", controller = "Instance" },
-                   constraints: new
-                   {
-                       action = "InstantiateApp",
-                       controller = "Instance",
-                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                   });
+            //    routes.MapRoute(
+            //       name: "authentication",
+            //       template: "{org}/{app}/{controller}/{action}/{goToUrl?}",
+            //       defaults: new { action = "Login", controller = "Account" },
+            //       constraints: new
+            //       {
+            //           action = "Login",
+            //           controller = "Account",
+            //           app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //       });
 
-                routes.MapRoute(
-                   name: "authentication",
-                   template: "{org}/{app}/{controller}/{action}/{goToUrl?}",
-                   defaults: new { action = "Login", controller = "Account" },
-                   constraints: new
-                   {
-                       action = "Login",
-                       controller = "Account",
-                       app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                   });
+            //    // ---------------------------- API -------------------------- //
+            //    routes.MapRoute(
+            //        name: "resourceRoute",
+            //        template: "{org}/{app}/api/resource/{id}",
+            //        defaults: new { action = "Index", controller = "Resource" },
+            //        constraints: new
+            //        {
+            //            controller = "Resource",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //        });
 
-                // ---------------------------- API -------------------------- //
-                routes.MapRoute(
-                    name: "resourceRoute",
-                    template: "{org}/{app}/api/resource/{id}",
-                    defaults: new { action = "Index", controller = "Resource" },
-                    constraints: new
-                    {
-                        controller = "Resource",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    });
+            //    routes.MapRoute(
+            //        name: "textresourceRoute",
+            //        template: "{org}/{app}/api/textresources",
+            //        defaults: new { action = "TextResources", controller = "Resource" },
+            //        constraints: new
+            //        {
+            //            controller = "Resource",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //        });
 
-                routes.MapRoute(
-                    name: "textresourceRoute",
-                    template: "{org}/{app}/api/textresources",
-                    defaults: new { action = "TextResources", controller = "Resource" },
-                    constraints: new
-                    {
-                        controller = "Resource",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    });
+            //    routes.MapRoute(
+            //        name: "runtimeResourceRoute",
+            //        template: "{org}/{app}/api/runtimeresources/{id}/",
+            //        defaults: new { action = "RuntimeResource", controller = "Resource" },
+            //        constraints: new
+            //        {
+            //            controller = "Resource",
+            //        });
 
-                routes.MapRoute(
-                    name: "runtimeResourceRoute",
-                    template: "{org}/{app}/api/runtimeresources/{id}/",
-                    defaults: new { action = "RuntimeResource", controller = "Resource" },
-                    constraints: new
-                    {
-                        controller = "Resource",
-                    });
+            //    routes.MapRoute(
+            //        name: "metadataRoute",
+            //        template: "{org}/{app}/api/metadata/{action=Index}",
+            //        defaults: new { controller = "Resource" },
+            //        constraints: new
+            //        {
+            //            controller = "Resource",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //        });
 
-                routes.MapRoute(
-                    name: "metadataRoute",
-                    template: "{org}/{app}/api/metadata/{action=Index}",
-                    defaults: new { controller = "Resource" },
-                    constraints: new
-                    {
-                        controller = "Resource",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    });
+            //    routes.MapRoute(
+            //        name: "apiPostRoute",
+            //        template: "{org}/{app}/api/{reportee}/{apiMode}",
+            //        defaults: new { action = "Index", controller = "ServiceAPI" },
+            //        constraints: new
+            //        {
+            //            controller = "ServiceAPI",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //        });
 
-                routes.MapRoute(
-                    name: "apiPostRoute",
-                    template: "{org}/{app}/api/{reportee}/{apiMode}",
-                    defaults: new { action = "Index", controller = "ServiceAPI" },
-                    constraints: new
-                    {
-                        controller = "ServiceAPI",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    });
+            //    routes.MapRoute(
+            //        name: "apiAttachmentRoute",
+            //        template: "{org}/{app}/api/attachment/{partyId}/{instanceGuid}/{action}",
+            //        defaults: new { controller = "Instance" },
+            //        constraints: new
+            //        {
+            //            controller = "Instance",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //            instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+            //        });
 
-                routes.MapRoute(
-                    name: "apiAttachmentRoute",
-                    template: "{org}/{app}/api/attachment/{partyId}/{instanceGuid}/{action}",
-                    defaults: new { controller = "Instance" },
-                    constraints: new
-                    {
-                        controller = "Instance",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceGuid = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                    });
+            //    routes.MapRoute(
+            //        name: "apiPutRoute",
+            //        template: "{org}/{app}/api/{reportee}/{instanceId}/{apiMode}",
+            //        defaults: new { action = "Index", controller = "ServiceAPI" },
+            //        constraints: new
+            //        {
+            //            controller = "ServiceAPI",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //            instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+            //        });
+            //    routes.MapRoute(
+            //        name: "apiWorkflowRoute",
+            //        template: "{org}/{app}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
+            //        defaults: new { controller = "ServiceAPI" },
+            //        constraints: new
+            //        {
+            //            controller = "ServiceAPI",
+            //            partyId = "[0-9]+",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //            instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+            //        });
 
-                routes.MapRoute(
-                    name: "apiPutRoute",
-                    template: "{org}/{app}/api/{reportee}/{instanceId}/{apiMode}",
-                    defaults: new { action = "Index", controller = "ServiceAPI" },
-                    constraints: new
-                    {
-                        controller = "ServiceAPI",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                    });
-                routes.MapRoute(
-                    name: "apiWorkflowRoute",
-                    template: "{org}/{app}/api/workflow/{partyId}/{instanceId}/{action=GetCurrentState}",
-                    defaults: new { controller = "ServiceAPI" },
-                    constraints: new
-                    {
-                        controller = "ServiceAPI",
-                        partyId = "[0-9]+",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                    });
+            //    routes.MapRoute(
+            //        name: "codelistRoute",
+            //        template: "{org}/{app}/api/{controller}/{action=Index}/{name}",
+            //        defaults: new { controller = "Codelist" },
+            //        constraints: new
+            //        {
+            //            controller = "Codelist",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //        });
 
-                routes.MapRoute(
-                    name: "codelistRoute",
-                    template: "{org}/{app}/api/{controller}/{action=Index}/{name}",
-                    defaults: new { controller = "Codelist" },
-                    constraints: new
-                    {
-                        controller = "Codelist",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    });
+            //    routes.MapRoute(
+            //        name: "apiRoute",
+            //        template: "{org}/{app}/api/{partyId}/{instanceId}",
+            //        defaults: new { action = "Gindex", controller = "ServiceAPI" },
+            //        constraints: new
+            //        {
+            //            controller = "ServiceAPI",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //            partyId = "[0-9]{1,20}",
+            //            instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+            //        });
 
-                routes.MapRoute(
-                    name: "apiRoute",
-                    template: "{org}/{app}/api/{partyId}/{instanceId}",
-                    defaults: new { action = "Gindex", controller = "ServiceAPI" },
-                    constraints: new
-                    {
-                        controller = "ServiceAPI",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        partyId = "[0-9]{1,20}",
-                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
-                    });
+            //    routes.MapRoute(
+            //        name: "serviceRoute",
+            //        template: "{org}/{app}/{controller}/{action=Index}/{id?}",
+            //        defaults: new { controller = "Service" },
+            //        constraints: new
+            //        {
+            //            controller = @"(Codelist|Config|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
+            //            app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //            id = "[a-zA-Z0-9_\\-]{1,30}",
+            //        });
+            //    routes.MapRoute(
+            //        name: "languageRoute",
+            //        template: "{org}/{app}/api/{controller}/{action=Index}/{id?}",
+            //        defaults: new { controller = "Language" },
+            //        constraints: new
+            //        {
+            //            controller = "Language",
+            //        });
 
-                routes.MapRoute(
-                    name: "serviceRoute",
-                    template: "{org}/{app}/{controller}/{action=Index}/{id?}",
-                    defaults: new { controller = "Service" },
-                    constraints: new
-                    {
-                        controller = @"(Codelist|Config|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
-                        app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        id = "[a-zA-Z0-9_\\-]{1,30}",
-                    });
-                routes.MapRoute(
-                    name: "languageRoute",
-                    template: "{org}/{app}/api/{controller}/{action=Index}/{id?}",
-                    defaults: new { controller = "Language" },
-                    constraints: new
-                    {
-                        controller = "Language",
-                    });
+            //    routes.MapRoute(
+            //      name: "authorization",
+            //      template: "{org}/{app}/api/{controller}/parties/{partyId}/validate",
+            //      defaults: new { action = "ValidateSelectedParty", controller = "Authorization" },
+            //      constraints: new
+            //      {
+            //          action = "ValidateSelectedParty",
+            //          controller = "Authorization",
+            //          app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //      });
 
-                routes.MapRoute(
-                  name: "authorization",
-                  template: "{org}/{app}/api/{controller}/parties/{partyId}/validate",
-                  defaults: new { action = "ValidateSelectedParty", controller = "Authorization" },
-                  constraints: new
-                  {
-                      action = "ValidateSelectedParty",
-                      controller = "Authorization",
-                      app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                  });
+            //    /* routes.MapRoute(
+            //         name: "authenticationRoute",
+            //         template: "{controller}/{action}/{gotourl?}",
+            //         defaults: new { controller = "Account" },
+            //         constraints: new
+            //         {
+            //             controller = "Account",
+            //         }); */
 
-                /* routes.MapRoute(
-                     name: "authenticationRoute",
-                     template: "{controller}/{action}/{gotourl?}",
-                     defaults: new { controller = "Account" },
-                     constraints: new
-                     {
-                         controller = "Account",
-                     }); */
+            //    // -------------------------- DEFAULT ------------------------- //
+            //    routes.MapRoute(
+            //         name: "defaultRoute2",
+            //         template: "{controller}/{action=Index}/{id?}");
 
-                // -------------------------- DEFAULT ------------------------- //
-                routes.MapRoute(
-                     name: "defaultRoute2",
-                     template: "{controller}/{action=Index}/{id?}");
-
-                routes.MapRoute(
-                    name: "defaultRoute",
-                    template: "{action=Index}/{id?}");
-            });
+            //    routes.MapRoute(
+            //        name: "defaultRoute",
+            //        template: "{action=Index}/{id?}");
+            //});
         }
 
         /// <summary>

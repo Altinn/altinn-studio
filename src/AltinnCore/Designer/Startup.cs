@@ -132,7 +132,11 @@ namespace AltinnCore.Designer
                 services.AddApplicationInsightsKubernetesEnricher();
             }
 
-            var mvc = services.AddMvc().AddControllersAsServices();
+            // var mvc = services.AddMvc().AddControllersAsServices();
+
+            var mvc = services.AddControllers().AddControllersAsServices();
+            mvc.Services.AddRazorPages();
+
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
@@ -176,12 +180,7 @@ namespace AltinnCore.Designer
                 appBuilder.UseExceptionHandler("/Error");
             }
 
-            // appBuilder.UseHsts();
-            // appBuilder.UseHttpsRedirection();
-            appBuilder.UseAuthentication();
-
-            appBuilder.UseResponseCompression();
-            appBuilder.UseRequestLocalization();
+            // UseStaticFiles must appear before UseRouting()
             appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
@@ -195,34 +194,44 @@ namespace AltinnCore.Designer
                 },
             });
 
-            appBuilder.UseMvc(routes =>
+            appBuilder.UseRouting();
+
+            // appBuilder.UseHsts();
+            // appBuilder.UseHttpsRedirection();
+            appBuilder.UseAuthentication();
+            appBuilder.UseAuthorization();
+
+            appBuilder.UseResponseCompression();
+            appBuilder.UseRequestLocalization();
+            
+            appBuilder.UseEndpoints(endpoints =>
             {
                 // ------------------------- DEV ----------------------------- //
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "orgRoute",
-                    template: "designer/{org}/{controller}/{action=Index}/",
+                    pattern: "designer/{org}/{controller}/{action=Index}/",
                     defaults: new { controller = "Config" },
                     constraints: new
                     {
                         controller = "Codelist|Config",
                     });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "serviceDevelopmentRoute",
-                        template: "designer/{org}/{app}",
+                        pattern: "designer/{org}/{app}",
                         defaults: new { controller = "ServiceDevelopment", action = "index" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "designerApiRoute",
-                    template: "designerapi/{controller}/{action=Index}/{id?}",
+                    pattern: "designerapi/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Repository" },
                     constraints: new
                     {
                         controller = @"(Repository|Language|User)",
                     });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                           name: "serviceRoute",
-                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
@@ -230,35 +239,100 @@ namespace AltinnCore.Designer
                               app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                           name: "appRoute",
-                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Deploy" },
                           constraints: new
                           {
                               controller = @"(Deploy)",
                           });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "applicationMetadataApiRoute",
-                        template: "designer/api/v1/{org}/{app}",
+                        pattern: "designer/api/v1/{org}/{app}",
                         defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "reposRoute",
-                        template: "{controller}/{action}/",
+                        pattern: "{controller}/{action}/",
                         defaults: new { controller = "RedirectController" });
 
                 // -------------------------- DEFAULT ------------------------- //
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                    name: "defaultRoute2",
-                   template: "{controller}/{action=StartPage}/{id?}",
+                   pattern: "{controller}/{action=StartPage}/{id?}",
                    defaults: new { controller = "Home" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "defaultRoute",
-                    template: "{action=StartPage}/{id?}",
+                    pattern: "{action=StartPage}/{id?}",
                     defaults: new { controller = "Home" });
             });
+
+            //appBuilder.UseMvc(routes =>
+            //{
+            //    // ------------------------- DEV ----------------------------- //
+            //    routes.MapRoute(
+            //        name: "orgRoute",
+            //        template: "designer/{org}/{controller}/{action=Index}/",
+            //        defaults: new { controller = "Config" },
+            //        constraints: new
+            //        {
+            //            controller = "Codelist|Config",
+            //        });
+
+            //    routes.MapRoute(
+            //            name: "serviceDevelopmentRoute",
+            //            template: "designer/{org}/{app}",
+            //            defaults: new { controller = "ServiceDevelopment", action = "index" });
+
+            //    routes.MapRoute(
+            //        name: "designerApiRoute",
+            //        template: "designerapi/{controller}/{action=Index}/{id?}",
+            //        defaults: new { controller = "Repository" },
+            //        constraints: new
+            //        {
+            //            controller = @"(Repository|Language|User)",
+            //        });
+            //    routes.MapRoute(
+            //              name: "serviceRoute",
+            //              template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+            //              defaults: new { controller = "Service" },
+            //              constraints: new
+            //              {
+            //                  controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
+            //                  app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+            //                  id = "[a-zA-Z0-9_\\-]{1,30}",
+            //              });
+            //    routes.MapRoute(
+            //              name: "appRoute",
+            //              template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+            //              defaults: new { controller = "Deploy" },
+            //              constraints: new
+            //              {
+            //                  controller = @"(Deploy)",
+            //              });
+            //    routes.MapRoute(
+            //            name: "applicationMetadataApiRoute",
+            //            template: "designer/api/v1/{org}/{app}",
+            //            defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
+
+            //    routes.MapRoute(
+            //            name: "reposRoute",
+            //            template: "{controller}/{action}/",
+            //            defaults: new { controller = "RedirectController" });
+
+            //    // -------------------------- DEFAULT ------------------------- //
+            //    routes.MapRoute(
+            //       name: "defaultRoute2",
+            //       template: "{controller}/{action=StartPage}/{id?}",
+            //       defaults: new { controller = "Home" });
+
+            //    routes.MapRoute(
+            //        name: "defaultRoute",
+            //        template: "{action=StartPage}/{id?}",
+            //        defaults: new { controller = "Home" });
+            //});
         }
 
         /// <summary>
