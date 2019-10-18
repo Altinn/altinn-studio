@@ -1,5 +1,3 @@
-using Altinn.App.Services.Interfaces;
-
 namespace Altinn.App.Services.Interface
 {
     /// <summary>

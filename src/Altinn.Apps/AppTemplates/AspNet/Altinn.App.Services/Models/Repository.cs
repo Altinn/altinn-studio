@@ -14,7 +14,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
-using Altinn.App.Services.Models;
 using AltinnCore.RepositoryClient.Models;
 using Newtonsoft.Json;
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.6-alpha" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.14" />
     <PackageReference Include="JWTCookieAuthentication" Version="0.9.1-alpha" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.0" />
     <PackageReference Include="Manatee.Json" Version="10.1.2" />

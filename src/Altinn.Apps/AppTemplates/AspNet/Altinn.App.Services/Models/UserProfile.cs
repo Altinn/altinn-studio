@@ -1,5 +1,3 @@
-using Altinn.App.Services.Enums;
-
 namespace Altinn.App.Services.Models
 {
     /// <summary>
