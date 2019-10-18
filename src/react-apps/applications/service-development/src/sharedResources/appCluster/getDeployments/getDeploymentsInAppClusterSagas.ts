@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import { call, fork, takeEvery } from 'redux-saga/effects';
 import { get } from '../../../../../shared/src/utils/networking';
 import { urls } from '../../../config/sharedConfig';
 import * as AppClusterActionTypes from '../appClusterActionTypes';
@@ -23,7 +23,7 @@ export function* getDeploymentsSaga({
 }
 
 export function* watchGetDeploymentsSaga(): SagaIterator {
-  yield takeLatest(
+  yield takeEvery(
     AppClusterActionTypes.GET_DEPLOYMENTS,
     getDeploymentsSaga,
   );

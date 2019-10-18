@@ -1,38 +1,219 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import {delay} from 'redux-saga';
+import { call, fork, race, take, takeLatest } from 'redux-saga/effects';
 import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
 import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
 import { IDeployment } from '../types';
 
-const mockDeployments: IDeployment[] = [
+import * as moment from 'moment';
+
+export const mockDeployments: IDeployment[] = [
   {
-    id: 'deployment_1_id',
-    tag_name: 'deployment_1_tag_name',
+    id: 'document_id',
+    tagName: '1.2.9',
     app: 'deployment_1_app',
     org: 'deployment_1_org',
-    env_name: 'deployment_1_env_name',
-    created_by: 'deployment_1_created_by',
-    created: 'deployment_1_created',
-    status: 'deployment_1_status',
-    started: 'deployment_1_started',
-    finished: 'deployment_1_finished',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-18T10:30:15.3464541+02:00',
     build: {
-      id: 'deployment_1_build_id',
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-18T10:30:15.3464541+02:00',
     },
   },
   {
-    id: 'deployment_2_id',
-    tag_name: 'deployment_2_tag_name',
-    app: 'deployment_2_app',
-    org: 'deployment_2_org',
-    env_name: 'deployment_2_env_name',
-    created_by: 'deployment_2_created_by',
-    created: 'deployment_2_created',
-    status: 'deployment_2_status',
-    started: 'deployment_2_started',
-    finished: 'deployment_2_finished',
+    id: 'document_id',
+    tagName: '1.2.8',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
     build: {
-      id: 'deployment_2_build_id',
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.2.7',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.2.6',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.2.4',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.2.3',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.2.2',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.2.1',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.2.0',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.1.6',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.1.5',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'at21',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.1.4',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'tt',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
+    },
+  },
+  {
+    id: 'document_id',
+    tagName: '1.1.1',
+    app: 'deployment_1_app',
+    org: 'deployment_1_org',
+    envName: 'tt',
+    createdBy: 'deployment_1_createdBy',
+    created: '2019-10-14T10:38:15.3464541+02:00',
+    build: {
+      id: '17232',
+      status: 5,
+      result: 'succeeded',
+      started: null,
+      finished: '2019-10-14T10:38:15.3464541+02:00',
     },
   },
 ]
@@ -45,13 +226,42 @@ function* getAppDeploymentSaga(): SagaIterator {
   }
 }
 
-export function* watchGetAppDeploymentSaga(): SagaIterator {
+// Worker function - polling
+function* getAppDeploymentIntervalSaga(): SagaIterator {
+  console.log('getDeploymentInterval');
+  while (true) {
+    try {
+      console.log('getDeploymentInterval trying');
+      mockDeployments[0].created = moment().format();
+      yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, mockDeployments);
+      yield call(delay, 5000);
+    } catch (err) {
+      yield call(AppDeploymentActionDispatcher.getAppDeploymentsRejected, err);
+      yield call(AppDeploymentActionDispatcher.getAppDeploymentsStopInterval);
+    }
+  }
+}
+
+// Get app deployments watcher function
+function* watchGetAppDeploymentSaga(): SagaIterator {
   yield takeLatest(
     AppDeploymentActionTypes.GET_APP_DEPLOYMENTS,
     getAppDeploymentSaga,
-  );
+    );
+  }
+
+// Interval watcher function
+function* watchGetAppDeploymentIntervalSaga(): SagaIterator {
+  while (true) {
+    yield take(AppDeploymentActionDispatcher.getAppDeploymentsStartInterval);
+    yield race({
+      do: call(getAppDeploymentIntervalSaga),
+      cancel: take(AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_STOP_INTERVAL),
+    });
+  }
 }
 
 export default function*(): SagaIterator {
   yield fork(watchGetAppDeploymentSaga);
+  yield fork(watchGetAppDeploymentIntervalSaga);
 }

@@ -29,3 +29,15 @@ export function getAppDeploymentsRejected(error: Error): IGetAppDeploymentsRejec
     error,
   };
 }
+
+export function getAppDeploymentsStartInterval(): Action {
+  return {
+    type: AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_START_INTERVAL,
+  };
+}
+
+export function getAppDeploymentsStopInterval(): Action {
+  return {
+    type: AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_STOP_INTERVAL,
+  };
+}

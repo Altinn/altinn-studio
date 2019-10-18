@@ -1,12 +1,13 @@
 import { Action } from 'redux';
 import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
+import { IDeployment } from '../types';
 
-export interface ICreateDeployment extends Action {
+export interface ICreateAppDeployment extends Action {
   tag_name: string;
   env_name: string;
 }
 
-export function createDeployment(tagName: string, envName: string): ICreateDeployment {
+export function createAppDeployment(tagName: string, envName: string): ICreateAppDeployment {
   return {
     type: AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT,
     tag_name: tagName,
@@ -14,22 +15,22 @@ export function createDeployment(tagName: string, envName: string): ICreateDeplo
   };
 }
 
-export interface ICreateDeploymentFulfilled extends Action {
-  id: string;
+export interface ICreateAppDeploymentFulfilled extends Action {
+  result: IDeployment;
 }
 
-export function createDeploymentFulfilled(id: string): ICreateDeploymentFulfilled {
+export function createAppDeploymentFulfilled(result: IDeployment): ICreateAppDeploymentFulfilled {
   return {
     type: AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT_FULFILLED,
-    id,
+    result,
   };
 }
 
-export interface ICreateDeploymentRejected extends Action {
+export interface ICreateAppDeploymentRejected extends Action {
   error: Error;
 }
 
-export function createDeploymentRejected(error: Error): ICreateDeploymentRejected {
+export function createAppDeploymentRejected(error: Error): ICreateAppDeploymentRejected {
   return {
     type: AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT_REJECTED,
     error,

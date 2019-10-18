@@ -3,13 +3,36 @@ import { Action, Reducer } from 'redux';
 import * as AppClusterActionTypes from './appClusterActionTypes';
 import * as AppClusterActions from './getDeployments/getDeploymentsInAppClusterActions';
 
+// TODO: create interfaces
 export interface IAppClusterState {
   deploymentList: any;
 }
 
+// TODO: iterate over environments?
 const initialState: IAppClusterState = {
   deploymentList: {
     at21: {
+      items: [],
+      getStatus: {
+        error: null,
+        success: null,
+      },
+    },
+    at22: {
+      items: [],
+      getStatus: {
+        error: null,
+        success: null,
+      },
+    },
+    tt: {
+      items: [],
+      getStatus: {
+        error: null,
+        success: null,
+      },
+    },
+    production: {
       items: [],
       getStatus: {
         error: null,

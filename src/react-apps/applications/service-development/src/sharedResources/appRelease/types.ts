@@ -16,14 +16,13 @@ export interface IBuild {
 
 export interface IRelease {
   id: string;
-  tag_name: string;
+  tagName: string;
   name: string;
   body: string;
   app: string;
   org: string;
-  env_name: string;
-  target_commitish: string;
-  created_by: string;
+  targetCommitish: string;
+  createdBy: string;
   created: string;
   build: IBuild;
 }

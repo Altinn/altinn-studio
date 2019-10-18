@@ -2,23 +2,114 @@ import * as React from 'react';
 import { useSelector } from 'react-redux';
 import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
 import { IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentReducer';
-import { IDeployment } from '../../../sharedResources/appDeployment/types';
+import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
 
-export default function() {
+import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
+import AppClusterActions from '../../../sharedResources/appCluster/appClusterDispatcher';
+import { IAppClusterState } from '../../../sharedResources/appCluster/appClusterReducer';
+import AppDeploymentComponent from '../components/appDeploymentComponent';
+
+import * as moment from 'moment';
+
+const mockEnvironments = {
+  env: [
+      {
+          hostname: 'apps.at21.altinn.cloud',
+          name: 'at21',
+          type: 'test',
+      },
+      {
+          hostname: 'apps.tt.altinn.cloud',
+          name: 'tt',
+          type: 'test',
+      },
+      {
+          hostname: 'apps.altinn.no',
+          name: 'production',
+          type: 'production',
+      },
+
+  ],
+};
+
+export interface IDeployContainer {
+
+}
+
+const DeployContainer = (props: IDeployContainer) => {
+  const { org, app } = window as Window as IAltinnWindow;
+
+  const [environments, setEnvironments] = React.useState([]);
+  const [imageOptions, setImageOptions] = React.useState([]);
+
+  const appCluster: IAppClusterState = useSelector((state: IServiceDevelopmentState) => state.appCluster);
   const appDeployments: IAppDeploymentState = useSelector((state: IServiceDevelopmentState) => state.appDeployments);
+  const deployableImages: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
 
   React.useEffect(() => {
-    AppDeploymentActions.getAppDeployments();
+    // AppDeploymentActions.getAppDeployments();
+    AppDeploymentActions.getAppDeploymentsStartInterval();
+    setEnvironments(mockEnvironments.env);
   }, []);
 
-  if (!appDeployments.deployments || !appDeployments.deployments.length) {
-    return null;
-  }
+  React.useEffect(() => {
+    return () => {
+      AppDeploymentActions.getAppDeploymentsStopInterval();
+    };
+  }, []);
+
+  React.useEffect(() => {
+    environments.map((env: any) => {
+      AppClusterActions.getDeployments(env.name, org, app);
+    });
+  }, [environments]);
+
+  React.useEffect(() => {
+    const tempImages = deployableImages.releases.map((image) => {
+      const releaseTime = moment.utc(new Date(image.created)).format('DD.MM.YY [kl.] hh:mm');
+
+      return {
+        value: image.tagName,
+        label: `Version ${image.tagName} (${releaseTime})`,
+      };
+    });
+    setImageOptions(tempImages);
+  }, [deployableImages]);
+
+  const isLoading = (): boolean => {
+    return (
+      !environments.length ||
+      !appDeployments.deployments ||
+      !deployableImages
+    );
+  };
+
   return (
     <>
-      {appDeployments.deployments.map((deployment: IDeployment, index: number) => (
-        <h1 key={index}>{deployment.tag_name}</h1>
-      ))}
+      {isLoading() &&
+        <AltinnContentLoader  width={705} height={561} />
+      }
+      {!isLoading() &&
+        environments.map((env: any, index: number) => {
+          // console.log('map env', env);
+          return(
+            <AppDeploymentComponent
+              key={index}
+              envName={env.name}
+              urlToApp={`https://${org}.${env.name}.${env.hostname}/${org}/${app}`}
+              urlToAppLinkTxt={`${org}.${env.name}.${env.hostname}/${org}/${app}`}
+              deploymentList={
+                appCluster.deploymentList &&
+                appCluster.deploymentList[env.name]
+              }
+              releases={imageOptions}
+              deployHistory={appDeployments.deployments.filter((deployment: any) => deployment.envName === env.name)}
+            />
+          );
+        })
+      }
     </>
   );
 }
+
+export default DeployContainer;
