@@ -1,23 +1,16 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure;
 using AltinnCore.Designer.Infrastructure.Authorization;
 using AltinnCore.Designer.TypedHttpClients;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Net.Http.Headers;
-using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace AltinnCore.Designer

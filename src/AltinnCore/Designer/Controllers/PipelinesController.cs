@@ -22,17 +22,14 @@ namespace AltinnCore.Designer.Controllers
     public class PipelinesController : ControllerBase
     {
         private readonly IAzureDevOpsBuildService _buildService;
-        private readonly ReleaseDbRepository _releaseDbRepository;
 
         /// <summary>
         /// Constructor
         /// </summary>
         public PipelinesController(
-            IAzureDevOpsBuildService buildService,
-            ReleaseDbRepository releaseDbRepository)
+            IAzureDevOpsBuildService buildService)
         {
             _buildService = buildService;
-            _releaseDbRepository = releaseDbRepository;
         }
 
         /// <summary>
@@ -41,19 +38,21 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>Created release</returns>
         [HttpPost("checkreleasebuildstatus")]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task Status(Build model)
+        public async Task<ActionResult> CheckReleaseStatus(
+            AzureDevOpsWebHookEventModel model,
+            [FromServices] ReleaseDbRepository releaseDbRepository)
         {
-            string buildId = model.Id.ToString();
-            Build build = await _buildService.Get(buildId); // insert build id here
+            string buildId = model.Resource.BuildNumber;
+            Build build = await _buildService.Get(buildId);
             SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
             {
                 QueryText = "SELECT * FROM db WHERE db.build.id = @buildId",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@buildId", buildId) // insert build id here
+                    new SqlParameter("@buildId", buildId)
                 }
             };
-            IEnumerable<ReleaseEntity> releases = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
+            IEnumerable<ReleaseEntity> releases = await releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
             ReleaseEntity release = releases.Single();
 
             release.Build.Started = build.StartTime;
@@ -61,7 +60,43 @@ namespace AltinnCore.Designer.Controllers
             release.Build.Result = build.Result;
             release.Build.Status = build.Status;
 
-            await _releaseDbRepository.UpdateAsync(release);
+            await releaseDbRepository.UpdateAsync(release);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Gets a build status from Azure DevOps and updates a specific entity
+        /// </summary>
+        /// <returns>Created release</returns>
+        [HttpPost("checkdeploymentbuildstatus")]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
+        public async Task<ActionResult> CheckDeploymentStatus(
+            AzureDevOpsWebHookEventModel model,
+            [FromServices] DeploymentDbRepository deploymentDbRepository)
+        {
+            string buildId = model.Resource.BuildNumber;
+            Build build = await _buildService.Get(buildId);
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = "SELECT * FROM db WHERE db.build.id = @buildId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@buildId", buildId)
+                }
+            };
+            IEnumerable<DeploymentEntity> deployments =
+                await deploymentDbRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec);
+            DeploymentEntity deployment = deployments.Single();
+
+            deployment.Build.Started = build.StartTime;
+            deployment.Build.Finished = build.FinishTime;
+            deployment.Build.Result = build.Result;
+            deployment.Build.Status = build.Status;
+
+            await deploymentDbRepository.UpdateAsync(deployment);
+
+            return Ok();
         }
     }
 }
