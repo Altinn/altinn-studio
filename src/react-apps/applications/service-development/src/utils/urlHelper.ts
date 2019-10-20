@@ -7,6 +7,7 @@ export const getRepoStatusUrl = (): string => {
 };
 
 export const releasesUrl: string = `${origin}/designer/api/v1/${org}/${app}/releases`;
+export const languageUrl: string = `${origin}/designerapi/Language/GetLanguageAsJSON`;
 
 export const getReleaseBuildPipelineLink = (buildId: string) =>
   `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;

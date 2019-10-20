@@ -37,9 +37,10 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
 
   const releases: IRelease[] = useSelector((state: IServiceDevelopmentState) => state.appReleases.releases);
   const repoStatus: IRepoStatusState = useSelector((state: IServiceDevelopmentState) => state.repoStatus);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
 
   function versionNameValid(): boolean {
-    for(const release of releases) {
+    for (const release of releases) {
       if (release.tagName.toLowerCase() === tagName.trim() &&
         (release.build.result === BuildResult.succeeded || release.build.status === BuildStatus.inProgress)
       ) {
@@ -85,31 +86,43 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         direction={'column'}
         className={classes.createReleaseFormItem}
       >
-          <Grid
-            container={true}
-            direction={'row-reverse'}
-            justify={'flex-end'}
-          >
-            {!versionNameValid() ?
-              <Grid
-                className={classes.createReleaseInvalidTagNameWrapper}
+        <Grid
+          container={true}
+          direction={'row-reverse'}
+          justify={'flex-end'}
+        >
+          {!versionNameValid() ?
+            <Grid
+              className={classes.createReleaseInvalidTagNameWrapper}
+            >
+              <Typography
+                className={classes.createReleaseInvalidTagNameText}
               >
-                <Typography
-                  className={classes.createReleaseInvalidTagNameText}
-                >
-                  Oh noes
-                </Typography>
-              </Grid>
-              : null
+                {
+                  !!language &&
+                    !!language.app_create_release &&
+                    !!language.app_create_release.release_versionnumber_validation ?
+                    language.app_create_release.release_versionnumber_validation :
+                    'language.app_create_release.release_versionnumber_validation'
+                }
+              </Typography>
+            </Grid>
+            : null
+          }
+          <AltinnInput
+            label={
+              !!language &&
+                !!language.app_create_release &&
+                !!language.app_create_release.release_versionnumber ?
+                language.app_create_release.release_versionnumber :
+                'language.app_create_release.release_versionnumber'
             }
-            <AltinnInput
-              label={'Versjonnummer'}
-              onChange={handleTagNameChange}
-              value={tagName}
-              widthPercentage={50}
-              validationError={!versionNameValid()}
-            />
-          </Grid>
+            onChange={handleTagNameChange}
+            value={tagName}
+            widthPercentage={50}
+            validationError={!versionNameValid()}
+          />
+        </Grid>
       </Grid>
       <Grid
         container={true}
@@ -117,7 +130,13 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         className={classes.createReleaseFormItem}
       >
         <AltinnTextArea
-          label={'Beskrivelse av innhold'}
+          label={
+            !!language &&
+              !!language.app_create_release &&
+              !!language.app_create_release.release_description ?
+              language.app_create_release.release_description :
+              'language.app_create_release.release_description'
+          }
           value={body}
           onChange={handleBodyChange}
           rows={4}
@@ -131,7 +150,13 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         <AltinnButton
           classes={{}}
           onClickFunction={handleBuildVersionClick}
-          btnText={'Bygg versjon'}
+          btnText={
+            !!language &&
+              !!language.app_create_release &&
+              !!language.app_create_release.build_version ?
+              language.app_create_release.build_version :
+              'language.app_create_release.build_version'
+          }
         />
       </Grid>
     </Grid>

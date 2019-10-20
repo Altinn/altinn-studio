@@ -7,6 +7,7 @@ import {
   WithStyles,
 } from '@material-ui/core';
 import * as React from 'react';
+import { useSelector } from 'react-redux';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { BuildResult, BuildStatus, IBuild, IRelease } from '../../../sharedResources/appRelease/types';
 import { getReleaseBuildPipelineLink, getGitCommitLink } from '../../../utils/urlHelper';
@@ -45,17 +46,19 @@ export interface IAppReleaseComponent extends WithStyles<typeof styles> {
 }
 
 function ReleaseComponent(props: IAppReleaseComponent) {
-  const {classes, release} = props;
+  const { classes, release } = props;
+
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.language)
 
   function renderStatusIcon(status: IBuild) {
     if (status.result === BuildResult.succeeded) {
       return (
-        <i className={`${classes.buildSucceededIcon} ai ai-check-circle`}/>
+        <i className={`${classes.buildSucceededIcon} ai ai-check-circle`} />
       );
     }
     if (status.result === BuildResult.failed) {
       return (
-        <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`}/>
+        <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`} />
       );
     }
     if (status.status !== BuildStatus.completed) {
@@ -89,6 +92,13 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           <Typography
             className={classes.releaseText}
           >
+            {
+              !!language &&
+                !!language.app_release &&
+                !!language.app_release.release_version ?
+                language.app_release.release_version :
+                'language.app_release.release_version'
+            }
             {release.tagName}
           </Typography>
         </Grid>
@@ -124,7 +134,13 @@ function ReleaseComponent(props: IAppReleaseComponent) {
                 href={getReleaseBuildPipelineLink(release.build.id)}
                 target={'_blank'}
               >
-                Bygglogg
+                {
+                  !!language &&
+                    !!language.app_release &&
+                    !!language.app_release.release_build_log ?
+                    language.app_release.release_build_log :
+                    'language.app_release.release_build_log'
+                }
               </a>
             </Typography>
           </Grid>
@@ -137,7 +153,13 @@ function ReleaseComponent(props: IAppReleaseComponent) {
               href={getGitCommitLink(release.targetCommitish)}
               target={'_blank'}
             >
-              Se commit
+              {
+                !!language &&
+                  !!language.app_release &&
+                  !!language.app_release.release_see_commit ?
+                  language.app_release.release_see_commit :
+                  'language.app_release.release_see_commit'
+              }
             </a>
           </Typography>
         </Grid>

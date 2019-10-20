@@ -14,14 +14,15 @@ import { useSelector } from 'react-redux';
 import theme from '../../../../../shared/src/theme/altinnStudioTheme';
 import AppReleaseActions from '../../../sharedResources/appRelease/appReleaseDispatcher';
 import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
-import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
+import { BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
 import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
 import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusReducer';
-import { getRepoStatusUrl } from '../../../utils/urlHelper';
+import { getRepoStatusUrl, languageUrl, getGitCommitLink } from '../../../utils/urlHelper';
 import HandleMergeConflictActionDispatchers from '../../handleMergeConflict/handleMergeConflictDispatcher';
 import { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictReducer';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
+import FetchLanguageActionDispatchers from '../../../utils/fetchLanguage/fetchLanguageDispatcher';
 
 interface IStyledTabsProps {
   value: number;
@@ -69,6 +70,8 @@ const StyledTab = withStyles(createStyles({
 
 const styles = createStyles({
   appReleaseWrapper: {
+    maxWidth: '78.6rem',
+    minWidth: '24.6rem',
     background: 'white',
     borderLeft: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
     borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
@@ -127,11 +130,15 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   const repoStatus: IRepoStatusState = useSelector((state: IServiceDevelopmentState) => state.repoStatus);
   const handleMergeConflict: IHandleMergeConflictState =
     useSelector((state: IServiceDevelopmentState) => state.handleMergeConflict);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
 
   React.useEffect(() => {
     const { org, app } = window as Window as IAltinnWindow;
     if (!!!appReleases.releases.length) {
       AppReleaseActions.getAppReleases();
+    }
+    if (!language) {
+      FetchLanguageActionDispatchers.fetchLanguage(languageUrl, 'nb');
     }
     RepoStatusActionDispatchers.getMasterRepoStatus(org, app);
     HandleMergeConflictActionDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
@@ -206,7 +213,13 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                     padding: '1.2rem',
                   }}
                 >
-                  Checking repo startus
+                  {
+                    !!language &&
+                      !!language.app_release &&
+                      !!language.app_release.check_status ?
+                      language.app_release.check_status :
+                      'language.app_release.check_status'
+                  }
                 </Typography>
               </Grid>
             </Grid>
@@ -216,25 +229,13 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     }
     // Check if latest
     if (!!appReleases.releases.length && appReleases.releases[0].build.status !== BuildStatus.completed) {
-      return (
-        <Grid
-          container={true}
-          direction={'column'}
-          justify={'center'}
-        >
-          <Grid
-            container={true}
-            direction={'row'}
-            justify={'center'}
-          >
-            You have an active build
-          </Grid>
-        </Grid>
-      );
+      return null;
     }
     if (appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
-      (appReleases.releases[0].build.result === BuildResult.succeeded) ||
-      appReleases.releases[0].build.status !== BuildStatus.completed) {
+      handleMergeConflict.repoStatus.contentStatus.length === 0) {
+      return null;
+    }
+    if (appReleases.releases[0].build.status !== BuildStatus.completed) {
       return null;
     }
     if (appReleases.creatingRelease) {
@@ -271,15 +272,25 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     if (!!handleMergeConflict.repoStatus.contentStatus && !!handleMergeConflict.repoStatus.contentStatus.length) {
       return (
         <Typography>
-          Du har endringer på applikasjonen som ikke blir inkludert når du lager en ny versjon. <br/>
-          Commit og push endringne dine til master for å bygge dem.
+          {
+            !!language &&
+              !!language.app_release &&
+              !!language.app_release.local_changes_can_build ?
+              language.app_release.local_changes_can_build :
+              'language.app_release.local_changes_can_build'
+          }
         </Typography>
       );
     } else if (!!handleMergeConflict.repoStatus.aheadBy) {
       return (
         <Typography>
-          Du har endringer på applikasjonen som ikke blir inkludert når du lager en ny versjon. <br/>
-          Push endringne dine til master for å bygge dem.
+          {
+            !!language &&
+              !!language.app_release &&
+              !!language.app_release.local_changes_cant_build ?
+              language.app_release.local_changes_cant_build :
+              'language.app_release.local_changes_cant_build'
+          }
         </Typography>
       );
     }
@@ -299,7 +310,13 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         >
           <StyledTabs value={tabIndex} onChange={handleChangeTabIndex}>
             <StyledTab
-              label={'Versjoner'}
+              label={
+                !!language &&
+                  !!language.app_release &&
+                  !!language.app_release.release_tab_versions ?
+                  language.app_release.release_tab_versions :
+                  'language.app_release.release_tab_versions'
+              }
             />
           </StyledTabs>
         </Grid>
@@ -318,7 +335,60 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               item={true}
             >
               <Typography className={classes.appCreateReleaseTitle}>
-                Bygg en versjon av appen din utefra den siste commiten til master
+                {!!repoStatus.branch.master &&
+                  appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
+                  handleMergeConflict.repoStatus.contentStatus.length === 0 ?
+                  <>
+                    {
+                      !!language &&
+                        !!language.general &&
+                        !!language.general.version ?
+                        language.general.version :
+                        'language.general.version'
+                    }
+                    {appReleases.releases[0].tagName}
+                    {
+                      !!language &&
+                        !!language.general &&
+                        !!language.general.contains ?
+                        language.general.contains :
+                        'language.general.contains'
+                    }
+                    {!!repoStatus.branch.master ?
+                      <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
+                        {
+                          !!language &&
+                            !!language.app_release &&
+                            !!language.app_release.release_title_link ?
+                            language.app_release.release_title_link :
+                            'language.app_release.release_title_link'
+                        }
+                      </a> :
+                      null
+                    }
+                  </>
+                  :
+                  <>
+                    {!!language &&
+                      !!language.app_release &&
+                      !!language.app_release.release_title ?
+                      language.app_release.release_title :
+                      'language.app_release.release_title'
+                    }
+                    {!!repoStatus.branch.master ?
+                      <a href={getGitCommitLink(repoStatus.branch.master.commit.id)} target={'_blank'}>
+                        {
+                          !!language &&
+                            !!language.app_release &&
+                            !!language.app_release.release_title_link ?
+                            language.app_release.release_title_link :
+                            'language.app_release.release_title_link'
+                        }
+                      </a> :
+                      null
+                    }
+                  </>
+                }
               </Typography>
             </Grid>
             <Grid
@@ -346,7 +416,13 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           <Typography
             className={classes.appReleaseHistoryTitle}
           >
-            Tidligere bygg av appen
+            {
+              !!language &&
+                !!language.app_release &&
+                !!language.app_release.earlier_releases ?
+                language.app_release.earlier_releases :
+                'language.app_release.earlier_releases'
+            }
           </Typography>
         </Grid>
         <Grid
