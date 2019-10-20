@@ -18,7 +18,6 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class SourceControlSI : ISourceControl
     {
-        private readonly IDefaultFileFactory _defaultFileFactory;
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -37,12 +36,10 @@ namespace Altinn.App.Services.Implementation
         public SourceControlSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
-            IDefaultFileFactory defaultFileFactory,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ILogger<SourceControlSI> logger)
         {
-            _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
             _generalSettings = generalSettings.Value;
             _httpContextAccessor = httpContextAccessor;
