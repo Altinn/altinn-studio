@@ -1,11 +1,11 @@
-import { SagaIterator } from 'redux-saga';
+import { delay, SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
 // import { post } from '../../../utils/networking';
 // import { releasesUrl } from '../../../utils/urlHelper';
 import * as AppReleaseActionTypes from '../appReleaseActionTypes';
 import AppReleaseActionDispatcher from '../appReleaseDispatcher';
+import { BuildResult, BuildStatus, IRelease } from '../types';
 import { ICreateReleaseAction } from './createAppReleaseActions';
-import { IRelease, BuildResult, BuildStatus } from '../types';
 
 function* createReleaseSaga({
   tagName,
@@ -21,7 +21,6 @@ function* createReleaseSaga({
     //   targetCommitish,
     // });
     const { org, app } = window as Window as IAltinnWindow;
-    console.log('targetCommitish in saga', targetCommitish);
     const mockResponse: IRelease = {
       tagName,
       name,
@@ -40,6 +39,7 @@ function* createReleaseSaga({
       app,
       org,
      };
+    yield call(delay, 2000);
     yield call(AppReleaseActionDispatcher.createAppReleaseFulfilled, mockResponse);
   } catch (err) {
     yield call(AppReleaseActionDispatcher.createAppReleaseRejected, err);

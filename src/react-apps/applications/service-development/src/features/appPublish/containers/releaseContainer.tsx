@@ -102,6 +102,7 @@ const styles = createStyles({
   },
   appCreateReleaseStatusIcon: {
     padding: '1.2rem',
+    color: theme.altinnPalette.primary.blue,
   },
   popover: {
     pointerEvents: 'none',
@@ -214,7 +215,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       );
     }
     // Check if latest
-    if (!!appReleases.releases.length && appReleases.releases[0].build.status === BuildStatus.inProgress) {
+    if (!!appReleases.releases.length && appReleases.releases[0].build.status !== BuildStatus.completed) {
       return (
         <Grid
           container={true}
@@ -234,6 +235,9 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     if (appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
       (appReleases.releases[0].build.result === BuildResult.succeeded) ||
       appReleases.releases[0].build.status !== BuildStatus.completed) {
+      return null;
+    }
+    if (appReleases.creatingRelease) {
       return null;
     }
 
@@ -267,14 +271,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     if (!!handleMergeConflict.repoStatus.contentStatus && !!handleMergeConflict.repoStatus.contentStatus.length) {
       return (
         <Typography>
-          Du har endringer på applikasjonen som ikke blir inkludert når du lager en ny versjon.
+          Du har endringer på applikasjonen som ikke blir inkludert når du lager en ny versjon. <br/>
           Commit og push endringne dine til master for å bygge dem.
         </Typography>
       );
     } else if (!!handleMergeConflict.repoStatus.aheadBy) {
       return (
         <Typography>
-          Du har endringer på applikasjonen som ikke blir inkludert når du lager en ny versjon.
+          Du har endringer på applikasjonen som ikke blir inkludert når du lager en ny versjon. <br/>
           Push endringne dine til master for å bygge dem.
         </Typography>
       );

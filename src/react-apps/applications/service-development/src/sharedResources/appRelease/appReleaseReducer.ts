@@ -7,11 +7,13 @@ import { IRelease } from './types';
 
 export interface IAppReleaseState {
   releases: IRelease[];
+  creatingRelease: boolean;
   error: Error;
 }
 
 const initialState: IAppReleaseState = {
   releases: [],
+  creatingRelease: false,
   error: null,
 };
 
@@ -46,11 +48,21 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
         },
       });
     }
+    case AppReleaseActionTypes.CREATE_APP_RELEASE: {
+      return update<IAppReleaseState>(state, {
+        creatingRelease: {
+          $set: true,
+        },
+      });
+    }
     case AppReleaseActionTypes.CREATE_APP_RELEASE_FULFILLED: {
       const { release } = action as ICreateReleaseFulfilledAction;
       return update<IAppReleaseState>(state, {
         releases: {
           $addFirstIndex: release,
+        },
+        creatingRelease: {
+          $set: false,
         },
         error: {
           $set: null,
@@ -62,6 +74,9 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
       return update<IAppReleaseState>(state, {
         error: {
           $set: error,
+        },
+        creatingRelease: {
+          $set: false,
         },
       });
     }
