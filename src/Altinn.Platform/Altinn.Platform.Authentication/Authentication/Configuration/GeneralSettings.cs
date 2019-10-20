@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Altinn.Platform.Authentication.Configuration
 {
@@ -151,6 +148,23 @@ namespace Altinn.Platform.Authentication.Configuration
             get
             {
                 return Environment.GetEnvironmentVariable("GeneralSettings__BaseUrl") ?? BaseUrl;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets URL of the well known configuration endpoint for Maskinporten.
+        /// </summary>
+        public string MaskinportenWellKnownConfigEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets URL of the well known configuration endpoint for Maskinporten from kubernetes or appsettings if no environment variable is set.
+        /// </summary>
+        public string GetMaskinportenWellKnownConfigEndpoint
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__" + nameof(MaskinportenWellKnownConfigEndpoint)) ??
+                       MaskinportenWellKnownConfigEndpoint;
             }
         }
     }

@@ -1,0 +1,82 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Security.Claims;
+using System.Threading.Tasks;
+
+using Altinn.Platform.Authentication.Controllers;
+using Altinn.Platform.Authentication.Maskinporten;
+
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+using Xunit;
+
+namespace Altinn.Platform.Authentication.IntegrationTests.Controller
+{
+    /// <summary>
+    /// Represents a collection of unit test with all integration tests of the <see cref="AuthenticationController"/> class.
+    /// </summary>
+    public class AuthenticationControllerTest : IClassFixture<CustomWebApplicationFactory<Startup>>
+    {
+        private readonly CustomWebApplicationFactory<Startup> factory;
+
+        /// <summary>
+        /// Initialises a new instance of the <see cref="AuthenticationControllerTest"/> class with the given CustomWebApplicationFactory.
+        /// </summary>
+        /// <param name="factory">The CustomWebApplicationFactory to use when creating a test server.</param>
+        public AuthenticationControllerTest(CustomWebApplicationFactory<Startup> factory)
+        {
+            this.factory = factory;
+        }
+
+        /// <summary>
+        /// Test of method <see cref="AuthenticationController.OrganisationAuthentication"/>.
+        /// </summary>
+        [Fact]
+        public async Task OrganisationAuthentication()
+        {
+            // Arrange
+            List<Claim> claims = new List<Claim>();
+            ClaimsIdentity identity = new ClaimsIdentity("OrgLogin");
+            identity.AddClaims(claims);
+            ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
+
+            string externalToken = JwtTokenMock.GenerateToken(externalPrincipal, TimeSpan.FromMinutes(2));
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Get, "/authentication/api/v1/convert");
+
+            // Act
+            HttpResponseMessage response = await client.SendAsync(requestMessage);
+
+            // Assert
+            string token = await response.Content.ReadAsStringAsync();
+
+            ClaimsPrincipal principal = JwtTokenMock.ValidateToken(token);
+
+            Assert.NotNull(principal);
+
+            Assert.True(false);
+        }
+
+        private HttpClient GetTestClient()
+        {
+            string projectDir = Directory.GetCurrentDirectory();
+            string configPath = Path.Combine(projectDir, "appsettings.json");
+
+            HttpClient client = factory.WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureTestServices(services => { services.AddSingleton<ISigningKeysRetriever, TestSigningKeysRetriever>(); });
+                builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
+            }).CreateClient();
+
+            return client;
+        }
+    }
+}

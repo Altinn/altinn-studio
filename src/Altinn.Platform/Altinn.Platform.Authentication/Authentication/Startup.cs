@@ -1,13 +1,17 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
+
 using Altinn.Platform.Authentication.Configuration;
+using Altinn.Platform.Authentication.Maskinporten;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Platform.Authentication
@@ -18,7 +22,7 @@ namespace Altinn.Platform.Authentication
     public class Startup
     {
         /// <summary>
-        ///  Initializes a new instance of the <see cref="Startup"/> class
+        /// Initialises a new instance of the <see cref="Startup"/> class
         /// </summary>
         /// <param name="configuration">The configuration for the authentication component</param>
         public Startup(IConfiguration configuration)
@@ -32,7 +36,7 @@ namespace Altinn.Platform.Authentication
         public IConfiguration Configuration { get; }
 
         /// <summary>
-        /// Configure authentication setttings for the service
+        /// Configure authentication settings for the service
         /// </summary>
         /// <param name="services">the service configuration</param>
         public void ConfigureServices(IServiceCollection services)
@@ -64,6 +68,8 @@ namespace Altinn.Platform.Authentication
                             ValidateLifetime = true
                         };
                     });
+
+            services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
         }
 
         /// <summary>
@@ -76,6 +82,9 @@ namespace Altinn.Platform.Authentication
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+
+                // Enable higher level of detail in exceptions related to JWT validation
+                IdentityModelEventSource.ShowPII = true;
             }
             else
             {
