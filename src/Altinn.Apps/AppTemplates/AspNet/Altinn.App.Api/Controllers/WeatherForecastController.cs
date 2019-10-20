@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Altinn.App.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("{org}/{app}/weatherforecast")]
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
@@ -23,7 +23,7 @@ namespace Altinn.App.Controllers
             _logger = logger;
         }
 
-        [HttpGet]
+        [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
         public IEnumerable<WeatherForecast> Get()
         {
             var rng = new Random();

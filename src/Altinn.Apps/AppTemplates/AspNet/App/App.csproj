@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Altinn.App.Api\Altinn.App.Api.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
 </Project>
