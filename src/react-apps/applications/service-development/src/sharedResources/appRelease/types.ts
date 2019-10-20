@@ -7,23 +7,31 @@ export enum BuildStatus {
   postponed = 'postponed',
 }
 
+export enum BuildResult {
+  canceled = 'canceled',
+  failed = 'failed',
+  none = 'none',
+  partiallySucceeded = 'partiallySucceeded',
+  succeeded = 'succeeded',
+}
+
 export interface IBuild {
   id: string;
   status: BuildStatus;
+  result: BuildResult;
   started: string;
   finished: string;
 }
 
 export interface IRelease {
   id: string;
-  tag_name: string;
+  tagName: string;
   name: string;
   body: string;
   app: string;
   org: string;
-  env_name: string;
-  target_commitish: string;
-  created_by: string;
+  targetCommitish: string;
+  createdBy: string;
   created: string;
   build: IBuild;
 }

@@ -2,45 +2,135 @@ import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
 import * as AppReleaseActionTypes from './../appReleaseActionTypes';
 import AppReleaseActionDispatcher from './../appReleaseDispatcher';
-import { BuildStatus, IRelease } from './../types';
+import { BuildResult, BuildStatus, IRelease } from './../types';
 
 const mockReleases: IRelease[] = [
   {
-    id: 'release_1_id',
-    tag_name: 'release_1_tag_name',
-    name: 'release_1_name',
-    body: 'release_1_body',
-    app: 'release_1_app',
-    org: 'release_1_org',
-    env_name: 'release_1_env_name',
-    target_commitish: 'release_1_target_commitish',
-    created_by: 'release_1_created_by',
-    created: 'release_1_created',
+    tagName: 'OHIAMDATAG',
+    name: 'DANAME',
+    body: 'DADBOD',
+    targetCommitish: 'fbab640273facf630dc771e40b3f34414c471335',
     build: {
-      id: 'release_1_build_id',
+      id: '17165',
       status: BuildStatus.completed,
-      started: 'release_1_build_started',
-      finished: 'release_1_build_finished',
+      result: BuildResult.succeeded,
+      started: null,
+      finished: null,
     },
+    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+    created: '2019-10-15T12:45:24.9264303+02:00',
+    createdBy: 'danrj',
+    app: 'automatedtest',
+    org: 'tdd',
   },
   {
-    id: 'release_2_id',
-    tag_name: 'release_2_tag_name',
-    name: 'release_2_name',
-    body: 'release_2_body',
-    app: 'release_2_app',
-    org: 'release_2_org',
-    env_name: 'release_2_env_name',
-    target_commitish: 'release_2_target_commitish',
-    created_by: 'release_2_created_by',
-    created: 'release_2_created',
+    tagName: 'OHIAMDATAG',
+    name: 'DANAME',
+    body: 'DADBOD',
+    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
     build: {
-      id: 'release_2_build_id',
-      status: BuildStatus.inProgress,
-      started: 'release_2_build_started',
-      finished: 'release_2_build_finished',
+      id: '17165',
+      status: BuildStatus.completed,
+      result: BuildResult.failed,
+      started: null,
+      finished: null,
     },
+    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+    created: '2019-10-15T12:45:24.9264303+02:00',
+    createdBy: 'danrj',
+    app: 'automatedtest',
+    org: 'tdd',
   },
+  {
+    tagName: 'OHIAMDATAG',
+    name: 'DANAME',
+    body: 'DADBOD',
+    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+    build: {
+      id: '17165',
+      status: BuildStatus.completed,
+      result: BuildResult.succeeded,
+      started: null,
+      finished: null,
+    },
+    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+    created: '2019-10-15T12:45:24.9264303+02:00',
+    createdBy: 'danrj',
+    app: 'automatedtest',
+    org: 'tdd',
+  },
+  {
+    tagName: 'OHIAMDATAG',
+    name: 'DANAME',
+    body: 'DADBOD',
+    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+    build: {
+      id: '17165',
+      status: BuildStatus.completed,
+      result: BuildResult.failed,
+      started: null,
+      finished: null,
+    },
+    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+    created: '2019-10-15T12:45:24.9264303+02:00',
+    createdBy: 'danrj',
+    app: 'automatedtest',
+    org: 'tdd',
+  },
+  {
+    tagName: 'OHIAMDATAG',
+    name: 'DANAME',
+    body: 'DADBOD',
+    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+    build: {
+      id: '17165',
+      status: BuildStatus.completed,
+      result: BuildResult.succeeded,
+      started: null,
+      finished: null,
+    },
+    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+    created: '2019-10-15T12:45:24.9264303+02:00',
+    createdBy: 'danrj',
+    app: 'automatedtest',
+    org: 'tdd',
+  },
+  {
+    tagName: 'OHIAMDATAG',
+    name: 'DANAME',
+    body: 'DADBOD',
+    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+    build: {
+      id: '17165',
+      status: BuildStatus.completed,
+      result: BuildResult.failed,
+      started: null,
+      finished: null,
+    },
+    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+    created: '2019-10-15T12:45:24.9264303+02:00',
+    createdBy: 'danrj',
+    app: 'automatedtest',
+    org: 'tdd',
+  },
+  {
+    tagName: 'OHIAMDATAG',
+    name: 'DANAME',
+    body: 'DADBOD',
+    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+    build: {
+      id: '17165',
+      status: BuildStatus.completed,
+      result: BuildResult.succeeded,
+      started: null,
+      finished: null,
+    },
+    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+    created: '2019-10-15T12:45:24.9264303+02:00',
+    createdBy: 'danrj',
+    app: 'automatedtest',
+    org: 'tdd',
+  }
 ];
 
 function* getReleasesSaga(): SagaIterator {
@@ -58,6 +148,6 @@ export function* watchGetReleasesSaga(): SagaIterator {
   );
 }
 
-export default function*(): SagaIterator {
+export default function* (): SagaIterator {
   yield fork(watchGetReleasesSaga);
 }

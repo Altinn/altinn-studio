@@ -57,7 +57,7 @@ namespace Altinn.Platform.Authorization.Controllers
                     return await AuthorizeXmlRequest(model);
                 }
             }
-            catch (Exception ex)
+            catch 
             {
                 XacmlContextResult result = new XacmlContextResult(XacmlContextDecision.Indeterminate)
                 {

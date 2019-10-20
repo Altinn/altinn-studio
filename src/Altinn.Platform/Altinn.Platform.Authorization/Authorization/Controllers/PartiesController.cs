@@ -1,12 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Services.Interface;
-using AltinnCore.Authentication.Constants;
 using AltinnCore.ServiceLibrary.Models;
-using Authorization.Interface.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Authorization.Controllers
 {

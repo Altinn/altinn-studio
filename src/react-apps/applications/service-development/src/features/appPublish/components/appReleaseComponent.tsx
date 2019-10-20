@@ -1,4 +1,5 @@
 import {
+  CircularProgress,
   createStyles,
   Grid,
   Typography,
@@ -6,15 +7,37 @@ import {
   WithStyles,
 } from '@material-ui/core';
 import * as React from 'react';
-import { IRelease } from '../../../sharedResources/appRelease/types';
+import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
+import { BuildResult, BuildStatus, IBuild, IRelease } from '../../../sharedResources/appRelease/types';
+import { getReleaseBuildPipelineLink, getGitCommitLink } from '../../../utils/urlHelper';
 
 const styles = createStyles({
   releaseWrapper: {
     padding: '1.2rem',
+    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
   },
-  releaseTitle: {
-    fontSize: '2rem',
+  releaseRow: {
+    paddingTop: '1rem',
   },
+  buildFailedIcon: {
+    color: altinnTheme.altinnPalette.primary.red,
+    height: 10,
+    width: 10,
+    padding: '1.2rem 1rem 1.2rem 0rem',
+  },
+  buildSucceededIcon: {
+    color: altinnTheme.altinnPalette.primary.green,
+    height: 10,
+    width: 10,
+    padding: '1.2rem 1rem 1.2rem 0rem',
+  },
+  spinnerRoot: {
+    color: altinnTheme.altinnPalette.primary.blue,
+    marginRight: '1rem',
+  },
+  releaseText: {
+    fontSize: '1.6rem',
+  }
 });
 
 export interface IAppReleaseComponent extends WithStyles<typeof styles> {
@@ -23,15 +46,115 @@ export interface IAppReleaseComponent extends WithStyles<typeof styles> {
 
 function ReleaseComponent(props: IAppReleaseComponent) {
   const {classes, release} = props;
+
+  function renderStatusIcon(status: IBuild) {
+    if (status.result === BuildResult.succeeded) {
+      return (
+        <i className={`${classes.buildSucceededIcon} ai ai-check-circle`}/>
+      );
+    }
+    if (status.result === BuildResult.failed) {
+      return (
+        <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`}/>
+      );
+    }
+    if (status.status !== BuildStatus.completed) {
+      return (
+        <CircularProgress
+          classes={{
+            root: classes.spinnerRoot,
+          }}
+          size={'2.4rem'}
+        />
+      );
+    }
+    return null;
+  }
+
   return (
     <Grid
       container={true}
-      direction={'column'}
+      direction={'row'}
       className={classes.releaseWrapper}
     >
-      <Typography className={classes.releaseTitle}>
-        {release.name}
-      </Typography>
+      <Grid
+        container={true}
+        direction={'row'}
+        justify={'space-between'}
+      >
+        <Grid
+          item={true}
+          className={classes.releaseRow}
+        >
+          <Typography
+            className={classes.releaseText}
+          >
+            {release.tagName}
+          </Typography>
+        </Grid>
+        <Grid
+          item={true}
+          className={classes.releaseRow}
+        >
+          <Typography
+            className={classes.releaseText}
+          >
+            {release.created}
+          </Typography>
+        </Grid>
+      </Grid>
+      <Grid
+        container={true}
+        direction={'row'}
+        justify={'space-between'}
+        className={classes.releaseRow}
+      >
+        <Grid
+          item={true}
+        >
+          <Grid
+            container={true}
+            direction={'row'}
+          >
+            {renderStatusIcon(release.build)}
+            <Typography
+              className={classes.releaseText}
+            >
+              <a
+                href={getReleaseBuildPipelineLink(release.build.id)}
+                target={'_blank'}
+              >
+                Bygglogg
+              </a>
+            </Typography>
+          </Grid>
+        </Grid>
+        <Grid item={true}>
+          <Typography
+            className={classes.releaseText}
+          >
+            <a
+              href={getGitCommitLink(release.targetCommitish)}
+              target={'_blank'}
+            >
+              Se commit
+            </a>
+          </Typography>
+        </Grid>
+      </Grid>
+      <Grid
+        container={true}
+        direction={'row'}
+        className={classes.releaseRow}
+      >
+        <Grid item={true}>
+          <Typography
+            className={classes.releaseText}
+          >
+            {release.body}
+          </Typography>
+        </Grid>
+      </Grid>
     </Grid>
   );
 }

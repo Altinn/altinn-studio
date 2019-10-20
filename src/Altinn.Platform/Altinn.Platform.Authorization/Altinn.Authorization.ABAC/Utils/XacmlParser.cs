@@ -1189,7 +1189,7 @@ namespace Altinn.Authorization.ABAC.Utils
                 }
                 catch(Exception ex)
                 {
-                    string Halle = "hh";
+                    string halle = "hh";
                 }
             }
 

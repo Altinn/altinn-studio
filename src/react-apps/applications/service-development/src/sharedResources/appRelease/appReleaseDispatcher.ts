@@ -14,7 +14,7 @@ export interface IAppReleaseActionDispatcher extends ActionCreatorsMapObject {
     body: string,
     targetCommitish: string,
   ) => CreateAppReleaseActions.ICreateReleaseAction;
-  createAppReleaseFulfilled: (id: string) => CreateAppReleaseActions.ICreateReleaseFulfilledAction;
+  createAppReleaseFulfilled: (release: IRelease) => CreateAppReleaseActions.ICreateReleaseFulfilledAction;
   createAppReleaseRejected: (error: Error) => CreateAppReleaseActions.ICreateReleaseRejectedActions;
 }
 
