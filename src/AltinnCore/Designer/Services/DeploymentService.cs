@@ -52,8 +52,8 @@ namespace AltinnCore.Designer.Services
             _applicationMetadataService = applicationMetadataService;
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _httpContext = httpContextAccessor.HttpContext;
-            _org = _httpContext.GetRouteValue("org").ToString();
-            _app = _httpContext.GetRouteValue("app").ToString();
+            _org = _httpContext.GetRouteValue("org")?.ToString();
+            _app = _httpContext.GetRouteValue("app")?.ToString();
         }
 
         /// <inheritdoc/>
@@ -64,7 +64,6 @@ namespace AltinnCore.Designer.Services
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvironmentName = deployment.Environment.Name;
 
-            // Get release from db coll with a specific app, org and commit id
             ReleaseEntity release = await GetSucceededReleaseFromDb(deploymentEntity);
             await _applicationMetadataService.RegisterApplicationInStorageAsync(_org, _app, release.TargetCommitish);
 
@@ -80,35 +79,41 @@ namespace AltinnCore.Designer.Services
             return await _deploymentDbRepository.CreateAsync(deploymentEntity);
         }
 
-        private async Task<Build> QueueDeploymentBuild(
-            ReleaseEntity release,
-            DeploymentEntity deploymentEntity,
-            string environmentHostname)
-        {
-            QueueBuildParameters queueBuildParameters = new QueueBuildParameters
-            {
-                AppCommitId = release.TargetCommitish,
-                AppOwner = deploymentEntity.Org,
-                AppRepo = deploymentEntity.App,
-                AppEnvironment = deploymentEntity.EnvironmentName,
-                Hostname = environmentHostname
-            };
-
-            return await _azureDevOpsBuildService.QueueAsync(
-                queueBuildParameters,
-                _azureDevOpsSettings.DeployDefinitionId);
-        }
-
         /// <inheritdoc/>
-        public async Task<DocumentResults<DeploymentEntity>> GetAsync(DocumentQueryModel query)
+        public async Task<DocumentResults<DeploymentEntity>> GetAsync()
         {
-            throw new System.NotImplementedException();
+            DocumentQueryModel query = new DocumentQueryModel
+            {
+                App = _app,
+                Org = _org
+            };
+            IEnumerable<DeploymentEntity> results = await _deploymentDbRepository.GetAsync<DeploymentEntity>(query);
+            return new DocumentResults<DeploymentEntity>
+            {
+                Results = results
+            };
         }
 
         /// <inheritdoc/>
         public async Task UpdateAsync(DeploymentEntity deployment)
         {
-            throw new System.NotImplementedException();
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = "SELECT * FROM db WHERE db.build.id = @buildId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@buildId", deployment.Build.Id),
+                }
+            };
+            IEnumerable<DeploymentEntity> deploymentDocuments = await _deploymentDbRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec);
+            DeploymentEntity deploymentEntity = deploymentDocuments.Single();
+
+            deploymentEntity.Build.Status = deployment.Build.Status;
+            deploymentEntity.Build.Result = deployment.Build.Result;
+            deploymentEntity.Build.Started = deployment.Build.Started;
+            deploymentEntity.Build.Finished = deployment.Build.Finished;
+
+            await _deploymentDbRepository.UpdateAsync(deploymentEntity);
         }
 
         private async Task<ReleaseEntity> GetSucceededReleaseFromDb(DeploymentEntity deploymentEntity)
@@ -133,5 +138,24 @@ namespace AltinnCore.Designer.Services
                     new SqlParameter("@tagName", deploymentEntity.TagName),
                 }
             };
+
+        private async Task<Build> QueueDeploymentBuild(
+            ReleaseEntity release,
+            DeploymentEntity deploymentEntity,
+            string environmentHostname)
+        {
+            QueueBuildParameters queueBuildParameters = new QueueBuildParameters
+            {
+                AppCommitId = release.TargetCommitish,
+                AppOwner = deploymentEntity.Org,
+                AppRepo = deploymentEntity.App,
+                AppEnvironment = deploymentEntity.EnvironmentName,
+                Hostname = environmentHostname
+            };
+
+            return await _azureDevOpsBuildService.QueueAsync(
+                queueBuildParameters,
+                _azureDevOpsSettings.DeployDefinitionId);
+        }
     }
 }

@@ -3,6 +3,7 @@ using AltinnCore.Designer.ModelBinding.Constants;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services;
 using AltinnCore.Designer.ViewModels.Request;
+using AltinnCore.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,5 +38,14 @@ namespace AltinnCore.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult<DeploymentEntity>> Create([FromBody]CreateDeploymentRequestViewModel createDeployment)
             => await _deploymentService.CreateAsync(createDeployment.ToDomainModel());
+
+        /// <summary>
+        /// Gets deployments
+        /// </summary>
+        /// <returns>DocumentResults of type DeploymentEntity</returns>
+        [HttpGet]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        public async Task<DocumentResults<DeploymentEntity>> Get()
+            => await _deploymentService.GetAsync();
     }
 }

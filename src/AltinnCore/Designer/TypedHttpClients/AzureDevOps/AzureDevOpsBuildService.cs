@@ -44,7 +44,8 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
         /// <inheritdoc/>
         public async Task<Build> Get(string buildId)
         {
-            throw new System.NotImplementedException();
+            var response = await _httpClient.GetAsync($"{buildId}?api-version=5.1");
+            return await response.Content.ReadAsAsync<Build>();
         }
 
         private static QueueBuildRequest CreateBuildRequest(QueueBuildParameters queueBuildParameters, int buildDefinitionId)
@@ -69,7 +70,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
             string requestBody = JsonConvert.SerializeObject(queueBuildRequest);
             StringContent httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
 
-            HttpResponseMessage response = await _httpClient.PostAsync("build/builds?api-version=5.1", httpContent);
+            HttpResponseMessage response = await _httpClient.PostAsync("?api-version=5.1", httpContent);
             return await response.Content.ReadAsAsync<Build>();
         }
     }

@@ -22,6 +22,7 @@ namespace AltinnCore.Designer.Infrastructure.Authorization
         /// </summary>
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
+        /// <param name="logger">ILogger of type GiteaPushPermissionHandler</param>
         public GiteaPushPermissionHandler(
             IGitea giteaApiWrapper,
             IHttpContextAccessor httpContextAccessor,

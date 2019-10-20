@@ -28,7 +28,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets a certain number of releases
+        /// Gets releases based on the query
         /// </summary>
         /// <param name="query">Release query model</param>
         /// <returns></returns>
@@ -47,17 +47,5 @@ namespace AltinnCore.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ReleaseEntity> Create([FromBody]CreateReleaseRequestViewModel createRelease)
             => await _releaseService.CreateAsync(createRelease.ToEntityModel());
-
-        /// <summary>
-        /// Updates a release document
-        /// </summary>
-        /// <param name="release">Release document</param>
-        [HttpPut]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Put))]
-        public async Task<IActionResult> Update([FromBody] UpdateReleaseRequestViewModel release)
-        {
-            await _releaseService.UpdateAsync(release.ToEntityModel());
-            return NoContent();
-        }
     }
 }

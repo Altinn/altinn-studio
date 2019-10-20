@@ -20,11 +20,10 @@ namespace AltinnCore.Designer.Services
         Task<DeploymentEntity> CreateAsync(DeploymentModel deployment);
 
         /// <summary>
-        /// Gets deployments based on a query
+        /// Gets deployments
         /// </summary>
-        /// <param name="query">DocumentQueryModel</param>
-        /// <returns></returns>
-        Task<DocumentResults<DeploymentEntity>> GetAsync(DocumentQueryModel query);
+        /// <returns>DocumentResults of type DeploymentEntity</returns>
+        Task<DocumentResults<DeploymentEntity>> GetAsync();
 
         /// <summary>
         /// Updates a deployment entity

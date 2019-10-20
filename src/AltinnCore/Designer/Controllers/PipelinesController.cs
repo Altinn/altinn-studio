@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AltinnCore.Designer.ModelBinding.Constants;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
@@ -40,27 +41,21 @@ namespace AltinnCore.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult> CheckReleaseStatus(
             AzureDevOpsWebHookEventModel model,
-            [FromServices] ReleaseDbRepository releaseDbRepository)
+            [FromServices] IReleaseService releaseService)
         {
             string buildId = model.Resource.BuildNumber;
             Build build = await _buildService.Get(buildId);
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            await releaseService.UpdateAsync(new ReleaseEntity
             {
-                QueryText = "SELECT * FROM db WHERE db.build.id = @buildId",
-                Parameters = new SqlParameterCollection
+                Build = new BuildEntity
                 {
-                    new SqlParameter("@buildId", buildId)
+                    Id = build.Id.ToString(),
+                    Status = build.Status,
+                    Result = build.Result,
+                    Started = build.StartTime,
+                    Finished = build.FinishTime
                 }
-            };
-            IEnumerable<ReleaseEntity> releases = await releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
-            ReleaseEntity release = releases.Single();
-
-            release.Build.Started = build.StartTime;
-            release.Build.Finished = build.FinishTime;
-            release.Build.Result = build.Result;
-            release.Build.Status = build.Status;
-
-            await releaseDbRepository.UpdateAsync(release);
+            });
 
             return Ok();
         }
@@ -73,28 +68,21 @@ namespace AltinnCore.Designer.Controllers
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult> CheckDeploymentStatus(
             AzureDevOpsWebHookEventModel model,
-            [FromServices] DeploymentDbRepository deploymentDbRepository)
+            [FromServices] IDeploymentService deploymentService)
         {
             string buildId = model.Resource.BuildNumber;
             Build build = await _buildService.Get(buildId);
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            await deploymentService.UpdateAsync(new DeploymentEntity
             {
-                QueryText = "SELECT * FROM db WHERE db.build.id = @buildId",
-                Parameters = new SqlParameterCollection
+                Build = new BuildEntity
                 {
-                    new SqlParameter("@buildId", buildId)
+                    Id = build.Id.ToString(),
+                    Result = build.Result,
+                    Status = build.Status,
+                    Started = build.StartTime,
+                    Finished = build.FinishTime
                 }
-            };
-            IEnumerable<DeploymentEntity> deployments =
-                await deploymentDbRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec);
-            DeploymentEntity deployment = deployments.Single();
-
-            deployment.Build.Started = build.StartTime;
-            deployment.Build.Finished = build.FinishTime;
-            deployment.Build.Result = build.Result;
-            deployment.Build.Status = build.Status;
-
-            await deploymentDbRepository.UpdateAsync(deployment);
+            });
 
             return Ok();
         }
