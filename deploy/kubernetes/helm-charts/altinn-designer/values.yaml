@@ -3,7 +3,7 @@ replicaCount: 1
 environment: development
 
 image:
-  repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-core-danijel
   containerPort: 5000
   imagePullSecret: acrsecret
 
@@ -24,7 +24,7 @@ environmentVariables:
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
-    - name: GeneralSettings:DeploymentLocation
+    - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
