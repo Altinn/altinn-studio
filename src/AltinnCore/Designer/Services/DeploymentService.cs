@@ -65,36 +65,10 @@ namespace AltinnCore.Designer.Services
             deploymentEntity.EnvironmentName = deployment.Environment.Name;
 
             // Get release from db coll with a specific app, org and commit id
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
-            {
-                QueryText = $"SELECT * FROM db WHERE " +
-                            $"db.app = @app AND " +
-                            $"db.org = @org AND " +
-                            $"db.tagName = @tagName AND " +
-                            $"db.build.result = {BuildResult.Succeeded.ToEnumMemberAttributeValue()}",
-                Parameters = new SqlParameterCollection
-                {
-                    new SqlParameter("@org", deploymentEntity.Org),
-                    new SqlParameter("@app", deploymentEntity.App),
-                    new SqlParameter("@tagName", deploymentEntity.TagName),
-                }
-            };
-            IEnumerable<ReleaseEntity> releases = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
-            ReleaseEntity release = releases.Single();
-
+            ReleaseEntity release = await GetSucceededReleaseFromDb(deploymentEntity);
             await _applicationMetadataService.RegisterApplicationInStorageAsync(_org, _app, release.TargetCommitish);
 
-            QueueBuildParameters queueBuildParameters = new QueueBuildParameters
-            {
-                AppCommitId = release.TargetCommitish,
-                AppDeployToken = "abc",
-                AppOwner = deploymentEntity.Org,
-                AppRepo = deploymentEntity.App,
-                AppEnvironment = deploymentEntity.EnvironmentName
-            };
-            Build queuedBuild = await _azureDevOpsBuildService.QueueAsync(
-                queueBuildParameters,
-                _azureDevOpsSettings.DeployDefinitionId);
+            Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.Environment.Hostname);
 
             deploymentEntity.Build = new BuildEntity
             {
@@ -104,6 +78,25 @@ namespace AltinnCore.Designer.Services
             };
 
             return await _deploymentDbRepository.CreateAsync(deploymentEntity);
+        }
+
+        private async Task<Build> QueueDeploymentBuild(
+            ReleaseEntity release,
+            DeploymentEntity deploymentEntity,
+            string environmentHostname)
+        {
+            QueueBuildParameters queueBuildParameters = new QueueBuildParameters
+            {
+                AppCommitId = release.TargetCommitish,
+                AppOwner = deploymentEntity.Org,
+                AppRepo = deploymentEntity.App,
+                AppEnvironment = deploymentEntity.EnvironmentName,
+                Hostname = environmentHostname
+            };
+
+            return await _azureDevOpsBuildService.QueueAsync(
+                queueBuildParameters,
+                _azureDevOpsSettings.DeployDefinitionId);
         }
 
         /// <inheritdoc/>
@@ -117,5 +110,28 @@ namespace AltinnCore.Designer.Services
         {
             throw new System.NotImplementedException();
         }
+
+        private async Task<ReleaseEntity> GetSucceededReleaseFromDb(DeploymentEntity deploymentEntity)
+        {
+            SqlQuerySpec sqlQuerySpec = CreateSqlQueryToGetSucceededRelease(deploymentEntity);
+            IEnumerable<ReleaseEntity> releases = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
+            return releases.Single();
+        }
+
+        private static SqlQuerySpec CreateSqlQueryToGetSucceededRelease(DeploymentEntity deploymentEntity)
+            => new SqlQuerySpec
+            {
+                QueryText = $"SELECT * FROM db WHERE " +
+                            $"db.app = @app AND " +
+                            $"db.org = @org AND " +
+                            $"db.tagName = @tagName AND " +
+                            $"db.build.result = '{BuildResult.Succeeded.ToEnumMemberAttributeValue()}'",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@org", deploymentEntity.Org),
+                    new SqlParameter("@app", deploymentEntity.App),
+                    new SqlParameter("@tagName", deploymentEntity.TagName),
+                }
+            };
     }
 }

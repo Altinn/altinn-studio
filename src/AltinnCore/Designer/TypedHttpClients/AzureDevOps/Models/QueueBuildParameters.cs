@@ -43,5 +43,11 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonProperty("APP_ENVIRONMENT")]
         public string AppEnvironment { get; set; }
+
+        /// <summary>
+        /// The hostname where the app should deploy to
+        /// </summary>
+        [JsonProperty("HOSTNAME")]
+        public string Hostname { get; set; }
     }
 }

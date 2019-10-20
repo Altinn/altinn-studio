@@ -126,15 +126,6 @@ namespace AltinnCore.Designer.Services
             releaseEntity.Build.Finished = release.Build.Finished;
 
             await _releaseDbRepository.UpdateAsync(releaseEntity);
-
-            BuildEntity build = releaseEntity.Build;
-            if (build.Status == BuildStatus.Completed && build.Result == BuildResult.Succeeded)
-            {
-                await _gitea.CreateReleaseAsync(
-                    releaseEntity.Org,
-                    releaseEntity.App,
-                    releaseEntity.ToCreateReleaseOption());
-            }
         }
 
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release)

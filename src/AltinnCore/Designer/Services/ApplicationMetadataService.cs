@@ -8,6 +8,7 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
 using AltinnCore.Designer.TypedHttpClients.Exceptions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Rest.TransientFaultHandling;
 using Newtonsoft.Json;
 using Storage.Interface.Clients;
 
@@ -57,7 +58,7 @@ namespace AltinnCore.Designer.Services
             {
                 application = await _altinnApplicationStorageService.GetAsync(org, app);
             }
-            catch (NotFoundHttpRequestException e)
+            catch (HttpRequestWithStatusException e) when (e.StatusCode == HttpStatusCode.NotFound)
             {
                 _logger.LogError(e.Message);
                 Application appMetadata = new Application

@@ -8,10 +8,10 @@ namespace AltinnCore.Designer.Services.Models
     public class EnvironmentModel
     {
         /// <summary>
-        /// HostName
+        /// Hostname
         /// </summary>
         [JsonProperty("hostname")]
-        public string HostName { get; set; }
+        public string Hostname { get; set; }
 
         /// <summary>
         /// App prefix
