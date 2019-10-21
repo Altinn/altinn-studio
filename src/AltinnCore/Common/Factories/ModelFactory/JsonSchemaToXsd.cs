@@ -451,7 +451,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
             bool? xsdAnyAttribute = jSchema.OtherData.TryGetBoolean("@xsdAnyAttribute");
             if (xsdAnyAttribute == true)
             {
-                complexType.AnyAttribute = new XmlSchemaAnyAttribute();
+                XmlSchemaAnyAttribute anyAttribute = new XmlSchemaAnyAttribute();
+                anyAttribute.Namespace = "##targetNamespace";
+                complexType.AnyAttribute = anyAttribute;
             }
 
             return sequence;

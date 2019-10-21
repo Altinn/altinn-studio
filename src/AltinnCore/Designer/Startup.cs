@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 
 namespace AltinnCore.Designer
@@ -92,12 +93,16 @@ namespace AltinnCore.Designer
                 Directory.CreateDirectory(repoLocation);
             }
 
+            services.AddControllers().AddNewtonsoftJson();
+            services.AddMvc(options => options.EnableEndpointRouting = false);
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
+
+            services.AddRazorPages();
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
@@ -127,12 +132,13 @@ namespace AltinnCore.Designer
                 services.AddApplicationInsightsKubernetesEnricher();
             }
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            IMvcBuilder mvc = services.AddControllers().AddControllersAsServices();
+            mvc.Services.AddRazorPages();
+
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
-                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
-                options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
+                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());                
             });
             mvc.AddXmlSerializerFormatters();
 
@@ -140,7 +146,7 @@ namespace AltinnCore.Designer
             services.Configure<RequestLocalizationOptions>(
                 options =>
                 {
-                    var supportedCultures = new List<CultureInfo>
+                    List<CultureInfo> supportedCultures = new List<CultureInfo>
                         {
                             // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
@@ -161,7 +167,7 @@ namespace AltinnCore.Designer
         /// </summary>
         /// <param name="appBuilder">The application builder</param>
         /// <param name="env">Hosting environment</param>
-        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder appBuilder, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -172,12 +178,6 @@ namespace AltinnCore.Designer
                 appBuilder.UseExceptionHandler("/Error");
             }
 
-            // appBuilder.UseHsts();
-            // appBuilder.UseHttpsRedirection();
-            appBuilder.UseAuthentication();
-
-            appBuilder.UseResponseCompression();
-            appBuilder.UseRequestLocalization();
             appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
@@ -191,34 +191,44 @@ namespace AltinnCore.Designer
                 },
             });
 
-            appBuilder.UseMvc(routes =>
+            appBuilder.UseRouting();
+
+            // appBuilder.UseHsts();
+            // appBuilder.UseHttpsRedirection();
+            appBuilder.UseAuthentication();
+            appBuilder.UseAuthorization();
+
+            appBuilder.UseResponseCompression();
+            appBuilder.UseRequestLocalization();
+            
+            appBuilder.UseEndpoints(endpoints =>
             {
                 // ------------------------- DEV ----------------------------- //
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "orgRoute",
-                    template: "designer/{org}/{controller}/{action=Index}/",
+                    pattern: "designer/{org}/{controller}/{action=Index}/",
                     defaults: new { controller = "Config" },
                     constraints: new
                     {
                         controller = "Codelist|Config",
                     });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "serviceDevelopmentRoute",
-                        template: "designer/{org}/{app}",
+                        pattern: "designer/{org}/{app}",
                         defaults: new { controller = "ServiceDevelopment", action = "index" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "designerApiRoute",
-                    template: "designerapi/{controller}/{action=Index}/{id?}",
+                    pattern: "designerapi/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Repository" },
                     constraints: new
                     {
                         controller = @"(Repository|Language|User)",
                     });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                           name: "serviceRoute",
-                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
@@ -226,33 +236,33 @@ namespace AltinnCore.Designer
                               app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                           name: "appRoute",
-                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Deploy" },
                           constraints: new
                           {
                               controller = @"(Deploy)",
                           });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "applicationMetadataApiRoute",
-                        template: "designer/api/v1/{org}/{app}",
+                        pattern: "designer/api/v1/{org}/{app}",
                         defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "reposRoute",
-                        template: "{controller}/{action}/",
+                        pattern: "{controller}/{action}/",
                         defaults: new { controller = "RedirectController" });
 
                 // -------------------------- DEFAULT ------------------------- //
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                    name: "defaultRoute2",
-                   template: "{controller}/{action=StartPage}/{id?}",
+                   pattern: "{controller}/{action=StartPage}/{id?}",
                    defaults: new { controller = "Home" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "defaultRoute",
-                    template: "{action=StartPage}/{id?}",
+                    pattern: "{action=StartPage}/{id?}",
                     defaults: new { controller = "Home" });
             });
         }
