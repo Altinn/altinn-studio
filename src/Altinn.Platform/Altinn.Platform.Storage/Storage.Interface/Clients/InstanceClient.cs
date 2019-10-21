@@ -49,7 +49,7 @@ namespace Altinn.Platform.Storage.Client
 
                 using (MultipartFormDataContent multipartFormData = new MultipartFormDataContent())
                 {
-                    
+
                     multipartFormData.Add(fileStreamContent, elementType, fileName);
 
                     HttpResponseMessage response = await client.PostAsync(hostName + requestUri, multipartFormData);
@@ -60,7 +60,7 @@ namespace Altinn.Platform.Storage.Client
                         return JsonConvert.DeserializeObject<Instance>(json);
                     }
 
-                    throw new StorageClientException($"Http error: {response.ReasonPhrase}");                    
+                    throw new StorageClientException($"Http error: {response.ReasonPhrase}");
                 }
             }
 
@@ -105,7 +105,7 @@ namespace Altinn.Platform.Storage.Client
             if (response.IsSuccessStatusCode)
             {
                 string json = response.Content.ReadAsStringAsync().Result;
-                return JsonConvert.DeserializeObject<Instance>(json);            
+                return JsonConvert.DeserializeObject<Instance>(json);
             }
 
             throw new StorageClientException($"PUT error: {response.ReasonPhrase}");
@@ -186,9 +186,9 @@ namespace Altinn.Platform.Storage.Client
         /// <returns>the instance just created</returns>
         public async Task<Instance> PostInstances(string appId, int instanceOwnerId)
         {
-            string requestUri = $"{versionPrefix}/instances?appId={appId}&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances?appId={appId}";
 
-            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new Instance().AsJson());
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new Instance() { InstanceOwnerId = instanceOwnerId.ToString() }.AsJson());
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();
@@ -282,7 +282,7 @@ namespace Altinn.Platform.Storage.Client
             }
 
             throw new StorageClientException($"POST error: {response.ReasonPhrase}");
-        
+
         }
 
         /// <summary>
