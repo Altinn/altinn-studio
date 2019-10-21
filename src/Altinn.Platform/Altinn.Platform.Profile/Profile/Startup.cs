@@ -85,12 +85,12 @@ namespace Altinn.Platform.Profile
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseSwagger();
+            app.UseSwagger(o => o.RouteTemplate = "profile/swagger/{documentName}/swagger.json");
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/profile/swagger/v1/swagger.json", "Altinn Platform Profile API");
-                c.RoutePrefix = "profile";
+                c.SwaggerEndpoint("profile/swagger/v1/swagger.json", "Altinn Platform Profile API");
+                c.RoutePrefix = "profile/swagger";
             });
 
             app.UseRouting();
