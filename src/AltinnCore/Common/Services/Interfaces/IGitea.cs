@@ -19,12 +19,12 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser();
 
         /// <summary>
-        /// Create repository for th organisation
+        /// Create repository for the org.
         /// </summary>
-        /// <param name="owner">the owner</param>
-        /// <param name="createRepoOption">the options for creating repository</param>
-        /// <returns>The newly created for the repository</returns>
-        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="createRepoOption">the options for creating repository.</param>
+        /// <returns>The newly created repository object.</returns>
+        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
 
         /// <summary>
         /// Creates a release for a specific owner and repository
@@ -44,17 +44,17 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page);
 
         /// <summary>
-        /// Fetch the repository information of a given owner and service
+        /// Fetch the repository information of a given org and repository.
         /// </summary>
-        /// <param name="owner">the owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">the repository</param>
-        /// <returns>Information about the repository of the given owner</returns>
-        Task<Repository> GetRepository(string owner, string repository);
+        /// <returns>Information about the repository of the given org.</returns>
+        Task<Repository> GetRepository(string org, string repository);
 
         /// <summary>
-        /// Returns organization that user has access to
+        /// Returns organisation that user has access to
         /// </summary>
-        /// <returns>A list over organizations</returns>
+        /// <returns>A list over organisations</returns>
         Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations();
 
         /// <summary>

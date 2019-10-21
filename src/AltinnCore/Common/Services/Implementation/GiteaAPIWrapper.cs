@@ -70,10 +70,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Create repository
         /// </summary>
-        /// <param name="owner">the organisation or user</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">the options for creating repository</param>
         /// <returns>The newly created repository</returns>
-        public async Task<Repository> CreateRepository(string owner, CreateRepoOption createRepoOption)
+        public async Task<Repository> CreateRepository(string org, CreateRepoOption createRepoOption)
         {
             Repository repository = new Repository();
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
@@ -199,7 +199,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Repository> GetRepository(string owner, string repository)
+        public async Task<Repository> GetRepository(string org, string repository)
         {
             Repository returnRepository = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Repository));
@@ -226,7 +226,7 @@ namespace AltinnCore.Common.Services.Implementation
                 watch.Stop();
                 _logger.Log(LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
                 watch = System.Diagnostics.Stopwatch.StartNew();
-                Organization org = await GetCachedOrg(returnRepository.Owner.Login);
+                Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
                 watch.Stop();
                 _logger.Log(LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
                 if (org.Id != -1)
@@ -241,7 +241,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gets a list over the organizations that the current user has access to.
+        /// Gets a list over the organisations that the current user has access to.
         /// </summary>
         /// <returns>A list over all</returns>
         public async Task<List<Organization>> GetUserOrganizations()
@@ -260,10 +260,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Returns all branch information for a repository
         /// </summary>
-        /// <param name="owner">The owner</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repo">The name of the repo</param>
         /// <returns>The branches</returns>
-        public async Task<List<Branch>> GetBranches(string owner, string repo)
+        public async Task<List<Branch>> GetBranches(string org, string repo)
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{owner}/{repo}/branches");
             if (response.StatusCode == HttpStatusCode.OK)
@@ -277,7 +277,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Branch> GetBranch(string owner, string repository, string branch)
+        public async Task<Branch> GetBranch(string org, string repository, string branch)
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{owner}/{repository}/branches/{branch}");
             if (response.StatusCode == HttpStatusCode.OK)
@@ -497,12 +497,12 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
-        private async Task<Organization> GetCachedOrg(string orgName)
+        private async Task<Organization> GetCachedOrg(string org)
         {
-            Organization org = null;
-            string cachekey = "org_" + orgName;
+            Organization organisation = null;
+            string cachekey = "org_" + org;
 
-            if (!_cache.TryGetValue(cachekey, out org))
+            if (!_cache.TryGetValue(cachekey, out organisation))
             {
                 try
                 {
@@ -517,11 +517,11 @@ namespace AltinnCore.Common.Services.Implementation
                 }
 
                 // Null value is not cached. so set id property to -1
-                ////if (org == null)
-                ////{
-                ////    org = new Organization();
-                ////    org.Id = -1;
-                ////}
+                if (org == null)
+                {
+                    org = new Organization();
+                    org.Id = -1;
+                }
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
 
@@ -529,10 +529,10 @@ namespace AltinnCore.Common.Services.Implementation
                 .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
 
                 // Save data in cache.
-                _cache.Set(cachekey, org, cacheEntryOptions);
+                _cache.Set(cachekey, organisation, cacheEntryOptions);
             }
 
-            return org;
+            return organisation;
         }
 
         private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true, Cookie tokenCookie = null)

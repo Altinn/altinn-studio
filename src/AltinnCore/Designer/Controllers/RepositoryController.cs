@@ -63,13 +63,13 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Returns a given app repository
         /// </summary>
-        /// <param name="owner">The service owner</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
-        public RepositoryModel GetRepository(string owner, string repository)
+        public Repository GetRepository(string org, string repository)
         {
-            RepositoryModel returnRepository = _giteaApi.GetRepository(owner, repository).Result;
+            Repository returnRepository = _giteaApi.GetRepository(org, repository).Result;
             return returnRepository;
         }
 
@@ -87,28 +87,28 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// This method returns the status of a given repository
         /// </summary>
-        /// <param name="owner">The organization or user owning the repo</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repository</param>
         /// <returns>The repository status</returns>
         [HttpGet]
-        public RepoStatus RepoStatus(string owner, string repository)
+        public RepoStatus RepoStatus(string org, string repository)
         {
-            _sourceControl.FetchRemoteChanges(owner, repository);
-            return _sourceControl.RepositoryStatus(owner, repository);
+            _sourceControl.FetchRemoteChanges(org, repository);
+            return _sourceControl.RepositoryStatus(org, repository);
         }
 
         /// <summary>
         /// Pull remote changes for a given repo
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">Name of the repository</param>
         /// <returns>Repo status</returns>
         [HttpGet]
-        public RepoStatus Pull(string owner, string repository)
+        public RepoStatus Pull(string org, string repository)
         {
-            RepoStatus pullStatus = _sourceControl.PullRemoteChanges(owner, repository);
+            RepoStatus pullStatus = _sourceControl.PullRemoteChanges(org, repository);
 
-            RepoStatus status = _sourceControl.RepositoryStatus(owner, repository);
+            RepoStatus status = _sourceControl.RepositoryStatus(org, repository);
 
             if (pullStatus.RepositoryStatus != Common.Enums.RepositoryStatus.Ok)
             {
@@ -150,90 +150,90 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Push commits to repo
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repo name</param>
         [HttpPost]
-        public void Push(string owner, string repository)
+        public void Push(string org, string repository)
         {
-            _sourceControl.Push(owner, repository);
+            _sourceControl.Push(org, repository);
         }
 
         /// <summary>
         /// Fetches the repository log
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repo name</param>
         /// <returns>List of commits</returns>
         [HttpGet]
-        public List<Commit> Log(string owner, string repository)
+        public List<Commit> Log(string org, string repository)
         {
-            return _sourceControl.Log(owner, repository);
+            return _sourceControl.Log(org, repository);
         }
 
         /// <summary>
         /// Fetches the initial commit
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repo name</param>
         /// <returns>The initial commit</returns>
         [HttpGet]
-        public Commit GetInitialCommit(string owner, string repository)
+        public Commit GetInitialCommit(string org, string repository)
         {
-            return _sourceControl.GetInitialCommit(owner, repository);
+            return _sourceControl.GetInitialCommit(org, repository);
         }
 
         /// <summary>
         /// Gets the latest commit from current user
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repo name</param>
         /// <returns>List of commits</returns>
         [HttpGet]
-        public Commit GetLatestCommitFromCurrentUser(string owner, string repository)
+        public Commit GetLatestCommitFromCurrentUser(string org, string repository)
         {
-            return _sourceControl.GetLatestCommitForCurrentUser(owner, repository);
+            return _sourceControl.GetLatestCommitForCurrentUser(org, repository);
         }
 
         /// <summary>
         /// List all branches for a repository
         /// </summary>
-        /// <param name="owner">The owner of the repo</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The repository</param>
         /// <returns>List of repos</returns>
         [HttpGet]
-        public async Task<List<Branch>> Branches(string owner, string repository)
-            => await _giteaApi.GetBranches(owner, repository);
+        public async Task<List<Branch>> Branches(string org, string repository)
+            => await _giteaApi.GetBranches(org, repository);
 
         /// <summary>
         /// Returns information about a given branch
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="branch">Name of branch</param>
         /// <returns>The branch info</returns>
         [HttpGet]
-        public async Task<Branch> Branch(string owner, string repository, string branch)
-            => await _giteaApi.GetBranch(owner, repository, branch);
+        public async Task<Branch> Branch(string org, string repository, string branch)
+            => await _giteaApi.GetBranch(org, repository, branch);
 
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns>Http response message as ok if reset operation is successful</returns>
         [HttpGet]
-        public ActionResult<HttpResponseMessage> DiscardLocalChanges(string owner, string repository)
+        public ActionResult<HttpResponseMessage> DiscardLocalChanges(string org, string repository)
         {
             try
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository))
                 {
                     HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
                     badRequest.ReasonPhrase = "One or all of the input parameters are null";
                     return badRequest;
                 }
 
-                _sourceControl.ResetCommit(owner, repository);
+                _sourceControl.ResetCommit(org, repository);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
             catch (Exception)
@@ -245,23 +245,23 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="fileName">the name of the file</param>
         /// <returns>Http response message as ok if checkout operation is successful</returns>
         [HttpGet]
-        public ActionResult<HttpResponseMessage> DiscardLocalChangesForSpecificFile(string owner, string repository, string fileName)
+        public ActionResult<HttpResponseMessage> DiscardLocalChangesForSpecificFile(string org, string repository, string fileName)
         {
             try
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
+                if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
                 {
                     HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
                     badRequest.ReasonPhrase = "One or all of the input parameters are null";
                     return badRequest;
                 }
 
-                _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
+                _sourceControl.CheckoutLatestCommitForSpecificFile(org, repository, fileName);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
             catch (Exception)
@@ -273,23 +273,23 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Stages a specific file changed in working repository.
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="fileName">the entire file path with filen name</param>
         /// <returns>Http response message as ok if checkout operation is successful</returns>
         [HttpGet]
-        public ActionResult<HttpResponseMessage> StageChange(string owner, string repository, string fileName)
+        public ActionResult<HttpResponseMessage> StageChange(string org, string repository, string fileName)
         {
             try
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
+                if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
                 {
                     HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
                     badRequest.ReasonPhrase = "One or all of the input parameters are null";
                     return badRequest;
                 }
 
-                _sourceControl.StageChange(owner, repository, fileName);
+                _sourceControl.StageChange(org, repository, fileName);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
             catch (Exception)
@@ -337,34 +337,34 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Clones the remote repository
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository</param>
         /// <returns>The result of the cloning</returns>
         [HttpGet]
-        public string CloneRemoteRepository(string owner, string repository)
+        public string CloneRemoteRepository(string org, string repository)
         {
-            return _sourceControl.CloneRemoteRepository(owner, repository);
+            return _sourceControl.CloneRemoteRepository(org, repository);
         }
 
         /// <summary>
         /// Halts the merge operation and keeps local changes
         /// </summary>
-        /// <param name="owner">The owner of the repository</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>Http response message as ok if abort merge operation is successful</returns>
         [HttpGet]
-        public ActionResult<HttpResponseMessage> AbortMerge(string owner, string repository)
+        public ActionResult<HttpResponseMessage> AbortMerge(string org, string repository)
         {
             try
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(repository))
                 {
                     HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
                     badRequest.ReasonPhrase = "One or all of the input parameters are null";
                     return badRequest;
                 }
 
-                _sourceControl.AbortMerge(owner, repository);
+                _sourceControl.AbortMerge(org, repository);
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }

@@ -111,21 +111,7 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       return null;
     }
 
-    let validParties: IParty[];
-
-    validParties = parties.map((party) => {
-      if (!showDeleted) {
-        if (!party.isDeleted) {
-          return party;
-        }
-      } else {
-        return party;
-      }
-    }).filter((party) => !party ? null : party);
-
-    let numberOfPartiesRendered: number = 0;
-
-    if (validParties.length === 0) {
+    if (parties.length === 0) {
       return (
         <Redirect
           to={{
@@ -138,26 +124,32 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       );
     }
 
+    let numberOfPartiesRendered: number = 0;
+
     return (
       <>
-        {validParties.map((party: IParty, index: number) =>
+        {parties.map((party: IParty, index: number) =>
           party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
             numberOfPartiesShown > numberOfPartiesRendered ?
               (() => {
                 numberOfPartiesRendered += 1;
-                return (
-                  <AltinnParty
-                    key={index}
-                    party={party}
-                    onSelectParty={onSelectParty}
-                    showSubUnits={showSubUnits}
-                  />
-                );
+                if (party.isDeleted && !showDeleted) {
+                  return null;
+                } else {
+                  return (
+                    <AltinnParty
+                      key={index}
+                      party={party}
+                      onSelectParty={onSelectParty}
+                      showSubUnits={showSubUnits}
+                    />
+                  );
+                }
               })()
               : null
             : null,
         )}
-        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < validParties.length ?
+        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < parties.length ?
           <Grid container={true} direction={'row'}>
             {renderShowMoreButton()}
           </Grid>

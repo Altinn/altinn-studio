@@ -38,8 +38,13 @@ function AltinnPartySearch(props: IAltinnPartySearchProps) {
   return (
     <Grid container={true} className={classes.partySearchContainer}>
       <AltinnInput
-        id={'altinn-party-search'}
-        onChangeFunction={onChangeSearchString}
+        label={
+          !language.party_selection ?
+            'party_selection.search_placeholder' :
+            language.party_selection.search_placeholder
+        }
+        showLabel={false}
+        onChange={onChangeSearchString}
         placeholder={
           !language.party_selection ?
             'party_selection.search_placeholder' :

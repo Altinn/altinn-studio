@@ -31,9 +31,8 @@ export class IFrameComponent extends
 
   public render() {
     const { classes } = this.props;
-    const altinnWindow: any = window;
-    const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designer/${org}/${service}/${this.props.iframeEndingUrl}`;
+    const { org, app } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designer/${org}/${app}/${this.props.iframeEndingUrl}`;
     return (
       <div className={classes.mainLayout}>
         <iframe className={classes.iFrameLayout} src={url} />

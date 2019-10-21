@@ -16,7 +16,7 @@ const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedPar
 
 function* instantiationSaga({
   org,
-  service,
+  app,
 }: IInstantiate): SagaIterator {
   try {
     const instantitationState: IInstantiationState = yield select(InstantiatingSelector);
@@ -28,7 +28,7 @@ function* instantiationSaga({
 
       formData.append('PartyId', selectedParty.partyId);
       formData.append('Org', org);
-      formData.append('Service', service);
+      formData.append('Service', app);
       post(instantiateUrl, null, formData)
         .then((response: AxiosResponse) => {
           if (response.data.instanceId !== null) {

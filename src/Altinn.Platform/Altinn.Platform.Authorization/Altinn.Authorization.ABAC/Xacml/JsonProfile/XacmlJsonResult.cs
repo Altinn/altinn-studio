@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Altinn.Authorization.ABAC.Xacml.JsonProfile
 {
     /// <summary>
-    /// The JSON object Result
+    /// The JSON object Result.
     /// </summary>
     public class XacmlJsonResult
     {

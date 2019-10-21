@@ -141,7 +141,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
 </div>
 `;
 
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot with no service or org 1`] = `
+exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot with no app or org 1`] = `
 <div
   className="AppBarComponent-root-1"
 >
