@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
@@ -67,9 +65,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
-        public Repository GetRepository(string org, string repository)
+        public RepositoryModel GetRepository(string org, string repository)
         {
-            Repository returnRepository = _giteaApi.GetRepository(org, repository).Result;
+            RepositoryModel returnRepository = _giteaApi.GetRepository(org, repository).Result;
             return returnRepository;
         }
 

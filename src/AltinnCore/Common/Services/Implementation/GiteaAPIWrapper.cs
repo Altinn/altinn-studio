@@ -77,7 +77,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Repository repository = new Repository();
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string urlEnd = developerUserName == owner ? "user/repos" : "org/" + owner + "/repos";
+            string urlEnd = developerUserName == org ? "user/repos" : "org/" + org + "/repos";
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, createRepoOption);
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Repository));
             if (response.StatusCode == HttpStatusCode.Created)
@@ -87,7 +87,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
             else
             {
-                _logger.LogError("User " + developerUserName + " Create repository failed with statuscode " + response.StatusCode + " for " + owner + " and reponame " + createRepoOption.Name);
+                _logger.LogError("User " + developerUserName + " Create repository failed with statuscode " + response.StatusCode + " for " + org + " and reponame " + createRepoOption.Name);
             }
 
             repository.RepositoryCreatedStatus = HttpStatusCode.Created;
@@ -204,7 +204,7 @@ namespace AltinnCore.Common.Services.Implementation
             Repository returnRepository = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Repository));
 
-            string giteaUrl = $"repos/{owner}/{repository}";
+            string giteaUrl = $"repos/{org}/{repository}";
             HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -215,7 +215,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
             else
             {
-                _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {owner}/{repository} failed with reponsecode {response.StatusCode}");
+                _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
             }
 
             var watchOwnerType = System.Diagnostics.Stopwatch.StartNew();
@@ -229,7 +229,7 @@ namespace AltinnCore.Common.Services.Implementation
                 Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
                 watch.Stop();
                 _logger.Log(LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
-                if (org.Id != -1)
+                if (organisation.Id != -1)
                 {
                     returnRepository.Owner.UserType = UserType.Org;
                 }
@@ -265,13 +265,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The branches</returns>
         public async Task<List<Branch>> GetBranches(string org, string repo)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{owner}/{repo}/branches");
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repo}/branches");
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 return await response.Content.ReadAsAsync<List<Branch>>();
             }
 
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + owner + " " + repo);
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " " + repo);
 
             return new List<Branch>();
         }
@@ -279,13 +279,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<Branch> GetBranch(string org, string repository, string branch)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{owner}/{repository}/branches/{branch}");
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repository}/branches/{branch}");
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 return await response.Content.ReadAsAsync<Branch>();
             }
 
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + owner + " / " + repository + " branch: " + branch);
+            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branch);
 
             return null;
         }
@@ -506,21 +506,23 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 try
                 {
-                    org = await GetOrganization(orgName);
+                    organisation = await GetOrganization(cachekey);
                 }
                 catch
                 {
-                    org = new Organization
+                    organisation = new Organization
                     {
                         Id = -1
                     };
                 }
 
                 // Null value is not cached. so set id property to -1
-                if (org == null)
+                if (organisation == null)
                 {
-                    org = new Organization();
-                    org.Id = -1;
+                    organisation = new Organization
+                    {
+                        Id = -1
+                    };
                 }
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
