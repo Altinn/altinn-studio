@@ -102,7 +102,7 @@ public class PDFGenerator {
     yPoint = pageHeight - margin;
 
     // draws header
-    drawHeader(currentContent);
+    renderHeader(currentContent);
 
     // Loop through all pdfLayout elements and draws them
     for (FormLayoutElement element : formLayout.getData().getLayout()) {
@@ -112,7 +112,7 @@ public class PDFGenerator {
         createNewPage();
         yPoint = currentPage.getMediaBox().getHeight() - margin;
       }
-      drawLayoutElement(element, currentContent, currentPage);
+      renderLayoutElement(element, currentContent);
       yPoint -= componentMargin;
     }
 
@@ -124,90 +124,32 @@ public class PDFGenerator {
   }
 
 
-  private void drawLayoutElement(FormLayoutElement element, PDPageContentStream contents, PDPage page) throws IOException {
-
+  private void renderLayoutElement(FormLayoutElement element, PDPageContentStream contents) throws IOException {
     // Render title
     String titleKey = element.getTextResourceBindings().getTitle();
     if (titleKey != null && !titleKey.isEmpty()) {
-      contents.beginText();
-      contents.newLineAtOffset(xPoint, yPoint);
-      contents.setFont(fontBold, fontSize);
-      String title = TextUtils.getTextResourceByKey(titleKey, this.textResources);
-      List<String> lines = TextUtils.splitTextToLines(title, font, fontSize, width);
-      for(String line : lines) {
-        contents.showText(line);
-        contents.newLineAtOffset(0, -leading);
-        yPoint -= leading;
-      }
-      contents.endText();
-      yPoint -= textFieldMargin;
+      String title = TextUtils.getTextResourceByKey(titleKey, textResources);
+      renderText(contents, title, fontBold, fontSize);
     }
 
     // Render description
     String descriptionKey = element.getTextResourceBindings().getDescription();
     if (descriptionKey != null && !descriptionKey.isEmpty()) {
-      contents.beginText();
-      contents.setFont(font, fontSize);
-      contents.newLineAtOffset(xPoint, yPoint);
-      String description = TextUtils.getTextResourceByKey(descriptionKey, this.textResources);
-      List<String> lines = TextUtils.splitTextToLines(description, font, fontSize, width);
-      for(String line: lines) {
-        contents.showText(line);
-        contents.newLineAtOffset(0, -leading);
-        yPoint -= leading;
-      }
-      contents.endText();
-      yPoint -= textFieldMargin;
+      String description = TextUtils.getTextResourceByKey(descriptionKey, textResources);
+      renderText(contents, description, font, fontSize);
     }
 
+    // Render content
     if (element.getType().equalsIgnoreCase("fileupload")) {
       // different view for file upload
-      List<String> files = InstanceUtils.getAttachmentsByComponentId(element.getId(), this.instance);
-      contents.setFont(font, fontSize);
-      contents.beginText();
-      float indent = 10;
-      contents.newLineAtOffset(xPoint + indent, yPoint);
-      for(String file: files) {
-        contents.showText("- " + file);
-        contents.newLineAtOffset(0, -leading);
-        yPoint -= leading;
-      }
-      contents.endText();
+      renderFileUploadContent(contents, element);
     } else {
       // all other components rendered equally
-      PDTextField textField = new PDTextField(this.form);
-      textField.setPartialName(element.getId());
-      String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
-      textField.setDefaultAppearance(defaultAppearance);
-      textField.setReadOnly(true);
-
-      this.form.getFields().add(textField);
-      PDAnnotationWidget widget = textField.getWidgets().get(0);
-      String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().getSimpleBinding(), this.formData);
-      float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width, leading);
-      PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight);
-      float actualHeight = rect.getHeight();
-      yPoint -= actualHeight;
-      rect = new PDRectangle(xPoint, yPoint, width, rectHeight); // trick to get actual rect height
-      widget.setRectangle(rect);
-      // Sets border color
-      PDAppearanceCharacteristicsDictionary fieldAppearance
-        = new PDAppearanceCharacteristicsDictionary(new COSDictionary());
-      fieldAppearance.setBorderColour(new PDColor(new float[]{0.0f,0.0f,0.0f}, PDDeviceRGB.INSTANCE));
-      widget.setAppearanceCharacteristics(fieldAppearance);
-
-      // adds rect around widget and ands to page
-      widget.setPage(page);
-      page.getAnnotations().add(widget);
-      if (TextUtils.splitTextToLines(value, font, fontSize, width).size() > 1) {
-        textField.setMultiline(true);
-      }
-      textField.setDoNotScroll(true);
-      textField.setValue(value);
+      renderLayoutElementContent(contents, element);
     }
   }
 
-  private void drawHeader(PDPageContentStream contents) throws IOException{
+  private void renderHeader(PDPageContentStream contents) throws IOException{
     contents.beginText();
     contents.newLineAtOffset(xPoint, yPoint);
     float headerFontSize = 14;
@@ -226,6 +168,66 @@ public class PDFGenerator {
     currentPage = new PDPage(PDRectangle.A4);
     document.addPage((currentPage));
     currentContent= new PDPageContentStream(document, currentPage);
+  }
+
+  private void renderText(PDPageContentStream contents, String text, PDFont font, float fontSize) throws IOException {
+    contents.beginText();
+    contents.newLineAtOffset(xPoint, yPoint);
+    contents.setFont(font, fontSize);
+    List<String> lines = TextUtils.splitTextToLines(text, font, fontSize, width);
+    for(String line : lines) {
+      contents.showText(line);
+      contents.newLineAtOffset(0, -leading);
+      yPoint -= leading;
+    }
+    contents.endText();
+    yPoint -= textFieldMargin;
+  }
+
+  private void renderLayoutElementContent(PDPageContentStream contents, FormLayoutElement element) throws IOException {
+    PDTextField textField = new PDTextField(this.form);
+    textField.setPartialName(element.getId());
+    String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
+    textField.setDefaultAppearance(defaultAppearance);
+    textField.setReadOnly(true);
+
+    this.form.getFields().add(textField);
+    PDAnnotationWidget widget = textField.getWidgets().get(0);
+    String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().getSimpleBinding(), this.formData);
+    float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width, leading);
+    PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight);
+    float actualHeight = rect.getHeight();
+    yPoint -= actualHeight;
+    rect = new PDRectangle(xPoint, yPoint, width, rectHeight); // trick to get actual rect height
+    widget.setRectangle(rect);
+    // Sets border color
+    PDAppearanceCharacteristicsDictionary fieldAppearance
+      = new PDAppearanceCharacteristicsDictionary(new COSDictionary());
+    fieldAppearance.setBorderColour(new PDColor(new float[]{0.0f,0.0f,0.0f}, PDDeviceRGB.INSTANCE));
+    widget.setAppearanceCharacteristics(fieldAppearance);
+
+    // adds rect around widget and ands to page
+    widget.setPage(currentPage);
+    currentPage.getAnnotations().add(widget);
+    if (TextUtils.splitTextToLines(value, font, fontSize, width).size() > 1) {
+      textField.setMultiline(true);
+    }
+    textField.setDoNotScroll(true);
+    textField.setValue(value);
+  }
+
+  private void renderFileUploadContent(PDPageContentStream contents, FormLayoutElement element) throws IOException {
+    List<String> files = InstanceUtils.getAttachmentsByComponentId(element.getId(), this.instance);
+    contents.setFont(font, fontSize);
+    contents.beginText();
+    float indent = 10;
+    contents.newLineAtOffset(xPoint + indent, yPoint);
+    for(String file: files) {
+      contents.showText("- " + file);
+      contents.newLineAtOffset(0, -leading);
+      yPoint -= leading;
+    }
+    contents.endText();
   }
 }
 
