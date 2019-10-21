@@ -1,6 +1,6 @@
 package altinn.platform.pdf.controllers;
 
-import altinn.platform.pdf.PDFGenerator;
+import altinn.platform.pdf.services.PDFGenerator;
 import altinn.platform.pdf.models.PdfContext;
 import altinn.platform.pdf.services.BasicLogger;
 import io.swagger.annotations.ApiOperation;

@@ -1,7 +1,6 @@
-package altinn.platform.pdf;
+package altinn.platform.pdf.services;
 
 import altinn.platform.pdf.models.*;
-import altinn.platform.pdf.services.BasicLogger;
 import altinn.platform.pdf.utils.FormDataUtils;
 import altinn.platform.pdf.utils.InstanceUtils;
 import altinn.platform.pdf.utils.LayoutUtils;
