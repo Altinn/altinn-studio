@@ -138,7 +138,7 @@ import AppReleaseActionDispatcher from './../appReleaseDispatcher';
 function* getReleasesSaga(): SagaIterator {
   try {
     const result: any = yield call(get, releasesUrlGet);
-    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, result);
+    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, result.results);
   } catch (err) {
     yield call(AppReleaseActionDispatcher.getAppReleasesRejected, err);
   }

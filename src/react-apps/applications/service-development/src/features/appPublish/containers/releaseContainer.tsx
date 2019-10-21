@@ -447,7 +447,8 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           item={true}
           className={classes.appReleaseHistory}
         >
-          {appReleases.releases.map((release: IRelease, index: number) => (
+          {!!appReleases.releases.length &&
+            appReleases.releases.map((release: IRelease, index: number) => (
             <ReleaseComponent key={index} release={release} />
           ))}
         </Grid>
