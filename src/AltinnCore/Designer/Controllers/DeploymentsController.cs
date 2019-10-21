@@ -45,7 +45,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>DocumentResults of type DeploymentEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<DocumentResults<DeploymentEntity>> Get()
-            => await _deploymentService.GetAsync();
+        public async Task<DocumentResults<DeploymentEntity>> Get([FromQuery]DocumentQueryModel query)
+            => await _deploymentService.GetAsync(query);
     }
 }

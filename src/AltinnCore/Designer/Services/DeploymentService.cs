@@ -80,13 +80,10 @@ namespace AltinnCore.Designer.Services
         }
 
         /// <inheritdoc/>
-        public async Task<DocumentResults<DeploymentEntity>> GetAsync()
+        public async Task<DocumentResults<DeploymentEntity>> GetAsync(DocumentQueryModel query)
         {
-            DocumentQueryModel query = new DocumentQueryModel
-            {
-                App = _app,
-                Org = _org
-            };
+            query.App = _app;
+            query.Org = _org;
             IEnumerable<DeploymentEntity> results = await _deploymentDbRepository.GetAsync<DeploymentEntity>(query);
             return new DocumentResults<DeploymentEntity>
             {
