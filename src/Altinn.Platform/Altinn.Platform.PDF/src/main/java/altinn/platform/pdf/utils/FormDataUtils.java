@@ -10,10 +10,10 @@ import java.util.regex.Pattern;
 public class FormDataUtils {
 
   /**
-   * Returns the form data for a given data binding
+   * Returns the data data for a given data binding
    * @param key the data binding key
-   * @param formData the form data
-   * @return the connected form data, or empty string if not defined
+   * @param formData the data data
+   * @return the connected data data, or empty string if not defined
    */
   public static String getFormDataByKey(String key, Document formData) {
     if (key == null || formData == null) {

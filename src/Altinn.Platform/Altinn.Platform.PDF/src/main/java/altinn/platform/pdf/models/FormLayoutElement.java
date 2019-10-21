@@ -5,6 +5,4 @@ public class FormLayoutElement {
   public String id;
   public DataModelBindings dataModelBindings;
   public TextResourceBindings textResourceBindings;
-  public Option[] options;
-
 }

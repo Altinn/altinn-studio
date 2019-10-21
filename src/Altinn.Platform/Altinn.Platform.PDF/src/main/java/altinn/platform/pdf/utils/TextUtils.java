@@ -33,21 +33,40 @@ public class TextUtils {
    * @param text the text
    * @return the the height needed to fit the text
    */
-  public static float getHeightNeededForText(String text, PDFont font, float fontSize, float width) throws IOException {
-    if (text == null || text.length() == 0) {
-      return 1;
-    }
+  public static float getHeightNeededForText(String text, PDFont font, float fontSize, float width, float leading) throws IOException {
     float fontHeight = getFontHeight(font, fontSize);
+    if (text == null || text.length() == 0) {
+      return fontHeight;
+    }
     List<String> lines = splitTextToLines(text, font, fontSize, width);
-    float heightNeeded = lines.size() * fontHeight;
+    int numberOfLines = lines.size();
+    float heightNeeded = numberOfLines * fontHeight;
     if (lines.size() > 1) {
-      heightNeeded *= 1.2;
+      float leadingDiff = (leading - fontHeight);
+      heightNeeded += ((numberOfLines - 1) * leadingDiff);
     }
     return heightNeeded;
 }
 
   /**
-   * Splits a text string into suitable lines which will fit inside the pdf
+   * Gets the height needed for a multi line text box
+   * @param text the text
+   * @param font the font
+   * @param fontSize the font size
+   * @param width the width
+   * @param leading the leading space
+   * @return the height need in pixels
+   * @throws IOException
+   */
+  public static float getHeightNeededForTextBox(String text, PDFont font, float fontSize, float width, float leading) throws IOException {
+    float textHeight = getHeightNeededForText(text, font, fontSize, width, leading);
+    float leadingDiff = (leading - fontSize);
+    return textHeight + leadingDiff*2;
+  }
+
+  /**
+   * Splits a text string into suitable lines which will fit inside the pdf. Natural break points on spaces are used, but
+   * words that are wider than the width have to ble split into multiple lines.
    * @param text the text
    * @param font the font used
    * @param fontSize the font size
@@ -137,6 +156,9 @@ public class TextUtils {
         lines.add(word.substring(start, i));
         start = i;
       }
+      if (i == word.length()) {
+        lines.add(word.substring(start, i));
+      }
     }
 
     return lines;
@@ -153,5 +175,4 @@ public class TextUtils {
   public static float getStringWidth(String word, PDFont font, float fontSize) throws IOException {
     return fontSize * font.getStringWidth(word) / 1000;
   }
-
 }
