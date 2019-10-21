@@ -184,6 +184,10 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
                             break;
 
+                        case "instanceOwnerId":
+                            queryBuilder = queryBuilder.Where(i => i.InstanceOwnerId == queryValue);
+                            break;
+
                         case "lastChangedDateTime":
                             queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
                             break;
@@ -202,7 +206,7 @@ namespace Altinn.Platform.Storage.Repository
 
                         case "process.currentTask":
                             string currentTaskId = queryValue;
-                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask.ProcessElementId == currentTaskId);
+                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask.ElementId == currentTaskId);
                             break;
 
                         case "process.isComplete":

@@ -4,7 +4,7 @@ import { store } from '../../../../store';
 import * as InstantiateActions from './instantiate';
 
 export interface IInstantiationActions extends ActionCreatorsMapObject {
-  instantiate: (org: string, service: string) => InstantiateActions.IInstantiate;
+  instantiate: (org: string, app: string) => InstantiateActions.IInstantiate;
   instantiateFulfilled: (instanceId: string) => InstantiateActions.IInstantiateFulfilled;
   instantiateRejected: (error: Error) => InstantiateActions.IInstantiateRejected;
   instantiateToggle: () => Action;

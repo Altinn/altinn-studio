@@ -10,10 +10,9 @@ export class RedirectComponent extends
   React.Component<IRedirectComponentProvidedProps, any> {
 
   public openManualTesting = () => {
-    const altinnWindow: any = window;
-    const { org, service } = altinnWindow;
+    const { org, app } = window as IAltinnWindow;
     // tslint:disable-next-line:max-line-length
-    const url = `${altinnWindow.location.origin}/${this.props.redirectUrl}?ReturnUrl=%2Fruntime%2F${org}%2F${service}%2FManualTesting`;
+    const url = `${window.location.origin}/${this.props.redirectUrl}?ReturnUrl=%2Fruntime%2F${org}%2F${app}%2FManualTesting`;
     // tslint:disable-next-line:jsx-self-close
     window.open(url, '_newWindow');
   }

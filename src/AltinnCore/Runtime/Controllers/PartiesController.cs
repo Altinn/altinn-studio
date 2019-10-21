@@ -63,8 +63,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Gets the list of parties the user can represent
         /// </summary>
-        /// <param name="org">the app owner</param>
-        /// <param name="app">the app</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="allowedToInstantiateFilter">when set to true returns parties that are allowed to instantiate</param>
         /// <returns>parties</returns>
         [HttpGet("{org}/{app}/api/v1/parties")]
@@ -86,8 +86,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Validates party and profile settings before the end user is allowed to instantiate a new app instance
         /// </summary>
-        /// <param name="org">The organization</param>
-        /// <param name="app">The application</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="partyId">The selected partyId</param>
         /// <returns>A validation status</returns>
         [HttpPost("{org}/{app}/api/v1/parties/validateInstantiation")]

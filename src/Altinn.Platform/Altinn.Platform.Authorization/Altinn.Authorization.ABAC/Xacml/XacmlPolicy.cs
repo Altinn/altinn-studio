@@ -150,7 +150,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// A sequence of parameters to be used by the rule-combining algorithm. The parameters apply to the combining algorithm as such and it is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
+        /// Gets A sequence of parameters to be used by the rule-combining algorithm. The parameters apply to the combining algorithm as such and it is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
         /// </summary>
         public ICollection<XacmlCombinerParameter> CombinerParameters
         {
@@ -161,7 +161,7 @@ namespace Altinn.Authorization.ABAC.Xacml
         }
 
         /// <summary>
-        /// A sequence of<RuleCombinerParameter/> elements that are associated with a particular <Rule/> element within the<Policy/>..
+        /// Gets A sequence of<RuleCombinerParameter/> elements that are associated with a particular <Rule/> element within the<Policy/>..
         /// It is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
         /// </summary>
         public ICollection<XacmlRuleCombinerParameters> RuleCombinerParameters

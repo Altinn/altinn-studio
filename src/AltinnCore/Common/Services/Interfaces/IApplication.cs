@@ -14,8 +14,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets the application metdata
         /// </summary>
-        /// <param name="org">the organisation</param>
-        /// <param name="app">the application</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         Task<Application> GetApplication(string org, string app);
     }
 }

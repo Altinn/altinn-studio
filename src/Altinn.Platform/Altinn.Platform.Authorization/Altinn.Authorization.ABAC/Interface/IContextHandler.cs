@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 
 namespace Altinn.Authorization.ABAC.Interface
@@ -12,6 +13,6 @@ namespace Altinn.Authorization.ABAC.Interface
         /// </summary>
         /// <param name="decisionRequest">The XacmlContextRequest.</param>
         /// <returns>Enriched context.</returns>
-        XacmlContextRequest Enrich(XacmlContextRequest decisionRequest);
+        Task<XacmlContextRequest> Enrich(XacmlContextRequest decisionRequest);
     }
 }

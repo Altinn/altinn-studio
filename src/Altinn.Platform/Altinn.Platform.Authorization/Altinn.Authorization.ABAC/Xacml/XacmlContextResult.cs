@@ -133,7 +133,6 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <summary>
         /// Gets the advices.
         /// </summary>
-        /// <remarks>Used only for XACML V3.0</remarks>
         public ICollection<XacmlAdvice> Advices
         {
             get
@@ -145,7 +144,6 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <summary>
         /// Gets the attributes.
         /// </summary>
-        /// <remarks>Used only for XACML V3.0</remarks>
         public ICollection<XacmlContextAttributes> Attributes
         {
             get
@@ -157,7 +155,6 @@ namespace Altinn.Authorization.ABAC.Xacml
         /// <summary>
         /// Gets the policy identifier references.
         /// </summary>
-        /// <remarks>Used only for XACML V3.0</remarks>
         public ICollection<XacmlContextPolicyIdReference> PolicyIdReferences
         {
             get

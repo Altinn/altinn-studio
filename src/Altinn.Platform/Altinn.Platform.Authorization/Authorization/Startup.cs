@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Configuration;
@@ -12,11 +7,10 @@ using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace Altinn.Platform.Authorization
 {
@@ -44,9 +38,8 @@ namespace Altinn.Platform.Authorization
         /// </summary>
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
-        {   
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            services.AddMvc().AddControllersAsServices();
+        {
+            services.AddControllers();
             services.AddSingleton(Configuration);
             services.AddSingleton<IParties, PartiesWrapper>();
             services.AddSingleton<IRoles, RolesWrapper>();
@@ -58,8 +51,7 @@ namespace Altinn.Platform.Authorization
             services.AddHttpClient<SBLClient>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            mvc.Services.Configure<MvcOptions>(options =>
+            services.AddMvc(options =>
             {
                 // Adding custom modelbinders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
@@ -71,7 +63,7 @@ namespace Altinn.Platform.Authorization
         /// </summary>
         /// <param name="app">the application builder.</param>
         /// <param name="env">the hosting environment.</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -82,7 +74,11 @@ namespace Altinn.Platform.Authorization
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseMvc();
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
         }
     }
 }

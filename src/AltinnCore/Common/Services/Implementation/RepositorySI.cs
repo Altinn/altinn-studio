@@ -82,30 +82,31 @@ namespace AltinnCore.Common.Services.Implementation
         public bool CreateServiceMetadata(ServiceMetadata serviceMetadata)
         {
             string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
-            string serviceOrgPath = null;
+            string orgPath = null;
+            string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            serviceOrgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
-                            : _settings.RepositoryLocation + serviceMetadata.Org.AsFileName();
+            orgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
+                : _settings.GetOrgPath(serviceMetadata.Org.AsFileName(), developerUserName);
 
-            string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
+            string appPath = orgPath + "/" + serviceMetadata.RepositoryName.AsFileName();
 
-            if (!Directory.Exists(serviceOrgPath))
+            if (!Directory.Exists(orgPath))
             {
-                Directory.CreateDirectory(serviceOrgPath);
+                Directory.CreateDirectory(orgPath);
             }
 
-            if (!Directory.Exists(servicePath))
+            if (!Directory.Exists(appPath))
             {
-                Directory.CreateDirectory(servicePath);
+                Directory.CreateDirectory(appPath);
             }
 
             string metaDataDir = _settings.GetMetadataPath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
             {
@@ -115,7 +116,7 @@ namespace AltinnCore.Common.Services.Implementation
             string resourceDir = _settings.GetResourcePath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo resourceDirectoryInfo = new DirectoryInfo(resourceDir);
             if (!resourceDirectoryInfo.Exists)
             {
@@ -125,7 +126,7 @@ namespace AltinnCore.Common.Services.Implementation
             string dynamicsDir = _settings.GetDynamicsPath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo dynamicsDirectoryInfo = new DirectoryInfo(dynamicsDir);
             if (!dynamicsDirectoryInfo.Exists)
             {
@@ -135,7 +136,7 @@ namespace AltinnCore.Common.Services.Implementation
             string calculationDir = _settings.GetCalculationPath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo calculationDirectoryInfo = new DirectoryInfo(calculationDir);
             if (!calculationDirectoryInfo.Exists)
             {
@@ -145,7 +146,7 @@ namespace AltinnCore.Common.Services.Implementation
             string validationDir = _settings.GetValidationPath(
                 serviceMetadata.Org,
                 serviceMetadata.RepositoryName,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                developerUserName);
             DirectoryInfo validationDirectoryInfo = new DirectoryInfo(validationDir);
             if (!validationDirectoryInfo.Exists)
             {
@@ -164,6 +165,7 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialAuthorizationPolicy(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -197,7 +199,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 Id = "default",
                 AllowedContentType = new List<string>() { "application/xml" },
-                ShouldEncrypt = true,
+                AppLogic = true
             });
             appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
             string metaDataDir = _settings.GetMetadataPath(
@@ -406,7 +408,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the content of a file path relative to the root folder
+        /// Returns the content of a file path relative to the app folder
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
@@ -453,22 +455,22 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The text</returns>
         public Dictionary<string, Dictionary<string, string>> GetServiceTexts(string org, string app)
         {
-            Dictionary<string, Dictionary<string, string>> serviceTextsAllLanguages =
+            Dictionary<string, Dictionary<string, string>> appTextsAllLanguages =
                 new Dictionary<string, Dictionary<string, string>>();
 
             // Get app level text resources
             string resourcePath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            serviceTextsAllLanguages = GetResourceTexts(resourcePath, serviceTextsAllLanguages);
+            appTextsAllLanguages = GetResourceTexts(resourcePath, appTextsAllLanguages);
 
             // Get Org level text resources
             string orgResourcePath = _settings.GetOrgTextResourcePath(org, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            serviceTextsAllLanguages = GetResourceTexts(orgResourcePath, serviceTextsAllLanguages);
+            appTextsAllLanguages = GetResourceTexts(orgResourcePath, appTextsAllLanguages);
 
             // Get Altinn common level text resources
             string commonResourcePath = _settings.GetCommonTextResourcePath(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            serviceTextsAllLanguages = GetResourceTexts(commonResourcePath, serviceTextsAllLanguages);
+            appTextsAllLanguages = GetResourceTexts(commonResourcePath, appTextsAllLanguages);
 
-            return serviceTextsAllLanguages;
+            return appTextsAllLanguages;
         }
 
         /// <summary>
@@ -1014,83 +1016,83 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A list of apps</returns>
         public List<ServiceMetadata> GetAvailableServices()
         {
-            List<ServiceMetadata> services = new List<ServiceMetadata>();
-            string[] serviceOwners = null;
+            List<ServiceMetadata> apps = new List<ServiceMetadata>();
+            string[] orgPaths = null;
 
-            serviceOwners = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                            ? serviceOwners = Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
-                            : serviceOwners = Directory.GetDirectories(_settings.RepositoryLocation);
+            orgPaths = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                            ? orgPaths = Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
+                            : orgPaths = Directory.GetDirectories(_settings.RepositoryLocation);
 
-            foreach (string serviceOwner in serviceOwners)
+            foreach (string orgPath in orgPaths)
             {
-                string serviceOwnerFileName = Path.GetFileName(serviceOwner);
-                string[] serviceRepos = Directory.GetDirectories(serviceOwner);
+                string org = Path.GetFileName(orgPath);
+                string[] appPaths = Directory.GetDirectories(orgPath);
 
-                foreach (string serviceRepo in serviceRepos)
+                foreach (string appPath in appPaths)
                 {
-                    string serviceRepoFileName = Path.GetFileName(serviceRepo);
-                    string serviceDirectory = _settings.GetMetadataPath(serviceOwnerFileName, serviceRepoFileName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                    if (Directory.Exists(serviceDirectory))
+                    string app = Path.GetFileName(appPath);
+                    string metadataPath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                    if (Directory.Exists(metadataPath))
                     {
-                        services.Add(GetServiceMetaData(serviceOwnerFileName, serviceRepoFileName));
+                        apps.Add(GetServiceMetaData(org, app));
                     }
                 }
             }
 
-            return services;
+            return apps;
         }
 
         /// <summary>
-        /// Returns a list of all application owners present in the local repository
+        /// Returns a list of all organisations present in the local repository
         /// </summary>
-        /// <returns>A list of all application owners</returns>
+        /// <returns>A list of all organisations</returns>
         public IList<OrgConfiguration> GetOwners()
         {
-            List<OrgConfiguration> serviceOwners = new List<OrgConfiguration>();
+            List<OrgConfiguration> organisations = new List<OrgConfiguration>();
 
-            string[] serviceOwnerDirectories = null;
+            string[] organisationDirectories = null;
 
-            serviceOwnerDirectories = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+            organisationDirectories = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
             ? Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
             : Directory.GetDirectories(_settings.RepositoryLocation);
 
-            foreach (string serviceOwnerDirectory in serviceOwnerDirectories)
+            foreach (string organisationDirectory in organisationDirectories)
             {
-                string filename = serviceOwnerDirectory + "/" + Path.GetFileName(serviceOwnerDirectory) + "/config.json";
+                string filename = organisationDirectory + "/" + Path.GetFileName(organisationDirectory) + "/config.json";
                 if (File.Exists(filename))
                 {
                     string textData = File.ReadAllText(filename);
-                    serviceOwners.Add(JsonConvert.DeserializeObject<OrgConfiguration>(textData));
+                    organisations.Add(JsonConvert.DeserializeObject<OrgConfiguration>(textData));
                 }
             }
 
-            return serviceOwners;
+            return organisations;
         }
 
         /// <summary>
-        /// Creates a new app folder under the given <paramref name="owner">owner</paramref> and saves the
+        /// Creates a new app folder under the given <paramref name="org">org</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
-        /// <param name="owner">The app owner to create the new app under</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="serviceConfig">The ServiceConfiguration to save</param>
         /// <param name="repoCreated">Whether the repo is created or not</param>
         /// <returns>The repository created in gitea</returns>
-        public RepositoryClient.Model.Repository CreateService(string owner, ServiceConfiguration serviceConfig, bool repoCreated = false)
+        public RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
-            string filename = _settings.GetServicePath(owner, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
+            string filename = _settings.GetServicePath(org, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
             AltinnCore.RepositoryClient.Model.Repository repository = null;
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
 
             if (!repoCreated)
             {
-                repository = CreateRepository(owner, createRepoOption);
+                repository = CreateRepository(org, createRepoOption);
             }
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
                 if (!File.Exists(filename))
                 {
-                    _sourceControl.CloneRemoteRepository(owner, serviceConfig.RepositoryName);
+                    _sourceControl.CloneRemoteRepository(org, serviceConfig.RepositoryName);
 
                     // Verify if directory exist. Should Exist if Cloning of new repository worked
                     if (!new FileInfo(filename).Directory.Exists)
@@ -1119,13 +1121,13 @@ namespace AltinnCore.Common.Services.Implementation
 
                 ServiceMetadata metadata = new ServiceMetadata
                 {
-                    Org = owner,
+                    Org = org,
                     ServiceName = serviceConfig.ServiceName,
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
                 CreateServiceMetadata(metadata);
-                CreateApplication(owner, serviceConfig.RepositoryName, serviceConfig.ServiceName);
+                CreateApplication(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
@@ -1143,10 +1145,10 @@ namespace AltinnCore.Common.Services.Implementation
                             new { id = "subscription_hook_error_statusCode", value = string.Empty }
                         },
                     });
-                    SaveResource(owner, serviceConfig.RepositoryName, "nb-NO", json.ToString());
+                    SaveResource(org, serviceConfig.RepositoryName, "nb-NO", json.ToString());
                 }
 
-                CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "App created" };
+                CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
                 _sourceControl.PushChangesForRepository(commitInfo);
             }
@@ -1206,31 +1208,31 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a list of all apps for a given organisation present in the local repository
+        /// Returns a list of all apps for a given org present in the local repository.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <returns>A list of all apps for the given org</returns>
+        /// <returns>A list of all apps for the given org.</returns>
         public IList<ServiceConfiguration> GetServices(string org)
         {
-            List<ServiceConfiguration> services = new List<ServiceConfiguration>();
-            IList<OrgConfiguration> owners = GetOwners();
-            OrgConfiguration owner = owners.FirstOrDefault(so => so.Code == org);
+            List<ServiceConfiguration> apps = new List<ServiceConfiguration>();
+            IList<OrgConfiguration> organisations = GetOwners();
+            OrgConfiguration organisation = organisations.FirstOrDefault(so => so.Code == org);
 
-            if (owner != null)
+            if (organisation != null)
             {
-                string[] serviceRepos = Directory.GetDirectories(_settings.GetOrgPath(org));
+                string[] appRepositoryPaths = Directory.GetDirectories(_settings.GetOrgPath(org));
 
-                foreach (string serviceRepo in serviceRepos)
+                foreach (string appRepositoryPath in appRepositoryPaths)
                 {
-                    if (File.Exists(serviceRepo + "/config.json") && Path.GetFileName(serviceRepo) != org)
+                    if (File.Exists(appRepositoryPath + "/config.json") && Path.GetFileName(appRepositoryPath) != org)
                     {
-                        string textData = File.ReadAllText(serviceRepo + "/config.json");
-                        services.Add(JsonConvert.DeserializeObject<ServiceConfiguration>(textData));
+                        string textData = File.ReadAllText(appRepositoryPath + "/config.json");
+                        apps.Add(JsonConvert.DeserializeObject<ServiceConfiguration>(textData));
                     }
                 }
             }
 
-            return services;
+            return apps;
         }
 
         /// <summary>
@@ -1315,12 +1317,12 @@ namespace AltinnCore.Common.Services.Implementation
 
             try
             {
-                string localServiceRepoFolder =
+                string localOrgRepoFolder =
                     (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
                     ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists"
                     : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
 
-                using (Repository repo = new Repository(localServiceRepoFolder))
+                using (Repository repo = new Repository(localOrgRepoFolder))
                 {
                     // User has a local repo for codelist.
                     return;
@@ -1355,14 +1357,14 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// create a repository in gitea for the given organisation and options
+        /// create a repository in gitea for the given org and options
         /// </summary>
-        /// <param name="owner">the owner</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
-            return _gitea.CreateRepository(owner, createRepoOption).Result;
+            return _gitea.CreateRepository(org, createRepoOption).Result;
         }
 
         /// <summary>
@@ -1781,10 +1783,10 @@ namespace AltinnCore.Common.Services.Implementation
             }
             else
             {
-                string serviceResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                if (File.Exists(serviceResourceDirectoryPath + resource))
+                string appResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                if (File.Exists(appResourceDirectoryPath + resource))
                 {
-                    fileContent = File.ReadAllBytes(serviceResourceDirectoryPath + resource);
+                    fileContent = File.ReadAllBytes(appResourceDirectoryPath + resource);
                 }
             }
 
@@ -1870,10 +1872,10 @@ namespace AltinnCore.Common.Services.Implementation
             Directory.CreateDirectory(_settings.GetTestDataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
             // Copy default Dockerfile
-            string servicePath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Copy(_generalSettings.DefaultRepoDockerfile, servicePath + _settings.DockerfileFileName);
-            File.Copy(_generalSettings.DefaultProjectFile, servicePath + _settings.ProjectFileName);
-            File.Copy(_generalSettings.DefaultGitIgnoreFile, servicePath + _settings.GitIgnoreFileName);
+            string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            File.Copy(_generalSettings.DefaultRepoDockerfile, appPath + _settings.DockerfileFileName);
+            File.Copy(_generalSettings.DefaultProjectFile, appPath + _settings.ProjectFileName);
+            File.Copy(_generalSettings.DefaultGitIgnoreFile, appPath + _settings.GitIgnoreFileName);
         }
 
         private void CreateInitialServiceImplementation(string org, string app)
@@ -1903,6 +1905,22 @@ namespace AltinnCore.Common.Services.Implementation
             // Get the file path
             string workflowFilePath = _settings.GetWorkflowPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
             File.WriteAllText(workflowFilePath, textData, Encoding.UTF8);
+        }
+
+        private void CreateInitialAuthorizationPolicy(string org, string app)
+        {
+            // Read the authorization policy template (XACML file).
+            string authorizationPolicyData = File.ReadAllText(_generalSettings.AuthorizationPolicyTemplate, Encoding.UTF8);
+
+            // Replace "org" and "app" in the authorization policy file.
+            authorizationPolicyData = authorizationPolicyData.Replace("[ORG]", org).Replace("[APP]", app);
+
+            // Create the Authorization folder.
+            Directory.CreateDirectory(_settings.GetAuthorizationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+
+            // Get the file path.
+            string authorizationPolicyFilePath = _settings.GetAuthorizationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.AuthorizationPolicyFileName;
+            File.WriteAllText(authorizationPolicyFilePath, authorizationPolicyData, Encoding.UTF8);
         }
 
         private void CreateInitialCalculationHandler(string org, string app)

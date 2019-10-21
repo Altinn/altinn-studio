@@ -33,7 +33,7 @@ fixture('Instantiation tests')
 
   test("Party Selection page with error message and party list", async () => {
     await t
-      .navigateTo(app.baseUrl + 'designer/tdd/partydisplaytest#/uieditor')
+      .navigateTo(app.baseUrl + 'designer/ttd/party-selection-app#/uieditor')
       .click(designer.testeNavigationTab)
       .switchToIframe(runtime.testBrukerIframe)
       .expect(runtime.testUsers[1].exists).ok()
@@ -45,4 +45,18 @@ fixture('Instantiation tests')
       .expect(Selector('p').withText('Velg ny aktør under').exists).ok({timeout:5000})
       .expect(Selector('p').withText('Dine aktører').exists).ok()
       .expect(Selector('p').withText('Kari Consulting').exists).ok()
+  });
+
+  test("Prefill of value from Profile and Register", async () => {
+    await t
+      .navigateTo(app.baseUrl + 'designer/AutoTest/prefillautotest#/uieditor')
+      .click(designer.testeNavigationTab)
+      .switchToIframe(runtime.testBrukerIframe)
+      .click(runtime.testUsers[0])
+      .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
+      .click(runtime.startNewButton)
+      .switchToMainWindow()      
+      .expect(runtime.testUserHeader[0].exists).ok({ timeout:120000 })
+      .expect(runtime.inputButton.exists).ok({ timeout: 120000 })      
+      .expect(runtime.inputButton.withAttribute('value', 'Ola Privatperson').exists).ok({ timeout:120000 })
   });

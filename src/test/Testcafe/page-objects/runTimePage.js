@@ -44,10 +44,11 @@ export default class RunTimePage {
     this.messagesList = Selector('.table.table-striped.table-bordered').find('tbody');
 
     this.testUserHeader = [
-      Selector('div').withAttribute('title', 'OLA PRIVATPERSON'),
-      Selector('div').withText('Kari'),
-      Selector('div').withText('Anne'),
-      Selector('div').withText('Pål')
+      Selector('div').withAttribute('title', 'OLA  PRIVATPERSON'),
+      Selector('div').withAttribute('title','KARI  SELVSTENDIG'),
+      Selector('div').withAttribute('title','ANNE SOPHIE NÆRINGSDRIVENDE'),
+      Selector('div').withAttribute('title','PÅL  REVISOR'),
+      Selector('div').withAttribute('title','ROAR  SUBUNIT')
     ];
   }
 

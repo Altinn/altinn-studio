@@ -19,8 +19,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ILogger _logger;
         private readonly PlatformSettings _platformSettings;
         private readonly GeneralSettings _generalSettings;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly JwtCookieOptions _cookieOptions;
+        private readonly IHttpContextAccessor _httpContextAccessor;        
         private readonly HttpClient _client;
 
         /// <summary>
@@ -30,48 +29,47 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
-        /// <param name="cookieOptions">The cookie options </param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public AuthenticationAppSI(
             ILogger<AuthenticationAppSI> logger,
             IOptions<GeneralSettings> generalSettings,
             IOptions<PlatformSettings> platformSettings,
-            IHttpContextAccessor httpContextAccessor,
-            IOptions<JwtCookieOptions> cookieOptions,
+            IHttpContextAccessor httpContextAccessor,            
             IHttpClientAccessor httpClientAccessor)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;
             _platformSettings = platformSettings.Value;
-            _httpContextAccessor = httpContextAccessor;
-            _cookieOptions = cookieOptions.Value;
+            _httpContextAccessor = httpContextAccessor;            
             _client = httpClientAccessor.AuthenticationClient;
         }
 
         /// <inheritdoc />
-        public async Task<HttpResponseMessage> RefreshToken()
+        public async Task<string> RefreshToken()
         {
             string endpointUrl = $"refresh";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, "AltinnStudioRuntime");
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, Constants.General.RuntimeCookieName);
+            _logger.LogInformation($"Adding request header in api");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string refreshedToken = GetCookieValueFromResponse(response, Constants.General.RuntimeCookieName);
-                HttpResponseMessage result = new HttpResponseMessage(response.StatusCode);
-                result.Content = new StringContent(refreshedToken);
-                return result;
+                _logger.LogInformation($"Refreshed token with status code ok");
+                string refreshedToken = response.Content.ReadAsStringAsync().Result;
+                refreshedToken = refreshedToken.Replace('"', ' ').Trim();
+                _logger.LogInformation($"refreshedtoken");
+                return refreshedToken;
             }
 
             _logger.LogError($"Refreshing JwtToken failed with status code {response.StatusCode}");
-            return new HttpResponseMessage(response.StatusCode);
+            return string.Empty;
         }
 
         private string GetCookieValueFromResponse(HttpResponseMessage response, string cookieName)
         {
             var value = string.Empty;
-
+            _logger.LogInformation($"Getting cookie value from response");
             foreach (var header in response.Headers.GetValues("Set-Cookie"))
             {
                 if (!header.Trim().StartsWith($"{cookieName}="))
@@ -85,6 +83,7 @@ namespace AltinnCore.Common.Services.Implementation
                 value = header.Substring(p1 + 1, p2 - p1 - 1);
             }
 
+            _logger.LogInformation($"value empty: {string.IsNullOrEmpty(value)}");
             return value;
         }
     }

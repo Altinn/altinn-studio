@@ -75,7 +75,7 @@ namespace AltinnCore.UnitTest.Runtime
         }
 
         /// <summary>
-        /// Simulates an application owner's instanciation of an app with prefill.
+        /// Simulates an organisation's instanciation of an app with prefill.
         /// </summary>
         [Fact]
         public void PostInstanceWithInstanceTemplateAsJson()
@@ -135,7 +135,7 @@ namespace AltinnCore.UnitTest.Runtime
                 DueDateTime = DateTime.Parse("2020-01-01"),
             };
             string instance = JsonConvert.SerializeObject(instanceTemplate);
-            string xml = "<xml><is><no><good></good></no></is></xml>";
+            string xml = File.ReadAllText("Runtime/data/data-element.xml");
 
             string boundary = "abcdefgh";
             MultipartFormDataContent formData = new MultipartFormDataContent(boundary)
@@ -244,14 +244,9 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IData> dataServiceMock = new Mock<IData>();
             dataServiceMock
-                .Setup(d => d.InsertData(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<Type>(), org, app, It.IsAny<int>()))
+                .Setup(d => d.InsertFormData(It.IsAny<object>(), It.IsAny<Guid>(), It.IsAny<Type>(), org, app, It.IsAny<int>()))
                 .Returns(Task.FromResult(instanceWithData));
-
-            Mock<IWorkflow> processServiceMock = new Mock<IWorkflow>();
-            processServiceMock
-                .Setup(p => p.GetInitialServiceState(org, app))
-                .Returns(new ServiceLibrary.Models.Workflow.ServiceState() { State = ServiceLibrary.Enums.WorkflowStep.FormFilling });
-
+            
             return new InstancesController(
                 generalSettingsMock.Object,
                 logger.Object,
@@ -261,9 +256,7 @@ namespace AltinnCore.UnitTest.Runtime
                 executionServiceMock.Object,
                 profileServiceMock.Object,
                 new Mock<IPlatformServices>().Object,
-                new Mock<IInstanceEvent>().Object,
-                repositoryServiceMock.Object,
-                processServiceMock.Object)
+                repositoryServiceMock.Object)
             {
                 ControllerContext = new ControllerContext()
                 {

@@ -919,18 +919,12 @@
             This is the Policy Decision Point performing validation of request against policies.
             </summary>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.#ctor(Altinn.Authorization.ABAC.Interface.IContextHandler,Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint)">
-            <summary>
-            Initializes a new instance of the <see cref="T:Altinn.Authorization.ABAC.PolicyDecisionPoint"/> class.
-            </summary>
-            <param name="contextHandler">The configured contexthandler.</param>
-            <param name="prp">The Policy Retrieval Point.</param>
-        </member>
-        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.Authorize(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+        <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.Authorize(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,Altinn.Authorization.ABAC.Xacml.XacmlPolicy)">
             <summary>
             Method that validated if the subject is allwoed to perform the requested operation on a given resource.
             </summary>
             <param name="decisionRequest">The Xacml Context request.</param>
+            <param name="policy">The relevant policy.</param>
             <returns>The decision reponse.</returns>
         </member>
         <member name="M:Altinn.Authorization.ABAC.PolicyDecisionPoint.GetMatchingRules(Altinn.Authorization.ABAC.Xacml.XacmlPolicy,Altinn.Authorization.ABAC.Xacml.XacmlContextRequest,System.Boolean@)">
@@ -1365,7 +1359,7 @@
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult">
             <summary>
-            The JSON object Result
+            The JSON object Result.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.JsonProfile.XacmlJsonResult.Decision">
@@ -2382,6 +2376,18 @@
             The semantics of this element are defined in [Multi]. Support for this element is optional.
             </summary>
         </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.GetResourceAttributes">
+            <summary>
+            Return the resource attributes.
+            </summary>
+            <returns>Attributes.</returns>
+        </member>
+        <member name="M:Altinn.Authorization.ABAC.Xacml.XacmlContextRequest.GetSubjectAttributes">
+            <summary>
+            Return the subject attributes.
+            </summary>
+            <returns>Attributes.</returns>
+        </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextRequestReference">
              <summary>
              5.51 Element <RequestReference/>  http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html#_Toc325047156
@@ -2436,7 +2442,7 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResponse.Results">
             <summary>
-            Collection of authorization decision results.See Section 5.48.
+            Gets Collection of authorization decision results.See Section 5.48.
             </summary>
         </member>
         <member name="T:Altinn.Authorization.ABAC.Xacml.XacmlContextResult">
@@ -2521,19 +2527,16 @@
             <summary>
             Gets the advices.
             </summary>
-            <remarks>Used only for XACML V3.0</remarks>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.Attributes">
             <summary>
             Gets the attributes.
             </summary>
-            <remarks>Used only for XACML V3.0</remarks>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.PolicyIdReferences">
             <summary>
             Gets the policy identifier references.
             </summary>
-            <remarks>Used only for XACML V3.0</remarks>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlContextResult.PolicySetIdReferences">
             <summary>
@@ -2998,12 +3001,12 @@
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.CombinerParameters">
             <summary>
-            A sequence of parameters to be used by the rule-combining algorithm. The parameters apply to the combining algorithm as such and it is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
+            Gets A sequence of parameters to be used by the rule-combining algorithm. The parameters apply to the combining algorithm as such and it is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
             </summary>
         </member>
         <member name="P:Altinn.Authorization.ABAC.Xacml.XacmlPolicy.RuleCombinerParameters">
             <summary>
-            A sequence of<RuleCombinerParameter/> elements that are associated with a particular <Rule/> element within the<Policy/>..
+            Gets A sequence of<RuleCombinerParameter/> elements that are associated with a particular <Rule/> element within the<Policy/>..
             It is up to the specific combining algorithm to interpret them and adjust its behavior accordingly.
             </summary>
         </member>
