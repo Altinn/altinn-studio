@@ -134,19 +134,16 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
 
   React.useEffect(() => {
     const { org, app } = window as Window as IAltinnWindow;
-    if (!!!appReleases.releases.length) {
-      AppReleaseActions.getAppReleases();
-    }
+    AppReleaseActions.getAppReleasesIntervalStart();
     if (!language) {
       FetchLanguageActionDispatchers.fetchLanguage(languageUrl, 'nb');
     }
     RepoStatusActionDispatchers.getMasterRepoStatus(org, app);
     HandleMergeConflictActionDispatchers.fetchRepoStatus(getRepoStatusUrl(), org, app);
+    return () => {
+      AppReleaseActions.getAppReleasesIntervalStop();
+    };
   }, []);
-
-  if (!appReleases.releases || !appReleases.releases.length) {
-    return null;
-  }
 
   function handleChangeTabIndex(event: React.ChangeEvent<{}>, value: number) {
     setTabIndex(value);
@@ -227,15 +224,29 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         </Grid>
       );
     }
+    if (
+      !handleMergeConflict.repoStatus ||
+      !repoStatus.branch.master
+    ) {
+      return null;
+    }
     // Check if latest
-    if (!!appReleases.releases.length && appReleases.releases[0].build.status !== BuildStatus.completed) {
+    if (
+      !!appReleases.releases[0] &&
+      appReleases.releases[0].build.status !== BuildStatus.completed
+    ) {
       return null;
     }
-    if (appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
-      handleMergeConflict.repoStatus.contentStatus.length === 0) {
+    if (
+      !!appReleases.releases[0] &&
+      appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id
+    ) {
       return null;
     }
-    if (appReleases.releases[0].build.status !== BuildStatus.completed) {
+    if (
+      !!appReleases.releases[0] &&
+      appReleases.releases[0].build.status !== BuildStatus.completed
+    ) {
       return null;
     }
     if (appReleases.creatingRelease) {
@@ -248,10 +259,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   }
 
   function renderStatusIcon() {
-    if (!!!repoStatus.branch.master || !!!handleMergeConflict.repoStatus) {
+    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus) {
       return null;
     }
-    if (!!handleMergeConflict.repoStatus.contentStatus && !!handleMergeConflict.repoStatus.contentStatus.length) {
+    if (!!handleMergeConflict.repoStatus.contentStatus && !!handleMergeConflict.repoStatus.contentStatus) {
       return (
         <i
           className={'ai ai-info-circle'}
@@ -269,19 +280,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   }
 
   function renderStatusMessage() {
-    if (!!handleMergeConflict.repoStatus.contentStatus && !!handleMergeConflict.repoStatus.contentStatus.length) {
-      return (
-        <Typography>
-          {
-            !!language &&
-              !!language.app_create_release &&
-              !!language.app_create_release.local_changes_can_build ?
-              language.app_create_release.local_changes_can_build :
-              'language.app_create_release.local_changes_can_build'
-          }
-        </Typography>
-      );
-    } else if (!!handleMergeConflict.repoStatus.aheadBy) {
+    if (
+      !!!repoStatus.branch.master ||
+      !!!appReleases.releases ||
+      !!!handleMergeConflict.repoStatus.contentStatus
+    ) {
+      return null;
+    }
+    if (repoStatus.branch.master.commit.id === appReleases.releases[0].targetCommitish) {
       return (
         <Typography>
           {
@@ -290,6 +296,18 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               !!language.app_create_release.local_changes_cant_build ?
               language.app_create_release.local_changes_cant_build :
               'language.app_create_release.local_changes_cant_build'
+          }
+        </Typography>
+      );
+    } else if (!!handleMergeConflict.repoStatus.contentStatus) {
+      return (
+        <Typography>
+          {
+            !!language &&
+              !!language.app_create_release &&
+              !!language.app_create_release.local_changes_can_build ?
+              language.app_create_release.local_changes_can_build :
+              'language.app_create_release.local_changes_can_build'
           }
         </Typography>
       );
@@ -335,9 +353,9 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               item={true}
             >
               <Typography className={classes.appCreateReleaseTitle}>
-                {!!repoStatus.branch.master &&
+                {!!repoStatus.branch.master && !!repoStatus.branch.master.commit &&
                   appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
-                  handleMergeConflict.repoStatus.contentStatus.length === 0 ?
+                  !!!handleMergeConflict.repoStatus.contentStatus ?
                   <>
                     {
                       !!language &&
@@ -354,7 +372,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                         language.general.contains :
                         'language.general.contains'
                     }
-                    {!!repoStatus.branch.master ?
+                    {!!repoStatus.branch.master && !!repoStatus.branch.master ?
                       <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
                         {
                           !!language &&
@@ -375,7 +393,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                       language.app_release.release_title :
                       'language.app_release.release_title'
                     }
-                    {!!repoStatus.branch.master ?
+                    {!!repoStatus.branch.master && !!repoStatus.branch.master ?
                       <a href={getGitCommitLink(repoStatus.branch.master.commit.id)} target={'_blank'}>
                         {
                           !!language &&
