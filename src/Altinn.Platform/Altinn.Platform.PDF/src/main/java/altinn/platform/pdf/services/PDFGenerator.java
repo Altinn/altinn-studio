@@ -194,7 +194,7 @@ public class PDFGenerator {
 
   private void createNewPage() throws IOException {
     if (currentContent != null) {
-      // if we have several pages, close the last one
+      // if we have several pages, close the last
       currentContent.close();
     }
     currentPage = new PDPage(PDRectangle.A4);
