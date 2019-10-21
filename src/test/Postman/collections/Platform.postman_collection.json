@@ -829,10 +829,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}&instanceOwnerId={{instanceOwnerId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
 									"protocol": "https",
 									"host": [
 										"platform",
@@ -848,10 +848,6 @@
 										{
 											"key": "appId",
 											"value": "{{appId}}"
-										},
-										{
-											"key": "instanceOwnerId",
-											"value": "{{instanceOwnerId}}"
 										}
 									]
 								}
@@ -1746,7 +1742,6 @@
 											"pm.environment.set(\"fromDate\", currentDate);",
 											"var currentDate1 = new Date();",
 											"var hoursToAdd = currentDate1.getHours() + 5;",
-											"console.log(hoursToAdd);",
 											"currentDate1.setHours(hoursToAdd);",
 											"pm.environment.set(\"toDate\", currentDate1);"
 										],
@@ -1906,29 +1901,24 @@
 					"name": "SBL",
 					"item": [
 						{
-							"name": "POST Add instance with multipart data",
+							"name": "POST Add instance",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"id": "73bb7aa7-5269-42fc-ae97-b51511a8d97e",
 										"exec": [
-											"pm.test(\"Platform - Storage - Instance - Add Instance with multipart data - Status - 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"    var jsonData = pm.response.json();\r",
-											"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
-											"    {\r",
-											"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
-											"        pm.environment.set('appId',jsonData.appId);\r",
-											"        var instanceId = jsonData.id;\r",
-											"        instanceId = instanceId.toString();\r",
-											"        instanceId = instanceId.split('/');\r",
-											"        instanceId = instanceId[1];\r",
-											"        pm.environment.set('instanceId',instanceId);\r",
-											"    }\r",
-											"    pm.expect(jsonData.data[0].id).not.equal(null);\r",
-											"});\r",
-											""
+											"var jsonData = pm.response.json();\r",
+											"if(pm.response.code == 200)\r",
+											"{\r",
+											"    pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+											"    pm.environment.set('appId',jsonData.appId);\r",
+											"    var instanceId = jsonData.id;\r",
+											"    instanceId = instanceId.toString();\r",
+											"    instanceId = instanceId.split('/');\r",
+											"    instanceId = instanceId[1];\r",
+											"    pm.environment.set('instanceId',instanceId);\r",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -1939,13 +1929,19 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"value": "multipart/form-data; boundary=\"abcdefg\"",
+										"name": "Content-Type",
+										"value": "application/json",
 										"type": "text"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n                <Skattyterinfor-grp-5801 gruppeid=\"5801\">                               \r\n                               <klagefrist-grp-5804 gruppeid=\"5804\">\r\n                                               <KlageGjeldendeInntektsar-datadef-25455 orid=\"25455\">2010</KlageGjeldendeInntektsar-datadef-25455>\r\n                                               <KlagemeldingSendtInnenKlagefrist-datadef-25454 orid=\"25454\" xsi:nil=\"true\" />\r\n                                               <KlageUtloptKlagefristBegrunnelse-datadef-25456 orid=\"25456\">åøæ123£$</KlageUtloptKlagefristBegrunnelse-datadef-25456>\r\n                               </klagefrist-grp-5804>\r\n                </Skattyterinfor-grp-5801>\r\n                <klage-grp-5805 gruppeid=\"5805\">\r\n                               <spesifisering-grp-5836 gruppeid=\"5836\">\r\n                                               <KlageSpesifisering-datadef-25457 orid=\"25457\">Orker ikke.</KlageSpesifisering-datadef-25457>\r\n                               </spesifisering-grp-5836>\r\n                </klage-grp-5805>\r\n</Skjema>\r\n--abcdefg--"
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
 									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
@@ -1978,20 +1974,15 @@
 									"script": {
 										"id": "4081c1b5-a9a1-4b52-95b3-6b89964d2fb6",
 										"exec": [
-											"pm.test(\"Platform - Storage - Instance - Add Instance with future visibleDateTime - Status - 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"    var jsonData = pm.response.json();\r",
-											"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
-											"    {\r",
-											"        var instanceId = jsonData.id;\r",
-											"        instanceId = instanceId.toString();\r",
-											"        instanceId = instanceId.split('/');\r",
-											"        instanceId = instanceId[1];\r",
-											"        pm.environment.set('FutureDateinstanceId',instanceId);\r",
-											"    }\r",
-											"    pm.expect(jsonData.data[0].id).not.equal(null);\r",
-											"});\r",
-											""
+											"var jsonData = pm.response.json();\r",
+											"if(pm.response.code == 200)\r",
+											"{\r",
+											"    var instanceId = jsonData.id;\r",
+											"    instanceId = instanceId.toString();\r",
+											"    instanceId = instanceId.split('/');\r",
+											"    instanceId = instanceId[1];\r",
+											"    pm.environment.set('FutureDateinstanceId',instanceId);\r",
+											"}"
 										],
 										"type": "text/javascript"
 									}
@@ -2002,13 +1993,19 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"value": "multipart/form-data; boundary=\"abcdefg\"",
+										"name": "Content-Type",
+										"value": "application/json",
 										"type": "text"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n                <Skattyterinfor-grp-5801 gruppeid=\"5801\">                               \r\n                               <klagefrist-grp-5804 gruppeid=\"5804\">\r\n                                               <KlageGjeldendeInntektsar-datadef-25455 orid=\"25455\">2010</KlageGjeldendeInntektsar-datadef-25455>\r\n                                               <KlagemeldingSendtInnenKlagefrist-datadef-25454 orid=\"25454\" xsi:nil=\"true\" />\r\n                                               <KlageUtloptKlagefristBegrunnelse-datadef-25456 orid=\"25456\">åøæ123£$</KlageUtloptKlagefristBegrunnelse-datadef-25456>\r\n                               </klagefrist-grp-5804>\r\n                </Skattyterinfor-grp-5801>\r\n                <klage-grp-5805 gruppeid=\"5805\">\r\n                               <spesifisering-grp-5836 gruppeid=\"5836\">\r\n                                               <KlageSpesifisering-datadef-25457 orid=\"25457\">Orker ikke.</KlageSpesifisering-datadef-25457>\r\n                               </spesifisering-grp-5836>\r\n                </klage-grp-5805>\r\n</Skjema>\r\n--abcdefg--"
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
 									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
