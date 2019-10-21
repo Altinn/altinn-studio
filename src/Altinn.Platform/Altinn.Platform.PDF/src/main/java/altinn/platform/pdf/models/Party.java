@@ -63,4 +63,9 @@ public class Party {
     Party otherParty = (Party) other;
     return Objects.equals(this.ssn, otherParty.ssn) && Objects.equals(this.orgNumber, otherParty.orgNumber);
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(partyId);
+  }
 }
