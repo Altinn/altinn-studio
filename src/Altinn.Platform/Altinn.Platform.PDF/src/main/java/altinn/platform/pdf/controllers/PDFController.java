@@ -2,6 +2,7 @@ package altinn.platform.pdf.controllers;
 
 import altinn.platform.pdf.AltinnPDFGenerator;
 import altinn.platform.pdf.models.PdfContext;
+import altinn.platform.pdf.services.BasicLogger;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.logging.Level;
 
 
 @RestController
@@ -26,7 +28,7 @@ public class PDFController {
       response.addHeader("Content-Disposition", "attachment; filename=receipt.pdf");
       response.getOutputStream().write(output.toByteArray());
     } catch (IOException e) {
-      e.printStackTrace();
+      BasicLogger.log(Level.SEVERE, e.toString());
     }
   }
 }

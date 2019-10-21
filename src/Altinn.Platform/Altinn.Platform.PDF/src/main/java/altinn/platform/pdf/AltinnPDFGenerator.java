@@ -1,13 +1,11 @@
 package altinn.platform.pdf;
 
 import altinn.platform.pdf.models.*;
+import altinn.platform.pdf.services.BasicLogger;
 import altinn.platform.pdf.utils.FormDataUtils;
 import altinn.platform.pdf.utils.InstanceUtils;
 import altinn.platform.pdf.utils.LayoutUtils;
 import altinn.platform.pdf.utils.TextUtils;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.apache.pdfbox.cos.COSDictionary;
 import org.apache.pdfbox.cos.COSName;
@@ -20,38 +18,25 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
 import org.apache.pdfbox.pdmodel.interactive.annotation.*;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.Charset;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AltinnPDFGenerator {
-  private Gson gson;
   private PDDocument document;
   private PDAcroForm form;
-  private float pageWidth;
-  private float pageHeight;
   private float width;
   private float yPoint;
   private float xPoint;
-  private float margin = 50;
-  private float headerMargin = 25;
   private float componentMargin = 25;
   private float textFieldMargin = 5;
   private float fontSize = 10;
-  private float headerFontSize = 14;
-  private float indent = 10;
   private float leading = 1.2f * fontSize;
   private PDFont font;
   private PDFont fontBold;
@@ -62,6 +47,7 @@ public class AltinnPDFGenerator {
   private PDPage currentPage;
   private PDPageContentStream currentContent;
   private ByteArrayOutputStream output;
+  private Logger logger;
 
   /**
    * Constructor for the AltinnPDFGenerator object
@@ -69,33 +55,21 @@ public class AltinnPDFGenerator {
   public AltinnPDFGenerator(PdfContext pdfContext) {
     this.document = new PDDocument();
     this.form = new PDAcroForm(this.document);
-    this.gson = new GsonBuilder().setPrettyPrinting().create();
     this.formLayout = pdfContext.formLayout;
     this.textResources = pdfContext.textResources;
     this.instance = pdfContext.instance;
     this.output = new ByteArrayOutputStream();
+    this.logger = Logger.getLogger(AltinnPDFGenerator.class.getName());
     try {
-      this.formData = this.parseXml(pdfContext.data);
+      this.formData = FormDataUtils.parseXml(pdfContext.data);
     } catch (Exception e) {
-      e.printStackTrace();
+      BasicLogger.log(Level.SEVERE, e.toString());
     }
   }
 
 
   /**
-   * Reads the archived xml data file
-   */
-  public Document parseXml(String xmlBaseEncoded) throws ParserConfigurationException, IOException, SAXException {
-    byte[] xmlAsBytes = Base64.decodeBase64(xmlBaseEncoded);
-    String xmlAsString = new String(xmlAsBytes, Charset.forName("UTF-8"));
-    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-    DocumentBuilder builder = factory.newDocumentBuilder();
-    Document document = builder.parse(new InputSource(new StringReader(xmlAsString)));
-    return document;
-  }
-
-  /**
-   * Generates the PDF based on the pdfLayout.json file supplied
+   * Generates the PDF
    * @throws IOException
    */
   public ByteArrayOutputStream generatePDF() throws IOException {
@@ -116,9 +90,10 @@ public class AltinnPDFGenerator {
     // creates a new page
     createNewPage();
 
-    this.pageWidth = currentPage.getMediaBox().getWidth();
-    this.pageHeight = currentPage.getMediaBox().getHeight();
-    this.width = this.pageWidth - 2*margin;
+    float pageWidth = currentPage.getMediaBox().getWidth();
+    float pageHeight = currentPage.getMediaBox().getHeight();
+    float margin = 50;
+    this.width = pageWidth - 2* margin;
 
     // sets background color
     currentContent.setNonStrokingColor(Color.decode("#FFFFFF"));
@@ -127,6 +102,7 @@ public class AltinnPDFGenerator {
     currentContent.setNonStrokingColor(Color.black);
 
     // init starting drawing points
+    float headerMargin = 25;
     yPoint = pageHeight - headerMargin;
     xPoint = margin;
 
@@ -143,13 +119,11 @@ public class AltinnPDFGenerator {
       }
       drawLayoutElement(element, currentContent, currentPage);
       yPoint -= componentMargin;
-      // TODO: Create new page if needed
     }
 
     // saves and closes
     currentContent.close();
     document.save(output);
-    // document.save("test3.pdf");
     document.close();
     return output;
   }
@@ -201,6 +175,7 @@ public class AltinnPDFGenerator {
       List<String> files = InstanceUtils.getAttachmentsByComponentId(element.id, this.instance);
       contents.setFont(font, fontSize);
       contents.beginText();
+      float indent = 10;
       contents.newLineAtOffset(xPoint + indent, yPoint);
       for(String file: files) {
         contents.showText("- " + file);
@@ -244,6 +219,7 @@ public class AltinnPDFGenerator {
   private void drawHeader(PDPageContentStream contents) throws IOException{
     contents.beginText();
     contents.newLineAtOffset(xPoint, yPoint);
+    float headerFontSize = 14;
     contents.setFont(fontBold, headerFontSize);
     contents.showText(instance.org + " - " + instance.presentationField.nb);
     yPoint -= leading;

@@ -8,6 +8,8 @@ import java.util.List;
 
 public class InstanceUtils {
 
+  private InstanceUtils() {}
+
   /***
    * Gets a list of attachments in an instance based on the file upload component id
    * @param id the component id

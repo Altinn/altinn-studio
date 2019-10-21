@@ -10,6 +10,8 @@ import java.util.List;
 
 public class TextUtils {
 
+  private TextUtils() {}
+
   /**
    * Fetches a text resource by key
    * @param key the text resource key

@@ -1,13 +1,25 @@
 package altinn.platform.pdf.utils;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
 public class FormDataUtils {
+
+  private FormDataUtils() {}
 
   /**
    * Returns the data data for a given data binding
@@ -24,8 +36,7 @@ public class FormDataUtils {
     }
     String[] keySplit = key.split(Pattern.quote("."));
     Element rootElement = formData.getDocumentElement();
-    String value = getValueOfEndNode(rootElement, keySplit, 0);
-    return value;
+    return getValueOfEndNode(rootElement, keySplit, 0);
   }
 
   /**
@@ -65,6 +76,18 @@ public class FormDataUtils {
       }
     }
     return "";
+  }
+
+  /**
+   * Parses the xml data file from a base64 encoded string
+   */
+  public static Document parseXml(String xmlBaseEncoded) throws ParserConfigurationException, IOException, SAXException {
+    byte[] xmlAsBytes = Base64.decodeBase64(xmlBaseEncoded);
+    String xmlAsString = new String(xmlAsBytes, StandardCharsets.UTF_8);
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    return builder.parse(new InputSource(new StringReader(xmlAsString)));
   }
 }
 

@@ -3,6 +3,7 @@ package altinn.platform.pdf.utils;
 import altinn.platform.pdf.models.FormLayoutElement;
 import altinn.platform.pdf.models.Instance;
 import altinn.platform.pdf.models.TextResources;
+import ch.qos.logback.core.Layout;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.w3c.dom.Document;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.util.List;
 
 public class LayoutUtils {
+
+  private LayoutUtils() {}
 
   /**
    * Gets the element height in pixels
