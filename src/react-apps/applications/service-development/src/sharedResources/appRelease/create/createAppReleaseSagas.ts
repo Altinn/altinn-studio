@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
 import { post } from '../../../utils/networking';
-import { releasesUrl } from '../../../utils/urlHelper';
+import { releasesUrlPost } from '../../../utils/urlHelper';
 import * as AppReleaseActionTypes from '../appReleaseActionTypes';
 import AppReleaseActionDispatcher from '../appReleaseDispatcher';
 import { ICreateReleaseAction } from './createAppReleaseActions';
@@ -13,7 +13,7 @@ function* createReleaseSaga({
   targetCommitish,
 }: ICreateReleaseAction): SagaIterator {
   try {
-    const responseData: any = yield call(post, releasesUrl, {
+    const responseData: any = yield call(post, releasesUrlPost, {
       tagName,
       name,
       body,

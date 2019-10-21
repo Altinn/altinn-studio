@@ -6,7 +6,8 @@ export const getRepoStatusUrl = (): string => {
   return `${origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${app}`;
 };
 
-export const releasesUrl: string = `${origin}/designer/api/v1/${org}/${app}/releases`;
+export const releasesUrlPost: string = `${origin}/designer/api/v1/${org}/${app}/releases`;
+export const releasesUrlGet: string = `${releasesUrlPost}?sortBy=created&sortDirection=Descending`;
 export const languageUrl: string = `${origin}/designerapi/Language/GetLanguageAsJSON`;
 
 export const getReleaseBuildPipelineLink = (buildId: string) =>
