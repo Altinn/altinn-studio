@@ -1,5 +1,7 @@
-import { SagaIterator, delay } from 'redux-saga';
+import { delay, SagaIterator } from 'redux-saga';
 import { call, fork, race, take, takeLatest } from 'redux-saga/effects';
+import { get } from '../../../utils/networking';
+import { releasesUrl } from '../../../utils/urlHelper';
 import * as AppReleaseActionTypes from './../appReleaseActionTypes';
 import AppReleaseActionDispatcher from './../appReleaseDispatcher';
 import { BuildResult, BuildStatus, IRelease } from './../types';
@@ -135,7 +137,8 @@ const mockReleases: IRelease[] = [
 
 function* getReleasesSaga(): SagaIterator {
   try {
-    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, mockReleases);
+    const result: any = yield call(get, releasesUrl);
+    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, result.results);
   } catch (err) {
     yield call(AppReleaseActionDispatcher.getAppReleasesRejected, err);
   }
