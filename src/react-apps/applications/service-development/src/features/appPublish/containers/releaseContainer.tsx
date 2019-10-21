@@ -17,12 +17,12 @@ import { IAppReleaseState } from '../../../sharedResources/appRelease/appRelease
 import { BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
 import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
 import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusReducer';
-import { getRepoStatusUrl, languageUrl, getGitCommitLink } from '../../../utils/urlHelper';
+import FetchLanguageActionDispatchers from '../../../utils/fetchLanguage/fetchLanguageDispatcher';
+import { getGitCommitLink, getRepoStatusUrl, languageUrl } from '../../../utils/urlHelper';
 import HandleMergeConflictActionDispatchers from '../../handleMergeConflict/handleMergeConflictDispatcher';
 import { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictReducer';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
-import FetchLanguageActionDispatchers from '../../../utils/fetchLanguage/fetchLanguageDispatcher';
 
 interface IStyledTabsProps {
   value: number;
@@ -274,10 +274,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         <Typography>
           {
             !!language &&
-              !!language.app_release &&
-              !!language.app_release.local_changes_can_build ?
-              language.app_release.local_changes_can_build :
-              'language.app_release.local_changes_can_build'
+              !!language.app_create_release &&
+              !!language.app_create_release.local_changes_can_build ?
+              language.app_create_release.local_changes_can_build :
+              'language.app_create_release.local_changes_can_build'
           }
         </Typography>
       );
@@ -286,10 +286,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         <Typography>
           {
             !!language &&
-              !!language.app_release &&
-              !!language.app_release.local_changes_cant_build ?
-              language.app_release.local_changes_cant_build :
-              'language.app_release.local_changes_cant_build'
+              !!language.app_create_release &&
+              !!language.app_create_release.local_changes_cant_build ?
+              language.app_create_release.local_changes_cant_build :
+              'language.app_create_release.local_changes_cant_build'
           }
         </Typography>
       );

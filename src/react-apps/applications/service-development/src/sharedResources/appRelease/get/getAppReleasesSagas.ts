@@ -1,5 +1,5 @@
-import { SagaIterator } from 'redux-saga';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import { SagaIterator, delay } from 'redux-saga';
+import { call, fork, race, take, takeLatest } from 'redux-saga/effects';
 import * as AppReleaseActionTypes from './../appReleaseActionTypes';
 import AppReleaseActionDispatcher from './../appReleaseDispatcher';
 import { BuildResult, BuildStatus, IRelease } from './../types';
@@ -130,7 +130,7 @@ const mockReleases: IRelease[] = [
     createdBy: 'danrj',
     app: 'automatedtest',
     org: 'tdd',
-  }
+  },
 ];
 
 function* getReleasesSaga(): SagaIterator {
@@ -148,6 +148,28 @@ export function* watchGetReleasesSaga(): SagaIterator {
   );
 }
 
-export default function* (): SagaIterator {
+function* getReleasesIntervalSaga(): SagaIterator {
+  while(true) {
+    try {
+      yield call(getReleasesSaga);
+      yield call(delay, 5000);
+    } catch (err) {
+      yield call(AppReleaseActionDispatcher.getAppReleasesRejected, err);
+    }
+  }
+}
+
+function* watchGetReleasesIntervalSaga(): SagaIterator {
+  while (true) {
+    yield take(AppReleaseActionTypes.GET_APP_RELEASES_START_INTERVAL);
+    yield race({
+      do: call(getReleasesIntervalSaga),
+      cancel: take(AppReleaseActionTypes.GET_APP_RELEASES_STOP_INTERVAL),
+    });
+  }
+}
+
+export default function*(): SagaIterator {
   yield fork(watchGetReleasesSaga);
+  yield fork(watchGetReleasesIntervalSaga);
 }

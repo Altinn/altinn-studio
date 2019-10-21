@@ -29,3 +29,15 @@ export function getAppReleasesRejected(error: Error): IGetReleaseActionRejected 
     error,
   };
 }
+
+export function startGetAppReleasesInterval(): Action {
+  return {
+    type: AppReleaseActionTypes.GET_APP_RELEASES_START_INTERVAL,
+  };
+}
+
+export function stopGetAppReleasesInterval(): Action {
+  return {
+    type: AppReleaseActionTypes.GET_APP_RELEASES_STOP_INTERVAL,
+  };
+}
