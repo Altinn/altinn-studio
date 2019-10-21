@@ -87,7 +87,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Creates an instance of an app and then asks the app to get the instance. Checks if returned object has
         /// same values as object which was sent in.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void CreateInstanceReturnsNewIdAndNextGetReturnsSameId()
         {           
             Instance instanceData = new Instance

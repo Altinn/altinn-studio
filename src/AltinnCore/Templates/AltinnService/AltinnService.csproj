@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	<PackageReference Include="AltinnCore.ServiceLibrary" Version="11.0.0" />
+	<PackageReference Include="AltinnCore.ServiceLibrary" Version="11.0.1" />
   </ItemGroup>
 
 </Project>
