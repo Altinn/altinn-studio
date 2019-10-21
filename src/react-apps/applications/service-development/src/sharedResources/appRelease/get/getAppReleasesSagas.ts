@@ -4,141 +4,141 @@ import { get } from '../../../utils/networking';
 import { releasesUrlGet } from '../../../utils/urlHelper';
 import * as AppReleaseActionTypes from './../appReleaseActionTypes';
 import AppReleaseActionDispatcher from './../appReleaseDispatcher';
-import { BuildResult, BuildStatus, IRelease } from './../types';
+// import { BuildResult, BuildStatus, IRelease } from './../types';
 
-const mockReleases: IRelease[] = [
-  {
-    tagName: 'OHIAMDATAG',
-    name: 'DANAME',
-    body: 'DADBOD',
-    targetCommitish: 'fbab640273facf630dc771e40b3f34414c471335',
-    build: {
-      id: '17165',
-      status: BuildStatus.completed,
-      result: BuildResult.succeeded,
-      started: null,
-      finished: null,
-    },
-    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
-    created: '2019-10-15T12:45:24.9264303+02:00',
-    createdBy: 'danrj',
-    app: 'automatedtest',
-    org: 'tdd',
-  },
-  {
-    tagName: 'OHIAMDATAG',
-    name: 'DANAME',
-    body: 'DADBOD',
-    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
-    build: {
-      id: '17165',
-      status: BuildStatus.completed,
-      result: BuildResult.failed,
-      started: null,
-      finished: null,
-    },
-    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
-    created: '2019-10-15T12:45:24.9264303+02:00',
-    createdBy: 'danrj',
-    app: 'automatedtest',
-    org: 'tdd',
-  },
-  {
-    tagName: 'OHIAMDATAG',
-    name: 'DANAME',
-    body: 'DADBOD',
-    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
-    build: {
-      id: '17165',
-      status: BuildStatus.completed,
-      result: BuildResult.succeeded,
-      started: null,
-      finished: null,
-    },
-    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
-    created: '2019-10-15T12:45:24.9264303+02:00',
-    createdBy: 'danrj',
-    app: 'automatedtest',
-    org: 'tdd',
-  },
-  {
-    tagName: 'OHIAMDATAG',
-    name: 'DANAME',
-    body: 'DADBOD',
-    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
-    build: {
-      id: '17165',
-      status: BuildStatus.completed,
-      result: BuildResult.failed,
-      started: null,
-      finished: null,
-    },
-    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
-    created: '2019-10-15T12:45:24.9264303+02:00',
-    createdBy: 'danrj',
-    app: 'automatedtest',
-    org: 'tdd',
-  },
-  {
-    tagName: 'OHIAMDATAG',
-    name: 'DANAME',
-    body: 'DADBOD',
-    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
-    build: {
-      id: '17165',
-      status: BuildStatus.completed,
-      result: BuildResult.succeeded,
-      started: null,
-      finished: null,
-    },
-    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
-    created: '2019-10-15T12:45:24.9264303+02:00',
-    createdBy: 'danrj',
-    app: 'automatedtest',
-    org: 'tdd',
-  },
-  {
-    tagName: 'OHIAMDATAG',
-    name: 'DANAME',
-    body: 'DADBOD',
-    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
-    build: {
-      id: '17165',
-      status: BuildStatus.completed,
-      result: BuildResult.failed,
-      started: null,
-      finished: null,
-    },
-    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
-    created: '2019-10-15T12:45:24.9264303+02:00',
-    createdBy: 'danrj',
-    app: 'automatedtest',
-    org: 'tdd',
-  },
-  {
-    tagName: 'OHIAMDATAG',
-    name: 'DANAME',
-    body: 'DADBOD',
-    targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
-    build: {
-      id: '17165',
-      status: BuildStatus.completed,
-      result: BuildResult.succeeded,
-      started: null,
-      finished: null,
-    },
-    id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
-    created: '2019-10-15T12:45:24.9264303+02:00',
-    createdBy: 'danrj',
-    app: 'automatedtest',
-    org: 'tdd',
-  },
-];
+// const mockReleases: IRelease[] = [
+//   {
+//     tagName: 'OHIAMDATAG',
+//     name: 'DANAME',
+//     body: 'DADBOD',
+//     targetCommitish: '1e19c995b53445d7ffd8b3ed1eadec2f51d3b858',
+//     build: {
+//       id: '17165',
+//       status: BuildStatus.completed,
+//       result: BuildResult.succeeded,
+//       started: null,
+//       finished: null,
+//     },
+//     id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+//     created: '2019-10-15T12:45:24.9264303+02:00',
+//     createdBy: 'danrj',
+//     app: 'automatedtest',
+//     org: 'tdd',
+//   },
+//   {
+//     tagName: 'OHIAMDATAG',
+//     name: 'DANAME',
+//     body: 'DADBOD',
+//     targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+//     build: {
+//       id: '17165',
+//       status: BuildStatus.completed,
+//       result: BuildResult.failed,
+//       started: null,
+//       finished: null,
+//     },
+//     id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+//     created: '2019-10-15T12:45:24.9264303+02:00',
+//     createdBy: 'danrj',
+//     app: 'automatedtest',
+//     org: 'tdd',
+//   },
+//   {
+//     tagName: 'OHIAMDATAG',
+//     name: 'DANAME',
+//     body: 'DADBOD',
+//     targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+//     build: {
+//       id: '17165',
+//       status: BuildStatus.completed,
+//       result: BuildResult.succeeded,
+//       started: null,
+//       finished: null,
+//     },
+//     id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+//     created: '2019-10-15T12:45:24.9264303+02:00',
+//     createdBy: 'danrj',
+//     app: 'automatedtest',
+//     org: 'tdd',
+//   },
+//   {
+//     tagName: 'OHIAMDATAG',
+//     name: 'DANAME',
+//     body: 'DADBOD',
+//     targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+//     build: {
+//       id: '17165',
+//       status: BuildStatus.completed,
+//       result: BuildResult.failed,
+//       started: null,
+//       finished: null,
+//     },
+//     id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+//     created: '2019-10-15T12:45:24.9264303+02:00',
+//     createdBy: 'danrj',
+//     app: 'automatedtest',
+//     org: 'tdd',
+//   },
+//   {
+//     tagName: 'OHIAMDATAG',
+//     name: 'DANAME',
+//     body: 'DADBOD',
+//     targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+//     build: {
+//       id: '17165',
+//       status: BuildStatus.completed,
+//       result: BuildResult.succeeded,
+//       started: null,
+//       finished: null,
+//     },
+//     id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+//     created: '2019-10-15T12:45:24.9264303+02:00',
+//     createdBy: 'danrj',
+//     app: 'automatedtest',
+//     org: 'tdd',
+//   },
+//   {
+//     tagName: 'OHIAMDATAG',
+//     name: 'DANAME',
+//     body: 'DADBOD',
+//     targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+//     build: {
+//       id: '17165',
+//       status: BuildStatus.completed,
+//       result: BuildResult.failed,
+//       started: null,
+//       finished: null,
+//     },
+//     id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+//     created: '2019-10-15T12:45:24.9264303+02:00',
+//     createdBy: 'danrj',
+//     app: 'automatedtest',
+//     org: 'tdd',
+//   },
+//   {
+//     tagName: 'OHIAMDATAG',
+//     name: 'DANAME',
+//     body: 'DADBOD',
+//     targetCommitish: 'LOOKATMEIMTHECAPTAINNOW',
+//     build: {
+//       id: '17165',
+//       status: BuildStatus.completed,
+//       result: BuildResult.succeeded,
+//       started: null,
+//       finished: null,
+//     },
+//     id: '55e66c34-fd4a-442e-9a82-e6a3e7b45315',
+//     created: '2019-10-15T12:45:24.9264303+02:00',
+//     createdBy: 'danrj',
+//     app: 'automatedtest',
+//     org: 'tdd',
+//   },
+// ];
 
 function* getReleasesSaga(): SagaIterator {
   try {
     const result: any = yield call(get, releasesUrlGet);
-    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, result.results);
+    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, result);
   } catch (err) {
     yield call(AppReleaseActionDispatcher.getAppReleasesRejected, err);
   }
@@ -152,7 +152,7 @@ export function* watchGetReleasesSaga(): SagaIterator {
 }
 
 function* getReleasesIntervalSaga(): SagaIterator {
-  while(true) {
+  while (true) {
     try {
       yield call(getReleasesSaga);
       yield call(delay, 5000);

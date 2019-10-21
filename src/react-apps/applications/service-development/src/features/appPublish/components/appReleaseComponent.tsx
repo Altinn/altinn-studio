@@ -6,11 +6,12 @@ import {
   withStyles,
   WithStyles,
 } from '@material-ui/core';
+import * as Moment from 'moment';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { BuildResult, BuildStatus, IBuild, IRelease } from '../../../sharedResources/appRelease/types';
-import { getReleaseBuildPipelineLink, getGitCommitLink } from '../../../utils/urlHelper';
+import { getGitCommitLink, getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 
 const styles = createStyles({
   releaseWrapper: {
@@ -109,7 +110,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           <Typography
             className={classes.releaseText}
           >
-            {release.created}
+            {Moment(release.created).format('DD.MM.YYYY HH:mm')}
           </Typography>
         </Grid>
       </Grid>
@@ -173,7 +174,14 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           <Typography
             className={classes.releaseText}
           >
-            {release.body}
+            {release.build.status === BuildStatus.completed ?
+              release.body :
+              !!language &&
+              !!language.app_create_release &&
+              !!language.app_create_release.release_creating ?
+                `${language.app_create_release.release_creating} ${release.createdBy}` :
+                `language.app_create_release.release_creating ${release.createdBy}`
+            }
           </Typography>
         </Grid>
       </Grid>
