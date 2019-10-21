@@ -348,6 +348,7 @@ coverage
 /deploy/kubernetes/altinn-dbsettings-secret.json
 
 /src/Altinn.Platform/Altinn.Platform.Storage/Storage/values.dev.yaml
+/src/Altinn.Platform/Altinn.Platform.Storage/Storage.Interface/Storage.Interface.xml
 /src/Altinn.Platform/Altinn.Platform.Profile/Profile/charts/profile
 /src/Altinn.Platform/Altinn.Platform.Profile/Profile/azds.yaml
 /src/AltinnCore/UnitTest/coverage.opencover.xml
