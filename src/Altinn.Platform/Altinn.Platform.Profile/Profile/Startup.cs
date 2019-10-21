@@ -47,7 +47,7 @@ namespace Altinn.Platform.Profile
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Platform Storage", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Platform Profile", Version = "v1" });
 
                 try
                 {
@@ -89,7 +89,7 @@ namespace Altinn.Platform.Profile
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Platform Storage API");
+                c.SwaggerEndpoint("v1/profile.json", "Altinn Platform Profile API");
             });
 
             app.UseRouting();
