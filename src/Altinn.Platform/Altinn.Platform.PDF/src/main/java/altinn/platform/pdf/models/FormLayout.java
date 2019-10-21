@@ -4,5 +4,13 @@ import io.swagger.annotations.ApiModel;
 
 @ApiModel(description = "The form layout json file.")
 public class FormLayout {
-  public FormLayoutData data;
+  private FormLayoutData data;
+
+  public FormLayoutData getData() {
+    return data;
+  }
+
+  public void setData(FormLayoutData data) {
+    this.data = data;
+  }
 }

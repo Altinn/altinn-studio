@@ -7,14 +7,46 @@ import io.swagger.annotations.ApiModelProperty;
 public class PdfContext {
 
   @ApiModelProperty(notes = "The text resources json file")
-  public TextResources textResources;
+  private TextResources textResources;
 
   @ApiModelProperty(notes = "The form layout json file")
-  public FormLayout formLayout;
+  private FormLayout formLayout;
 
   @ApiModelProperty(notes = "The xml data file, note: must be base 64 encoded")
-  public String data;
+  private String data;
 
   @ApiModelProperty(notes = "The instance metadata json file")
-  public Instance instance;
+  private Instance instance;
+
+  public TextResources getTextResources() {
+    return textResources;
+  }
+
+  public void setTextResources(TextResources textResources) {
+    this.textResources = textResources;
+  }
+
+  public FormLayout getFormLayout() {
+    return formLayout;
+  }
+
+  public void setFormLayout(FormLayout formLayout) {
+    this.formLayout = formLayout;
+  }
+
+  public String getData() {
+    return data;
+  }
+
+  public void setData(String data) {
+    this.data = data;
+  }
+
+  public Instance getInstance() {
+    return instance;
+  }
+
+  public void setInstance(Instance instance) {
+    this.instance = instance;
+  }
 }

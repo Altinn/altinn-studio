@@ -20,6 +20,9 @@ public class BasicLogger {
   }
 
   public static void log(Level level, String message) {
-    getLogger().log(level, message);
+    Logger logger = getLogger();
+    if (logger != null) {
+      logger.log(level, message);
+    }
   }
 }

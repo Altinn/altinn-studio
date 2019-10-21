@@ -3,5 +3,13 @@ package altinn.platform.pdf.models;
 import java.util.List;
 
 public class FormLayoutData {
-  public List<FormLayoutElement> layout;
+  private List<FormLayoutElement> layout;
+
+  public List<FormLayoutElement> getLayout() {
+    return layout;
+  }
+
+  public void setLayout(List<FormLayoutElement> layout) {
+    this.layout = layout;
+  }
 }

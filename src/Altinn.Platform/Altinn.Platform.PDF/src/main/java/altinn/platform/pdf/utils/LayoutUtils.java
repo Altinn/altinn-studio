@@ -2,8 +2,8 @@ package altinn.platform.pdf.utils;
 
 import altinn.platform.pdf.models.FormLayoutElement;
 import altinn.platform.pdf.models.Instance;
+import altinn.platform.pdf.models.TextResourceBindings;
 import altinn.platform.pdf.models.TextResources;
-import ch.qos.logback.core.Layout;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.w3c.dom.Document;
@@ -21,26 +21,27 @@ public class LayoutUtils {
    */
   public static float getElementHeight(FormLayoutElement element, PDFont font, float fontSize, float width, float leading, float textMargin, TextResources textResources, Document formData, Instance instance) throws IOException {
     float height = 0;
-    if (element.textResourceBindings.title != null && !element.textResourceBindings.title.isEmpty()) {
-      String title = TextUtils.getTextResourceByKey(element.textResourceBindings.title, textResources);
+    TextResourceBindings textResourceBindings = element.getTextResourceBindings();
+    if (textResourceBindings.getTitle() != null && !textResourceBindings.getTitle().isEmpty()) {
+      String title = TextUtils.getTextResourceByKey(textResourceBindings.getTitle(), textResources);
       height += TextUtils.getHeightNeededForText(title, font, fontSize, width, leading);
       height += textMargin;
     }
 
-    if (element.textResourceBindings.description != null && !element.textResourceBindings.description.isEmpty()) {
-      String description = TextUtils.getTextResourceByKey(element.textResourceBindings.description, textResources);
+    if (textResourceBindings.getDescription() != null && !textResourceBindings.getDescription().isEmpty()) {
+      String description = TextUtils.getTextResourceByKey(textResourceBindings.getDescription(), textResources);
       height += TextUtils.getHeightNeededForText(description, font, fontSize, width, leading);
       height += textMargin;
     }
 
-    if (element.type.equalsIgnoreCase("fileupload")) {
-      List<String> lines = InstanceUtils.getAttachmentsByComponentId(element.id, instance);
+    if (element.getType().equalsIgnoreCase("fileupload")) {
+      List<String> lines = InstanceUtils.getAttachmentsByComponentId(element.getId(), instance);
       for (String line: lines) {
         height += TextUtils.getHeightNeededForText(line, font, fontSize, width, leading);
         height += (leading - fontSize);
       }
     } else {
-      String value = FormDataUtils.getFormDataByKey(element.dataModelBindings.simpleBinding, formData);
+      String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().getSimpleBinding(), formData);
       float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width, leading);
       PDRectangle rect = new PDRectangle(0, 0, width, rectHeight);
       height += rect.getHeight();

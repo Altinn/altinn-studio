@@ -18,13 +18,13 @@ public class InstanceUtils {
    */
   public static List<String> getAttachmentsByComponentId(String id, Instance instance) {
     List<String> list = new ArrayList<>();
-    if (instance == null || instance.data == null || id == null) {
+    if (instance == null || instance.getData() == null || id == null) {
       return list;
     }
 
-    for (Data data: instance.data) {
-      if (id.equals(data.elementType)) {
-        list.add(data.fileName);
+    for (Data data: instance.getData()) {
+      if (id.equals(data.getElementType())) {
+        list.add(data.getFileName());
       }
     }
     return list;

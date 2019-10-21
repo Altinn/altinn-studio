@@ -1,5 +1,13 @@
 package altinn.platform.pdf.models;
 
 public class DataModelBindings {
-  public String simpleBinding;
+  private String simpleBinding;
+
+  public String getSimpleBinding() {
+    return simpleBinding;
+  }
+
+  public void setSimpleBinding(String simpleBinding) {
+    this.simpleBinding = simpleBinding;
+  }
 }

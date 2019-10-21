@@ -47,7 +47,6 @@ public class AltinnPDFGenerator {
   private PDPage currentPage;
   private PDPageContentStream currentContent;
   private ByteArrayOutputStream output;
-  private Logger logger;
 
   /**
    * Constructor for the AltinnPDFGenerator object
@@ -55,13 +54,12 @@ public class AltinnPDFGenerator {
   public AltinnPDFGenerator(PdfContext pdfContext) {
     this.document = new PDDocument();
     this.form = new PDAcroForm(this.document);
-    this.formLayout = pdfContext.formLayout;
-    this.textResources = pdfContext.textResources;
-    this.instance = pdfContext.instance;
+    this.formLayout = pdfContext.getFormLayout();
+    this.textResources = pdfContext.getTextResources();
+    this.instance = pdfContext.getInstance();
     this.output = new ByteArrayOutputStream();
-    this.logger = Logger.getLogger(AltinnPDFGenerator.class.getName());
     try {
-      this.formData = FormDataUtils.parseXml(pdfContext.data);
+      this.formData = FormDataUtils.parseXml(pdfContext.getData());
     } catch (Exception e) {
       BasicLogger.log(Level.SEVERE, e.toString());
     }
@@ -110,7 +108,7 @@ public class AltinnPDFGenerator {
     drawHeader(currentContent);
 
     // Loop through all pdfLayout elements and draws them
-    for (FormLayoutElement element : formLayout.data.layout) {
+    for (FormLayoutElement element : formLayout.getData().getLayout()) {
       float elementHeight = LayoutUtils.getElementHeight(element, font, fontSize, width, leading, textFieldMargin, textResources, formData, instance);
       if ((yPoint - elementHeight) < (0 + margin)) {
         // the element would fall outside the page, we create new page and start from there
@@ -138,11 +136,11 @@ public class AltinnPDFGenerator {
   private void drawLayoutElement(FormLayoutElement element, PDPageContentStream contents, PDPage page) throws IOException {
 
     // Render label
-    if (element.textResourceBindings.title != null && !element.textResourceBindings.title.isEmpty()) {
+    if (element.getTextResourceBindings().getTitle() != null && !element.getTextResourceBindings().getTitle().isEmpty()) {
       contents.beginText();
       contents.newLineAtOffset(xPoint, yPoint);
       contents.setFont(fontBold, fontSize);
-      String title = TextUtils.getTextResourceByKey(element.textResourceBindings.title, this.textResources);
+      String title = TextUtils.getTextResourceByKey(element.getTextResourceBindings().getTitle(), this.textResources);
       List<String> lines = TextUtils.splitTextToLines(title, font, fontSize, width);
       for(String line : lines) {
         contents.showText(line);
@@ -155,11 +153,11 @@ public class AltinnPDFGenerator {
     }
 
     // Render description
-    if (element.textResourceBindings.description != null && !element.textResourceBindings.description.isEmpty()) {
+    if (element.getTextResourceBindings().getDescription() != null && !element.getTextResourceBindings().getDescription().isEmpty()) {
       contents.beginText();
       contents.setFont(font, fontSize);
       contents.newLineAtOffset(xPoint, yPoint);
-      String description = TextUtils.getTextResourceByKey(element.textResourceBindings.description, this.textResources);
+      String description = TextUtils.getTextResourceByKey(element.getTextResourceBindings().getDescription(), this.textResources);
       List<String> lines = TextUtils.splitTextToLines(description, font, fontSize, width);
       for(String line: lines) {
         contents.showText(line);
@@ -171,8 +169,8 @@ public class AltinnPDFGenerator {
 
     }
 
-    if (element.type.equalsIgnoreCase("fileupload")) {
-      List<String> files = InstanceUtils.getAttachmentsByComponentId(element.id, this.instance);
+    if (element.getType().equalsIgnoreCase("fileupload")) {
+      List<String> files = InstanceUtils.getAttachmentsByComponentId(element.getId(), this.instance);
       contents.setFont(font, fontSize);
       contents.beginText();
       float indent = 10;
@@ -185,14 +183,14 @@ public class AltinnPDFGenerator {
       contents.endText();
     } else {
       PDTextField textField = new PDTextField(this.form);
-      textField.setPartialName(element.id);
+      textField.setPartialName(element.getId());
       String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
       textField.setDefaultAppearance(defaultAppearance);
       textField.setReadOnly(true);
 
       this.form.getFields().add(textField);
       PDAnnotationWidget widget = textField.getWidgets().get(0);
-      String value = FormDataUtils.getFormDataByKey(element.dataModelBindings.simpleBinding, this.formData);
+      String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().getSimpleBinding(), this.formData);
       float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width, leading);
       PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight);
       float actualHeight = rect.getHeight();
@@ -221,7 +219,7 @@ public class AltinnPDFGenerator {
     contents.newLineAtOffset(xPoint, yPoint);
     float headerFontSize = 14;
     contents.setFont(fontBold, headerFontSize);
-    contents.showText(instance.org + " - " + instance.presentationField.nb);
+    contents.showText(instance.getOrg() + " - " + instance.getPresentationField().getNb());
     yPoint -= leading;
     contents.endText();
     yPoint -= componentMargin;

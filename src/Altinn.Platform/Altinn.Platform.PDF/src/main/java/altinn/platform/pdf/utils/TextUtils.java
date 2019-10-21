@@ -19,12 +19,12 @@ public class TextUtils {
    * @return the text resource, or the key if resource is not defined
    */
   public static String getTextResourceByKey(String key, TextResources textResources) {
-    if (textResources == null || textResources.resources == null) {
+    if (textResources == null || textResources.getResources() == null) {
       return key;
     }
-    for (TextResourceElement resource: textResources.resources) {
-      if (resource.id.equals(key)) {
-        return resource.value;
+    for (TextResourceElement resource: textResources.getResources()) {
+      if (resource.getId().equals(key)) {
+        return resource.getValue();
       }
     }
     return key;
