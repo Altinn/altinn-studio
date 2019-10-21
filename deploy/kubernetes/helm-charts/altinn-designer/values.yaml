@@ -101,7 +101,7 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud
   staging:
     - name: ASPNETCORE_ENVIRONMENT
-      value: Development
+      value: Staging
     - name: ASPNETCORE_URLS
       value: http://+:5000
     - name: GeneralSettings__HostName

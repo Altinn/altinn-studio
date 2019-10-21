@@ -31,7 +31,6 @@ namespace AltinnCore.Designer.Services
         private readonly ReleaseDbRepository _releaseDbRepository;
         private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
         private readonly ISourceControl _sourceControl;
-        private readonly IGitea _gitea;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly string _org;
@@ -45,23 +44,20 @@ namespace AltinnCore.Designer.Services
         /// <param name="azureDevOpsBuildService">IAzureDevOpsBuildService</param>
         /// <param name="sourceControl">ISourceControl</param>
         /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
-        /// <param name="gitea">IGitea</param>
         public ReleaseService(
             ReleaseDbRepository releaseDbRepository,
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildService azureDevOpsBuildService,
             ISourceControl sourceControl,
-            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
-            IGitea gitea)
+            IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions)
         {
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _releaseDbRepository = releaseDbRepository;
             _azureDevOpsBuildService = azureDevOpsBuildService;
             _sourceControl = sourceControl;
-            _gitea = gitea;
             _httpContext = httpContextAccessor.HttpContext;
-            _org = _httpContext.GetRouteValue("org").ToString();
-            _app = _httpContext.GetRouteValue("app").ToString();
+            _org = _httpContext.GetRouteValue("org")?.ToString();
+            _app = _httpContext.GetRouteValue("app")?.ToString();
         }
 
         /// <inheritdoc/>

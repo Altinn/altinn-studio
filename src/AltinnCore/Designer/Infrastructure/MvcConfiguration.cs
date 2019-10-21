@@ -27,10 +27,6 @@ namespace AltinnCore.Designer.Infrastructure
                 options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
             });
             mvc.AddXmlSerializerFormatters();
-            mvc.AddJsonOptions(options =>
-            {
-                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
-            });
 
             return services;
         }

@@ -40,10 +40,15 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost("checkreleasebuildstatus")]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult> CheckReleaseStatus(
-            AzureDevOpsWebHookEventModel model,
+            [FromBody] AzureDevOpsWebHookEventModel model,
             [FromServices] IReleaseService releaseService)
         {
-            string buildId = model.Resource.BuildNumber;
+            string buildId = model?.Resource?.BuildNumber;
+            if (string.IsNullOrWhiteSpace(buildId))
+            {
+                return BadRequest();
+            }
+
             Build build = await _buildService.Get(buildId);
             await releaseService.UpdateAsync(new ReleaseEntity
             {

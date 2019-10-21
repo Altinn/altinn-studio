@@ -55,7 +55,6 @@ namespace AltinnCore.Designer
                 else
                 {
                     config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
-                    config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
                 }
 
                 config.AddEnvironmentVariables();
@@ -85,6 +84,11 @@ namespace AltinnCore.Designer
                     {
                         logger.Error($"Could not find secretBundle for application insights {vaultException}");
                     }
+                }
+
+                if (hostingEnvironment.IsDevelopment())
+                {
+                    config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
                 }
             })
             .ConfigureLogging((hostingContext, logging) =>
