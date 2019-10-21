@@ -22,31 +22,17 @@ public class PdfContext {
     return textResources;
   }
 
-  public void setTextResources(TextResources textResources) {
-    this.textResources = textResources;
-  }
+  public void setTextResources(TextResources textResources) { this.textResources = textResources; }
 
-  public FormLayout getFormLayout() {
-    return formLayout;
-  }
+  public FormLayout getFormLayout() { return formLayout; }
 
-  public void setFormLayout(FormLayout formLayout) {
-    this.formLayout = formLayout;
-  }
+  public void setFormLayout(FormLayout formLayout) { this.formLayout = formLayout; }
 
-  public String getData() {
-    return data;
-  }
+  public String getData() { return data; }
 
-  public void setData(String data) {
-    this.data = data;
-  }
+  public void setData(String data) { this.data = data; }
 
-  public Instance getInstance() {
-    return instance;
-  }
+  public Instance getInstance() { return instance; }
 
-  public void setInstance(Instance instance) {
-    this.instance = instance;
-  }
+  public void setInstance(Instance instance) { this.instance = instance; }
 }

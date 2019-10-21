@@ -10,31 +10,17 @@ public class FormLayoutElement {
     return type;
   }
 
-  public void setType(String type) {
-    this.type = type;
-  }
+  public void setType(String type) { this.type = type; }
 
-  public String getId() {
-    return id;
-  }
+  public String getId() { return id; }
 
-  public void setId(String id) {
-    this.id = id;
-  }
+  public void setId(String id) { this.id = id; }
 
-  public DataModelBindings getDataModelBindings() {
-    return dataModelBindings;
-  }
+  public DataModelBindings getDataModelBindings() { return dataModelBindings; }
 
-  public void setDataModelBindings(DataModelBindings dataModelBindings) {
-    this.dataModelBindings = dataModelBindings;
-  }
+  public void setDataModelBindings(DataModelBindings dataModelBindings) { this.dataModelBindings = dataModelBindings; }
 
-  public TextResourceBindings getTextResourceBindings() {
-    return textResourceBindings;
-  }
+  public TextResourceBindings getTextResourceBindings() { return textResourceBindings; }
 
-  public void setTextResourceBindings(TextResourceBindings textResourceBindings) {
-    this.textResourceBindings = textResourceBindings;
-  }
+  public void setTextResourceBindings(TextResourceBindings textResourceBindings) { this.textResourceBindings = textResourceBindings; }
 }

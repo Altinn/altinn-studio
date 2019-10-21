@@ -102,7 +102,7 @@ public class PDFGenerator {
     yPoint = pageHeight - margin;
 
     // draws header
-    renderHeader(currentContent);
+    renderHeader();
 
     // Loop through all pdfLayout elements and draws them
     for (FormLayoutElement element : formLayout.getData().getLayout()) {
@@ -112,7 +112,7 @@ public class PDFGenerator {
         createNewPage();
         yPoint = currentPage.getMediaBox().getHeight() - margin;
       }
-      renderLayoutElement(element, currentContent);
+      renderLayoutElement(element);
       yPoint -= componentMargin;
     }
 
@@ -124,39 +124,39 @@ public class PDFGenerator {
   }
 
 
-  private void renderLayoutElement(FormLayoutElement element, PDPageContentStream contents) throws IOException {
+  private void renderLayoutElement(FormLayoutElement element) throws IOException {
     // Render title
     String titleKey = element.getTextResourceBindings().getTitle();
     if (titleKey != null && !titleKey.isEmpty()) {
       String title = TextUtils.getTextResourceByKey(titleKey, textResources);
-      renderText(contents, title, fontBold, fontSize);
+      renderText(title, fontBold, fontSize);
     }
 
     // Render description
     String descriptionKey = element.getTextResourceBindings().getDescription();
     if (descriptionKey != null && !descriptionKey.isEmpty()) {
       String description = TextUtils.getTextResourceByKey(descriptionKey, textResources);
-      renderText(contents, description, font, fontSize);
+      renderText(description, font, fontSize);
     }
 
     // Render content
     if (element.getType().equalsIgnoreCase("fileupload")) {
       // different view for file upload
-      renderFileUploadContent(contents, element);
+      renderFileUploadContent(element);
     } else {
       // all other components rendered equally
-      renderLayoutElementContent(contents, element);
+      renderLayoutElementContent(element);
     }
   }
 
-  private void renderHeader(PDPageContentStream contents) throws IOException{
-    contents.beginText();
-    contents.newLineAtOffset(xPoint, yPoint);
+  private void renderHeader() throws IOException{
+    currentContent.beginText();
+    currentContent.newLineAtOffset(xPoint, yPoint);
     float headerFontSize = 14;
-    contents.setFont(fontBold, headerFontSize);
-    contents.showText(instance.getOrg() + " - " + instance.getPresentationField().getNb());
+    currentContent.setFont(fontBold, headerFontSize);
+    currentContent.showText(instance.getOrg() + " - " + instance.getPresentationField().getNb());
     yPoint -= leading;
-    contents.endText();
+    currentContent.endText();
     yPoint -= componentMargin;
   }
 
@@ -170,21 +170,21 @@ public class PDFGenerator {
     currentContent= new PDPageContentStream(document, currentPage);
   }
 
-  private void renderText(PDPageContentStream contents, String text, PDFont font, float fontSize) throws IOException {
-    contents.beginText();
-    contents.newLineAtOffset(xPoint, yPoint);
-    contents.setFont(font, fontSize);
+  private void renderText(String text, PDFont font, float fontSize) throws IOException {
+    currentContent.beginText();
+    currentContent.newLineAtOffset(xPoint, yPoint);
+    currentContent.setFont(font, fontSize);
     List<String> lines = TextUtils.splitTextToLines(text, font, fontSize, width);
     for(String line : lines) {
-      contents.showText(line);
-      contents.newLineAtOffset(0, -leading);
+      currentContent.showText(line);
+      currentContent.newLineAtOffset(0, -leading);
       yPoint -= leading;
     }
-    contents.endText();
+    currentContent.endText();
     yPoint -= textFieldMargin;
   }
 
-  private void renderLayoutElementContent(PDPageContentStream contents, FormLayoutElement element) throws IOException {
+  private void renderLayoutElementContent(FormLayoutElement element) throws IOException {
     PDTextField textField = new PDTextField(this.form);
     textField.setPartialName(element.getId());
     String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
@@ -216,18 +216,18 @@ public class PDFGenerator {
     textField.setValue(value);
   }
 
-  private void renderFileUploadContent(PDPageContentStream contents, FormLayoutElement element) throws IOException {
+  private void renderFileUploadContent(FormLayoutElement element) throws IOException {
     List<String> files = InstanceUtils.getAttachmentsByComponentId(element.getId(), this.instance);
-    contents.setFont(font, fontSize);
-    contents.beginText();
+    currentContent.setFont(font, fontSize);
+    currentContent.beginText();
     float indent = 10;
-    contents.newLineAtOffset(xPoint + indent, yPoint);
+    currentContent.newLineAtOffset(xPoint + indent, yPoint);
     for(String file: files) {
-      contents.showText("- " + file);
-      contents.newLineAtOffset(0, -leading);
+      currentContent.showText("- " + file);
+      currentContent.newLineAtOffset(0, -leading);
       yPoint -= leading;
     }
-    contents.endText();
+    currentContent.endText();
   }
 }
 

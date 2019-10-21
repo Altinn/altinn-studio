@@ -35,9 +35,7 @@ public class Data {
     this.contentType = contentType;
   }
 
-  public String getStorageUrl() {
-    return storageUrl;
-  }
+  public String getStorageUrl() { return storageUrl; }
 
   public void setStorageUrl(String storageUrl) {
     this.storageUrl = storageUrl;
@@ -55,9 +53,7 @@ public class Data {
     return isLocked;
   }
 
-  public void setLocked(Boolean locked) {
-    isLocked = locked;
-  }
+  public void setLocked(Boolean locked) { isLocked = locked; }
 
   public String getCreatedDateTime() {
     return createdDateTime;

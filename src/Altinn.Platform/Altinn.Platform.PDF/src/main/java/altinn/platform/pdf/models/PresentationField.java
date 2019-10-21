@@ -7,7 +7,5 @@ public class PresentationField {
     return nb;
   }
 
-  public void setNb(String nb) {
-    this.nb = nb;
-  }
+  public void setNb(String nb) { this.nb = nb; }
 }
