@@ -7,11 +7,11 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Extensions.Logging;
+using IHostingEnvironment = Microsoft.AspNetCore.Hosting.IHostingEnvironment;
 
 namespace AltinnCore.Designer
 {
@@ -45,13 +45,17 @@ namespace AltinnCore.Designer
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
                 config.SetBasePath(basePath);
                 config.AddJsonFile(basePath + "altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+                IHostingEnvironment hostingEnvironment = hostingContext.HostingEnvironment;
+                string envName = hostingEnvironment.EnvironmentName;
                 if (basePath == "/")
                 {
                     config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
+                    config.AddJsonFile(basePath + $"app/appsettings.{envName}.json", optional: true, reloadOnChange: true);
                 }
                 else
                 {
                     config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
+                    config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
                 }
 
                 config.AddEnvironmentVariables();
@@ -61,6 +65,7 @@ namespace AltinnCore.Designer
                 string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
                 string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret");
                 string keyVaultEndpoint = stageOneConfig.GetValue<string>("KvSetting:SecretUri");
+
                 if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
                     && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
                 {
@@ -70,7 +75,6 @@ namespace AltinnCore.Designer
                             azureServiceTokenProvider.KeyVaultTokenCallback));
                     config.AddAzureKeyVault(
                         keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-
                     try
                     {
                         SecretBundle secretBundle = keyVaultClient.GetSecretAsync(
@@ -97,7 +101,6 @@ namespace AltinnCore.Designer
 
         private static void SetTelemetry(string instrumentationKey)
         {
-            logger.Information($"Setting application environment variable with insights telemetry key ='{instrumentationKey}'");
             if (!string.IsNullOrEmpty(instrumentationKey))
             {
                 Environment.SetEnvironmentVariable("ApplicationInsights--InstrumentationKey", instrumentationKey);
