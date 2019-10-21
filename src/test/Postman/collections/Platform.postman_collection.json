@@ -829,10 +829,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}&instanceOwnerId={{instanceOwnerId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
 									"protocol": "https",
 									"host": [
 										"platform",
@@ -848,10 +848,6 @@
 										{
 											"key": "appId",
 											"value": "{{appId}}"
-										},
-										{
-											"key": "instanceOwnerId",
-											"value": "{{instanceOwnerId}}"
 										}
 									]
 								}
@@ -1746,7 +1742,6 @@
 											"pm.environment.set(\"fromDate\", currentDate);",
 											"var currentDate1 = new Date();",
 											"var hoursToAdd = currentDate1.getHours() + 5;",
-											"console.log(hoursToAdd);",
 											"currentDate1.setHours(hoursToAdd);",
 											"pm.environment.set(\"toDate\", currentDate1);"
 										],
@@ -1914,7 +1909,7 @@
 										"id": "73bb7aa7-5269-42fc-ae97-b51511a8d97e",
 										"exec": [
 											"var jsonData = pm.response.json();\r",
-											"if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+											"if(pm.response.code == 200)\r",
 											"{\r",
 											"    pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
 											"    pm.environment.set('appId',jsonData.appId);\r",
@@ -1941,7 +1936,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1980,7 +1975,7 @@
 										"id": "4081c1b5-a9a1-4b52-95b3-6b89964d2fb6",
 										"exec": [
 											"var jsonData = pm.response.json();\r",
-											"if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+											"if(pm.response.code == 200)\r",
 											"{\r",
 											"    var instanceId = jsonData.id;\r",
 											"    instanceId = instanceId.toString();\r",
@@ -2005,7 +2000,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"

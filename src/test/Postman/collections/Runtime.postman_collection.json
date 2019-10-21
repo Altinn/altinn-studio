@@ -92,9 +92,12 @@
 							"script": {
 								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
 								"exec": [
-									"var jsonData = pm.response.json();",
-									"var partyId = jsonData.partyId;",
-									"pm.environment.set(\"instanceOwnerId\",partyId);"
+									"if(pm.response.code == 200)",
+									"{",
+									"    var jsonData = pm.response.json();",
+									"    var partyId = jsonData.partyId;",
+									"    pm.environment.set(\"instanceOwnerId\",partyId);",
+									"}"
 								],
 								"type": "text/javascript"
 							}
