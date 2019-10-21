@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -20,7 +21,7 @@ public class PDFController {
 
   @PostMapping("pdf/api/v1/generate")
   @ApiOperation(value = "Generates a receipt pdf")
-  public void generate(HttpServletRequest request, HttpServletResponse response, @RequestBody PdfContext pdfContext) {
+  public void generate(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid PdfContext pdfContext) {
     PDFGenerator generator = new PDFGenerator(pdfContext);
     try {
       ByteArrayOutputStream output = generator.generatePDF();

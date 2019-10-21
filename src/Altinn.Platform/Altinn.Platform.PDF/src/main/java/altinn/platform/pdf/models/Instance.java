@@ -1,17 +1,21 @@
 package altinn.platform.pdf.models;
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @ApiModel(description = "The instance metadata json file.")
 public class Instance {
+  @NotNull
   private String id;
   private List<Data> data;
   private String instanceOwnerId;
   private String appId;
+  @NotNull
   private String org;
   private String createdDateTime;
   private String lastChangedDateTime;
+  @NotNull
   private PresentationField presentationField;
 
   public String getId() {

@@ -2,6 +2,9 @@ package altinn.platform.pdf.models;
 
 import io.swagger.annotations.ApiModel;
 
+import javax.validation.constraints.NotNull;
+import java.util.Objects;
+
 @ApiModel(description = "An altinn party object")
 public class Party {
   private Integer partyId;
@@ -9,6 +12,7 @@ public class Party {
   private String orgNumber;
   private String ssn;
   private String unitType;
+  @NotNull
   private String name;
   private Boolean isDeleted;
   private Boolean onlyHierarchyElementWithNoAccess;
@@ -44,4 +48,19 @@ public class Party {
   public Boolean getOnlyHierarchyElementWithNoAccess() { return onlyHierarchyElementWithNoAccess; }
 
   public void setOnlyHierarchyElementWithNoAccess(Boolean onlyHierarchyElementWithNoAccess) { this.onlyHierarchyElementWithNoAccess = onlyHierarchyElementWithNoAccess; }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (other == null) {
+      return false;
+    }
+    if (getClass() != other.getClass()) {
+      return false;
+    }
+    Party otherParty = (Party) other;
+    return Objects.equals(this.ssn, otherParty.ssn) && Objects.equals(this.orgNumber, otherParty.orgNumber);
+  }
 }

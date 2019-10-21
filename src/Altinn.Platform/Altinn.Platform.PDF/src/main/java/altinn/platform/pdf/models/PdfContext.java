@@ -3,25 +3,34 @@ package altinn.platform.pdf.models;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 @ApiModel(description = "The PDF context which the PDF is generated from.")
 public class PdfContext {
 
   @ApiModelProperty(notes = "The text resources json file")
+  @NotNull
   private TextResources textResources;
 
   @ApiModelProperty(notes = "The form layout json file")
+  @NotNull
   private FormLayout formLayout;
 
   @ApiModelProperty(notes = "The xml data file, note: must be base 64 encoded")
+  @NotNull
+  @NotEmpty
   private String data;
 
   @ApiModelProperty(notes = "The instance metadata json file")
+  @NotNull
   private Instance instance;
 
   @ApiModelProperty(notes = "The party party of the currently active user")
   private Party userParty;
 
   @ApiModelProperty(notes = "The party of the instance owner")
+  @NotNull
   private Party party;
 
   public Party getUserParty() { return userParty; }

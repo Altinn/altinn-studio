@@ -35,6 +35,7 @@ public class PDFGenerator {
   private float componentMargin = 25;
   private float textFieldMargin = 5;
   private float fontSize = 10;
+  private float headerFontSize = 14;
   private float leading = 1.2f * fontSize;
   private PDFont font;
   private PDFont fontBold;
@@ -42,6 +43,8 @@ public class PDFGenerator {
   private Instance instance;
   private Document formData;
   private FormLayout formLayout;
+  private Party party;
+  private Party userParty;
   private PDPage currentPage;
   private PDPageContentStream currentContent;
   private ByteArrayOutputStream output;
@@ -56,6 +59,8 @@ public class PDFGenerator {
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
     this.output = new ByteArrayOutputStream();
+    this.party = pdfContext.getParty();
+    this.userParty = pdfContext.getUserParty();
     try {
       this.formData = FormDataUtils.parseXml(pdfContext.getData());
     } catch (Exception e) {
@@ -103,6 +108,9 @@ public class PDFGenerator {
 
     // draws header
     renderHeader();
+
+    // draws submitted by
+    renderSubmittedBy();
 
     // Loop through all pdfLayout elements and draws them
     for (FormLayoutElement element : formLayout.getData().getLayout()) {
@@ -152,12 +160,36 @@ public class PDFGenerator {
   private void renderHeader() throws IOException{
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
-    float headerFontSize = 14;
     currentContent.setFont(fontBold, headerFontSize);
     currentContent.showText(instance.getOrg() + " - " + instance.getPresentationField().getNb());
     yPoint -= leading;
     currentContent.endText();
+    yPoint -= textFieldMargin;
+  }
+
+  private void renderSubmittedBy() throws IOException {
+    if (party == null) {
+      return;
+    }
+    currentContent.beginText();
+    currentContent.newLineAtOffset(xPoint, yPoint);
+    currentContent.setFont(font, fontSize);
+    String submittedBy;
+    if (party.equals(userParty) || userParty == null) {
+      submittedBy = "Levert av " + party.getName();
+    } else {
+      submittedBy = "Levert av " + userParty.getName() + " på vegne av " + party.getName();
+    }
+    List<String> lines = TextUtils.splitTextToLines(submittedBy, font, fontSize, width);
+    lines.add("Referansenummer: " + instance.getId());
+    for(String line : lines) {
+      currentContent.showText(line);
+      currentContent.newLineAtOffset(0, -leading);
+      yPoint -= leading;
+    }
+    currentContent.endText();
     yPoint -= componentMargin;
+
   }
 
   private void createNewPage() throws IOException {
