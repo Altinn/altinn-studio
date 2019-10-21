@@ -1,6 +1,6 @@
 package altinn.platform.pdf.controllers;
 
-import altinn.platform.pdf.AltinnPDFGenerator;
+import altinn.platform.pdf.PDFGenerator;
 import altinn.platform.pdf.models.PdfContext;
 import altinn.platform.pdf.services.BasicLogger;
 import io.swagger.annotations.ApiOperation;
@@ -21,7 +21,7 @@ public class PDFController {
   @PostMapping("pdf/api/v1/generate")
   @ApiOperation(value = "Generates a receipt pdf")
   public void generate(HttpServletRequest request, HttpServletResponse response, @RequestBody PdfContext pdfContext) {
-    AltinnPDFGenerator generator = new AltinnPDFGenerator(pdfContext);
+    PDFGenerator generator = new PDFGenerator(pdfContext);
     try {
       ByteArrayOutputStream output = generator.generatePDF();
       response.addHeader("Content-Type", "application/pdf");

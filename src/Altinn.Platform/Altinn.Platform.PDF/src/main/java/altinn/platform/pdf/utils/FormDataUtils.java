@@ -79,7 +79,12 @@ public class FormDataUtils {
   }
 
   /**
-   * Parses the xml data file from a base64 encoded string
+   * Parses the base 64 encoded xml file and creates a Document wrapper
+   * @param xmlBaseEncoded the base 64 xml string
+   * @return a document wrapper for the xml file
+   * @throws ParserConfigurationException
+   * @throws IOException
+   * @throws SAXException
    */
   public static Document parseXml(String xmlBaseEncoded) throws ParserConfigurationException, IOException, SAXException {
     byte[] xmlAsBytes = Base64.decodeBase64(xmlBaseEncoded);

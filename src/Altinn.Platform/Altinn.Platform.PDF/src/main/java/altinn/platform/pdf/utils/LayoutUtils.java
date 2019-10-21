@@ -15,9 +15,20 @@ public class LayoutUtils {
 
   private LayoutUtils() {}
 
+
   /**
-   * Gets the element height in pixels
-   * @return the height in pixels
+   * Get the height needed to the element, including title, description and content
+   * @param element the element
+   * @param font the font used
+   * @param fontSize the font size
+   * @param width the width
+   * @param leading the leading
+   * @param textMargin the text margin
+   * @param textResources the text resources
+   * @param formData the form data
+   * @param instance the instance metadata
+   * @return
+   * @throws IOException
    */
   public static float getElementHeight(FormLayoutElement element, PDFont font, float fontSize, float width, float leading, float textMargin, TextResources textResources, Document formData, Instance instance) throws IOException {
     float height = 0;
