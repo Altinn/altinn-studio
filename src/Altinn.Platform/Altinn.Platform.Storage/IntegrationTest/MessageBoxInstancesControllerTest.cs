@@ -109,7 +109,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Expeted: Requested language is not available, but a list of instances is returned regardless.
         /// Success: Default language is used for title, and the title contains the word "bokmål".
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstanceList_TC01()
         {
             // Arrange
@@ -139,7 +139,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Expeted: Requested language is available and a list of instances is returned.
         /// Success: English title is returned in the instances and the title contains the word "english".
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstanceList_TC02()
         {
             // Arrange
@@ -169,7 +169,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Expeted: A list of instances is returned regardless.
         /// Success: A single instance is returned.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstanceList_TC03()
         {
             // Arrange
