@@ -1,0 +1,28 @@
+{
+  "id": "orgName/appName",
+  "org": "orgName",
+  "createdDateTime": "yyyy-MM-ddTHH:mm:ss",
+  "createdBy": "username",
+  "lastChangedDateTime": "yyyy-MM-ddTHH:mm:ss",
+  "lastChangedBy": "username",
+  "title": { "nb": "titleName" },
+  "elementTypes": [
+    {
+      "id": "default",
+      "allowedContentType": [ "application/xml" ],
+      "maxCount": 0,
+      "shouldSign": false,
+      "shouldEncrypt": true
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": false,
+    "organization": false,
+    "person": false,
+    "subUnit": false
+  },
+  "subscriptionHook": {
+    "serviceCode": "",
+    "editionCode": ""
+  }
+}
