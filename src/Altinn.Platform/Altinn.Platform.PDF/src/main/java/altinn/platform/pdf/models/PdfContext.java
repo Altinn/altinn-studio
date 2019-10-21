@@ -18,9 +18,21 @@ public class PdfContext {
   @ApiModelProperty(notes = "The instance metadata json file")
   private Instance instance;
 
-  public TextResources getTextResources() {
-    return textResources;
-  }
+  @ApiModelProperty(notes = "The party party of the currently active user")
+  private Party userParty;
+
+  @ApiModelProperty(notes = "The party of the instance owner")
+  private Party party;
+
+  public Party getUserParty() { return userParty; }
+
+  public void setUserParty(Party userParty) { this.userParty = userParty; }
+
+  public Party getParty() { return party; }
+
+  public void setParty(Party party) { this.party = party; }
+
+  public TextResources getTextResources() { return textResources; }
 
   public void setTextResources(TextResources textResources) { this.textResources = textResources; }
 
