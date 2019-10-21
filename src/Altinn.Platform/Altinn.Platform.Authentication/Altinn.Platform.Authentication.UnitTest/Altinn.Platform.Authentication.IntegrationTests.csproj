@@ -5,24 +5,22 @@
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp3.0\Altinn.Platform.Authentication.UnitTest.xml</DocumentationFile>
-  </PropertyGroup>
-
+  
   <ItemGroup>
     <None Remove="appsettings.json" />
     <None Remove="jwtselfsignedcert.pfx" />
   </ItemGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp3.0\Altinn.Platform.Authentication.UnitTest.xml</DocumentationFile>
+  </PropertyGroup>
+
+  
   <ItemGroup>
     <Content Include="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="jwtselfsignedcert.pfx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

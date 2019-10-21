@@ -12,7 +12,7 @@ using Altinn.Platform.Authentication.Maskinporten;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Altinn.Platform.Authentication.IntegrationTests.Controller
@@ -41,6 +41,20 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controller
         {
             // Arrange
             List<Claim> claims = new List<Claim>();
+
+            string orgNr = "974760223";
+
+            object iso6523Consumer = new 
+            {
+                Identifier = new
+                {
+                    Authority = "iso6523-actorid-upis",
+                    ID = $"9908:{orgNr}"
+                }               
+            };
+
+            claims.Add(new Claim("consumer", JsonConvert.SerializeObject(iso6523Consumer)));
+
             ClaimsIdentity identity = new ClaimsIdentity("OrgLogin");
             identity.AddClaims(claims);
             ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);

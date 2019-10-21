@@ -26,6 +26,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.Platform.Authentication.Controllers
 {
@@ -36,6 +37,9 @@ namespace Altinn.Platform.Authentication.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
+        private static Dictionary<string, string> orgNumberToOrg = new Dictionary<string, string>();
+        private static DateTime dictionaryLastUpdated = DateTime.MinValue;
+
         private readonly ILogger logger;
         private readonly GeneralSettings generalSettings;
         private readonly JwtCookieHandler jwtHandler;
@@ -209,11 +213,24 @@ namespace Altinn.Platform.Authentication.Controllers
                 //// ToDo: Check claims and/or identity to authorize the request. It is not enough to have a valid token. There must be
                 //// claims that confirms that the caller is an application owner.
 
+                string consumerJson = originalPrincipal.FindFirstValue("consumer");
+                JObject consumer = JObject.Parse(consumerJson);
+
+                string consumerAuthority = consumer["Identifier"]["Authority"].ToString();
+                string consumerID = consumer["Identifier"]["ID"].ToString();
+
+                string organisationNumber = consumerID.Split(":")[1];
+
                 List<Claim> claims = new List<Claim>();
                 foreach (Claim claim in originalPrincipal.Claims)
                 {
                     claims.Add(claim);
                 }
+
+                string org = LookupOrg(organisationNumber);
+
+                claims.Add(new Claim("organsiationNumber", organisationNumber));
+                claims.Add(new Claim("org", org));
 
                 ClaimsIdentity identity = new ClaimsIdentity("OrgLogin");
                 identity.AddClaims(claims);
@@ -243,6 +260,61 @@ namespace Altinn.Platform.Authentication.Controllers
             string redirectHost = string.Join(".", goToList);
 
             return validHost.Equals(redirectHost);
+        }
+
+        /// <summary>
+        /// Gets the organisation identifier of the org. Usually a 2-4 character short form of organisation name. Organisation numbers are updated once every hour. But only on demand.
+        /// </summary>
+        /// <param name="organisationNumber">the organisation number as given in the central unit registry</param>
+        /// <returns>the organisation identifier</returns>
+        public static string LookupOrg(string organisationNumber)
+        {
+            DateTime timestamp = DateTime.Now;
+            timestamp = timestamp.AddHours(-1);
+
+            if (dictionaryLastUpdated < timestamp || orgNumberToOrg.Count == 0)
+            {
+                HarvestOrgs();
+            }
+
+            return orgNumberToOrg.GetValueOrDefault(organisationNumber, null);            
+        }
+
+        private static void HarvestOrgs()
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                HttpResponseMessage response = client.GetAsync("https://altinncdn.no/orgs/altinn-orgs.json").Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    JObject orgs = JObject.Parse(response.Content.ReadAsStringAsync().Result);
+
+                    orgs = (JObject)orgs.GetValue("orgs");
+
+                    foreach (JToken prop in orgs.Children())
+                    {
+                        JObject orgObject = (JObject)prop.Children().First();
+                        string orgnr = orgObject["orgnr"].ToString();
+                        string org = ((JProperty)prop).Name;
+
+                        if (orgNumberToOrg.ContainsKey(orgnr))
+                        {
+                            if (!org.Equals(orgNumberToOrg[orgnr]))
+                            {
+                                orgNumberToOrg.Remove(orgnr);
+                                orgNumberToOrg.Add(orgnr, org);
+                            }                            
+                        }
+                        else
+                        {
+                            orgNumberToOrg.Add(orgnr, org);
+                        }                       
+                    }
+
+                    dictionaryLastUpdated = DateTime.UtcNow;
+                }
+            }
         }
     }
 }

@@ -67,10 +67,13 @@ namespace Altinn.Platform.Storage.Controllers
             _dataRepository = dataRepository;
             this.logger = logger;
             string bridgeUri = generalSettings.Value.GetBridgeRegisterApiEndpoint();
-            this.bridgeRegistryClient = new HttpClient()
+            if (bridgeUri != null)
             {
-                BaseAddress = new Uri(bridgeUri)
-            };
+                this.bridgeRegistryClient = new HttpClient()
+                {
+                    BaseAddress = new Uri(bridgeUri)
+                };
+            }            
         }
 
         /// <summary>
@@ -794,6 +797,11 @@ namespace Altinn.Platform.Storage.Controllers
 
         private async Task<int?> LookupIdFromBridgeRegistry(string id)
         {
+            if (bridgeRegistryClient == null)
+            {
+                return null;
+            }
+
             try
             {
                 Uri bridgeRegistryLookupUri = new Uri("parties/lookup", UriKind.Relative);
