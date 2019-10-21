@@ -20,9 +20,9 @@ namespace AltinnCore.ServiceLibrary.Models
         public UserContext UserContext { get; set; }
 
         /// <summary>
-        /// Gets or sets the current reportee
+        /// Gets or sets the current party
         /// </summary>
-        public Party Reportee { get; set; }
+        public Party Party { get; set; }
 
         /// <summary>
         /// Gets or sets the validation result for this request
@@ -35,7 +35,7 @@ namespace AltinnCore.ServiceLibrary.Models
         public Guid InstanceId { get; set; }
 
         /// <summary>
-        /// Gets or sets the form collection available 
+        /// Gets or sets the form collection available
         /// </summary>
         public IFormCollection Form { get; set; }
 

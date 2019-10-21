@@ -1,6 +1,4 @@
 import { ClientFunction, Selector, t } from 'testcafe';
-import { addSyntheticLeadingComment } from 'typescript';
-import LandingPage from './landingPage';
 
 export default class CommonPage {
   constructor() {

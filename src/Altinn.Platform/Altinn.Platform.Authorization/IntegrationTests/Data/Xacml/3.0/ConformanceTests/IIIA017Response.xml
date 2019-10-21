@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Response
+      xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17
+        http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd">
+    <Result>
+        <Decision>Permit</Decision>
+        <Status>
+            <StatusCode
+                  Value="urn:oasis:names:tc:xacml:1.0:status:ok"/>
+        </Status>
+
+    <Obligations>
+        <Obligation
+            ObligationId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policy2:obligation-1"
+            FulfillOn="Permit">
+            <AttributeAssignment
+                AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policy2:assignment1"
+                DataType="http://www.w3.org/2001/XMLSchema#string">assignment1</AttributeAssignment>
+            <AttributeAssignment
+                AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policy2:assignment2"
+                DataType="http://www.w3.org/2001/XMLSchema#string">assignment2</AttributeAssignment>
+        </Obligation>
+        <Obligation
+            ObligationId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policy2:obligation-2"
+            FulfillOn="Permit">
+            <AttributeAssignment
+                AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policy2:assignment1"
+                DataType="http://www.w3.org/2001/XMLSchema#string">assignment1</AttributeAssignment>
+            <AttributeAssignment
+                AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policy2:assignment2"
+                DataType="http://www.w3.org/2001/XMLSchema#string">assignment2</AttributeAssignment>
+        </Obligation>
+        <Obligation
+            ObligationId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policyset:obligation-1"
+            FulfillOn="Permit">
+            <AttributeAssignment
+                AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policyset:assignment1"
+                DataType="http://www.w3.org/2001/XMLSchema#string">assignment1</AttributeAssignment>
+            <AttributeAssignment
+                AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policyset:assignment2"
+                DataType="http://www.w3.org/2001/XMLSchema#string">assignment2</AttributeAssignment>
+        </Obligation>
+        <Obligation
+            ObligationId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policyset:obligation-2"
+            FulfillOn="Permit">
+            <AttributeAssignment
+                AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policyset:assignment1"
+                DataType="http://www.w3.org/2001/XMLSchema#string">assignment1</AttributeAssignment>
+            <AttributeAssignment
+                AttributeId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIA017:policyset:assignment2"
+                DataType="http://www.w3.org/2001/XMLSchema#string">assignment2</AttributeAssignment>
+        </Obligation>
+    </Obligations>
+
+    </Result>
+</Response>

@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Authentication.Utils
@@ -37,6 +38,21 @@ namespace AltinnCore.Authentication.Utils
             }
 
             return token;
+        }
+
+        /// <summary>
+        /// Updates http client by including authorization token in request header
+        /// </summary>
+        /// <param name="client">The HTTP client</param>
+        /// <param name="token">The authorization token</param>
+        public static void AddTokenToRequestHeader(HttpClient client, string token)
+        {
+            if (client.DefaultRequestHeaders.Contains("Authorization"))
+            {
+                client.DefaultRequestHeaders.Remove("Authorization");
+            }
+
+            client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token);
         }
     }
 }

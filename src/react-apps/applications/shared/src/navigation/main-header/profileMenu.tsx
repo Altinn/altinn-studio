@@ -4,6 +4,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import * as React from 'react';
+import { IAltinnWindow } from '../../types';
+import { repositoryUrl } from '../../utils/urlHelper';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -56,6 +58,27 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
     return true;
   }
 
+  public shouldShowRepositoryLink = () => {
+    if (window) {
+      const {org, service} = (window as IAltinnWindow);
+      if (!org || !service) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  }
+
+  public handleGiteaRepository = () => {
+    this.setState({ anchorEl: null });
+    if (window) {
+      window.open(repositoryUrl, '_blank');
+      window.focus();
+    }
+  }
+
   public render() {
     const { anchorEl } = this.state;
     const { classes, showlogout } = this.props;
@@ -67,7 +90,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           aria-haspopup='true'
           onClick={this.handleClick}
         >
-          <AccountCircle />
+          <AccountCircle fontSize='large' />
         </IconButton>
         <Menu
           id='simple-menu'
@@ -78,8 +101,32 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           elevation={1}
           classes={{ paper: classes.paperStyle }}
         >
+          <MenuItem
+            key='placeholder'
+            style={{display: 'none'}}
+          />
+          {// workaround for highlighted menu item not changing.
+          // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
+          }
+          {this.shouldShowRepositoryLink() &&
+            <MenuItem
+              className={classes.menuItem}
+            >
+              <a
+                href={repositoryUrl}
+                target={'_blank'}
+              >
+                Åpne gitea repository
+              </a>
+            </MenuItem>
+          }
           {showlogout && (
-            <MenuItem onClick={this.handleLogout} className={classes.menuItem}>Logout</MenuItem>
+            <MenuItem
+              onClick={this.handleLogout}
+              className={classes.menuItem}
+            >
+                Logout
+            </MenuItem>
           )}
         </Menu>
       </div>

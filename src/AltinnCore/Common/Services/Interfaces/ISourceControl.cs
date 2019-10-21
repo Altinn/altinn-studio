@@ -12,7 +12,7 @@ namespace AltinnCore.Common.Services.Interfaces
     public interface ISourceControl
     {
         /// <summary>
-        /// Clone service repository to local repo
+        /// Clone app repository to local repo
         /// </summary>
         /// <param name="org">the organisation</param>
         /// <param name="repository">Name of the repository</param>
@@ -44,15 +44,15 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetDeployToken();
 
         /// <summary>
-        /// Add all changes in service repo and push to remote
+        /// Add all changes in app repo and push to remote
         /// </summary>
-        /// <param name="commitInfo">the commit information for the service</param>
+        /// <param name="commitInfo">the commit information for the app</param>
         void PushChangesForRepository(CommitInfo commitInfo);
 
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="org">the organisation</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">name of the repository</param>
         /// <returns>The repo status</returns>
         RepoStatus PullRemoteChanges(string org, string repository);
@@ -60,7 +60,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Gets the number of commits the local repository is behind the remote
         /// </summary>
-        /// <param name="org">The organization owning the repository</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">The repository</param>
         /// <returns>The number of commits behind</returns>
         int? CheckRemoteUpdates(string org, string repository);
@@ -68,14 +68,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="org">the organisation</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">name of the repository</param>
         void FetchRemoteChanges(string org, string repository);
 
         /// <summary>
-        /// List Git status for a service repo
+        /// List Git status for an app repo
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>List of repositories with status</returns>
         List<RepositoryContent> Status(string org, string repository);
@@ -115,7 +115,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Verifies if developer has a local repo
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">The name of the local repo</param>
         /// <returns>true if it exists</returns>
         bool IsLocalRepo(string org, string repository);

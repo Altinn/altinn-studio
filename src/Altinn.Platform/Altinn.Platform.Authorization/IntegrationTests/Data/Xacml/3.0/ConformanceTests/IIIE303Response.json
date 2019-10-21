@@ -1,0 +1,61 @@
+{
+  "Response" : [ {
+    "Status" : {
+      "StatusCode" : {
+        "Value" : "urn:oasis:names:tc:xacml:1.0:status:ok"
+      }
+    },
+    "Category" : [ {
+      "CategoryId" : "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject",
+      "Attribute" : [ {
+        "Value" : "Julius Hibbert",
+        "DataType" : "string",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-id"
+      } ]
+    }, {
+      "CategoryId" : "urn:oasis:names:tc:xacml:3.0:attribute-category:resource",
+      "Attribute" : [ {
+        "Value" : "http://medico.com/record/patient/BartSimpson",
+        "DataType" : "anyURI",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:resource:resource-id"
+      } ]
+    }, {
+      "CategoryId" : "urn:oasis:names:tc:xacml:3.0:attribute-category:action",
+      "Attribute" : [ {
+        "Value" : "read",
+        "DataType" : "string",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:action:action-id"
+      } ]
+    } ],
+    "Decision" : "Permit"
+  }, {
+    "Status" : {
+      "StatusCode" : {
+        "Value" : "urn:oasis:names:tc:xacml:1.0:status:ok"
+      }
+    },
+    "Category" : [ {
+      "CategoryId" : "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject",
+      "Attribute" : [ {
+        "Value" : "Julius Hilbert",
+        "DataType" : "string",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-id"
+      } ]
+    }, {
+      "CategoryId" : "urn:oasis:names:tc:xacml:3.0:attribute-category:resource",
+      "Attribute" : [ {
+        "Value" : "http://medico.com/record/patient/BartSimpson",
+        "DataType" : "anyURI",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:resource:resource-id"
+      } ]
+    }, {
+      "CategoryId" : "urn:oasis:names:tc:xacml:3.0:attribute-category:action",
+      "Attribute" : [ {
+        "Value" : "read",
+        "DataType" : "string",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:action:action-id"
+      } ]
+    } ],
+    "Decision" : "NotApplicable"
+  } ]
+}

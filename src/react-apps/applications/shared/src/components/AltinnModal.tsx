@@ -5,10 +5,22 @@ import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnModalComponentProvidedProps {
+  /** @ignore */
   classes: any;
+  /** Text or react element shown in the header */
   headerText?: any;
+  /** Boolean value of the modal being open or not */
   isOpen: boolean;
+  /** Callback function for when the modal is closed */
   onClose: any;
+  /** Boolean value for hiding the background shower */
+  hideBackdrop?: boolean;
+  /** Boolean value for hiding the X button in the header */
+  hideCloseIcon?: boolean;
+  /** Boolean value for allowing modal to close on backdrop click */
+  allowCloseOnBackdropClick?: boolean;
+  /** Boolean value for showing print view */
+  printView?: boolean;
 }
 
 export interface IAltinnModalComponentState {
@@ -19,24 +31,33 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
   modal: {
-    width: '876px',
+    [theme.breakpoints.down('sm')]: {
+      width: '95%',
+    },
+    [theme.breakpoints.up('md')]: {
+      width: '80%',
+    },
+    maxWidth: '875px',
     backgroundColor: theme.altinnPalette.primary.white,
     boxShadow: theme.shadows[5],
     outline: 'none',
     marginRight: 'auto',
     marginLeft: 'auto',
-    marginTop: '10%',
+    marginTop: '9.68rem',
     marginBottom: '10%',
+    ['@media only print']: {
+      boxShadow: '0 0 0 0 !important',
+    },
   },
   header: {
     backgroundColor: altinnTheme.altinnPalette.primary.blueDarker,
-    height: '96px',
+    // height: '96px',
     paddingLeft: 48,
     paddingTop: 30,
     paddingBottom: 30,
   },
   headerText: {
-    fontSize: '28px',
+    fontSize: '2.8rem',
     color: altinnTheme.altinnPalette.primary.white,
   },
   body: {
@@ -44,6 +65,9 @@ const styles = createStyles({
     paddingRight: 243,
     paddingTop: 45,
     paddingBottom: 34,
+    ['@media only print']: {
+      paddingLeft: 48,
+    },
   },
   iconBtn: {
     float: 'right' as 'right',
@@ -61,17 +85,41 @@ const styles = createStyles({
 
 export class AltinnModal extends React.Component<IAltinnModalComponentProvidedProps, IAltinnModalComponentState> {
   public render() {
-    const { classes } = this.props;
-    return (
-      <Modal
-        open={this.props.isOpen}
-        className={this.props.classes.scroll}
-      >
+    const { classes, printView } = this.props;
+    if (!printView) {
+      return (
+        <Modal
+          open={this.props.isOpen}
+          className={this.props.classes.scroll}
+          hideBackdrop={this.props.hideBackdrop}
+          onBackdropClick={this.props.allowCloseOnBackdropClick === false ? null : this.props.onClose}
+        >
+          <div className={classes.modal}>
+            <div className={classes.header}>
+              {this.props.hideCloseIcon && this.props.hideCloseIcon === true ? null :
+                <IconButton className={classes.iconBtn} onClick={this.props.onClose}>
+                  <i className={classNames('ai ai-exit-test', classes.iconStyling)} />
+                </IconButton>
+              }
+              <Typography className={classes.headerText}>
+                {this.props.headerText}
+              </Typography>
+            </div>
+            <div className={classes.body}>
+              {this.props.children}
+            </div>
+          </div>
+        </Modal>
+      );
+    } else {
+      return (
         <div className={classes.modal}>
           <div className={classes.header}>
-            <IconButton className={classes.iconBtn} onClick={this.props.onClose}>
-              <i className={classNames('ai ai-exit-test', classes.iconStyling)} />
-            </IconButton >
+            {this.props.hideCloseIcon && this.props.hideCloseIcon === true ? null :
+              <IconButton className={classes.iconBtn} onClick={this.props.onClose}>
+                <i className={classNames('ai ai-exit-test', classes.iconStyling)} />
+              </IconButton>
+            }
             <Typography className={classes.headerText}>
               {this.props.headerText}
             </Typography>
@@ -80,8 +128,8 @@ export class AltinnModal extends React.Component<IAltinnModalComponentProvidedPr
             {this.props.children}
           </div>
         </div>
-      </Modal>
-    );
+      );
+    }
   }
 }
 

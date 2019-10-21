@@ -1,21 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
-using Serilog;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.Platform.Storage.Repository
 {
     /// <summary>
-    /// Handles instances
+    /// Repository operations for application instances.
     /// </summary>
     public class InstanceRepository : IInstanceRepository
     {
@@ -25,16 +27,17 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string collectionId;
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
-        private readonly ILogger _logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
+        private readonly ILogger<InstanceRepository> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings)
-        {            
+        /// <param name="logger">the logger</param>
+        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<InstanceRepository> logger)
+        {
+            this.logger = logger;
+
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
 
@@ -62,234 +65,486 @@ namespace Altinn.Platform.Storage.Repository
             _client.OpenAsync();
         }
 
-        /// <summary>
-        /// To insert new instance into instance collection
-        /// </summary>
-        /// <param name="item">the form data</param>
-        /// <returns>The deserialized formdata saved to file</returns>
-        public async Task<string> InsertInstanceIntoCollectionAsync(Instance item)
+        /// <inheritdoc/>
+        public async Task<Instance> Create(Instance instance)
         {
-            try
-            {
-                ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
-                Document document = createDocumentResponse.Resource;
+            PreProcess(instance);
 
-                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, instance);
+            Document document = createDocumentResponse.Resource;
 
-                return instance.Id;
-            }
-            catch (Exception ex)
-            {
-                _logger.Error($"Exception {ex}");
-                throw ex;
-            }
+            Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
+
+            PostProcess(instanceStored);
+
+            return instanceStored;
         }
 
-        /// <summary>
-        /// Delets an instance.
-        /// </summary>
-        /// <param name="item">The instance to delete</param>
-        /// <returns>if the item is deleted or not</returns>
-        public async Task<bool> DeleteInstance(Instance item)
+        /// <inheritdoc/>
+        public async Task<bool> Delete(Instance item)
         {
+            PreProcess(item);
+
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
+
+            ResourceResponse<Document> instance = await _client
+                .DeleteDocumentAsync(
+                    uri.ToString(),
+                    new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public async Task<InstanceQueryResponse> GetInstancesOfApplication(
+            Dictionary<string, StringValues> queryParams,
+            string continuationToken,
+            int size)
+        {
+            InstanceQueryResponse queryResponse = new InstanceQueryResponse();
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                EnableCrossPartitionQuery = true,
+                MaxItemCount = size,
+            };
+
+            if (continuationToken != null)
+            {
+                feedOptions.RequestContinuation = continuationToken;
+            }
+
+            IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
+
             try
             {
-                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id.ToString());
-
-                ResourceResponse<Document> instance = await _client
-                    .DeleteDocumentAsync(
-                        uri.ToString(),
-                        new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
-
-                return true;
+                queryBuilder = BuildQueryFromParameters(queryParams, queryBuilder);
             }
             catch (Exception e)
             {
-                _logger.Error($"Exception {e}");
-                return false;
+                queryResponse.Exception = e.Message;
+                return queryResponse;
             }
-        }
 
-        /// <summary>
-        /// Get the instance based on the input parameters
-        /// </summary>
-        /// <param name="applicationOwnerId">application owner id</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string applicationOwnerId)
-        {
             try
             {
-                List<Instance> instances = new List<Instance>();
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    EnableCrossPartitionQuery = true,
-                };
+                IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
-                IDocumentQuery<Instance> query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                                .Where(i => i.ApplicationOwnerId == applicationOwnerId)
-                                .AsDocumentQuery();
-                while (query.HasMoreResults)
+                FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
+                if (!feedResponse.Any())
                 {
-                    foreach (Instance instance in await query.ExecuteNextAsync().ConfigureAwait(false))
+                    queryResponse.Count = 0;
+                    queryResponse.TotalHits = 0;
+
+                    return queryResponse;
+                }
+
+                string nextContinuationToken = feedResponse.ResponseContinuation;
+
+                logger.LogInformation($"continuation token: {nextContinuationToken}");
+
+                // this migth be expensive
+                feedOptions.RequestContinuation = null;
+                int totalHits = queryBuilder.Count();
+                queryResponse.TotalHits = totalHits;
+
+                List<Instance> instances = feedResponse.ToList<Instance>();
+
+                PostProcess(instances);
+
+                queryResponse.Instances = instances;
+                queryResponse.ContinuationToken = nextContinuationToken;
+                queryResponse.Count = instances.Count;
+            }
+            catch (Exception e)
+            {
+                logger.LogError("error: {e}");
+                queryResponse.Exception = e.Message;
+            }
+
+            return queryResponse;
+        }
+
+        private IQueryable<Instance> BuildQueryFromParameters(Dictionary<string, StringValues> queryParams, IQueryable<Instance> queryBuilder)
+        {
+            foreach (KeyValuePair<string, StringValues> param in queryParams)
+            {
+                string queryParameter = param.Key;
+                StringValues queryValues = param.Value;
+
+                foreach (string queryValue in queryValues)
+                {
+                    switch (queryParameter)
                     {
-                        instances.Add(instance);
+                        case "appId":
+                            queryBuilder = queryBuilder.Where(i => i.AppId == queryValue);
+                            break;
+
+                        case "org":
+                            queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
+                            break;
+
+                        case "lastChangedDateTime":
+                            queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "dueDateTime":
+                            queryBuilder = QueryBuilderForDueDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "visibleDateTime":
+                            queryBuilder = QueryBuilderForVisibleDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "createdDateTime":
+                            queryBuilder = QueryBuilderForCreatedDateTime(queryBuilder, queryValue);
+                            break;
+
+                        case "process.currentTask":
+                            string currentTaskId = queryValue;
+                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask.ProcessElementId == currentTaskId);
+                            break;
+
+                        case "process.isComplete":
+                            bool isComplete = bool.Parse(queryValue);
+                            if (isComplete)
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Process.Ended != null);
+                            }
+                            else
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Process.Ended == null);
+                            }
+
+                            break;
+
+                        case "labels":
+                            foreach (string label in queryValue.Split(","))
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Labels.Contains(label));
+                            }
+
+                            break;
                     }
                 }
+            }
 
+            return queryBuilder;
+        }
+
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForDueDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.DueDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.DueDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.DueDateTime == dateValue);
+            }
+
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.DueDateTime == dateValue);
+        }
+
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForLastChangedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.LastChangedDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.LastChangedDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+            }
+
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+        }
+
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForCreatedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.CreatedDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.CreatedDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+            }
+
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+        }
+
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForVisibleDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.VisibleDateTime >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.VisibleDateTime <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+            }
+
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+        }
+
+        private static DateTime ParseDateTimeIntoUtc(string queryValue)
+        {
+            return DateTimeHelper.ParseAndConvertToUniversalTime(queryValue);
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> GetOne(string instanceId, int instanceOwnerId)
+        {
+            string cosmosId = InstanceIdToCosmosId(instanceId);
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosId);
+
+            Instance instance = await _client
+                .ReadDocumentAsync<Instance>(
+                    uri,
+                    new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
+
+            PostProcess(instance);
+
+            return instance;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerId)
+        {
+            string instanceOwnerIdString = instanceOwnerId.ToString();
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                PartitionKey = new PartitionKey(instanceOwnerIdString),
+                MaxItemCount = 100,
+            };
+
+            IQueryable<Instance> filter = _client
+                .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                .Where(i => i.InstanceOwnerId == instanceOwnerIdString);
+
+            IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
+
+            FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+
+            List<Instance> instances = feedResponse.ToList<Instance>();
+
+            PostProcess(instances);
+
+            return instances;
+        }
+
+        /// <inheritdoc/>
+        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerId, string instanceState)
+        {
+            List<Instance> instances = new List<Instance>();
+            string instanceOwnerIdString = instanceOwnerId.ToString();
+
+            FeedOptions feedOptions = new FeedOptions
+            {
+                PartitionKey = new PartitionKey(instanceOwnerIdString)
+            };
+
+            IQueryable<Instance> filter = null;
+
+            if (instanceState.Equals("active"))
+            {
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime <= DateTime.UtcNow))
+                        .Where(i => !i.InstanceState.IsDeleted)
+                        .Where(i => !i.InstanceState.IsArchived);
+            }
+            else if (instanceState.Equals("deleted"))
+            {
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => i.InstanceState.IsDeleted)
+                        .Where(i => !i.InstanceState.IsMarkedForHardDelete);
+            }
+            else if (instanceState.Equals("archived"))
+            {
+                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                       .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                       .Where(i => i.InstanceState.IsArchived)
+                       .Where(i => !i.InstanceState.IsDeleted);
+            }
+            else
+            {
                 return instances;
             }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Exception {e}");
-                return null;
-            }
+
+            IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
+
+            FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+
+            instances = feedResponse.ToList<Instance>();
+
+            PostProcess(instances);
+
+            return instances;
         }
 
-        /// <summary>
-        /// Get the instance based on the input parameters
-        /// </summary>
-        /// <param name="applicationId">application owner id</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<List<Instance>> GetInstancesOfApplicationAsync(string applicationId)
+        /// <inheritdoc/>
+        public async Task<Instance> Update(Instance item)
         {
-            try
-            {
-                // string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationId = '{applicationId}'";
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    EnableCrossPartitionQuery = true,
-                    MaxItemCount = 100,          
-                };
+            PreProcess(item);
 
-                IDocumentQuery<Instance> query = _client
-                    .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                    .Where(i => i.ApplicationId == applicationId)           
-                    .AsDocumentQuery();
-
-                FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
-             
-                List<Instance> instances = result.ToList<Instance>();
-                return instances;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Exception {e}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Get the instance based on the input parameters
-        /// </summary>
-        /// <param name="instanceId">the id of the Instance</param>
-        /// <param name="instanceOwnerId">the partition key</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<Instance> GetOneAsync(Guid instanceId, int instanceOwnerId)
-        {
-            try
-            {
-                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
-              
-                Instance instance = await _client
-                    .ReadDocumentAsync<Instance>(
-                        uri,
-                        new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
-
-                return instance;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"Exception {e}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Get all the instances for an instanceOwner
-        /// </summary>
-        /// <param name="instanceOwnerId">the id of the instanceOwner</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<List<Instance>> GetInstancesOfInstanceOwnerAsync(int instanceOwnerId)
-        {
-            try
-            {
-                string instanceOwnerIdString = instanceOwnerId.ToString();
-
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    PartitionKey = new PartitionKey(instanceOwnerIdString),
-                    MaxItemCount = 100,
-                };
-
-                IQueryable<Instance> filter = _client
-                    .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                    .Where(i => i.InstanceOwnerId == instanceOwnerIdString);
-
-                IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
-
-                FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
-
-                return feedResponse.ToList<Instance>();
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Update instance for a given form id
-        /// </summary>
-        /// <param name="instanceId">the instance id</param>
-        /// <param name="item">the instance</param>
-        /// <returns>The instance</returns>
-        public async Task<Instance> UpdateInstanceInCollectionAsync(Guid instanceId, Instance item)
-        {
-            ResourceResponse<Document> createDocumentResponse = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
+            ResourceResponse<Document> createDocumentResponse = await _client
+                .ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id), item);
             Document document = createDocumentResponse.Resource;
             Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
+            PostProcess(instance);
+
             return instance;
+        }
+
+        /// <summary>
+        /// Converts the instanceId (id) of the instance from {instanceOwnerId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
+        /// </summary>
+        /// <param name="instance">the instance to preprocess</param>
+        private void PreProcess(Instance instance)
+        {
+            instance.Id = InstanceIdToCosmosId(instance.Id);
+        }
+
+        /// <summary>
+        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerId}/{instanceGuid} to be used outside cosmos.
+        /// </summary>
+        /// <param name="instance">the instance to preprocess</param>
+        private void PostProcess(Instance instance)
+        {
+            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
+        }
+
+        /// <summary>
+        /// Preprosesses a list of instances.
+        /// </summary>
+        /// <param name="instances">the list of instances</param>
+        private void PostProcess(List<Instance> instances)
+        {
+            instances.ForEach(i => PostProcess(i));
+        }
+
+        /// <summary>
+        /// An instanceId should follow this format {int}/{guid}.
+        /// Cosmos does not allow / in id.
+        /// But in some old cases instanceId is just {guid}.
+        /// </summary>
+        /// <param name="instanceId">the id to convert to cosmos</param>
+        /// <returns>the guid of the instance</returns>
+        private string InstanceIdToCosmosId(string instanceId)
+        {
+            string cosmosId = instanceId;
+
+            if (instanceId != null && instanceId.Contains("/"))
+            {
+                cosmosId = instanceId.Split("/")[1];
+            }
+
+            return cosmosId;
         }
     }
 }

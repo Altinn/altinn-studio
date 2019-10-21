@@ -1,0 +1,11 @@
+Test IIIC001, 002, and 003 use hierarchical resources.
+
+The root resource is identified by "urn:root" and 
+has two child resources identified by 
+"urn:root:child1" and "urn:root:child2".
+
+The first child resource has two child resources identified by
+"urn:root:child1:descendant1" and "urn:root:child1:descendant2".
+
+The second child resource has two child resources identified by
+"urn:root:child2:descendant1" and "urn:root:child2:descendant2".

@@ -23,12 +23,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller with functionality for manual testing of applicaiton developed
+    /// Controller with functionality for manual testing of application developed
     /// </summary>
     [Authorize]
     public class ManualTestingController : Controller
@@ -43,6 +44,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly GeneralSettings _generalSettings;
         private readonly IGitea _giteaApi;
         private readonly IWorkflow _workflow;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
@@ -56,65 +58,96 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaApi">the gitea api</param>
         /// <param name="workflow">the workflow</param>
-        public ManualTestingController(IHttpContextAccessor httpContextAccessor, IProfile profile, IRegister register, IAuthorization authorization, ITestdata testdata, IOptions<ServiceRepositorySettings> serviceRepositorySettings, IOptions<GeneralSettings> generalSettings, IGitea giteaApi, IWorkflow workflow)
+        /// <param name="logger">the logger</param>
+        public ManualTestingController(
+            IHttpContextAccessor httpContextAccessor,
+            IProfile profile,
+            IRegister register,
+            IAuthorization authorization,
+            ITestdata testdata,
+            IOptions<ServiceRepositorySettings> serviceRepositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IGitea giteaApi,
+            IWorkflow workflow,
+            ILogger<ManualTestingController> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _register = register;
             _profile = profile;
-            _userHelper = new UserHelper(_profile, _register);
+            _userHelper = new UserHelper(_profile, _register, generalSettings);
             _authorization = authorization;
             _testdata = testdata;
             _serviceRepositorySettings = serviceRepositorySettings.Value;
-            _generalSettings = generalSettings.Value;
             _giteaApi = giteaApi;
             _workflow = workflow;
+            _logger = logger;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
-        /// This methods list the instances for a given reportee for a service. This can be looked 
+        /// This methods list the instances for a given party for an app. This can be looked
         /// at as a simplified message box
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="reporteeId">The reporteeId</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="partyId">The party id</param>
+        /// <param name="userId">The user id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public async Task<IActionResult> Index(string org, string service, int reporteeId)
+        public async Task<IActionResult> Index(string org, string app, int partyId, int userId)
         {
-            if (reporteeId == 0)
+            if (userId == 0 || partyId == 0)
             {
-                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+                return LocalRedirect($"/designer/{org}/{app}/ManualTesting/Users/");
             }
 
-            CheckAndUpdateWorkflowFile(org, service);
+            bool? isValidSelection = await _authorization.ValidateSelectedParty(userId, partyId);
+
+            if (isValidSelection != true)
+            {
+                return LocalRedirect($"/designer/{org}/{app}/ManualTesting/Users/");
+            }
+
+            Response.Cookies.Append(
+            _generalSettings.GetAltinnPartyCookieName,
+            partyId.ToString(),
+            new CookieOptions
+            {
+                Domain = _generalSettings.HostName
+            });
+
+            CheckAndUpdateWorkflowFile(org, app);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await _userHelper.CreateUserContextBasedOnReportee(HttpContext, reporteeId);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
+            requestContext.UserContext = await _userHelper.CreateUserContextBasedOnUserAndParty(HttpContext, userId, partyId);
+            requestContext.Party = requestContext.UserContext.Party;
 
             StartServiceModel startServiceModel = new StartServiceModel
             {
-                ServiceID = org + "_" + service,
-                ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
-                    .Select(x => new SelectListItem { Text = x.ReporteeNumber + " " + x.ReporteeName, Value = x.PartyID.ToString() })
+                ServiceID = org + "_" + app,
+                PartyList = _authorization.GetPartyList(requestContext.UserContext.UserId)
+                    .Select(x => new SelectListItem
+                    {
+                        Text = (x.PartyTypeName == PartyType.Person) ? x.SSN + " " + x.Name : x.OrgNumber + " " + x.Name,
+                        Value = x.PartyId.ToString()
+                    })
                     .ToList(),
-                PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
+                PrefillList = _testdata.GetServicePrefill(requestContext.Party.PartyId, org, app)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
-                ReporteeID = requestContext.Reportee.PartyId,
+                PartyId = requestContext.Party.PartyId,
                 Org = org,
-                Service = service,
+                Service = app,
             };
 
-            if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
+            if (partyId != 0 && partyId != startServiceModel.PartyId && startServiceModel.PartyList.Any(r => r.Value.Equals(partyId.ToString())))
             {
-                startServiceModel.ReporteeID = reporteeId;
-                requestContext.Reportee = await _register.GetParty(startServiceModel.ReporteeID);
-                requestContext.UserContext.ReporteeId = reporteeId;
-                requestContext.UserContext.Reportee = requestContext.Reportee;
-                HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
+                startServiceModel.PartyId = partyId;
+                requestContext.Party = await _register.GetParty(startServiceModel.PartyId);
+                requestContext.UserContext.PartyId = partyId;
+                requestContext.UserContext.Party = requestContext.Party;
             }
 
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Party.PartyId, org, app);
             ViewBag.InstanceList = formInstances.OrderBy(r => r.LastChanged).ToList();
 
             return View(startServiceModel);
@@ -123,14 +156,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// List the test users
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The view presenting a list of test users</returns>
-        public IActionResult Users(string org, string service)
+        public IActionResult Users(string org, string app)
         {
             List<Testdata> testdata = _testdata.GetTestUsers();
             ViewBag.Org = org;
-            ViewBag.Service = service;
+            ViewBag.Service = app;
             return View(testdata);
         }
 
@@ -153,48 +186,45 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Redirects the user to the correct url given the service instances state
+        /// Redirects the user to the correct url given the app instance state.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="instanceId">The instance id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public IActionResult RedirectToCorrectState(string org, string service, Guid instanceId)
+        public IActionResult RedirectToCorrectState(string org, string app, Guid instanceId)
         {
-            if (HttpContext.Request.Cookies["altinncorereportee"] != null)
+            if (HttpContext.Request.Cookies[_generalSettings.GetAltinnPartyCookieName] != null)
             {
-                ServiceState currentState = _workflow.GetCurrentState(instanceId, org, service, Convert.ToInt32(HttpContext.Request.Cookies["altinncorereportee"]));
-                string nextUrl = _workflow.GetUrlForCurrentState(instanceId, org, service, currentState.State);
+                ServiceState currentState = _workflow.GetCurrentState(instanceId, org, app, Convert.ToInt32(HttpContext.Request.Cookies[_generalSettings.GetAltinnPartyCookieName]));
+                string nextUrl = _workflow.GetUrlForCurrentState(instanceId, org, app, currentState.State);
                 return Redirect(nextUrl);
             }
             else
             {
-                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+                return LocalRedirect($"/designer/{org}/{app}/ManualTesting/Users/");
             }
         }
 
         /// <summary>
         /// Method that logs inn test user
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="id">The testUserId</param>
-        /// <param name="reportee">The reportee chosen</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="userId">The testUserId</param>
         /// <returns>Redirects to returnUrl</returns>
-        public async Task<IActionResult> LoginTestUser(string org, string service, int id, string reportee)
+        public async Task<IActionResult> LoginTestUser(string org, string app, int userId)
         {
-            UserProfile profile = await _profile.GetUserProfile(id);
+            UserProfile profile = await _profile.GetUserProfile(userId);
+            int partyId = (profile.ProfileSettingPreference != null && profile.ProfileSettingPreference.PreSelectedPartyId != 0) ?
+            profile.ProfileSettingPreference.PreSelectedPartyId : profile.PartyId;
+
             var claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, Issuer));
-            if (profile.UserType.Equals(UserType.SSNIdentified))
-            {
-                claims.Add(new Claim(AltinnCoreClaimTypes.SSN, profile.Party.Person.SSN, ClaimValueTypes.String, Issuer));
-            }
-
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.Integer32, Issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, Issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, partyId.ToString(), ClaimValueTypes.Integer32, Issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, Issuer));
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             if (developer != null)
@@ -217,36 +247,25 @@ namespace AltinnCore.Designer.Controllers
                         AllowRefresh = false,
                     });
 
-            List<Reportee> reporteeList = _authorization.GetReporteeList(profile.UserId);
-            Reportee reporteeBE = null;
+            HttpContext.Response.Cookies.Append("AltinnUserId", profile.UserId.ToString());
 
-            if (!string.IsNullOrEmpty(reportee) && reporteeList.Any(r => r.ReporteeNumber.Equals(reportee)))
-            {
-                reporteeBE = reporteeList.FirstOrDefault(r => r.ReporteeNumber.Equals(reportee));
-                HttpContext.Response.Cookies.Append("altinncorereportee", reporteeBE.PartyID.ToString());
-            }
-            else
-            {
-                HttpContext.Response.Cookies.Append("altinncorereportee", profile.PartyId.ToString());
-            }
-
-            return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?reporteeId={id}");
+            return LocalRedirect($"/designer/{org}/{app}/ManualTesting/Index?userId={userId}&partyId={profile.PartyId}");
         }
 
         /// <summary>
         /// Method that checks if there is a newer version of the workflow file and updates it if there are
         /// </summary>
-        /// <param name="applicationOwnerId">The application owner id</param>
-        /// <param name="applicationId">The applicaiton id</param>
-        private void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId)
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        private void CheckAndUpdateWorkflowFile(string org, string app)
         {
-            string workflowFullFilePath = _serviceRepositorySettings.GetWorkflowPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _serviceRepositorySettings.WorkflowFileName;
+            string workflowFullFilePath = _serviceRepositorySettings.GetWorkflowPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _serviceRepositorySettings.WorkflowFileName;
             string templateWorkflowData = System.IO.File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
 
             if (!System.IO.File.Exists(workflowFullFilePath))
             {
                 // Create the workflow folder
-                Directory.CreateDirectory(_serviceRepositorySettings.GetWorkflowPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+                Directory.CreateDirectory(_serviceRepositorySettings.GetWorkflowPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
                 System.IO.File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
             }
             else

@@ -26,7 +26,7 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         /// </summary>
         static CultureString()
         {
-            FallbackLanguage = "nb-no";
+            FallbackLanguage = "nb";
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         /// </returns>
         public override string ToString()
         {
-            return ToString("nb-no");
+            return ToString("nb");
         }
         
         /// <summary>

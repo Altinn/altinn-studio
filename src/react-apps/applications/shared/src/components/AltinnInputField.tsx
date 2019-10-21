@@ -23,6 +23,8 @@ export interface IAltinnInputFieldComponentProvidedProps {
   inputHeaderStyling?: object;
   inputDescriptionStyling?: object;
   type?: any;
+  textFieldId?: string;
+  fullWidth?: boolean;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -58,6 +60,9 @@ const styles = createStyles({
   },
   btn: {
     marginTop: '10px',
+  },
+  fullWidth: {
+    width: '100% !important',
   },
 });
 
@@ -97,7 +102,8 @@ export class AltinnInputField extends React.Component<IAltinnInputFieldComponent
             root: classNames(
               classes.inputField,
               { [classes.disabled]: this.props.isDisabled },
-              { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader }
+              { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader },
+              { [classes.fullWidth]: this.props.fullWidth},
             ),
           }}
           style={this.props.inputFieldStyling}
@@ -118,6 +124,7 @@ export class AltinnInputField extends React.Component<IAltinnInputFieldComponent
               classes: { root: classNames(classes.inputFieldText) },
             }}
             type={this.props.type}
+            id={this.props.textFieldId}
           />
 
         </FormControl>

@@ -1,6 +1,7 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../../store';
 import * as CompleteForm from './complete';
+import { IResponse } from './complete/index';
 import * as FetchFormData from './fetch';
 import * as SubmitFormData from './submit';
 import * as UpdateFormData from './update';
@@ -16,7 +17,7 @@ export interface IFormDataActions extends ActionCreatorsMapObject {
   fetchFormDataFulfilled: (formData: any) => FetchFormData.IFetchFormDataFulfilled;
   fetchFormDataRejected: (error: Error) => FetchFormData.IFetchFormDataRejected;
   completeAndSendInForm: (url: string) => CompleteForm.ICompleteAndSendInForm;
-  completeAndSendInFormFulfilled: () => Action;
+  completeAndSendInFormFulfilled: (response: IResponse) => Action;
   completeAndSendInFormRejected: (error: Error) => CompleteForm.ICompleteAndSendInFormRejected;
 }
 

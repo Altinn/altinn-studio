@@ -1,8 +1,10 @@
+using System;
 using System.IO;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
@@ -37,11 +39,11 @@ namespace Altinn.Platform.Storage
         /// <param name="args">the arguments</param>
         /// <returns></returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)           
+            WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-                
+
                 string basePathCurrentDirectory = Directory.GetCurrentDirectory();
                 logger.Information($"Current directory is: {basePathCurrentDirectory}");
 
@@ -56,6 +58,12 @@ namespace Altinn.Platform.Storage
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
+
+            /* // Parameters required for integration with SBL in local development             
+             .UseKestrel()
+             .UseUrls("http://0.0.0.0:5010")
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .UseIISIntegration() */
             .UseApplicationInsights()
             .UseStartup<Startup>();
 
@@ -68,21 +76,21 @@ namespace Altinn.Platform.Storage
         public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
             logger.Information($"Loading Configuration from basePath={basePath}");
-            
+
             config.SetBasePath(basePath);
             string configJsonFile1 = $"{basePath}/altinn-appsettings/altinn-dbsettings-secret.json";
             string configJsonFile2 = $"{basePath}/Storage/appsettings.json";
-            
+
             if (basePath == "/")
             {
-                configJsonFile2 = "/app/appsettings.json";                
+                configJsonFile2 = "/app/appsettings.json";
             }
 
             logger.Information($"Loading configuration file: '{configJsonFile1}'");
             config.AddJsonFile(configJsonFile1, optional: true, reloadOnChange: true);
 
             logger.Information($"Loading configuration file2: '{configJsonFile2}'");
-            config.AddJsonFile(configJsonFile2, optional: false, reloadOnChange: true);                        
+            config.AddJsonFile(configJsonFile2, optional: false, reloadOnChange: true);
 
             config.AddEnvironmentVariables();
             config.AddCommandLine(args);
@@ -95,18 +103,36 @@ namespace Altinn.Platform.Storage
                 && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
             {
                 AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
-                KeyVaultClient keyVaultClient = new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(
-                        azureServiceTokenProvider.KeyVaultTokenCallback));
-                config.AddAzureKeyVault(
-                    keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-            }
 
-            string applicationInsights = stageOneConfig.GetValue<string>("ApplicationInsights:InstrumentationKey");
-            logger.Information($"Setting application insights instrumentationKey='{applicationInsights}'");
-            if (!string.IsNullOrEmpty(applicationInsights))
+                KeyVaultClient keyVaultClient = new KeyVaultClient(
+                    new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+
+                config.AddAzureKeyVault(
+                    keyVaultEndpoint,
+                    keyVaultClient,
+                    new DefaultKeyVaultSecretManager());
+
+                try
+                {
+                    // get instrumentation key to set up telemetry
+                    SecretBundle secretBundle = keyVaultClient
+                        .GetSecretAsync(keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
+
+                    SetTelemetry(secretBundle.Value);
+                }
+                catch (Exception vaultException)
+                {
+                    logger.Error($"Could not find secretBundle for application insights {vaultException}");
+                }
+            }
+        }
+
+        private static void SetTelemetry(string instrumentationKey)
+        {
+            logger.Information($"Setting application insights telemetry with instrumentationKey='{instrumentationKey}'");
+            if (!string.IsNullOrEmpty(instrumentationKey))
             {
-                TelemetryConfiguration.Active.InstrumentationKey = applicationInsights;                
+                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
             }
         }
     }

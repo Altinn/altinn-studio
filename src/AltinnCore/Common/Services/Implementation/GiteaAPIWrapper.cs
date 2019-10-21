@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,7 +19,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for gitea wrapper
+    /// Implementation of the gitea wrapper service.
     /// </summary>
     public class GiteaAPIWrapper : IGitea
     {
@@ -48,6 +49,7 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.User user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri endpointUrl = new Uri(GetApiBaseUrl() + "/user");
+
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
@@ -174,7 +176,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            if (repository != null && repository.Data.Any())
+            if (repository != null && repository.Data != null && repository.Data.Any())
             {
                 foreach (Repository repo in repository.Data)
                 {
@@ -183,9 +185,9 @@ namespace AltinnCore.Common.Services.Implementation
                         repo.IsClonedToLocal = IsLocalRepo(repo.Owner.Login, repo.Name);
                         Organization org = await GetCachedOrg(repo.Owner.Login);
                         if (org.Id != -1)
-                         {
-                             repo.Owner.UserType = UserType.Org;
-                         }
+                        {
+                            repo.Owner.UserType = UserType.Org;
+                        }
                     }
                 }
             }
@@ -213,20 +215,29 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching service {owner}/{repository} failed with reponsecode {response.StatusCode}");
+                    _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {owner}/{repository} failed with reponsecode {response.StatusCode}");
                 }
             }
 
+            var watchOwnerType = System.Diagnostics.Stopwatch.StartNew();
             if (returnRepository != null && returnRepository.Owner != null && !string.IsNullOrEmpty(returnRepository.Owner.Login))
             {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
+                watch = System.Diagnostics.Stopwatch.StartNew();
                 Organization org = await GetCachedOrg(returnRepository.Owner.Login);
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
                 if (org.Id != -1)
                 {
                     returnRepository.Owner.UserType = UserType.Org;
                 }
             }
 
+            watchOwnerType.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "To find if local repo and owner type - {0} ", watchOwnerType.ElapsedMilliseconds);
             return returnRepository;
         }
 
@@ -344,7 +355,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the logged in user</returns>
         public async Task<string> GetUserNameFromUI()
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/");
             using (HttpClient client = GetWebHtmlClient(false))
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -371,31 +382,34 @@ namespace AltinnCore.Common.Services.Implementation
 
             await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
 
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
-
             FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
 
-            using (HttpClient client = GetWebHtmlClient())
+            using (HttpClient client = GetWebHtmlClient(false))
             {
+                // creating new API key
                 HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
                 {
-                    string htmlContent = await response.Content.ReadAsStringAsync();
-                    string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
-                    List<string> keys = FindAllAppKeysId(htmlContent, keyName);
-                    _logger.LogInformation($"The number of app keys matching keyname {keyName} is {keys.Count}");
-                    foreach (string key in keys)
+                    Cookie cookie = StealMacaronCookie(response);
+
+                    using (HttpClient clientWithToken = GetWebHtmlClient(false, cookie))
                     {
-                        _logger.LogInformation($"Keyvalue is {key}");
+                        // reading the API key value
+                        HttpResponseMessage tokenResponse = await clientWithToken.GetAsync(giteaUrl);
+                        string htmlContent = await tokenResponse.Content.ReadAsStringAsync();
+                        string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
+                        List<string> keys = FindAllAppKeysId(htmlContent, keyName);
+
+                        KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
+
+                        return keyValuePair;
                     }
-
-                    KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
-
-                    return keyValuePair;
                 }
             }
 
@@ -404,11 +418,12 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<string> GetCsrf()
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
 
             using (HttpClient client = GetWebHtmlClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
+
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string htmlContent = await response.Content.ReadAsStringAsync();
@@ -422,7 +437,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task DeleteCurrentAppKeys(string csrf, string keyName = null)
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications");
             List<string> appKeyIds = new List<string>();
 
             using (HttpClient client = GetWebHtmlClient())
@@ -440,7 +455,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task DeleteAllAppKeys(List<string> appKeys, string csrf)
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications/delete");
+            Uri giteaUrl = BuildGiteaUrl("/user/settings/applications/delete");
 
             using (HttpClient client = GetWebHtmlClient())
             {
@@ -485,14 +500,14 @@ namespace AltinnCore.Common.Services.Implementation
             return htmlValues;
         }
 
-        private bool IsLocalRepo(string org, string service)
+        private bool IsLocalRepo(string org, string app)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (Directory.Exists(localServiceRepoFolder))
+            string localAppRepoFolder = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            if (Directory.Exists(localAppRepoFolder))
             {
                 try
                 {
-                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localAppRepoFolder))
                     {
                         return true;
                     }
@@ -555,17 +570,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private string GetApiBaseUrl()
         {
-            string baseUrl = string.Empty;
-            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
-            {
-                baseUrl = Environment.GetEnvironmentVariable("GiteaApiEndpoint");
-            }
-            else
-            {
-                baseUrl = _settings.ApiEndPoint;
-            }
-
-            return baseUrl;
+            return Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint") ?? _settings.ApiEndPoint;    
         }
 
         private HttpClient GetApiClient(bool allowAutoRedirect = true)
@@ -578,13 +583,18 @@ namespace AltinnCore.Common.Services.Implementation
             return client;
         }
 
-        private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true)
+        private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true, Cookie tokenCookie = null)
         {
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
             Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
+
+            if (tokenCookie != null)
+            {
+                cookieContainer.Add(tokenCookie);
+            }
+
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer, AllowAutoRedirect = allowAutoRedirect };
 
             return new HttpClient(handler);
@@ -592,36 +602,37 @@ namespace AltinnCore.Common.Services.Implementation
 
         private Cookie CreateGiteaSessionCookie(string giteaSession)
         {
-            Cookie cookie;
-
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-            {
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
-            }
-            else
-            {
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
-            }
-
-            return cookie;
+            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost") != null)
+                    ? new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndpointHost"))
+                    : new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
         }
 
         private Uri BuildGiteaUrl(string path)
         {
-            Uri giteaUrl;
+            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+                     ? new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + path)
+                     : new Uri(_settings.RepositoryBaseURL + path);
+        }
 
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-            {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + path);
-            }
-            else
-            {
-                giteaUrl = new Uri(_settings.RepositoryBaseURL + path);
-            }
+        private string GetApiEndpointHost()
+        {
+            return Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPointHost") ?? _settings.ApiEndPointHost;
+        }
 
-            return giteaUrl;
+        private Cookie StealMacaronCookie(HttpResponseMessage response)
+        {
+            string macaronFlashKey = "macaron_flash";
+            string setCookieHeader = response.Headers.GetValues("Set-Cookie")
+                .Where(s => s.Contains(macaronFlashKey))
+                .First()
+                .Split(";")[0];
+
+            var splitSetCookieHeader = setCookieHeader.Split("=");
+            string macaronFlashValue = splitSetCookieHeader[1];
+
+            return new Cookie(macaronFlashKey, macaronFlashValue, "/", GetApiEndpointHost());
         }
     }
 }

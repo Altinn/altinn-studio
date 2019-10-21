@@ -5,7 +5,7 @@ FROM node:10.13.0 AS generate-service-development
 COPY ./src/react-apps/lerna.json .
 COPY ./src/react-apps/package.json .
 COPY ./src/react-apps/package-lock.json .
-RUN npm install
+RUN npm ci
 
 # Copy and install npm dependencies
 COPY ./src/react-apps/applications/shared/package.json /applications/shared/

@@ -1,0 +1,1 @@
+# Altinn Receipt React Application

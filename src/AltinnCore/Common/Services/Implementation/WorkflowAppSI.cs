@@ -6,6 +6,9 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
+using AltinnCore.Authentication.JwtCookie;
+using AltinnCore.Authentication.Utils;
+using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -19,7 +22,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// workflow Service implementation for deployed application
+    /// App implementation of the workflow service for deployed application.
     /// </summary>
     public class WorkflowAppSI : IWorkflow
     {
@@ -28,6 +31,8 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
+        private readonly JwtCookieOptions _cookieOptions;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowAppSI"/> class.
@@ -37,69 +42,74 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="testdataRepositorySettings">The test data repository settings</param>
         /// <param name="platformSettings">the platform settings</param>
         /// <param name="generalSettings">the general settings</param>
+        /// <param name="cookieOptions">The cookie options </param>
+        /// <param name="httpClientAccessor">The Http client accessor </param>
         public WorkflowAppSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<PlatformSettings> platformSettings,
-            IOptions<GeneralSettings> generalSettings)
+            IOptions<GeneralSettings> generalSettings,
+            IOptions<JwtCookieOptions> cookieOptions,
+            IHttpClientAccessor httpClientAccessor)
         {
             _settings = repositorySettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _platformSettings = platformSettings.Value;
             _generalSettings = generalSettings.Value;
+            _cookieOptions = cookieOptions.Value;
+            _client = httpClientAccessor.StorageClient;
         }
 
         /// <inheritdoc/>
-        public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId)
+        public ServiceState GetInitialServiceState(string org, string app)
         {            
             // Read the workflow template
-            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+            string workflowData = File.ReadAllText(_settings.GetWorkflowPath(org, app, null) + _settings.WorkflowFileName, Encoding.UTF8);
             return WorkflowHelper.GetInitialWorkflowState(workflowData);
         }
 
         /// <inheritdoc/>
-        public string GetUrlForCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, WorkflowStep currentState)
+        public string GetUrlForCurrentState(Guid instanceId, string org, string app, WorkflowStep currentState)
         {
-            return WorkflowHelper.GetUrlForCurrentState(instanceId, applicationOwnerId, applicationId, currentState);
+            return WorkflowHelper.GetUrlForCurrentState(instanceId, org, app, currentState);
         }
 
         /// <inheritdoc/>
-        public ServiceState GetCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
+        public ServiceState GetCurrentState(Guid instanceId, string org, string app, int instanceOwnerId)
         {
+            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
-            using (HttpClient client = new HttpClient())
+            string apiUrl = $"instances/{instanceIdentifier}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            Task<HttpResponseMessage> response = _client.GetAsync(apiUrl);
+            if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                client.BaseAddress = new Uri(apiUrl);
-
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string instanceData = response.Result.Content.ReadAsStringAsync().Result;
-                    instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                }
-                else
-                {
-                    throw new Exception("Unable to fetch workflow state");
-                }
-
-                Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentWorkflowState);
-
-                return new ServiceState
-                {
-                    State = currentWorkflowState
-                };
+                string instanceData = response.Result.Content.ReadAsStringAsync().Result;
+                instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             }
+            else
+            {
+                throw new Exception("Unable to fetch workflow state");
+            }
+
+            Enum.TryParse<WorkflowStep>(instance.Process.CurrentTask.ProcessElementId, out WorkflowStep currentWorkflowState);
+
+            return new ServiceState
+            {
+                State = currentWorkflowState
+            };
         }
 
         /// <inheritdoc/>
-        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
+        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string org, string app, int instanceOwnerId)
         {
-            ServiceState currentState = GetCurrentState(instanceId, applicationOwnerId, applicationId, instanceOwnerId);
-            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+            ServiceState currentState = GetCurrentState(instanceId, org, app, instanceOwnerId);
+            string workflowData = File.ReadAllText(_settings.GetWorkflowPath(org, app, null) + _settings.WorkflowFileName, Encoding.UTF8);
             return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }
     }

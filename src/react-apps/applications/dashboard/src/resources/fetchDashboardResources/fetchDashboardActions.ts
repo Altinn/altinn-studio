@@ -73,38 +73,38 @@ export function fetchCurrentUserRejectedAction(
   };
 }
 
-/* Actions for fetching organizations */
-export interface IFetchOrganizationsAction extends Action {
+/* Actions for fetching organisations */
+export interface IFetchOrganisationsAction extends Action {
   url: string;
 }
-export interface IFetchOrganizationsFulfilled extends Action {
-  organizations: any;
+export interface IFetchOrganisationsFulfilled extends Action {
+  organisations: any;
 }
-export interface IFetchOrganizationsRejected extends Action {
+export interface IFetchOrganisationsRejected extends Action {
   error: Error;
 }
 
-export function fetchOrganizationsAction(url: string): IFetchOrganizationsAction {
+export function fetchOrganisationsAction(url: string): IFetchOrganisationsAction {
   return {
-    type: ActionTypes.FETCH_ORGANIZATIONS,
+    type: ActionTypes.FETCH_ORGANISATIONS,
     url,
   };
 }
 
-export function fetchOrganizationsFulfilledAction(
-  organizations: any,
-): IFetchOrganizationsFulfilled {
+export function fetchOrganisationsFulfilledAction(
+  organisations: any,
+): IFetchOrganisationsFulfilled {
   return {
-    type: ActionTypes.FETCH_ORGANIZATIONS_FULFILLED,
-    organizations,
+    type: ActionTypes.FETCH_ORGANISATIONS_FULFILLED,
+    organisations,
   };
 }
 
-export function fetchOrganizationsRejectedAction(
+export function fetchOrganisationsRejectedAction(
   error: Error,
-): IFetchOrganizationsRejected {
+): IFetchOrganisationsRejected {
   return {
-    type: ActionTypes.FETCH_ORGANIZATIONS_REJECTED,
+    type: ActionTypes.FETCH_ORGANISATIONS_REJECTED,
     error,
   };
 }

@@ -56,14 +56,20 @@
   width: 15%;
 }
 
-.file-upload-table > tbody > tr:last-child{
-  border: 0;
+.file-upload-table > tbody > tr > td:first-child {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.file-upload-table > thead > tr > th:first-child {
+  width: 40%;
 }
 
 .file-upload-table {
   width: 100%;
   margin-top: 2.4rem;
   border-spacing: 0 1.2rem;
+  table-layout: fixed;
 }
 
 .file-upload-table > tbody {

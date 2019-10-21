@@ -23,9 +23,27 @@ export const customInput = {
   }),
 };
 
+export const disabledInput = {
+  control: (base: any) => ({
+    ...base,
+    borderRadius: '0 !important',
+    background: 'repeating-linear-gradient(135deg, #efefef, #efefef 2px, #fff 3px, #fff 5px)',
+  }),
+  placeholder: (base: any) => ({
+    ...base,
+    color: '#000',
+  }),
+};
+
 const styles = {
   gridItem: {
     marginTop: '24px',
+  },
+  inputHelper: {
+    marginTop: '2.4rem',
+    fontSize: '1.6rem',
+    lineHeight: 'auto',
+    color: '#000000',
   },
 };
 
@@ -46,7 +64,7 @@ export interface IEditModalContentState {
   component: IFormComponent;
 }
 
-class EditModalContentComponent extends React.Component<IEditModalContentProps, IEditModalContentState> {
+export class EditModalContentComponent extends React.Component<IEditModalContentProps, IEditModalContentState> {
   constructor(_props: IEditModalContentProps, _state: IEditModalContentState) {
     super(_props, _state);
     this.state = {
@@ -358,11 +376,20 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       case 'Button': {
         return (
           <Grid item={true} xs={12}>
+            <Typography style={styles.inputHelper}>
+              {getLanguageFromKey('ux_editor.modal_properties_button_type_helper', this.props.language)}
+            </Typography>
+            <Select
+              styles={disabledInput}
+              value={getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)}
+              placeholder={getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language)}
+              isDisabled={true}
+            />
             {renderSelectTextFromResources('modal_properties_button_helper',
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
+              getLanguageFromKey('ux_editor.modal_properties_button_type_submit', this.props.language))}
           </Grid>
         );
       }
@@ -381,6 +408,16 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               />
               {this.props.language.ux_editor.modal_configure_address_component_simplified}
             </Grid>
+            {
+              renderSelectTextFromResources(
+                'modal_properties_label_helper',
+                this.handleTitleChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings.title,
+              )
+            }
+
             {Object.keys(AddressKeys).map((value: AddressKeys) => {
               const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
               if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
@@ -397,16 +434,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                 )
               );
             })}
-            {
-              renderSelectTextFromResources(
-                'modal_configure_address_component_address_text_binding',
-                this.handleTextResourceBindingChange,
-                this.props.textResources,
-                this.props.language,
-                this.props.component.textResourceBindings[AddressKeys.address],
-                AddressKeys.address,
-              )
-            }
           </Grid >
         );
       }
@@ -489,8 +516,19 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             }
             <Grid item={true} xs={12}>
               <AltinnInputField
+                id={'modal-properties-minimum-files'}
+                onChangeFunction={this.handleNumberOfAttachmentsChange('min')}
+                inputValue={component.minNumberOfAttachments || 0}
+                inputDescription={getLanguageFromKey('ux_editor.modal_properties_minimum_files', this.props.language)}
+                inputFieldStyling={{ width: '60px' }}
+                inputDescriptionStyling={{ marginTop: '24px' }}
+                type={'number'}
+              />
+            </Grid>
+            <Grid item={true} xs={12}>
+              <AltinnInputField
                 id={'modal-properties-maximum-files'}
-                onChangeFunction={this.handleMaxNumberOfAttachmentsChange}
+                onChangeFunction={this.handleNumberOfAttachmentsChange('max')}
                 inputValue={component.maxNumberOfAttachments || 1}
                 inputDescription={getLanguageFromKey('ux_editor.modal_properties_maximum_files', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
@@ -509,7 +547,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                 inputDescriptionStyling={{ marginTop: '24px' }}
                 type={'number'}
               />
-              <Typography style={{ fontSize: '1.6rem', display: 'inline-block', marginTop: '23px' }}>
+              <Typography style={{ fontSize: '1.6rem', display: 'inline-block', marginTop: '23px', marginLeft: '6px' }}>
                 {getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size_helper', this.props.language)}
               </Typography>
@@ -545,8 +583,12 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   }
 
   public getMinOccursFromDataModel = (dataBindingName: string): number => {
-    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) =>
-      e.DataBindingName === dataBindingName);
+    const parentComponent = dataBindingName.replace('.value', '');
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
+      const firstPeriod = e.ID.indexOf('.');
+      const elementDataBindingName = e.ID.substr(firstPeriod + 1, e.ID.length - (firstPeriod + 1));
+      return elementDataBindingName.toLowerCase() === parentComponent.toLowerCase();
+    });
     return element.MinOccurs;
   }
 
@@ -568,9 +610,14 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.props.handleComponentUpdate(component);
   }
 
-  public handleMaxNumberOfAttachmentsChange = (event: any) => {
+  public handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
-    component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+    if (type === 'max') {
+      component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
+    } else {
+      component.minNumberOfAttachments = (event.target.value >= 0) ? event.target.value : 0;
+      component.required = event.target.value > 0;
+    }
     this.setState({
       component,
     });
@@ -610,11 +657,11 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       dataModelBinding = {};
     }
     dataModelBinding[key] = selectedDataModelElement;
-    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 1) {
+    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 0) {
       this.setState({
         component: {
           ...this.state.component,
-          required: true,
+          required: false,
           dataModelBindings: dataModelBinding,
         },
       }, () => this.props.handleComponentUpdate(this.state.component));
@@ -622,6 +669,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       this.setState({
         component: {
           ...this.state.component,
+          required: true,
           dataModelBindings: dataModelBinding,
         },
       }, () => this.props.handleComponentUpdate(this.state.component));

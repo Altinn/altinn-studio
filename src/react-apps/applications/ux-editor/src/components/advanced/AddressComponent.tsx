@@ -148,7 +148,6 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
   public render(): JSX.Element {
     const { component: { simplified } } = this.props;
     const { address, zipCode, postPlace, careOf, houseNumber, validations } = this.state;
-
     if (simplified) {
       return (
         <div className={'address-component'}>

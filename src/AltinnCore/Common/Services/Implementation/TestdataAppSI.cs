@@ -12,13 +12,14 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for application test data
+    /// App implementation of the test data service.
     /// </summary>
     public class TestdataAppSI : ITestdata
     {
@@ -27,6 +28,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IInstance _instance;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestdataAppSI"/> class
@@ -35,28 +37,35 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">Service repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="instanceSI">the instance service</param>
-        public TestdataAppSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IInstance instanceSI)
+        /// <param name="logger">The logger</param>
+        public TestdataAppSI(
+            IOptions<TestdataRepositorySettings> testdataRepositorySettings,
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IHttpContextAccessor httpContextAccessor,
+            IInstance instanceSI,
+            ILogger<TestdataAppSI> logger)
         {
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _instance = instanceSI;
+            _logger = logger;
         }
 
         /// <inheritdoc />
-        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string applicationOwnerId, string applicationId)
+        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string app)
         {
             List<ServiceInstance> returnList = new List<ServiceInstance>();
-            List<Instance> instances = _instance.GetInstances(applicationId, applicationOwnerId, instanceOwnerId).Result;
+            List<Instance> instances = _instance.GetInstances(app, org, instanceOwnerId).Result;
             if (instances != null && instances.Count > 0)
             {
                 foreach (Instance instance in instances)
                 {
                     returnList.Add(new ServiceInstance
                     {
-                        ServiceInstanceID = Guid.Parse(instance.Id),
-                        IsArchived = instance.IsCompleted,
-                        LastChanged = instance.LastChangedDateTime
+                        ServiceInstanceID = instance.Id,
+                        IsArchived = instance.InstanceState != null ? instance.InstanceState.IsArchived : false,
+                        LastChanged = instance.LastChangedDateTime ?? DateTime.MinValue,
                     });
                 }
             }
@@ -74,7 +83,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string applicationOwnerId, string applicationId)
+        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string app)
         {
             // TDOD: to be implemented
             return new List<ServicePrefill>();

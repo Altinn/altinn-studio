@@ -1,0 +1,10 @@
+﻿[
+  {
+    "stepType": "FormFilling",
+    "stepName": "Utfylling",
+    "security": {
+      "authenticationLevel": "3",
+      "roleRequirement": "ALLEA"
+    }
+  }
+]

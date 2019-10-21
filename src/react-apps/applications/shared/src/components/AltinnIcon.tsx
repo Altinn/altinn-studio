@@ -5,13 +5,11 @@ import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnIconCompontentProvidedProps {
-  /** @ignore */
-  classes: any;
   iconClass: string;
   isActive?: boolean;
   isActiveIconColor?: string;
   iconColor: any;
-  iconSize?: number;
+  iconSize?: number|string;
   padding?: string;
   margin?: string;
   weight?: number;

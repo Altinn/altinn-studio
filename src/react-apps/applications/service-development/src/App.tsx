@@ -26,6 +26,7 @@ import handleServiceInformationActionDispatchers from './features/administration
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
+import applicationMetadataDispatcher from './sharedResources/applicationMetadata/applicationMetadataDispatcher';
 import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
@@ -81,6 +82,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
     handleServiceInformationActionDispatchers.fetchServiceName(
       `${altinnWindow.location.origin}/designer/${org}/${service}/Text/GetServiceName`);
+    applicationMetadataDispatcher.getApplicationMetadata();
 
     this.checkForMergeConflict();
     window.addEventListener('message', this.windowEventReceived);

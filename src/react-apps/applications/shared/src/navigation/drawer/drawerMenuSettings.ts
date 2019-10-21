@@ -121,6 +121,12 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       activeLeftMenuSelection: 'Kode',
       iconClass: 'fa fa-info-circle',
     },
+    {
+      displayText: 'Tilgangsstyring',
+      navLink: '/accesscontrol',
+      activeLeftMenuSelection: 'Tilgangsstyring',
+      iconClass: 'fa fa-info-circle',
+    },
   ],
   language: [
     {

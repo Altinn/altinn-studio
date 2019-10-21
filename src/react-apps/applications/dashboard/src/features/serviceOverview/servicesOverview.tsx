@@ -75,15 +75,17 @@ const styles = createStyles({
 
 const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
   const allDistinctServiceOwners: string[] = [];
-  services.map((service: any) => {
-    const keyToLookFor = service.owner.full_name || service.owner.login;
-    if (allDistinctServiceOwners.indexOf(keyToLookFor) === -1) {
-      if (currentUser && currentUser === keyToLookFor) {
-        return;
+  if (services) {
+    services.map((service: any) => {
+      const keyToLookFor = service.owner.full_name || service.owner.login;
+      if (allDistinctServiceOwners.indexOf(keyToLookFor) === -1) {
+        if (currentUser === keyToLookFor) {
+          return;
+        }
+        allDistinctServiceOwners.push(keyToLookFor);
       }
-      allDistinctServiceOwners.push(keyToLookFor);
-    }
-  });
+    });
+  }
   if (currentUser) {
     allDistinctServiceOwners.unshift(currentUser);
   }
@@ -91,8 +93,11 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
   return allDistinctServiceOwners;
 };
 
-const getListOfServicesExcludingCodelist = (services: any) => {
-  return services.filter((service: any) => service.name !== 'codelists');
+export const getListOfServicesExcludingCodelist = (services: any) => {
+  if (services) {
+    return services.filter((service: any) => service.name !== 'codelists');
+  }
+  return services;
 };
 
 const getCurrentUsersName = (user: any) => {
@@ -100,7 +105,7 @@ const getCurrentUsersName = (user: any) => {
 };
 
 // tslint:disable-next-line:max-line-length
-class ServicesOverviewComponent extends React.Component<IServicesOverviewComponentProps, IServicesOverviewComponentState> {
+export class ServicesOverviewComponent extends React.Component<IServicesOverviewComponentProps, IServicesOverviewComponentState> {
   // tslint:disable-next-line:max-line-length
   public static getDerivedStateFromProps(_props: IServicesOverviewComponentProps, _state: IServicesOverviewComponentState) {
     return {
@@ -147,10 +152,15 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
       return filteredServices;
     }
 
-    return filteredServices.filter((service: any) =>
-      service.name.toLowerCase().includes(this.state.searchString.toLowerCase()) ||
-      service.description.toLowerCase().includes(this.state.searchString.toLowerCase()),
-    );
+    return filteredServices.filter((service: any) => {
+        const isMatchOnName = service.name.toLowerCase().indexOf(this.state.searchString.toLocaleLowerCase()) > -1;
+        const isMatchOnDescription = service.description.toLowerCase()
+          .indexOf(this.state.searchString.toLocaleLowerCase()) > -1;
+        if (isMatchOnName || isMatchOnDescription) {
+          return service;
+        }
+    });
+
   }
 
   public updateSearchSting = (event: any) => {

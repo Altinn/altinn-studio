@@ -1,8 +1,5 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin
-const MonacoPlugin = require('monaco-editor-webpack-plugin');
-const path = require('path');
+const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
 
 module.exports = {
   mode: 'development',
@@ -31,12 +28,7 @@ module.exports = {
       },
       {
         test: /\.css$/,
-        use: [{
-            loader: MiniCssExtractPlugin.loader,
-            options: {
-              url: false
-            }
-          },
+        use: [
           {
             loader: "css-loader",
             options: {
@@ -60,9 +52,6 @@ module.exports = {
     new HtmlWebPackPlugin({
       template: './public/index.html',
       filename: 'index.html'
-    }),
-    new MiniCssExtractPlugin({
-      filename: "service-development.css",
     }),
     new CheckerPlugin(),
   ],

@@ -52,17 +52,15 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     this.setState({
       selected: newSelected,
     });
-    let count = 0;
-    for (const i in newSelected) {
-      if (newSelected[i]) {
-        count++;
-      }
-    }
-    this.props.handleDataChange(count > 1 ? newSelected.join() : selectedValue);
+    this.props.handleDataChange(this.selectedHasValues(newSelected) ? newSelected.join() : '');
+  }
+
+  public selectedHasValues = (selected: string[]): boolean => {
+    return selected.some((element) => element !== '');
   }
 
   public isOptionSelected = (option: string) => {
-    return this.state.selected.includes(option);
+    return this.state.selected.indexOf(option) > -1;
   }
 
   public emptyFunction = (): string => {

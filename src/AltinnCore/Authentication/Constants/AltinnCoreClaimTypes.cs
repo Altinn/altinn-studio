@@ -11,11 +11,6 @@ namespace AltinnCore.Authentication.Constants
         public const string AuthenticationLevel = "AuthenticationLevel";
 
         /// <summary>
-        /// Social Security Number
-        /// </summary>
-        public const string SSN = "SSN";
-
-        /// <summary>
         /// The UserID for the user profile in the platform
         /// </summary>
         public const string UserId = "UserID";
@@ -24,6 +19,11 @@ namespace AltinnCore.Authentication.Constants
         /// The PartyID in register for a given user
         /// </summary>
         public const string PartyID = "PartyID";
+
+        /// <summary>
+        /// The PartyId in register for the party the user is representing
+        /// </summary>
+        public const string RepresentingPartyId = "RepresentingPartyId";
 
         /// <summary>
         /// Username defined in the profile

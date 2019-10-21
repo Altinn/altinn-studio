@@ -45,7 +45,7 @@ namespace AltinnCore.Authentication.JwtCookie
         }
 
         /// <summary>
-        /// The handler calls methods on the events which give the application control at certain points where processing is occurring. 
+        /// The handler calls methods on the events which give the application control at certain points where processing is occurring.
         /// If it is not provided a default instance is supplied which does nothing when the methods are called.
         /// </summary>
         protected new JwtCookieEvents Events
@@ -61,17 +61,17 @@ namespace AltinnCore.Authentication.JwtCookie
         protected override Task<object> CreateEventsAsync() => Task.FromResult<object>(new JwtCookieEvents());
 
         /// <summary>
-        ///  Handles the authentication of the request 
+        ///  Handles the authentication of the request
         /// </summary>
         /// <returns></returns>
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             try
             {
-                // Get the cookie from request 
+                // Get the cookie from request
                 string token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
 
-                // If no cookie present 
+                // If no cookie present
                 if (string.IsNullOrEmpty(token))
                 {
                     string authorization = Request.Headers["Authorization"];

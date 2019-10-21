@@ -105,7 +105,7 @@ namespace AltinnCore.UnitTest.Common
                     XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(new XmlTextReader(file), TestLogger.Create<XsdToJsonSchema>());
                     JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-                    JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("org", "service", schemaJsonSchema, string.Empty);
+                    JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("org", "app", schemaJsonSchema, string.Empty);
                     JsonObject instanceModel = converter.GetInstanceModel();
 
                     // XSD to Json Schema metadata using obsolete SeresXsdParser
@@ -133,7 +133,7 @@ namespace AltinnCore.UnitTest.Common
         {
             SeresXsdParser seresParser = new SeresXsdParser(moqRepository.Object);
             XDocument mainXsd = XDocument.Load(file);
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("org", "service", mainXsd, null);
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("org", "app", mainXsd, null);
             return serviceMetadata;
         }
 

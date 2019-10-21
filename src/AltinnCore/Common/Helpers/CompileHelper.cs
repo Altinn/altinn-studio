@@ -12,7 +12,7 @@ namespace AltinnCore.Common.Helpers
     public static class CompileHelper
     {
         /// <summary>
-        /// Creates an asynchronous task for compiling an app
+        /// Creates an asynchronous task for compiling an app.
         /// </summary>
         /// <param name="compilation">The ICompilation implementation</param>
         /// <param name="identifier">The service identifier</param>
@@ -27,6 +27,16 @@ namespace AltinnCore.Common.Helpers
                         true);
 
             return Task<CodeCompilationResult>.Factory.StartNew(compile);
+        }
+
+        /// <summary>
+        /// Converts the appId to a string that is valid in a C# Namespace
+        /// </summary>
+        /// <param name="appId">The appId</param>
+        /// <returns>The modified appId</returns>
+        public static string GetCSharpValidAppId(string appId)
+        {
+            return appId.Replace('-', '_').ToLower();
         }
     }
 }

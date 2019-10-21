@@ -1,0 +1,27 @@
+{{- $serviceName := include "altinn-designer.fullname" . }}
+{{- $servicePort := .Values.service.externalPort }}
+{{- $host := .Values.host }}
+{{- range $ingress := .Values.ingress }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $ingress.metadata.name }}
+  annotations:
+  {{- range $key, $value := $ingress.metadata.annotations }}
+    {{ $key }}: {{ $value | quote }}
+  {{- end }}
+spec:
+  rules:
+  - host: {{ $host }}
+    http:
+      backend:
+        serviceName: {{ $serviceName }}
+      paths:
+      {{- range $path := $ingress.paths }}
+      - path: {{ $path.path }}
+        backend:
+          serviceName: {{ $serviceName }}
+          servicePort: {{ $servicePort }}
+      {{- end }}
+---
+{{- end }}

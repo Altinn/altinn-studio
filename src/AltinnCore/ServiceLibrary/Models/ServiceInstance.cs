@@ -10,7 +10,7 @@ namespace AltinnCore.ServiceLibrary.Models
         /// <summary>
         /// Gets or sets the ID of the service instance
         /// </summary>
-        public Guid ServiceInstanceID { get; set; }
+        public string ServiceInstanceID { get; set; }
 
         /// <summary>
         /// Gets or sets when the service instance was last changed

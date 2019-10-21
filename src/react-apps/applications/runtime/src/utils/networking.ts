@@ -43,6 +43,17 @@ export async function put(
   }
 }
 
+export async function putWithoutConfig<ReturnType>(
+  url: string,
+): Promise<ReturnType> {
+  try {
+    const response = await axios.put(url);
+    return response.data ? response.data : null;
+  } catch (err) {
+    throw new Error('HTTP Call failed: ' + err.message);
+  }
+}
+
 export function checkIfAxiosError(error: Error): boolean {
   return (error as AxiosError).config !== undefined;
 }

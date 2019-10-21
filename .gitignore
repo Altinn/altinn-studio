@@ -321,6 +321,13 @@ src/react-apps/applications/dashboard/dist
 src/react-apps/applications/runtime/node_modules
 src/react-apps/applications/runtime/compiled
 src/react-apps/applications/runtime/dist
+src/react-apps/applications/receipt/node_modules
+src/react-apps/applications/receipt/compiled
+src/react-apps/applications/receipt/dist
+
+######### Built react apps for receipt ###########
+src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/receipt/js/react
+src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/wwwroot/receipt/css
 
 ######### Built react apps for runtime ###########
 src/AltinnCore/Runtime/wwwroot/runtime/css/react
@@ -339,6 +346,12 @@ src/AltinnCore/Designer/wwwroot/designer/css/bootstrap*.css
 coverage
 /deploy/kubernetes/helm-charts/altinn-dataservice-0.1.0.tgz
 /deploy/kubernetes/altinn-dbsettings-secret.json
+
+/src/Altinn.Platform/Altinn.Platform.Storage/Storage/values.dev.yaml
+/src/Altinn.Platform/Altinn.Platform.Storage/Storage.Interface/Storage.Interface.xml
+/src/Altinn.Platform/Altinn.Platform.Profile/Profile/charts/profile
+/src/Altinn.Platform/Altinn.Platform.Profile/Profile/azds.yaml
+/src/AltinnCore/UnitTest/coverage.opencover.xml
 
 ## Java
 *.class

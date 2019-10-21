@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { EditModalContent } from '../../../src/components/config/EditModalContent';
+import { EditModalContent, EditModalContentComponent } from '../../../src/components/config/EditModalContent';
 
 describe('>>> containers/EditModalContent', () => {
   let mockComponent: any;
@@ -14,30 +14,6 @@ describe('>>> containers/EditModalContent', () => {
 
   beforeEach(() => {
     const createStore = configureStore();
-    const initialState = {
-      appData: {
-        codeLists: {
-          codeLists: [] as any,
-          error: null as any,
-          fetched: true,
-          fetching: false,
-        },
-        language: {
-          language: {},
-        },
-        dataModel: {
-          model: [] as any[],
-        },
-        textResources: {
-          resources: [{ id: 'ServiceName', value: 'Test' }],
-        },
-      },
-      thirdPartyComponents: {
-        components: null as any,
-        error: null as any,
-      },
-    };
-
     mockLanguage = {
       general: {
         label: '',
@@ -51,13 +27,35 @@ describe('>>> containers/EditModalContent', () => {
     };
     mockComponent = {
       dataModelBindings: {},
-      itemType: 'COMPONENT',
       readOnly: false,
       required: false,
       textResourceBindings: {
         title: 'Input',
       },
       type: 'Input',
+    };
+    const initialState = {
+      appData: {
+        codeLists: {
+          codeLists: [] as any,
+          error: null as any,
+          fetched: true,
+          fetching: false,
+        },
+        language: {
+          language: mockLanguage,
+        },
+        dataModel: {
+          model: [] as any[],
+        },
+        textResources: {
+          resources: [{ id: 'ServiceName', value: 'Test' }],
+        },
+      },
+      thirdPartyComponents: {
+        components: null as any,
+        error: null as any,
+      },
     };
     mockHandleComponentUpdate = () => {
       // something
@@ -80,13 +78,93 @@ describe('>>> containers/EditModalContent', () => {
   it('+++ should return header spesific content when type header', () => {
     mockComponent = {
       dataModelBindings: {},
-      itemType: 'COMPONENT',
       readOnly: false,
       required: false,
       textResourceBindings: {
         title: 'Header',
       },
       type: 'Header',
+    };
+    const mountedEditModalContent = mount(
+      <Provider store={mockStore}>
+        <EditModalContent
+          component={mockComponent}
+          language={mockLanguage}
+          handleComponentUpdate={mockHandleComponentUpdate}
+        />
+      </Provider>,
+    );
+    expect(mountedEditModalContent.find('input').length).toBe(2);
+  });
+  it('+++ should return file uploader spesific content when type file uploader', () => {
+    mockComponent = {
+      dataModelBindings: {},
+      readOnly: false,
+      required: false,
+      textResourceBindings: {
+        title: 'FileUpload',
+      },
+      type: 'FileUpload',
+    };
+    const mountedEditModalContent = mount(
+      <Provider store={mockStore}>
+        <EditModalContent
+          component={mockComponent}
+          language={mockLanguage}
+          handleComponentUpdate={mockHandleComponentUpdate}
+          classes={null}
+        />
+      </Provider>,
+    );
+    expect(mountedEditModalContent.find('input').length).toBe(9);
+  });
+  it('+++ should update min/max number of files on change', () => {
+    mockComponent = {
+      dataModelBindings: {},
+      readOnly: false,
+      required: true,
+      textResourceBindings: {
+        title: 'FileUpload',
+      },
+      type: 'FileUpload',
+    };
+    const mountedEditModalContent = mount(
+      <Provider store={mockStore}>
+        <EditModalContentComponent
+          component={mockComponent}
+          language={mockLanguage}
+          handleComponentUpdate={mockHandleComponentUpdate}
+          classes={null}
+          textResources={[]}
+        />
+      </Provider>,
+    );
+    const instance = mountedEditModalContent.childAt(0).instance() as EditModalContentComponent;
+    const maxFilesInput = mountedEditModalContent.find('#modal-properties-maximum-files').first().find('input');
+    const minFilesInput = mountedEditModalContent.find('#modal-properties-minimum-files').first().find('input');
+
+    const spy = jest.spyOn(instance, 'handleNumberOfAttachmentsChange');
+    maxFilesInput.simulate('change', { target: { value: '2' } });
+    instance.forceUpdate();
+    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledWith('max');
+    expect(instance.state.component.required).toBe(true);
+
+    minFilesInput.simulate('change', { target: { value: '0' } });
+    instance.forceUpdate();
+    expect(spy).toHaveBeenCalled();
+    expect(spy).toHaveBeenCalledWith('min');
+    expect(instance.state.component.required).toBe(false);
+  });
+  it('+++ should return button spesific content when type button', () => {
+    mockComponent = {
+      dataModelBindings: {},
+      readOnly: false,
+      required: false,
+      textResourceBindings: {
+        title: 'Button',
+      },
+      type: 'Button',
     };
     const mountedEditModalContent = mount(
       <Provider store={mockStore}>

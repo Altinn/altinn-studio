@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" 
+		xmlns:md="http://www.medico.com/schemas/record" 
+		xmlns:xacml-context="urn:oasis:names:tc:xacml:3.0:context:schema:os" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		PolicyId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIG006:policy" 
+		RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" 
+		Version="1.0" 
+		xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:policy:schema:os access_control-xacml-2.0-policy-schema-os.xsd">
+    <Description>
+        Policy for Conformance Test IIIG002.
+        Purpose - Non-mandatory Functions: Case: true: xpath-node-equal
+    </Description>
+    <PolicyDefaults>
+        <XPathVersion>http://www.w3.org/TR/1999/Rec-xpath-19991116</XPathVersion>
+    </PolicyDefaults>
+    <Target/>
+    <Rule Effect="Permit" RuleId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIIG002:rule">
+        <Condition>
+		  <Apply FunctionId="urn:oasis:names:tc:xacml:3.0:function:xpath-node-equal">
+
+				<!-- One of the things in the first list needs to exactly match one of the things in the second list -->
+				<!-- Both lists need to come from the same Attributes category -->
+				<!-- first list contains every node in the record -->
+				<AttributeValue DataType="urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression" 
+                	 	XPathCategory="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" >
+                	 		//*
+                </AttributeValue>
+
+				<!-- second list contains just the name nodes that are 2 levels down within the md:record -->
+				<AttributeValue DataType="urn:oasis:names:tc:xacml:3.0:data-type:xpathExpression" 
+                	 	XPathCategory="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" >
+                	 		//md:record/*/md:name
+                </AttributeValue>
+		  </Apply>
+        </Condition>
+    </Rule>
+</Policy>

@@ -27,12 +27,12 @@ export async function post(
 
 export async function put(
   url: string,
-  apiMode: string,
   data: any,
   config?: AxiosRequestConfig,
 ): Promise<void> {
   try {
-    await axios.put(url + `/${apiMode}`, data, config ? config : null);
+    const response = await axios.put(url, data, config ? config : null);
+    return response.data;
   } catch (err) {
     throw err;
   }

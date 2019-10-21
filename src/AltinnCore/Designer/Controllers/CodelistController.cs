@@ -29,15 +29,15 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// The default action for this controller. Returns a view which lists all code lists at the given level
         /// </summary>
-        /// <param name="org">The service owner code</param>
-        /// <param name="service">The service code</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A view which lists all code lists at the given level</returns>
-        public IActionResult Index(string org, string service)
+        public IActionResult Index(string org, string app)
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
-            model.Codelists = _repository.GetCodelists(org, service);
+            model.Codelists = _repository.GetCodelists(org, app);
 
-            if (!string.IsNullOrEmpty(org) && string.IsNullOrEmpty(service))
+            if (!string.IsNullOrEmpty(org) && string.IsNullOrEmpty(app))
             {
                 model.RepositoryContent = _sourceControl.Status(org, "codelists");
             }
@@ -48,7 +48,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// View Status for codelists
         /// </summary>
-        /// <param name="org">The org</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <returns>The view</returns>
         public IActionResult Status(string org)
         {
@@ -78,16 +78,16 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Action for retrieving a specific code list as JSON
         /// </summary>
-        /// <param name="org">The service owner code</param>
-        /// <param name="service">The service code</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="name">The name of the code list to retrieve</param>
         /// <returns>The contents of the code list identified by the given <paramref name="name"/> as JSON</returns>
-        public IActionResult Get(string org, string service, string name)
+        public IActionResult Get(string org, string app, string name)
         {
-            string codeList = _repository.GetCodelist(org, service, name);
+            string codeList = _repository.GetCodelist(org, app, name);
             if (string.IsNullOrEmpty(codeList))
             {
-                // Try find the codelist at the service owner level
+                // Try find the codelist at the organisation level
                 codeList = _repository.GetCodelist(org, null, name);
             }
 
@@ -103,11 +103,11 @@ namespace AltinnCore.Designer.Controllers
         /// Action for displaying a view for editing or creating a code list.
         /// The code list itself is loaded once the page has been loaded
         /// </summary>
-        /// <param name="org">The service owner code</param>
-        /// <param name="service">The service code</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="name">The name of the code list to edit (optional)</param>
         /// <returns>A view for editing the given code list</returns>
-        public IActionResult Edit(string org, string service, string name)
+        public IActionResult Edit(string org, string app, string name)
         {
             ViewBag.CodelistName = name;
 
@@ -119,14 +119,14 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="jsonData">The code list data to save</param>
         /// <param name="name">The name of the code list</param>
-        /// <param name="org">The organization code of the owner of the code list</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public IActionResult Edit([FromBody] dynamic jsonData, string name, string org, string service)
+        public IActionResult Edit([FromBody] dynamic jsonData, string name, string org, string app)
         {
             ViewBag.CodelistName = name;
-            _repository.SaveCodeList(org, service, name, jsonData.ToString());
+            _repository.SaveCodeList(org, app, name, jsonData.ToString());
 
             return Json(new
             {
@@ -139,34 +139,34 @@ namespace AltinnCore.Designer.Controllers
         /// Delete Code list file
         /// </summary>
         /// <param name="routeName">The service name for the mapRoute</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="name">The name on config</param>
         /// <returns>A redirect to the code list overview</returns>
         [HttpGet]
-        public IActionResult Delete(string routeName, string org, string service, string name)
+        public IActionResult Delete(string routeName, string org, string app, string name)
         {
-            _repository.DeleteCodeList(org, service, name);
+            _repository.DeleteCodeList(org, app, name);
 
             return RedirectToRoute(
                 routeName,
-                new { action = "Index", controller = "Codelist", org, service });
+                new { action = "Index", controller = "Codelist", org, app });
         }
 
         /// <summary>
         /// Get code list
         /// </summary>
-        /// <param name="org">the organisationthe service</param>
-        /// <param name="service">the service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The codelists as json</returns>
         [HttpGet]
-        public IActionResult CodeLists(string org, string service)
+        public IActionResult CodeLists(string org, string app)
         {
             List<CodeList> codeLists = new List<CodeList>();
-            Dictionary<string, string> serviceCodeLists = _repository.GetCodelists(org, service);
+            Dictionary<string, string> appCodeLists = _repository.GetCodelists(org, app);
 
             int index = 1;
-            foreach (KeyValuePair<string, string> kvp in serviceCodeLists)
+            foreach (KeyValuePair<string, string> kvp in appCodeLists)
             {
                 codeLists.Add(new CodeList() { CodeListName = kvp.Key, Id = index });
                 index++;

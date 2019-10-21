@@ -1,0 +1,141 @@
+{
+  "language": "nb-NO",
+  "resources": [
+    {
+      "id": "ServiceName",
+      "value": "xyz23"
+    },
+    {
+      "id": "subscription_hook_error_title",
+      "value": ""
+    },
+    {
+      "id": "subscription_hook_error_content",
+      "value": ""
+    },
+    {
+      "id": "subscription_hook_error_url",
+      "value": ""
+    },
+    {
+      "id": "subscription_hook_error_urlText",
+      "value": ""
+    },
+    {
+      "id": "subscription_hook_error_urlTextSuffix",
+      "value": ""
+    },
+    {
+      "id": "subscription_hook_error_statusCode",
+      "value": ""
+    },
+    {
+      "id": "25795.OppgavegiverNavnPreutfyltdatadef25795.Label",
+      "value": "Navn"
+    },
+    {
+      "id": "25796.OppgavegiverAdressePreutfyltdatadef25796.Label",
+      "value": "Adresse"
+    },
+    {
+      "id": "25797.OppgavegiverPostnummerPreutfyltdatadef25797.Label",
+      "value": "Postnummer"
+    },
+    {
+      "id": "25798.OppgavegiverPoststedPreutfyltdatadef25798.Label",
+      "value": "Poststed"
+    },
+    {
+      "id": "26.OppgavegiverFodselsnummerdatadef26.Label",
+      "value": "Fødselsnummer"
+    },
+    {
+      "id": "18.EnhetOrganisasjonsnummerdatadef18.Label",
+      "value": "Organisasjonsnummer"
+    },
+    {
+      "id": "17.EnhetKommunenummerdatadef17.Label",
+      "value": "Kommune"
+    },
+    {
+      "id": "17.EnhetKommunenummerdatadef17.PlaceHolder",
+      "value": "Selskapets kontorkommune"
+    },
+    {
+      "id": "2.KontaktpersonNavndatadef2.Label",
+      "value": "Navn"
+    },
+    {
+      "id": "2751.KontaktpersonAdressedatadef2751.Label",
+      "value": "Adresse"
+    },
+    {
+      "id": "10441.KontaktpersonPostnummerdatadef10441.Label",
+      "value": "Postnummer"
+    },
+    {
+      "id": "10442.KontaktpersonPoststeddatadef10442.Label",
+      "value": "Poststed"
+    },
+    {
+      "id": "27688.KontaktpersonEPostdatadef27688.Label",
+      "value": "Epostadresse"
+    },
+    {
+      "id": "3.KontaktpersonTelefonnummerdatadef3.Label",
+      "value": "Telefonnummer"
+    },
+    {
+      "id": "25455.KlageGjeldendeInntektsardatadef25455.Label",
+      "value": "Klagen/anmodningen om endring gjelder selvangivelsen for inntektsåret:"
+    },
+    {
+      "id": "25455.KlageGjeldendeInntektsardatadef25455.Help",
+      "value": "Gjelder klagen andre inntektsår enn siste år er klagefristen  oversittet og du har ikke rett til å få den behandlet. Klagen blir i  stedet ansett som en anmodning til skattekontoret om å endre  likningen for dette\n                                    året.  Gjelder klagen/anmodningen flere inntektsår er det tilstrekkelig å  opplyse om det siste av inntektsårene. Det må imidlertid gå klart  frem av begrunnelsen hvilke inntektsår klagen/anmodningen gjelder."
+    },
+    {
+      "id": "25455.KlageGjeldendeInntektsardatadef25455.PlaceHolder",
+      "value": "NB! Klageskjemaet skal du bare bruke for å klage på feil/endringer i  skatteoppgjøret du har mottatt.  Oppgi hvilket inntektsår klagen/anmodningen om endring gjelder"
+    },
+    {
+      "id": "25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label",
+      "value": "Klagen er sendt innen fristen"
+    },
+    {
+      "id": "25454.KlagemeldingSendtInnenKlagefristdatadef25454.Help",
+      "value": "Leveres klagen innen fristen?  Klage over ligningen må leveres innen seks uker etter at  skatteoppgjøret er sendt skattyter, likevel slik at klagefristen  tidligst utløper 10.august.  Se lignl. § 9-2 nr 4 og 5."
+    },
+    {
+      "id": "25456.KlageUtloptKlagefristBegrunnelsedatadef25456.Label",
+      "value": "Begrunnelse for at likningen skal tas opp til endring selv om  klagefristen er oversittet"
+    },
+    {
+      "id": "25456.KlageUtloptKlagefristBegrunnelsedatadef25456.Help",
+      "value": "Er klagefristen oversittet har du ikke rett til å få klagen behandlet.  Det samme gjelder dersom likningen er fastsatt ved skjønn etter  ligningsloven § 8-2.  Du kan anmode skattekontoret om å behandle klagen. En slik anmodning  skal begrunnes. Ved vurderingen om klagen skal behandles skal det  blant annet tas hensyn til spørsmålets betydning, skattyters forhold,  sakens\n                                    opplysning og den tid som er gått."
+    },
+    {
+      "id": "25456.KlageUtloptKlagefristBegrunnelsedatadef25456.PlaceHolder",
+      "value": "Gi begrunnelse for at skattekontoret skal behandle klagen selv om  klagefristen er oversittet.  NB! Inneholder begrunnelsen sensitive opplysninger (f. eks. om sykdom)  må klagen sendes i brev til skattekontoret"
+    },
+    {
+      "id": "25457.KlageSpesifiseringdatadef25457.Label",
+      "value": "Klage på likningen med begrunnelse"
+    },
+    {
+      "id": "12345.KlageSpesifiseringgdatadef12345.Label",
+      "value": "Noe annet"
+    },
+    {
+      "id": "23456.KlageSpesifiseringggdatadef23456.Label",
+      "value": "Og en tulleting til slutt"
+    },
+    {
+      "id": "Skjema.Label",
+      "value": "RF-1117 Klage på likningen"
+    },
+    {
+      "id": "Skjema.Help",
+      "value": "Skjema gjelder for alle grupper av skattytere. NB! Inneholder klagen  sensitiv informasjon (f.eks. om sykdom) kan den ikke leveres  elektronisk. Klagen sendes da med brev til skattekontoret."
+    }
+  ]
+}

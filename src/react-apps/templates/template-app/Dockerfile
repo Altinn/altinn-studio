@@ -7,7 +7,8 @@ WORKDIR /usr/src/app
 
 # install and cache app dependencies
 COPY package.json .
-RUN npm install
+COPY package-lock.json .
+RUN npm ci
 
 # start app
 CMD ["npm", "start"]

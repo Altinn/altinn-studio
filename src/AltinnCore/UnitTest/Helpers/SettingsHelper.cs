@@ -17,7 +17,6 @@ namespace AltinnCore.UnitTest.Helpers
         {
             ServiceRepositorySettings settings = new ServiceRepositorySettings();
             settings.GiteaCookieName = "i_like_gitea";
-            settings.ForceGiteaAuthentication = true;
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
             moqServiceRepositorySettings.Setup(r => r.Value).Returns(settings);
             return moqServiceRepositorySettings;

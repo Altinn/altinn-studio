@@ -1,7 +1,7 @@
 export const urls = {
   hostname: {
     apps: {
-      test: 'altinn.studio',
+      test: 'altinn.cloud',
     },
     altinn: {
       test: 'altinn.cloud',

@@ -41,5 +41,10 @@ namespace AltinnCore.ServiceLibrary.Models
         /// Gets or sets the <see cref="UserType"/>
         /// </summary>
         public UserType UserType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the <see cref="ProfileSettingPreference"/>
+        /// </summary>
+        public ProfileSettingPreference ProfileSettingPreference { get; set; }
     }
 }

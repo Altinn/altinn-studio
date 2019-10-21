@@ -1,8 +1,13 @@
 using System;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -10,20 +15,28 @@ namespace AltinnCore.Common.Services.Implementation
     public class RegisterDSFStudioSI : IDSF
     {
         private readonly ILogger _logger;
+        private readonly TestdataRepositorySettings _testdataRepositorySettings;
+        private readonly static string TESTDATA_PERSON_FOLDER = @"/Person/";
+        private readonly static string PERSON_JSON_FILE = "person.json";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterDSFStudioSI"/> class
         /// </summary>
         /// <param name="logger">the logger</param>
-        public RegisterDSFStudioSI(ILogger<RegisterDSFStudioSI> logger)
+        /// <param name="testdataRepositorySettings">the test data repository settings</param>
+        public RegisterDSFStudioSI(ILogger<RegisterDSFStudioSI> logger, IOptions<TestdataRepositorySettings> testdataRepositorySettings)
         {
             _logger = logger;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
         /// <inheritdoc />
-        public Task<Person> GetPerson(string SSN)
+        public async Task<Person> GetPerson(string SSN)
         {
-            throw new NotImplementedException();
+            string path = _testdataRepositorySettings.RepositoryLocation + TESTDATA_PERSON_FOLDER + SSN + @"/" + PERSON_JSON_FILE;
+            string textData = File.ReadAllText(path, Encoding.UTF8);
+            Person person = JsonConvert.DeserializeObject<Person>(textData);
+            return person;
         }
     }
 }

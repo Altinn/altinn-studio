@@ -1,6 +1,7 @@
 FROM node:10.13.0 AS generate-designer-js
 COPY /src/AltinnCore/Designer/package.json .
-RUN npm install
+COPY /src/AltinnCore/Designer/package-lock.json .
+RUN npm ci
 COPY /src/AltinnCore/Designer .
 RUN npm run gulp build
 

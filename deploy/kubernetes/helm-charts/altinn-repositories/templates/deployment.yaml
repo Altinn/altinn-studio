@@ -20,9 +20,12 @@ spec:
           {{- if eq (required ".Values.environment not set" .Values.environment) "production" }}
           image: "{{ .Values.image.repositoryProd }}:{{ .Values.image.tag }}"
           {{- end }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "staging" }}
+          image: "{{ .Values.image.repositoryStaging }}:{{ .Values.image.tag }}"
+          {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.image.containerPorts.port }}
+            - containerPort: {{ .Values.image.containerPort }}
           {{- if .Values.environmentVariables }}
           env:
             {{- range $variable := .Values.environmentVariables}}
@@ -44,6 +47,12 @@ spec:
             - name: {{ $mount.name }}
               mountPath: {{ $mount.mountPath }}
           {{- end }}
+          {{- end }}
+          {{- if .Values.image.lifecyclePostStartCommand }}
+          lifecycle:
+            postStart:
+              exec:
+                command: ["/bin/sh", "-c", {{ .Values.image.lifecyclePostStartCommand }}]
           {{- end }}
       {{- if .Values.volumes }}
       volumes:

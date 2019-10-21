@@ -11,8 +11,8 @@ export default class App {
       instance = this;
       this.initialized = false;
       this.activeFixturesCount = 0;
-      let { env } = minimist(process.argv.slice(2));
-      this.baseUrl = config[env].baseUrl;
+      //let { env } = minimist(process.argv.slice(2));
+      this.baseUrl = config["dev"].baseUrl;
       //can use params here
       this.userInput = Selector('#user_name');
       this.passwordInput = Selector('#password');

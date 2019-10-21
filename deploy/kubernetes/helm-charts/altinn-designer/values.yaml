@@ -7,77 +7,141 @@ image:
   containerPort: 5000
   imagePullSecret: acrsecret
 
+host: staging.altinn.studio
+
+service:
+  externalPort: 3000
+
 environmentVariables:
   development:
-    - name: GiteaEndpoint
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
       value: dev.altinn.studio
-    - name: GiteaApiEndpoint
-      value: https://dev.altinn.studio/api/v1
-    - name: GiteaLoginEndpoint
-      value: https://dev.altinn.studio/user/login
-    - name: ASPNETCORE_ENVIRONMENT
-      value: Development
-    - name: ASPNETCORE_URLS
-      value: http://+:5000
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://dev.altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
-      value: http://altinn-repositories:3000/
-    - name: ServiceRepositorySettings__GiteaInternalHost
-      value: altinn-repositories
-    - name: ServiceRepositorySettings__EnableGiteaIntegration
-      value: \"true\"
+      value: http://altinn-repositories:3000
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
     - name: PlatformSettings__ApiStorageEndpoint
-      value: http://platform.altinn.cloud/storage/api/v1/
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
     - name: PlatformSettings__ApiStorageEndpointHost
-      value: http://platform.altinn.cloud
+      value: https://platform.at21.altinn.cloud
     - name: PlatformSettings__ApiRegisterEndpoint
-      value: http://platform.altinn.cloud/register/api/v1/
+      value: https://platform.at21.altinn.cloud/register/api/v1/
     - name: PlatformSettings__ApiRegisterEndpointHost
-      value: http://platform.altinn.cloud
+      value: https://platform.at21.altinn.cloud
     - name: PlatformSettings__ApiProfileEndpoint
-      value: http://platform.altinn.cloud/profile/api/v1/
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
     - name: PlatformSettings__ApiProfileEndpointHost
-      value: http://platform.altinn.cloud
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
   production:
-    - name: GiteaEndpoint
-      value: altinn.studio
-    - name: GiteaApiEndpoint
-      value: https://altinn.studio/api/v1
-    - name: GiteaLoginEndpoint
-      value: https://altinn.studio/user/login
     - name: ASPNETCORE_ENVIRONMENT
-      value: Development
+      value: Production
     - name: ASPNETCORE_URLS
       value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
-      value: http://altinn-repositories:3000/
-    - name: ServiceRepositorySettings__GiteaInternalHost
-      value: altinn-repositories
-    - name: ServiceRepositorySettings__EnableGiteaIntegration
-      value: \"true\"
+      value: http://altinn-repositories:3000
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
       value: /Templates/deployment
     - name: PlatformSettings__ApiStorageEndpoint
-      value: http://platform.altinn.cloud/storage/api/v1/
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
     - name: PlatformSettings__ApiStorageEndpointHost
-      value: http://platform.altinn.cloud
+      value: https://platform.at21.altinn.cloud
     - name: PlatformSettings__ApiRegisterEndpoint
-      value: http://platform.altinn.cloud/register/api/v1/
+      value: https://platform.at21.altinn.cloud/register/api/v1/
     - name: PlatformSettings__ApiRegisterEndpointHost
-      value: http://platform.altinn.cloud
+      value: https://platform.at21.altinn.cloud
     - name: PlatformSettings__ApiProfileEndpoint
-      value: http://platform.altinn.cloud/profile/api/v1/
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
     - name: PlatformSettings__ApiProfileEndpointHost
-      value: http://platform.altinn.cloud
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
+  staging:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: GeneralSettings__HostName
+      value: staging.altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://staging.altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: https://platform.at21.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
 
 volumeMounts:
   - name: altinn-repo-storage
@@ -93,8 +157,37 @@ volumes:
     secret:
       secretName: altinn-appsettings-secret
 
-service:
-  ports:
-    - port: 5000
-      protocol: TCP
-      targetPort: 5000
+ingress:
+  - metadata:
+      name: altinn-designer-base-path
+      annotations:
+        traefik.ingress.kubernetes.io/rule-type: Path
+        traefik.frontend.priority: "1000"
+    paths:
+      - path: /
+  - metadata:
+      name: altinn-designer-cookie-fetcher
+      annotations:
+        traefik.ingress.kubernetes.io/request-modifier: "ReplacePath: /Redirect/FetchCookieAndRedirectHome/"
+        traefik.ingress.kubernetes.io/rule-type: Path
+        traefik.frontend.priority: "900"
+    paths:
+      - path: /repos/
+  - metadata:
+      name: altinn-designer-home-path
+      annotations:
+        traefik.frontend.priority: "800"
+    paths:
+      - path: /Home/
+  - metadata:
+      name: altinn-designer-designer-path
+      annotations:
+        traefik.frontend.priority: "700"
+    paths:
+      - path: /designer/
+  - metadata:
+      name: altinn-designer-designerapi-path
+      annotations:
+        traefik.frontend.priority: "600"
+    paths:
+      - path: /designerapi/

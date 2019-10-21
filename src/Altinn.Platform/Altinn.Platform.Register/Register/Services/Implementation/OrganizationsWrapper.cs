@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Register.Configuration;
 using Altinn.Platform.Register.Helpers;
 using Altinn.Platform.Register.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -36,7 +36,7 @@ namespace Altinn.Platform.Register.Services.Implementation
         {
             Organization org = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/organizations/{orgNr}");
+            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}organizations/{orgNr}");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);

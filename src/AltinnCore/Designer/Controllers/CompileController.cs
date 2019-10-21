@@ -33,15 +33,15 @@ namespace Designer.Controllers
         /// <summary>
         /// Compiles the c# service files
         /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="app">The app</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A compile result</returns>
         [HttpPost]
         public async Task<IActionResult> Compile(string org, string app)
         {
             if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app))
             {
-                return BadRequest("Org or service not supplied");
+                return BadRequest("Org or app not supplied");
             }
 
             try

@@ -14,16 +14,19 @@ using Altinn.Platform.Authentication.Model;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Authentication.Controllers
 {
     /// <summary>
     /// Handles the authentication of requests to platform
     /// </summary>
-    [Route("authentication/api/v1/authentication")]
+    [Route("authentication/api/v1")]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
@@ -44,12 +47,17 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <summary>
         /// Request that handles the form authentication cookie from SBL
         /// </summary>
-        /// <param name="goToUrl">The url to redirect to if everything validates ok</param>
+        /// <param name="goTo">The url to redirect to if everything validates ok</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
-        [HttpGet]
-        public async Task<ActionResult> Get(string goToUrl)
+        [HttpGet("authentication")]
+        public async Task<ActionResult> Get(string goTo)
         {
-            string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goToUrl}");
+            if (!IsValidRedirectUri(new Uri(goTo).Host))
+            {
+                return Redirect($"{_generalSettings.GetBaseUrl}");
+            }
+
+            string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
             if (Request.Cookies[_generalSettings.GetSBLCookieName] == null)
             {
                 return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
@@ -58,11 +66,12 @@ namespace Altinn.Platform.Authentication.Controllers
             {
                 UserAuthenticationModel userAuthentication = null;
                 DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
-                Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}/tickets");
+                Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}tickets");
                 using (HttpClient client = new HttpClient())
                 {
-                    UserAuthenticationModel postUserValue = new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] };
-                    HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(postUserValue.ToString(), Encoding.UTF8, "application/json"));
+                    string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] });
+                    HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
+
                     if (response.StatusCode == HttpStatusCode.OK)
                     {
                         Stream stream = await response.Content.ReadAsStreamAsync();
@@ -75,15 +84,12 @@ namespace Altinn.Platform.Authentication.Controllers
                             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
                             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, userAuthentication.AuthenticationLevel.ToString(), ClaimValueTypes.Integer32, issuer));
-                            if (userAuthentication.SSN != null)
-                            {
-                                claims.Add(new Claim(AltinnCoreClaimTypes.SSN, userAuthentication.SSN, ClaimValueTypes.String, issuer));
-                            }
+                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
 
                             ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
                             identity.AddClaims(claims);
                             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
                             await HttpContext.SignInAsync(
                                 JwtCookieDefaults.AuthenticationScheme,
                                 principal,
@@ -99,7 +105,7 @@ namespace Altinn.Platform.Authentication.Controllers
                                 Response.Cookies.Append(_generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
                             }
 
-                            return Redirect(goToUrl);
+                            return Redirect(goTo);
                         }
                         else
                         {
@@ -114,6 +120,45 @@ namespace Altinn.Platform.Authentication.Controllers
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Refreshes JwtToken.
+        /// </summary>
+        /// <returns>Ok response with the refreshed token appended.</returns>
+        [Authorize]
+        [HttpGet("refresh")]
+        public async Task<ActionResult> RefreshJWTCookie()
+        {
+            ClaimsPrincipal principal = HttpContext.User;
+
+            await HttpContext.SignInAsync(
+                JwtCookieDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
+                    IsPersistent = false,
+                    AllowRefresh = false,
+                });
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Checks that url is on same host as platform
+        /// </summary>
+        /// <param name="goToHost">The url to redirect to</param>
+        /// <returns>Boolean verifying that goToHost is on current host. </returns>
+        public bool IsValidRedirectUri(string goToHost)
+        {
+            string validHost = _generalSettings.GetHostName;
+            int segments = _generalSettings.GetHostName.Split('.').Length;
+
+            List<string> goToList = Enumerable.Reverse(new List<string>(goToHost.Split('.'))).Take(segments).Reverse().ToList();
+            string redirectHost = string.Join(".", goToList);
+
+            return validHost.Equals(redirectHost);
         }
     }
 }

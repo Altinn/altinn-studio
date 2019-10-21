@@ -19,10 +19,18 @@ namespace Altinn.Platform.Storage.Repository
         Task<InstanceEvent> InsertInstanceEvent(InstanceEvent instanceEvent);
 
         /// <summary>
+        /// Gets one event.
+        /// </summary>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="eventGuid">The guid to retrieve </param>
+        /// <returns>The stored instance event.</returns>
+        Task<InstanceEvent> GetOneEvent(string instanceId, Guid eventGuid);
+
+        /// <summary>
         /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
         /// <param name="instanceId"> Id of instance to retrieve events for. </param>
-        /// <param name="eventTypes">Array of event types to filter the events by./param>
+        /// <param name="eventTypes">Array of event types to filter the events by. </param>
         /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
         /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
         /// <returns>List of instance events.</returns>

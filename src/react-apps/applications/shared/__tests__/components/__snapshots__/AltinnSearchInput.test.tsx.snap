@@ -2,17 +2,17 @@
 
 exports[`>>> AltinnSearchInput--- Snapshot +++ Should match snapshot with the least amount of params 1`] = `
 <div
-  className="MuiFormControl-root-4 AltinnSearchInput-searchBox-1 MuiFormControl-fullWidth-7"
+  className="MuiFormControl-root AltinnSearchInput-searchBox-1 MuiFormControl-fullWidth"
 >
   <div
-    className="MuiFormControl-root-4"
+    className="MuiFormControl-root MuiTextField-root"
   >
     <div
-      className="MuiInputBase-root-21 MuiInput-root-8 AltinnSearchInput-searchBoxInput-2 MuiInputBase-formControl-22 MuiInput-formControl-9 MuiInputBase-adornedStart-25"
+      className="MuiInputBase-root MuiInput-root AltinnSearchInput-searchBoxInput-2 MuiInputBase-formControl MuiInput-formControl MuiInputBase-adornedStart"
       onClick={[Function]}
     >
       <div
-        className="MuiInputAdornment-root-38 AltinnSearchInput-searchBoxIcon-3 MuiInputAdornment-positionEnd-41"
+        className="MuiInputAdornment-root AltinnSearchInput-searchBoxIcon-3 MuiInputAdornment-positionEnd"
       >
         <i
           className="fa fa-search"
@@ -20,7 +20,7 @@ exports[`>>> AltinnSearchInput--- Snapshot +++ Should match snapshot with the le
       </div>
       <input
         aria-invalid={false}
-        className="MuiInputBase-input-31 MuiInput-input-16 MuiInputBase-inputAdornedStart-36"
+        className="MuiInputBase-input MuiInput-input MuiInputBase-inputAdornedStart"
         disabled={false}
         id="mock id"
         onBlur={[Function]}

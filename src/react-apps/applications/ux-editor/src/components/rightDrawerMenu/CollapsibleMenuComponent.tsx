@@ -72,15 +72,6 @@ const CollapsibleMenus = (props: ICollapsableMenuProps) => {
     setComponent(props.components[props.componentId]);
   }, [props]);
 
-  const getMinOccursFromDataModel = (dataBindingName: string): boolean => {
-    if (dataBindingName) {
-      const element: IDataModelFieldElement = props.dataModel.find((e: IDataModelFieldElement) =>
-        e.DataBindingName === dataBindingName);
-      return element ? element.MinOccurs === 1 : false;
-    }
-    return false;
-  };
-
   const toggleMenu = () => {
     setMenuIsOpen(!menuIsOpen);
   };
@@ -139,9 +130,6 @@ const CollapsibleMenus = (props: ICollapsableMenuProps) => {
                 checked={!component.required}
                 onChangeFunction={toggleCheckbox('required')}
                 onKeyPressFunction={handleKeyPress(toggleCheckbox('required'))}
-                disabled={getMinOccursFromDataModel(component.dataModelBindings ?
-                  (component.dataModelBindings.simpleBinding ? component.dataModelBindings.simpleBinding : null)
-                  : null)}
               />
               {props.language.general.optional}
             </ListItem>

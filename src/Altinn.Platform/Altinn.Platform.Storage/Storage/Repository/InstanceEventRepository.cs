@@ -77,6 +77,20 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
+        public async Task<InstanceEvent> GetOneEvent(string instanceId, Guid eventGuid)
+        {
+            string cosmosId = eventGuid.ToString();
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosId);
+
+            InstanceEvent theEvent = await _client
+            .ReadDocumentAsync<InstanceEvent>(
+                uri,
+                new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
+
+            return theEvent;           
+        }
+
+        /// <inheritdoc/>
         public async Task<List<InstanceEvent>> ListInstanceEvents(string instanceId, string[] eventTypes, DateTime? fromDateTime, DateTime? toDateTime)
         {
             try
@@ -96,9 +110,14 @@ namespace Altinn.Platform.Storage.Repository
                     query = query.Where(i => eventTypes.Contains(i.EventType));
                 }
 
-                if (fromDateTime.HasValue && toDateTime.HasValue)
+                if (fromDateTime.HasValue)
                 {
-                    query = query.Where(i => i.CreatedDateTime < toDateTime && i.CreatedDateTime > fromDateTime);
+                    query = query.Where(i => i.CreatedDateTime > fromDateTime);
+                }
+
+                if (toDateTime.HasValue)
+                {
+                    query = query.Where(i => i.CreatedDateTime < toDateTime);
                 }
 
                 FeedResponse<InstanceEvent> result = await query.AsDocumentQuery().ExecuteNextAsync<InstanceEvent>();

@@ -6,6 +6,7 @@ import * as React from 'react';
 import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
+import { IAltinnWindow } from '../types';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
 
@@ -339,7 +340,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public valueHasNoMergeConflictTags = (value: string) => {
-    if (value.includes('<<<<<<<') || value.includes('=======') || value.includes('>>>>>>>')) {
+    const match = value.indexOf('<<<<<<<') > -1 || value.indexOf('=======') > -1 || value.indexOf('>>>>>>>') > -1;
+    if (match) {
       return false;
     } else {
       return true;

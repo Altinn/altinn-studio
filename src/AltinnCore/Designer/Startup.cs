@@ -11,21 +11,16 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Authorization;
 using AltinnCore.Designer.ModelBinding;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 
 namespace AltinnCore.Designer
@@ -79,6 +74,7 @@ namespace AltinnCore.Designer
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton<ITestdata, TestdataStudioSI>();
+            services.AddSingleton<IApplication, ApplicationStudioSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -87,16 +83,9 @@ namespace AltinnCore.Designer
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            string repoLocation = null;
-
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
-            }
-            else
-            {
-                repoLocation = Configuration["ServiceRepositorySettings:RepositoryLocation"];
-            }
+            string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
+                                : Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
             if (!Directory.Exists(repoLocation))
             {
@@ -131,6 +120,13 @@ namespace AltinnCore.Designer
                     };
                 });
 
+            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
+            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            {
+                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
+                services.AddApplicationInsightsKubernetesEnricher();
+            }
+
             var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
@@ -163,26 +159,26 @@ namespace AltinnCore.Designer
         /// Configure the application.
         /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/>
         /// </summary>
-        /// <param name="app">The application builder</param>
+        /// <param name="appBuilder">The application builder</param>
         /// <param name="env">Hosting environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                appBuilder.UseDeveloperExceptionPage();
             }
             else
             {
-                app.UseExceptionHandler("/Error");
+                appBuilder.UseExceptionHandler("/Error");
             }
 
-            // app.UseHsts();
-            // app.UseHttpsRedirection();
-            app.UseAuthentication();
+            // appBuilder.UseHsts();
+            // appBuilder.UseHttpsRedirection();
+            appBuilder.UseAuthentication();
 
-            app.UseResponseCompression();
-            app.UseRequestLocalization();
-            app.UseStaticFiles(new StaticFileOptions()
+            appBuilder.UseResponseCompression();
+            appBuilder.UseRequestLocalization();
+            appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
                 {
@@ -195,7 +191,7 @@ namespace AltinnCore.Designer
                 },
             });
 
-            app.UseMvc(routes =>
+            appBuilder.UseMvc(routes =>
             {
                 // ------------------------- DEV ----------------------------- //
                 routes.MapRoute(
@@ -209,8 +205,8 @@ namespace AltinnCore.Designer
 
                 routes.MapRoute(
                         name: "serviceDevelopmentRoute",
-                        template: "designer/{org}/{service}",
-                        defaults: new { controller = "ServiceDevelopment", action="index" });
+                        template: "designer/{org}/{app}",
+                        defaults: new { controller = "ServiceDevelopment", action = "index" });
 
                 routes.MapRoute(
                     name: "designerApiRoute",
@@ -222,22 +218,31 @@ namespace AltinnCore.Designer
                     });
                 routes.MapRoute(
                           name: "serviceRoute",
-                          template: "designer/{org}/{service}/{controller}/{action=Index}/{id?}",
+                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
                               controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
-                              service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                              app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
                 routes.MapRoute(
                           name: "appRoute",
-                          template: "designer/{applicationOwnerId}/{applicationCode}/{controller}/{action=Index}/{id?}",
+                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Deploy" },
                           constraints: new
                           {
                               controller = @"(Deploy)",
                           });
+                routes.MapRoute(
+                        name: "applicationMetadataApiRoute",
+                        template: "designer/api/v1/{org}/{app}",
+                        defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
+
+                routes.MapRoute(
+                        name: "reposRoute",
+                        template: "{controller}/{action}/",
+                        defaults: new { controller = "RedirectController" });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
@@ -250,6 +255,21 @@ namespace AltinnCore.Designer
                     template: "{action=StartPage}/{id?}",
                     defaults: new { controller = "Home" });
             });
+        }
+
+        /// <summary>
+        ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
+        /// </summary>
+        /// <returns>Telemetry instrumentation key</returns>
+        public string GetApplicationInsightsKeyFromEnvironment()
+        {
+            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
+            if (string.IsNullOrEmpty(evironmentKey))
+            {
+                return null;
+            }
+
+            return evironmentKey;
         }
     }
 }

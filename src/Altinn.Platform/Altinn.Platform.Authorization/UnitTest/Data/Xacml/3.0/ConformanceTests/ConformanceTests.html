@@ -1,0 +1,2959 @@
+<html>
+  <head>
+    <title>XACML Version 3.0 Conformance Tests (draft)</title>
+  </head>
+
+  <body>
+    <h1>XACML Version 3.0 Conformance Tests (draft)</h1>
+
+<listing>
+Version: 0.5, January 2014
+Contributors: Anne Anderson, Satoshi Hada, John Merrells, Jin Peng, Seth Proctor, Argyn Kuketayev, Glenn Griffin
+</listing>
+
+This document describes and provides links to a suite of tests
+intended to aid implementers in conforming to the <a
+ href="http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.doc">
+ eXtensible Access Control Markup Language (XACML) Version 3.0 OASIS Standard</a>.
+
+    <h2>Contents</h2>
+
+    <ol TYPE=I>
+    <li><a href="#Description of tests"> Description of Tests
+        </a>
+        <ol TYPE=A>
+        <li><a href="#Test Case Groupings">Test Case Groupings</a>
+        <li><a href="#How to Use the Tests">How to Use the Tests</a>
+        <li><a href="#Preparing Tests for Execution">Preparing
+              Tests for Execution</a>
+        <li><a href="#Contributions of New Tests">Contributions
+              of New Tests</a>
+        <li><a href="#Bugs in the Tests">Bugs in the Tests</a>
+        </ol>
+    <li><a href="#Mandatory-to-Implement Functionality Tests">
+        Mandatory-to-Implement Functionality Tests </a>
+        <ol TYPE=A>
+        <li><a href="#Attribute References"> Attribute References </a>
+        <li><a href="#Target Matching"> Target Matching </a>
+        <li><a href="#Function Evaluation"> Function Evaluation </a>
+        <li><a href="#Combining Algorithms"> Combining Algorithms </a>
+        <li><a href="#Schema components"> Schema components </a>
+        <li><a href="#Release 3.0 Features"> Release 3.0 Features </a>
+        </ol>
+    <li><a href="#Optional, but Normative Functionality Tests">
+          Optional, but Normative Functionality Tests </a>
+        <ol TYPE=A>
+        <li><a href="#Obligations"> Obligations </a>
+        <li><a href="#DefaultsType"> DefaultsType </a>
+        <li><a href="#Hierarchical Resources"> Hierarchical Resources </a>
+        <li><a href="#&lt;ResourceContent&gt; Element"> &lt;ResourceContent&gt; Element </a>
+        <li><a href="#Multiple Decisions"> Multiple Decisions </a>
+        <li><a href="#Attribute Selectors"> Attribute Selectors </a>
+        <li><a href="#Non-mandatory Functions"> Non-mandatory Functions </a>
+        </ol>
+    <li><a href="#Identifiers planned for future deprecation">
+          Identifiers planned for future deprecation </a>
+      <ol TYPE=I >
+      <li><A href="#Description of Deprecated Identifiers Tests">Description of Deprecated Identifiers Tests </A>
+      <li><a href="#Deprecated Mandatory-to-Implement Functionality Tests">Deprecated Mandatory-to-Implement Functionality Tests </a>
+		<ol TYPE=A>
+        <li><a href="#Deprecated Attribute References"> Deprecated Attribute References </a>
+        <li><a href="#Deprecated Target Matching"> Deprecated Target Matching </a>
+        <li><a href="#Deprecated Function Evaluation"> Deprecated Function Evaluation </a>
+        <li><a href="#Deprecated Combining Algorithms"> Deprecated Combining Algorithms </a>
+        <li><a href="#Deprecated Schema components"> Deprecated Schema components </a>
+        </ol>
+      <li><a href="#Deprecated Optional, but Normative Functionality Tests">Deprecated Optional, but Normative Functionality Tests</a>
+        <ol TYPE=A>
+        <li><a href="#Deprecated Obligations"> Deprecated Obligations </a>
+        <li><a href="#Deprecated DefaultsType"> Deprecated DefaultsType </a>
+        <li><a href="#Deprecated Hierarchical Resources"> Deprecated Hierarchical Resources </a>
+        <li><a href="#Deprecated &lt;ResourceContent&gt; Element"> Deprecated &lt;ResourceContent&gt; Element </a>
+        <li><a href="#Deprecated Multiple Decisions"> Deprecated Multiple Decisions </a>
+        <li><a href="#Deprecated Attribute Selectors"> Deprecated Attribute Selectors </a>
+        <li><a href="#Deprecated Non-mandatory Functions"> Deprecated Non-mandatory Functions </a>
+        </ol>
+      </ol>
+
+    </ol>
+<hr>
+
+<ol TYPE=I>
+<h2><li><a name="Description of tests"> Description of Tests </a></h2>
+
+These tests are provided as an aid in achieving conformance to
+the <a
+href="http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.doc"><i>
+eXtensible Access Control Markup Language (XACML) Version 3.0
+OASIS Standard</i></a>.  The tests may aid in determining whether
+an implementation is correctly interpreting the intent of the
+XACML Version 3.0 specification, and may provide a basic level of
+interoperability testing.<p>
+
+These tests are <b>non-normative</b> and do not constitute a full
+test of conformance to the XACML Version 3.0 Standard.  A full
+description of the requirements for conformance is included in
+<i>Section 10. Conformance</i> of the <a
+href="http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.doc">
+XACML Version 3.0 specification</a>.  There is no OASIS- or XACML
+TC- sponsored <i>branding</i> or certification program for
+XACML.<p>
+
+<!--
+Except for those tests marked <a
+href="#EXPERIMENTAL">EXPERIMENTAL</a>, all the tests in this
+suite have undergone successful execution and review by multiple
+XACML implementers and others, and thus represent some level of
+consensus as to the intent of the XACML Version 1.0 Standard.<p>
+-->
+<h2>IMPORTANT NOTE</h2>
+The tests in this suite were converted to comply with XACML 3.0 from
+<a href="http://www.oasis-open.org/committees/download.php/6076/ConformanceTests.zip">
+the conformance test suite for XACML 1.0 and 1.1</a>. Initial conversion was done by using pattern
+matching/replacement scripts. All tests passed schema validation sucessfully against the normative
+schema for
+<a href="http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd">XSD</a> of XACML 3.0.
+These tests have been run against one implementation and adjusted as needed to match the 3.0 specification.<p>
+
+<h2>IMPORTANT NOTE (2)</h2>
+This document may not be complete.  There may be tests in the test suite that are not listed here.
+The tests for new 3.0 features and deprecated items may be missing here but included in the directory of tests.
+
+<h3>History of changes since XACML 2.0</h3>
+
+Version 0.1<br/>
+<ul>
+<li>empty Target element is allowed in XACML 2.0
+<li>AnySubject and other Any* elements in the Target are not allowed in XACML 2.0
+<li>Environment element is required in Target for Request in XACML 2.0
+<li>FunctionId is not allowed in Condition element in XACML 2.0
+<li>IssueInstant attribute is not allowed in Attribute in XACML 2.0
+<li>IIIASpecial.txt is removed, because AttributeAssignment element has AttributeValue in XACML 2.0.
+<li>IIIGSpecial.txt is removed, because in XACML 2.0 it's defined that &lt;xacml-context:Request&gt;
+is the context node for xpath expressions.
+</ul>
+
+    Version 0.2<br/>
+    <ul>
+    <li>Remove DataType attribute from AttributeValue elements in *Request.xml files.
+        Data types should be specified in the parent Attribute element.
+    <li>Replace regexp-string-match in *Policy.xml files with string-regexp-match.
+        In XACML 2.0 this function's urn was changed to make it more consistent with names of
+    similar functions. Thanks to Ryan Eberhard for reporting this discrepancy in the
+    test suite.
+</ul>
+
+Version 0.3<br/>
+<ul>
+<li>Fix typos in policy combining algorithm urns. These typos were a result of
+    a bug in the scripts, which were used to convert XACML 1.0 conformance tests
+    to XACML 2.0. Thanks to Ryan Eberhard for reporting this bug in the
+test suite.
+</ul>
+
+Version 0.4<br/>
+<ul>
+    <li>IIC086-IIC091: change some attribute types to string.
+    <li>IIA004, IIA005 - these files contained intentional errors, which were accidentally "fixed"
+    when converting to xacml 2.0. Errors are reintroduced.
+    <li>IID029, IID030, IIE001, IIE002 - these files were not converted properly to
+    to xacml 2.0: Condition had FunctionId attribute. This bug was first reported by Frederic Deleon.
+</ul>
+
+Version 0.5<br/>
+<ul>
+    <li>Included tests for new 3.0 features
+    <li>Added tests to exercise features from previous versions that were not exercised in any existing tests
+    <li>Added separate tests for Idenfiers planned for deprecation.
+</ul>
+
+<ol TYPE=A>
+
+<h3><li><a name="Test Case Groupings">Test Case Groupings</a></h3>
+
+Tests are divided into those that exercise
+<i>Mandatory-to-Implement</i> functionality and those that
+exercise <i>Optional, but normative</i> functionality.  
+There is also a separate section for tests of <a href="#Identifiers planned for future deprecation">Identifiers planned for future deprecation</a>.
+All
+implementations that claim conformance to the <i>eXtensible Access
+Control Markup Language (XACML) Version 2.0 OASIS Standard</i>
+<b>MUST</b> support all Mandatory-to-Implement functionality as
+described in the <a
+href="http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.doc">
+XACML Version 3.0 specification</a>.
+Conforming implementations <b>MAY</b> additionally support
+various Optional functionality areas.<p>
+
+Tests are divided into groups based on the primary area of
+functionality or schema being exercised.<p>
+
+Each test case consists of three XML documents (or sets of documents):<p>
+
+  <ol TYPE=1>
+  <li>An XACML Request
+  <li>An XACML Policy or set of Policy documents
+  <li>An XACML Response
+  </ol>
+<p>
+
+Each XML document is named according to the section of this
+      document in which it occurs.  For example, the XML
+      documents for the test in Part II (Mandatory to
+      implement), Section B (Target Matching), Test Case 8 (Case:
+      match: multiple actions) are named:<p>
+<ul>
+<li>IIB008Request.xml
+<li>IIB008Policy.xml
+<li>IIB008Response.xml
+</ul>
+<P>
+The documents for <a href="#Identifiers planned for future deprecation">Identifiers planned for future deprecation</a>
+use slightly different names.  See that section for more details.
+<P>
+Tests for new 3.0 features are generally numbered starting with 300 rather than following the numbers of previous tests.
+This was done to avoid potential conflicts, to keep the new 3.0 tests separate, and because in some cases the logical number for a test was already in use.
+For example, the new Rule-level ordered-deny-override tests would logically have been related to the existing IID001 &amp; IID002 (unordered) deny-override tests,
+but all of the numbers in that vicinity are already taken.
+<P>
+Also, numbers in a group may not be consecutive.  For example IID330-IID333 followed by IID340-IID343.
+This is not necessarily especially meaningful.  In this case the two groups are testing deny-unless-permit and permit-unless-deny which are mirror images of each other
+so it was easier to copy a group of tests and mass-edit them than creating tests exactly in sequence.
+<BR>
+However, the gaps do provide spaces for future growth.
+
+<h3><li><a name="How to Use the Tests">How to Use the Tests</a></h3>
+
+An implementation of an XACML Policy Decision Point (PDP) should
+be able to:<p>
+
+  <ol TYPE=1>
+  <li>Accept the given Request, or input <a href="#consistent with"><i>consistent with</i></a> the
+        given Request, as input.
+  <li>Accept the given Policy or Policies (these files may
+      contain one or more XACML Policies or PolicySets) as input.
+  <li>Produce the given Response, or output <a href="#consistent with">
+      <i>consistent with</i></a> the given Response, as output.
+  </ol>
+<p>
+<a name="consistent with">Explanation of <i>consistent with</i></a>:<p>
+
+<blockquote>
+The request and response used in executing these tests need not
+be instances of the XACML Context Schema.  The request and
+response should, however, contain exactly the same information as
+the given Request and Response file, and should exercise the XACML
+policy evaluation functionality that the test is intended to
+exercise.  It should be possible, at least conceptually, to
+mechanically convert the request and response used in the
+implementation to the given XACML Request and Response
+instances.<p>
+</blockquote>
+
+<h3><li><a name="Preparing Tests for Execution">Preparing Tests for Execution</a></h3>
+
+In general, for each test,<p>
+
+<ol>
+
+<li>Either,
+    <ol TYPE=a>
+    <li>store the <code>*Policy.xml</code> file for the given
+test in the repository you use for policies, such that the
+specified <code>*Policy.xml</code> is the only policy that will
+be retrieved by the PDP, or
+    <li> configure the PDP with the
+<code>*Policy.xml</code> file as its initial policy.
+    </ol><p>
+
+<li>Send the <code>*Request.xml</code> file (or its semantic
+equivalent in your system) to the Context Handler component of
+the XACML PDP via your access control decision request
+API.<p>
+
+<li>Compare the result returned from the PDP with the specified
+<code>*Response.xml</code> file (or its semantic equivalent in
+your system).<p>
+
+<li>The test passes if your system's result is semantically
+equivalent to the specified <code>*Response.xml</code> file.<p>
+
+</ol>
+
+Some of the tests have <i>special instructions</i> associated
+with them.  They modify the instructions given above for the
+given test.<p>
+
+<h3><li><a name="Contributions of New Tests">Contributions of New
+        Tests</a></h3>
+
+Any XACML implementer may contribute additional conformance
+tests</a> by submitting them to the <a
+href="mailto:xacml-comment@lists.oasis-open.org">
+xacml-comment@lists.oasis-open.org </a> mailing list.  Such
+contributions will be incorporated into the test suite on the next
+update.<p>
+
+While this suite of tests is non-normative, we hope the suite
+will represent a general consensus as to the intent of the XACML
+Version 2.0 Standard.  For this reason, contributed tests are
+marked <font color="red">**EXPERIMENTAL**</font></a>
+until the tests have undergone successful review and use, defined
+as follows:<p>
+
+<ol>
+<li> a reasonable review period has elapsed since submission, and
+<li> several implementers have reported successful execution of
+     these tests to
+     <a href="mailto:xacml-comment@lists.oasis-open.org">
+     xacml-comment@lists.oasis-open.org,</a> and
+<li> no objections to the test have been reported to the
+     xacml-comment mailing list.
+</ol><p>
+
+Once the tests have undergone successful review and use, then the
+<font color="red">**EXPERIMENTAL**</font></a> status will be
+removed.<p>
+
+If an objection is reported on the xacml-comment mailing list to
+an <font
+color="red">**EXPERIMENTAL**</font> test during the review
+period, then the test will be removed from the test suite on the
+next update unless the XACML TC upholds the objection.  It is up
+to the test submitter to request review by the TC, and it is up
+to the TC to decide whether or not to review a test.<p>
+
+If an objection is reported to a test that is no longer <font
+color="red">**EXPERIMENTAL**</font></a>, the objection is treated
+as a bug.  See <a href="#Bugs in the Tests"> Bugs in the
+Tests </a> for a
+description of how bugs are handled.<p>
+
+<h3><li><a name="Bugs in the Tests">Bugs in the Tests</a></h3>
+
+Following are the known bugs:<p>
+
+<ol>
+<li>The &lt;Description&gt; in many *Policy.xml files is incorrect:
+    instead of "read or write Bart Simpson's medical record", the
+    description should say "perform any action on any
+    resource".
+</ol><p>
+
+If you believe any test does not correctly interpret the intent
+of the <a
+ href="http://docs.oasis-open.org/xacml/2.0/access_control-xacml-2.0-core-spec-os.pdf">
+ eXtensible Access Control Markup Language (XACML) Version 2.0 OASIS Standard</a>, or if you find any
+additional errors in these tests, please submit a report to the
+<a href="mailto:xacml-comment@lists.oasis-open.org">
+xacml-comment@lists.oasis-open.org</a> mailing list.  Absent any
+objections to a bug report, minor bugs
+may be fixed at the test editor's discretion in the next test
+suite update.<p>
+
+Major or controversial bugs reported against non-<a
+href="#Contributions of New Tests"><font
+color="red">**EXPERIMENTAL**</font></a>
+tests will be reviewed by the XACML TC.  If the TC agrees that
+the test does not conform to the intent of the XACML Version 2.0
+Standard, then the test will be modified or removed as
+appropriate on the next test suite update.<p>
+
+Major or controversial bugs reported against tests marked <a
+href="#Contributions of New Tests"><font
+color="red">**EXPERIMENTAL**</font></a> will be treated as an
+<i>objection</i> to the test.  See
+<a href="#Contributions of New Tests"> Contributions of New Tests
+</a> for the handling of such objections.<p>
+
+Periodically, an updated copy of the entire Conformance Test
+Suite, containing all corrections to date, will be posted to the
+XACML TC Web Site.
+<!--
+Anyone may request to have updates to the
+full Conformance Test Suite directly e-mailed to them at the same
+time that the update is submitted to the XACML TC web site
+maintainer: e-mail a request to <a
+href="mailto:Anne.Anderson@Sun.COM"> Anne.Anderson@Sun.COM </a>.
+Please be aware that this is a large e-mail :-).
+-->
+<p>
+
+</ol>
+
+<hr>
+
+<h2><li><a name="Mandatory-to-Implement Functionality Tests">
+        Mandatory-to-Implement Functionality Tests </a></h2>
+
+This section contains tests of all mandatory-to-implement
+functionality.  All implementations that conform to the XACML
+Version 2.0 Standard should pass all these tests except as
+explained in any associated <i>Special Instructions
+(<code>&lt;test ID&gt;Special.txt</code>)</i> file.<p>
+
+<ol TYPE=A>
+<h3><li><a name="Attribute References"> Attribute References </a></h3>
+
+These tests exercise referencing of attribute values in the
+    Request by a policy.<p>
+
+<ol>
+      <li>Case: Simple type attribute element present in Request
+    <i><a href="IIA001Request.xml">Request</a>,<a href="IIA001Policy.xml">Policy</a>,<a href="IIA001Response.xml">Response</a></i>
+      <li>Case: Simple type attribute element not present in
+          original decision Request, but retrievable from
+          Attribute repository
+    <i><a href="IIA002Request.xml">Request</a>,<a
+            href="IIA002Policy.xml">Policy</a>,<a
+            href="IIA002Response.xml">Response</a>,
+            <a href="IIA002Special.txt">Special Instructions</a></i>
+      <li>Case: Simple type attribute element not present in
+          Request and not retrievable by Attribute Authority
+    <i><a href="IIA003Request.xml">Request</a>,<a
+            href="IIA003Policy.xml">Policy</a>,<a
+            href="IIA003Response.xml">Response</a></i>
+      <li>Case: <i>INVALID</i> syntax for Attribute Designator
+    <i><a href="IIA004Request.xml">Request</a>,<a
+            href="IIA004Policy.xml">Policy</a>,<a
+            href="IIA004Response.xml">Response</a>,<a
+            href="IIA004Special.txt">Special Instructions</a></i>
+      <li>Case: <i>INVALID</i> syntax for Request attribute
+    <i><a href="IIA005Request.xml">Request</a>,<a
+            href="IIA005Policy.xml">Policy</a>,<a
+            href="IIA005Response.xml">Response</a></i>
+    <li>Case: TRUE: "MustBePresent" XML attribute in Target Designator
+    <i><a href="IIA006Request.xml">Request</a>,<a
+            href="IIA006Policy.xml">Policy</a>,<a
+            href="IIA006Response.xml">Response</a></i>
+    <li>Case: FALSE: "MustBePresent" XML attribute in Target Designator
+    <i><a href="IIA007Request.xml">Request</a>,<a
+            href="IIA007Policy.xml">Policy</a>,<a
+            href="IIA007Response.xml">Response</a></i>
+    <li>Case: TRUE: "MustBePresent" XML attribute in Condition Designator
+    <i><a href="IIA008Request.xml">Request</a>,<a
+            href="IIA008Policy.xml">Policy</a>,<a
+            href="IIA008Response.xml">Response</a></i>
+    <li>Case: FALSE: "MustBePresent" XML attribute in Condition Designator
+    <i><a href="IIA009Request.xml">Request</a>,<a
+            href="IIA009Policy.xml">Policy</a>,<a
+            href="IIA009Response.xml">Response</a></i>
+    <li>Case: Permit: Multiple attributes match except for DataType
+    <i><a href="IIA010Request.xml">Request</a>,<a
+            href="IIA010Policy.xml">Policy</a>,<a
+            href="IIA010Response.xml">Response</a></i>
+    <li>Case: Indeterminate: Multiple attributes match except for DataType
+    <i><a href="IIA011Request.xml">Request</a>,<a
+            href="IIA011Policy.xml">Policy</a>,<a
+            href="IIA011Response.xml">Response</a></i>
+    <li>Case: Permit: Multiple subjects with same subject-category:
+        different attribute in each
+    <i><a href="IIA012Request.xml">Request</a>,<a
+            href="IIA012Policy.xml">Policy</a>,<a
+            href="IIA012Response.xml">Response</a></i>
+    <li>Case: Indeterminate: Multiple subjects with same
+        subject-category: same attributes in each
+     <i><a href="IIA013Request.xml">Request</a>,<a
+            href="IIA013Policy.xml">Policy</a>,<a
+            href="IIA013Response.xml">Response</a></i>
+    <li>Case: Permit: SubjectAttributeDesignator with
+        SubjectCategory XML attribute
+    <i><a href="IIA014Request.xml">Request</a>,<a
+            href="IIA014Policy.xml">Policy</a>,<a
+            href="IIA014Response.xml">Response</a></i>
+    <li>Case: Permit: SubjectAttributeDesignator without
+        SubjectCategory XML attribute
+     <i><a href="IIA015Request.xml">Request</a>,<a
+            href="IIA015Policy.xml">Policy</a>,<a
+            href="IIA015Response.xml">Response</a></i>
+    <li>Case: explicit environment:current-time attribute. Updates: Rule description is modified
+    to match the condition. Aug 11, 2005 - Argyn Kuketayev.
+     <i><a href="IIA016Request.xml">Request</a>,<a
+            href="IIA016Policy.xml">Policy</a>,<a
+            href="IIA016Response.xml">Response</a></i>
+    <li>Case: implicit environment:current-time attribute
+     <i><a href="IIA017Request.xml">Request</a>,<a
+            href="IIA017Policy.xml">Policy</a>,<a
+            href="IIA017Response.xml">Response</a></i>
+    <li>Case: explicit environment:current-date attribute
+     <i><a href="IIA018Request.xml">Request</a>,<a
+            href="IIA018Policy.xml">Policy</a>,<a
+            href="IIA018Response.xml">Response</a></i>
+    <li>Case: implicit environment:current-date attribute
+     <i><a href="IIA019Request.xml">Request</a>,<a
+            href="IIA019Policy.xml">Policy</a>,<a
+            href="IIA019Response.xml">Response</a></i>
+    <li>Case: explicit environment:current-dateTime attribute
+     <i><a href="IIA020Request.xml">Request</a>,<a
+            href="IIA020Policy.xml">Policy</a>,<a
+            href="IIA020Response.xml">Response</a></i>
+    <li>Case: implicit environment:current-dateTime attribute
+     <i><a href="IIA021Request.xml">Request</a>,<a
+            href="IIA021Policy.xml">Policy</a>,<a
+            href="IIA021Response.xml">Response</a></i>
+	<li>Case: Test that all DataTypes with IncludeInResult=true show up in result<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIA022Request.xml">Request</a>,<a href="IIA022Policy.xml">Policy</a>,<a href="IIA022Response.xml">Response</a>,<a href="IIA022Response.json"> JSON Response</a></i>
+	<li>Case: Test that all DataTypes as Arrays (same Category, AttributeId, Issuer, DataType) with IncludeInResult=true show up in result.
+        	ALSO test that selection works with array of values.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIA023Request.xml">Request</a>,<a href="IIA023Policy.xml">Policy</a>,<a href="IIA023Response.xml">Response</a></i>
+	<li>Case: Test all DataTypes as Arrays (same Category, AttributeId, Issuer,  DIFFERENT DataType) with IncludeInResult=true.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIA024Request.xml">Request</a>,<a href="IIA024Policy.xml">Policy</a>,<a href="IIA024Response.xml">Response</a></i> 
+</ol>
+
+<h3><li><a name="Target Matching"> Target Matching </a></h3>
+
+These tests exercise various forms of Target matching.<p>
+
+<ol>
+<li>Case: match: anySubject, anyResource, anyAction
+    <i><a href="IIB001Request.xml">Request</a>,<a href="IIB001Policy.xml">Policy</a>,<a href="IIB001Response.xml">Response</a></i>
+<p>
+<li>Case: match: anySubject, anyResource, specified Action value
+    <i><a href="IIB002Request.xml">Request</a>,<a href="IIB002Policy.xml">Policy</a>,<a href="IIB002Response.xml">Response</a></i>
+<li>Case: no match: anySubject, anyResource, specified Action value
+    <i><a href="IIB003Request.xml">Request</a>,<a href="IIB003Policy.xml">Policy</a>,<a href="IIB003Response.xml">Response</a></i>
+<li>Case: match: anySubject, anyResource, two specified Action attributes
+    <i><a href="IIB004Request.xml">Request</a>,<a href="IIB004Policy.xml">Policy</a>,<a href="IIB004Response.xml">Response</a></i>
+<li>Case: no match: anySubject, anyResource, two specified Action attributes
+    <i><a href="IIB005Request.xml">Request</a>,<a href="IIB005Policy.xml">Policy</a>,<a href="IIB005Response.xml">Response</a></i>
+<li>Case: match: impliedAction
+    <i><a href="IIB006Request.xml">Request</a>,<a href="IIB006Policy.xml">Policy</a>,<a href="IIB006Response.xml">Response</a></i>
+<li>Case: no match: impliedAction
+    <i><a href="IIB007Request.xml">Request</a>,<a href="IIB007Policy.xml">Policy</a>,<a href="IIB007Response.xml">Response</a></i>
+<li>Case: match: multiple actions
+    <i><a href="IIB008Request.xml">Request</a>,<a href="IIB008Policy.xml">Policy</a>,<a href="IIB008Response.xml">Response</a></i>
+<li>Case: no match: multiple actions
+    <i><a href="IIB009Request.xml">Request</a>,<a href="IIB009Policy.xml">Policy</a>,<a href="IIB009Response.xml">Response</a></i>
+<p>
+<li>Case: match: Subject with specific SubjectCategory
+    <i><a href="IIB010Request.xml">Request</a>,<a href="IIB010Policy.xml">Policy</a>,<a href="IIB010Response.xml">Response</a></i>
+<li>Case: no match: Subject with specific SubjectCategory
+    <i><a href="IIB011Request.xml">Request</a>,<a href="IIB011Policy.xml">Policy</a>,<a href="IIB011Response.xml">Response</a></i>
+<li>Case: match: Subject with specific SubjectId value
+    <i><a href="IIB012Request.xml">Request</a>,<a href="IIB012Policy.xml">Policy</a>,<a href="IIB012Response.xml">Response</a></i>
+<li>Case: no match: Subject with specific SubjectID value
+    <i><a href="IIB013Request.xml">Request</a>,<a href="IIB013Policy.xml">Policy</a>,<a href="IIB013Response.xml">Response</a></i>
+<li>Case: match: Subject with non-string SubjectId DataType and value
+    <i><a href="IIB014Request.xml">Request</a>,<a href="IIB014Policy.xml">Policy</a>,<a href="IIB014Response.xml">Response</a></i>
+<li>Case: no match: Subject with non-string SubjectId DataType and value
+    <i><a href="IIB015Request.xml">Request</a>,<a href="IIB015Policy.xml">Policy</a>,<a href="IIB015Response.xml">Response</a></i>
+<li>Case: match: Subject with specific KeyInfo value
+    <i><a href="IIB016Request.xml">Request</a>,<a href="IIB016Policy.xml">Policy</a>,<a href="IIB016Response.xml">Response</a></i>
+<li>Case: no match: Subject with specific KeyInfo value
+    <i><a href="IIB017Request.xml">Request</a>,<a href="IIB017Policy.xml">Policy</a>,<a href="IIB017Response.xml">Response</a></i>
+<li>Case: match: Subject AttributeId
+    <i><a href="IIB018Request.xml">Request</a>,<a href="IIB018Policy.xml">Policy</a>,<a href="IIB018Response.xml">Response</a></i>
+<li>Case: no match: Subject AttributeId
+    <i><a href="IIB019Request.xml">Request</a>,<a href="IIB019Policy.xml">Policy</a>,<a href="IIB019Response.xml">Response</a></i>
+<li>Case: match: Subject AttributeId and Issuer
+    <i><a href="IIB020Request.xml">Request</a>,<a href="IIB020Policy.xml">Policy</a>,<a href="IIB020Response.xml">Response</a></i>
+<li>Case: no match: Subject AttributeId and Issuer
+    <i><a href="IIB021Request.xml">Request</a>,<a href="IIB021Policy.xml">Policy</a>,<a href="IIB021Response.xml">Response</a></i>
+<li>Case: match: Subject AttributeId and IssueInstant
+    <i><a href="IIB022Request.xml">Request</a>,<a href="IIB022Policy.xml">Policy</a>,<a href="IIB022Response.xml">Response</a></i>
+<li>Case: no match: Subject AttributeId and IssueInstant
+    <i><a href="IIB023Request.xml">Request</a>,<a href="IIB023Policy.xml">Policy</a>,<a href="IIB023Response.xml">Response</a></i>
+<li>Case: match: Subject AttributeId, Issuer, and IssueInstant
+    <i><a href="IIB024Request.xml">Request</a>,<a href="IIB024Policy.xml">Policy</a>,<a href="IIB024Response.xml">Response</a></i>
+<li>Case: no match: Subject AttributeId, Issuer, and IssueInstant
+    <i><a href="IIB025Request.xml">Request</a>,<a href="IIB025Policy.xml">Policy</a>,<a href="IIB025Response.xml">Response</a></i>
+<li>Case: match: Subject identifier value and attribute value
+    <i><a href="IIB026Request.xml">Request</a>,<a href="IIB026Policy.xml">Policy</a>,<a href="IIB026Response.xml">Response</a></i>
+<li>Case: no match: Subject identifier value and attribute value
+    <i><a href="IIB027Request.xml">Request</a>,<a href="IIB027Policy.xml">Policy</a>,<a href="IIB027Response.xml">Response</a></i>
+<li>Case: match: multiple Subjects
+    <i><a href="IIB028Request.xml">Request</a>,<a href="IIB028Policy.xml">Policy</a>,<a href="IIB028Response.xml">Response</a></i>
+<li>Case: no match: multiple Subjects
+    <i><a href="IIB029Request.xml">Request</a>,<a href="IIB029Policy.xml">Policy</a>,<a href="IIB029Response.xml">Response</a></i>
+<p>
+<li>Case: match: ResourceId
+    <i><a href="IIB030Request.xml">Request</a>,<a href="IIB030Policy.xml">Policy</a>,<a href="IIB030Response.xml">Response</a></i>
+<li>Case: no match: ResourceId
+    <i><a href="IIB031Request.xml">Request</a>,<a href="IIB031Policy.xml">Policy</a>,<a href="IIB031Response.xml">Response</a></i>
+<li>Case: match: ResourceId with specific DataType
+    <i><a href="IIB032Request.xml">Request</a>,<a href="IIB032Policy.xml">Policy</a>,<a href="IIB032Response.xml">Response</a></i>
+<li>Case: no match: ResourceId with specific DataType
+    <i><a href="IIB033Request.xml">Request</a>,<a href="IIB033Policy.xml">Policy</a>,<a href="IIB033Response.xml">Response</a></i>
+<li>Case: match: Resource AttributeId
+    <i><a href="IIB034Request.xml">Request</a>,<a href="IIB034Policy.xml">Policy</a>,<a href="IIB034Response.xml">Response</a></i>
+<li>Case: no match: Resource AttributeId
+    <i><a href="IIB035Request.xml">Request</a>,<a href="IIB035Policy.xml">Policy</a>,<a href="IIB035Response.xml">Response</a></i>
+<li>Case: match: Resource AttributeId and Issuer
+    <i><a href="IIB036Request.xml">Request</a>,<a href="IIB036Policy.xml">Policy</a>,<a href="IIB036Response.xml">Response</a></i>
+<li>Case: no match: Resource AttributeId and Issuer
+    <i><a href="IIB037Request.xml">Request</a>,<a href="IIB037Policy.xml">Policy</a>,<a href="IIB037Response.xml">Response</a></i>
+<li>Case: match: Resource AttributeId and IssueInstant
+    <i><a href="IIB038Request.xml">Request</a>,<a href="IIB038Policy.xml">Policy</a>,<a href="IIB038Response.xml">Response</a></i>
+<li>Case: no match: Resource AttributeId and IssueInstant
+    <i><a href="IIB039Request.xml">Request</a>,<a href="IIB039Policy.xml">Policy</a>,<a href="IIB039Response.xml">Response</a></i>
+<li>Case: match: Resource AttributeId, Issuer, and IssueInstant
+    <i><a href="IIB040Request.xml">Request</a>,<a href="IIB040Policy.xml">Policy</a>,<a href="IIB040Response.xml">Response</a></i>
+<li>Case: no match: Resource AttributeId, Issuer, and IssueInstant
+    <i><a href="IIB041Request.xml">Request</a>,<a href="IIB041Policy.xml">Policy</a>,<a href="IIB041Response.xml">Response</a></i>
+<li>Case: match: Resource identifier value and attribute value
+    <i><a href="IIB042Request.xml">Request</a>,<a href="IIB042Policy.xml">Policy</a>,<a href="IIB042Response.xml">Response</a></i>
+<li>Case: no match: Resource identifier value and attribute value
+    <i><a href="IIB043Request.xml">Request</a>,<a href="IIB043Policy.xml">Policy</a>,<a href="IIB043Response.xml">Response</a></i>
+<li>Case: match: multiple resources
+    <i><a href="IIB044Request.xml">Request</a>,<a href="IIB044Policy.xml">Policy</a>,<a href="IIB044Response.xml">Response</a></i>
+<li>Case: no match: multiple resources
+    <i><a href="IIB045Request.xml">Request</a>,<a href="IIB045Policy.xml">Policy</a>,<a href="IIB045Response.xml">Response</a></i>
+<p>
+<li>Case: match: specified Subject and Resource
+    <i><a href="IIB046Request.xml">Request</a>,<a href="IIB046Policy.xml">Policy</a>,<a href="IIB046Response.xml">Response</a></i>
+<li>Case: no match: specified Subject and Resource
+    <i><a href="IIB047Request.xml">Request</a>,<a href="IIB047Policy.xml">Policy</a>,<a href="IIB047Response.xml">Response</a></i>
+<li>Case: match: specified Subject, Action
+    <i><a href="IIB048Request.xml">Request</a>,<a href="IIB048Policy.xml">Policy</a>,<a href="IIB048Response.xml">Response</a></i>
+<li>Case: no match: specified Subject, Action
+    <i><a href="IIB049Request.xml">Request</a>,<a href="IIB049Policy.xml">Policy</a>,<a href="IIB049Response.xml">Response</a></i>
+<li>Case: match: specified Resource, Action
+    <i><a href="IIB050Request.xml">Request</a>,<a href="IIB050Policy.xml">Policy</a>,<a href="IIB050Response.xml">Response</a></i>
+<li>Case: no match: specified Resource, Action
+    <i><a href="IIB051Request.xml">Request</a>,<a href="IIB051Policy.xml">Policy</a>,<a href="IIB051Response.xml">Response</a></i>
+<li>Case: match: specified Subject, Resource, Action
+    <i><a href="IIB052Request.xml">Request</a>,<a href="IIB052Policy.xml">Policy</a>,<a href="IIB052Response.xml">Response</a></i>
+<li>Case: no match: specified Subject, Resource, Action
+    <i><a href="IIB053Request.xml">Request</a>,<a href="IIB053Policy.xml">Policy</a>,<a href="IIB053Response.xml">Response</a></i>
+</ol>
+<P>
+Tests for Release 3.0 functionality.
+<P>
+<ol start=300>
+	<li>Case: Target Matching: Enhanced Target (succeed)<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIB300Request.xml">Request</a>,<a href="IIB300Policy.xml">Policy</a>,<a href="IIB300Response.xml">Response</a></i> 
+	<li>Case: Target Matching: Enhanced Target (fail)<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIB301Request.xml">Request</a>,<a href="IIB301Policy.xml">Policy</a>,<a href="IIB301Response.xml">Response</a></i> 
+</ol>
+
+<h3><li><a name="Function Evaluation"> Function Evaluation </a></h3>
+
+These tests exercise each of the mandatory-to-implement functions.<p>
+
+<ol>
+<b>GENERAL APPLY TESTS</b>
+<li>Case: Apply with Apply argument
+    <i><a href="IIC001Request.xml">Request</a>,<a href="IIC001Policy.xml">Policy</a>,<a href="IIC001Response.xml">Response</a></i>
+<li>Case: Apply with AttributeValue argument
+    <i><a href="IIC002Request.xml">Request</a>,<a href="IIC002Policy.xml">Policy</a>,<a href="IIC002Response.xml">Response</a></i>
+<li>Case: Apply with single-element bag where function expects primitive type
+    <i><a href="IIC003Request.xml">Request</a>,
+       <a href="IIC003Policy.xml">Policy</a>,
+       <a href="IIC003Response.xml">Response</a>,
+       <a href="IIC003Special.txt">Special Instructions</a></i>
+<li>Case: Apply with SubjectAttributeDesignator argument
+    <i><a href="IIC004Request.xml">Request</a>,<a href="IIC004Policy.xml">Policy</a>,<a href="IIC004Response.xml">Response</a></i>
+<li>Case: Apply with ResourceAttributeDesignator argument
+    <i><a href="IIC005Request.xml">Request</a>,<a href="IIC005Policy.xml">Policy</a>,<a href="IIC005Response.xml">Response</a></i>
+<li>Case: Apply with ActionAttributeDesignator argument
+    <i><a href="IIC006Request.xml">Request</a>,<a href="IIC006Policy.xml">Policy</a>,<a href="IIC006Response.xml">Response</a></i>
+<li>Case: Apply with EnvironmentAttributeDesignator argument
+    <i><a href="IIC007Request.xml">Request</a>,<a href="IIC007Policy.xml">Policy</a>,<a href="IIC007Response.xml">Response</a></i>
+<li>Case: Apply with empty bag argument
+    <i><a href="IIC008Request.xml">Request</a>,<a href="IIC008Policy.xml">Policy</a>,<a href="IIC008Response.xml">Response</a></i>
+<li>Case: Apply with multiple-element bag argument
+    <i><a href="IIC009Request.xml">Request</a>,<a href="IIC009Policy.xml">Policy</a>,<a href="IIC009Response.xml">Response</a></i>
+<li>Case: true: Condition Evaluation
+    <i><a href="IIC010Request.xml">Request</a>,<a href="IIC010Policy.xml">Policy</a>,<a href="IIC010Response.xml">Response</a></i>
+<li>Case: false: Condition Evaluation
+    <i><a href="IIC011Request.xml">Request</a>,<a href="IIC011Policy.xml">Policy</a>,<a href="IIC011Response.xml">Response</a></i>
+<li>Case: ERROR: Condition Evaluation - non-boolean datatype
+    <i><a href="IIC012Request.xml">Request</a>,<a
+            href="IIC012Policy.xml">Policy</a>,<a
+            href="IIC012Response.xml">Response</a>,
+       <a href="IIC012Special.txt">Special Instructions</a></i>
+<p>
+<b>ARITHMETIC FUNCTIONS</b>
+<li>Case: function:integer-add
+    <i><a href="IIC013Request.xml">Request</a>,<a href="IIC013Policy.xml">Policy</a>,<a href="IIC013Response.xml">Response</a></i>
+<li>Case: ERROR: function:integer-add - non-integer datatype
+    <i><a href="IIC014Request.xml">Request</a>,<a
+          href="IIC014Policy.xml">Policy</a>,<a
+          href="IIC014Response.xml">Response</a>,
+       <a href="IIC014Special.txt">Special Instructions</a></i>
+<li>Case: function:double-add
+    <i><a href="IIC015Request.xml">Request</a>,<a href="IIC015Policy.xml">Policy</a>,<a href="IIC015Response.xml">Response</a></i>
+<li>Case: function:integer-subtract
+    <i><a href="IIC016Request.xml">Request</a>,<a href="IIC016Policy.xml">Policy</a>,<a href="IIC016Response.xml">Response</a></i>
+<li>Case: function:double-subtract
+    <i><a href="IIC017Request.xml">Request</a>,<a href="IIC017Policy.xml">Policy</a>,<a href="IIC017Response.xml">Response</a></i>
+<li>Case: function:integer-multiply
+    <i><a href="IIC018Request.xml">Request</a>,<a href="IIC018Policy.xml">Policy</a>,<a href="IIC018Response.xml">Response</a></i>
+<li>Case: function:double-multiply
+    <i><a href="IIC019Request.xml">Request</a>,<a href="IIC019Policy.xml">Policy</a>,<a href="IIC019Response.xml">Response</a></i>
+<li>Case: function:integer-divide
+    <i><a href="IIC020Request.xml">Request</a>,<a href="IIC020Policy.xml">Policy</a>,<a href="IIC020Response.xml">Response</a></i>
+<li>Case: function:double-divide
+    <i><a href="IIC021Request.xml">Request</a>,<a href="IIC021Policy.xml">Policy</a>,<a href="IIC021Response.xml">Response</a></i>
+<li>Case: function:integer-mod
+    <i><a href="IIC022Request.xml">Request</a>,<a href="IIC022Policy.xml">Policy</a>,<a href="IIC022Response.xml">Response</a></i>
+<li>Case: function:double-mod: IIC023*.xml: TEST DELETED
+<li>Case: function:round
+    <i><a href="IIC024Request.xml">Request</a>,<a href="IIC024Policy.xml">Policy</a>,<a href="IIC024Response.xml">Response</a></i>
+<li>Case: function:floor
+    <i><a href="IIC025Request.xml">Request</a>,<a href="IIC025Policy.xml">Policy</a>,<a href="IIC025Response.xml">Response</a></i>
+<li>Case: function:integer-abs
+    <i><a href="IIC026Request.xml">Request</a>,<a href="IIC026Policy.xml">Policy</a>,<a href="IIC026Response.xml">Response</a></i>
+<li>Case: function:double-abs
+    <i><a href="IIC027Request.xml">Request</a>,<a
+            href="IIC027Policy.xml">Policy</a>,<a
+            href="IIC027Response.xml">Response</a></i>
+<p>
+<b>ARITHMETIC CONVERSION FUNCTIONS</b>
+<li>Case: function:double-to-integer
+    <i><a href="IIC028Request.xml">Request</a>,<a href="IIC028Policy.xml">Policy</a>,<a href="IIC028Response.xml">Response</a></i>
+<li>Case: function:integer-to-double
+    <i><a href="IIC029Request.xml">Request</a>,<a href="IIC029Policy.xml">Policy</a>,<a href="IIC029Response.xml">Response</a></i>
+<p>
+<b>EQUALITY FUNCTIONS</b>
+<li>Case: true: function:integer-equal
+    <i><a href="IIC030Request.xml">Request</a>,<a href="IIC030Policy.xml">Policy</a>,<a href="IIC030Response.xml">Response</a></i>
+<li>Case: false: function:integer-equal
+    <i><a href="IIC031Request.xml">Request</a>,<a href="IIC031Policy.xml">Policy</a>,<a href="IIC031Response.xml">Response</a></i>
+<li>Case: true: function:double-equal
+    <i><a href="IIC032Request.xml">Request</a>,<a href="IIC032Policy.xml">Policy</a>,<a href="IIC032Response.xml">Response</a></i>
+<li>Case: false: function:double-equal
+    <i><a href="IIC033Request.xml">Request</a>,<a href="IIC033Policy.xml">Policy</a>,<a href="IIC033Response.xml">Response</a></i>
+<li>Case: true: function:boolean-equal
+    <i><a href="IIC034Request.xml">Request</a>,<a href="IIC034Policy.xml">Policy</a>,<a href="IIC034Response.xml">Response</a></i>
+<li>Case: false: function:boolean-equal
+    <i><a href="IIC035Request.xml">Request</a>,<a href="IIC035Policy.xml">Policy</a>,<a href="IIC035Response.xml">Response</a></i>
+<li>Case: true: function:string-equal
+    <i><a href="IIC036Request.xml">Request</a>,<a href="IIC036Policy.xml">Policy</a>,<a href="IIC036Response.xml">Response</a></i>
+<li>Case: false: function:string-equal
+    <i><a href="IIC037Request.xml">Request</a>,<a href="IIC037Policy.xml">Policy</a>,<a href="IIC037Response.xml">Response</a></i>
+<li>Case: true: function:rfc822Name-equal
+    <i><a href="IIC038Request.xml">Request</a>,<a href="IIC038Policy.xml">Policy</a>,<a href="IIC038Response.xml">Response</a></i>
+<li>Case: false: function:rfc822Name-equal
+    <i><a href="IIC039Request.xml">Request</a>,<a href="IIC039Policy.xml">Policy</a>,<a href="IIC039Response.xml">Response</a></i>
+<li>Case: true: function:x500Name-equal
+    <i><a href="IIC040Request.xml">Request</a>,<a href="IIC040Policy.xml">Policy</a>,<a href="IIC040Response.xml">Response</a></i>
+<li>Case: false: function:x500Name-equal
+    <i><a href="IIC041Request.xml">Request</a>,<a href="IIC041Policy.xml">Policy</a>,<a href="IIC041Response.xml">Response</a></i>
+<li>Case: true: function:date-equal
+    <i><a href="IIC042Request.xml">Request</a>,<a href="IIC042Policy.xml">Policy</a>,<a href="IIC042Response.xml">Response</a></i>
+<li>Case: false: function:date-equal
+    <i><a href="IIC043Request.xml">Request</a>,<a href="IIC043Policy.xml">Policy</a>,<a href="IIC043Response.xml">Response</a></i>
+<li>Case: true: function:time-equal
+    <i><a href="IIC044Request.xml">Request</a>,<a href="IIC044Policy.xml">Policy</a>,<a href="IIC044Response.xml">Response</a></i>
+<li>Case: false: function:time-equal
+    <i><a href="IIC045Request.xml">Request</a>,<a href="IIC045Policy.xml">Policy</a>,<a href="IIC045Response.xml">Response</a></i>
+<li>Case: true: function:dateTime-equal
+    <i><a href="IIC046Request.xml">Request</a>,<a href="IIC046Policy.xml">Policy</a>,<a href="IIC046Response.xml">Response</a></i>
+<li>Case: false: function:dateTime-equal
+    <i><a href="IIC047Request.xml">Request</a>,<a href="IIC047Policy.xml">Policy</a>,<a href="IIC047Response.xml">Response</a></i>
+<li>Case: true: function:hexBinary-equal
+    <i><a href="IIC048Request.xml">Request</a>,<a href="IIC048Policy.xml">Policy</a>,<a href="IIC048Response.xml">Response</a></i>
+<li>Case: false: function:hexBinary-equal
+    <i><a href="IIC049Request.xml">Request</a>,<a href="IIC049Policy.xml">Policy</a>,<a href="IIC049Response.xml">Response</a></i>
+<li>Case: true: function:base64Binary-equal
+    <i><a href="IIC050Request.xml">Request</a>,<a href="IIC050Policy.xml">Policy</a>,<a href="IIC050Response.xml">Response</a></i>
+<li>Case: false: function:base64Binary-equal
+    <i><a href="IIC051Request.xml">Request</a>,<a href="IIC051Policy.xml">Policy</a>,<a href="IIC051Response.xml">Response</a></i>
+<li>Case: true: function:anyURI-equal
+    <i><a href="IIC052Request.xml">Request</a>,<a href="IIC052Policy.xml">Policy</a>,<a href="IIC052Response.xml">Response</a></i>
+<li>Case: false: function:anyURI-equal
+    <i><a href="IIC053Request.xml">Request</a>,<a href="IIC053Policy.xml">Policy</a>,<a href="IIC053Response.xml">Response</a></i>
+<li>Case: true: function:QName-equal: IIC054*.xml: TEST DELETED
+<li>Case: false: function:QName-equal: IIC055*.xml: TEST DELETED
+<p>
+<b>See also <a href="#DURATION-EQUALS TESTS">DURATION-EQUALS TESTS</a> below.</b>
+<p>
+<b>String-regexp-match FUNCTION</b>
+<li>Case: true: function:string-regexp-match
+    <i><a href="IIC056Request.xml">Request</a>,<a href="IIC056Policy.xml">Policy</a>,<a href="IIC056Response.xml">Response</a></i>
+<li>Case: false: function:string-regexp-match
+    <i><a href="IIC057Request.xml">
+            Request</a>,<a href="IIC057Policy.xml">Policy</a>,<a
+            href="IIC057Response.xml">Response</a></i>
+<p>
+<b>COMPARISON FUNCTIONS: GREATER THAN, GREATER THAN OR EQUAL</b>
+<li>Case: true: function:integer-greater-than
+    <i><a href="IIC058Request.xml">Request</a>,<a href="IIC058Policy.xml">Policy</a>,<a href="IIC058Response.xml">Response</a></i>
+<li>Case: false: function:integer-greater-than
+    <i><a href="IIC059Request.xml">Request</a>,<a href="IIC059Policy.xml">Policy</a>,<a href="IIC059Response.xml">Response</a></i>
+<li>Case: true: function:double-greater-than
+    <i><a href="IIC060Request.xml">Request</a>,<a href="IIC060Policy.xml">Policy</a>,<a href="IIC060Response.xml">Response</a></i>
+<li>Case: false: function:double-greater-than
+    <i><a href="IIC061Request.xml">Request</a>,<a href="IIC061Policy.xml">Policy</a>,<a href="IIC061Response.xml">Response</a></i>
+<li>Case: true: function:string-greater-than
+    <i><a href="IIC062Request.xml">Request</a>,<a href="IIC062Policy.xml">Policy</a>,<a href="IIC062Response.xml">Response</a></i>
+<li>Case: false: function:string-greater-than
+    <i><a href="IIC063Request.xml">Request</a>,<a href="IIC063Policy.xml">Policy</a>,<a href="IIC063Response.xml">Response</a></i>
+<li>Case: true: function:date-greater-than
+    <i><a href="IIC064Request.xml">Request</a>,<a href="IIC064Policy.xml">Policy</a>,<a href="IIC064Response.xml">Response</a></i>
+<li>Case: false: function:date-greater-than
+    <i><a href="IIC065Request.xml">Request</a>,<a href="IIC065Policy.xml">Policy</a>,<a href="IIC065Response.xml">Response</a></i>
+<li>Case: true: function:time-greater-than
+    <i><a href="IIC066Request.xml">Request</a>,<a href="IIC066Policy.xml">Policy</a>,<a href="IIC066Response.xml">Response</a></i>
+<li>Case: false: function:time-greater-than
+    <i><a href="IIC067Request.xml">Request</a>,<a href="IIC067Policy.xml">Policy</a>,<a href="IIC067Response.xml">Response</a></i>
+<li>Case: true: function:dateTime-greater-than
+    <i><a href="IIC068Request.xml">Request</a>,<a href="IIC068Policy.xml">Policy</a>,<a href="IIC068Response.xml">Response</a></i>
+<li>Case: false: function:dateTime-greater-than
+    <i><a href="IIC069Request.xml">Request</a>,<a href="IIC069Policy.xml">Policy</a>,<a href="IIC069Response.xml">Response</a></i>
+<li>Case: true: function:integer-greater-than-or-equal
+    <i><a href="IIC070Request.xml">Request</a>,<a href="IIC070Policy.xml">Policy</a>,<a href="IIC070Response.xml">Response</a></i>
+<li>Case: false: function:integer-greater-than-or-equal
+    <i><a href="IIC071Request.xml">Request</a>,<a href="IIC071Policy.xml">Policy</a>,<a href="IIC071Response.xml">Response</a></i>
+<li>Case: true: function:double-greater-than-or-equal
+    <i><a href="IIC072Request.xml">Request</a>,<a href="IIC072Policy.xml">Policy</a>,<a href="IIC072Response.xml">Response</a></i>
+<li>Case: false: function:double-greater-than-or-equal
+    <i><a href="IIC073Request.xml">Request</a>,<a href="IIC073Policy.xml">Policy</a>,<a href="IIC073Response.xml">Response</a></i>
+<li>Case: true: function:string-greater-than-or-equal
+    <i><a href="IIC074Request.xml">Request</a>,<a href="IIC074Policy.xml">Policy</a>,<a href="IIC074Response.xml">Response</a></i>
+<li>Case: false: function:string-greater-than-or-equal
+    <i><a href="IIC075Request.xml">Request</a>,<a href="IIC075Policy.xml">Policy</a>,<a href="IIC075Response.xml">Response</a></i>
+<li>Case: true: function:date-greater-than-or-equal
+    <i><a href="IIC076Request.xml">Request</a>,<a href="IIC076Policy.xml">Policy</a>,<a href="IIC076Response.xml">Response</a></i>
+<li>Case: false: function:date-greater-than-or-equal
+    <i><a href="IIC077Request.xml">Request</a>,<a href="IIC077Policy.xml">Policy</a>,<a href="IIC077Response.xml">Response</a></i>
+<li>Case: true: function:time-greater-than-or-equal
+    <i><a href="IIC078Request.xml">Request</a>,<a href="IIC078Policy.xml">Policy</a>,<a href="IIC078Response.xml">Response</a></i>
+<li>Case: false: function:time-greater-than-or-equal
+    <i><a href="IIC079Request.xml">Request</a>,<a href="IIC079Policy.xml">Policy</a>,<a href="IIC079Response.xml">Response</a></i>
+<li>Case: true: function:dateTime-greater-than-or-equal
+    <i><a href="IIC080Request.xml">Request</a>,<a href="IIC080Policy.xml">Policy</a>,<a href="IIC080Response.xml">Response</a></i>
+<li>Case: false: function:dateTime-greater-than-or-equal
+    <i><a href="IIC081Request.xml">Request</a>,<a
+            href="IIC081Policy.xml">Policy</a>,<a
+            href="IIC081Response.xml">Response</a></i>
+<p>
+<b>rfc822Name and x500Name MATCHING FUNCTIONS</b>
+<li>Case: true: function:rfc822Name-match
+    <i><a href="IIC082Request.xml">Request</a>,<a href="IIC082Policy.xml">Policy</a>,<a href="IIC082Response.xml">Response</a></i>
+<li>Case: false: function:rfc822Name-match
+    <i><a href="IIC083Request.xml">Request</a>,<a href="IIC083Policy.xml">Policy</a>,<a href="IIC083Response.xml">Response</a></i>
+<li>Case: true: function:x500Name-match
+    <i><a href="IIC084Request.xml">Request</a>,<a href="IIC084Policy.xml">Policy</a>,<a href="IIC084Response.xml">Response</a></i>
+<li>Case: false: function:x500Name-match
+    <i><a href="IIC085Request.xml">Request</a>,<a
+            href="IIC085Policy.xml">Policy</a>,<a
+            href="IIC085Response.xml">Response</a></i>
+<p>
+<b>LOGICAL FUNCTIONS</b>
+<li>Case: true: function:and
+    <i><a href="IIC086Request.xml">Request</a>,<a href="IIC086Policy.xml">Policy</a>,<a href="IIC086Response.xml">Response</a></i>
+<li>Case: false: function:and
+    <i><a href="IIC087Request.xml">Request</a>,<a href="IIC087Policy.xml">Policy</a>,<a href="IIC087Response.xml">Response</a></i>
+<li>Case: true: function:ordered-and: IIC088*.xml: TEST DELETED
+<li>Case: false: function:ordered-and: IIC089*.xml: TEST DELETED
+<li>Case: true: function:or
+    <i><a href="IIC090Request.xml">Request</a>,<a href="IIC090Policy.xml">Policy</a>,<a href="IIC090Response.xml">Response</a></i>
+<li>Case: false: function:or
+    <i><a href="IIC091Request.xml">Request</a>,<a href="IIC091Policy.xml">Policy</a>,<a href="IIC091Response.xml">Response</a></i>
+<li>Case: true: function:ordered-or: IIC092*.xml: TEST DELETED
+<li>Case: false: function:ordered-or: IIC093*.xml: TEST DELETED
+<li>Case: true: function:n-of
+    <i><a href="IIC094Request.xml">Request</a>,<a href="IIC094Policy.xml">Policy</a>,<a href="IIC094Response.xml">Response</a></i>
+<li>Case: false: function:n-of
+    <i><a href="IIC095Request.xml">Request</a>,<a href="IIC095Policy.xml">Policy</a>,<a href="IIC095Response.xml">Response</a></i>
+<li>Case: true: function:not
+    <i><a href="IIC096Request.xml">Request</a>,<a href="IIC096Policy.xml">Policy</a>,<a href="IIC096Response.xml">Response</a></i>
+<li>Case: false: function:not
+    <i><a href="IIC097Request.xml">Request</a>,<a href="IIC097Policy.xml">Policy</a>,<a href="IIC097Response.xml">Response</a></i>
+<li>Case: true: function:present: IIC098*.xml: TEST DELETED
+<li>Case: false: function:present: IIC099*.xml: TEST DELETED
+<p>
+<b>STRING NORMALIZATION FUNCTIONS</b>
+<li>Case: function:string-normalize-space
+    <i><a href="IIC100Request.xml">Request</a>,<a href="IIC100Policy.xml">Policy</a>,<a href="IIC100Response.xml">Response</a></i>
+<li>Case: function:string-normalize-to-lower-case
+    <i><a href="IIC101Request.xml">Request</a>,<a href="IIC101Policy.xml">Policy</a>,<a href="IIC101Response.xml">Response</a></i>
+<p>
+<b>DURATION FUNCTIONS</b>
+<li>Case: function:dateTime-add-dayTimeDuration
+    <i><a href="IIC102Request.xml">Request</a>,<a href="IIC102Policy.xml">Policy</a>,<a href="IIC102Response.xml">Response</a></i>
+<li>Case: function:dateTime-add-yearMonthDuration
+    <i><a href="IIC103Request.xml">Request</a>,<a href="IIC103Policy.xml">Policy</a>,<a href="IIC103Response.xml">Response</a></i>
+<li>Case: function:dateTime-subtract-dayTimeDuration
+    <i><a href="IIC104Request.xml">Request</a>,<a href="IIC104Policy.xml">Policy</a>,<a href="IIC104Response.xml">Response</a></i>
+<li>Case: function:dateTime-subtract-yearMonthDuration
+    <i><a href="IIC105Request.xml">Request</a>,<a href="IIC105Policy.xml">Policy</a>,<a href="IIC105Response.xml">Response</a></i>
+<li>Case: function:date-add-yearMonthDuration
+    <i><a href="IIC106Request.xml">Request</a>,<a href="IIC106Policy.xml">Policy</a>,<a href="IIC106Response.xml">Response</a></i>
+<li>Case: function:date-subtract-yearMonthDuration
+    <i><a href="IIC107Request.xml">Request</a>,<a href="IIC107Policy.xml">Policy</a>,<a href="IIC107Response.xml">Response</a></i>
+<p>
+<b>See also <a href="#DURATION-EQUALS TESTS">DURATION-EQUALS TESTS</a> below.</b>
+<p>
+<b>COMPARISON FUNCTIONS: LESS THAN, LESS THAN OR EQUAL</b>
+<li>Case: function:string-less-than
+    <i><a href="IIC108Request.xml">Request</a>,<a href="IIC108Policy.xml">Policy</a>,<a href="IIC108Response.xml">Response</a></i>
+<li>Case: function:string-less-than-or-equal
+    <i><a href="IIC109Request.xml">Request</a>,<a href="IIC109Policy.xml">Policy</a>,<a href="IIC109Response.xml">Response</a></i>
+<li>Case: function:integer-less-than
+    <i><a href="IIC110Request.xml">Request</a>,<a href="IIC110Policy.xml">Policy</a>,<a href="IIC110Response.xml">Response</a></i>
+<li>Case: function:double-less-than
+    <i><a href="IIC111Request.xml">Request</a>,<a href="IIC111Policy.xml">Policy</a>,<a href="IIC111Response.xml">Response</a></i>
+<li>Case: function:integer-less-than-or-equal
+    <i><a href="IIC112Request.xml">Request</a>,<a href="IIC112Policy.xml">Policy</a>,<a href="IIC112Response.xml">Response</a></i>
+<li>Case: function:double-less-than-or-equal
+    <i><a href="IIC113Request.xml">Request</a>,<a href="IIC113Policy.xml">Policy</a>,<a href="IIC113Response.xml">Response</a></i>
+<li>Case: function:time-less-than
+    <i><a href="IIC114Request.xml">Request</a>,<a href="IIC114Policy.xml">Policy</a>,<a href="IIC114Response.xml">Response</a></i>
+<li>Case: function:time-less-than-or-equal
+    <i><a href="IIC115Request.xml">Request</a>,<a href="IIC115Policy.xml">Policy</a>,<a href="IIC115Response.xml">Response</a></i>
+<li>Case: function:dateTime-less-than
+    <i><a href="IIC116Request.xml">Request</a>,<a href="IIC116Policy.xml">Policy</a>,<a href="IIC116Response.xml">Response</a></i>
+<li>Case: function:dateTime-less-than-or-equal
+    <i><a href="IIC117Request.xml">Request</a>,<a href="IIC117Policy.xml">Policy</a>,<a href="IIC117Response.xml">Response</a></i>
+<li>Case: function:date-less-than
+    <i><a href="IIC118Request.xml">Request</a>,<a href="IIC118Policy.xml">Policy</a>,<a href="IIC118Response.xml">Response</a></i>
+<li>Case: function:date-less-than-or-equal
+    <i><a href="IIC119Request.xml">Request</a>,<a href="IIC119Policy.xml">Policy</a>,<a href="IIC119Response.xml">Response</a></i>
+<p>
+<b>BAG FUNCTIONS</b>
+<li>Case: function:string-bag-size
+    <i><a href="IIC120Request.xml">Request</a>,<a href="IIC120Policy.xml">Policy</a>,<a href="IIC120Response.xml">Response</a></i>
+<li>Case: function:string-bag
+    <i><a href="IIC121Request.xml">Request</a>,<a href="IIC121Policy.xml">Policy</a>,<a href="IIC121Response.xml">Response</a></i>
+<li>Case: function:boolean-one-and-only
+    <i><a href="IIC122Request.xml">Request</a>,<a href="IIC122Policy.xml">Policy</a>,<a href="IIC122Response.xml">Response</a></i>
+<li>Case: function:boolean-bag-size
+    <i><a href="IIC123Request.xml">Request</a>,<a href="IIC123Policy.xml">Policy</a>,<a href="IIC123Response.xml">Response</a></i>
+<li>Case: function:boolean-is-in
+    <i><a href="IIC124Request.xml">Request</a>,<a href="IIC124Policy.xml">Policy</a>,<a href="IIC124Response.xml">Response</a></i>
+<li>Case: function:boolean-bag
+    <i><a href="IIC125Request.xml">Request</a>,<a href="IIC125Policy.xml">Policy</a>,<a href="IIC125Response.xml">Response</a></i>
+<li>Case: function:integer-bag-size
+    <i><a href="IIC126Request.xml">Request</a>,<a href="IIC126Policy.xml">Policy</a>,<a href="IIC126Response.xml">Response</a></i>
+<li>Case: function:integer-is-in
+    <i><a href="IIC127Request.xml">Request</a>,<a href="IIC127Policy.xml">Policy</a>,<a href="IIC127Response.xml">Response</a></i>
+<li>Case: function:integer-bag
+    <i><a href="IIC128Request.xml">Request</a>,<a href="IIC128Policy.xml">Policy</a>,<a href="IIC128Response.xml">Response</a></i>
+<li>Case: function:double-bag-size
+    <i><a href="IIC129Request.xml">Request</a>,<a href="IIC129Policy.xml">Policy</a>,<a href="IIC129Response.xml">Response</a></i>
+<li>Case: function:double-is-in
+    <i><a href="IIC130Request.xml">Request</a>,<a href="IIC130Policy.xml">Policy</a>,<a href="IIC130Response.xml">Response</a></i>
+<li>Case: function:double-bag
+    <i><a href="IIC131Request.xml">Request</a>,<a href="IIC131Policy.xml">Policy</a>,<a href="IIC131Response.xml">Response</a></i>
+<li>Case: function:date-bag-size
+    <i><a href="IIC132Request.xml">Request</a>,<a href="IIC132Policy.xml">Policy</a>,<a href="IIC132Response.xml">Response</a></i>
+<li>Case: function:date-is-in
+    <i><a href="IIC133Request.xml">Request</a>,<a href="IIC133Policy.xml">Policy</a>,<a href="IIC133Response.xml">Response</a></i>
+<li>Case: function:date-bag
+    <i><a href="IIC134Request.xml">Request</a>,<a href="IIC134Policy.xml">Policy</a>,<a href="IIC134Response.xml">Response</a></i>
+<li>Case: function:time-bag-size
+    <i><a href="IIC135Request.xml">Request</a>,<a href="IIC135Policy.xml">Policy</a>,<a href="IIC135Response.xml">Response</a></i>
+<li>Case: function:time-is-in
+    <i><a href="IIC136Request.xml">Request</a>,<a href="IIC136Policy.xml">Policy</a>,<a href="IIC136Response.xml">Response</a></i>
+<li>Case: function:time-bag
+    <i><a href="IIC137Request.xml">Request</a>,<a href="IIC137Policy.xml">Policy</a>,<a href="IIC137Response.xml">Response</a></i>
+<li>Case: function:dateTime-bag-size
+    <i><a href="IIC138Request.xml">Request</a>,<a href="IIC138Policy.xml">Policy</a>,<a href="IIC138Response.xml">Response</a></i>
+<li>Case: function:dateTime-is-in
+    <i><a href="IIC139Request.xml">Request</a>,<a href="IIC139Policy.xml">Policy</a>,<a href="IIC139Response.xml">Response</a></i>
+<li>Case: function:dateTime-bag
+    <i><a href="IIC140Request.xml">Request</a>,<a href="IIC140Policy.xml">Policy</a>,<a href="IIC140Response.xml">Response</a></i>
+<li>Case: function:anyURI-bag-size
+    <i><a href="IIC141Request.xml">Request</a>,<a href="IIC141Policy.xml">Policy</a>,<a href="IIC141Response.xml">Response</a></i>
+<li>Case: function:anyURI-is-in
+    <i><a href="IIC142Request.xml">Request</a>,<a href="IIC142Policy.xml">Policy</a>,<a href="IIC142Response.xml">Response</a></i>
+<li>Case: function:anyURI-bag
+    <i><a href="IIC143Request.xml">Request</a>,<a href="IIC143Policy.xml">Policy</a>,<a href="IIC143Response.xml">Response</a></i>
+<li>Case: function:hexBinary-bag-size
+    <i><a href="IIC144Request.xml">Request</a>,<a href="IIC144Policy.xml">Policy</a>,<a href="IIC144Response.xml">Response</a></i>
+<li>Case: function:hexBinary-is-in
+    <i><a href="IIC145Request.xml">Request</a>,<a href="IIC145Policy.xml">Policy</a>,<a href="IIC145Response.xml">Response</a></i>
+<li>Case: function:hexBinary-bag
+    <i><a href="IIC146Request.xml">Request</a>,<a href="IIC146Policy.xml">Policy</a>,<a href="IIC146Response.xml">Response</a></i>
+<li>Case: function:base64Binary-bag-size
+    <i><a href="IIC147Request.xml">Request</a>,<a href="IIC147Policy.xml">Policy</a>,<a href="IIC147Response.xml">Response</a></i>
+<li>Case: function:base64Binary-is-in
+    <i><a href="IIC148Request.xml">Request</a>,<a href="IIC148Policy.xml">Policy</a>,<a href="IIC148Response.xml">Response</a></i>
+<li>Case: function:base64Binary-bag
+    <i><a href="IIC149Request.xml">Request</a>,<a href="IIC149Policy.xml">Policy</a>,<a href="IIC149Response.xml">Response</a></i>
+<li>Case: function:dayTimeDuration-one-and-only
+    <i><a href="IIC150Request.xml">Request</a>,<a href="IIC150Policy.xml">Policy</a>,<a href="IIC150Response.xml">Response</a></i>
+<li>Case: function:dayTimeDuration-bag-size
+    <i><a href="IIC151Request.xml">Request</a>,<a href="IIC151Policy.xml">Policy</a>,<a href="IIC151Response.xml">Response</a></i>
+<li>Case: function:dayTimeDuration-is-in
+    <i><a href="IIC152Request.xml">Request</a>,<a href="IIC152Policy.xml">Policy</a>,<a href="IIC152Response.xml">Response</a></i>
+<li>Case: function:dayTimeDuration-bag
+    <i><a href="IIC153Request.xml">Request</a>,<a href="IIC153Policy.xml">Policy</a>,<a href="IIC153Response.xml">Response</a></i>
+<li>Case: function:yearMonthDuration-one-and-only
+    <i><a href="IIC154Request.xml">Request</a>,<a href="IIC154Policy.xml">Policy</a>,<a href="IIC154Response.xml">Response</a></i>
+<li>Case: function:yearMonthDuration-bag-size
+    <i><a href="IIC155Request.xml">Request</a>,<a href="IIC155Policy.xml">Policy</a>,<a href="IIC155Response.xml">Response</a></i>
+<li>Case: function:yearMonthDuration-is-in
+    <i><a href="IIC156Request.xml">Request</a>,<a href="IIC156Policy.xml">Policy</a>,<a href="IIC156Response.xml">Response</a></i>
+<li>Case: function:yearMonthDuration-bag
+    <i><a href="IIC157Request.xml">Request</a>,<a href="IIC157Policy.xml">Policy</a>,<a href="IIC157Response.xml">Response</a></i>
+<li>Case: function:x500Name-bag-size
+    <i><a href="IIC158Request.xml">Request</a>,<a href="IIC158Policy.xml">Policy</a>,<a href="IIC158Response.xml">Response</a></i>
+<li>Case: function:x500Name-is-in
+    <i><a href="IIC159Request.xml">Request</a>,<a href="IIC159Policy.xml">Policy</a>,<a href="IIC159Response.xml">Response</a></i>
+<li>Case: function:x500Name-bag
+    <i><a href="IIC160Request.xml">Request</a>,<a href="IIC160Policy.xml">Policy</a>,<a href="IIC160Response.xml">Response</a></i>
+<li>Case: function:rfc822Name-bag-size
+    <i><a href="IIC161Request.xml">Request</a>,<a href="IIC161Policy.xml">Policy</a>,<a href="IIC161Response.xml">Response</a></i>
+<li>Case: function:rfc822Name-is-in
+    <i><a href="IIC162Request.xml">Request</a>,<a href="IIC162Policy.xml">Policy</a>,<a href="IIC162Response.xml">Response</a></i>
+<li>Case: function:rfc822Name-bag
+    <i><a href="IIC163Request.xml">Request</a>,<a href="IIC163Policy.xml">Policy</a>,<a href="IIC163Response.xml">Response</a></i>
+<p>
+<b>HIGHER-ORDER BAG FUNCTIONS</b>
+<li>Case: function:any-of
+    <i><a href="IIC164Request.xml">Request</a>,<a href="IIC164Policy.xml">Policy</a>,<a href="IIC164Response.xml">Response</a></i>
+<li>Case: function:all-of
+    <i><a href="IIC165Request.xml">Request</a>,<a href="IIC165Policy.xml">Policy</a>,<a href="IIC165Response.xml">Response</a></i>
+<li>Case: function:any-of-any
+    <i><a href="IIC166Request.xml">Request</a>,<a href="IIC166Policy.xml">Policy</a>,<a href="IIC166Response.xml">Response</a></i>
+<li>Case: function:all-of-any
+    <i><a href="IIC167Request.xml">Request</a>,<a href="IIC167Policy.xml">Policy</a>,<a href="IIC167Response.xml">Response</a></i>
+<li>Case: function:any-of-all
+    <i><a href="IIC168Request.xml">Request</a>,<a href="IIC168Policy.xml">Policy</a>,<a href="IIC168Response.xml">Response</a></i>
+<li>Case: function:all-of-all
+    <i><a href="IIC169Request.xml">Request</a>,<a href="IIC169Policy.xml">Policy</a>,<a href="IIC169Response.xml">Response</a></i>
+<li>Case: function:map
+    <i><a href="IIC170Request.xml">Request</a>,<a href="IIC170Policy.xml">Policy</a>,<a href="IIC170Response.xml">Response</a></i>
+<p>
+<b>SET FUNCTIONS</b>
+<li>Case: function:string-intersection
+    <i><a href="IIC171Request.xml">Request</a>,<a href="IIC171Policy.xml">Policy</a>,<a href="IIC171Response.xml">Response</a></i>
+<li>Case: function:string-at-least-one-member-of
+    <i><a href="IIC172Request.xml">Request</a>,<a href="IIC172Policy.xml">Policy</a>,<a href="IIC172Response.xml">Response</a></i>
+<li>Case: function:string-union
+    <i><a href="IIC173Request.xml">Request</a>,<a href="IIC173Policy.xml">Policy</a>,<a href="IIC173Response.xml">Response</a></i>
+<li>Case: function:string-subset
+    <i><a href="IIC174Request.xml">Request</a>,<a href="IIC174Policy.xml">Policy</a>,<a href="IIC174Response.xml">Response</a></i>
+<li>Case: function:string-set-equals
+    <i><a href="IIC175Request.xml">Request</a>,<a href="IIC175Policy.xml">Policy</a>,<a href="IIC175Response.xml">Response</a></i>
+<li>Case: function:boolean-intersection
+    <i><a href="IIC176Request.xml">Request</a>,<a href="IIC176Policy.xml">Policy</a>,<a href="IIC176Response.xml">Response</a></i>
+<li>Case: function:boolean-at-least-one-member-of
+    <i><a href="IIC177Request.xml">Request</a>,<a href="IIC177Policy.xml">Policy</a>,<a href="IIC177Response.xml">Response</a></i>
+<li>Case: function:boolean-union
+    <i><a href="IIC178Request.xml">Request</a>,<a href="IIC178Policy.xml">Policy</a>,<a href="IIC178Response.xml">Response</a></i>
+<li>Case: function:boolean-subset
+    <i><a href="IIC179Request.xml">Request</a>,<a href="IIC179Policy.xml">Policy</a>,<a href="IIC179Response.xml">Response</a></i>
+<li>Case: function:boolean-set-equals
+    <i><a href="IIC180Request.xml">Request</a>,<a href="IIC180Policy.xml">Policy</a>,<a href="IIC180Response.xml">Response</a></i>
+<li>Case: function:integer-intersection
+    <i><a href="IIC181Request.xml">Request</a>,<a href="IIC181Policy.xml">Policy</a>,<a href="IIC181Response.xml">Response</a></i>
+<li>Case: function:integer-at-least-one-member-of
+    <i><a href="IIC182Request.xml">Request</a>,<a href="IIC182Policy.xml">Policy</a>,<a href="IIC182Response.xml">Response</a></i>
+<li>Case: function:integer-union
+    <i><a href="IIC183Request.xml">Request</a>,<a href="IIC183Policy.xml">Policy</a>,<a href="IIC183Response.xml">Response</a></i>
+<li>Case: function:integer-subset
+    <i><a href="IIC184Request.xml">Request</a>,<a href="IIC184Policy.xml">Policy</a>,<a href="IIC184Response.xml">Response</a></i>
+<li>Case: function:integer-set-equals
+    <i><a href="IIC185Request.xml">Request</a>,<a href="IIC185Policy.xml">Policy</a>,<a href="IIC185Response.xml">Response</a></i>
+<li>Case: function:double-intersection
+    <i><a href="IIC186Request.xml">Request</a>,<a href="IIC186Policy.xml">Policy</a>,<a href="IIC186Response.xml">Response</a></i>
+<li>Case: function:double-at-least-one-member-of
+    <i><a href="IIC187Request.xml">Request</a>,<a href="IIC187Policy.xml">Policy</a>,<a href="IIC187Response.xml">Response</a></i>
+<li>Case: function:double-union
+    <i><a href="IIC188Request.xml">Request</a>,<a href="IIC188Policy.xml">Policy</a>,<a href="IIC188Response.xml">Response</a></i>
+<li>Case: function:double-subset
+    <i><a href="IIC189Request.xml">Request</a>,<a href="IIC189Policy.xml">Policy</a>,<a href="IIC189Response.xml">Response</a></i>
+<li>Case: function:double-set-equals
+    <i><a href="IIC190Request.xml">Request</a>,<a href="IIC190Policy.xml">Policy</a>,<a href="IIC190Response.xml">Response</a></i>
+<li>Case: function:date-intersection
+    <i><a href="IIC191Request.xml">Request</a>,<a href="IIC191Policy.xml">Policy</a>,<a href="IIC191Response.xml">Response</a></i>
+<li>Case: function:date-at-least-one-member-of
+    <i><a href="IIC192Request.xml">Request</a>,<a href="IIC192Policy.xml">Policy</a>,<a href="IIC192Response.xml">Response</a></i>
+<li>Case: function:date-union
+    <i><a href="IIC193Request.xml">Request</a>,<a href="IIC193Policy.xml">Policy</a>,<a href="IIC193Response.xml">Response</a></i>
+<li>Case: function:date-subset
+    <i><a href="IIC194Request.xml">Request</a>,<a href="IIC194Policy.xml">Policy</a>,<a href="IIC194Response.xml">Response</a></i>
+<li>Case: function:date-set-equals
+    <i><a href="IIC195Request.xml">Request</a>,<a href="IIC195Policy.xml">Policy</a>,<a href="IIC195Response.xml">Response</a></i>
+<li>Case: function:time-intersection
+    <i><a href="IIC196Request.xml">Request</a>,<a href="IIC196Policy.xml">Policy</a>,<a href="IIC196Response.xml">Response</a></i>
+<li>Case: function:time-at-least-one-member-of
+    <i><a href="IIC197Request.xml">Request</a>,<a href="IIC197Policy.xml">Policy</a>,<a href="IIC197Response.xml">Response</a></i>
+<li>Case: function:time-union
+    <i><a href="IIC198Request.xml">Request</a>,<a href="IIC198Policy.xml">Policy</a>,<a href="IIC198Response.xml">Response</a></i>
+<li>Case: function:time-subset
+    <i><a href="IIC199Request.xml">Request</a>,<a href="IIC199Policy.xml">Policy</a>,<a href="IIC199Response.xml">Response</a></i>
+<li>Case: function:time-set-equals
+    <i><a href="IIC200Request.xml">Request</a>,<a href="IIC200Policy.xml">Policy</a>,<a href="IIC200Response.xml">Response</a></i>
+<li>Case: function:dateTime-intersection
+    <i><a href="IIC201Request.xml">Request</a>,<a href="IIC201Policy.xml">Policy</a>,<a href="IIC201Response.xml">Response</a></i>
+<li>Case: function:dateTime-at-least-one-member-of
+    <i><a href="IIC202Request.xml">Request</a>,<a href="IIC202Policy.xml">Policy</a>,<a href="IIC202Response.xml">Response</a></i>
+<li>Case: function:dateTime-union
+    <i><a href="IIC203Request.xml">Request</a>,<a href="IIC203Policy.xml">Policy</a>,<a href="IIC203Response.xml">Response</a></i>
+<li>Case: function:dateTime-subset
+    <i><a href="IIC204Request.xml">Request</a>,<a href="IIC204Policy.xml">Policy</a>,<a href="IIC204Response.xml">Response</a></i>
+<li>Case: function:dateTime-set-equals
+    <i><a href="IIC205Request.xml">Request</a>,<a href="IIC205Policy.xml">Policy</a>,<a href="IIC205Response.xml">Response</a></i>
+<li>Case: function:anyURI-intersection
+    <i><a href="IIC206Request.xml">Request</a>,<a href="IIC206Policy.xml">Policy</a>,<a href="IIC206Response.xml">Response</a></i>
+<li>Case: function:anyURI-at-least-one-member-of
+    <i><a href="IIC207Request.xml">Request</a>,<a href="IIC207Policy.xml">Policy</a>,<a href="IIC207Response.xml">Response</a></i>
+<li>Case: function:anyURI-union
+    <i><a href="IIC208Request.xml">Request</a>,<a href="IIC208Policy.xml">Policy</a>,<a href="IIC208Response.xml">Response</a></i>
+<li>Case: function:anyURI-subset
+    <i><a href="IIC209Request.xml">Request</a>,<a href="IIC209Policy.xml">Policy</a>,<a href="IIC209Response.xml">Response</a></i>
+<li>Case: function:anyURI-set-equals
+    <i><a href="IIC210Request.xml">Request</a>,<a href="IIC210Policy.xml">Policy</a>,<a href="IIC210Response.xml">Response</a></i>
+<li>Case: function:x500Name-intersection
+    <i><a href="IIC211Request.xml">Request</a>,<a href="IIC211Policy.xml">Policy</a>,<a href="IIC211Response.xml">Response</a></i>
+<li>Case: function:x500Name-at-least-one-member-of
+    <i><a href="IIC212Request.xml">Request</a>,<a href="IIC212Policy.xml">Policy</a>,<a href="IIC212Response.xml">Response</a></i>
+<li>Case: function:x500Name-union
+    <i><a href="IIC213Request.xml">Request</a>,<a href="IIC213Policy.xml">Policy</a>,<a href="IIC213Response.xml">Response</a></i>
+<li>Case: function:x500Name-subset
+    <i><a href="IIC214Request.xml">Request</a>,<a href="IIC214Policy.xml">Policy</a>,<a href="IIC214Response.xml">Response</a></i>
+<li>Case: function:x500Name-set-equals
+    <i><a href="IIC215Request.xml">Request</a>,<a href="IIC215Policy.xml">Policy</a>,<a href="IIC215Response.xml">Response</a></i>
+<li>Case: function:rfc822Name-intersection
+    <i><a href="IIC216Request.xml">Request</a>,<a href="IIC216Policy.xml">Policy</a>,<a href="IIC216Response.xml">Response</a></i>
+<li>Case: function:rfc822Name-at-least-one-member-of
+    <i><a href="IIC217Request.xml">Request</a>,<a href="IIC217Policy.xml">Policy</a>,<a href="IIC217Response.xml">Response</a></i>
+<li>Case: function:rfc822Name-union
+    <i><a href="IIC218Request.xml">Request</a>,<a href="IIC218Policy.xml">Policy</a>,<a href="IIC218Response.xml">Response</a></i>
+<li>Case: function:rfc822Name-subset
+    <i><a href="IIC219Request.xml">Request</a>,<a href="IIC219Policy.xml">Policy</a>,<a href="IIC219Response.xml">Response</a></i>
+<li>Case: function:rfc822Name-set-equals
+    <i><a href="IIC220Request.xml">Request</a>,<a href="IIC220Policy.xml">Policy</a>,<a href="IIC220Response.xml">Response</a></i>
+<li>Case: function:hexBinary-intersection
+    <i><a href="IIC221Request.xml">Request</a>,<a href="IIC221Policy.xml">Policy</a>,<a href="IIC221Response.xml">Response</a></i>
+<li>Case: function:hexBinary-at-least-one-member-of
+    <i><a href="IIC222Request.xml">Request</a>,<a href="IIC222Policy.xml">Policy</a>,<a href="IIC222Response.xml">Response</a></i>
+<li>Case: function:hexBinary-union
+    <i><a href="IIC223Request.xml">Request</a>,<a href="IIC223Policy.xml">Policy</a>,<a href="IIC223Response.xml">Response</a></i>
+<li>Case: function:hexBinary-subset
+    <i><a href="IIC224Request.xml">Request</a>,<a href="IIC224Policy.xml">Policy</a>,<a href="IIC224Response.xml">Response</a></i>
+<li>Case: function:hexBinary-set-equals
+    <i><a href="IIC225Request.xml">Request</a>,<a href="IIC225Policy.xml">Policy</a>,<a href="IIC225Response.xml">Response</a></i>
+<li>Case: function:base64Binary-intersection
+    <i><a href="IIC226Request.xml">Request</a>,<a href="IIC226Policy.xml">Policy</a>,<a href="IIC226Response.xml">Response</a></i>
+<li>Case: function:base64Binary-at-least-one-member-of
+    <i><a href="IIC227Request.xml">Request</a>,<a href="IIC227Policy.xml">Policy</a>,<a href="IIC227Response.xml">Response</a></i>
+<li>Case: function:base64Binary-union
+    <i><a href="IIC228Request.xml">Request</a>,<a href="IIC228Policy.xml">Policy</a>,<a href="IIC228Response.xml">Response</a></i>
+<li>Case: function:base64Binary-subset
+    <i><a href="IIC229Request.xml">Request</a>,<a href="IIC229Policy.xml">Policy</a>,<a href="IIC229Response.xml">Response</a></i>
+<li>Case: function:base64Binary-set-equals
+    <i><a href="IIC230Request.xml">Request</a>,<a
+      href="IIC230Policy.xml">Policy</a>,<a
+      href="IIC230Response.xml">Response</a></i>
+
+<p>
+<b><a name="DURATION-EQUALS TESTS">DURATION-EQUALS TESTS</a></b>
+<p>
+<li>Case: function:dayTimeDuration-equals<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Anne Anderson &lt;Anne.Anderson@Sun.COM&gt;.  Added to this
+    test suite 27 February 2003.<br>
+    <i><a href="IIC231Request.xml">Request</a>,<a
+      href="IIC231Policy.xml">Policy</a>,<a
+      href="IIC231Response.xml">Response</a></i>
+<li>Case: function:yearMonthDuration-equals<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Anne Anderson &lt;Anne.Anderson@Sun.COM&gt;.  Added to this
+    test suite 27 February 2003.<br>
+    <i><a href="IIC232Request.xml">Request</a>,<a
+      href="IIC232Policy.xml">Policy</a>,<a
+      href="IIC232Response.xml">Response</a></i>
+</ol>
+
+<P>
+Tests for Release 3.0 functionality.
+<p>
+<ol start=300>
+	<li>Case: FunctionEvaluation: string-starts-with - true<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC300Request.xml">Request</a>,<a href="IIC300Policy.xml">Policy</a>,<a href="IIC300Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: string-starts-with - false<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC301Request.xml">Request</a>,<a href="IIC301Policy.xml">Policy</a>,<a href="IIC301Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: anyURI-starts-with - true<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC302Request.xml">Request</a>,<a href="IIC302Policy.xml">Policy</a>,<a href="IIC302Response.xml">Response</a></i>
+	<li>Case: FunctionEvaluation: anyURI-starts-with - false<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC303Request.xml">Request</a>,<a href="IIC303Policy.xml">Policy</a>,<a href="IIC303Response.xml">Response</a></i>
+</ol>
+<ol start=310>
+	<li>Case: FunctionEvaluation: string-ends-with - true<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC310Request.xml">Request</a>,<a href="IIC310Policy.xml">Policy</a>,<a href="IIC310Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: string-ends-with - false<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC311Request.xml">Request</a>,<a href="IIC311Policy.xml">Policy</a>,<a href="IIC311Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: anyURI-ends-with - true<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC312Request.xml">Request</a>,<a href="IIC312Policy.xml">Policy</a>,<a href="IIC312Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: anyURI-ends-with - false<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC313Request.xml">Request</a>,<a href="IIC313Policy.xml">Policy</a>,<a href="IIC313Response.xml">Response</a></i> 
+</ol>
+<ol start=320>
+	<li>Case: FunctionEvaluation: string-contains - true<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC320Request.xml">Request</a>,<a href="IIC320Policy.xml">Policy</a>,<a href="IIC320Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: string-contains - false<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC321Request.xml">Request</a>,<a href="IIC321Policy.xml">Policy</a>,<a href="IIC321Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: anyURI-contains - true<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC322Request.xml">Request</a>,<a href="IIC322Policy.xml">Policy</a>,<a href="IIC322Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: anyURI-contains - false<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC323Request.xml">Request</a>,<a href="IIC323Policy.xml">Policy</a>,<a href="IIC323Response.xml">Response</a></i> 
+</ol>
+
+<ol start=330>
+	<li>Case: FunctionEvaluation: string-substring - take section in middle of string<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC330Request.xml">Request</a>,<a href="IIC330Policy.xml">Policy</a>,<a href="IIC330Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: string-substring - take section from middle to end of string<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC331Request.xml">Request</a>,<a href="IIC331Policy.xml">Policy</a>,<a href="IIC331Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: string-substring - bad start location<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC332Request.xml">Request</a>,<a href="IIC332Policy.xml">Policy</a>,<a href="IIC332Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: anuURI-substring - take section in middle of URI<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC333Request.xml">Request</a>,<a href="IIC333Policy.xml">Policy</a>,<a href="IIC333Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: anuURI-substring - take section from middle to end of URI<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC334Request.xml">Request</a>,<a href="IIC334Policy.xml">Policy</a>,<a href="IIC334Response.xml">Response</a></i> 
+	<li>Case: FunctionEvaluation: anuURI-substring - bad start location<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC335Request.xml">Request</a>,<a href="IIC335Policy.xml">Policy</a>,<a href="IIC335Response.xml">Response</a></i> 
+</ol>
+
+<ol start=340>
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-intersection<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC340Request.xml">Request</a>,<a href="IIC340Policy.xml">Policy</a>,<a href="IIC340Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-at-least-one-member-of<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC341Request.xml">Request</a>,<a href="IIC341Policy.xml">Policy</a>,<a href="IIC341Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-union<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC342Request.xml">Request</a>,<a href="IIC342Policy.xml">Policy</a>,<a href="IIC342Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-subset<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC343Request.xml">Request</a>,<a href="IIC343Policy.xml">Policy</a>,<a href="IIC343Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-set-equals<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC344Request.xml">Request</a>,<a href="IIC344Policy.xml">Policy</a>,<a href="IIC344Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-intersection<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC345Request.xml">Request</a>,<a href="IIC345Policy.xml">Policy</a>,<a href="IIC345Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-at-least-one-member-of<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC346Request.xml">Request</a>,<a href="IIC346Policy.xml">Policy</a>,<a href="IIC346Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-union<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC347Request.xml">Request</a>,<a href="IIC347Policy.xml">Policy</a>,<a href="IIC347Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-subset<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC348Request.xml">Request</a>,<a href="IIC348Policy.xml">Policy</a>,<a href="IIC348Response.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-subset<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC349Request.xml">Request</a>,<a href="IIC349Policy.xml">Policy</a>,<a href="IIC349Response.xml">Response</a></i> 
+	<li>Case: Test that special value NaN for data type double is handled by both Policy and Request.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC350Request.xml">Request</a>,<a href="IIC350Policy.xml">Policy</a>,<a href="IIC350Response.xml">Response</a></i> 
+	<li>Case: Test that special value INF for data type double is handled by Policy and Request.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC351Request.xml">Request</a>,<a href="IIC351Policy.xml">Policy</a>,<a href="IIC351Response.xml">Response</a></i> 
+	<li>Case: Test that special value -INF for data type double is handled by Policy and Request.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC352Request.xml">Request</a>,<a href="IIC352Policy.xml">Policy</a>,<a href="IIC352Response.xml">Response</a></i> 
+	<li>Case: Test that special value NaN is not the same as special value INF.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC353Request.xml">Request</a>,<a href="IIC353Policy.xml">Policy</a>,<a href="IIC353Response.xml">Response</a></i> 
+	<li>Case: Test that special value NaN is not the same as special value INF<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC354Request.xml">Request</a>,<a href="IIC354Policy.xml">Policy</a>,<a href="IIC354Response.xml">Response</a></i> 
+	<li>Case: Test that special value NaN is not the same as special value INF<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC355Request.xml">Request</a>,<a href="IIC355Policy.xml">Policy</a>,<a href="IIC355Response.xml">Response</a></i> 
+	<li>Case: Test that a numeric value is less than special value INF<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC356Request.xml">Request</a>,<a href="IIC356Policy.xml">Policy</a>,<a href="IIC356Response.xml">Response</a></i> 
+	<li>Case: Test that a numeric value is less than special value INF<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC357Request.xml">Request</a>,<a href="IIC357Policy.xml">Policy</a>,<a href="IIC357Response.xml">Response</a></i> 
+	<li>Case: Arithmetic on NaN returns NaN.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC358Request.xml">Request</a>,<a href="IIC358Policy.xml">Policy</a>,<a href="IIC358Response.xml">Response</a></i> 
+	<li>Case: Arithmetic on INF returns INF.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIC359Request.xml">Request</a>,<a href="IIC359Policy.xml">Policy</a>,<a href="IIC359Response.xml">Response</a></i> 
+</ol>
+
+
+
+
+
+
+<h3><li><a name="Combining Algorithms"> Combining Algorithms </a></h3>
+
+These tests exercise each of the mandatory Combining
+            Algorithms.<p>
+
+<ol>
+<li>Case: Permit: RuleCombiningAlgorithm DenyOverrides
+    <i><a href="IID001Request.xml">Request</a>,<a href="IID001Policy.xml">Policy</a>,<a href="IID001Response.xml">Response</a></i>
+<li>Case: Deny: RuleCombiningAlgorithm DenyOverrides
+    <i><a href="IID002Request.xml">Request</a>,<a href="IID002Policy.xml">Policy</a>,<a href="IID002Response.xml">Response</a></i>
+<li>Case: NotApplicable: RuleCombiningAlgorithm DenyOverrides
+    <i><a href="IID003Request.xml">Request</a>,<a href="IID003Policy.xml">Policy</a>,<a href="IID003Response.xml">Response</a></i>
+<li>Case: Indeterminate: RuleCombiningAlgorithm DenyOverrides
+    <i><a href="IID004Request.xml">Request</a>,<a href="IID004Policy.xml">Policy</a>,<a href="IID004Response.xml">Response</a></i>
+<li>Case: Permit: PolicyCombiningAlgorithm DenyOverrides
+    <i><a href="IID005Request.xml">Request</a>,<a href="IID005Policy.xml">Policy</a>,<a href="IID005Response.xml">Response</a></i>
+<li>Case: Deny: PolicyCombiningAlgorithm DenyOverrides
+    <i><a href="IID006Request.xml">Request</a>,<a href="IID006Policy.xml">Policy</a>,<a href="IID006Response.xml">Response</a></i>
+<li>Case: NotApplicable: PolicyCombiningAlgorithm DenyOverrides
+    <i><a href="IID007Request.xml">Request</a>,<a href="IID007Policy.xml">Policy</a>,<a href="IID007Response.xml">Response</a></i>
+<li>Case: Another Deny (can't return Indeterminate): PolicyCombiningAlgorithm DenyOverrides
+    <i><a href="IID008Request.xml">Request</a>,<a href="IID008Policy.xml">Policy</a>,<a href="IID008Response.xml">Response</a></i>
+<li>Case: Permit: RuleCombiningAlgorithm PermitOverrides
+    <i><a href="IID009Request.xml">Request</a>,<a href="IID009Policy.xml">Policy</a>,<a href="IID009Response.xml">Response</a></i>
+<li>Case: Deny: RuleCombiningAlgorithm PermitOverrides
+    <i><a href="IID010Request.xml">Request</a>,<a href="IID010Policy.xml">Policy</a>,<a href="IID010Response.xml">Response</a></i>
+<li>Case: NotApplicable: RuleCombiningAlgorithm PermitOverrides
+    <i><a href="IID011Request.xml">Request</a>,<a href="IID011Policy.xml">Policy</a>,<a href="IID011Response.xml">Response</a></i>
+<li>Case: Indeterminate: RuleCombiningAlgorithm PermitOverrides
+    <i><a href="IID012Request.xml">Request</a>,<a href="IID012Policy.xml">Policy</a>,<a href="IID012Response.xml">Response</a></i>
+<li>Case: Permit: PolicyCombiningAlgorithm PermitOverrides
+    <i><a href="IID013Request.xml">Request</a>,<a href="IID013Policy.xml">Policy</a>,<a href="IID013Response.xml">Response</a></i>
+<li>Case: Deny: PolicyCombiningAlgorithm PermitOverrides
+    <i><a href="IID014Request.xml">Request</a>,<a href="IID014Policy.xml">Policy</a>,<a href="IID014Response.xml">Response</a></i>
+<li>Case: NotApplicable: PolicyCombiningAlgorithm PermitOverrides
+    <i><a href="IID015Request.xml">Request</a>,<a href="IID015Policy.xml">Policy</a>,<a href="IID015Response.xml">Response</a></i>
+<li>Case: Indeterminate: PolicyCombiningAlgorithm PermitOverrides
+    <i><a href="IID016Request.xml">Request</a>,<a href="IID016Policy.xml">Policy</a>,<a href="IID016Response.xml">Response</a></i>
+<li>Case: Permit: RuleCombiningAlgorithm FirstApplicable
+    <i><a href="IID017Request.xml">Request</a>,<a href="IID017Policy.xml">Policy</a>,<a href="IID017Response.xml">Response</a></i>
+<li>Case: Deny: RuleCombiningAlgorithm FirstApplicable
+    <i><a href="IID018Request.xml">Request</a>,<a href="IID018Policy.xml">Policy</a>,<a href="IID018Response.xml">Response</a></i>
+<li>Case: NotApplicable: RuleCombiningAlgorithm FirstApplicable
+    <i><a href="IID019Request.xml">Request</a>,<a href="IID019Policy.xml">Policy</a>,<a href="IID019Response.xml">Response</a></i>
+<li>Case: Indeterminate: RuleCombiningAlgorithm FirstApplicable
+    <i><a href="IID020Request.xml">Request</a>,<a href="IID020Policy.xml">Policy</a>,<a href="IID020Response.xml">Response</a></i>
+<li>Case: Permit: PolicyCombiningAlgorithm FirstApplicable
+    <i><a href="IID021Request.xml">Request</a>,<a href="IID021Policy.xml">Policy</a>,<a href="IID021Response.xml">Response</a></i>
+<li>Case: Deny: PolicyCombiningAlgorithm FirstApplicable
+    <i><a href="IID022Request.xml">Request</a>,<a href="IID022Policy.xml">Policy</a>,<a href="IID022Response.xml">Response</a></i>
+<li>Case: NotApplicable: PolicyCombiningAlgorithm FirstApplicable
+    <i><a href="IID023Request.xml">Request</a>,<a href="IID023Policy.xml">Policy</a>,<a href="IID023Response.xml">Response</a></i>
+<li>Case: Indeterminate: PolicyCombiningAlgorithm FirstApplicable
+    <i><a href="IID024Request.xml">Request</a>,<a href="IID024Policy.xml">Policy</a>,<a href="IID024Response.xml">Response</a></i>
+<li>Case: Permit: PolicyCombiningAlgorithm OnlyOneApplicablePolicy
+    <i><a href="IID025Request.xml">Request</a>,<a href="IID025Policy.xml">Policy</a>,<a href="IID025Response.xml">Response</a></i>
+<li>Case: Deny: PolicyCombiningAlgorithm OnlyOneApplicablePolicy
+    <i><a href="IID026Request.xml">Request</a>,<a href="IID026Policy.xml">Policy</a>,<a href="IID026Response.xml">Response</a></i>
+<li>Case: NotApplicable: PolicyCombiningAlgorithm OnlyOneApplicablePolicy
+    <i><a href="IID027Request.xml">Request</a>,<a href="IID027Policy.xml">Policy</a>,<a href="IID027Response.xml">Response</a></i>
+<li>Case: Indeterminate: PolicyCombiningAlgorithm OnlyOneApplicablePolicy
+    <i><a href="IID028Request.xml">Request</a>,<a href="IID028Policy.xml">Policy</a>,<a href="IID028Response.xml">Response</a></i>
+<li>Case: Permit: Multiple initial policies, but only one applies
+    <i><a href="IID029Request.xml">Request</a>,
+       <a href="IID029Policy1.xml">Policy1</a>,
+       <a href="IID029Policy2.xml">Policy2</a>,
+       <a href="IID029Response.xml">Response</a>,
+       <a href="IID029Special.txt">Special Instructions</a></i>
+<li>Case: Indeterminate: Multiple initial policies, more than one
+        applies
+    <i><a href="IID030Request.xml">Request</a>,
+       <a href="IID030Policy1.xml">Policy1</a>,
+       <a href="IID030Policy2.xml">Policy2</a>,
+       <a href="IID030Response.xml">Response</a>,
+       <a href="IID030Special.txt">Special Instructions</a></i>
+</ol>
+
+<P>
+Tests for Release 3.0 functionality.
+<p>
+<ol start=300>
+	<li>Case: Response from 3.0 Policy-level permit-overrides should differ from 1.0 response for rules that return:
+        	NOTAPPLICABLE, NOTAPPLICABLE, INDETERMINATE, DENY<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID300Request.xml">Request</a>,<a href="IID300Policy.xml">Policy</a>,<a href="IID300Response.xml">Response</a></i> 
+	<li>Case: Permit: RuleCombiningAlgorithm Ordered DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID301Request.xml">Request</a>,<a href="IID301Policy.xml">Policy</a>,<a href="IID301Response.xml">Response</a></i> 
+	<li>Case: Deny: RuleCombiningAlgorithm Ordered DenyOverrides
+        	Also tests Dynamic Expressions in Obligations and Advice attached to Rules<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID302Request.xml">Request</a>,<a href="IID302Policy.xml">Policy</a>,<a href="IID302Response.xml">Response</a></i> 
+	<li>Case: Deny: RuleCombiningAlgorithm Ordered DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID303Request.xml">Request</a>,<a href="IID303Policy.xml">Policy</a>,<a href="IID303Response.xml">Response</a></i> 
+	<li>Case: NotApplicable: RuleCombiningAlgorithm Ordered DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID304Request.xml">Request</a>,<a href="IID304Policy.xml">Policy</a>,<a href="IID304Response.xml">Response</a></i> 
+	<li>Case: Indeterminate: RuleCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID305Request.xml">Request</a>,<a href="IID305Policy.xml">Policy</a>,<a href="IID305Response.xml">Response</a></i> 
+	<li>Case: Permit: PolicyCombiningAlgorithm Ordered DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID306Request.xml">Request</a>,<a href="IID306Policy.xml">Policy</a>,<a href="IID306Response.xml">Response</a></i> 
+	<li>Case: Deny: PolicyCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID307Request.xml">Request</a>,<a href="IID307Policy.xml">Policy</a>,<a href="IID307Response.xml">Response</a></i> 
+	<li>Case: Deny: PolicyCombiningAlgorithm Ordered DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID308Request.xml">Request</a>,<a href="IID308Policy.xml">Policy</a>,<a href="IID308Response.xml">Response</a></i> 
+	<li>Case: NotApplicable: PolicyCombiningAlgorithm Ordered DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID309Request.xml">Request</a>,<a href="IID309Policy.xml">Policy</a>,<a href="IID309Response.xml">Response</a></i> 
+
+	<li>Case: Another Deny (can't return Indeterminate): PolicyCombiningAlgorithm Ordered DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID310Request.xml">Request</a>,<a href="IID310Policy.xml">Policy</a>,<a href="IID310Response.xml">Response</a></i> 
+	<li>Case: Permit: RuleCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID311Request.xml">Request</a>,<a href="IID311Policy.xml">Policy</a>,<a href="IID311Response.xml">Response</a></i> 
+	<li>Case: Permit: RuleCombiningAlgorithm Ordered PermitOverrides
+        	Also tests Dynamic Expressions in Obligations and Advice attached to Rules<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID312Request.xml">Request</a>,<a href="IID312Policy.xml">Policy</a>,<a href="IID312Response.xml">Response</a></i> 
+	<li>Case: Deny: RuleCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID313Request.xml">Request</a>,<a href="IID313Policy.xml">Policy</a>,<a href="IID313Response.xml">Response</a></i> 
+	<li>Case: Deny: RuleCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID314Request.xml">Request</a>,<a href="IID314Policy.xml">Policy</a>,<a href="IID314Response.xml">Response</a></i> 
+	<li>Case: Indeterminate: RuleCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID315Request.xml">Request</a>,<a href="IID315Policy.xml">Policy</a>,<a href="IID315Response.xml">Response</a></i> 
+	<li>Case:  Permit: PolicyCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID316Request.xml">Request</a>,<a href="IID316Policy.xml">Policy</a>,<a href="IID316Response.xml">Response</a></i> 
+	<li>Case: Permit: PolicyCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID317Request.xml">Request</a>,<a href="IID317Policy.xml">Policy</a>,<a href="IID317Response.xml">Response</a></i> 
+	<li>Case: Deny: PolicyCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID318Request.xml">Request</a>,<a href="IID318Policy.xml">Policy</a>,<a href="IID318Response.xml">Response</a></i> 
+	<li>Case: NotApplicable: PolicyCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID319Request.xml">Request</a>,<a href="IID319Policy.xml">Policy</a>,<a href="IID319Response.xml">Response</a></i> 
+	<li>Case: Indeterminate: PolicyCombiningAlgorithm Ordered PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID320Request.xml">Request</a>,<a href="IID320Policy.xml">Policy</a>,<a href="IID320Response.xml">Response</a></i> 
+</ol>
+
+<ol start=330>
+	<li>Case: Combining Algorithms: Policy-level deny-unless-permit without permit<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID330Request.xml">Request</a>,<a href="IID330Policy.xml">Policy</a>,<a href="IID330Response.xml">Response</a></i> 
+	<li>Case: Combining Algorithms: Policy-level deny-unless-permit with permit after deny<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID331Request.xml">Request</a>,<a href="IID331Policy.xml">Policy</a>,<a href="IID331Response.xml">Response</a></i> 
+	<li>Case: Combining Algorithms: Rule-level deny-unless-permit without permit<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID332Request.xml">Request</a>,<a href="IID332Policy.xml">Policy</a>,<a href="IID332Response.xml">Response</a></i> 
+	<li>Case: Combining Algorithms: Rule-level deny-unless-permit with permit after deny<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID333Request.xml">Request</a>,<a href="IID333Policy.xml">Policy</a>,<a href="IID333Response.xml">Response</a></i> 
+
+</ol>
+
+<ol start=340>
+	<li>Case: Combining Algorithms: Policy-level permit-unless-deny without deny<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID340Request.xml">Request</a>,<a href="IID340Policy.xml">Policy</a>,<a href="IID340Response.xml">Response</a></i> 
+	<li>Case: Combining Algorithms: Policy-level permit-unless-deny with deny after permit<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID341Request.xml">Request</a>,<a href="IID341Policy.xml">Policy</a>,<a href="IID341Response.xml">Response</a></i> 
+	<li>Case: Combining Algorithms: Rule-level permit-unless-deny without deny<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID342Request.xml">Request</a>,<a href="IID342Policy.xml">Policy</a>,<a href="IID342Response.xml">Response</a></i> 
+	<li>Case: Combining Algorithms: Rule-level permit-unless-deny with deny after permit<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IID343Request.xml">Request</a>,<a href="IID343Policy.xml">Policy</a>,<a href="IID343Response.xml">Response</a></i> 
+</ol>
+
+
+
+
+
+
+<h3><li><a name="Schema components"> Schema components </a></h3>
+
+This section lists test cases for certain elements of the
+schema not exercised by test cases above.<p>
+
+<ol>
+<li>Case: policy element PolicySetIdReference
+    <i><a href="IIE001Request.xml">Request</a>,<a
+            href="IIE001Policy.xml">Policy</a>,<a
+            href="IIE001PolicyId1.xml">PolicyId1</a>,<a
+            href="IIE001PolicySetId1.xml">PolicySetId1</a>,<a
+            href="IIE001Response.xml">Response</a>,<a
+            href="IIE001Special.txt">Special Instructions</a></i>
+<li>Case: policy element PolicyIdReference
+    <i><a href="IIE002Request.xml">Request</a>,<a
+            href="IIE002Policy.xml">Policy</a>,<a
+            href="IIE002PolicyId1.xml">PolicyId1</a>,<a
+            href="IIE002PolicySetId1.xml">PolicySetId1</a>,<a
+            href="IIE002Response.xml">Response</a>,<a
+            href="IIE002Special.txt">Special Instructions</a></i>
+<li>Case: PolicyIdReference to invalid, but non-evaluated, Policy<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Anne Anderson &lt;Anne.Anderson@Sun.COM&gt;.  Added to this
+    test suite 27 February 2003.<br>
+    <i><a href="IIE003Request.xml">Request</a>,<a
+            href="IIE003Policy.xml">Policy</a>,<a
+            href="IIE003PolicyId1.xml">PolicyId1</a>,<a
+            href="IIE003PolicyId2.xml">PolicyId2</a>,<a
+            href="IIE003Response.xml">Response</a>,<a
+            href="IIE003Special.txt">Special Instructions</a></i>
+</ol>
+
+
+
+<h3><li><a name="Release 3.0 Features"> Release 3.0 Features </a></h3>
+
+This section lists test cases for new features in Release 3.0
+not exercised by test cases above.<p>
+<ol start=300>
+	<li>Case: new 3.0 feature: Content node may be on any category, not just Resources<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIF300Request.xml">Request</a>,<a href="IIF300Policy.xml">Policy</a>,<a href="IIF300Response.xml">Response</a></i> 
+	<li>Case: new 3.0 feature: Custom Categories; check they are found in XPaths and in AttributeDesignators<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIF301Request.xml">Request</a>,<a href="IIF301Policy.xml">Policy</a>,<a href="IIF301Response.xml">Response</a></i> 
+</ol>
+<ol start=310>
+	<li>Case: new 3.0 feature: MaxDelegationDepth on Policy<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIF310Request.xml">Request</a>,<a href="IIF310Policy.xml">Policy</a>,<a href="IIF310Response.xml">Response</a></i> 
+	<li>Case: new 3.0 feature: MaxDelegationDepth on PolicySet<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIF311Request.xml">Request</a>,<a href="IIF311Policy.xml">Policy</a>,<a href="IIF311Response.xml">Response</a></i> 
+</ol>
+
+</ol>
+
+<hr>
+
+<h2><li><a name="Optional, but Normative Functionality Tests">
+          Optional, but Normative Functionality Tests </a></h2>
+
+These tests exercise areas of functionality that are not
+mandatory-to-implement, but that are normative when implemented.
+Submissions of tests for this section are invited.<p>
+
+<ol TYPE=A>
+<h3><li><a name="Obligations"> Obligations </a></h3>
+
+<p>
+These tests exercise obligations (<a href="IIIASpecial.txt">Special Instructions</a>).
+</p>
+
+<ol>
+<p>
+For rule combining algorithms:
+</p>
+
+<li>Case: Permit: RuleCombiningAlgorithm DenyOverrides<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA001Request.xml">Request</a>,<a href="IIIA001Policy.xml">Policy</a>,<a href="IIIA001Response.xml">Response</a></i>
+<li>Case: Deny: RuleCombiningAlgorithm DenyOverrides<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA002Request.xml">Request</a>,<a href="IIIA002Policy.xml">Policy</a>,<a href="IIIA002Response.xml">Response</a></i>
+<li>Case: NotApplicable: RuleCombiningAlgorithm DenyOverrides<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA003Request.xml">Request</a>,<a href="IIIA003Policy.xml">Policy</a>,<a href="IIIA003Response.xml">Response</a></i>
+<li>Case: Indeterminate: RuleCombiningAlgorithm DenyOverrides<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA004Request.xml">Request</a>,<a href="IIIA004Policy.xml">Policy</a>,<a href="IIIA004Response.xml">Response</a></i>
+
+<li>Case: Permit: RuleCombiningAlgorithm PermitOverrides<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA005Request.xml">Request</a>,<a href="IIIA005Policy.xml">Policy</a>,<a href="IIIA005Response.xml">Response</a></i>
+<li>Case: Deny: RuleCombiningAlgorithm PermitOverrides<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA006Request.xml">Request</a>,<a href="IIIA006Policy.xml">Policy</a>,<a href="IIIA006Response.xml">Response</a></i>
+<li>Case: NotApplicable: RuleCombiningAlgorithm PermitOverrides<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA007Request.xml">Request</a>,<a href="IIIA007Policy.xml">Policy</a>,<a href="IIIA007Response.xml">Response</a></i>
+<li>Case: Indeterminate: RuleCombiningAlgorithm PermitOverrides<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA008Request.xml">Request</a>,<a href="IIIA008Policy.xml">Policy</a>,<a href="IIIA008Response.xml">Response</a></i>
+
+<li>Case: Permit: RuleCombiningAlgorithm FirstApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA009Request.xml">Request</a>,<a href="IIIA009Policy.xml">Policy</a>,<a href="IIIA009Response.xml">Response</a></i>
+<li>Case: Deny: RuleCombiningAlgorithm FirstApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA010Request.xml">Request</a>,<a href="IIIA010Policy.xml">Policy</a>,<a href="IIIA010Response.xml">Response</a></i>
+<li>Case: NotApplicable: RuleCombiningAlgorithm FirstApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA011Request.xml">Request</a>,<a href="IIIA011Policy.xml">Policy</a>,<a href="IIIA011Response.xml">Response</a></i>
+<li>Case: Indeterminate: RuleCombiningAlgorithm FirstApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA012Request.xml">Request</a>,<a href="IIIA012Policy.xml">Policy</a>,<a href="IIIA012Response.xml">Response</a></i>
+
+<p>
+For policy combining algorithms:
+</p>
+
+<li>Case: Permit: PolicyCombiningAlgorithm DenyOverrides <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA013Request.xml">Request</a>,<a href="IIIA013Policy.xml">Policy</a>,<a href="IIIA013Response.xml">Response</a></i>
+<li>Case: Deny: PolicyCombiningAlgorithm DenyOverrides <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA014Request.xml">Request</a>,<a href="IIIA014Policy.xml">Policy</a>,<a href="IIIA014Response.xml">Response</a></i>
+<li>Case: NotApplicable: PolicyCombiningAlgorithm DenyOverrides <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA015Request.xml">Request</a>,<a href="IIIA015Policy.xml">Policy</a>,<a href="IIIA015Response.xml">Response</a></i>
+<li>Case: AnotherDeny (can't return Indeterminate): PolicyCombiningAlgorithm DenyOverrides <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA016Request.xml">Request</a>,<a href="IIIA016Policy.xml">Policy</a>,<a href="IIIA016Response.xml">Response</a></i>
+
+<li>Case: Permit: PolicyCombiningAlgorithm PermitOverrides <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA017Request.xml">Request</a>,<a href="IIIA017Policy.xml">Policy</a>,<a href="IIIA017Response.xml">Response</a></i>
+<li>Case: Deny: PolicyCombiningAlgorithm PermitOverrides <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA018Request.xml">Request</a>,<a href="IIIA018Policy.xml">Policy</a>,<a href="IIIA018Response.xml">Response</a></i>
+<li>Case: NotApplicable: PolicyCombiningAlgorithm PermitOverrides <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA019Request.xml">Request</a>,<a href="IIIA019Policy.xml">Policy</a>,<a href="IIIA019Response.xml">Response</a></i>
+<li>Case: Indeterminate: PolicyCombiningAlgorithm PermitOverrides <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA020Request.xml">Request</a>,<a href="IIIA020Policy.xml">Policy</a>,<a href="IIIA020Response.xml">Response</a></i>
+
+<li>Case: Permit: PolicyCombiningAlgorithm FirstApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA021Request.xml">Request</a>,<a href="IIIA021Policy.xml">Policy</a>,<a href="IIIA021Response.xml">Response</a></i>
+<li>Case: Deny: PolicyCombiningAlgorithm FirstApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA022Request.xml">Request</a>,<a href="IIIA022Policy.xml">Policy</a>,<a href="IIIA022Response.xml">Response</a></i>
+<li>Case: NotApplicable: PolicyCombiningAlgorithm FirstApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA023Request.xml">Request</a>,<a href="IIIA023Policy.xml">Policy</a>,<a href="IIIA023Response.xml">Response</a></i>
+<li>Case: Indeterminate: PolicyCombiningAlgorithm FirstApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA024Request.xml">Request</a>,<a href="IIIA024Policy.xml">Policy</a>,<a href="IIIA024Response.xml">Response</a></i>
+
+<li>Case: Permit: PolicyCombiningAlgorithm OnlyOneApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA025Request.xml">Request</a>,<a href="IIIA025Policy.xml">Policy</a>,<a href="IIIA025Response.xml">Response</a></i>
+<li>Case: Deny: PolicyCombiningAlgorithm OnlyOneApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA026Request.xml">Request</a>,<a href="IIIA026Policy.xml">Policy</a>,<a href="IIIA026Response.xml">Response</a></i>
+<li>Case: NotApplicable: PolicyCombiningAlgorithm OnlyOneApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA027Request.xml">Request</a>,<a href="IIIA027Policy.xml">Policy</a>,<a href="IIIA027Response.xml">Response</a></i>
+<li>Case: Indeterminate: PolicyCombiningAlgorithm OnlyOneApplicable<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 11 March 2003, updated 25 March 2004 (fixed a bug reported by Seth Proctor).<br>
+    <i><a href="IIIA028Request.xml">Request</a>,<a href="IIIA028Policy.xml">Policy</a>,<a href="IIIA028Response.xml">Response</a></i>
+
+</ol>
+
+<ol start=30>
+	<li>Case: Test Obligations on Policy, Case: Permit: RuleCombiningAlgorithm DenyOverrides Testing XPathExpressions in Obligations<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA030Request.xml">Request</a>,<a href="IIIA030Policy.xml">Policy</a>,<a href="IIIA030Response.xml">Response</a></i> 
+</ol>
+
+<p>
+Tests for Release 3.0 functionality.
+<p>
+<ol start=301>
+	<li>Case: Test Advices on Rules, Case: Permit: RuleCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA301Request.xml">Request</a>,<a href="IIIA301Policy.xml">Policy</a>,<a href="IIIA301Response.xml">Response</a></i> 
+	<li>Case: Test Advices on Rules, Case: Deny: RuleCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA302Request.xml">Request</a>,<a href="IIIA302Policy.xml">Policy</a>,<a href="IIIA302Response.xml">Response</a></i> 
+	<li>Case: Test Advices on Rules, Case: NotApplicable: RuleCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA303Request.xml">Request</a>,<a href="IIIA303Policy.xml">Policy</a>,<a href="IIIA303Response.xml">Response</a></i> 
+	<li>Case: test Advices on Rules, Case: Indeterminate: RuleCombiningAlgorithm DenyOverridess<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA304Request.xml">Request</a>,<a href="IIIA304Policy.xml">Policy</a>,<a href="IIIA304Response.xml">Response</a></i> 
+	<li>Case: test Advices on Rules, Case: Permit: RuleCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA305Request.xml">Request</a>,<a href="IIIA305Policy.xml">Policy</a>,<a href="IIIA305Response.xml">Response</a></i> 
+	<li>Case: test Advices on Rules, Case: Deny: RuleCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA306Request.xml">Request</a>,<a href="IIIA306Policy.xml">Policy</a>,<a href="IIIA306Response.xml">Response</a></i> 
+	<li>Case: test Advices on Rules, Case: NotApplicable: RuleCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA307Request.xml">Request</a>,<a href="IIIA307Policy.xml">Policy</a>,<a href="IIIA307Response.xml">Response</a></i> 
+	<li>Case: test Advices on Rules, Case: Indeterminate: RuleCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA308Request.xml">Request</a>,<a href="IIIA308Policy.xml">Policy</a>,<a href="IIIA308Response.xml">Response</a></i> 
+	<li>Case: test Advices on Rules, Case: Permit: RuleCombiningAlgorithm FirstApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA309Request.xml">Request</a>,<a href="IIIA309Policy.xml">Policy</a>,<a href="IIIA309Response.xml">Response</a></i> 
+	    
+	<li>Case: test Advices on Rules, Case: Deny: RuleCombiningAlgorithm FirstApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA310Request.xml">Request</a>,<a href="IIIA310Policy.xml">Policy</a>,<a href="IIIA310Response.xml">Response</a></i> 
+	<li>Case: test Advices on Rules, Case: NotApplicable: RuleCombiningAlgorithm FirstApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA311Request.xml">Request</a>,<a href="IIIA311Policy.xml">Policy</a>,<a href="IIIA311Response.xml">Response</a></i> 
+	<li>Case: test Advices on Rules, Case: Indeterminate: RuleCombiningAlgorithm FirstApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA312Request.xml">Request</a>,<a href="IIIA312Policy.xml">Policy</a>,<a href="IIIA312Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Permit: PolicyCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA313Request.xml">Request</a>,<a href="IIIA313Policy.xml">Policy</a>,<a href="IIIA313Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Deny: PolicyCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA314Request.xml">Request</a>,<a href="IIIA314Policy.xml">Policy</a>,<a href="IIIA314Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: NotApplicable: PolicyCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA315Request.xml">Request</a>,<a href="IIIA315Policy.xml">Policy</a>,<a href="IIIA315Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: AnotherDeny (can't return Indeterminate): PolicyCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA316Request.xml">Request</a>,<a href="IIIA316Policy.xml">Policy</a>,<a href="IIIA316Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Permit: PolicyCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA317Request.xml">Request</a>,<a href="IIIA317Policy.xml">Policy</a>,<a href="IIIA317Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Deny: PolicyCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA318Request.xml">Request</a>,<a href="IIIA318Policy.xml">Policy</a>,<a href="IIIA318Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: NotApplicable: PolicyCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA319Request.xml">Request</a>,<a href="IIIA319Policy.xml">Policy</a>,<a href="IIIA319Response.xml">Response</a></i> 	    
+
+	<li>Case: test Advices on Policies, Case: Indeterminate: PolicyCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA320Request.xml">Request</a>,<a href="IIIA320Policy.xml">Policy</a>,<a href="IIIA320Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Permit: PolicyCombiningAlgorithm FirstApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA321Request.xml">Request</a>,<a href="IIIA321Policy.xml">Policy</a>,<a href="IIIA321Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Deny: PolicyCombiningAlgorithm FirstApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA322Request.xml">Request</a>,<a href="IIIA322Policy.xml">Policy</a>,<a href="IIIA322Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: NotApplicable: PolicyCombiningAlgorithm FirstApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA323Request.xml">Request</a>,<a href="IIIA323Policy.xml">Policy</a>,<a href="IIIA323Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Indeterminate: PolicyCombiningAlgorithm FirstApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA324Request.xml">Request</a>,<a href="IIIA324Policy.xml">Policy</a>,<a href="IIIA324Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Permit: PolicyCombiningAlgorithm OnlyOneApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA325Request.xml">Request</a>,<a href="IIIA325Policy.xml">Policy</a>,<a href="IIIA325Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Deny: PolicyCombiningAlgorithm OnlyOneApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA326Request.xml">Request</a>,<a href="IIIA326Policy.xml">Policy</a>,<a href="IIIA326Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: NotApplicable: PolicyCombiningAlgorithm OnlyOneApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA327Request.xml">Request</a>,<a href="IIIA327Policy.xml">Policy</a>,<a href="IIIA327Response.xml">Response</a></i> 
+	<li>Case: test Advices on Policies, Case: Indeterminate: PolicyCombiningAlgorithm OnlyOneApplicable<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA328Request.xml">Request</a>,<a href="IIIA328Policy.xml">Policy</a>,<a href="IIIA328Response.xml">Response</a></i> 
+	<li>Case: Test Advice on Rules where Advice is actually attached to the Rule itself, Case: Permit: RuleCombiningAlgorithm DenyOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA329Request.xml">Request</a>,<a href="IIIA329Policy.xml">Policy</a>,<a href="IIIA329Response.xml">Response</a></i> 
+	<li>Case: Test Advices on Rules, Case: Permit: RuleCombiningAlgorithm DenyOverrides. XPAthExpression returned in Advice<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA330Request.xml">Request</a>,<a href="IIIA330Policy.xml">Policy</a>,<a href="IIIA330Response.xml">Response</a></i> 
+</ol>
+<p>
+<ol start=340>
+	<li>Case: Test returned Attributes, Obligations and Advice with NaN, INF and -INF special double values<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIA340Request.xml">Request</a>,<a href="IIIA340Policy.xml">Policy</a>,<a href="IIIA340Response.xml">Response</a></i> 
+</ol>
+<p>
+
+
+
+<h3><li><a name="DefaultsType"> DefaultsType </a></h3>
+
+<ol>
+<li>Case: PolicySetDefaults XPathVersion
+<li>Case: PolicyDefaults XPathVersion
+<li>Case: PolicyDefaults XPathVersion differs from parent
+      PolicySetDefaults XPathVersion
+</ol>
+
+<h3><li><a name="Hierarchical Resources"> Hierarchical Resources </a></h3>
+
+<p>
+These tests exercise policy evaluation for hierarchical resources (<a href="IIICSpecial.txt">Special Instructions</a>).
+</p>
+
+<ol>
+<li>Case: Scope="Immediate"<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 26 February 2003.<br>
+    <i><a href="IIIC001Request.xml">Request</a>,<a
+        href="IIIC001Policy.xml">Policy</a>,<a
+        href="IIIC001Response.xml">Response</a></i>
+<li>Case: Scope="Children"<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 26 February 2003.<br>
+    <i><a href="IIIC002Request.xml">Request</a>,<a href="IIIC002Policy.xml">Policy</a>,<a href="IIIC002Response.xml">Response</a></i>
+<li>Case: Scope="Descendants"<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 26 February 2003.<br>
+    <i><a href="IIIC003Request.xml">Request</a>,<a href="IIIC003Policy.xml">Policy</a>,<a href="IIIC003Response.xml">Response</a></i>
+</ol>
+
+<h3><li><a name="&lt;ResourceContent&gt; Element">
+          &lt;ResourceContent&gt; Element </a></h3>
+
+<ol>
+</ol>
+
+<h3><li><a name="Multiple Decisions"> Multiple Decisions </a></h3>
+<ol start=301>
+	<li>Case: test Multiple Decisions with The use of the multiple:content-selector attribute in Attributes elements<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIE301Request.xml">Request</a>,<a href="IIIE301Policy.xml">Policy</a>,<a href="IIIE301Response.xml">Response</a></i> 
+	<li>Case: test Multiple Decisions with The use of multiple instances of an Attributes element with the same category ID<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIE302Request.xml">Request</a>,<a href="IIIE302Policy.xml">Policy</a>,<a href="IIIE302Response.xml">Response</a></i> 
+	<li>Case: test Multiple Decisions with The use of the MultiRequests element in a Request<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIE303Request.xml">Request</a>,<a href="IIIE303Policy.xml">Policy</a>,<a href="IIIE303Response.xml">Response</a>,<a href="IIIE303Response.json">JSON Response</a></i> 
+</ol>
+
+
+<h3><li><a name="Attribute Selectors"> Attribute Selectors </a></h3>
+
+<p>
+These tests exercise attribute selectors (<a href="IIIFSpecial.txt">Special Instructions</a>).
+</p>
+
+<ol>
+    <li>Case: PRESENT: "MustBePresent" attribute in Target Attribute Selector<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 11 March 2003<br>
+    <i><a href="IIIF001Request.xml">Request</a>,<a
+            href="IIIF001Policy.xml">Policy</a>,<a
+            href="IIIF001Response.xml">Response</a></i>
+    <li>Case: MISSING: "MustBePresent" attribute in Target Attribute Selector<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 11 March 2003.<br>
+    Fix/modification for IIIF002Request.xml contributed by John Merrells
+    &lt;merrells@jiffysoftware.com&gt;.  Added to this test suite
+    11 March 2003.<br>
+    <i><a href="IIIF002Request.xml">Request</a>,<a
+            href="IIIF002Policy.xml">Policy</a>,<a
+            href="IIIF002Response.xml">Response</a></i>
+    <li>Case: PRESENT: "MustBePresent" attribute in Condition Attribute Selector<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 11 March 2003.<br>
+    <i><a href="IIIF003Request.xml">Request</a>,<a
+            href="IIIF003Policy.xml">Policy</a>,<a
+            href="IIIF003Response.xml">Response</a></i>
+    <li>Case: MISSING: "MustBePresent" attribute in Condition Attribute Selector<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 11 March 2003.<br>
+    <i><a href="IIIF004Request.xml">Request</a>,<a
+            href="IIIF004Policy.xml">Policy</a>,<a
+            href="IIIF004Response.xml">Response</a></i>
+    <li>Case: Syntax error in XPath expression <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 11 March 2003, updated 2 March 2004 (fixed a bug reported by Jin Peng).<br>
+    <i><a href="IIIF005Request.xml">Request</a>,<a
+            href="IIIF005Policy.xml">Policy</a>,<a
+            href="IIIF005Response.xml">Response</a></i>
+    <li>Case: Attribute Selector in PolicySet Target <br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 11 March 2003.<br>
+    <i><a href="IIIF006Request.xml">Request</a>,<a
+            href="IIIF006Policy.xml">Policy</a>,<a
+            href="IIIF006Response.xml">Response</a></i>
+    <li>Case: Relative XPath expressions in Attribute Selector<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 21 March 2003.<br>
+    <i><a href="IIIF007Request.xml">Request</a>,<a
+            href="IIIF007Policy.xml">Policy</a>,<a
+            href="IIIF007Response.xml">Response</a></i>
+</ol>
+
+
+<h3><li><a name="Non-mandatory Functions">Non-mandatory Functions </a></h3>
+
+<p>
+These tests exercise each of the non-mandatory functions</p>
+<ol>
+<li>Case: xpath-node-count<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 19 August 2003.<br>
+    <i><a href="IIIG001Request.xml">Request</a>,<a href="IIIG001Policy.xml">Policy</a>,<a href="IIIG001Response.xml">Response</a></i>
+
+<li>Case: true: xpath-node-equal<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 19 August 2003.<br>
+    <i><a href="IIIG002Request.xml">Request</a>,<a href="IIIG002Policy.xml">Policy</a>,<a href="IIIG002Response.xml">Response</a></i>
+
+<li>Case: false: xpath-node-equal<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 19 August 2003.<br>
+    <i><a href="IIIG003Request.xml">Request</a>,<a href="IIIG003Policy.xml">Policy</a>,<a href="IIIG003Response.xml">Response</a></i>
+
+<li>Case: true: xpath-node-match<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 19 August 2003.<br>
+    <i><a href="IIIG004Request.xml">Request</a>,<a href="IIIG004Policy.xml">Policy</a>,<a href="IIIG004Response.xml">Response</a></i>
+
+<li>Case: false: xpath-node-match<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 4 March 2003, updated 19 August 2003.<br>
+    <i><a href="IIIG005Request.xml">Request</a>,<a href="IIIG005Policy.xml">Policy</a>,<a href="IIIG005Response.xml">Response</a></i>
+
+    <li>Case: <a href="IIIG006Special.txt">Relative XPath expressions</a> in XPath-based functions<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a><br>
+    Contributed by Satoshi Hada &lt;SATOSHIH@jp.ibm.com&gt;.  Added to this
+    test suite 21 March 2003, updated 19 August 2003.<br>
+    <i><a href="IIIG006Request.xml">Request</a>,<a
+            href="IIIG006Policy.xml">Policy</a>,<a
+            href="IIIG006Response.xml">Response</a>,<a
+            href="IIIG006Special.txt">Special Instructions</a></i>
+</ol>
+<p>
+<ol start=301>
+	<li>Case: ReturnPolicyIdList test with Policy result (no PolicySets)<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIG300Request.xml">Request</a>,<a href="IIIG300Policy.xml">Policy</a>,<a href="IIIG300Response.xml">Response</a></i> 
+	<li>Case: ReturnPolicyIdList test with PolicySet result (no Policys)<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="IIIG301Request.xml">Request</a>,<a href="IIIG301Policy.xml">Policy</a>,<a href="IIIG301Response.xml">Response</a></i> 
+</ol>
+
+</ol>
+
+<hr>
+
+<h2><li><a name="Identifiers planned for future deprecation">
+          Identifiers planned for future deprecation </a></h2>
+          
+(In other document systems such as JavaDoc the word "deprecated" means currently implemented but do not use because it may be removed in the future.
+Since that is the meaning of the phrase "planned for future deprecation" in 10.2.9 of the 3.0 specification,
+the word "deprecated" is used interchangeably with the longer phrase in this section.)
+
+<ol TYPE="I">
+
+<H3><LI><A name="Description of Deprecated Identifiers Tests">Description of Deprecated Identifiers Tests</A></H3>
+
+These tests exercise features using Identifiers that are planned for deprecation.
+While <I>planned</I> for deprecation they are still mandatory to implement in a 3.0 complient PDP.
+<P>
+The one exception is the three xpath-node functions.
+These functions are marked as Optional.
+Since the semantics have changed (XPath root is now the &lt;Context&gt; element rather than the &lt;Request&gt;)
+and the specification does not state which semantics are to be used in a 3.0 system receiving these requests,
+the following functions are not included in these tests:
+<ul>
+<LI>urn:oasis:names:tc:xacml:1.0:function:xpath-node-count
+<LI>urn:oasis:names:tc:xacml:1.0:function:xpath-node-equal
+<LI>urn:oasis:names:tc:xacml:1.0:function:xpath-node-match
+</ul>
+<p>
+
+<h3>Document Naming</h3>
+The features that are planned for future deprecation
+are usually related to newer versions of same feature.
+To indicate that relationship the tests are named the same as those in the previous sections but with a "d" appended to show it is "deprecated".
+For example, the XML
+      documents for the test in Part II (Mandatory to
+      implement), Section C (Duration Functions), Test Case 2 
+      (Case: function:dateTime-add-dayTimeDuration)
+      using the new 3.0 dayTimeDuration IDs are named:<p>
+<ul>
+<li>IIC102Request.xml
+<li>IIC102Policy.xml
+<li>IIC102Response.xml
+</ul>
+and the version of the same test using the deprecated Identifiers are named:<P>
+<ul>
+<li>IIC102dRequest.xml
+<li>IIC102dPolicy.xml
+<li>IIC102dResponse.xml
+</ul>
+<P>
+
+To reduce confusion these tests are placed in a separate sub-directory under the directory containing the 3.0 test files.
+
+
+
+
+<h3><LI> <a name="#Deprecated Mandatory-to-Implement Functionality Tests">Deprecated Mandatory-to-Implement Functionality Tests</a></h3>
+
+<ol TYPE=A>
+  <h3><li><a name="#Deprecated Attribute References"> Deprecated Attribute References </a>(<a href="#Attribute References"> Attribute References </a>)</h3>
+  
+  <h3><li><a name="#Deprecated Target Matching"> Deprecated Target Matching </a> (<a href="#Target Matching"> Target Matching </a>)</h3>
+  
+  <h3><li><a name="#Deprecated Function Evaluation"> Deprecated Function Evaluation </a> (<a href="#Function Evaluation"> Function Evaluation </a>)</h3>
+<ol start=102>
+	<li>Case: Deprecated dayTimeDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC102dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC102dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC102dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated yearMonthDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC103dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC103dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC103dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated dayTimeDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC104dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC104dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC104dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated yearMonthDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC105dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC105dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC105dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated yearMonthDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC106dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC106dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC106dResponse.xml">Response</a></i>
+	<li>Case: Deprecated yearMonthDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC107dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC107dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC107dResponse.xml">Response</a></i> 
+</ol>
+<p>
+<ol start=150>
+	<li>Case: Deprecated dayTimeDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC150dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC150dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC150dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated dayTimeDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC151dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC151dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC151dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated dayTimeDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC152dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC152dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC152dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated dayTimeDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC153dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC153dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC153dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated yearMonthDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC154dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC154dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC154dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated yearMonthDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC155dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC155dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC155dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated yearMonthDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC156dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC156dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC156dResponse.xml">Response</a></i>
+	<li>Case: Deprecated yearMonthDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC157dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC157dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC157dResponse.xml">Response</a></i> 
+</ol>
+<p>
+<ol start=164> 
+	<li>Case: Function Evaluation - Higher Order Bag Functions: Case: function:any-of  DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC164dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC164dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC164dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Higher Order Bag Functions: Case: function:all-of  DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC165dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC165dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC165dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Higher Order Bag Functions: Case: function:any-of-any DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC166dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC166dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC166dResponse.xml">Response</a></i>
+</ol>
+<p>
+<ol start=170>
+	<li>Case: Function Evaluation - Higher Order Bag Functions: Case: function:map DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC170dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC170dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC170dResponse.xml">Response</a></i> 
+</ol>
+<p>
+<ol start=231>
+	<li>Case: Deprecated dayTimeDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC231dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC231dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC231dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated dayTimeDuration id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC232dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC232dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC232dResponse.xml">Response</a></i> 
+</ol>
+<p>
+<ol start=340>
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-intersection DEPRECATEDon id.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC340dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC340dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC340dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-at-least-one-member-of DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC341dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC341dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC341dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-union DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC342dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC342dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC342dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-subset DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC343dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC343dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC343dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: dayTimeDuration-set-equals DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC344dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC344dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC344dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-intersection DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC345dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC345dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC345dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-at-least-one-member-of DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC346dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC346dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC346dResponse.xml">Response</a></i>
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-union DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC347dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC347dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC347dResponse.xml">Response</a></i>
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-subset DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC348dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC348dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC348dResponse.xml">Response</a></i> 
+	<li>Case: Function Evaluation - Set Functions: yearMonthDuration-set-equals DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC349dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC349dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC349dResponse.xml">Response</a></i>
+	<li>Case: test deprecated uri-string-concatenate.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIC350dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIC350dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIC350dResponse.xml">Response</a></i> 
+</ol>
+
+  <h3><li><a name="#Deprecated Combining Algorithms"> Deprecated Combining Algorithms </a> (<a href="#Combining Algorithms"> Combining Algorithms </a>)</h3>
+<ol start=1>
+	<li>Case: Permit: RuleCombiningAlgorithm DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID001dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID001dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID001dResponse.xml">Response</a></i> 
+	<li>Case: Deny: RuleCombiningAlgorithm DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID002dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID002dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID002dResponse.xml">Response</a></i> 
+	<li>Case: Deprecated Overrides test.<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID003dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID003dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID003dResponse.xml">Response</a></i> 
+	<li>Case: Indeterminate: RuleCombiningAlgorithm DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID004dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID004dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID004dResponse.xml">Response</a></i> 
+	<li>Case: Permit: PolicyCombiningAlgorithm DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID005dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID005dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID005dResponse.xml">Response</a></i> 
+	<li>Case: NotApplicable: PolicyCombiningAlgorithm DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID006dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID006dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID006dResponse.xml">Response</a></i>
+	<li>Case: NotApplicable: PolicyCombiningAlgorithm DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID007dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID007dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID007dResponse.xml">Response</a></i>
+	<li>Case: Another Deny (can't return Indeterminate): PolicyCombiningAlgorithm DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID008dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID008dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID008dResponse.xml">Response</a></i> 
+	<li>Case: Permit: RuleCombiningAlgorithm PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID009dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID009dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID009dResponse.xml">Response</a></i>
+
+	<li>Case: Deny: RuleCombiningAlgorithm PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID010dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID010dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID010dResponse.xml">Response</a></i> 
+
+	<li>Case: Deny: RuleCombiningAlgorithm PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID011dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID011dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID011dResponse.xml">Response</a></i> 
+	<li>Case: Indeterminate: RuleCombiningAlgorithm PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID012dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID012dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID012dResponse.xml">Response</a></i> 
+	<li>Case: Permit: PolicyCombiningAlgorithm PermitOverrides<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID013dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID013dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID013dResponse.xml">Response</a></i> 
+	<li>Case: Deny: PolicyCombiningAlgorithm PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID014dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID014dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID014dResponse.xml">Response</a></i> 
+	<li>Case: NotApplicable: PolicyCombiningAlgorithm PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID015dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID015dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID015dResponse.xml">Response</a></i> 
+	<li>Case: Indeterminate: PolicyCombiningAlgorithm PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID016dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID016dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID016dResponse.xml">Response</a></i>
+</ol>
+<p>
+<ol start=300>
+	<li>Case: Response from 1.0 Policy-level permit-overrides should differ from 3.0 response for rules that return:
+        	NOTAPPLICABLE, NOTAPPLICABLE, INDETERMINATE, DENY DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID300dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID300dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID300dResponse.xml">Response</a></i> 
+	<li>Case: Permit: RuleCombiningAlgorithm Ordered DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID301dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID301dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID301dResponse.xml">Response</a></i> 
+	<li>Case: Deny: RuleCombiningAlgorithm Ordered DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID302dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID302dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID302dResponse.xml">Response</a></i>
+</ol>
+<p>
+<ol start=304> 
+	<li>Case: NotApplicable: RuleCombiningAlgorithm Ordered DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID304dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID304dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID304dResponse.xml">Response</a></i> 
+	<li>Case: Indeterminate: RuleCombiningAlgorithm Ordered DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID305dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID305dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID305dResponse.xml">Response</a></i> 
+	<li>Case: Permit: PolicyCombiningAlgorithm DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID306dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID306dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID306dResponse.xml">Response</a></i>
+	<li>Case: Deny: PolicyCombiningAlgorithm Ordered DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID307dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID307dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID307dResponse.xml">Response</a></i>
+	<li>Case: Deny: PolicyCombiningAlgorithm Ordered DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID308dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID308dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID308dResponse.xml">Response</a></i> 
+	<li>Case: NotApplicable: PolicyCombiningAlgorithm Ordered DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID309dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID309dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID309dResponse.xml">Response</a></i>
+
+	<li>Case: Another Deny (can't return Indeterminate): PolicyCombiningAlgorithm Ordered DenyOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID310dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID310dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID310dResponse.xml">Response</a></i> 
+	<li>Case: Permit: RuleCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID311dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID311dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID311dResponse.xml">Response</a></i> 
+</ol>
+<p>
+<ol start=313> 
+	<li>Case: Deny: RuleCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID313dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID313dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID313dResponse.xml">Response</a></i>
+	<li>Case: Deny: RuleCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID314dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID314dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID314dResponse.xml">Response</a></i> 
+	<li>Case: Indeterminate: RuleCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID315dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID315dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID315dResponse.xml">Response</a></i> 
+	<li>Case: Permit: PolicyCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID316dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID316dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID316dResponse.xml">Response</a></i>
+	<li>Case: Permit: PolicyCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID317dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID317dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID317dResponse.xml">Response</a></i>
+	<li>Case: Deny: PolicyCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID318dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID318dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID318dResponse.xml">Response</a></i> 
+	<li>Case: NotApplicable: PolicyCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID319dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID319dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID319dResponse.xml">Response</a></i>
+
+	<li>Case: Indeterminate: PolicyCombiningAlgorithm Ordered PermitOverrides DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IID320dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IID320dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IID320dResponse.xml">Response</a></i> 	    
+	    
+</ol>
+  
+  
+  <h3><li><a name="#Deprecated Schema components"> Deprecated Schema components </a> (<a href="#Schema components"> Schema components </a>)</h3>
+  </ol>
+  
+<h3><li><a name="#Deprecated Optional, but Normative Functionality Tests">Deprecated Optional, but Normative Functionality Tests</a></h3>
+  <ol TYPE=A>
+  <h3><li><a name="#Deprecated Obligations"> Deprecated Obligations </a> (<a href="#Obligations"> Obligations </a>)</h3>
+  
+  <h3><li><a name="#Deprecated DefaultsType"> Deprecated DefaultsType </a> (<a href="#DefaultsType"> DefaultsType </a>)</h3>
+  
+  <h3><li><a name="#Deprecated Hierarchical Resources"> Deprecated Hierarchical Resources </a> (<a href="#Hierarchical Resources"> Hierarchical Resources </a>)</h3>
+  
+  <h3><li><a name="#Deprecated &lt;ResourceContent&gt; Element"> Deprecated &lt;ResourceContent&gt; Element </a> (<a href="#&lt;ResourceContent&gt; Element"> &lt;ResourceContent&gt; Element </a>)</h3>
+  
+  <h3><li><a name="#Deprecated Multiple Decisions"> Deprecated Multiple Decisions </a> (<a href="#Multiple Decisions"> Multiple Decisions </a>)</h3>
+  
+  <h3><li><a name="#Deprecated Attribute Selectors"> Deprecated Attribute Selectors </a> (<a href="#Attribute Selectors"> Attribute Selectors </a>)</h3>
+  
+  <h3><li><a name="#Deprecated Non-mandatory Functions"> Deprecated Non-mandatory Functions </a> (<a href="#Non-mandatory Functions"> Non-mandatory Functions </a>)</h3>
+  
+<ol start=1>
+	<li>Case: Non-mandatory Functions: Case: xpath-node-count DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIIG001dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIIG001dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIIG001dResponse.xml">Response</a></i> 
+	<li>Case: Non-mandatory Functions: Case: true: xpath-node-equal DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIIG002dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIIG002dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIIG002dResponse.xml">Response</a></i> 
+	<li>Case: Non-mandatory Functions: Case: false: xpath-node-equal DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIIG003dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIIG003dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIIG003dResponse.xml">Response</a></i> 
+	<li>Case: Non-mandatory Functions: Case: true: xpath-node-match DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIIG004dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIIG004dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIIG004dResponse.xml">Response</a></i> 
+	<li>Case: Non-mandatory Functions: Case: false: xpath-node-match DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIIG005dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIIG005dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIIG005dResponse.xml">Response</a></i> 
+	<li>Case: Non-mandatory Functions: Case: Relative XPath expressions in XPath-based functions DEPRECATED<br>
+	    <a href="#Contributions of New Tests">
+	    <font color="red">**EXPERIMENTAL**</font></a>
+	    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+	    test suite March 2014.<br>
+	    <i><a href="xacml3.0-deprecated/IIIG006dRequest.xml">Request</a>,<a href="xacml3.0-deprecated/IIIG006dPolicy.xml">Policy</a>,<a href="xacml3.0-deprecated/IIIG006dResponse.xml">Response</a></i> 
+</ol>
+  </ol>
+
+
+</ol>
+
+<hr>
+
+</body>
+</html>
+
+
+<ol start=300>
+
+<li>Case: false: xpath-node-equal<br>
+    <a href="#Contributions of New Tests">
+    <font color="red">**EXPERIMENTAL**</font></a>
+    Contributed by Glenn Griffin &lt;glenngriffin@research.att.com&gt;.  Added to this
+    test suite March 2014.<br>
+    <i><a href="IIIG003Request.xml">Request</a>,<a href="IIIG003Policy.xml">Policy</a>,<a href="IIIG003Response.xml">Response</a></i>
+
+
+

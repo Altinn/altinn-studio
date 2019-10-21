@@ -27,6 +27,22 @@ namespace Altinn.Platform.Authentication.Configuration
         }
 
         /// <summary>
+        /// Gets or sets the AltinnParty cookie name
+        /// </summary>
+        public string AltinnPartyCookieName { get; set; }
+
+        /// <summary>
+        /// Gets the altinnParty cookie from kubernetes environment variables and appsettings if environment variable is not set
+        /// </summary>
+        public string GetAltinnPartyCookieName
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__AltinnPartyCookieName") ?? AltinnPartyCookieName;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets the bridge api endpoint
         /// </summary>
         public string BridgeApiEndpoint { get; set; }
@@ -75,7 +91,7 @@ namespace Altinn.Platform.Authentication.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the claims identity 
+        /// Gets or sets the claims identity
         /// </summary>
         public string ClaimsIdentity { get; set; }
 
@@ -91,7 +107,7 @@ namespace Altinn.Platform.Authentication.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the number of minutes the jwt cookie is valid for 
+        /// Gets or sets the number of minutes the jwt cookie is valid for
         /// </summary>
         public string JwtCookieValidityTime { get; set; }
 
@@ -103,6 +119,38 @@ namespace Altinn.Platform.Authentication.Configuration
             get
             {
                 return Environment.GetEnvironmentVariable("GeneralSettings__GetJwtCookieValidityTime") ?? JwtCookieValidityTime;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the hostname
+        /// </summary>
+        public string HostName { get; set; }
+
+        /// <summary>
+        /// Gets the jwt cookie validity time from kubernetes environment variables and appsettings if environment variable is not set
+        /// </summary>
+        public string GetHostName
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__HostName") ?? HostName;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the BaseUrl
+        /// </summary>
+        public string BaseUrl { get; set; }
+
+        /// <summary>
+        /// Gets the jwt cookie validity time from kubernetes environment variables and appsettings if environment variable is not set
+        /// </summary>
+        public string GetBaseUrl
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__BaseUrl") ?? BaseUrl;
             }
         }
     }

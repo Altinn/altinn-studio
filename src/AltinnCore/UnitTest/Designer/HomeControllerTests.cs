@@ -32,7 +32,7 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
-         
+
             Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetMock();
             IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrappeer);
 
@@ -66,7 +66,7 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
             moqGiteaWrappeer.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("Test");
-       
+
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
             moqLogger.Object,
             moqServiceRepositorySettings.Object,
@@ -153,7 +153,7 @@ namespace AltinnCore.UnitTest.Designer
 
             // Assert
             LocalRedirectResult redirectResult = Assert.IsType<LocalRedirectResult>(result.Result);
-            Assert.Equal("/user/logout", redirectResult.Url);
+            Assert.Equal("/repos/user/logout", redirectResult.Url);
         }
 
         private Moq.Mock<ISourceControl> GetMoqSourceControlForIndexTest()

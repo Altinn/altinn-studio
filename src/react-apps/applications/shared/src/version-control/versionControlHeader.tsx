@@ -3,10 +3,13 @@ import axios from 'axios';
 import * as React from 'react';
 import { get, post } from '../../../shared/src/utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
+import { IAltinnWindow } from '../types';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
 import FetchChangesComponent from '../version-control/fetchChanges';
 import ShareChangesComponent from '../version-control/shareChanges';
+import CloneButton from './cloneButton';
+import CloneModal from './cloneModal';
 import SyncModalComponent from './syncModal';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
@@ -23,6 +26,8 @@ export interface IVersionControlHeaderState {
   modalState: any;
   mergeConflict: boolean;
   timeoutIsRunning: boolean;
+  cloneModalOpen: boolean;
+  cloneModalAnchor: any;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -62,6 +67,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       mergeConflict: false,
       modalState: initialModalState,
       timeoutIsRunning: false,
+      cloneModalOpen: false,
+      cloneModalAnchor: null,
     };
   }
 
@@ -207,7 +214,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               descriptionText:
                 [getLanguageFromKey('sync_header.changes_made_samme_place_submessage', this.props.language),
                 getLanguageFromKey('sync_header.changes_made_samme_place_subsubmessage', this.props.language)],
-              btnText: getLanguageFromKey('sync_header.hent_endringer_btn', this.props.language),
+              btnText: getLanguageFromKey('sync_header.fetch_changes_btn', this.props.language),
               shouldShowCommitBox: true,
               btnMethod: this.commitChanges,
             },
@@ -217,7 +224,16 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
   }
 
-  public shareChanges = (currentTarget: any) => {
+  public shareChanges = (currentTarget: any, showNothingToPush: boolean) => {
+    if (showNothingToPush) {
+      return this.setState({
+        anchorEl: currentTarget,
+        modalState: {
+          shouldShowDoneIcon: true,
+          header: getLanguageFromKey('sync_header.nothing_to_push', this.props.language),
+        },
+      });
+    }
     if (this.state.hasPushRight === true) {
       this.setState({
         anchorEl: currentTarget,
@@ -375,6 +391,30 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     );
   }
 
+  public closeCloneModal = () => {
+    this.setState({
+      cloneModalOpen: false,
+    });
+  }
+
+  public renderCloneModal = () => {
+    return (
+      <CloneModal
+        anchorEl={this.state.cloneModalAnchor}
+        open={this.state.cloneModalOpen}
+        onClose={this.closeCloneModal}
+        language={this.props.language}
+      />
+    );
+  }
+
+  public openCloneModal = (event: React.MouseEvent) => {
+    this.setState({
+      cloneModalOpen: true,
+      cloneModalAnchor: event.currentTarget,
+    });
+  }
+
   public render() {
     const { classes } = this.props;
     const type = this.props.type || 'header';
@@ -382,7 +422,13 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     return (
       <React.Fragment>
         {type === 'header' ? (
-          <Grid container={true} direction='row' className={classes.headerStyling} justify='center'>
+          <Grid container={true} direction='row' className={classes.headerStyling} justify='flex-start'>
+            <Grid item={true} style={{ marginRight: '24px' }}>
+              <CloneButton
+                onClick={this.openCloneModal}
+                buttonText={getLanguageFromKey('sync_header.clone', this.props.language)}
+              />
+            </Grid>
             <Grid item={true} style={{ marginRight: '24px' }}>
               <FetchChangesComponent
                 changesInMaster={this.state.changesInMaster}
@@ -401,6 +447,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               />
             </Grid>
             {this.renderSyncModalComponent()}
+            {this.renderCloneModal()}
           </Grid>
         ) : type === 'fetchButton' ? (
           <React.Fragment>

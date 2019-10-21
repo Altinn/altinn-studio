@@ -1,41 +1,48 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
-
+import { IRuntimeState } from 'src/types';
+import { IRuntimeStore } from '../../../../../types/global';
+import { convertDataBindingToModel } from '../../../../../utils/databindings';
+import { put } from '../../../../../utils/networking';
+import {
+  canFormBeSaved, mapApiValidationsToRedux, validateEmptyFields, validateFormComponents,
+  validateFormData,
+} from '../../../../../utils/validation';
+import { ILayoutState } from '../../../layout/reducer';
+import FormValidationActions from '../../../validation/actions';
 import WorkflowActions from '../../../workflow/actions';
 import FormDataActions from '../../actions';
 import {
   ISubmitDataAction,
 } from '../../actions/submit';
 import * as FormDataActionTypes from '../../actions/types';
-import { IFormDataState } from '../../reducer';
 
-import { IRuntimeStore } from '../../../../../types/global';
-import { convertDataBindingToModel } from '../../../../../utils/databindings';
-import { put } from '../../../../../utils/networking';
-import { getErrorCount, mapApiValidationsToRedux, validateFormData } from '../../../../../utils/validation';
-import { IDataModelState } from '../../../datamodell/reducer';
-import { ILayoutState } from '../../../layout/reducer';
-import FormValidationActions from '../../../validation/actions';
-
-const FormDataSelector: (store: IRuntimeStore) => IFormDataState = (store: IRuntimeStore) => store.formData;
-const DataModelSelector: (store: IRuntimeStore) => IDataModelState = (store: IRuntimeStore) => store.formDataModel;
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 
 function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
   try {
-    const formDataState: IFormDataState = yield select(FormDataSelector);
-    const dataModelState: IDataModelState = yield select(DataModelSelector);
-    const layoutState: ILayoutState = yield select(LayoutSelector);
-    const model = convertDataBindingToModel(formDataState.formData, dataModelState.dataModel);
-    const validations = validateFormData(formDataState.formData, dataModelState.dataModel, layoutState.layout);
-    const errorCount = getErrorCount(validations);
-    if (errorCount === 0) {
-      const result = yield call(put, url, apiMode || 'Update', { body: model });
+    const state: IRuntimeState = yield select();
+    const model = convertDataBindingToModel(state.formData.formData, state.formDataModel.dataModel);
+    let validations = validateFormData(state.formData, state.formDataModel.dataModel, state.formLayout.layout,
+      state.language.language);
+    const componentSpesificValidations =
+      validateFormComponents(state.attachments.attachments, state.formLayout.layout,
+        state.language.language);
+    const emptyFieldsValidations =
+      validateEmptyFields(state.formData.formData, state.formLayout.layout, state.language.language);
+
+    validations = Object.assign(validations, componentSpesificValidations);
+    if (apiMode === 'Complete') {
+      validations = Object.assign(validations, emptyFieldsValidations);
+    }
+    if (canFormBeSaved(validations)) {
+      const result = yield call(put, url, apiMode || 'Update', model);
       yield call(FormDataActions.submitFormDataFulfilled);
       if (result.status === 0 && result.nextState) {
         WorkflowActions.setCurrentState(result.nextState);
       }
-      if (result.status === 0 && result.nextStepUrl && !result.nextStepUrl.includes('#Preview')) {
+      const currentUrl = window.location.href.replace(window.location.origin, '');
+      if (result.status === 0 && result.nextStepUrl && result.nextStepUrl !== currentUrl) {
         // If next step is placed somewhere other then the SPA, for instance payment, we must redirect.
         if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
           window.location.replace(`${window.location.origin}${result.nextStepUrl}`);

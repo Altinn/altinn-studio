@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Helpers;
 using Altinn.Platform.Profile.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -36,7 +36,7 @@ namespace Altinn.Platform.Profile.Services.Implementation
         {
             UserProfile user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
-            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}/users/{userId}");
+            Uri endpointUrl = new Uri($"{_generalSettings.GetApiBaseUrl()}users/{userId}");
             using (HttpClient client = HttpApiHelper.GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);

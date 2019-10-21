@@ -1,0 +1,36 @@
+{
+  "Request": {
+    "ReturnPolicyIdList": true,
+    "AccessSubject": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:altinn:user-id",
+            "Value": "1"
+          }
+        ]
+      }
+    ],
+    "Action": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:oasis:names:tc:xacml:1.0:action:action-id",
+            "Value": "Read",
+            "DataType": "http://www.w3.org/2001/XMLSchema#string"
+          }
+        ]
+      }
+    ],
+    "Resource": [
+      {
+        "Attribute": [
+          {
+            "AttributeId": "urn:altinn:instance-id",
+            "Value": "cbdc7b44-9442-4fe0-854b-da278bf0b0e"
+          }
+        ]
+      }
+    ]
+  }
+}

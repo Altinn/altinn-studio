@@ -1,24 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using LibGit2Sharp;
-using LibGit2Sharp.Handlers;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implmentation for source control
+    /// Implementation of the source control service.
     /// </summary>
     public class SourceControlSI : ISourceControl
     {
@@ -27,33 +24,37 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly GeneralSettings _generalSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGitea _gitea;
+        private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SourceControlSI"/> class
+        /// Initializes a new instance of the <see cref="SourceControlSI"/> class.
         /// </summary>
-        /// <param name="repositorySettings">The settings for the service repository</param>
-        /// <param name="generalSettings">The current general settings</param>
-        /// <param name="defaultFileFactory">The default factory</param>
-        /// <param name="httpContextAccessor">the http context accessor</param>
-        /// <param name="gitea">gitea</param>
+        /// <param name="repositorySettings">The settings for the service repository.</param>
+        /// <param name="generalSettings">The current general settings.</param>
+        /// <param name="defaultFileFactory">The default factory.</param>
+        /// <param name="httpContextAccessor">the http context accessor.</param>
+        /// <param name="gitea">gitea.</param>
+        /// <param name="logger">the log handler.</param>
         public SourceControlSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
             IDefaultFileFactory defaultFileFactory,
             IHttpContextAccessor httpContextAccessor,
-            IGitea gitea)
+            IGitea gitea,
+            ILogger<SourceControlSI> logger)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
             _generalSettings = generalSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
+            _logger = logger;
         }
 
         /// <summary>
         /// Clone remote repository
         /// </summary>
-        /// <param name="org">the organisation</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">the name of the repository</param>
         /// <returns>The result of the cloning</returns>
         public string CloneRemoteRepository(string org, string repository)
@@ -90,7 +91,7 @@ namespace AltinnCore.Common.Services.Implementation
         public RepoStatus PullRemoteChanges(string org, string repository)
         {
             RepoStatus status = new RepoStatus();
-
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
             {
                 PullOptions pullOptions = new PullOptions()
@@ -123,6 +124,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "pull - {0} ", watch.ElapsedMilliseconds);
             return status;
         }
 
@@ -151,7 +154,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Gets the number of commits the local repository is behind the remote
         /// </summary>
-        /// <param name="org">The organization owning the repository</param>
+        /// <param name="org">The organisation code for the application owner</param>
         /// <param name="repository">The repository</param>
         /// <returns>The number of commits behind</returns>
         public int? CheckRemoteUpdates(string org, string repository)
@@ -169,12 +172,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Add all changes in service repo and push to remote
+        /// Add all changes in app repo and push to remote
         /// </summary>
-        /// <param name="commitInfo">the commit information for the service</param>
+        /// <param name="commitInfo">the commit information for the app</param>
         public void PushChangesForRepository(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
                 // Restrict users from empty commit
@@ -205,6 +209,9 @@ namespace AltinnCore.Common.Services.Implementation
                     repo.Network.Push(remote, @"refs/heads/master", options);
                 }
             }
+
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "push cahnges - {0} ", watch.ElapsedMilliseconds);
         }
 
         /// <summary>
@@ -215,6 +222,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void Push(string owner, string repository)
         {
             string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
                 string remoteUrl = FindRemoteRepoLocation(owner, repository);
@@ -233,6 +241,9 @@ namespace AltinnCore.Common.Services.Implementation
 
                 repo.Network.Push(remote, @"refs/heads/master", options);
             }
+
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Push - {0} ", watch.ElapsedMilliseconds);
         }
 
         /// <summary>
@@ -302,7 +313,12 @@ namespace AltinnCore.Common.Services.Implementation
             string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (var repo = new Repository(localServiceRepoFolder))
             {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 RepositoryStatus status = repo.RetrieveStatus(new LibGit2Sharp.StatusOptions());
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "retrieverepostatusentries - {0} ", watch.ElapsedMilliseconds);
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
                 foreach (StatusEntry item in status)
                 {
                     RepositoryContent content = new RepositoryContent();
@@ -317,12 +333,19 @@ namespace AltinnCore.Common.Services.Implementation
                     repoStatus.ContentStatus.Add(content);
                 }
 
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "parsestatusentries - {0}", watch.ElapsedMilliseconds);
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
                 Branch branch = repo.Branches.FirstOrDefault(b => b.IsTracking == true);
                 if (branch != null)
                 {
                     repoStatus.AheadBy = branch.TrackingDetails.AheadBy;
                     repoStatus.BehindBy = branch.TrackingDetails.BehindBy;
                 }
+
+                watch.Stop();
+                _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "branch details - {0}", watch.ElapsedMilliseconds);
             }
 
             return repoStatus;
@@ -336,10 +359,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The latest commit</returns>
         public AltinnCore.Common.Models.Commit GetLatestCommitForCurrentUser(string owner, string repository)
         {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             List<AltinnCore.Common.Models.Commit> commits = Log(owner, repository);
             var currentUser = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-
-            return commits.FirstOrDefault(commit => commit.Author.Name == currentUser);
+            AltinnCore.Common.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == currentUser);
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Get latest commit- {0} ", watch.ElapsedMilliseconds);
+            return latestCommit;
         }
 
         /// <summary>
@@ -352,6 +378,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<AltinnCore.Common.Models.Commit> commits = new List<Models.Commit>();
             string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             using (var repo = new Repository(localServiceRepoFolder))
             {
                 foreach (LibGit2Sharp.Commit c in repo.Commits.Take(50))
@@ -375,6 +402,9 @@ namespace AltinnCore.Common.Services.Implementation
                     commits.Add(commit);
                 }
             }
+
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Get commits - {0} ", watch.ElapsedMilliseconds);
 
             return commits;
         }
@@ -426,20 +456,15 @@ namespace AltinnCore.Common.Services.Implementation
         {
             CheckAndCreateDeveloperFolder();
             string path = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
-            }
-            else
-            {
-                path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
-            }
+            path = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                    ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt"
+                    : _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
 
             File.WriteAllText(path, token);
         }
 
         /// <summary>
-        /// Return the App Token generated to let AltinnCore contact GITEA on behalf of service developer
+        /// Return the App Token generated to let AltinnCore contact GITEA on behalf of app developer
         /// </summary>
         /// <returns>The app token</returns>
         public string GetAppToken()
@@ -448,7 +473,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Return the App Token id generated to let AltinnCore contact GITEA on behalf of service developer
+        /// Return the App Token id generated to let AltinnCore contact GITEA on behalf of app developer
         /// </summary>
         /// <returns>The app token id</returns>
         public string GetAppTokenId()
@@ -457,7 +482,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of service developer
+        /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of app developer
         /// </summary>
         /// <returns>The deploy app token</returns>
         public string GetDeployToken()
@@ -483,14 +508,9 @@ namespace AltinnCore.Common.Services.Implementation
         private void CheckAndCreateDeveloperFolder()
         {
             string path = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
-            }
-            else
-            {
-                path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
-            }
+            path = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+            ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/"
+            : _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
 
             if (!Directory.Exists(path))
             {
@@ -506,17 +526,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The path to the local repository</returns>
         public string FindLocalRepoLocation(string org, string repository)
         {
-            string localpath = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                localpath = $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/{repository}";
-            }
-            else
-            {
-                localpath = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/{repository}";
-            }
-
-            return localpath;
+            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/{repository}"
+                : $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/{repository}";
         }
 
         /// <summary>
@@ -527,14 +539,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-            {
-                return $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL")}{org}/{repository}.git";
-            }
-            else
-            {
-                return $"{_settings.RepositoryBaseURL}{org}/{repository}.git";
-            }
+            return (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+                ? $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL")}/{org}/{repository}.git"
+                : $"{_settings.RepositoryBaseURL}/{org}/{repository}.git";
         }
 
         /// <summary>
@@ -585,6 +592,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void StageChange(string owner, string repository, string fileName)
         {
             string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
                 FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
@@ -596,6 +604,9 @@ namespace AltinnCore.Common.Services.Implementation
                     Commands.Stage(repo, fileName);
                 }
             }
+
+            watch.Stop();
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Stage changes - {0} ", watch.ElapsedMilliseconds);
         }
 
         /// <summary>
