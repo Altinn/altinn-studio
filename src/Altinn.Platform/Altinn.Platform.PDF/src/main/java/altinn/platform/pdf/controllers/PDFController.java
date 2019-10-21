@@ -19,7 +19,7 @@ import java.util.logging.Level;
 @RestController
 public class PDFController {
 
-  @PostMapping("pdf/api/v1/generate")
+  @PostMapping("api/v1/generate")
   @ApiOperation(value = "Generates a receipt pdf")
   public void generate(HttpServletRequest request, HttpServletResponse response, @RequestBody @Valid PdfContext pdfContext) {
     PDFGenerator generator = new PDFGenerator(pdfContext);
