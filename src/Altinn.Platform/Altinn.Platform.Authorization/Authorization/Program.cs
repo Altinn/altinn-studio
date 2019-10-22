@@ -41,10 +41,10 @@ namespace Altinn.Platform.Authorization
                  .ConfigureLogging((hostingContext, logging) =>
                  {
                      logging.ClearProviders();
-                     Serilog.ILogger logger = new LoggerConfiguration()
+                     Serilog.ILogger serilogLogger = new LoggerConfiguration()
                                      .WriteTo.Console()
                                      .CreateLogger();
-                     logging.AddProvider(new SerilogLoggerProvider(logger));
+                     logging.AddProvider(new SerilogLoggerProvider(serilogLogger));
                  })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

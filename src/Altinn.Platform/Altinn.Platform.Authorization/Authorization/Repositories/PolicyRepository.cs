@@ -16,8 +16,8 @@ namespace Altinn.Platform.Authorization.Repositories
     public class PolicyRepository : IPolicyRepository
     {
         private readonly AzureStorageConfiguration _storageConfig;
-        private CloudBlobClient _blobClient;
-        private CloudBlobContainer _blobContainer;
+        private readonly CloudBlobClient _blobClient;
+        private readonly CloudBlobContainer _blobContainer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyRepository"/> class
