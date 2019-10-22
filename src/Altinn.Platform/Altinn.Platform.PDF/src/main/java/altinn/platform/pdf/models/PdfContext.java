@@ -2,6 +2,7 @@ package altinn.platform.pdf.models;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -26,12 +27,13 @@ public class PdfContext {
   @NotNull
   private Instance instance;
 
-  @ApiModelProperty(notes = "The party party of the currently active user")
-  private Party userParty;
-
   @ApiModelProperty(notes = "The party of the instance owner")
   @NotNull
   private Party party;
+
+  @ApiModelProperty(notes = "The party party of the currently active user")
+  @Nullable
+  private Party userParty;
 
   public Party getUserParty() { return userParty; }
 
