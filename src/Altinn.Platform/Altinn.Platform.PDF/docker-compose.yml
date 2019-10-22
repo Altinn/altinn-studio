@@ -11,6 +11,8 @@ services:
     restart: always
     networks:
       - altinnplatform_network
+    environment:
+      - SWAGGER_BASE_URL=localhost:5070/
     ports:
       - "5070:5070"
     build:
