@@ -466,6 +466,7 @@ namespace Altinn.Platform.Storage.Controllers
                 InstanceOwnerId = instance.InstanceOwnerId,
                 UserId = 0, // update when authentication is turned on
                 ProcessInfo = instance.Process,
+                CreatedDateTime = DateTime.UtcNow,
             };
 
             await instanceEventRepository.InsertInstanceEvent(instanceEvent);

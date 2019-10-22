@@ -67,6 +67,7 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="app">Application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceId">Unique id to identify the instance</param>
+        [HttpGet]
         [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/validate")]
         public async Task<IActionResult> ValidateInstance(
             [FromRoute] string org,
@@ -146,6 +147,7 @@ namespace AltinnCore.Runtime.RestControllers
         /// <param name="instanceOwnerId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceId">Unique id to identify the instance</param>
         /// <param name="dataGuid">Unique id identifying specific data element</param>
+        [HttpGet]
         [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/data/{dataGuid:guid}/validate")]
         public async Task<IActionResult> ValidateData(
             [FromRoute] string org,
