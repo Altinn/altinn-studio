@@ -50,12 +50,7 @@ namespace Altinn.Platform.Authorization.Repositories
         /// <inheritdoc />
         public async Task<string> WritePolicy(string filepath, Stream fileStream)
         {
-            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
-
-            await blockBlob.UploadFromStreamAsync(fileStream);
-            await blockBlob.FetchAttributesAsync();
-
-            return await Task.FromResult(blockBlob.Uri.ToString());
+            throw new NotImplementedException();
         }
 
         private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
