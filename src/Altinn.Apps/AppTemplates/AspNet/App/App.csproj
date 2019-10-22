@@ -11,7 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Config\Textresources\" />
+    <Folder Include="Config\UI\Dynamics\" />
     <Folder Include="Controllers\" />
+    <Folder Include="Models\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
 </Project>
