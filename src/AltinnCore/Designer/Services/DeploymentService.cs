@@ -147,7 +147,8 @@ namespace AltinnCore.Designer.Services
                 AppOwner = deploymentEntity.Org,
                 AppRepo = deploymentEntity.App,
                 AppEnvironment = deploymentEntity.EnvironmentName,
-                Hostname = environmentHostname
+                Hostname = environmentHostname,
+                AppDeployToken = _sourceControl.GetDeployToken()
             };
 
             return await _azureDevOpsBuildService.QueueAsync(
