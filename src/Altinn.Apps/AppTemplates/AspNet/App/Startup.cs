@@ -7,6 +7,7 @@ using Altinn.App.AppLogic;
 using Altinn.App.Common.Interface;
 using Altinn.App.Controllers;
 using Altinn.App.Services.Clients;
+using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Microsoft.AspNetCore.Builder;
@@ -50,6 +51,11 @@ namespace Altinn.App
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
+
+            services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
+            services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
+            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
