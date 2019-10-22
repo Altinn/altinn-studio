@@ -25,7 +25,6 @@ namespace Altinn.App.Api.Controllers
     /// You can create a new instance (POST), update it (PUT) and retreive a specific instance (GET).
     /// </summary>
     [Route("{org}/{app}/instances")]
-    [Authorize]
     [ApiController]
     public class InstancesController : ControllerBase
     {
