@@ -15,3 +15,15 @@ export const getReleaseBuildPipelineLink = (buildId: string) =>
 
 export const getGitCommitLink = (commitId: string) =>
   `${origin}/repos/${org}/${app}/commit/${commitId}`;
+
+export const getAzureDevopsBuildResultUrl = (buildId: string|number): string => {
+  return `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;
+};
+
+export const getEnvironmentsConfigUrl = (): string => {
+  return 'https://altinncdn.no/config/environments.json';
+};
+
+export const getAppDeploymentsUrl = () => {
+  return `${origin}/designer/api/v1/${org}/${app}/Deployments`;
+};

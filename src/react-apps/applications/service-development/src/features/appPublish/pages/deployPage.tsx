@@ -19,10 +19,10 @@ function DeployPage(props: IDeployPaperProps) {
         direction={'row'}
         justify={'space-between'}
       >
-        <Grid item={true} xs={8}>
+        <Grid item={true} xs={9}>
           <DeployContainer/>
         </Grid>
-        <Grid item={true} xs={4}>
+        <Grid item={true} xs={3}>
           <ReleaseContainer/>
         </Grid>
       </Grid>

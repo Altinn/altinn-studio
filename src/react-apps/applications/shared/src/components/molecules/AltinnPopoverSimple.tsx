@@ -1,11 +1,10 @@
-import { Button, CircularProgress, createMuiTheme, createStyles, Grid, makeStyles, Popover, TextField, Typography } from '@material-ui/core';
-import classNames from 'classnames';
+import { Button, createMuiTheme, createStyles, Grid, makeStyles, Popover } from '@material-ui/core';
 import * as React from 'react';
-import altinnTheme from '../theme/altinnStudioTheme';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnPopoverProvidedProps {
   anchorEl: any;
-  anchorOrigin?: {
+  anchorOrigin: {
     horizontal: 'left' | 'center' | 'right' | number,
     vertical: 'top' | 'center' | 'bottom' | number,
   };
@@ -14,16 +13,9 @@ export interface IAltinnPopoverProvidedProps {
   btnCancelText?: string;
   btnPrimaryId?: string;
   btnSecondaryId?: string;
-  classes: any;
-  descriptionText?: string;
   handleClose: any;
-  header?: string;
-  isLoading?: boolean;
-  nextTobtnConfirmText?: string;
   paperProps?: any;
-  shouldShowCommitBox?: boolean;
-  shouldShowDoneIcon?: boolean;
-  transformOrigin?: {
+  transformOrigin: {
     horizontal: 'left' | 'center' | 'right' | number,
     vertical: 'top' | 'center' | 'bottom' | number,
   };
@@ -34,7 +26,7 @@ export interface IAltinnPopoverProps extends IAltinnPopoverProvidedProps {
 }
 
 export interface IAltinnPopoverState {
-  commitMessage: string;
+
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -77,34 +69,6 @@ const useStyles = makeStyles(() =>
         color: theme.altinnPalette.primary.white,
       },
     },
-    commitMessageField: {
-      border: '1px solid ' + theme.altinnPalette.primary.blueDark,
-      boxSizing: 'border-box',
-      marginTop: '10px',
-      fontSize: '16px !Important',
-      minHeight: '88px',
-      lineHeight: '1.3',
-    },
-    doneLoadingIcon: {
-      marginTop: '20px',
-      color: theme.altinnPalette.primary.green,
-      marginRight: 'auto',
-      marginLeft: 'auto',
-    },
-    header: {
-      fontSize: '16px',
-      fontWeight: 500,
-    },
-    spinner: {
-      marginTop: '20px',
-      color: theme.altinnPalette.primary.blueDark,
-      marginRight: 'auto',
-      marginLeft: 'auto',
-    },
-    subHeader: {
-      fontSize: '16px',
-      marginTop: '10px',
-    },
     popover: {
       width: '445px',
       margin: '24px',
@@ -116,37 +80,13 @@ const useStyles = makeStyles(() =>
 const AltinnPopoverComponent = (props: any) => {
   const classes = useStyles(props);
 
-  const [commitMessage, setCommitMessage] = React.useState('');
-
   const handleClose = () => {
-    setCommitMessage('');
     props.handleClose();
   };
 
   const btnClickedHandler = () => {
     if (props.btnClick) {
-      props.btnClick(commitMessage);
-    }
-  };
-
-  const handleChange = (event: any) => {
-    setCommitMessage(event.target.value);
-  };
-
-  const renderSpinnerOrDoneIcon = () => {
-    if (props.isLoading) {
-      return (
-        <CircularProgress className={classNames(classes.spinner)} />
-      );
-    } else {
-      if (props.shouldShowDoneIcon) {
-        return (
-          <div className={classNames(classes.doneLoadingIcon)}>
-            <i className={classNames('fa fa-circlecheck')} />
-          </div>
-        );
-      }
-      return null;
+      props.btnClick();
     }
   };
 
@@ -168,35 +108,12 @@ const AltinnPopoverComponent = (props: any) => {
         PaperProps={{ square: true, ...props.paperProps }}
       >
         <Grid container={true} direction='column' className={classes.popover}>
-          {props.header &&
-            <Typography variant='h3' className={classNames(classes.header)}>
-              {props.header}
-            </Typography>
-          }
-
-          {props.descriptionText &&
-            <Typography className={classNames(classes.subHeader)}>
-              {props.descriptionText}
-            </Typography>
-          }
-
-          {renderSpinnerOrDoneIcon()}
-
-          {props.shouldShowCommitBox &&
-            <TextField
-              multiline={true}
-              value={commitMessage}
-              rows={3}
-              onChange={handleChange}
-              InputProps={{
-                disableUnderline: true,
-                classes: {
-                  input: classes.commitMessageField,
-                },
-              }}
-            />
-          }
-
+          <Grid item={true}>
+            <div>
+              {props.children}
+            </div>
+          </Grid>
+          <Grid item={true}>
           <div>
             {props.btnConfirmText &&
               <Button
@@ -222,6 +139,7 @@ const AltinnPopoverComponent = (props: any) => {
               </Button>
             }
           </div>
+          </Grid>
         </Grid>
       </Popover>
     </>
