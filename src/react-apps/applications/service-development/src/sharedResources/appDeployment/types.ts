@@ -16,3 +16,7 @@ export interface IDeployment {
   created: string;
   build: IBuild;
 }
+
+export interface IDeploymentResults {
+  results: IDeployment[];
+}

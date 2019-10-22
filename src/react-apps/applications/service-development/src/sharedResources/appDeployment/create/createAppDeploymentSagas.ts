@@ -1,31 +1,28 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
+import { post } from '../../../../../shared/src/utils/networking';
+import { getAppDeploymentsUrl } from '../../../utils/urlHelper';
 import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
 import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
-import { IDeployment } from '../types';
+import * as CreateAppDeploymentActions from './createAppDeploymentActions';
 
-const mockStartDeploymentResult: IDeployment = {
-  id: 'document_id',
-  tagName: '1.5.0',
-  app: 'deployment_1_app',
-  org: 'deployment_1_org',
-  envName: 'at21',
-  createdBy: 'Per Nilsen',
-  created: '2019-10-18T10:38:15.3464541+02:00',
-  build: {
-    id: '17232',
-    status: 5,
-    result: 0,
-    started: null,
-    finished: null,
-  },
-};
-
-function* createAppDeploymentSaga(): SagaIterator {
+function* createAppDeploymentSaga({
+  tagName,
+  envObj,
+}: CreateAppDeploymentActions.ICreateAppDeployment): SagaIterator {
   try {
-    yield call(AppDeploymentActionDispatcher.createAppDeploymentFulfilled, mockStartDeploymentResult);
+    // throw new Error('Network error');
+
+    const data = {
+      tagName,
+      envObj,
+    };
+
+    const result = yield call(post, getAppDeploymentsUrl(), data);
+
+    yield call(AppDeploymentActionDispatcher.createAppDeploymentFulfilled, result, envObj.name);
   } catch (err) {
-    yield call(AppDeploymentActionDispatcher.createAppDeploymentRejected, err);
+    yield call(AppDeploymentActionDispatcher.createAppDeploymentRejected, err, envObj.name);
   }
 }
 

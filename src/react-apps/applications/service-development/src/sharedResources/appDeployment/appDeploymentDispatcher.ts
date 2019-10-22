@@ -2,17 +2,20 @@ import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as CreateAppDeploymentActions from './create/createAppDeploymentActions';
 import * as GetAppDeploymentsActions from './get/getAppDeploymentActions';
-import { IDeployment } from './types';
+import { IDeployment, IDeploymentResults } from './types';
 
 export interface IAppDeploymenActionDispatcher extends ActionCreatorsMapObject {
   getAppDeployments: () => Action;
-  getAppDeploymentsFulfilled: (deployments: IDeployment[]) => GetAppDeploymentsActions.IGetAppDeploymentsFulfilled;
+  getAppDeploymentsFulfilled: (deployments: IDeploymentResults) => GetAppDeploymentsActions.IGetAppDeploymentsFulfilled;
   getAppDeploymentsRejected: (error: Error) => GetAppDeploymentsActions.IGetAppDeploymentsRejected;
   getAppDeploymentsStartInterval: () => Action;
   getAppDeploymentsStopInterval: () => Action;
-  createAppDeployment: (tagName: string, envName: string) => CreateAppDeploymentActions.ICreateAppDeployment;
-  createAppDeploymentFulfilled: (result: IDeployment) => CreateAppDeploymentActions.ICreateAppDeploymentFulfilled;
-  createAppDeploymentRejected: (error: Error) => CreateAppDeploymentActions.ICreateAppDeploymentRejected;
+  createAppDeployment: (tagName: string, envObj: CreateAppDeploymentActions.ICreateAppDeploymentEnvObject) =>
+    CreateAppDeploymentActions.ICreateAppDeployment;
+  createAppDeploymentFulfilled: (result: IDeployment, envName: string) =>
+    CreateAppDeploymentActions.ICreateAppDeploymentFulfilled;
+  createAppDeploymentRejected: (error: Error, envName: string) =>
+    CreateAppDeploymentActions.ICreateAppDeploymentRejected;
 }
 
 const actions: IAppDeploymenActionDispatcher = {

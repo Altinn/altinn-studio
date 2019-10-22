@@ -65,7 +65,7 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-export const AltinnButton = (props: IAltinnButtonComponentProvidedProps) => {
+export const AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
   const classes = useStyles(props);
   return (
     <Button
@@ -79,6 +79,7 @@ export const AltinnButton = (props: IAltinnButtonComponentProvidedProps) => {
       })}
       onClick={props.onClickFunction}
       style={{ fontSize: 16 }}
+      ref={ref}
     >
       <span
         className={classNames({
@@ -90,6 +91,6 @@ export const AltinnButton = (props: IAltinnButtonComponentProvidedProps) => {
       </span>
     </Button>
   );
-};
+});
 
 export default AltinnButton;

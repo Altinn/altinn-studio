@@ -1,36 +1,15 @@
+import * as moment from 'moment';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
-import { IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentReducer';
-import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
-
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
 import AppClusterActions from '../../../sharedResources/appCluster/appClusterDispatcher';
 import { IAppClusterState } from '../../../sharedResources/appCluster/appClusterReducer';
+import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
+import { IAppDeploymentState, ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/appDeploymentReducer';
+import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
+import ConfigurationActions from '../../../sharedResources/configuration/configurationDispatcher';
+import { IConfigurationState } from '../../../sharedResources/configuration/configurationReducer';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
-
-import * as moment from 'moment';
-
-const mockEnvironments = {
-  env: [
-      {
-          hostname: 'apps.at21.altinn.cloud',
-          name: 'at21',
-          type: 'test',
-      },
-      {
-          hostname: 'apps.tt.altinn.cloud',
-          name: 'tt',
-          type: 'test',
-      },
-      {
-          hostname: 'apps.altinn.no',
-          name: 'production',
-          type: 'production',
-      },
-
-  ],
-};
 
 export interface IDeployContainer {
 
@@ -44,25 +23,33 @@ const DeployContainer = (props: IDeployContainer) => {
 
   const appCluster: IAppClusterState = useSelector((state: IServiceDevelopmentState) => state.appCluster);
   const appDeployments: IAppDeploymentState = useSelector((state: IServiceDevelopmentState) => state.appDeployments);
+  const createAppDeploymentErrors: any = useSelector((state: IServiceDevelopmentState) =>
+    state.appDeployments.createAppDeploymentErrors);
   const deployableImages: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
+  const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) =>
+    state.configuration);
 
   React.useEffect(() => {
-    // AppDeploymentActions.getAppDeployments();
+    ConfigurationActions.getEnvironments();
     AppDeploymentActions.getAppDeploymentsStartInterval();
-    setEnvironments(mockEnvironments.env);
-  }, []);
 
-  React.useEffect(() => {
     return () => {
       AppDeploymentActions.getAppDeploymentsStopInterval();
     };
+
   }, []);
 
   React.useEffect(() => {
+    if (configuration.environments && configuration.environments.result) {
+      setEnvironments(configuration.environments.result);
+    }
+  }, [configuration]);
+
+  React.useEffect(() => {
     environments.map((env: any) => {
-      AppClusterActions.getDeployments(env.name, org, app);
+      AppClusterActions.getDeploymentsStartInterval();
     });
-  }, [environments]);
+  }, [environments, appDeployments]);
 
   React.useEffect(() => {
     const tempImages = deployableImages.releases.map((image) => {
@@ -91,25 +78,27 @@ const DeployContainer = (props: IDeployContainer) => {
       }
       {!isLoading() &&
         environments.map((env: any, index: number) => {
-          // console.log('map env', env);
           return(
             <AppDeploymentComponent
               key={index}
               envName={env.name}
+              envObj={env}
               urlToApp={`https://${org}.${env.name}.${env.hostname}/${org}/${app}`}
               urlToAppLinkTxt={`${org}.${env.name}.${env.hostname}/${org}/${app}`}
               deploymentList={
                 appCluster.deploymentList &&
-                appCluster.deploymentList[env.name]
+                appCluster.deploymentList.find((elem: any) => elem.env === env.name)
               }
               releases={imageOptions}
               deployHistory={appDeployments.deployments.filter((deployment: any) => deployment.envName === env.name)}
+              deployError={createAppDeploymentErrors.filter(
+                              (error: ICreateAppDeploymentErrors) => error.env === env.name)}
             />
           );
         })
       }
     </>
   );
-}
+};
 
 export default DeployContainer;

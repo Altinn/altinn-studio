@@ -10,6 +10,7 @@ import { applicationMetadataSagas } from '../sharedResources/applicationMetadata
 import { appReleaseSagas } from '../sharedResources/appRelease/appReleaseSagas';
 import languageSagas from '../utils/fetchLanguage/languageSagas';
 import { appClusterSagas } from './../sharedResources/appCluster/appClusterSagas';
+import { configurationSagas } from './../sharedResources/configuration/configurationSagas';
 import { repoStatusSagas } from './../sharedResources/repoStatus/repoStatusSagas';
 
 function* root(): SagaIterator {
@@ -27,6 +28,7 @@ function* root(): SagaIterator {
   yield fork(repoStatusSagas);
   yield fork(appReleaseSagas);
   yield fork(appDeploymentSagas);
+  yield fork(configurationSagas);
 }
 
 export const run: () => Task = () => sagaMiddleware.run(root);

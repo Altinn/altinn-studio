@@ -7,13 +7,32 @@ import { IDeployment } from './types';
 
 export interface IAppDeploymentState {
   deployments: IDeployment[];
+  getAppDeploymentsError: Error;
+  createAppDeploymentErrors: ICreateAppDeploymentErrors[];
+}
+
+export interface ICreateAppDeploymentErrors {
+  env: string;
   error: Error;
 }
 
 const initialState: IAppDeploymentState = {
   deployments: [],
-  error: null,
+  getAppDeploymentsError: null,
+  createAppDeploymentErrors: [],
 };
+
+update.extend('$updateCreateAppDeploymentError', (params: any, original: any) => {
+  const newState = original.filter((elem: any) => elem.env !== params.env );
+
+  const newAppDeploymentError: ICreateAppDeploymentErrors = {
+    env: params.env,
+    error: params.error ? params.error.message : null,
+  };
+
+  newState.push(newAppDeploymentError);
+  return newState;
+});
 
 const appDeploymentReducer: Reducer<IAppDeploymentState> = (
   state: IAppDeploymentState = initialState,
@@ -27,9 +46,9 @@ const appDeploymentReducer: Reducer<IAppDeploymentState> = (
       const { deployments } = action as IGetAppDeploymentsFulfilled;
       return update<IAppDeploymentState>(state, {
         deployments: {
-          $set: deployments,
+          $set: deployments.results,
         },
-        error: {
+        getAppDeploymentsError: {
           $set: null,
         },
       });
@@ -37,27 +56,33 @@ const appDeploymentReducer: Reducer<IAppDeploymentState> = (
     case AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_REJECTED: {
       const { error } = action as IGetAppDeploymentsRejected;
       return update<IAppDeploymentState>(state, {
-        error: {
+        getAppDeploymentsError: {
           $set: error,
         },
       });
     }
     case AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT_FULFILLED: {
-      const { result } = action as ICreateAppDeploymentFulfilled;
+      const { result, envName } = action as ICreateAppDeploymentFulfilled;
       return update<IAppDeploymentState>(state, {
         deployments: {
           $unshift: [result],
         },
-        error: {
-          $set: null,
+        createAppDeploymentErrors: {
+          $updateCreateAppDeploymentError: {
+            env: envName,
+            error: null,
+          },
         },
       });
     }
     case AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT_REJECTED: {
-      const { error } = action as ICreateAppDeploymentRejected;
+      const { error, envName } = action as ICreateAppDeploymentRejected;
       return update<IAppDeploymentState>(state, {
-        error: {
-          $set: error,
+        createAppDeploymentErrors: {
+          $updateCreateAppDeploymentError: {
+            env: envName,
+            error,
+          },
         },
       });
     }
