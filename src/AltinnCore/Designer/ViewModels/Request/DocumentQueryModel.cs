@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using AltinnCore.Designer.ViewModels.Request.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AltinnCore.Designer.ViewModels.Request
 {
@@ -29,6 +30,7 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// </summary>
         [FromQuery(Name = "sortDirection")]
         [EnumDataType(typeof(SortDirection))]
+        [JsonConverter(typeof(StringEnumConverter))]
         public SortDirection SortDirection { get; set; }
 
         /// <summary>

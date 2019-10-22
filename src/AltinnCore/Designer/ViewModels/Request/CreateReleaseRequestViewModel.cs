@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Designer.ViewModels.Request
@@ -10,12 +11,14 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// <summary>
         /// TagName
         /// </summary>
+        [Required]
         [JsonProperty("tagName")]
         public string TagName { get; set; }
 
         /// <summary>
         /// Name
         /// </summary>
+        [Required]
         [JsonProperty("name")]
         public string Name { get; set; }
 
@@ -28,6 +31,7 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// <summary>
         /// TargetCommitish
         /// </summary>
+        [Required]
         [JsonProperty("targetCommitish")]
         public string TargetCommitish { get; set; }
     }

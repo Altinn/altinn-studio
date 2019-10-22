@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using AltinnCore.Designer.Services.Models;
 using Newtonsoft.Json;
 
@@ -11,12 +12,14 @@ namespace AltinnCore.Designer.ViewModels.Request
         /// <summary>
         /// TagName
         /// </summary>
+        [Required]
         [JsonProperty("tagName")]
         public string TagName { get; set; }
 
         /// <summary>
         /// Environment
         /// </summary>
+        [Required]
         [JsonProperty("env")]
         public EnvironmentModel Environment { get; set; }
     }

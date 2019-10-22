@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Designer.Services.Models
@@ -10,6 +11,7 @@ namespace AltinnCore.Designer.Services.Models
         /// <summary>
         /// Hostname
         /// </summary>
+        [Required]
         [JsonProperty("hostname")]
         public string Hostname { get; set; }
 
@@ -28,6 +30,7 @@ namespace AltinnCore.Designer.Services.Models
         /// <summary>
         /// Name
         /// </summary>
+        [Required]
         [JsonProperty("name")]
         public string Name { get; set; }
 
