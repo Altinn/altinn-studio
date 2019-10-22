@@ -10,9 +10,11 @@ import { useSelector } from 'react-redux';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
 import AltinnInput from '../../../../../shared/src/components/AltinnInput';
 import AltinnTextArea from '../../../../../shared/src/components/AltinnTextArea';
+import AltinnPopover from '../../../../../shared/src/components/molecules/AltinnPopoverSimple';
 import theme from '../../../../../shared/src/theme/altinnAppTheme';
 import AppReleaseActions from '../../../sharedResources/appRelease/appReleaseDispatcher';
-import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
+import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
+import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusReducer';
 
 const styles = createStyles({
@@ -25,22 +27,39 @@ const styles = createStyles({
   },
   createReleaseInvalidTagNameWrapper: {
     padding: '2rem 2rem 0rem 2rem',
-  }
+  },
+  createReleaseErrorPopoverRoot: {
+    backgroundColor: theme.altinnPalette.primary.redLight,
+    fontSize: '1.4rem',
+  },
 });
 
 export interface ICreateAppReleaseComponent extends WithStyles<typeof styles> {
 }
 
 function ReleaseComponent(props: ICreateAppReleaseComponent) {
+  const { classes } = props;
+
   const [tagName, setTagName] = React.useState<string>('');
   const [body, setBody] = React.useState<string>('');
 
-  const releases: IRelease[] = useSelector((state: IServiceDevelopmentState) => state.appReleases.releases);
+  const releaseState: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
+  const createReleaseErrorCode: number =
+    useSelector((state: IServiceDevelopmentState) => state.appReleases.errors.createReleaseErrorCode);
   const repoStatus: IRepoStatusState = useSelector((state: IServiceDevelopmentState) => state.repoStatus);
   const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
 
+  const [openErrorPopover, setOpenErrorPopover] = React.useState<boolean>(createReleaseErrorCode !== null);
+  const ref = React.useRef<React.RefObject<HTMLButtonElement>>();
+
+  React.useEffect(() => {
+    if (createReleaseErrorCode !== null) {
+      setOpenErrorPopover(true);
+    }
+  }, [createReleaseErrorCode]);
+
   function versionNameValid(): boolean {
-    for (const release of releases) {
+    for (const release of releaseState.releases) {
       if (release.tagName.toLowerCase() === tagName.trim() &&
         (release.build.result === BuildResult.succeeded || release.build.status === BuildStatus.inProgress)
       ) {
@@ -67,99 +86,137 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
     setBody(event.currentTarget.value);
   }
 
-  function handleBuildVersionClick() {
+  function handleBuildVersionClick(event: React.MouseEvent) {
     if (versionNameValid()) {
       AppReleaseActions.createAppRelease(tagName, tagName, body, repoStatus.branch.master.commit.id);
       setTagName('');
       setBody('');
     }
+    handlePopoverClose();
   }
 
-  const { classes } = props;
+  function handlePopoverClose() {
+    setOpenErrorPopover(false);
+  }
+
+  if (releaseState.creatingRelease) {
+    return null;
+  }
+
   return (
-    <Grid
-      container={true}
-      direction={'column'}
-    >
+    <>
       <Grid
         container={true}
         direction={'column'}
-        className={classes.createReleaseFormItem}
       >
         <Grid
           container={true}
-          direction={'row-reverse'}
-          justify={'flex-end'}
+          direction={'column'}
+          className={classes.createReleaseFormItem}
         >
-          {!versionNameValid() ?
-            <Grid
-              className={classes.createReleaseInvalidTagNameWrapper}
-            >
-              <Typography
-                className={classes.createReleaseInvalidTagNameText}
+          <Grid
+            container={true}
+            direction={'row-reverse'}
+            justify={'flex-end'}
+          >
+            {!versionNameValid() ?
+              <Grid
+                className={classes.createReleaseInvalidTagNameWrapper}
               >
-                {
-                  !!language &&
-                    !!language.app_create_release &&
-                    !!language.app_create_release.release_versionnumber_validation ?
-                    language.app_create_release.release_versionnumber_validation :
-                    'language.app_create_release.release_versionnumber_validation'
-                }
-              </Typography>
-            </Grid>
-            : null
-          }
-          <AltinnInput
+                <Typography
+                  className={classes.createReleaseInvalidTagNameText}
+                >
+                  {
+                    !!language &&
+                      !!language.app_create_release &&
+                      !!language.app_create_release.release_versionnumber_validation ?
+                      language.app_create_release.release_versionnumber_validation :
+                      'language.app_create_release.release_versionnumber_validation'
+                  }
+                </Typography>
+              </Grid>
+              : null
+            }
+            <AltinnInput
+              label={
+                !!language &&
+                  !!language.app_create_release &&
+                  !!language.app_create_release.release_versionnumber ?
+                  language.app_create_release.release_versionnumber :
+                  'language.app_create_release.release_versionnumber'
+              }
+              onChange={handleTagNameChange}
+              value={tagName}
+              widthPercentage={50}
+              validationError={!versionNameValid()}
+            />
+          </Grid>
+        </Grid>
+        <Grid
+          container={true}
+          direction={'column'}
+          className={classes.createReleaseFormItem}
+        >
+          <AltinnTextArea
             label={
               !!language &&
                 !!language.app_create_release &&
-                !!language.app_create_release.release_versionnumber ?
-                language.app_create_release.release_versionnumber :
-                'language.app_create_release.release_versionnumber'
+                !!language.app_create_release.release_description ?
+                language.app_create_release.release_description :
+                'language.app_create_release.release_description'
             }
-            onChange={handleTagNameChange}
-            value={tagName}
-            widthPercentage={50}
-            validationError={!versionNameValid()}
+            value={body}
+            onChange={handleBodyChange}
+            rows={4}
+          />
+        </Grid>
+        <Grid
+          container={true}
+          direction={'column'}
+          className={classes.createReleaseFormItem}
+        >
+          <AltinnButton
+            btnRef={ref}
+            classes={{}}
+            onClickFunction={handleBuildVersionClick}
+            btnText={
+              !!language &&
+                !!language.app_create_release &&
+                !!language.app_create_release.build_version ?
+                language.app_create_release.build_version :
+                'language.app_create_release.build_version'
+            }
           />
         </Grid>
       </Grid>
-      <Grid
-        container={true}
-        direction={'column'}
-        className={classes.createReleaseFormItem}
+      <AltinnPopover
+        anchorEl={createReleaseErrorCode !== null && openErrorPopover ? ref.current : null}
+        handleClose={handlePopoverClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        paperProps={{
+          classes: {
+            root: classes.createReleaseErrorPopoverRoot,
+          },
+        }}
       >
-        <AltinnTextArea
-          label={
-            !!language &&
-              !!language.app_create_release &&
-              !!language.app_create_release.release_description ?
-              language.app_create_release.release_description :
-              'language.app_create_release.release_description'
-          }
-          value={body}
-          onChange={handleBodyChange}
-          rows={4}
-        />
-      </Grid>
-      <Grid
-        container={true}
-        direction={'column'}
-        className={classes.createReleaseFormItem}
-      >
-        <AltinnButton
-          classes={{}}
-          onClickFunction={handleBuildVersionClick}
-          btnText={
-            !!language &&
-              !!language.app_create_release &&
-              !!language.app_create_release.build_version ?
-              language.app_create_release.build_version :
-              'language.app_create_release.build_version'
-          }
-        />
-      </Grid>
-    </Grid>
+        {
+          !!language &&
+          !!language.app_create_release_errors &&
+          !!language.app_create_release_errors.build_cannot_start ?
+          <>
+            {language.app_create_release_errors.build_cannot_start}
+            &nbsp;
+            <a href={''} target='_blank'>
+              {language.app_create_release_errors.altinn_servicedesk}
+            </a>
+          </> :
+          `language.app_create_release_errors.build_cannot_start language.app_create_release_errors.altinn_servicedesk`
+        }
+      </AltinnPopover>
+    </>
   );
 }
 

@@ -19,6 +19,8 @@ export interface IAltinnButtonComponentProvidedProps extends WithStyles<typeof s
   secondaryButton?: boolean;
   /** Disabled styling */
   disabled?: boolean;
+  /** Button ref */
+  btnRef?: React.RefObject<any>;
 }
 
 export interface IAltinnButtonComponentState {
@@ -72,9 +74,10 @@ export class AltinnButton extends
   React.Component<IAltinnButtonComponentProvidedProps, IAltinnButtonComponentState> {
 
   public render() {
-    const { classes } = this.props;
+    const { classes, btnRef } = this.props;
     return (
       <Button
+        ref={btnRef}
         id={this.props.id}
         disabled={this.props.disabled}
         variant={this.props.secondaryButton === true ? 'text' : 'contained'}

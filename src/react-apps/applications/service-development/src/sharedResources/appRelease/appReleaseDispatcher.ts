@@ -7,7 +7,7 @@ import { IRelease } from './types';
 export interface IAppReleaseActionDispatcher extends ActionCreatorsMapObject {
   getAppReleases: () => Action;
   getAppReleasesFulfilled: (releases: IRelease[]) => GetAppReleaseActions.IGetReleaseActionFulfilled;
-  getAppReleasesRejected: (error: Error) => GetAppReleaseActions.IGetReleaseActionRejected;
+  getAppReleasesRejected: (errorCode: number) => GetAppReleaseActions.IGetReleaseActionRejected;
   getAppReleasesIntervalStart: () => Action;
   getAppReleasesIntervalStop: () => Action;
   createAppRelease: (
@@ -17,7 +17,7 @@ export interface IAppReleaseActionDispatcher extends ActionCreatorsMapObject {
     targetCommitish: string,
   ) => CreateAppReleaseActions.ICreateReleaseAction;
   createAppReleaseFulfilled: (release: IRelease) => CreateAppReleaseActions.ICreateReleaseFulfilledAction;
-  createAppReleaseRejected: (error: Error) => CreateAppReleaseActions.ICreateReleaseRejectedActions;
+  createAppReleaseRejected: (errorCode: number) => CreateAppReleaseActions.ICreateReleaseRejectedActions;
 }
 
 const actions: IAppReleaseActionDispatcher = {

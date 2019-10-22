@@ -224,6 +224,11 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         </Grid>
       );
     }
+    if (!appReleases.releases || !appReleases.releases.length) {
+      return (
+        <CreateReleaseComponent/>
+      )
+    }
     if (
       !handleMergeConflict.repoStatus ||
       !repoStatus.branch.master
@@ -247,9 +252,6 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       !!appReleases.releases[0] &&
       appReleases.releases[0].build.status !== BuildStatus.completed
     ) {
-      return null;
-    }
-    if (appReleases.creatingRelease) {
       return null;
     }
 
@@ -287,7 +289,15 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     ) {
       return null;
     }
-    if (repoStatus.branch.master.commit.id === appReleases.releases[0].targetCommitish) {
+    if (!appReleases.releases || !appReleases.releases.length) {
+      return (
+        <Typography>BUILD YOUR FIRST RELEASE!!</Typography>
+      );
+    }
+    if (
+      !!appReleases.releases[0] &&
+      repoStatus.branch.master.commit.id === appReleases.releases[0].targetCommitish
+    ) {
       return (
         <Typography>
           {
@@ -314,7 +324,6 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     }
     return null;
   }
-
   return (
     <>
       <Grid
@@ -353,7 +362,11 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               item={true}
             >
               <Typography className={classes.appCreateReleaseTitle}>
-                {!!repoStatus.branch.master && !!repoStatus.branch.master.commit &&
+                {
+                  !!repoStatus.branch.master &&
+                  !!repoStatus.branch.master.commit &&
+                  !!appReleases.releases &&
+                  !!appReleases.releases.length &&
                   appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
                   !!!handleMergeConflict.repoStatus.contentStatus ?
                   <>
@@ -364,6 +377,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                         language.general.version :
                         'language.general.version'
                     }
+                    &nbsp;
                     {appReleases.releases[0].tagName}
                     {
                       !!language &&
@@ -372,7 +386,8 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                         language.general.contains :
                         'language.general.contains'
                     }
-                    {!!repoStatus.branch.master && !!repoStatus.branch.master ?
+                    &nbsp;
+                    {!!repoStatus.branch.master ?
                       <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
                         {
                           !!language &&
@@ -393,7 +408,8 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                       language.app_release.release_title :
                       'language.app_release.release_title'
                     }
-                    {!!repoStatus.branch.master && !!repoStatus.branch.master ?
+                    &nbsp;
+                    {!!repoStatus.branch.master ?
                       <a href={getGitCommitLink(repoStatus.branch.master.commit.id)} target={'_blank'}>
                         {
                           !!language &&
