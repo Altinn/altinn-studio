@@ -1,8 +1,7 @@
 extraction:
   java:
-    before_index:
-      export BUILD_MODE=release
     index:
       maven:
         version: 4.0.0
-        settings_file: ./src/Altinn.Platform/Altinn.Platform.PDF/pom.xml
+      build_command: mvn -f ./src/Altinn.Platform/Altinn.Platform.PDF/pom.xml -Pprod package
+
