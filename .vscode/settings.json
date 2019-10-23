@@ -23,5 +23,6 @@
     "i",
     "kubernetes",
     "wrapper"
-  ]
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive"
 }
