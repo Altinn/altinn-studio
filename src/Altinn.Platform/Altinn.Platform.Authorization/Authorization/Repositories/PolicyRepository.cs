@@ -26,13 +26,7 @@ namespace Altinn.Platform.Authorization.Repositories
         public PolicyRepository(IOptions<AzureStorageConfiguration> storageConfig)
         {
             _storageConfig = storageConfig.Value;
-
-            // connect to azure blob storage
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-            _blobClient = CreateBlobClient(storageCredentials, storageAccount);
-            _blobContainer = _blobClient.GetContainerReference(_storageConfig.StorageContainer);
+            SetUpBlobConnection();
         }
 
         /// <inheritdoc />
@@ -56,20 +50,24 @@ namespace Altinn.Platform.Authorization.Repositories
             return await Task.FromResult(blockBlob.Uri.ToString());
         }
 
-        private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
+        private void SetUpBlobConnection()
         {
-            CloudBlobClient blobClient;
+            // connect to azure blob storage
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+
+            // creating blob client
             if (_storageConfig.AccountName.StartsWith(_storageConfig.AccountName))
             {
                 StorageUri storageUrl = new StorageUri(new Uri(_storageConfig.BlobEndPoint));
-                blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+                _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
             }
             else
             {
-                blobClient = storageAccount.CreateCloudBlobClient();
+                _blobClient = storageAccount.CreateCloudBlobClient();
             }
 
-            return blobClient;
+            _blobContainer = _blobClient.GetContainerReference(_storageConfig.StorageContainer);
         }
     }
 }
