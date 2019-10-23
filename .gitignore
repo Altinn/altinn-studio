@@ -352,3 +352,4 @@ coverage
 /src/Altinn.Platform/Altinn.Platform.Profile/Profile/charts/profile
 /src/Altinn.Platform/Altinn.Platform.Profile/Profile/azds.yaml
 /src/AltinnCore/UnitTest/coverage.opencover.xml
+/src/Altinn.Platform/Altinn.Platform.Authorization/azurite_workspace

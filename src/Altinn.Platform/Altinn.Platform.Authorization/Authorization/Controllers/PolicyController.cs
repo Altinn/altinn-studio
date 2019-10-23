@@ -1,4 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Interface;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.Repositories.Interface;
+using Altinn.Platform.Authorization.Services.Implementation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Authorization.Controllers
@@ -19,6 +26,25 @@ namespace Altinn.Platform.Authorization.Controllers
         public PolicyController(IPolicyRetrievalPoint prp)
         {
             _prp = prp;
+        }
+
+        [HttpGet]
+        public async Task<XacmlPolicy> GetPolicy(XacmlContextRequest request)
+        {
+            XacmlPolicy policy = _prp.GetPolicy(request);
+            return policy;
+        }
+
+        [HttpPost]
+        public async Task<bool> WritePolicy([FromQuery] string org, [FromQuery] string app)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpPut("{org}/{app}")]
+        public async Task<bool> UpdatePolicy([FromQuery] string org, [FromQuery] string app)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -16,8 +16,8 @@ namespace Altinn.Platform.Authorization.Repositories
     public class PolicyRepository : IPolicyRepository
     {
         private readonly AzureStorageConfiguration _storageConfig;
-        private readonly CloudBlobClient _blobClient;
-        private readonly CloudBlobContainer _blobContainer;
+        private CloudBlobClient _blobClient;
+        private CloudBlobContainer _blobContainer;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyRepository"/> class
@@ -36,21 +36,24 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc />
-        public Task<Stream> GetPolicy(string filepath)
+        public async Task<Stream> GetPolicy(string filepath)
         {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public Task<Stream> UpdatePolicy(string filepath, Stream fileStream)
-        {
-            throw new NotImplementedException();
+            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
+            var memoryStream = new MemoryStream();
+            await blockBlob.DownloadToStreamAsync(memoryStream);
+            memoryStream.Position = 0;
+            return memoryStream;
         }
 
         /// <inheritdoc />
         public async Task<string> WritePolicy(string filepath, Stream fileStream)
         {
-            throw new NotImplementedException();
+            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
+
+            await blockBlob.UploadFromStreamAsync(fileStream);
+            await blockBlob.FetchAttributesAsync();
+
+            return await Task.FromResult(blockBlob.Uri.ToString());
         }
 
         private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
