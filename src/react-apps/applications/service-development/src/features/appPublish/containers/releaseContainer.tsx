@@ -104,14 +104,17 @@ const styles = createStyles({
     fontSize: '1.8rem',
   },
   appCreateReleaseStatusIcon: {
-    padding: '1.2rem',
+    paddingTop: '1.2rem',
     color: theme.altinnPalette.primary.blue,
+    height: '48px',
+    width: '48px',
   },
   popover: {
     pointerEvents: 'none',
   },
   popoverPaper: {
     padding: '2rem',
+    maxWidth: '50rem',
     backgroundColor: theme.altinnPalette.primary.yellowLight,
   },
 });
@@ -227,7 +230,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     if (!appReleases.releases || !appReleases.releases.length) {
       return (
         <CreateReleaseComponent/>
-      )
+      );
     }
     if (
       !handleMergeConflict.repoStatus ||
@@ -261,7 +264,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   }
 
   function renderStatusIcon() {
-    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus) {
+    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus || !appReleases.releases.length) {
       return null;
     }
     if (!!handleMergeConflict.repoStatus.contentStatus && !!handleMergeConflict.repoStatus.contentStatus) {
@@ -360,6 +363,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           >
             <Grid
               item={true}
+              xs={10}
             >
               <Typography className={classes.appCreateReleaseTitle}>
                 {
@@ -433,6 +437,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               onMouseLeave={handlePopoverClose}
               tabIndex={0}
               onKeyPress={handlePopoverKeyPress}
+              xs={1}
             >
               {renderStatusIcon()}
             </Grid>

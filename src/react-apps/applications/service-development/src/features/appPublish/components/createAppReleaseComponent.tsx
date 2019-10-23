@@ -30,8 +30,18 @@ const styles = createStyles({
   },
   createReleaseErrorPopoverRoot: {
     backgroundColor: theme.altinnPalette.primary.redLight,
-    fontSize: '1.4rem',
   },
+  popoverErrorIcon: {
+    color: theme.altinnPalette.primary.red,
+    paddingTop: '0.8rem',
+  },
+  popoverErrorText: {
+    paddingTop: '0.5rem',
+  },
+  popoverTechnicalErrorText: {
+    fontSize: '1.4rem',
+    paddingTop: '0.5rem'
+  }
 });
 
 export interface ICreateAppReleaseComponent extends WithStyles<typeof styles> {
@@ -87,7 +97,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
   }
 
   function handleBuildVersionClick(event: React.MouseEvent) {
-    if (versionNameValid()) {
+    if (versionNameValid() && tagName !== '' && body !== '') {
       AppReleaseActions.createAppRelease(tagName, tagName, body, repoStatus.branch.master.commit.id);
       setTagName('');
       setBody('');
@@ -175,18 +185,20 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           direction={'column'}
           className={classes.createReleaseFormItem}
         >
-          <AltinnButton
-            btnRef={ref}
-            classes={{}}
-            onClickFunction={handleBuildVersionClick}
-            btnText={
-              !!language &&
-                !!language.app_create_release &&
-                !!language.app_create_release.build_version ?
-                language.app_create_release.build_version :
-                'language.app_create_release.build_version'
-            }
-          />
+          <div>
+            <AltinnButton
+              btnRef={ref}
+              classes={{}}
+              onClickFunction={handleBuildVersionClick}
+              btnText={
+                !!language &&
+                  !!language.app_create_release &&
+                  !!language.app_create_release.build_version ?
+                  language.app_create_release.build_version :
+                  'language.app_create_release.build_version'
+              }
+            />
+          </div>
         </Grid>
       </Grid>
       <AltinnPopover
@@ -202,19 +214,59 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           },
         }}
       >
-        {
-          !!language &&
-          !!language.app_create_release_errors &&
-          !!language.app_create_release_errors.build_cannot_start ?
-          <>
-            {language.app_create_release_errors.build_cannot_start}
-            &nbsp;
-            <a href={''} target='_blank'>
-              {language.app_create_release_errors.altinn_servicedesk}
-            </a>
-          </> :
-          `language.app_create_release_errors.build_cannot_start language.app_create_release_errors.altinn_servicedesk`
-        }
+        <Grid
+          container={true}
+          direction={'row'}
+          spacing={3}
+        >
+          <Grid
+            item={true}
+            xs={1}
+            style={{
+              padding: 0,
+            }}
+          >
+            <i className={`${classes.popoverErrorIcon} ai ai-circle-exclamation`}/>
+          </Grid>
+          <Grid
+            item={true}
+            xs={11}
+            style={{
+              padding: 0,
+            }}
+          >
+            <Typography
+              className={classes.popoverErrorText}
+            >
+              {
+                !!language &&
+                !!language.app_create_release_errors &&
+                !!language.app_create_release_errors.build_cannot_start ?
+                <>
+                  {language.app_create_release_errors.build_cannot_start}
+                  &nbsp;
+                  <a href={''} target='_blank'>
+                    {language.app_create_release_errors.altinn_servicedesk}
+                  </a>
+                </> :
+                `language.app_create_release_errors.build_cannot_start language.app_create_release_errors.altinn_servicedesk`
+              }
+            </Typography>
+            <Typography
+              className={classes.popoverTechnicalErrorText}
+            >
+              {
+                !!language &&
+                !!language.app_create_release_errors &&
+                !!language.app_create_release_errors.technical_error_code ?
+                  language.app_create_release_errors.technical_error_code :
+                  'anguage.app_create_release_errors.technical_error_code'
+              }
+              &nbsp;
+              {createReleaseErrorCode}
+            </Typography>
+          </Grid>
+        </Grid>
       </AltinnPopover>
     </>
   );
