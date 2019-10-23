@@ -45,30 +45,31 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<HttpResponseMessage> RefreshToken()
+        public async Task<string> RefreshToken()
         {
             string endpointUrl = $"refresh";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, Constants.General.RuntimeCookieName);
-            _logger.LogInformation($"Token from token utility{token}");
+            _logger.LogInformation($"Adding request header in api");
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
             HttpResponseMessage response = await _client.GetAsync(endpointUrl);
 
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string refreshedToken = GetCookieValueFromResponse(response, Constants.General.RuntimeCookieName);
-                HttpResponseMessage result = new HttpResponseMessage(response.StatusCode);
-                result.Content = new StringContent(refreshedToken);
-                return result;
+                _logger.LogInformation($"Refreshed token with status code ok");
+                string refreshedToken = response.Content.ReadAsStringAsync().Result;
+                refreshedToken = refreshedToken.Replace('"', ' ').Trim();
+                _logger.LogInformation($"refreshedtoken");
+                return refreshedToken;
             }
 
             _logger.LogError($"Refreshing JwtToken failed with status code {response.StatusCode}");
-            return new HttpResponseMessage(response.StatusCode);
+            return string.Empty;
         }
 
         private string GetCookieValueFromResponse(HttpResponseMessage response, string cookieName)
         {
             var value = string.Empty;
-
+            _logger.LogInformation($"Getting cookie value from response");
             foreach (var header in response.Headers.GetValues("Set-Cookie"))
             {
                 if (!header.Trim().StartsWith($"{cookieName}="))
@@ -82,6 +83,7 @@ namespace AltinnCore.Common.Services.Implementation
                 value = header.Substring(p1 + 1, p2 - p1 - 1);
             }
 
+            _logger.LogInformation($"value empty: {string.IsNullOrEmpty(value)}");
             return value;
         }
     }

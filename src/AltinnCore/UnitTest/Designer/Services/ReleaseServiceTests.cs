@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
@@ -12,7 +10,6 @@ using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Documents;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
@@ -40,11 +37,11 @@ namespace AltinnCore.UnitTest.Designer.Services
             _sourceControlMock = new Mock<ISourceControl>();
             _giteaWrapperMock = new Mock<IGitea>();
 
-            var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            var context = new DefaultHttpContext();
+            Mock<IHttpContextAccessor> httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            DefaultHttpContext context = new DefaultHttpContext();
             httpContextAccessorMock.Setup(_ => _.HttpContext).Returns(context);
-            var azureDevOpsSettings = new AzureDevOpsSettings();
-            var optionsMonitorMock = new Mock<OptionsMonitor<AzureDevOpsSettings>>();
+            AzureDevOpsSettings azureDevOpsSettings = new AzureDevOpsSettings();
+            Mock<OptionsMonitor<AzureDevOpsSettings>> optionsMonitorMock = new Mock<OptionsMonitor<AzureDevOpsSettings>>();
             optionsMonitorMock.Setup(x => x.CurrentValue).Returns(azureDevOpsSettings);
 
             _sut = new ReleaseService(
@@ -52,8 +49,7 @@ namespace AltinnCore.UnitTest.Designer.Services
                 httpContextAccessorMock.Object,
                 _azureDevOpsBuildServiceMock.Object,
                 _sourceControlMock.Object,
-                optionsMonitorMock.Object,
-                _giteaWrapperMock.Object);
+                optionsMonitorMock.Object);
         }
 
         /// <summary>

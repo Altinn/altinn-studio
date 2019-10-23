@@ -229,7 +229,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           value={address}
           onChange={this.updateField.bind(null, AddressKeys.address)}
           onBlur={this.onBlurField.bind(null, AddressKeys.address)}
-          disabled={this.props.readOnly}
+          readOnly={this.props.readOnly}
           required={this.props.required}
         />
         {validations ?
@@ -258,6 +258,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             value={careOf}
             onChange={this.updateField.bind(null, AddressKeys.careOf)}
             onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
+            readOnly={this.props.readOnly}
           />
           {validations ?
           renderValidationMessagesForComponent(validations[AddressKeys.careOf],
@@ -287,7 +288,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
                 value={zipCode}
                 onChange={this.updateField.bind(null, AddressKeys.zipCode)}
                 onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
-                disabled={this.props.readOnly}
+                readOnly={this.props.readOnly}
                 required={this.props.required}
               />
               {validations ?
@@ -345,6 +346,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               value={houseNumber}
               onChange={this.updateField.bind(null, AddressKeys.houseNumber)}
               onBlur={this.onBlurField.bind(null, AddressKeys.houseNumber)}
+              readOnly={this.props.readOnly}
             />
             {validations ?
               renderValidationMessagesForComponent(validations[AddressKeys.houseNumber],

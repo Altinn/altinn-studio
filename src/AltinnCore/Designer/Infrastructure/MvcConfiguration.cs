@@ -16,15 +16,18 @@ namespace AltinnCore.Designer.Infrastructure
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         public static IServiceCollection ConfigureMvc(this IServiceCollection services)
         {
-            IMvcBuilder mvc = services
-                .AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddControllers().AddNewtonsoftJson();
+            services.AddMvc(options => options.EnableEndpointRouting = false);
+
+            services.AddRazorPages();
+
+            IMvcBuilder mvc = services.AddControllers().AddControllersAsServices();
+            mvc.Services.AddRazorPages();
 
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
                 options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
-                options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
             });
             mvc.AddXmlSerializerFormatters();
 

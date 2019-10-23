@@ -21,7 +21,7 @@ namespace AltinnCore.Designer.Infrastructure
             services.Configure<RequestLocalizationOptions>(
                 options =>
                 {
-                    var supportedCultures = new List<CultureInfo>
+                    List<CultureInfo> supportedCultures = new List<CultureInfo>
                         {
                             // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),

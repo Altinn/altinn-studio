@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -79,15 +81,13 @@ namespace AltinnCore.Common.Services.Implementation
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string urlEnd = developerUserName == org ? "user/repos" : "org/" + org + "/repos";
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, createRepoOption);
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Repository));
             if (response.StatusCode == HttpStatusCode.Created)
             {
-                Stream stream = await response.Content.ReadAsStreamAsync();
-                repository = serializer.ReadObject(stream) as Repository;
+                repository = await response.Content.ReadAsAsync<Repository>();
             }
             else
             {
-                _logger.LogError("User " + developerUserName + " Create repository failed with statuscode " + response.StatusCode + " for " + org + " and reponame " + createRepoOption.Name);
+                _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Create repository failed with statuscode " + response.StatusCode + " for " + org + " and reponame " + createRepoOption.Name);
             }
 
             repository.RepositoryCreatedStatus = HttpStatusCode.Created;
@@ -116,8 +116,6 @@ namespace AltinnCore.Common.Services.Implementation
             User user = GetCurrentUser().Result;
 
             SearchResults repository = new SearchResults();
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(SearchResults));
-
             string giteaSearchUriString = $"repos/search?limit={_settings.RepoSearchPageCount}";
             if (onlyAdmin)
             {
@@ -141,18 +139,19 @@ namespace AltinnCore.Common.Services.Implementation
 
             while (!allElementsRetrieved)
             {
-                HttpResponseMessage response = await _httpClient.GetAsync($"{giteaSearchUriString}&page={resultPage}");
+                Uri tempUrl = new Uri(giteaSearchUriString + "&page=" + resultPage);
+
+                HttpResponseMessage response = await _httpClient.GetAsync(tempUrl);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
                     if (resultPage == 1 || page == resultPage)
                     {
                         // This is the first or a specific page requested
-                        repository = serializer.ReadObject(stream) as SearchResults;
+                        repository = await response.Content.ReadAsAsync<SearchResults>();
                     }
                     else
                     {
-                        SearchResults pageResultRepository = serializer.ReadObject(stream) as SearchResults;
+                        SearchResults pageResultRepository = await response.Content.ReadAsAsync<SearchResults>();
                         repository.Data.AddRange(pageResultRepository.Data);
                     }
 
@@ -179,19 +178,23 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            if (repository?.Data != null && repository.Data.Any())
+            if (repository?.Data == null || !repository.Data.Any())
             {
-                foreach (Repository repo in repository.Data)
+                return repository;
+            }
+
+            foreach (Repository repo in repository.Data)
+            {
+                if (string.IsNullOrEmpty(repo.Owner?.Login))
                 {
-                    if (repo.Owner != null && !string.IsNullOrEmpty(repo.Owner.Login))
-                    {
-                        repo.IsClonedToLocal = IsLocalRepo(repo.Owner.Login, repo.Name);
-                        Organization org = await GetCachedOrg(repo.Owner.Login);
-                        if (org.Id != -1)
-                        {
-                            repo.Owner.UserType = UserType.Org;
-                        }
-                    }
+                    continue;
+                }
+
+                repo.IsClonedToLocal = IsLocalRepo(repo.Owner.Login, repo.Name);
+                Organization org = await GetCachedOrg(repo.Owner.Login);
+                if (org.Id != -1)
+                {
+                    repo.Owner.UserType = UserType.Org;
                 }
             }
 
@@ -202,30 +205,26 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<Repository> GetRepository(string org, string repository)
         {
             Repository returnRepository = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Repository));
 
             string giteaUrl = $"repos/{org}/{repository}";
             HttpResponseMessage response = await _httpClient.GetAsync(giteaUrl);
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                Stream stream = await response.Content.ReadAsStreamAsync();
-                {
-                    returnRepository = serializer.ReadObject(stream) as Repository;
-                }
+                returnRepository = await response.Content.ReadAsAsync<Repository>();
             }
             else
             {
                 _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
             }
 
-            var watchOwnerType = System.Diagnostics.Stopwatch.StartNew();
-            if (returnRepository?.Owner != null && !string.IsNullOrEmpty(returnRepository.Owner.Login))
+            Stopwatch watchOwnerType = Stopwatch.StartNew();
+            if (!string.IsNullOrEmpty(returnRepository?.Owner?.Login))
             {
-                var watch = System.Diagnostics.Stopwatch.StartNew();
+                Stopwatch watch = Stopwatch.StartNew();
                 returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
                 watch.Stop();
                 _logger.Log(LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
-                watch = System.Diagnostics.Stopwatch.StartNew();
+                watch = Stopwatch.StartNew();
                 Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
                 watch.Stop();
                 _logger.Log(LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
@@ -338,7 +337,7 @@ namespace AltinnCore.Common.Services.Implementation
                 // creating new API key
                 HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.Redirect)
+                if (response.StatusCode == HttpStatusCode.Redirect)
                 {
                     Cookie cookie = StealMacaronCookie(response);
 
@@ -445,7 +444,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             foreach (HtmlAgilityPack.HtmlNode keyNode in nodes)
             {
-                if (keyNode.OuterHtml.Contains(keyName == null ? "AltinnStudioAppKey" : keyName))
+                if (keyNode.OuterHtml.Contains(keyName ?? "AltinnStudioAppKey"))
                 {
                     // Returns the button node
                     HtmlAgilityPack.HtmlNode deleteButtonNode = keyNode.SelectSingleNode("./div/button");

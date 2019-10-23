@@ -13,6 +13,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Refreshes the AltinnStudioRuntime JwtToken.
         /// </summary>
         /// <returns>Response message from Altinn Platform with refreshed token.</returns>
-        Task<HttpResponseMessage> RefreshToken();
+        Task<string> RefreshToken();
     }
 }

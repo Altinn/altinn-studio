@@ -4,6 +4,7 @@ using AltinnCore.Designer.TypedHttpClients.Exceptions;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Rest.TransientFaultHandling;
 
 namespace AltinnCore.Designer.Controllers
@@ -22,7 +23,7 @@ namespace AltinnCore.Designer.Controllers
         [Route("/error-local-development")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult ErrorLocalDevelopment(
-            [FromServices] IHostingEnvironment webHostEnvironment)
+            [FromServices] IWebHostEnvironment webHostEnvironment)
         {
             if (!webHostEnvironment.IsDevelopment())
             {
@@ -52,7 +53,7 @@ namespace AltinnCore.Designer.Controllers
         [Route("/error")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public ActionResult Error(
-            [FromServices] IHostingEnvironment webHostEnvironment)
+            [FromServices] IWebHostEnvironment webHostEnvironment)
         {
             IExceptionHandlerPathFeature feature = HttpContext.Features.Get<IExceptionHandlerPathFeature>();
             Exception ex = feature?.Error;

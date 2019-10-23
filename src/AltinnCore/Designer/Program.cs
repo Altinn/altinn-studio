@@ -7,6 +7,7 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
@@ -45,7 +46,7 @@ namespace AltinnCore.Designer
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
                 config.SetBasePath(basePath);
                 config.AddJsonFile(basePath + "altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
-                IHostingEnvironment hostingEnvironment = hostingContext.HostingEnvironment;
+                IWebHostEnvironment hostingEnvironment = hostingContext.HostingEnvironment;
                 string envName = hostingEnvironment.EnvironmentName;
                 if (basePath == "/")
                 {

@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -58,7 +59,7 @@ namespace AltinnCore.Designer
             services.ConfigureMvc();
             services.ConfigureLocalization();
             services.AddPolicyBasedAuthorization();
-
+            
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "Altinn Designer API", Version = "v1" });
@@ -77,37 +78,31 @@ namespace AltinnCore.Designer
         /// Configure the application.
         /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/>
         /// </summary>
-        /// <param name="app">The application builder</param>
+        /// <param name="appBuilder">The application builder</param>
         /// <param name="env">Hosting environment</param>
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder appBuilder, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseExceptionHandler("/error-local-development");
+                appBuilder.UseExceptionHandler("/error-local-development");
             }
             else
             {
-                app.UseExceptionHandler("/error");
+                appBuilder.UseExceptionHandler("/error");
             }
 
             const string swaggerRoutePrefix = "designer/swagger";
-            app.UseSwagger(c =>
+            appBuilder.UseSwagger(c =>
             {
                 c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
             });
-            app.UseSwaggerUI(c =>
+            appBuilder.UseSwaggerUI(c =>
             {
                 c.RoutePrefix = swaggerRoutePrefix;
                 c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
             });
 
-            // app.UseHsts();
-            // app.UseHttpsRedirection();
-            app.UseAuthentication();
-
-            app.UseResponseCompression();
-            app.UseRequestLocalization();
-            app.UseStaticFiles(new StaticFileOptions()
+            appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
                 {
@@ -120,34 +115,44 @@ namespace AltinnCore.Designer
                 },
             });
 
-            app.UseMvc(routes =>
+            appBuilder.UseRouting();
+
+            // appBuilder.UseHsts();
+            // appBuilder.UseHttpsRedirection();
+            appBuilder.UseAuthentication();
+            appBuilder.UseAuthorization();
+
+            appBuilder.UseResponseCompression();
+            appBuilder.UseRequestLocalization();
+            
+            appBuilder.UseEndpoints(endpoints =>
             {
                 // ------------------------- DEV ----------------------------- //
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "orgRoute",
-                    template: "designer/{org}/{controller}/{action=Index}/",
+                    pattern: "designer/{org}/{controller}/{action=Index}/",
                     defaults: new { controller = "Config" },
                     constraints: new
                     {
                         controller = "Codelist|Config",
                     });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "serviceDevelopmentRoute",
-                        template: "designer/{org}/{app}",
+                        pattern: "designer/{org}/{app}",
                         defaults: new { controller = "ServiceDevelopment", action = "index" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "designerApiRoute",
-                    template: "designerapi/{controller}/{action=Index}/{id?}",
+                    pattern: "designerapi/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Repository" },
                     constraints: new
                     {
                         controller = @"(Repository|Language|User)",
                     });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                           name: "serviceRoute",
-                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
@@ -155,33 +160,33 @@ namespace AltinnCore.Designer
                               app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                           name: "appRoute",
-                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Deploy" },
                           constraints: new
                           {
                               controller = @"(Deploy)",
                           });
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "applicationMetadataApiRoute",
-                        template: "designer/api/v1/{org}/{app}",
+                        pattern: "designer/api/v1/{org}/{app}",
                         defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                         name: "reposRoute",
-                        template: "{controller}/{action}/",
+                        pattern: "{controller}/{action}/",
                         defaults: new { controller = "RedirectController" });
 
                 // -------------------------- DEFAULT ------------------------- //
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                    name: "defaultRoute2",
-                   template: "{controller}/{action=StartPage}/{id?}",
+                   pattern: "{controller}/{action=StartPage}/{id?}",
                    defaults: new { controller = "Home" });
 
-                routes.MapRoute(
+                endpoints.MapControllerRoute(
                     name: "defaultRoute",
-                    template: "{action=StartPage}/{id?}",
+                    pattern: "{action=StartPage}/{id?}",
                     defaults: new { controller = "Home" });
             });
         }

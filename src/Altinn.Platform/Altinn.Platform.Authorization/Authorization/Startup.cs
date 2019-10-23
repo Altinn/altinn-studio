@@ -2,6 +2,8 @@ using Altinn.Authorization.ABAC.Interface;
 using Altinn.Platform.Authorization.Clients;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.ModelBinding;
+using Altinn.Platform.Authorization.Repositories;
+using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Builder;
@@ -45,7 +47,9 @@ namespace Altinn.Platform.Authorization
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
+            services.AddSingleton<IPolicyRepository, PolicyRepository>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.AddHttpClient<PartyClient>();
             services.AddHttpClient<RolesClient>();
             services.AddHttpClient<SBLClient>();

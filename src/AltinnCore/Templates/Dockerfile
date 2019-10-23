@@ -6,7 +6,7 @@ COPY Implementation/* ./
 COPY Model/*.cs ./
 RUN dotnet publish -o publish/
 
-FROM microsoft/dotnet:2.2-aspnetcore-runtime AS final
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-alpine AS final
 WORKDIR /app
 
 #copy altinn-runtime app
