@@ -37,7 +37,10 @@ namespace Altinn.Platform.Authentication.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
+        private const string ALTINN_ORGS_LOCATION = "https://altinncdn.no/orgs/altinn-orgs.json";
         private static Dictionary<string, string> orgNumberToOrg = new Dictionary<string, string>();
+        private static readonly HttpClient HttpClient = new HttpClient();
+
         private static DateTime dictionaryLastUpdated = DateTime.MinValue;
 
         private readonly ILogger logger;
@@ -66,7 +69,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="goTo">The url to redirect to if everything validates ok</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [HttpGet("authentication")]
-        public async Task<ActionResult> Get(string goTo)
+        public async Task<ActionResult> AuthenticateUser(string goTo)
         {
             if (!IsValidRedirectUri(new Uri(goTo).Host))
             {
@@ -82,61 +85,58 @@ namespace Altinn.Platform.Authentication.Controllers
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
             Uri endpointUrl = new Uri($"{generalSettings.GetBridgeApiEndpoint}tickets");
 
-            using (HttpClient client = new HttpClient())
+            logger.LogInformation($"Authentication - Before getting userdata");
+            string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[generalSettings.GetSBLCookieName] });
+            logger.LogInformation($"Authentication - endpoint {endpointUrl}");
+            HttpResponseMessage response = await HttpClient.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
+            logger.LogInformation($"Authentication - response {response.StatusCode}");
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                logger.LogInformation($"Authentication - Before getting userdata");
-                string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[generalSettings.GetSBLCookieName] });
-                logger.LogInformation($"Authentication - endpoint {endpointUrl}");
-                HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
-                logger.LogInformation($"Authentication - response {response.StatusCode}");
-                if (response.StatusCode == HttpStatusCode.OK)
+                Stream stream = await response.Content.ReadAsStreamAsync();
+                UserAuthenticationModel userAuthentication = serializer.ReadObject(stream) as UserAuthenticationModel;
+                logger.LogInformation($"USerAuthentication: {userAuthentication.IsAuthenticated}");
+                if (userAuthentication.IsAuthenticated)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    UserAuthenticationModel userAuthentication = serializer.ReadObject(stream) as UserAuthenticationModel;
-                    logger.LogInformation($"USerAuthentication: {userAuthentication.IsAuthenticated}");
-                    if (userAuthentication.IsAuthenticated)
-                    {
-                        List<Claim> claims = new List<Claim>();
-                        string issuer = generalSettings.GetPlatformEndpoint;
-                        claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
-                        claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
-                        claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
-                        claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
-                        claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
+                    List<Claim> claims = new List<Claim>();
+                    string issuer = generalSettings.GetPlatformEndpoint;
+                    claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
 
-                        ClaimsIdentity identity = new ClaimsIdentity(generalSettings.GetClaimsIdentity);
-                        identity.AddClaims(claims);
-                        ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+                    ClaimsIdentity identity = new ClaimsIdentity(generalSettings.GetClaimsIdentity);
+                    identity.AddClaims(claims);
+                    ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-                        logger.LogInformation($"Platform Authentication before signin async");
-                        await HttpContext.SignInAsync(
-                            JwtCookieDefaults.AuthenticationScheme,
-                            principal,
-                            new AuthenticationProperties
-                            {
-                                ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(generalSettings.GetJwtCookieValidityTime)),
-                                IsPersistent = false,
-                                AllowRefresh = false,
-                            });
-
-                        logger.LogInformation($"Platform Authentication after signin async");
-                        logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
-                        if (userAuthentication.TicketUpdated)
+                    logger.LogInformation($"Platform Authentication before signin async");
+                    await HttpContext.SignInAsync(
+                        JwtCookieDefaults.AuthenticationScheme,
+                        principal,
+                        new AuthenticationProperties
                         {
-                            Response.Cookies.Append(generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
-                        }
+                            ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(generalSettings.GetJwtCookieValidityTime)),
+                            IsPersistent = false,
+                            AllowRefresh = false,
+                        });
 
-                        return Redirect(goTo);
+                    logger.LogInformation($"Platform Authentication after signin async");
+                    logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
+                    if (userAuthentication.TicketUpdated)
+                    {
+                        Response.Cookies.Append(generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
                     }
 
-                    // If user is not authenticated redirect to login
-                    logger.LogInformation($"UserNotAuthenticated");
-                    logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
-                    return Redirect($"{generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                    return Redirect(goTo);
                 }
 
+                // If user is not authenticated redirect to login
+                logger.LogInformation($"UserNotAuthenticated");
+                logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
                 return Redirect($"{generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
             }
+
+            return Redirect($"{generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");            
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>Ok response with the refreshed token appended.</returns>
         [Authorize]
         [HttpGet("refresh")]
-        public async Task<ActionResult> RefreshJWTCookie()
+        public ActionResult RefreshJWTCookie()
         {
             logger.LogInformation($"Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
@@ -161,7 +161,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <returns>The result of the action. Contains the new token if the old token was valid and could be converted.</returns>
         [HttpGet("convert")]
-        public async Task<IActionResult> OrganisationAuthentication()
+        public async Task<IActionResult> AuthenticateOrganisation()
         {
             string originalToken = string.Empty;
 
@@ -190,13 +190,13 @@ namespace Altinn.Platform.Authentication.Controllers
                 logger.LogInformation($"Unable to read token");
                 return Unauthorized();
             }
-    
+
             try
             {
                 ICollection<SecurityKey> signingKeys =
                     await signinKeysRetriever.GetSigningKeys(generalSettings.GetMaskinportenWellKnownConfigEndpoint);
 
-                logger.LogInformation($"Token to be validated{originalToken}");
+                logger.LogInformation($"Token to be validated {originalToken}");
                 TokenValidationParameters validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -210,16 +210,13 @@ namespace Altinn.Platform.Authentication.Controllers
                 ClaimsPrincipal originalPrincipal = validator.ValidateToken(originalToken, validationParameters, out SecurityToken validatedToken);
                 logger.LogInformation($"validated token{validatedToken}");
 
-                //// ToDo: Check claims and/or identity to authorize the request. It is not enough to have a valid token. There must be
-                //// claims that confirms that the caller is an application owner.
+                string organisationNumber = GetOrganisationNumberFromConsumerClaim(originalPrincipal);
 
-                string consumerJson = originalPrincipal.FindFirstValue("consumer");
-                JObject consumer = JObject.Parse(consumerJson);
-
-                string consumerAuthority = consumer["Identifier"]["Authority"].ToString();
-                string consumerID = consumer["Identifier"]["ID"].ToString();
-
-                string organisationNumber = consumerID.Split(":")[1];
+                if (string.IsNullOrEmpty(organisationNumber))
+                {
+                    logger.LogInformation("Invalid consumer claim {");
+                    return Unauthorized();
+                }
 
                 List<Claim> claims = new List<Claim>();
                 foreach (Claim claim in originalPrincipal.Claims)
@@ -229,10 +226,20 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 string org = LookupOrg(organisationNumber);
 
-                claims.Add(new Claim("organsiationNumber", organisationNumber));
                 claims.Add(new Claim("org", org));
+                claims.Add(new Claim("orgNumber", organisationNumber));
 
-                ClaimsIdentity identity = new ClaimsIdentity("OrgLogin");
+                claims.Add(new Claim("iss", "https://platform.altinn.cloud/"));
+
+                string[] claimTypesToRemove = { "aud", "iss", "client_amr" };
+                foreach (string claimType in claimTypesToRemove)
+                {
+                    Claim audClaim = claims.Find(c => c.Type == claimType);
+                    claims.Remove(audClaim);
+                }
+
+                ClaimsIdentity identity = new ClaimsIdentity("OrganisationLogin");
+               
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
@@ -240,10 +247,32 @@ namespace Altinn.Platform.Authentication.Controllers
 
                 return Ok(token);
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogWarning($"Organisation authentication failed. {ex.Message}");
                 return Unauthorized();
             }
+        }
+
+        /// <summary>
+        /// Assumes that the consumer claim follows the ISO 6523. {"Identifier": {"Authority": "iso6523-actorid-upis","ID": "9908:910075918"}}
+        /// </summary>
+        /// <returns>organisation number found in the ID property of the ISO 6523 record</returns>
+        private static string GetOrganisationNumberFromConsumerClaim(ClaimsPrincipal originalPrincipal)
+        {
+            string consumerJson = originalPrincipal.FindFirstValue("consumer");
+            JObject consumer = JObject.Parse(consumerJson);
+
+            string consumerAuthority = consumer["authority"].ToString();
+            if (!"iso6523-actorid-upis".Equals(consumerAuthority))
+            {
+                return null;
+            }
+
+            string consumerID = consumer["ID"].ToString();
+
+            string organisationNumber = consumerID.Split(":")[1];
+            return organisationNumber;
         }
 
         /// <summary>
@@ -263,11 +292,11 @@ namespace Altinn.Platform.Authentication.Controllers
         }
 
         /// <summary>
-        /// Gets the organisation identifier of the org. Usually a 2-4 character short form of organisation name. Organisation numbers are updated once every hour. But only on demand.
+        /// Gets the organisation identifier of the org. Usually a 2-4 character short form of organisation name. Organisation numbers are updated if there is more than an hour since last harvest.
         /// </summary>
         /// <param name="organisationNumber">the organisation number as given in the central unit registry</param>
         /// <returns>the organisation identifier</returns>
-        public static string LookupOrg(string organisationNumber)
+        public string LookupOrg(string organisationNumber)
         {
             DateTime timestamp = DateTime.Now;
             timestamp = timestamp.AddHours(-1);
@@ -280,41 +309,60 @@ namespace Altinn.Platform.Authentication.Controllers
             return orgNumberToOrg.GetValueOrDefault(organisationNumber, null);            
         }
 
-        private static void HarvestOrgs()
+        /// <summary>
+        /// Harvests organisations from valid altinn application owner lists. Updates a dictionary of organisationNumber -> org. 
+        /// </summary>
+        public void HarvestOrgs()
         {
-            using (HttpClient client = new HttpClient())
-            {
-                HttpResponseMessage response = client.GetAsync("https://altinncdn.no/orgs/altinn-orgs.json").Result;
+            int countNew = 0;
+            int countUpdated = 0;
 
-                if (response.IsSuccessStatusCode)
+            logger.LogInformation($"Authentication harvest of organisation from '{ALTINN_ORGS_LOCATION}' start.");
+
+            try
+            {                                
+                HttpResponseMessage response = HttpClient.GetAsync(ALTINN_ORGS_LOCATION).Result;
+
+                response.EnsureSuccessStatusCode();
+                
+                JObject orgs = JObject.Parse(response.Content.ReadAsStringAsync().Result);
+
+                orgs = (JObject)orgs.GetValue("orgs");
+
+                foreach (JToken prop in orgs.Children())
                 {
-                    JObject orgs = JObject.Parse(response.Content.ReadAsStringAsync().Result);
+                    JObject orgObject = (JObject)prop.Children().First();
+                    string orgnr = orgObject["orgnr"].ToString();
+                    string org = ((JProperty)prop).Name;
 
-                    orgs = (JObject)orgs.GetValue("orgs");
-
-                    foreach (JToken prop in orgs.Children())
+                    if (orgNumberToOrg.ContainsKey(orgnr))
                     {
-                        JObject orgObject = (JObject)prop.Children().First();
-                        string orgnr = orgObject["orgnr"].ToString();
-                        string org = ((JProperty)prop).Name;
-
-                        if (orgNumberToOrg.ContainsKey(orgnr))
+                        if (!org.Equals(orgNumberToOrg[orgnr]))
                         {
-                            if (!org.Equals(orgNumberToOrg[orgnr]))
-                            {
-                                orgNumberToOrg.Remove(orgnr);
-                                orgNumberToOrg.Add(orgnr, org);
-                            }                            
-                        }
-                        else
-                        {
+                            orgNumberToOrg.Remove(orgnr);
                             orgNumberToOrg.Add(orgnr, org);
-                        }                       
+                            countUpdated++;
+                        }
                     }
+                    else
+                    {
+                        orgNumberToOrg.Add(orgnr, org);
+                        countNew++;
+                    }
+                }
 
-                    dictionaryLastUpdated = DateTime.UtcNow;
+                dictionaryLastUpdated = DateTime.UtcNow;                                
+            }
+            catch (Exception ex)
+            {
+                logger.LogError($"Unable to harvest organisation data due to {ex}");
+                if (orgNumberToOrg.Count > 0)
+                {
+                    logger.LogWarning($"Continuing with stale organisation cache. Cache now contains {orgNumberToOrg.Count} organisationNumber to org entries.");
                 }
             }
+
+            logger.LogInformation($"Authentication harvest of organisations finished. Resulting in {countNew} new and {countUpdated} organisations in cache.");
         }
     }
 }

@@ -56,7 +56,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests
             };
 
             JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
-            return validator.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
+            return validator.ValidateToken(token, validationParameters, out _);
         }
 
         private static SigningCredentials GetSigningCredentials()

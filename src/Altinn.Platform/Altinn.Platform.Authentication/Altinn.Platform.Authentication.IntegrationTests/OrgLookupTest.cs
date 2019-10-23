@@ -23,7 +23,16 @@ namespace Altinn.Platform.Authentication.IntegrationTests
         [Fact]
         public void TestHarvestOrgs_OK()
         {
-            string org = AuthenticationController.LookupOrg("974760223");
+            Mock<ILogger<AuthenticationController>> loggerMock = new Mock<ILogger<AuthenticationController>>();
+            Mock<IOptions<GeneralSettings>> optionsMock = new Mock<IOptions<GeneralSettings>>();
+            Mock<GeneralSettings> generalSettingsMock = new Mock<GeneralSettings>();
+            optionsMock
+                .Setup(o => o.Value)
+                .Returns(generalSettingsMock.Object);
+
+            AuthenticationController authCont = new AuthenticationController(loggerMock.Object, optionsMock.Object, null, null);
+
+            string org = authCont.LookupOrg("974760223");
 
             Assert.Equal("dibk", org);
         }
