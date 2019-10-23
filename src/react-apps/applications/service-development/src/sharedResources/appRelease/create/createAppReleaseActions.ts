@@ -36,12 +36,12 @@ export function createAppReleaseFulfilled(release: IRelease): ICreateReleaseFulf
 }
 
 export interface ICreateReleaseRejectedActions extends Action {
-  error: Error;
+  errorCode: number;
 }
 
-export function createAppReleaseRejected(error: Error): ICreateReleaseRejectedActions {
+export function createAppReleaseRejected(errorCode: number): ICreateReleaseRejectedActions {
   return {
     type: AppReleaseActionTypes.CREATE_APP_RELEASE_REJECTED,
-    error,
+    errorCode,
   };
 }

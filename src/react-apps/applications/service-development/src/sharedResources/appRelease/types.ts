@@ -35,3 +35,8 @@ export interface IRelease {
   created: string;
   build: IBuild;
 }
+
+export interface IAppReleaseErrors {
+  createReleaseErrorCode: number;
+  fetchReleaseErrorCode: number;
+}

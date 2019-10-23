@@ -17,6 +17,8 @@ export interface IAltinnButtonComponentProvidedProps {
   secondaryButton?: boolean;
   /** Disabled styling */
   disabled?: boolean;
+  /** Button ref */
+  btnRef?: React.RefObject<any>;
 }
 
 const theme = createMuiTheme(altinnTheme);

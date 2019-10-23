@@ -104,14 +104,17 @@ const styles = createStyles({
     fontSize: '1.8rem',
   },
   appCreateReleaseStatusIcon: {
-    padding: '1.2rem',
+    paddingTop: '1.2rem',
     color: theme.altinnPalette.primary.blue,
+    height: '48px',
+    width: '48px',
   },
   popover: {
     pointerEvents: 'none',
   },
   popoverPaper: {
     padding: '2rem',
+    maxWidth: '50rem',
     backgroundColor: theme.altinnPalette.primary.yellowLight,
   },
 });
@@ -224,6 +227,11 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         </Grid>
       );
     }
+    if (!appReleases.releases || !appReleases.releases.length) {
+      return (
+        <CreateReleaseComponent/>
+      );
+    }
     if (
       !handleMergeConflict.repoStatus ||
       !repoStatus.branch.master
@@ -249,9 +257,6 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     ) {
       return null;
     }
-    if (appReleases.creatingRelease) {
-      return null;
-    }
 
     return (
       <CreateReleaseComponent />
@@ -259,7 +264,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   }
 
   function renderStatusIcon() {
-    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus) {
+    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus || !appReleases.releases.length) {
       return null;
     }
     if (!!handleMergeConflict.repoStatus.contentStatus && !!handleMergeConflict.repoStatus.contentStatus) {
@@ -287,7 +292,15 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     ) {
       return null;
     }
-    if (repoStatus.branch.master.commit.id === appReleases.releases[0].targetCommitish) {
+    if (!appReleases.releases || !appReleases.releases.length) {
+      return (
+        <Typography>BUILD YOUR FIRST RELEASE!!</Typography>
+      );
+    }
+    if (
+      !!appReleases.releases[0] &&
+      repoStatus.branch.master.commit.id === appReleases.releases[0].targetCommitish
+    ) {
       return (
         <Typography>
           {
@@ -314,7 +327,6 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     }
     return null;
   }
-
   return (
     <>
       <Grid
@@ -351,9 +363,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           >
             <Grid
               item={true}
+              xs={10}
             >
               <Typography className={classes.appCreateReleaseTitle}>
-                {!!repoStatus.branch.master && !!repoStatus.branch.master.commit &&
+                {
+                  !!repoStatus.branch.master &&
+                  !!repoStatus.branch.master.commit &&
+                  !!appReleases.releases &&
+                  !!appReleases.releases.length &&
                   appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
                   !!!handleMergeConflict.repoStatus.contentStatus ?
                   <>
@@ -364,6 +381,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                         language.general.version :
                         'language.general.version'
                     }
+                    &nbsp;
                     {appReleases.releases[0].tagName}
                     {
                       !!language &&
@@ -372,7 +390,8 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                         language.general.contains :
                         'language.general.contains'
                     }
-                    {!!repoStatus.branch.master && !!repoStatus.branch.master ?
+                    &nbsp;
+                    {!!repoStatus.branch.master ?
                       <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
                         {
                           !!language &&
@@ -393,7 +412,8 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                       language.app_release.release_title :
                       'language.app_release.release_title'
                     }
-                    {!!repoStatus.branch.master && !!repoStatus.branch.master ?
+                    &nbsp;
+                    {!!repoStatus.branch.master ?
                       <a href={getGitCommitLink(repoStatus.branch.master.commit.id)} target={'_blank'}>
                         {
                           !!language &&
@@ -417,6 +437,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               onMouseLeave={handlePopoverClose}
               tabIndex={0}
               onKeyPress={handlePopoverKeyPress}
+              xs={1}
             >
               {renderStatusIcon()}
             </Grid>

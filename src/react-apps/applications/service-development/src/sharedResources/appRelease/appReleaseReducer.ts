@@ -3,18 +3,21 @@ import { Action, Reducer } from 'redux';
 import * as AppReleaseActionTypes from './appReleaseActionTypes';
 import { ICreateReleaseFulfilledAction, ICreateReleaseRejectedActions } from './create/createAppReleaseActions';
 import { IGetReleaseActionFulfilled, IGetReleaseActionRejected } from './get/getAppReleasesActions';
-import { IRelease } from './types';
+import { IAppReleaseErrors, IRelease } from './types';
 
 export interface IAppReleaseState {
   releases: IRelease[];
   creatingRelease: boolean;
-  error: Error;
+  errors: IAppReleaseErrors;
 }
 
 const initialState: IAppReleaseState = {
   releases: [],
   creatingRelease: false,
-  error: null,
+  errors: {
+    createReleaseErrorCode: null,
+    fetchReleaseErrorCode: null,
+  },
 };
 
 update.extend<IRelease[]>('$addFirstIndex', (param: IRelease, old: IRelease[]) => {
@@ -35,16 +38,20 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
         releases: {
           $set: releases,
         },
-        error: {
-          $set: null,
+        errors: {
+          fetchReleaseErrorCode: {
+            $set: null,
+          },
         },
       });
     }
     case AppReleaseActionTypes.GET_APP_RELEASES_REJECTED: {
-      const { error } = action as IGetReleaseActionRejected;
+      const { errorCode } = action as IGetReleaseActionRejected;
       return update<IAppReleaseState>(state, {
-        error: {
-          $set: error,
+        errors: {
+          fetchReleaseErrorCode: {
+            $set: errorCode,
+          },
         },
       });
     }
@@ -52,6 +59,11 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
       return update<IAppReleaseState>(state, {
         creatingRelease: {
           $set: true,
+        },
+        errors: {
+          createReleaseErrorCode: {
+            $set: null,
+          },
         },
       });
     }
@@ -64,16 +76,20 @@ const appReleaseReducer: Reducer<IAppReleaseState> = (
         creatingRelease: {
           $set: false,
         },
-        error: {
-          $set: null,
+        errors: {
+          createReleaseErrorCode: {
+            $set: null,
+          },
         },
       });
     }
     case AppReleaseActionTypes.CREATE_APP_RELEASE_REJECTED: {
-      const { error } = action as ICreateReleaseRejectedActions;
+      const { errorCode } = action as ICreateReleaseRejectedActions;
       return update<IAppReleaseState>(state, {
-        error: {
-          $set: error,
+        errors: {
+          createReleaseErrorCode: {
+            $set: errorCode,
+          },
         },
         creatingRelease: {
           $set: false,

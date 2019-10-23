@@ -10,7 +10,7 @@ import * as Moment from 'moment';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
-import { BuildResult, BuildStatus, IBuild, IRelease } from '../../../sharedResources/appRelease/types';
+import { BuildResult, BuildStatus, IAppReleaseErrors, IBuild, IRelease } from '../../../sharedResources/appRelease/types';
 import { getGitCommitLink, getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 
 const styles = createStyles({
@@ -49,7 +49,9 @@ export interface IAppReleaseComponent extends WithStyles<typeof styles> {
 function ReleaseComponent(props: IAppReleaseComponent) {
   const { classes, release } = props;
 
-  const language: any = useSelector((state: IServiceDevelopmentState) => state.language)
+  const appReleaseErrors: IAppReleaseErrors =
+    useSelector((state: IServiceDevelopmentState) => state.appReleases.errors);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
 
   function renderStatusIcon(status: IBuild) {
     if (status.result === BuildResult.succeeded) {
@@ -73,6 +75,27 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       );
     }
     return null;
+  }
+
+  function RenderBodyInprogressOrErrorBody(): string {
+    if (
+      release.build.status !== BuildStatus.completed &&
+      appReleaseErrors.fetchReleaseErrorCode !== null
+    ) {
+      try {
+        return language.app_create_release_errors.check_status_on_build_error;
+      } catch (err) {
+        return 'language.app_create_release_errors.check_status_on_build_error';
+      }
+    }
+    if (release.build.status !== BuildStatus.completed) {
+      try {
+        return `${language.app_create_release.release_creating} ${release.createdBy}`;
+      } catch(err) {
+        return `language.app_create_release.release_creating ${release.createdBy}`;
+      }
+    }
+    return release.body;
   }
 
   return (
@@ -174,14 +197,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           <Typography
             className={classes.releaseText}
           >
-            {release.build.status === BuildStatus.completed ?
-              release.body :
-              !!language &&
-              !!language.app_create_release &&
-              !!language.app_create_release.release_creating ?
-                `${language.app_create_release.release_creating} ${release.createdBy}` :
-                `language.app_create_release.release_creating ${release.createdBy}`
-            }
+            {RenderBodyInprogressOrErrorBody()}
           </Typography>
         </Grid>
       </Grid>
