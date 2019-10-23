@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -93,6 +94,10 @@ namespace AltinnCore.Designer
                 Directory.CreateDirectory(repoLocation);
             }
 
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
             services.AddControllers().AddNewtonsoftJson();
             services.AddMvc(options => options.EnableEndpointRouting = false);
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
