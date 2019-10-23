@@ -51,6 +51,10 @@ namespace Altinn.App
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddSingleton<IPlatformServices, PlatformStudioSI>();
+            services.AddSingleton<IAuthentication, AuthenticationAppSI>();
+            services.AddSingleton<IArchive, ArchiveStudioSI>();
+            services.AddSingleton<IForm, FormStudioSI>(); 
 
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));

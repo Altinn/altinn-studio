@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.App.Services.Implemention
+namespace Altinn.App.Services.Implementation
 {
     /// <summary>
     /// App implementation of the authentication service.

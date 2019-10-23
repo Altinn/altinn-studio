@@ -120,8 +120,8 @@ namespace Altinn.App.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
 
             string apiUrl = $"instances/{instanceIdentifier}";
-            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
-            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+            //string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            //JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
