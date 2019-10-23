@@ -90,7 +90,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
             testServer.Dispose();
             StartAndWaitForExit("stop");
         }
-        void StartAndWaitForExit(string arguments)
+        public void StartAndWaitForExit(string arguments)
         {
             process.StartInfo.Arguments = arguments;
             process.Start();

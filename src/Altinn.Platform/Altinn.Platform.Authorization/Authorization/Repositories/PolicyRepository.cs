@@ -46,8 +46,8 @@ namespace Altinn.Platform.Authorization.Repositories
             await blockBlob.UploadFromStreamAsync(fileStream);
             await blockBlob.FetchAttributesAsync();
 
-            // blockBlolb.Properties.Length is -1 before uploade 
-            return blockBlob.Properties.Length >= 0; //await Task.FromResult(blockBlob.Uri.ToString());
+            // blockBlolb.Properties.Length is -1 before successful upload 
+            return blockBlob.Properties.Length >= 0;
         }
 
         private void SetUpBlobConnection()

@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="IIA003Policy.xml">
+    <None Update="Data\Xacml\3.0\PolicyRepository\IIA003Policy.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
