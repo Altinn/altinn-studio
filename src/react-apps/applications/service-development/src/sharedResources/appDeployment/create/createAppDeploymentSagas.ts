@@ -15,7 +15,7 @@ function* createAppDeploymentSaga({
 
     const data = {
       tagName,
-      envObj,
+      env: envObj,
     };
 
     const result = yield call(post, getAppDeploymentsUrl(), data);

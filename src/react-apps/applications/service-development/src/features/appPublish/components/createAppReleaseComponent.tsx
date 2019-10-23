@@ -148,7 +148,6 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         className={classes.createReleaseFormItem}
       >
         <AltinnButton
-          classes={{}}
           onClickFunction={handleBuildVersionClick}
           btnText={
             !!language &&

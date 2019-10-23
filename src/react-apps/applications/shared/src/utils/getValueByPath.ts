@@ -2,12 +2,12 @@
 // getValueByPath(obj, 'some.path.to.value', null)
 
 export const getValueByPath = (value: string, path: string, defaultValue: any) => {
-  return String(path).split('.').reduce((acc, v) => {
+  return String(path).split('.').reduce((accVal, currVal : any, currIndex) => {
     try {
-      acc = acc[v] || defaultValue;
+      accVal = accVal[currVal] || defaultValue;
     } catch (e) {
       return defaultValue;
     }
-    return acc;
+    return accVal;
   }, value);
 };
