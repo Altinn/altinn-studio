@@ -15,8 +15,9 @@ exports[`>>> AltinnSearchInput--- Snapshot +++ Should match snapshot with the le
         className="MuiInputAdornment-root AltinnSearchInput-searchBoxIcon-3 MuiInputAdornment-positionEnd"
       >
         <i
+          aria-label="Søkeikon"
           className="fa fa-search"
-          title="Search icon"
+          title="Søkeikon"
         />
       </div>
       <input
