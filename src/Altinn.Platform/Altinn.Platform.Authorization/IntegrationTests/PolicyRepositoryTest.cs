@@ -37,7 +37,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             await CreateCollection();
             Stream dataStream = File.OpenRead("IIA003Policy.xml");
             PolicyRepository pr = new PolicyRepository(_settingsMock.Object);
-            string res = await pr.WritePolicy("testFile/testing", dataStream);
+            bool res = await pr.WritePolicy("testFile/testing", dataStream);
             Assert.NotNull(res);
         }
 
