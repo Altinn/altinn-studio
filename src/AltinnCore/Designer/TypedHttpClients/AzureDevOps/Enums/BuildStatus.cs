@@ -9,39 +9,39 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums
     public enum BuildStatus
     {
         /// <summary>
+        /// No status
+        /// </summary>
+        [EnumMember(Value = "none")]
+        None = 0,
+
+        /// <summary>
         /// The build is cancelling
         /// </summary>
         [EnumMember(Value = "cancelling")]
         Cancelling = 1,
 
         /// <summary>
-        /// The build has completed.
+        /// The build has completed
         /// </summary>
         [EnumMember(Value = "completed")]
         Completed = 2,
 
         /// <summary>
-        /// The build is currently in progress.
+        /// The build is currently in progress
         /// </summary>
         [EnumMember(Value = "inProgress")]
         InProgress = 3,
 
         /// <summary>
-        /// No status.
-        /// </summary>
-        [EnumMember(Value = "none")]
-        None = 4,
-
-        /// <summary>
-        /// The build has not yet started.
+        /// The build has not yet started
         /// </summary>
         [EnumMember(Value = "notStarted")]
-        NotStarted = 5,
+        NotStarted = 4,
 
         /// <summary>
-        /// The build is inactive in the queue.
+        /// The build is inactive in the queue
         /// </summary>
         [EnumMember(Value = "postponed")]
-        Postponed = 6,
+        Postponed = 5,
     }
 }

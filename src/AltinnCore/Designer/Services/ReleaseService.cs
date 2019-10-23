@@ -73,6 +73,7 @@ namespace AltinnCore.Designer.Services
                 AppDeployToken = _sourceControl.GetDeployToken(),
                 AppOwner = release.Org,
                 AppRepo = release.App,
+                TagName = release.TagName
             };
 
             Build queuedBuild = await _azureDevOpsBuildService.QueueAsync(

@@ -49,5 +49,11 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models
         /// </summary>
         [JsonProperty("HOSTNAME")]
         public string Hostname { get; set; }
+
+        /// <summary>
+        /// The tag for the image
+        /// </summary>
+        [JsonProperty("TAGNAME")]
+        public string TagName { get; set; }
     }
 }

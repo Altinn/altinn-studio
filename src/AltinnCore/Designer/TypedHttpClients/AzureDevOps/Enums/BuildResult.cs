@@ -9,33 +9,33 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums
     public enum BuildResult
     {
         /// <summary>
-        /// The build is cancelling
+        /// The build result is none
+        /// </summary>
+        [EnumMember(Value = "none")]
+        None = 0,
+
+        /// <summary>
+        /// The build has been canceled
         /// </summary>
         [EnumMember(Value = "canceled")]
         Canceled = 1,
 
         /// <summary>
-        /// The build is cancelling
+        /// The build has failed
         /// </summary>
         [EnumMember(Value = "failed")]
         Failed = 2,
 
         /// <summary>
-        /// The build is cancelling
-        /// </summary>
-        [EnumMember(Value = "none")]
-        None = 3,
-
-        /// <summary>
-        /// The build is cancelling
+        /// The build has partially succeeded
         /// </summary>
         [EnumMember(Value = "partiallySucceeded")]
-        PartiallySucceeded = 4,
+        PartiallySucceeded = 3,
 
         /// <summary>
-        /// The build is cancelling
+        /// The build has succeeded
         /// </summary>
         [EnumMember(Value = "succeeded")]
-        Succeeded = 5,
+        Succeeded = 4
     }
 }
