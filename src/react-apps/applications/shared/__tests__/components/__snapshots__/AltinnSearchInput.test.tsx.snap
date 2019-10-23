@@ -16,6 +16,7 @@ exports[`>>> AltinnSearchInput--- Snapshot +++ Should match snapshot with the le
       >
         <i
           className="fa fa-search"
+          title="Search icon"
         />
       </div>
       <input
