@@ -135,6 +135,7 @@ namespace AltinnCore.Runtime
                 Directory.CreateDirectory(repoLocation);
             }
 
+            services.AddMvc().AddNewtonsoftJson();
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));

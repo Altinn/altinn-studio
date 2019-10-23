@@ -53,9 +53,13 @@ namespace AltinnCore.Runtime.Controllers
                     HttpContext.Response.Cookies.Append(Common.Constants.General.RuntimeCookieName, token, runtimeCookieSetting);
                     return Ok();
                 }
+                else
+                {
+                    return BadRequest();
+                }
             }
 
-            return BadRequest();
+            return Ok();
         }
     }
 }
