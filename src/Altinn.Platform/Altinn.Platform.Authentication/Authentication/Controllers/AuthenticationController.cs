@@ -280,7 +280,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <param name="goToHost">The url to redirect to</param>
         /// <returns>Boolean verifying that goToHost is on current host. </returns>
-        public bool IsValidRedirectUri(string goToHost)
+        private bool IsValidRedirectUri(string goToHost)
         {
             string validHost = generalSettings.GetHostName;
             int segments = generalSettings.GetHostName.Split('.').Length;
@@ -296,7 +296,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <param name="organisationNumber">the organisation number as given in the central unit registry</param>
         /// <returns>the organisation identifier</returns>
-        public string LookupOrg(string organisationNumber)
+        internal string LookupOrg(string organisationNumber)
         {
             DateTime timestamp = DateTime.Now;
             timestamp = timestamp.AddHours(-1);
@@ -312,7 +312,7 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <summary>
         /// Harvests organisations from valid altinn application owner lists. Updates a dictionary of organisationNumber -> org. 
         /// </summary>
-        public void HarvestOrgs()
+        internal void HarvestOrgs()
         {
             int countNew = 0;
             int countUpdated = 0;
