@@ -40,8 +40,8 @@ const styles = createStyles({
   },
   popoverTechnicalErrorText: {
     fontSize: '1.4rem',
-    paddingTop: '0.5rem'
-  }
+    paddingTop: '0.5rem',
+  },
 });
 
 export interface ICreateAppReleaseComponent extends WithStyles<typeof styles> {
@@ -188,7 +188,6 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           <div>
             <AltinnButton
               btnRef={ref}
-              classes={{}}
               onClickFunction={handleBuildVersionClick}
               btnText={
                 !!language &&
