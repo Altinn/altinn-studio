@@ -71,6 +71,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
+        [Authorize]
         [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]

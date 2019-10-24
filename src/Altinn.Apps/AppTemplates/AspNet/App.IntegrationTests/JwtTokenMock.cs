@@ -1,5 +1,6 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 
@@ -42,7 +43,11 @@ namespace Altinn.App.IntegrationTests
         /// <returns>ClaimsPrincipal</returns>
         public static ClaimsPrincipal ValidateToken(string token)
         {
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
+
+            string certPath = Path.Combine(unitTestFolder, @"..\..\..\JWTValidationCert.cer");
+
+            X509Certificate2 cert = new X509Certificate2(certPath);
             SecurityKey key = new X509SecurityKey(cert);
 
             TokenValidationParameters validationParameters = new TokenValidationParameters
@@ -61,7 +66,10 @@ namespace Altinn.App.IntegrationTests
 
         private static SigningCredentials GetSigningCredentials()
         {
-            X509Certificate2 cert = new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234");
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(JwtTokenMock).Assembly.CodeBase).LocalPath);
+
+            string certPath = Path.Combine(unitTestFolder, @"..\..\..\jwtselfsignedcert.pfx");
+            X509Certificate2 cert = new X509Certificate2(certPath, "qwer1234");
             return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
         }
     }

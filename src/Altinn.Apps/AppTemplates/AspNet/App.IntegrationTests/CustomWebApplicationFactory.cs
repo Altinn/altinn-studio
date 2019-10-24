@@ -10,7 +10,7 @@ namespace Altinn.App.IntegrationTests
         {
             builder.ConfigureServices(services =>
             {
-               
+             
             });
         }
     }
