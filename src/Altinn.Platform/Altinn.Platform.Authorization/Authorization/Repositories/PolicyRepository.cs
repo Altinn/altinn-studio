@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Repositories.Interface;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -15,6 +16,7 @@ namespace Altinn.Platform.Authorization.Repositories
     /// </summary>
     public class PolicyRepository : IPolicyRepository
     {
+        private readonly ILogger<PolicyRepository> logger;
         private readonly AzureStorageConfiguration _storageConfig;
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
@@ -23,8 +25,13 @@ namespace Altinn.Platform.Authorization.Repositories
         /// Initializes a new instance of the <see cref="PolicyRepository"/> class
         /// </summary>
         /// <param name="storageConfig">The storage configuration for Azure Blob Storage.</param>
-        public PolicyRepository(IOptions<AzureStorageConfiguration> storageConfig)
+        /// <param name="logger">logger</param>
+        public PolicyRepository(
+            IOptions<AzureStorageConfiguration> storageConfig,
+            ILogger<PolicyRepository> logger)
         {
+            this.logger = logger;
+
             _storageConfig = storageConfig.Value;
             SetUpBlobConnection();
         }
@@ -32,19 +39,27 @@ namespace Altinn.Platform.Authorization.Repositories
         /// <inheritdoc />
         public async Task<Stream> GetPolicy(string filepath)
         {
-            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
-            var memoryStream = new MemoryStream();
-            await blockBlob.DownloadToStreamAsync(memoryStream);
-            memoryStream.Position = 0;
-            return memoryStream;
+            bool blobExists = await _blobContainer.GetBlockBlobReference(filepath).ExistsAsync();
+
+            if (blobExists)
+            {
+                CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
+                var memoryStream = new MemoryStream();
+                await blockBlob.DownloadToStreamAsync(memoryStream);
+                memoryStream.Position = 0;
+
+                return memoryStream;
+            }
+
+            return null;
         }
 
         /// <inheritdoc />
         public async Task<bool> WritePolicy(string filepath, Stream fileStream)
-        { 
+        {
+            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
             try
             {
-                CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
                 await blockBlob.UploadFromStreamAsync(fileStream);
                 await blockBlob.FetchAttributesAsync();
 
@@ -53,7 +68,8 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (Exception ex)
             {
-                return false;
+                logger.LogError("failed to save policy file. " + ex.Message);
+                throw ex;
             }
         }
 
