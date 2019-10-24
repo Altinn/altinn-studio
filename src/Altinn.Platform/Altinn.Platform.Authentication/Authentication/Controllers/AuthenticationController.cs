@@ -14,7 +14,7 @@ using System.Web;
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Authentication.Model;
-
+using Altinn.Platform.Authentication.Repositories;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
@@ -37,12 +37,10 @@ namespace Altinn.Platform.Authentication.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private const string ALTINN_ORGS_LOCATION = "https://altinncdn.no/orgs/altinn-orgs.json";
-        private static Dictionary<string, string> orgNumberToOrg = new Dictionary<string, string>();
+        private const string OrganisationIdentity = "OrganisationLogin";
         private static readonly HttpClient HttpClient = new HttpClient();
 
-        private static DateTime dictionaryLastUpdated = DateTime.MinValue;
-
+        private readonly IOrganisationRepository organisationRepository;
         private readonly ILogger logger;
         private readonly GeneralSettings generalSettings;
         private readonly JwtCookieHandler jwtHandler;
@@ -55,12 +53,19 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="generalSettings">Configuration for the authentication scope.</param>
         /// <param name="jwtHandler">the handler for jwt cookie authentication</param>
         /// <param name="signinKeysRetriever">The class to use to obtain the signing keys.</param>
-        public AuthenticationController(ILogger<AuthenticationController> logger, IOptions<GeneralSettings> generalSettings, JwtCookieHandler jwtHandler, ISigningKeysRetriever signinKeysRetriever)
+        /// <param name="organisationRepository">the repository object that holds valid organisations</param>
+        public AuthenticationController(
+            ILogger<AuthenticationController> logger,
+            IOptions<GeneralSettings> generalSettings,
+            JwtCookieHandler jwtHandler,
+            ISigningKeysRetriever signinKeysRetriever,
+            IOrganisationRepository organisationRepository)
         {
             this.logger = logger;
             this.generalSettings = generalSettings.Value;
             this.jwtHandler = jwtHandler;
             this.signinKeysRetriever = signinKeysRetriever;
+            this.organisationRepository = organisationRepository;
         }
 
         /// <summary>
@@ -224,7 +229,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Add(claim);
                 }
 
-                string org = LookupOrg(organisationNumber);
+                string org = organisationRepository.LookupOrg(organisationNumber);
 
                 claims.Add(new Claim("org", org));
                 claims.Add(new Claim("orgNumber", organisationNumber));
@@ -238,7 +243,7 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Remove(audClaim);
                 }
 
-                ClaimsIdentity identity = new ClaimsIdentity("OrganisationLogin");
+                ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
                
                 identity.AddClaims(claims);
                 ClaimsPrincipal principal = new ClaimsPrincipal(identity);
@@ -289,80 +294,6 @@ namespace Altinn.Platform.Authentication.Controllers
             string redirectHost = string.Join(".", goToList);
 
             return validHost.Equals(redirectHost);
-        }
-
-        /// <summary>
-        /// Gets the organisation identifier of the org. Usually a 2-4 character short form of organisation name. Organisation numbers are updated if there is more than an hour since last harvest.
-        /// </summary>
-        /// <param name="organisationNumber">the organisation number as given in the central unit registry</param>
-        /// <returns>the organisation identifier</returns>
-        internal string LookupOrg(string organisationNumber)
-        {
-            DateTime timestamp = DateTime.Now;
-            timestamp = timestamp.AddHours(-1);
-
-            if (dictionaryLastUpdated < timestamp || orgNumberToOrg.Count == 0)
-            {
-                HarvestOrgs();
-            }
-
-            return orgNumberToOrg.GetValueOrDefault(organisationNumber, null);            
-        }
-
-        /// <summary>
-        /// Harvests organisations from valid altinn application owner lists. Updates a dictionary of organisationNumber -> org. 
-        /// </summary>
-        internal void HarvestOrgs()
-        {
-            int countNew = 0;
-            int countUpdated = 0;
-
-            logger.LogInformation($"Authentication harvest of organisation from '{ALTINN_ORGS_LOCATION}' start.");
-
-            try
-            {                                
-                HttpResponseMessage response = HttpClient.GetAsync(ALTINN_ORGS_LOCATION).Result;
-
-                response.EnsureSuccessStatusCode();
-                
-                JObject orgs = JObject.Parse(response.Content.ReadAsStringAsync().Result);
-
-                orgs = (JObject)orgs.GetValue("orgs");
-
-                foreach (JToken prop in orgs.Children())
-                {
-                    JObject orgObject = (JObject)prop.Children().First();
-                    string orgnr = orgObject["orgnr"].ToString();
-                    string org = ((JProperty)prop).Name;
-
-                    if (orgNumberToOrg.ContainsKey(orgnr))
-                    {
-                        if (!org.Equals(orgNumberToOrg[orgnr]))
-                        {
-                            orgNumberToOrg.Remove(orgnr);
-                            orgNumberToOrg.Add(orgnr, org);
-                            countUpdated++;
-                        }
-                    }
-                    else
-                    {
-                        orgNumberToOrg.Add(orgnr, org);
-                        countNew++;
-                    }
-                }
-
-                dictionaryLastUpdated = DateTime.UtcNow;                                
-            }
-            catch (Exception ex)
-            {
-                logger.LogError($"Unable to harvest organisation data due to {ex}");
-                if (orgNumberToOrg.Count > 0)
-                {
-                    logger.LogWarning($"Continuing with stale organisation cache. Cache now contains {orgNumberToOrg.Count} organisationNumber to org entries.");
-                }
-            }
-
-            logger.LogInformation($"Authentication harvest of organisations finished. Resulting in {countNew} new and {countUpdated} organisations in cache.");
-        }
+        }        
     }
 }

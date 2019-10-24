@@ -5,6 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 
 using Altinn.Platform.Authentication.Configuration;
 using Altinn.Platform.Authentication.Maskinporten;
+using Altinn.Platform.Authentication.Repositories;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 
@@ -73,6 +74,7 @@ namespace Altinn.Platform.Authentication
                     });
 
             services.AddSingleton<ISigningKeysRetriever, SigningKeysRetriever>();
+            services.AddSingleton<IOrganisationRepository, OrganisationRepository>();
 
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>

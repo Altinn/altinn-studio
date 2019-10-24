@@ -6,8 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
-
-using Altinn.Platform.Authentication.Controllers;
+using Altinn.Platform.Authentication.IntegrationTests;
 using Altinn.Platform.Authentication.Maskinporten;
 
 using Microsoft.AspNetCore.TestHost;
@@ -16,13 +15,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Altinn.Platform.Authentication.IntegrationTests.Controller
+namespace Altinn.Platform.Authentication.Controllers
 {
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="AuthenticationController"/> class.
     /// </summary>
     public class AuthenticationControllerTest : IClassFixture<CustomWebApplicationFactory<Startup>>
     {
+        private const string OrganisationIdentity = "OrganisationLogin";
         private readonly CustomWebApplicationFactory<Startup> factory;
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controller
         [Fact]
         public async Task OrganisationAuthenticationWithMaskinportenToken()
         {
-            string externalToken = "eyJraWQiOiJjWmswME1rbTVIQzRnN3Z0NmNwUDVGSFpMS0pzdzhmQkFJdUZiUzRSVEQ0IiwiYWxnIjoiUlMyNTYifQ.eyJhdWQiOiJodHRwczpcL1wvdHQwMi5hbHRpbm4ubm9cL21hc2tpbnBvcnRlbi1hcGlcLyIsInNjb3BlIjoiYWx0aW5uOmluc3RhbmNlcy53cml0ZSIsImlzcyI6Imh0dHBzOlwvXC9vaWRjLXZlcjIuZGlmaS5ub1wvaWRwb3J0ZW4tb2lkYy1wcm92aWRlclwvIiwiY2xpZW50X2FtciI6InZpcmtzb21oZXRzc2VydGlmaWthdCIsInRva2VuX3R5cGUiOiJCZWFyZXIiLCJleHAiOjE1NzE4NDMzOTksImlhdCI6MTU3MTgzMTM5OSwiY2xpZW50X2lkIjoiMGRlMTlmN2EtZjVmYS00NWQxLTg3NGMtM2QyZTg4Y2U5N2Q5IiwiY2xpZW50X29yZ25vIjoiOTc0NzYwNjczIiwianRpIjoiX2dVUGliNlBSY1dpVTk0WVVTTzZXb2FJd2JFeTllM0lyZ2dVX0RRLWYwSSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk3NDc2MDY3MyJ9fQ.cm-FLcosghqsjlwQWKPRYydjLYEfEdXdX0hMSqsqp46dancqwd0e1BHh4kmdRjJsN6c_HmBve5BAAGB63xp8XDv_y-5BS9fqMLkmQRsQ7GWTaYPGr_lUAP-pG8neTZFgwplUcgTj3D_KlJHErypUAs2dkrdcmOaONqDX5xt5nPVZhFKRLx4MFMCeG18wjIfM1wynR3am8aagnbb0TlivBWjMpw1tTGF7MbE5v77ifgRhNJWaAGscrt47CcSaPLkhnXpyhRBE9vPZuOhhdAHgO1HCJjwz_uGRyObISl2O4do_zBV1TN5YC1pn3X0sr5ZDsGS6Kcm7PIJuszeuxpX0_w";
+            string externalToken = "eyJraWQiOiJjWmswME1rbTVIQzRnN3Z0NmNwUDVGSFpMS0pzdzhmQkFJdUZiUzRSVEQ0IiwiYWxnIjoiUlMyNTYifQ.eyJhdWQiOiJodHRwczpcL1wvdHQwMi5hbHRpbm4ubm9cL21hc2tpbnBvcnRlbi1hcGlcLyIsInNjb3BlIjoiYWx0aW5uOmluc3RhbmNlcy53cml0ZSIsImlzcyI6Imh0dHBzOlwvXC9vaWRjLXZlcjIuZGlmaS5ub1wvaWRwb3J0ZW4tb2lkYy1wcm92aWRlclwvIiwiY2xpZW50X2FtciI6InZpcmtzb21oZXRzc2VydGlmaWthdCIsInRva2VuX3R5cGUiOiJCZWFyZXIiLCJleHAiOjE1NzE5MjE2MTYsImlhdCI6MTU3MTkwOTYxNiwiY2xpZW50X2lkIjoiMGRlMTlmN2EtZjVmYS00NWQxLTg3NGMtM2QyZTg4Y2U5N2Q5IiwiY2xpZW50X29yZ25vIjoiOTc0NzYwNjczIiwianRpIjoiYWE3SjViX1hPcmM4b29qQ3lEUGR6MkNkNktjX3pRci1qcmJfSzc0eDBkUSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk3NDc2MDY3MyJ9fQ.vXlTvqE2k6W_Wmr5gB7wUX2Fb5n34KXx-8hIaI4fO5lpjTHmWtg2B3Gn6jihBJioaVKYflCzspVx6XZZxN2kTqZ6N0JgBsqpKSSlP7FQGm10vaj90ZV6LCKSvUFkY5CcSNVUvihza0aBzTll1K_w8hCD-5Ix0zf45oUHY4CPxymI7Cod3YaXPkesDLbwkX3rreATMis-IOmNl8wpwGIE3AujDDqgCWLhK75spTrMVR74k4EqWsUxKmAIC5cDu5AmE0-UI-8CUpNqSp6f6SmxNycq94K86u-8lFZOU2ene18GEmcQ6Ddd9e8jNcR7vjtIQiJe8O2nw8StQ1CXt7NTEg";
             HttpClient client = GetClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
 
@@ -75,7 +75,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controller
 
             object iso6523Consumer = new 
             {             
-               Authority = "iso6523-actorid-upis",
+               authority = "iso6523-actorid-upis",
                ID = $"9908:{orgNr}"             
             };
 
@@ -83,7 +83,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests.Controller
             claims.Add(new Claim("client_orgno", orgNr));
             claims.Add(new Claim("scope", "altinn:instances.write altinn:instances.read"));
 
-            ClaimsIdentity identity = new ClaimsIdentity("OrgLogin");
+            ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
             identity.AddClaims(claims);
             ClaimsPrincipal externalPrincipal = new ClaimsPrincipal(identity);
 

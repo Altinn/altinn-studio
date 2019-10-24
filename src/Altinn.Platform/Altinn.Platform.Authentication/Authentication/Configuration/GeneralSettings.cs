@@ -167,5 +167,22 @@ namespace Altinn.Platform.Authentication.Configuration
                        MaskinportenWellKnownConfigEndpoint;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the url to the json file which holds the valid organisation entries (which inclides name, organisation number and org identifier)
+        /// </summary>
+        public string OrganisationRepositoryLocation { get; set; }
+
+        /// <summary>
+        /// Gets the url of the list of valid organisation entries (json)
+        /// </summary>
+        public string GetOrganisationRepositoryLocation
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__" + nameof(OrganisationRepositoryLocation)) ??
+                    OrganisationRepositoryLocation;
+            }
+        }
     }
 }
