@@ -41,13 +41,20 @@ namespace Altinn.Platform.Authorization.Repositories
 
         /// <inheritdoc />
         public async Task<bool> WritePolicy(string filepath, Stream fileStream)
-        {
-            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
-            await blockBlob.UploadFromStreamAsync(fileStream);
-            await blockBlob.FetchAttributesAsync();
+        { 
+            try
+            {
+                CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
+                await blockBlob.UploadFromStreamAsync(fileStream);
+                await blockBlob.FetchAttributesAsync();
 
-            // blockBlolb.Properties.Length is -1 before successful upload 
-            return blockBlob.Properties.Length >= 0;
+                // blockBlolb.Properties.Length is -1 before successful upload 
+                return blockBlob.Properties.Length >= 0;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         private void SetUpBlobConnection()
