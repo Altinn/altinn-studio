@@ -122,6 +122,7 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
+            services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();

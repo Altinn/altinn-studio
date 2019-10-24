@@ -139,9 +139,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             while (!allElementsRetrieved)
             {
-                Uri tempUrl = new Uri(giteaSearchUriString + "&page=" + resultPage);
-
-                HttpResponseMessage response = await _httpClient.GetAsync(tempUrl);
+                HttpResponseMessage response = await _httpClient.GetAsync(giteaSearchUriString + "&page=" + resultPage);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     if (resultPage == 1 || page == resultPage)
