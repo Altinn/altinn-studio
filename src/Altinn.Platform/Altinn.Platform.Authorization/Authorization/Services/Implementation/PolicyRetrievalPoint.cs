@@ -25,20 +25,16 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             _repository = policyRepository;
         }
 
-        /*
-        /// <summary>
-        /// Returns a XACML Policy based on the Context Request
-        /// </summary>
-        /// <param name="request">The context request</param>
-        /// <param name="org">the organization.</param>
-        /// <param name="app">The application. </param>
-        /// <returns></returns>
-        public async XacmlPolicy GetPolicy(XacmlContextRequest request, string org = null, string app = null)
+        /// <inheritdoc/>
+        public XacmlPolicy GetPolicy(XacmlContextRequest request)
         {
-            string filepath = (org != null && app != null) ? GetAltinnAppsPolicyPath(org, app) : GetPolicyPath(request);
-            Stream policyStream = await _repository.GetPolicy(filepath);
-            XacmlPolicy policy = new XacmlPolicy();
-        }*/
+            throw new NotImplementedException();
+        }
+
+        public XacmlPolicy WritePolicy(string org, string app, Stream fileStream)
+        {
+            throw new NotImplementedException();
+        }
 
         private string GetPolicyPath(XacmlContextRequest request)
         {
@@ -77,11 +73,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private string GetAltinnAppsPolicyPath(string org, string app)
         {
             return $"{org}/{app}/policy.xacml";
-        }
-
-        public XacmlPolicy GetPolicy(XacmlContextRequest request)
-        {
-            throw new NotImplementedException();
         }
     }
 }
