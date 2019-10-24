@@ -8,10 +8,12 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace AltinnCore.Designer
@@ -43,6 +45,11 @@ namespace AltinnCore.Designer
         /// <param name="services">The services available for asp.net Core</param>
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
+
             services.RegisterServiceImplementations(Configuration);
             services.RegisterIntegrations(Configuration);
 
@@ -62,7 +69,7 @@ namespace AltinnCore.Designer
             
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "Altinn Designer API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Designer API", Version = "v1" });
                 try
                 {
                     c.IncludeXmlComments(GetXmlCommentsPathForControllers());
@@ -91,6 +98,19 @@ namespace AltinnCore.Designer
                 appBuilder.UseExceptionHandler("/error");
             }
 
+            appBuilder.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = context =>
+                {
+                    ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
+                    headers.CacheControl = new CacheControlHeaderValue
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromMinutes(60),
+                    };
+                },
+            });
+
             const string swaggerRoutePrefix = "designer/swagger";
             appBuilder.UseSwagger(c =>
             {
@@ -100,19 +120,6 @@ namespace AltinnCore.Designer
             {
                 c.RoutePrefix = swaggerRoutePrefix;
                 c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
-            });
-
-            appBuilder.UseStaticFiles(new StaticFileOptions()
-            {
-                OnPrepareResponse = (context) =>
-                {
-                    ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
-                    headers.CacheControl = new CacheControlHeaderValue()
-                    {
-                        Public = true,
-                        MaxAge = TimeSpan.FromMinutes(60),
-                    };
-                },
             });
 
             appBuilder.UseRouting();
