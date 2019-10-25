@@ -198,7 +198,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Create and save the data element
+        /// Create and save the data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
@@ -270,7 +270,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Update and save data element.
+        /// Update and save data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
@@ -393,7 +393,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (request.Headers.TryGetValue("content-disposition", out headerValues))
                 {
                     string contentDisposition = headerValues.ToString();
-                    List<string>contenDispValues = contentDisposition.Split(';').ToList();
+                    List<string> contenDispValues = contentDisposition.Split(';').ToList();
 
                     string fileNameValue = contenDispValues.FirstOrDefault(x => x.Contains("filename", StringComparison.CurrentCultureIgnoreCase));
 
@@ -406,7 +406,6 @@ namespace Altinn.Platform.Storage.Controllers
                             contentFileName = valueParts[1];
                         }
                     }
-
                 }
 
                 contentType = request.ContentType;
