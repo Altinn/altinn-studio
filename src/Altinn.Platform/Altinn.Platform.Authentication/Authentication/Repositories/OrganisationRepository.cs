@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Altinn.Platform.Authentication.Configuration;
+using Altinn.Platform.Authentication.Model;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Altinn.Platform.Authentication.Repositories
@@ -14,7 +16,8 @@ namespace Altinn.Platform.Authentication.Repositories
     /// </summary>
     public class OrganisationRepository : IOrganisationRepository
     {
-        private static Dictionary<string, string> orgNumberToOrg = new Dictionary<string, string>();
+        private static Dictionary<string, Organisation> orgNumberToOrganisation = new Dictionary<string, Organisation>();
+        private static Dictionary<string, Organisation> orgToOrganisation = new Dictionary<string, Organisation>();
         private static DateTime dictionaryLastUpdated = DateTime.MinValue;
 
         private static readonly HttpClient HttpClient = new HttpClient();
@@ -33,34 +36,59 @@ namespace Altinn.Platform.Authentication.Repositories
             organisationListLocation = new Uri(generalSettings.Value.GetOrganisationRepositoryLocation);
         }
 
-        /// <summary>
-        /// Gets the organisation identifier of the org. Usually a 2-4 character short form of organisation name. Organisation numbers are updated if there is more than an hour since last harvest.
-        /// </summary>
-        /// <param name="organisationNumber">the organisation number as given in the central unit registry</param>
-        /// <returns>the organisation identifier</returns>
-        public string LookupOrg(string organisationNumber)
+        /// <inheritdoc/>
+        public Organisation GetOrganisationByOrgNumber(string orgNumber)
+        {
+            HarvestOrgsIfCacheIsMoreThanOneHourOld();
+
+            return orgNumberToOrganisation.GetValueOrDefault(orgNumber, null);
+        }
+
+        /// <inheritdoc/>
+        public Organisation GetOrganisationByOrg(string org)
+        {
+            HarvestOrgsIfCacheIsMoreThanOneHourOld();
+
+            return orgToOrganisation.GetValueOrDefault(org, null);
+        }
+
+        /// <inheritdoc/>
+        public string LookupOrg(string orgNumber)
+        {
+            HarvestOrgsIfCacheIsMoreThanOneHourOld();
+
+            Organisation organisation = orgNumberToOrganisation.GetValueOrDefault(orgNumber, null);
+
+            return organisation?.Org;
+        }
+
+        /// <inheritdoc/>
+        public string LookupOrgNumber(string org)
+        {
+            HarvestOrgsIfCacheIsMoreThanOneHourOld();
+
+            Organisation organisation = orgToOrganisation.GetValueOrDefault(org, null);
+
+            return organisation?.OrgNumber;
+        }
+
+        private void HarvestOrgsIfCacheIsMoreThanOneHourOld()
         {
             DateTime timestamp = DateTime.Now;
             timestamp = timestamp.AddHours(-1);
 
-            if (dictionaryLastUpdated < timestamp || orgNumberToOrg.Count == 0)
+            if (dictionaryLastUpdated < timestamp || orgNumberToOrganisation.Count == 0)
             {
                 HarvestOrgs();
             }
-
-            return orgNumberToOrg.GetValueOrDefault(organisationNumber, null);
         }
 
-        /// <summary>
-        /// Harvests organisations from valid altinn application owner lists. Updates a dictionary of organisationNumber -> org. 
-        /// </summary>
+        /// <inheritdoc/>
         public void HarvestOrgs()
         {
-            int countNew = 0;
-            int countUpdated = 0;
+            logger.LogInformation($"Authentication harvest of organisation from '{organisationListLocation}' starts.");
 
-            logger.LogInformation($"Authentication harvest of organisation from '{organisationListLocation}' start.");
-
+            Dictionary<string, Organisation> organisationHarvest = null;
             try
             {
                 HttpResponseMessage response = HttpClient.GetAsync(organisationListLocation).Result;
@@ -71,25 +99,42 @@ namespace Altinn.Platform.Authentication.Repositories
 
                 orgs = (JObject)orgs.GetValue("orgs");
 
-                foreach (JToken prop in orgs.Children())
-                {
-                    JObject orgObject = (JObject)prop.Children().First();
-                    string orgnr = orgObject["orgnr"].ToString();
-                    string org = ((JProperty)prop).Name;
+                organisationHarvest = JsonConvert.DeserializeObject<Dictionary<string, Organisation>>(orgs.ToString());
 
-                    if (orgNumberToOrg.ContainsKey(orgnr))
+                if (organisationHarvest.Count == 0)
+                {
+                    throw new OrganisationHarvestException($"Organisation list is empty!");
+                }
+
+                logger.LogInformation($"Found {organisationHarvest.Count} organisations which replaces current cache wich contained {orgToOrganisation.Count} organisations.");
+
+                orgToOrganisation.Clear();
+                orgNumberToOrganisation.Clear();
+
+                foreach (KeyValuePair<string, Organisation> element in organisationHarvest)
+                {
+                    Organisation candidateOrganisation = element.Value;
+                    candidateOrganisation.Org = element.Key;
+
+                    string orgNumber = candidateOrganisation.OrgNumber;
+                    string org = candidateOrganisation.Org;
+
+                    if (string.IsNullOrEmpty(org))
                     {
-                        if (!org.Equals(orgNumberToOrg[orgnr]))
-                        {
-                            orgNumberToOrg.Remove(orgnr);
-                            orgNumberToOrg.Add(orgnr, org);
-                            countUpdated++;
-                        }
+                        logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing org value and will not be part of orgToOrganisation map!");
                     }
                     else
                     {
-                        orgNumberToOrg.Add(orgnr, org);
-                        countNew++;
+                        orgToOrganisation.Add(org, candidateOrganisation);
+                    }
+                    
+                    if (string.IsNullOrEmpty(orgNumber))
+                    {
+                        logger.LogWarning($"Organisation {candidateOrganisation.ToString()} is missing orgNumber and will not be part of orgNumberToOrganisation map!");                        
+                    }
+                    else
+                    {
+                        orgNumberToOrganisation.Add(orgNumber, candidateOrganisation);
                     }
                 }
 
@@ -98,13 +143,16 @@ namespace Altinn.Platform.Authentication.Repositories
             catch (Exception ex)
             {
                 logger.LogError($"Unable to harvest organisation data due to {ex}");
-                if (orgNumberToOrg.Count > 0)
+                if (orgNumberToOrganisation.Count > 0)
                 {
-                    logger.LogWarning($"Continuing with stale organisation cache. Cache now contains {orgNumberToOrg.Count} organisationNumber to org entries.");
+                    logger.LogWarning($"Managed to harvest {orgNumberToOrganisation.Count} organisations of total {organisationHarvest?.Count} in file.");
+                    return;
                 }
+
+                throw new OrganisationHarvestException($"Unable to harvest organisations from {organisationListLocation}.", ex);
             }
 
-            logger.LogInformation($"Authentication harvest of organisations finished. Resulting in {countNew} new and {countUpdated} organisations in cache.");
+            logger.LogInformation($"Authentication harvest of organisations finished. Resulting in {orgNumberToOrganisation.Count} organisations in cache.");
         }
     }
 }

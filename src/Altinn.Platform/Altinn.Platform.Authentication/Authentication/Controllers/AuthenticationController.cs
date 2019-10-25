@@ -215,9 +215,9 @@ namespace Altinn.Platform.Authentication.Controllers
                 ClaimsPrincipal originalPrincipal = validator.ValidateToken(originalToken, validationParameters, out SecurityToken validatedToken);
                 logger.LogInformation($"validated token{validatedToken}");
 
-                string organisationNumber = GetOrganisationNumberFromConsumerClaim(originalPrincipal);
+                string orgNumber = GetOrganisationNumberFromConsumerClaim(originalPrincipal);
 
-                if (string.IsNullOrEmpty(organisationNumber))
+                if (string.IsNullOrEmpty(orgNumber))
                 {
                     logger.LogInformation("Invalid consumer claim {");
                     return Unauthorized();
@@ -229,12 +229,15 @@ namespace Altinn.Platform.Authentication.Controllers
                     claims.Add(claim);
                 }
 
-                string org = organisationRepository.LookupOrg(organisationNumber);
+                string org = organisationRepository.LookupOrg(orgNumber);
 
-                claims.Add(new Claim("org", org));
-                claims.Add(new Claim("orgNumber", organisationNumber));
+                claims.Add(new Claim("org", org, ClaimValueTypes.String));
+                claims.Add(new Claim("orgNumber", orgNumber, ClaimValueTypes.Integer32));
 
-                claims.Add(new Claim("iss", "https://platform.altinn.cloud/"));
+                claims.Add(new Claim("iss", "https://platform.altinn.cloud/", ClaimValueTypes.String));
+
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String));
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32));
 
                 string[] claimTypesToRemove = { "aud", "iss", "client_amr" };
                 foreach (string claimType in claimTypesToRemove)

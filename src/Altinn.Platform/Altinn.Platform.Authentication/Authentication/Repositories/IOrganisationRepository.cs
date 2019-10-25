@@ -1,3 +1,5 @@
+using Altinn.Platform.Authentication.Model;
+
 namespace Altinn.Platform.Authentication.Repositories
 {
     /// <summary>
@@ -8,9 +10,30 @@ namespace Altinn.Platform.Authentication.Repositories
         /// <summary>
         /// Lookups an organisation and returns the altinn org identifier.
         /// </summary>
-        /// <param name="organisationNumber">organisation number</param>
+        /// <param name="orgNumber">organisation number</param>
+        /// <returns>altin organisation identifier</returns>
+        public string LookupOrg(string orgNumber);
+
+        /// <summary>
+        /// Lookups an organisation and returns the altinn org identifier.
+        /// </summary>
+        /// <param name="org">organisation identifierr</param>
         /// <returns>altinn org identifier</returns>
-        public string LookupOrg(string organisationNumber);
+        public string LookupOrgNumber(string org);
+
+        /// <summary>
+        /// Returns the organisation object with the matching org altinn identifier.
+        /// </summary>
+        /// <param name="org">altinn org identifier</param>
+        /// <returns>the organisation or null if not found</returns>
+        public Organisation GetOrganisationByOrg(string org);    
+
+        /// <summary>
+        /// Returns the organisation object with the matching orgNumber.
+        /// </summary>
+        /// <param name="orgNumber">organisation number</param>
+        /// <returns>the organisation or null if not found</returns>
+        public Organisation GetOrganisationByOrgNumber(string orgNumber);
 
         /// <summary>
         /// Trigger harvest of organisation repository.
