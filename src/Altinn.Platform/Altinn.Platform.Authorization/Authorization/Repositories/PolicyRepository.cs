@@ -37,7 +37,7 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<Stream> GetPolicy(string filepath)
+        public async Task<Stream> GetPolicyAsync(string filepath)
         {
             bool blobExists = await _blobContainer.GetBlockBlobReference(filepath).ExistsAsync();
 

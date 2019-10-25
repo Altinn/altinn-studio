@@ -907,7 +907,7 @@
             Defines the interface for the Policy Retrival Point
             </summary>
         </member>
-        <member name="M:Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint.GetPolicy(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
+        <member name="M:Altinn.Authorization.ABAC.Interface.IPolicyRetrievalPoint.GetPolicyAsync(Altinn.Authorization.ABAC.Xacml.XacmlContextRequest)">
             <summary>
             Returns a policy based on the context request
             </summary>

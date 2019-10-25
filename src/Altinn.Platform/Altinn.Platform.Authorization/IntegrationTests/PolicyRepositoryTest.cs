@@ -149,11 +149,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
             _fixture.StartAndWaitForExit("stop");
             await Task.Delay(2000);
-
-            // Act
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
 
-            // Assert       
+            // Act & Assert       
             await Assert.ThrowsAsync<Microsoft.WindowsAzure.Storage.StorageException>(() => pr.WritePolicy($"{ORG}/tc-02-app/policy.xml", dataStream));
 
             // Cleanup
@@ -215,7 +213,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
 
             //Act
-            Stream stream = await pr.GetPolicy($"{ORG}/{APP}/policy.xml");
+            Stream stream = await pr.GetPolicyAsync($"{ORG}/{APP}/policy.xml");
 
             // Act & Assert
             Assert.IsType<MemoryStream>(stream);
@@ -232,14 +230,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
 
             // Act
-            Stream stream = await pr.GetPolicy("org/app1/policy.xml");
+            Stream stream = await pr.GetPolicyAsync("org/app1/policy.xml");
 
             // Assert
             Assert.Null(stream);
         }
 
         /// <summary>
-        /// Test case: Get a existing file from storage and comfirm that the content is correct .
+        /// Test case: Get existing file from storage and comfirm that the content is correct .
         /// Expected: The contents of the stream once the blob is retrieved matches the expected content.
         /// </summary>
         [Fact]
@@ -251,7 +249,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
 
             // Act
-            Stream stream = await pr.GetPolicy($"{ORG}/{APP}/policy.xml");
+            Stream stream = await pr.GetPolicyAsync($"{ORG}/{APP}/policy.xml");
 
             // Assert
             Assert.True(CompareStream(dataStream, stream));
