@@ -6,30 +6,30 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Altinn.Platform.Authentication.IntegrationTests;
+using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.Maskinporten;
-
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Altinn.Platform.Authentication.Controllers
+namespace Altinn.Platform.Authentication.IntegrationTests
 {
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="AuthenticationController"/> class.
     /// </summary>
-    public class AuthenticationControllerTest : IClassFixture<CustomWebApplicationFactory<Startup>>
+    public class AuthenticationControllerTest : IClassFixture<WebApplicationFactory<Startup>>
     {
         private const string OrganisationIdentity = "OrganisationLogin";
-        private readonly CustomWebApplicationFactory<Startup> factory;
+        private readonly WebApplicationFactory<Startup> factory;
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="AuthenticationControllerTest"/> class with the given CustomWebApplicationFactory.
+        /// Initialises a new instance of the <see cref="AuthenticationControllerTest"/> class with the given WebApplicationFactory.
         /// </summary>
-        /// <param name="factory">The CustomWebApplicationFactory to use when creating a test server.</param>
-        public AuthenticationControllerTest(CustomWebApplicationFactory<Startup> factory)
+        /// <param name="factory">The WebApplicationFactory to use when creating a test server.</param>
+        public AuthenticationControllerTest(WebApplicationFactory<Startup> factory)
         {
             this.factory = factory;
         }
@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authentication.Controllers
         [Fact]
         public async Task OrganisationAuthenticationWithMaskinportenToken()
         {
-            string externalToken = "eyJraWQiOiJjWmswME1rbTVIQzRnN3Z0NmNwUDVGSFpMS0pzdzhmQkFJdUZiUzRSVEQ0IiwiYWxnIjoiUlMyNTYifQ.eyJhdWQiOiJodHRwczpcL1wvdHQwMi5hbHRpbm4ubm9cL21hc2tpbnBvcnRlbi1hcGlcLyIsInNjb3BlIjoiYWx0aW5uOmluc3RhbmNlcy53cml0ZSIsImlzcyI6Imh0dHBzOlwvXC9vaWRjLXZlcjIuZGlmaS5ub1wvaWRwb3J0ZW4tb2lkYy1wcm92aWRlclwvIiwiY2xpZW50X2FtciI6InZpcmtzb21oZXRzc2VydGlmaWthdCIsInRva2VuX3R5cGUiOiJCZWFyZXIiLCJleHAiOjE1NzE5MjE2MTYsImlhdCI6MTU3MTkwOTYxNiwiY2xpZW50X2lkIjoiMGRlMTlmN2EtZjVmYS00NWQxLTg3NGMtM2QyZTg4Y2U5N2Q5IiwiY2xpZW50X29yZ25vIjoiOTc0NzYwNjczIiwianRpIjoiYWE3SjViX1hPcmM4b29qQ3lEUGR6MkNkNktjX3pRci1qcmJfSzc0eDBkUSIsImNvbnN1bWVyIjp7ImF1dGhvcml0eSI6ImlzbzY1MjMtYWN0b3JpZC11cGlzIiwiSUQiOiIwMTkyOjk3NDc2MDY3MyJ9fQ.vXlTvqE2k6W_Wmr5gB7wUX2Fb5n34KXx-8hIaI4fO5lpjTHmWtg2B3Gn6jihBJioaVKYflCzspVx6XZZxN2kTqZ6N0JgBsqpKSSlP7FQGm10vaj90ZV6LCKSvUFkY5CcSNVUvihza0aBzTll1K_w8hCD-5Ix0zf45oUHY4CPxymI7Cod3YaXPkesDLbwkX3rreATMis-IOmNl8wpwGIE3AujDDqgCWLhK75spTrMVR74k4EqWsUxKmAIC5cDu5AmE0-UI-8CUpNqSp6f6SmxNycq94K86u-8lFZOU2ene18GEmcQ6Ddd9e8jNcR7vjtIQiJe8O2nw8StQ1CXt7NTEg";
+            string externalToken = "eyJraWQiOiJjWmswME1rbTVIQzRnN3Z0NmNwUDVGSFpMS0pzdzhmQkFJdUZiUzRSVEQ0IiwiYWxnIjoiUlMyNTYifQ.eyJhdWQiOiJodHRwczpcL1wvdHQwMi5hbHRpbm4ubm9cL21hc2tpbnBvcnRlbi1hcGlcLyIsInNjb3BlIjoiYWx0aW5uOmluc3RhbmNlcy5yZWFkIGFsdGlubjppbnN0YW5jZXMud3JpdGUiLCJpc3MiOiJodHRwczpcL1wvb2lkYy12ZXIyLmRpZmkubm9cL2lkcG9ydGVuLW9pZGMtcHJvdmlkZXJcLyIsImNsaWVudF9hbXIiOiJ2aXJrc29taGV0c3NlcnRpZmlrYXQiLCJ0b2tlbl90eXBlIjoiQmVhcmVyIiwiZXhwIjoxNTcyMDAzNzE0LCJpYXQiOjE1NzE5OTE3MTQsImNsaWVudF9pZCI6IjBkZTE5ZjdhLWY1ZmEtNDVkMS04NzRjLTNkMmU4OGNlOTdkOSIsImNsaWVudF9vcmdubyI6Ijk3NDc2MDY3MyIsImp0aSI6IkJjTklBdVpLWGRqcEVDbW13YWxBbS1wY0JwMGlOYzU2VDZlWGhseE5CWkUiLCJjb25zdW1lciI6eyJhdXRob3JpdHkiOiJpc282NTIzLWFjdG9yaWQtdXBpcyIsIklEIjoiMDE5Mjo5NzQ3NjA2NzMifX0.OHUF7aSlxKFpVzK8j_NVLvA3sALKwlIXzwhb4K2WyAo9bmlHNhp5nW7qjJssXRpNb-btgJn1wcKnK4H-0FE2wj82OmJKDxIcfDgy3vvdAwiTLaG-wbZqZxSpRIErl7FMbRAotwqe1ioPEQLXOO17LZv5MOwUkp54ftf9RLv3jd01WViESWwPDbcKd5jfLC5HRvnta_RHUBsOHwH_of7ivOPmwBmP23MIj6m3KQkYLahPNaPU4TLoywrUUmaEvL4zOXqhhMu0_D_k49S0ZtDTU80ItEEH9-ra-nFdpqu_Y5IeeQ-xc2Lt3n2-K9ff5MN9Xk3o1yR22epbNkSYafxcRQ";
             HttpClient client = GetClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", externalToken);
 
