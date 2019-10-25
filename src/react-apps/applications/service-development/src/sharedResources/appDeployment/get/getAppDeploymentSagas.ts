@@ -9,6 +9,10 @@ import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
 // import { IDeploymentResults } from '../types';
 
 // export const mockDeployments: IDeploymentResults = {
+//   results: []
+// };
+
+// export const mockDeployments: IDeploymentResults = {
 //   results: [
 //     {
 //       id: 'document_id',
@@ -229,13 +233,13 @@ function* getAppDeploymentIntervalSaga(): SagaIterator {
       // mockDeployments.results[0].created = moment().format();
       // mockDeployments.results[0].build.finished = moment().format();
 
-      const deployments = yield call(get, getAppDeploymentsUrl());
+      const deployments = yield call(get, `${getAppDeploymentsUrl()}?sortDirection=ascending&sortBy=created`);
 
       yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, deployments);
-      yield call(delay, 5000);
+      yield call(delay, 500000);
     } catch (err) {
       yield call(AppDeploymentActionDispatcher.getAppDeploymentsRejected, err);
-      yield call(delay, 5000);
+      yield call(delay, 500000);
     }
   }
 }

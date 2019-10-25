@@ -22,6 +22,7 @@ import AppDeploymentActions from '../../../sharedResources/appDeployment/appDepl
 import { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/appDeploymentReducer';
 import { ICreateAppDeploymentEnvObject } from '../../../sharedResources/appDeployment/create/createAppDeploymentActions';
 import { getAzureDevopsBuildResultUrl } from './../../../utils/urlHelper';
+import { getParsedLanguageFromKey } from '../../../../../shared/src/utils/language';
 
 export interface IReceiptContainerProps {
   envName: string;
@@ -32,6 +33,7 @@ export interface IReceiptContainerProps {
   deployError?: ICreateAppDeploymentErrors[];
   deployHistory?: any;
   releases?: any[];
+  language: any;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -154,7 +156,9 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
 
   const deployButtonRef = React.createRef<HTMLInputElement>();
 
-  const { deployError, deployHistory, deploymentList, envName, envObj, releases, urlToApp, urlToAppLinkTxt } = props;
+  const {
+    deployError, deployHistory, deploymentList, envName, envObj, language, releases, urlToApp, urlToAppLinkTxt
+  } = props;
 
   const appDeployedVersion = deploymentList && deploymentList.items && deploymentList.items.length > 0 ?
     deploymentList.items[0].spec.template.spec.containers[0].image.split(':')[1] : undefined;
@@ -178,7 +182,6 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   };
 
   const startDeploy = () => {
-    console.log('startDeploy', selectedImageTag, envName);
     setDeployInProgress(true);
     setDeployButtonHasShownError(false);
     AppDeploymentActions.createAppDeployment(selectedImageTag, envObj);
@@ -272,6 +275,10 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
     setPopoverState(initialPopoverState);
   };
 
+  const selectNoOptionsMessage = () => (
+    'Du har ingen versjoner å deploye'
+  );
+
   const returnDeployDropDown = () => (
     <>
       <Typography>
@@ -286,6 +293,8 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           name='color'
           options={releases}
           onChange={doSetSelectedImageTag}
+          noOptionsMessage={selectNoOptionsMessage}
+          placeholder={''}
         />
       </div>
       <div className={classes.deployButton} ref={deployButtonRef}>
@@ -346,38 +355,81 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
             }
             {deploymentStatus === deploymentStatusEnum.succeeded &&
               <Typography>
-                Versjon {deployHistory[0].tagName} er deployet kl.
+                {/* Versjon {deployHistory[0].tagName} er deployet kl.
                 {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')} til {envName}
                 av {deployHistory[0].createdBy}.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}
+                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)} */}
+
+                {getParsedLanguageFromKey('app_deploy_messages.success', language, [
+                    deployHistory[0].tagName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    envName,
+                    deployHistory[0].createdBy,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.failed &&
               <Typography>
-                Noe gikk galt under deploy av versjon {deployHistory[0].tagName} kl.
+                {/* Noe gikk galt under deploy av versjon {deployHistory[0].tagName} kl.
                 {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')} til {envName}-miljøet.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}
+                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)} */}
+
+                {getParsedLanguageFromKey('app_deploy_messages.failed', language, [
+                    deployHistory[0].tagName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    envName,
+                    deployHistory[0].createdBy,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.canceled &&
               <Typography>
-                Vi opplever en feil og har derfor stoppet din deploy av versjon {deployHistory[0].tagName} kl.
+                {/* Vi opplever en feil og har derfor stoppet din deploy av versjon {deployHistory[0].tagName} kl.
                 {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')} til {envName}-miljøet.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}
+                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)} */}
+
+                {getParsedLanguageFromKey('app_deploy_messages.canceled', language, [
+                    deployHistory[0].tagName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    envName,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
+
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.partiallySucceeded &&
               <Typography>
-                Versjon {deployHistory[0].tagName} er deployet til {envName}-miljøet kl.
+                {/* Versjon {deployHistory[0].tagName} er deployet til {envName}-miljøet kl.
                 {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')}, men inneholderfeil / mangler.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}
+                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)} */}
+
+                {getParsedLanguageFromKey('app_deploy_messages.partiallySucceeded', language, [
+                    deployHistory[0].tagName,
+                    envName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.none &&
               <Typography>
-                Vi klarte ikke å gjennomføre din deploy av versjon {deployHistory[0].tagName} kl.
+                {/* Vi klarte ikke å gjennomføre din deploy av versjon {deployHistory[0].tagName} kl.
                 {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')} til {envName}-miljøet.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}.
+                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}. */}
+
+                {getParsedLanguageFromKey('app_deploy_messages.none', language, [
+                    deployHistory[0].tagName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    envName,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
           </Grid>
