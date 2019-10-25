@@ -3,6 +3,7 @@ namespace Altinn.Platform.Storage.Controllers
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Security.Claims;
     using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Primitives;
     using Microsoft.Net.Http.Headers;
 
     /// <summary>
@@ -387,6 +389,26 @@ namespace Altinn.Platform.Storage.Controllers
             else
             {
                 theStream = request.Body;
+                StringValues headerValues;
+                if (request.Headers.TryGetValue("content-disposition", out headerValues))
+                {
+                    string contentDisposition = headerValues.ToString();
+                    List<string>contenDispValues = contentDisposition.Split(';').ToList();
+
+                    string fileNameValue = contenDispValues.FirstOrDefault(x => x.Contains("filename", StringComparison.CurrentCultureIgnoreCase));
+
+                    if (!string.IsNullOrEmpty(fileNameValue))
+                    {
+                        string[] valueParts = fileNameValue.Split('=');
+
+                        if (valueParts.Count() == 2)
+                        {
+                            contentFileName = valueParts[1];
+                        }
+                    }
+
+                }
+
                 contentType = request.ContentType;
             }
 
