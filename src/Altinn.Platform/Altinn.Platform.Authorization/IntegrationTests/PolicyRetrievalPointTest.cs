@@ -118,6 +118,67 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             await Assert.ThrowsAsync<ArgumentException>(() => _sut.GetPolicyAsync(request));
         }
 
+        /// <summary>
+        /// Test case: Write to storage a file that contains the necessary attributes, org and app.
+        /// Expected: WritePolicyAsync returns true.
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC01()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/skd/taxreport/policy.xml");
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+
+            // Act
+            bool successfullyStored = await _sut.WritePolicyAsync("org", "app", dataStream);
+
+            // Assert
+            Assert.True(successfullyStored);
+        }
+
+        /// <summary>
+        /// Test case: Write a file to storage where the org and app parameter arguments is empty.
+        /// Expected: WritePolicyAsync throws ArgumentException.
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC02()
+        {
+            // Arrange
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("", "", new MemoryStream()));
+        }
+
+        /// <summary>
+        /// Test case: Write to storage a file that is null.
+        /// Expected: WritePolicyAsync throws ArgumentException.
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC03()
+        {
+            // Arrange
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "app", null));
+        }
+
+        /// <summary>
+        /// Test case: Write to storage a file that do not contain attribute info about org and app.
+        /// Expected: WritePolicyAsync throws ArgumentException.
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC04()
+        {
+            // Arrange
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "app", new MemoryStream()));
+        }
+
+
         private List<XacmlContextAttributes> GetXacmlContextAttributesWithOrgAndApp()
         {
             List<XacmlContextAttributes> xacmlContexts = new List<XacmlContextAttributes>();

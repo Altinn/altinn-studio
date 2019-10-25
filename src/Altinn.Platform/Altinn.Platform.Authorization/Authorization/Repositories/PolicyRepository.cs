@@ -55,7 +55,7 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<bool> WritePolicy(string filepath, Stream fileStream)
+        public async Task<bool> WritePolicyAsync(string filepath, Stream fileStream)
         {
             CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
             try

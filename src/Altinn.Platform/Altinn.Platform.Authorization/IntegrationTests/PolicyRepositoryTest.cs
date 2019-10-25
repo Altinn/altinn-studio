@@ -59,7 +59,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
-            bool successfullyStored = await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            bool successfullyStored = await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
 
             // Assert
             CloudBlockBlob storedBlob = _blobContainer.GetBlockBlobReference($"ttd/repository-test-app/policy.xml");
@@ -81,7 +81,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             
             // Act
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
-            await pr.WritePolicy($"{ORG}/tc-02-app/policy.xml", dataStream);
+            await pr.WritePolicyAsync($"{ORG}/tc-02-app/policy.xml", dataStream);
 
             BlobResultSegment blobResultSegment = await _blobContainer.ListBlobsSegmentedAsync("", true,
             new BlobListingDetails(), null, null, null, null);
@@ -104,7 +104,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
 
             CloudBlockBlob storedBlob = _blobContainer.GetBlockBlobReference($"ttd/repository-test-app/policy.xml");
             var memoryStream = new MemoryStream();
@@ -128,8 +128,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
-            await pr.WritePolicy("org/app/policy.xml", dataStream);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            await pr.WritePolicyAsync("org/app/policy.xml", dataStream);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
 
             // Assert       
             BlobResultSegment blobResultSegment = await _blobContainer.ListBlobsSegmentedAsync("", true,
@@ -152,7 +152,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
 
             // Act & Assert       
-            await Assert.ThrowsAsync<Microsoft.WindowsAzure.Storage.StorageException>(() => pr.WritePolicy($"{ORG}/tc-02-app/policy.xml", dataStream));
+            await Assert.ThrowsAsync<Microsoft.WindowsAzure.Storage.StorageException>(() => pr.WritePolicyAsync($"{ORG}/tc-02-app/policy.xml", dataStream));
 
             // Cleanup
             _fixture.StartAndWaitForExit("start");
@@ -172,8 +172,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
             // Act
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
 
             // Assert       
             BlobResultSegment blobResultSegment = await _blobContainer.ListBlobsSegmentedAsync("", true,
@@ -285,7 +285,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             await _blobContainer.CreateIfNotExistsAsync();
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
         }
     }
 }

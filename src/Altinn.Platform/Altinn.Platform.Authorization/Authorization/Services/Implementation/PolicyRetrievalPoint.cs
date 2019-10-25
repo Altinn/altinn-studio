@@ -36,9 +36,17 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return (policyStream != null) ? ParsePolicy(policyStream) : null; 
         }
 
-        public XacmlPolicy WritePolicy(string org, string app, Stream fileStream)
+        /// <inheritdoc/>
+        public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app)
+                || fileStream == null || !PolicyFileContainsAppAndOrgAttributes(fileStream))
+            {
+                throw new ArgumentException();
+            }
+
+            string filePath = GetAltinnAppsPolicyPath(org, app);
+            return await _repository.WritePolicyAsync(filePath, fileStream);
         }
 
         private string GetPolicyPath(XacmlContextRequest request)
@@ -95,6 +103,36 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return policy;
+        }
+
+        private bool PolicyFileContainsAppAndOrgAttributes(Stream stream)
+        {
+            using (StreamReader sr = new StreamReader(stream))
+            {
+                bool orgAttribute = false;
+                bool appAttribute = false;
+                string line;
+
+                while ((line = sr.ReadLine()) != null)
+                {
+                    if (line.Contains("urn:altinn:org"))
+                    {
+                        orgAttribute = true;
+                    }
+
+                    if (line.Contains("urn:altinn:app"))
+                    {
+                        appAttribute = true;
+                    }
+
+                    if (orgAttribute && appAttribute)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
