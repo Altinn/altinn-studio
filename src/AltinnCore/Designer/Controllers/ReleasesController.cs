@@ -28,10 +28,10 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets releases based on the query
+        /// Gets releases based on a query
         /// </summary>
-        /// <param name="query">Release query model</param>
-        /// <returns></returns>
+        /// <param name="query">Document query model</param>
+        /// <returns>DocumentResults of type ReleaseEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         public async Task<DocumentResults<ReleaseEntity>> Get([FromQuery]DocumentQueryModel query)
@@ -45,7 +45,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ReleaseEntity> Create([FromBody]CreateReleaseRequestViewModel createRelease)
-            => await _releaseService.CreateAsync(createRelease.ToEntityModel());
+        public async Task<ActionResult<ReleaseEntity>> Create([FromBody]CreateReleaseRequestViewModel createRelease)
+            => Created(string.Empty, await _releaseService.CreateAsync(createRelease.ToEntityModel()));
     }
 }
