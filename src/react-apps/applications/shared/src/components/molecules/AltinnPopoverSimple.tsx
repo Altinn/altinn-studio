@@ -16,16 +16,6 @@ export interface IAltinnPopoverProvidedProps {
   transformOrigin: PopoverOrigin;
 }
 
-const defaultAnchorOrigin: PopoverOrigin = {
-  horizontal: 'left',
-  vertical: 'top',
-};
-
-const defaultTransformOrigin: PopoverOrigin = {
-  horizontal: 'left',
-  vertical: 'top',
-};
-
 export interface IAltinnPopoverProps extends IAltinnPopoverProvidedProps {
 
 }
@@ -81,6 +71,16 @@ const useStyles = makeStyles(() =>
   },
   ),
 );
+
+const defaultAnchorOrigin: PopoverOrigin = {
+  horizontal: 'left',
+  vertical: 'top',
+};
+
+const defaultTransformOrigin: PopoverOrigin = {
+  horizontal: 'left',
+  vertical: 'top',
+};
 
 const AltinnPopoverComponent = (props: any) => {
   const {

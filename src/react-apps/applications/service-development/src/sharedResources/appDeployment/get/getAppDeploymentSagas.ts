@@ -6,7 +6,6 @@ import { get } from '../../../../../shared/src/utils/networking';
 import { getAppDeploymentsUrl } from '../../../utils/urlHelper';
 import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
 import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
-// import { IDeploymentResults } from '../types';
 
 // export const mockDeployments: IDeploymentResults = {
 //   results: []
