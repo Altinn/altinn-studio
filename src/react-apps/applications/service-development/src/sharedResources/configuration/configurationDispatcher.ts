@@ -2,6 +2,7 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as GetEnvironments from './getEnvironments/getEnvironmentsActions';
+import * as GetOrgs from './getOrgs/getOrgsActions';
 
 /**
  * Define a interface describing the the different Actions available
@@ -11,6 +12,9 @@ export interface IConfigurationDispatcher extends ActionCreatorsMapObject {
   getEnvironments: () => Action;
   getEnvironmentsFulfilled: (result: any) => GetEnvironments.IGetEnvironmentsFulfilled;
   getEnvironmentsRejected: (error: Error) => GetEnvironments.IGetEnvironmentsRejected;
+  getOrgs: () => GetOrgs.IGetOrgs;
+  getOrgsFulfilled: ( orgs: any ) => GetOrgs.IGetOrgsFulfilled;
+  getOrgsRejected: ( error: Error) => GetOrgs.IGetOrgsRejected;
 }
 
 /**
@@ -21,7 +25,12 @@ const actions: IConfigurationDispatcher = {
   getEnvironments: GetEnvironments.GetEnvironmentsAction,
   getEnvironmentsFulfilled: GetEnvironments.GetEnvironmentsFulfilledAction,
   getEnvironmentsRejected: GetEnvironments.GetEnvironmentsRejectedAction,
+  getOrgs: GetOrgs.getOrgs,
+  getOrgsFulfilled: GetOrgs.getOrgsFulfilled,
+  getOrgsRejected: GetOrgs.getOrgsRejected,
 };
+
+
 
 /**
  * Bind action creators to redux store

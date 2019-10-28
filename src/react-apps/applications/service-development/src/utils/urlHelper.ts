@@ -9,6 +9,7 @@ export const getRepoStatusUrl = (): string => {
 export const releasesUrlPost: string = `${origin}/designer/api/v1/${org}/${app}/releases`;
 export const releasesUrlGet: string = `${releasesUrlPost}?sortBy=created&sortDirection=Descending`;
 export const languageUrl: string = `${origin}/designerapi/Language/GetLanguageAsJSON`;
+export const getOrgsListUrl: string = 'https://altinncdn.no/orgs/altinn-orgs.json';
 
 export const getReleaseBuildPipelineLink = (buildId: string) =>
   `https://dev.azure.com/brreg/altinn-studio/_build/results?buildId=${buildId}`;

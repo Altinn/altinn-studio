@@ -159,7 +159,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   const deployButtonRef = React.createRef<HTMLInputElement>();
 
   const {
-    deployError, deployHistory, deploymentList, envName, envObj, language, releases, urlToApp, urlToAppLinkTxt
+    deployError, deployHistory, deploymentList, envName, envObj, language, releases, urlToApp, urlToAppLinkTxt,
   } = props;
 
   const appDeployedVersion = deploymentList && deploymentList.items && deploymentList.items.length > 0 ?

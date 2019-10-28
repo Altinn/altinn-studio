@@ -31,7 +31,7 @@ export interface IDeployContainer extends WithStyles<typeof styles> {
 
 }
 
-const DeployContainer = (props: IDeployContainer) => {
+export const DeployContainer = (props: IDeployContainer) => {
   const { org, app } = window as Window as IAltinnWindow;
   const { classes } = props;
 
