@@ -68,7 +68,8 @@ const DeployContainer = (props: IDeployContainer) => {
     return (
       !environments.length ||
       !appDeployments.deployments ||
-      !deployableImages
+      !deployableImages ||
+      !language
     );
   };
 

@@ -24,12 +24,17 @@ export function getUserLanguage() {
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
-export const getParsedLanguageFromKey = (key: string, language: any, params?: any[]) => {
+export const getParsedLanguageFromKey = (key: string, language: any, params?: any[], stringOutput?: boolean) => {
   const name = getLanguageFromKey(key, language);
   const paramParsed = params ? replaceParameters(name, params) : name;
-  const dirty = marked(paramParsed);
-  const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['a', 'b'], ALLOWED_ATTR: ['href', 'target']});
-  return ReactHtmlParser(clean);
+
+  if (stringOutput) {
+    return paramParsed;
+  } else {
+    const dirty = marked(paramParsed);
+    const clean = DOMPurify.sanitize(dirty, {ALLOWED_TAGS: ['a', 'b'], ALLOWED_ATTR: ['href', 'target']});
+    return ReactHtmlParser(clean);
+  }
 };
 
 const replaceParameters = (nameString: any, params: any[]) => {

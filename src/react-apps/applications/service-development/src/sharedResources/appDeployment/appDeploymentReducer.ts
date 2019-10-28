@@ -13,7 +13,8 @@ export interface IAppDeploymentState {
 
 export interface ICreateAppDeploymentErrors {
   env: string;
-  error: Error;
+  errorMessage: string;
+  errorCode: string;
 }
 
 const initialState: IAppDeploymentState = {
@@ -27,7 +28,8 @@ update.extend('$updateCreateAppDeploymentError', (params: any, original: any) =>
 
   const newAppDeploymentError: ICreateAppDeploymentErrors = {
     env: params.env,
-    error: params.error ? params.error.message : null,
+    errorMessage: params.error ? params.error.message : null,
+    errorCode: params.error ? params.error.response.status : null,
   };
 
   newState.push(newAppDeploymentError);
@@ -57,7 +59,7 @@ const appDeploymentReducer: Reducer<IAppDeploymentState> = (
       const { error } = action as IGetAppDeploymentsRejected;
       return update<IAppDeploymentState>(state, {
         getAppDeploymentsError: {
-          $set: error,
+          $set: error.message,
         },
       });
     }
