@@ -44,7 +44,7 @@ namespace Altinn.Platform.Authentication.Controllers
         private readonly ILogger logger;
         private readonly GeneralSettings generalSettings;
         private readonly JwtCookieHandler jwtHandler;
-        private readonly ISigningKeysRetriever signinKeysRetriever;
+        private readonly ISigningKeysRetriever signingKeysRetriever;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="AuthenticationController"/> class with the given dependencies.
@@ -52,19 +52,19 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="logger">A generic logger</param>
         /// <param name="generalSettings">Configuration for the authentication scope.</param>
         /// <param name="jwtHandler">the handler for jwt cookie authentication</param>
-        /// <param name="signinKeysRetriever">The class to use to obtain the signing keys.</param>
+        /// <param name="signingKeysRetriever">The class to use to obtain the signing keys.</param>
         /// <param name="organisationRepository">the repository object that holds valid organisations</param>
         public AuthenticationController(
             ILogger<AuthenticationController> logger,
             IOptions<GeneralSettings> generalSettings,
             JwtCookieHandler jwtHandler,
-            ISigningKeysRetriever signinKeysRetriever,
+            ISigningKeysRetriever signingKeysRetriever,
             IOrganisationRepository organisationRepository)
         {
             this.logger = logger;
             this.generalSettings = generalSettings.Value;
             this.jwtHandler = jwtHandler;
-            this.signinKeysRetriever = signinKeysRetriever;
+            this.signingKeysRetriever = signingKeysRetriever;
             this.organisationRepository = organisationRepository;
         }
 
@@ -199,7 +199,7 @@ namespace Altinn.Platform.Authentication.Controllers
             try
             {
                 ICollection<SecurityKey> signingKeys =
-                    await signinKeysRetriever.GetSigningKeys(generalSettings.GetMaskinportenWellKnownConfigEndpoint);
+                    await signingKeysRetriever.GetSigningKeys(generalSettings.GetMaskinportenWellKnownConfigEndpoint);
 
                 logger.LogInformation($"Token to be validated {originalToken}");
                 TokenValidationParameters validationParameters = new TokenValidationParameters

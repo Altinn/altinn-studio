@@ -42,7 +42,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests
         /// <returns>ClaimsPrincipal</returns>
         public static ClaimsPrincipal ValidateToken(string token)
         {
-            X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+            X509Certificate2 cert = new X509Certificate2("selfSignedTestCertificatePublic.cer");
             SecurityKey key = new X509SecurityKey(cert);
 
             TokenValidationParameters validationParameters = new TokenValidationParameters
@@ -61,7 +61,7 @@ namespace Altinn.Platform.Authentication.IntegrationTests
 
         private static SigningCredentials GetSigningCredentials()
         {
-            X509Certificate2 cert = new X509Certificate2("jwtselfsignedcert.pfx", "qwer1234");
+            X509Certificate2 cert = new X509Certificate2("selfSignedTestCertificate.pfx", "qwer1234");
             return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
         }
     }
