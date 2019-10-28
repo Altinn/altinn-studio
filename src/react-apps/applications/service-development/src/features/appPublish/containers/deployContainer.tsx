@@ -45,6 +45,7 @@ const DeployContainer = (props: IDeployContainer) => {
   const deployableImages: IAppReleaseState = useSelector((state: IServiceDevelopmentState) => state.appReleases);
   const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) =>
     state.configuration);
+  const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
 
   React.useEffect(() => {
     ConfigurationActions.getEnvironments();
@@ -84,7 +85,8 @@ const DeployContainer = (props: IDeployContainer) => {
     return (
       !environments.length ||
       !appDeployments.deployments ||
-      !deployableImages
+      !deployableImages ||
+      !language
     );
   };
 
@@ -104,8 +106,8 @@ const DeployContainer = (props: IDeployContainer) => {
               key={index}
               envName={env.name}
               envObj={env}
-              urlToApp={`https://${org}.${env.name}.${env.hostname}/${org}/${app}`}
-              urlToAppLinkTxt={`${org}.${env.name}.${env.hostname}/${org}/${app}`}
+              urlToApp={`https://${org}.${env.hostname}/${org}/${app}`}
+              urlToAppLinkTxt={`${org}.${env.hostname}/${org}/${app}`}
               deploymentList={
                 appCluster.deploymentList &&
                 appCluster.deploymentList.find((elem: any) => elem.env === env.name)
@@ -114,6 +116,7 @@ const DeployContainer = (props: IDeployContainer) => {
               deployHistory={appDeployments.deployments.filter((deployment: any) => deployment.envName === env.name)}
               deployError={createAppDeploymentErrors.filter(
                               (error: ICreateAppDeploymentErrors) => error.env === env.name)}
+              language={language}
             />
           );
         })

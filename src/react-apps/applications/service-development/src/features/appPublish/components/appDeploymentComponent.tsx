@@ -17,6 +17,7 @@ import AltinnSpinner from '../../../../../shared/src/components/AltinnSpinner';
 import AltinnPopoverSimple from '../../../../../shared/src/components/molecules/AltinnPopoverSimple';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getValueByPath } from '../../../../../shared/src/utils/getValueByPath';
+import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterReducer';
 import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
 import { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/appDeploymentReducer';
@@ -32,6 +33,7 @@ export interface IReceiptContainerProps {
   deployError?: ICreateAppDeploymentErrors[];
   deployHistory?: any;
   releases?: any[];
+  language: any;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -58,11 +60,10 @@ const useStyles = makeStyles(() =>
       paddingLeft: '5rem',
     },
     select: {
-      maxWidth: '40rem',
+      maxWidth: '34rem',
     },
     gridItem: {
       paddingRight: '2rem',
-      // border: '1px solid black',
     },
     gridBorder: {
       border: '1px solid black',
@@ -81,7 +82,7 @@ const useStyles = makeStyles(() =>
         minWidth: '30rem',
       },
       [theme.breakpoints.up('lg')]: {
-        minWidth: '40rem',
+        minWidth: '56rem',
       },
     },
     colorBlack: {
@@ -113,6 +114,9 @@ const useStyles = makeStyles(() =>
     },
     paperProps: {
       backgroundColor: '#F9CAD3',
+    },
+    typographyTekniskFeilkode: {
+      paddingTop: '1.2rem',
     },
   }),
 );
@@ -154,7 +158,9 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
 
   const deployButtonRef = React.createRef<HTMLInputElement>();
 
-  const { deployError, deployHistory, deploymentList, envName, envObj, releases, urlToApp, urlToAppLinkTxt } = props;
+  const {
+    deployError, deployHistory, deploymentList, envName, envObj, language, releases, urlToApp, urlToAppLinkTxt
+  } = props;
 
   const appDeployedVersion = deploymentList && deploymentList.items && deploymentList.items.length > 0 ?
     deploymentList.items[0].spec.template.spec.containers[0].image.split(':')[1] : undefined;
@@ -178,7 +184,6 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   };
 
   const startDeploy = () => {
-    console.log('startDeploy', selectedImageTag, envName);
     setDeployInProgress(true);
     setDeployButtonHasShownError(false);
     AppDeploymentActions.createAppDeployment(selectedImageTag, envObj);
@@ -213,28 +218,22 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
       now < deployCreatedPlusOneHour ? setShouldDisplayDeployStatus(true) : setShouldDisplayDeployStatus(false);
     }
 
-    if (deployButtonHasShownError !== true && deployError && deployError[0] && deployError[0].error !== null) {
+    if (deployButtonHasShownError !== true && deployError && deployError[0] && deployError[0].errorMessage !== null) {
       deployFailedPopover('Create deployment failed');
     }
 
   }, [deployHistory]);
-
-  const returnBuildLogLink = (linkTxt: string, buildId: string|number) => (
-    <AltinnLink
-      linkTxt={linkTxt}
-      url={getAzureDevopsBuildResultUrl(buildId)}
-      shouldShowIcon={false}
-      classes={{}}
-    />
-  );
 
   const deployButtonConfirmationPopover = (event: any) => {
     setPopoverState({
       ...popoverState,
       children: (
         <Typography>
-          {`Er du sikker på at du vil deploye ${selectedImageTag} til miljøet.
-            Dette vil overskrive eksisterende versjon ${appDeployedVersion}`}
+          {getParsedLanguageFromKey('app_deploy_messages.deploy_confirmation', language, [
+                    selectedImageTag,
+                    appDeployedVersion,
+                  ],
+          )}
         </Typography>
         ),
       btnMethod: handleDeployButtonConfirmation,
@@ -252,10 +251,19 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
     setPopoverState({
       ...popoverState,
       children: (
-        <Typography>Huff da, vi opplever en teknisk feil og får derfor ikke startet deploy.
-        Forsøk igjen senere. Dersom problemet vedvarer, kontakt Altinn servicedesk</Typography>
+        <>
+          <Typography>
+            {getParsedLanguageFromKey('app_deploy_messages.technical_error_1', language, [])}
+          </Typography>
+          <div className={classes.typographyTekniskFeilkode}>
+            <Typography variant='caption' >
+              {getParsedLanguageFromKey('app_deploy_messages.technical_error_code', language, [
+                deployError[0].errorCode,
+              ])}
+            </Typography>
+          </div>
+        </>
       ),
-      btnCancelText: 'lukk',
       anchorOrigin: { horizontal: 'left', vertical: 'bottom' },
       transformOrigin: { horizontal: 'left', vertical: 'top' },
       paperProps: { classes: { root: classes.paperProps } },
@@ -272,10 +280,14 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
     setPopoverState(initialPopoverState);
   };
 
+  const selectNoOptionsMessage = () => (
+    'Du har ingen versjoner å deploye'
+  );
+
   const returnDeployDropDown = () => (
     <>
       <Typography>
-        Velg ønsket versjon for deploy
+        {getLanguageFromKey('app_deploy_messages.choose_version', language)}
       </Typography>
       <div className={classes.select}>
         <Select
@@ -286,11 +298,13 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           name='color'
           options={releases}
           onChange={doSetSelectedImageTag}
+          noOptionsMessage={selectNoOptionsMessage}
+          placeholder={''}
         />
       </div>
       <div className={classes.deployButton} ref={deployButtonRef}>
         <AltinnButton
-          btnText='Deploy ny versjon'
+          btnText={getLanguageFromKey('app_deploy_messages.btn_deploy_new_version', language)}
           disabled={deployButtonDisabled}
           onClickFunction={deployButtonConfirmationPopover}
         />
@@ -346,38 +360,60 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
             }
             {deploymentStatus === deploymentStatusEnum.succeeded &&
               <Typography>
-                Versjon {deployHistory[0].tagName} er deployet kl.
-                {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')} til {envName}
-                av {deployHistory[0].createdBy}.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}
+                {getParsedLanguageFromKey('app_deploy_messages.success', language, [
+                    deployHistory[0].tagName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    envName,
+                    deployHistory[0].createdBy,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.failed &&
               <Typography>
-                Noe gikk galt under deploy av versjon {deployHistory[0].tagName} kl.
-                {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')} til {envName}-miljøet.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}
+                {getParsedLanguageFromKey('app_deploy_messages.failed', language, [
+                    deployHistory[0].tagName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    envName,
+                    deployHistory[0].createdBy,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.canceled &&
               <Typography>
-                Vi opplever en feil og har derfor stoppet din deploy av versjon {deployHistory[0].tagName} kl.
-                {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')} til {envName}-miljøet.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}
+                {getParsedLanguageFromKey('app_deploy_messages.canceled', language, [
+                    deployHistory[0].tagName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    envName,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
+
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.partiallySucceeded &&
               <Typography>
-                Versjon {deployHistory[0].tagName} er deployet til {envName}-miljøet kl.
-                {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')}, men inneholderfeil / mangler.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}
+                {getParsedLanguageFromKey('app_deploy_messages.partiallySucceeded', language, [
+                    deployHistory[0].tagName,
+                    envName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.none &&
               <Typography>
-                Vi klarte ikke å gjennomføre din deploy av versjon {deployHistory[0].tagName} kl.
-                {moment(new Date(deployHistory[0].build.finished)).format('HH:mm')} til {envName}-miljøet.
-                For mer informasjon se {returnBuildLogLink('byggloggen', deployHistory[0].build.id)}.
+                {getParsedLanguageFromKey('app_deploy_messages.none', language, [
+                    deployHistory[0].tagName,
+                    moment(new Date(deployHistory[0].build.finished)).format('HH:mm'),
+                    envName,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
           </Grid>
@@ -397,8 +433,9 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           />
         </Grid>
         <Grid item={true} xs={true}>
-          Huff da, vi opplever en teknisk feil og klarer derfor ikke å tilgjengeliggjøre deploy.
-          Vennligst prøv igjen senere. Dersom problemet vedvarer, kontakt Altinn servicedesk LINK TODO
+          {/* Huff da, vi opplever en teknisk feil og klarer derfor ikke å tilgjengeliggjøre deploy.
+          Vennligst prøv igjen senere. Dersom problemet vedvarer, kontakt Altinn servicedesk. */}
+          {getParsedLanguageFromKey('app_deploy_messages.unable_to_list_deploys', language)}
         </Grid>
       </Grid>
     </>
@@ -411,25 +448,25 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           <Grid container={true} item={true} className={classes.headingContainer}>
             <Grid item={true} className={classes.gridEnvTitle} xs={3}>
               <Typography className={classes.envTitle}>
-                {envName.toUpperCase()}-miljøet
+                {getParsedLanguageFromKey('app_deploy.environment', language, [envName.toUpperCase()])}
               </Typography>
             </Grid>
             <Grid item={true} className={classes.gridItem} xs={3}>
               {deploymentList && deploymentList.getStatus.success === true &&
                 appDeployedVersion !== undefined &&
                   <>
-                    Ute i miljøet: version {appDeployedVersion}
+                    {getParsedLanguageFromKey('app_deploy.deployed_version', language, [appDeployedVersion])}
                   </>
               }
               {deploymentList && deploymentList.getStatus.success === true &&
                 appDeployedVersion === undefined &&
                   <>
-                    Ingen app er ute i miljøet
+                    {getParsedLanguageFromKey('app_deploy.no_app_deployed', language)}
                   </>
               }
               {deploymentList && deploymentList.getStatus.success === false &&
                   <>
-                    Ute i miljøet: Midlertidig utilgjengelig
+                    {getParsedLanguageFromKey('app_deploy.deployed_version_unavailable', language)}
                   </>
               }
             </Grid>
@@ -451,31 +488,31 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
 
           <Grid item={true} className={classes.deploymentListGrid}>
             <Typography>
-              Tidligere versjoner deployet til {name}-miløet
+            {getParsedLanguageFromKey('app_deploy_table.deployed_version_history', language, [envName.toUpperCase()])}
             </Typography>
             <div className={classes.tableWrapper}>
               <Table
                 stickyHeader={true}
                 className={classes.table}
                 size='small'
-                aria-label={`Liste over versjoner deployet til ${envName}-miljøet`}
+                aria-label={getParsedLanguageFromKey('app_deploy_table.deploy_table_aria', language, [envName], true)}
               >
                 <TableHead>
                   <TableRow className={classes.tableRow}>
                     <TableCell className={classes.colorBlack}>
                       <Typography>
-                        Versjon
+                        {getParsedLanguageFromKey('app_deploy_table.version_col', language)}
                       </Typography>
                     </TableCell>
                     <TableCell className={classes.colorBlack}>
-                    <Typography>
-                        Tilgjengelig i miljøet
+                      <Typography>
+                        {getParsedLanguageFromKey('app_deploy_table.available_version_col', language)}
                       </Typography>
                     </TableCell>
                     <Hidden mdDown={true}>
                       <TableCell className={classes.colorBlack}>
                         <Typography>
-                          Deployet av
+                          {getParsedLanguageFromKey('app_deploy_table.deployed_by_col', language)}
                         </Typography>
                       </TableCell>
                     </Hidden>

@@ -29,6 +29,16 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// Gets deployments based on a query
+        /// </summary>
+        /// <param name="query">Document query model</param>
+        /// <returns>DocumentResults of type DeploymentEntity</returns>
+        [HttpGet]
+        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
+        public async Task<DocumentResults<DeploymentEntity>> Get([FromQuery]DocumentQueryModel query)
+            => await _deploymentService.GetAsync(query);
+
+        /// <summary>
         /// Creates a release
         /// </summary>
         /// <param name="createDeployment">Release model</param>
@@ -37,15 +47,6 @@ namespace AltinnCore.Designer.Controllers
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaPushPermission)]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult<DeploymentEntity>> Create([FromBody]CreateDeploymentRequestViewModel createDeployment)
-            => await _deploymentService.CreateAsync(createDeployment.ToDomainModel());
-
-        /// <summary>
-        /// Gets deployments
-        /// </summary>
-        /// <returns>DocumentResults of type DeploymentEntity</returns>
-        [HttpGet]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<DocumentResults<DeploymentEntity>> Get([FromQuery]DocumentQueryModel query)
-            => await _deploymentService.GetAsync(query);
+            => Created(string.Empty, await _deploymentService.CreateAsync(createDeployment.ToDomainModel()));
     }
 }
