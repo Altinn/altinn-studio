@@ -236,10 +236,10 @@ function* getAppDeploymentIntervalSaga(): SagaIterator {
       const deployments = yield call(get, `${getAppDeploymentsUrl()}?sortDirection=ascending&sortBy=created`);
 
       yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, deployments);
-      yield call(delay, 500000);
+      yield call(delay, 10000);
     } catch (err) {
       yield call(AppDeploymentActionDispatcher.getAppDeploymentsRejected, err);
-      yield call(delay, 500000);
+      yield call(delay, 10000);
     }
   }
 }
