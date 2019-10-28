@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Common.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Enums;
 using Altinn.App.Services.Interface;
@@ -32,6 +33,7 @@ namespace Altinn.App.Api.Controllers
         private readonly UserHelper userHelper;
         private readonly IPlatformServices platformService;
         private readonly IApplication appService;
+        private readonly IAltinnApp altinnApp;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -47,6 +49,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="profileService">profile service to access profile information about users and parties</param>
         /// <param name="platformService">platform</param>
         /// <param name="appService">application service for accessing application metadata.</param>
+        /// <param name="altinnApp">The app logic for current service</param>
         public DataController(
             IOptions<GeneralSettings> generalSettings,
             ILogger<DataController> logger,
@@ -56,7 +59,8 @@ namespace Altinn.App.Api.Controllers
             IExecution executionService,
             IProfile profileService,
             IPlatformServices platformService,
-            IApplication appService)
+            IApplication appService,
+            IAltinnApp altinnApp)
         {
             this.logger = logger;
 
@@ -66,6 +70,7 @@ namespace Altinn.App.Api.Controllers
             this.platformService = platformService;
             this.appService = appService;
             this.userHelper = new UserHelper(profileService, registerService, generalSettings);
+            this.altinnApp = altinnApp;
         }
 
         /// <summary>
@@ -118,7 +123,7 @@ namespace Altinn.App.Api.Controllers
 
             if (appLogic)
             {
-                return await CreateFormData(org, app, instance, elementType);
+                return await CreateAppModelData(org, app, instance, elementType);
             }
             else
             {
@@ -331,6 +336,46 @@ namespace Altinn.App.Api.Controllers
 
             return Created(dataUrl, createdElements);
         }
+
+
+        private async Task<ActionResult> CreateAppModelData(
+    string org,
+    string app,
+    Instance instanceBefore,
+    string elementType)
+        {
+            bool startService = true;
+            Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
+            
+            object appModel;
+
+            if (Request.ContentType == null)
+            {
+                appModel = altinnApp.CreateNewAppModel(elementType);;
+            }
+            else
+            {
+                appModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(elementType), out ActionResult contentError);
+                if (contentError != null)
+                {
+                    return contentError;
+                }
+            }
+
+
+            // send events to trigger application business logic
+            await altinnApp.RunAppEvent(AppEventType.AppModelCreation, appModel);
+
+            SelfLinkHelper.SetInstanceAppSelfLinks(instanceBefore, Request);
+
+            Instance instanceAfter = await dataService.InsertFormData(appModel, instanceGuid, altinnApp.GetAppModelType(elementType), org, app, int.Parse(instanceBefore.InstanceOwnerId));
+            SelfLinkHelper.SetInstanceAppSelfLinks(instanceAfter, Request);
+            List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);
+            string dataUrl = createdElements.First().DataLinks.Apps;
+
+            return Created(dataUrl, createdElements);
+        }
+
 
         /// <summary>
         /// Gets a data element from storage.

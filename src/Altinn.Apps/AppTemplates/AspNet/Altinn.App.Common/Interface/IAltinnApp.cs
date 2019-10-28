@@ -17,35 +17,14 @@ namespace Altinn.App.Common.Interface
         /// Creates a new Instance of the service model
         /// </summary>
         /// <returns>An instance of the service model</returns>
-        object CreateNewServiceModel(string dataModel);
-
-        /// <summary>
-        /// Sets the current populated service model to the service implementation.
-        /// </summary>
-        /// <param name="model">The service model to use</param>
-        void SetAppModel(object model);
-
-        /// <summary>
-        /// Set context for the current request
-        /// </summary>
-        /// <param name="requestContext">The current request context</param>
-        void SetContext(RequestContext requestContext);
-
-        /// <summary>
-        /// Sets the Context 
-        /// </summary>
-        /// <param name="requestContext">The current request context</param>
-        /// <param name="serviceContext">The current service context</param>
-        /// <param name="startServiceModel">The start service model</param>
-        /// <param name="modelState">The model state</param>
-        void SetContext(RequestContext requestContext, ServiceContext serviceContext, StartServiceModel startServiceModel, ModelStateDictionary modelState);
+        object CreateNewAppModel(string elementType);
 
         /// <summary>
         /// Event that is triggered 
         /// </summary>
         /// <param name="serviceEvent">The service event</param>
         /// <returns>Task to indicate when the event is completed</returns>
-        Task<bool> RunAppEvent(AppEventType appEvent);
+        Task<bool> RunAppEvent(AppEventType appEvent, object model);
 
         /// <summary>
         /// Get the service Type

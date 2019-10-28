@@ -40,5 +40,10 @@ namespace Altinn.App.Services.Enums
         /// </summary>
         AfterProcessChange = 7,
 
+        /// <summary>
+        /// Events that is triggered when a new app model is created. 
+        /// </summary>
+        AppModelCreation = 8,
+
     }
 }

@@ -96,6 +96,7 @@ namespace Altinn.App.Services.Implementation
             }
 
             instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
+
            
             // Save instantiated form model
             instance = await _data.InsertFormData(

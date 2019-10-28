@@ -35,6 +35,8 @@ namespace App.IntegrationTests.Mocks.Services
         public Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceId);
+
+            instance.Data = GetDataElements(org, app, instanceOwnerId, instanceId);
             return Task.FromResult(instance);
         }
 
@@ -70,5 +72,30 @@ namespace App.IntegrationTests.Mocks.Services
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances");
         }
+
+
+        private List<DataElement> GetDataElements(string org, string app, int instanceOwnerId, Guid instanceId)
+        {
+            string path = GetDataPath(org, app, instanceOwnerId, instanceId);
+            List<DataElement> dataElements = new List<DataElement>();
+
+            string[] files = Directory.GetFiles(path);
+
+            foreach (string file in files)
+            {
+                string content = System.IO.File.ReadAllText(Path.Combine(path, file));
+                DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                dataElements.Add(dataElement);
+            }
+
+            return dataElements;
+        }
+
+        private string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
+        }
+
     }
 }

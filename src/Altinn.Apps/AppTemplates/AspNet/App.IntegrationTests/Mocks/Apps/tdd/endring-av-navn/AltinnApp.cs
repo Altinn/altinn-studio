@@ -4,26 +4,26 @@ using Altinn.App.Services.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace Altinn.App.AppLogic
+namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn   
 {
     public class AltinnApp : IAltinnApp
     {
-        public object CreateNewAppModel(string elementType)
+        public object CreateNewAppModel(string dataModel)
         {
-            throw new NotImplementedException();
+            return new Skjema();
         }
 
         public Type GetAppModelType(string dataType)
         {
-            throw new NotImplementedException();
+            return typeof(Skjema);
         }
 
         public Task<bool> RunAppEvent(AppEventType appEvent, object model)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
     }
 }
