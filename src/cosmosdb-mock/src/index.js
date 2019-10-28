@@ -4,7 +4,6 @@ const { default: Routes } = require('@zeit/cosmosdb-server/lib/routes');
 const { default: Account } = require('@zeit/cosmosdb-server/lib/account');
 const {createDatabase} = require('./initialize-db');
 const {createCollection} = require('./initialize-colls');
-const {createRelease} = require('./create-release');
 
 const COSMOS_DB_PORT = 8081;
 const ACCOUNT = new Account();

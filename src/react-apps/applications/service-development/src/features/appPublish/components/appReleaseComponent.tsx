@@ -88,7 +88,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       return getLanguageFromKey('app_create_release_errors.check_status_on_build_error', language);
     }
     if (release.build.status !== BuildStatus.completed) {
-      return `${getLanguageFromKey('app_create_release.release_creating', langauge)} ${release.createdBy}`;
+      return `${getLanguageFromKey('app_create_release.release_creating', language)} ${release.createdBy}`;
     }
     return release.body;
   }
