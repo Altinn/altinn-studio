@@ -243,7 +243,7 @@ gulp.task('clean', gulp.series(
 gulp.task('develop', gulp.parallel(
   copyNodeModulePackages,
   setupWatchers,
-  run('dotnet run --urls=http://::5000'),
+  run('dotnet run'),
   run('npm run webpack-watch', {
     cwd: '../../react-apps/applications/service-development',
   })
