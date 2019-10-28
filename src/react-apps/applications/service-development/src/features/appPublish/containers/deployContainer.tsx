@@ -76,7 +76,12 @@ const DeployContainer = (props: IDeployContainer) => {
   return (
     <>
       {isLoading() &&
-        <AltinnContentLoader  width={705} height={561} />
+        <AltinnContentLoader  width={900} height={320}>
+          <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
+          <rect x='60' y='110' rx='0' ry='0' width='333' height='44' />
+          <rect x='60' y='171' rx='0' ry='0' width='202' height='41' />
+          <rect x='487' y='111' rx='0' ry='0' width='220' height='42' />
+        </AltinnContentLoader>
       }
       {!isLoading() &&
         environments.map((env: any, index: number) => {
@@ -85,8 +90,8 @@ const DeployContainer = (props: IDeployContainer) => {
               key={index}
               envName={env.name}
               envObj={env}
-              urlToApp={`https://${org}.${env.hostname}/${org}/${app}`}
-              urlToAppLinkTxt={`${org}.${env.hostname}/${org}/${app}`}
+              urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}`}
+              urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}`}
               deploymentList={
                 appCluster.deploymentList &&
                 appCluster.deploymentList.find((elem: any) => elem.env === env.name)
