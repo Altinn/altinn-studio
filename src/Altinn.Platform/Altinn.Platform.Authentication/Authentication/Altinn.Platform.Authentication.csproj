@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="2.2.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="5.5.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="2.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="2.0.2" />
@@ -24,11 +25,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="5.0.0-rc4" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="jwtselfsignedcert.pfx" />
     <None Remove="JWTValidationCert.cer" />
+    <None Remove="MaskinportenJwtValidationCert.cer" />
     <Content Include="jwtselfsignedcert.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -40,7 +44,8 @@
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp3.0\Altinn.Platform.Authentication.xml</DocumentationFile>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 </Project>
