@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
@@ -41,18 +42,19 @@ namespace Altinn.Platform.Authorization.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="fileStream">The policy file for the app.</param>
         [HttpPost]
-        public async Task<ActionResult> WritePolicy([FromQuery] string org, [FromQuery] string app, [FromBody] Stream fileStream)
+        [Consumes("application/xml")]
+        public async Task<ActionResult> WritePolicy([FromQuery] string org, [FromQuery] string app)
         {
-            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app) || fileStream == null)
+            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app) || Request.Body == null)
             {
                 return BadRequest();
             }
 
             try
             {
-                bool successfullyStored = await _prp.WritePolicyAsync(org, app, fileStream);
+                // Use Request.Body to capture raw data from body that is not in JSON format
+                bool successfullyStored = await _prp.WritePolicyAsync(org, app, Request.Body);
 
                 if (successfullyStored)
                 {

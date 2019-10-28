@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Constants;
@@ -39,13 +40,18 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
+            // Convert to a new Stream because the stream from Request.Body don't support seeking or reading a second time
+            string contentString = await new StreamReader(fileStream, Encoding.UTF8).ReadToEndAsync();
+            byte[] byteArray = Encoding.UTF8.GetBytes(contentString);
+            Stream dataStream = new MemoryStream(byteArray);
+
             if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app)
-                || fileStream == null || !PolicyFileContainsAppAndOrgAttributes(fileStream))
+                || fileStream == null || !PolicyFileContainsAppAndOrgAttributes(dataStream))
             {
                 throw new ArgumentException();
             }
 
-            XacmlPolicy xacmlPolicy = ParsePolicy(fileStream);
+            //XacmlPolicy xacmlPolicy = ParsePolicy(fileStream);
 
             string filePath = GetAltinnAppsPolicyPath(org, app);
             return await _repository.WritePolicyAsync(filePath, fileStream);

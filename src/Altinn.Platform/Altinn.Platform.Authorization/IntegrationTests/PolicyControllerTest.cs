@@ -9,7 +9,10 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -26,6 +29,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         {
             _fixture = fixture;
             _client = _fixture.GetClient();
+            _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("appliation/xml"));
       
 
             /*
@@ -49,28 +53,30 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Get existing file from storage.
-        /// Expected: GetPolicyAsync returns a file that is not null and status code 200.
+        /// Test case: Write file to storage.
+        /// Expected: WritePolicyAsync returns true and status code 200.
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC01()
+        public async Task WritePolicy_TC01()
         {
             // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/skd/taxreport/policy.xml");
+            StreamContent content = new StreamContent(dataStream);
+            //content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
 
             // Act
-            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/", null);
-
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
 
             // Assert
-
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         }
 
         /// <summary>
-        /// Test case: Get existing file from storage where request is null.
-        /// Expected: GetPolicyAsync returns status code 500 and a descriptive error message.
+        /// Test case: Write to storage a file that is null. 
+        /// Expected: GetPolicyAsync returns false and status code 500.
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC02()
+        public async Task WritePolicy_TC02()
         {
             // Arrange
 

@@ -9,6 +9,7 @@ using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -54,6 +55,11 @@ namespace Altinn.Platform.Authorization
             services.AddHttpClient<RolesClient>();
             services.AddHttpClient<SBLClient>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
 
             services.AddMvc(options =>
             {
