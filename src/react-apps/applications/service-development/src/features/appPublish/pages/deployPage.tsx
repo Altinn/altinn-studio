@@ -4,25 +4,34 @@ import { RouteComponentProps, withRouter } from 'react-router-dom';
 import DeployContainer from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 const styles = createStyles({
+  deployPaper: {
+    height: 'calc(100% - 111px)',
+  },
 });
 export interface IDeployPaperProps extends WithStyles<typeof styles>, RouteComponentProps {
 }
 function DeployPage(props: IDeployPaperProps) {
-  // const { classes } = props;
+  const { classes } = props;
   return (
     <Grid
-      container={true}
-      direction={'column'}
+      item={true}
+      className={classes.deployPaper}
     >
       <Grid
         container={true}
         direction={'row'}
         justify={'space-between'}
       >
-        <Grid item={true} xs={9}>
+        <Grid
+          item={true}
+          xs={9}
+        >
           <DeployContainer/>
         </Grid>
-        <Grid item={true} xs={3}>
+        <Grid
+          item={true}
+          xs={3}
+        >
           <ReleaseContainer/>
         </Grid>
       </Grid>

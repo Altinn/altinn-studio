@@ -1,13 +1,11 @@
-import { Button, createMuiTheme, createStyles, Grid, makeStyles, Popover } from '@material-ui/core';
+import { Button, createMuiTheme, createStyles, Grid, makeStyles } from '@material-ui/core';
+import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnPopoverProvidedProps {
   anchorEl: any;
-  anchorOrigin: {
-    horizontal: 'left' | 'center' | 'right' | number,
-    vertical: 'top' | 'center' | 'bottom' | number,
-  };
+  anchorOrigin: PopoverOrigin;
   btnClick?: any;
   btnConfirmText?: string;
   btnCancelText?: string;
@@ -15,10 +13,7 @@ export interface IAltinnPopoverProvidedProps {
   btnSecondaryId?: string;
   handleClose: any;
   paperProps?: any;
-  transformOrigin: {
-    horizontal: 'left' | 'center' | 'right' | number,
-    vertical: 'top' | 'center' | 'bottom' | number,
-  };
+  transformOrigin: PopoverOrigin;
 }
 
 export interface IAltinnPopoverProps extends IAltinnPopoverProvidedProps {
@@ -77,8 +72,23 @@ const useStyles = makeStyles(() =>
   ),
 );
 
+const defaultAnchorOrigin: PopoverOrigin = {
+  horizontal: 'left',
+  vertical: 'top',
+};
+
+const defaultTransformOrigin: PopoverOrigin = {
+  horizontal: 'left',
+  vertical: 'top',
+};
+
 const AltinnPopoverComponent = (props: any) => {
   const classes = useStyles(props);
+
+  const {
+    anchorOrigin = defaultAnchorOrigin,
+    transformOrigin = defaultTransformOrigin,
+  } = props;
 
   const handleClose = () => {
     props.handleClose();
@@ -96,14 +106,8 @@ const AltinnPopoverComponent = (props: any) => {
         open={props.anchorEl ? true : false}
         anchorEl={props.anchorEl}
         onClose={handleClose}
-        anchorOrigin={{
-          horizontal: props.anchorOrigin.horizontal ? props.anchorOrigin.horizontal : 'left',
-          vertical: props.anchorOrigin.vertical ? props.anchorOrigin.vertical : 'top',
-        }}
-        transformOrigin={{
-          horizontal: props.transformOrigin.horizontal ? props.transformOrigin.horizontal : 'left',
-          vertical: props.transformOrigin.vertical ? props.transformOrigin.vertical : 'top',
-        }}
+        anchorOrigin={anchorOrigin}
+        transformOrigin={transformOrigin}
         anchorReference='anchorEl'
         PaperProps={{ square: true, ...props.paperProps }}
       >

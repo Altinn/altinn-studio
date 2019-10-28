@@ -1,0 +1,16 @@
+{
+  "name": "cosmosdb-mock",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/cosmos": "^3.3.6",
+    "@zeit/cosmosdb-server": "^0.3.1",
+    "uuid": "^3.3.3"
+  }
+}
