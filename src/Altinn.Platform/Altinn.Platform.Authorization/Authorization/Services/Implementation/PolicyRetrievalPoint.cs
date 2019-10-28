@@ -45,6 +45,8 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException();
             }
 
+            XacmlPolicy xacmlPolicy = ParsePolicy(fileStream);
+
             string filePath = GetAltinnAppsPolicyPath(org, app);
             return await _repository.WritePolicyAsync(filePath, fileStream);
         }
@@ -96,6 +98,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
         private static XacmlPolicy ParsePolicy(Stream stream)
         {
+            stream.Position = 0;
             XacmlPolicy policy;
             using (XmlReader reader = XmlReader.Create(stream))
             {
@@ -107,30 +110,32 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
         private bool PolicyFileContainsAppAndOrgAttributes(Stream stream)
         {
-            using (StreamReader sr = new StreamReader(stream))
+            StreamReader sr = new StreamReader(stream);
+            bool orgAttribute = false;
+            bool appAttribute = false;
+            string line;
+
+            while ((line = sr.ReadLine()) != null)
             {
-                bool orgAttribute = false;
-                bool appAttribute = false;
-                string line;
-
-                while ((line = sr.ReadLine()) != null)
+                if (line.Contains("urn:altinn:org"))
                 {
-                    if (line.Contains("urn:altinn:org"))
-                    {
-                        orgAttribute = true;
-                    }
+                    orgAttribute = true;
+                }
 
-                    if (line.Contains("urn:altinn:app"))
-                    {
-                        appAttribute = true;
-                    }
+                if (line.Contains("urn:altinn:app"))
+                {
+                    appAttribute = true;
+                }
 
-                    if (orgAttribute && appAttribute)
-                    {
-                        return true;
-                    }
+                if (orgAttribute && appAttribute)
+                {
+                    stream.Position = 0;
+                    return true;
                 }
             }
+
+            stream.Position = 0;
+            sr.Close();
 
             return false;
         }
