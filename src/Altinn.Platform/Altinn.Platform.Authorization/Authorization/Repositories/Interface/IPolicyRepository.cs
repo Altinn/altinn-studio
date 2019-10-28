@@ -13,7 +13,7 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// </summary>
         /// <param name="filepath">The file path. </param> 
         /// <returns>File stream containing the rule set</returns>
-        Task<Stream> GetPolicy(string filepath);
+        Task<Stream> GetPolicyAsync(string filepath);
 
         /// <summary>
         /// Writes an authorization rule set to blob storage.
@@ -21,6 +21,6 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// <param name="filepath">The file path. </param> 
         /// <param name="fileStream">data to be written to the rule file</param>
         /// <returns>File stream containing the rule set</returns>
-        Task<bool> WritePolicy(string filepath, Stream fileStream);
+        Task<bool> WritePolicyAsync(string filepath, Stream fileStream);
     }
 }

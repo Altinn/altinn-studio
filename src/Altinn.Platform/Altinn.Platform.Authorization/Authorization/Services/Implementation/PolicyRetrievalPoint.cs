@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
+using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Repositories.Interface;
 
@@ -26,20 +28,34 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public XacmlPolicy GetPolicy(XacmlContextRequest request)
+        public async Task<XacmlPolicy> GetPolicyAsync(XacmlContextRequest request)
         {
-            throw new NotImplementedException();
+            string policyPath = GetPolicyPath(request);
+            Stream policyStream = await _repository.GetPolicyAsync(policyPath);
+
+            return (policyStream != null) ? ParsePolicy(policyStream) : null; 
         }
 
-        public XacmlPolicy WritePolicy(string org, string app, Stream fileStream)
+        /// <inheritdoc/>
+        public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app)
+                || fileStream == null || !PolicyFileContainsAppAndOrgAttributes(fileStream))
+            {
+                throw new ArgumentException();
+            }
+
+            XacmlPolicy xacmlPolicy = ParsePolicy(fileStream);
+
+            string filePath = GetAltinnAppsPolicyPath(org, app);
+            return await _repository.WritePolicyAsync(filePath, fileStream);
         }
 
         private string GetPolicyPath(XacmlContextRequest request)
         {
             string org = string.Empty;
             string app = string.Empty;
+
             foreach (XacmlContextAttributes attr in request.Attributes)
             {
                 if (attr.Category.OriginalString.Equals(XacmlConstants.MatchAttributeCategory.Resource))
@@ -67,12 +83,61 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
             }
 
+            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app))
+            {
+                throw new ArgumentException();
+            }
+
             return GetAltinnAppsPolicyPath(org, app);
         }
 
         private string GetAltinnAppsPolicyPath(string org, string app)
         {
             return $"{org}/{app}/policy.xacml";
+        }
+
+        private static XacmlPolicy ParsePolicy(Stream stream)
+        {
+            stream.Position = 0;
+            XacmlPolicy policy;
+            using (XmlReader reader = XmlReader.Create(stream))
+            {
+                policy = XacmlParser.ParseXacmlPolicy(reader);
+            }
+
+            return policy;
+        }
+
+        private bool PolicyFileContainsAppAndOrgAttributes(Stream stream)
+        {
+            StreamReader sr = new StreamReader(stream);
+            bool orgAttribute = false;
+            bool appAttribute = false;
+            string line;
+
+            while ((line = sr.ReadLine()) != null)
+            {
+                if (line.Contains("urn:altinn:org"))
+                {
+                    orgAttribute = true;
+                }
+
+                if (line.Contains("urn:altinn:app"))
+                {
+                    appAttribute = true;
+                }
+
+                if (orgAttribute && appAttribute)
+                {
+                    stream.Position = 0;
+                    return true;
+                }
+            }
+
+            stream.Position = 0;
+            sr.Close();
+
+            return false;
         }
     }
 }

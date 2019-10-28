@@ -11,7 +11,7 @@ using System.Xml;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
 {
-    public class PolicyRetrievalPoint : IPolicyRetrievalPoint
+    public class PolicyRetrievalPoint 
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -24,7 +24,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public XacmlPolicy GetPolicy(XacmlContextRequest request)
+        public XacmlPolicy GetPolicyAsync(XacmlContextRequest request)
         {
             string testID = GetTestId(_httpContextAccessor.HttpContext);
             if (!string.IsNullOrEmpty(testID) && testID.ToLower().Contains("altinnapps"))

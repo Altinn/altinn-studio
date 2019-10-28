@@ -31,7 +31,7 @@ namespace Altinn.Platform.Authorization.Controllers
         [HttpGet]
         public async Task<XacmlPolicy> GetPolicy(XacmlContextRequest request)
         {
-            XacmlPolicy policy = _prp.GetPolicy(request);
+            XacmlPolicy policy = await _prp.GetPolicyAsync(request);
             return policy;
         }
 

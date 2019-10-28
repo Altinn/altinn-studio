@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.Repositories;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -57,8 +58,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
 
             // Act
-            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object);
-            bool successfullyStored = await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+            bool successfullyStored = await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
 
             // Assert
             CloudBlockBlob storedBlob = _blobContainer.GetBlockBlobReference($"ttd/repository-test-app/policy.xml");
@@ -79,8 +80,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             string expected = "http://127.0.0.1:10000/devstoreaccount1/metadata/ttd/tc-02-app/policy.xml";
             
             // Act
-            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object);
-            await pr.WritePolicy($"{ORG}/tc-02-app/policy.xml", dataStream);
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+            await pr.WritePolicyAsync($"{ORG}/tc-02-app/policy.xml", dataStream);
 
             BlobResultSegment blobResultSegment = await _blobContainer.ListBlobsSegmentedAsync("", true,
             new BlobListingDetails(), null, null, null, null);
@@ -102,8 +103,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
 
             // Act
-            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
 
             CloudBlockBlob storedBlob = _blobContainer.GetBlockBlobReference($"ttd/repository-test-app/policy.xml");
             var memoryStream = new MemoryStream();
@@ -111,12 +112,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             memoryStream.Position = 0;
 
             // Assert
-            Assert.True(compareStream(dataStream, memoryStream));
+            Assert.True(CompareStream(dataStream, memoryStream));
         }
 
         /// <summary>
-        /// Test case: Writing a file to storage and confirming number of blobs in collection has increased by one 
-        /// Expected: N blobs in container after WritePolicy is called.
+        /// Test case: Writing a file to storage that does not already exists. 
+        /// Expected: N blobs in container has increased by one after WritePolicy is called.
         /// </summary>
         [Fact]
         public async Task WritePolicy_TC04()
@@ -126,9 +127,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
 
             // Act
-            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object);
-            await pr.WritePolicy("org/app/policy.xml", dataStream);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+            await pr.WritePolicyAsync("org/app/policy.xml", dataStream);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
 
             // Assert       
             BlobResultSegment blobResultSegment = await _blobContainer.ListBlobsSegmentedAsync("", true,
@@ -148,13 +149,10 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
             _fixture.StartAndWaitForExit("stop");
             await Task.Delay(2000);
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
 
-            // Act
-            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object);
-            await pr.WritePolicy($"{ORG}/tc-02-app/policy.xml", dataStream);
-
-            // Assert       
-            // TO DO
+            // Act & Assert       
+            await Assert.ThrowsAsync<Microsoft.WindowsAzure.Storage.StorageException>(() => pr.WritePolicyAsync($"{ORG}/tc-02-app/policy.xml", dataStream));
 
             // Cleanup
             _fixture.StartAndWaitForExit("start");
@@ -173,9 +171,9 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
 
             // Act
-            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
-            await pr.WritePolicy($"{ORG}/{APP}/policy.xml", dataStream);
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
 
             // Assert       
             BlobResultSegment blobResultSegment = await _blobContainer.ListBlobsSegmentedAsync("", true,
@@ -184,49 +182,110 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Writing a file to storage that fails and confirm the methoed returns false. 
+        /// Test case: Writing a file to storage which fails in the upload process. 
         /// Expected: WritePolicy returns false.
+        /// UnitTest
         /// </summary>
-        [Fact]
+        /* [Fact]
         public async Task WritePolicy_TC07()
         {
             // Arrange
             await _blobContainer.CreateIfNotExistsAsync();
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
+            Stream stream = null;
 
             // Act
-            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object);
-            bool successfullyStored = await pr.WritePolicy(null, dataStream);
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+            bool successfullyStored = await pr.WritePolicy($"{ORG}/{APP}/policy.xml", stream);
 
             // Assert
             Assert.False(successfullyStored);
+        }*/
+
+        /// <summary>
+        /// Test case: Get a file from storage that exists.
+        /// Expected: GetPolicy returns MemoryStream.
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_TC01()
+        {
+            // Arrange
+            await PopulateBlobStorage();
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+
+            //Act
+            Stream stream = await pr.GetPolicyAsync($"{ORG}/{APP}/policy.xml");
+
+            // Act & Assert
+            Assert.IsType<MemoryStream>(stream);
         }
 
-        public bool compareStream(Stream stream1, MemoryStream stream2)
+        /// <summary>
+        /// Test case: Get a file from storage that does not exists.
+        /// Expected: GetPolicy returns null.
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_TC02()
+        {
+            // Arrange
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+
+            // Act
+            Stream stream = await pr.GetPolicyAsync("org/app1/policy.xml");
+
+            // Assert
+            Assert.Null(stream);
+        }
+
+        /// <summary>
+        /// Test case: Get existing file from storage and comfirm that the content is correct .
+        /// Expected: The contents of the stream once the blob is retrieved matches the expected content.
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_TC03()
+        {
+            // Arrange
+            await PopulateBlobStorage();
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
+
+            // Act
+            Stream stream = await pr.GetPolicyAsync($"{ORG}/{APP}/policy.xml");
+
+            // Assert
+            Assert.True(CompareStream(dataStream, stream));
+        }
+
+
+        public bool CompareStream(Stream stream1, Stream stream2)
         {
             stream1.Position = 0;
             stream2.Position = 0;
             int streamByte1;
-            byte[] byteArray = stream2.ToArray();
+            int streamByte2;
 
-            if(stream1.Length != stream2.Length)
+            if (stream1.Length != stream2.Length)
             {
                 return false;
             }
 
-            foreach(byte streamByte in byteArray)
+            do
             {
                 streamByte1 = stream1.ReadByte();
-                if(streamByte != streamByte1)
-                {
-                    return false;
-                }
-            }
+                streamByte2 = stream2.ReadByte();
+            } while ((streamByte1 == streamByte2) && (streamByte1 != -1));
 
             stream1.Close();
             stream2.Close();
 
-            return true;
+            return ((streamByte1 - streamByte2) == 0);
+        }
+
+        private async Task PopulateBlobStorage()
+        {
+            await _blobContainer.CreateIfNotExistsAsync();
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
+            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
+            await pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
         }
     }
 }
