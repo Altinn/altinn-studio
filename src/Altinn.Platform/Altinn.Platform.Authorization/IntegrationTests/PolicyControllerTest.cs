@@ -1,3 +1,5 @@
+using Altinn.Authorization.ABAC.Constants;
+using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Microsoft.Extensions.Options;
@@ -7,6 +9,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -15,17 +18,17 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 {
     public class PolicyControllerTest : IClassFixture<PlatformAuthorizationFixture>
     {
-
-        Mock<IOptions<AzureStorageConfiguration>> _storageConfigMock;
-        private CloudBlobClient _blobClient;
-        private CloudBlobContainer _blobContainer;
+        private readonly HttpClient _client;
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";
         private readonly PlatformAuthorizationFixture _fixture;
-
         public PolicyControllerTest(PlatformAuthorizationFixture fixture)
         {
             _fixture = fixture;
+            _client = _fixture.GetClient();
+      
+
+            /*
             _storageConfigMock = new Mock<IOptions<AzureStorageConfiguration>>();
             _storageConfigMock.Setup(s => s.Value).Returns(new AzureStorageConfiguration()
             {
@@ -42,6 +45,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             StorageUri storageUrl = new StorageUri(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
             _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
             _blobContainer = _blobClient.GetContainerReference("metadata");
+            */
         }
 
         /// <summary>
@@ -53,8 +57,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         {
             // Arrange
 
-
             // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies/", null);
 
 
             // Assert

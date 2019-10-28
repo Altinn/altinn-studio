@@ -12,7 +12,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 namespace Altinn.Platform.Authorization.Repositories
 {
     /// <summary>
-    /// Repository for handling authorization rules 
+    /// Repository for handling authorization rules
     /// </summary>
     public class PolicyRepository : IPolicyRepository
     {
@@ -63,7 +63,7 @@ namespace Altinn.Platform.Authorization.Repositories
                 await blockBlob.UploadFromStreamAsync(fileStream);
                 await blockBlob.FetchAttributesAsync();
 
-                // blockBlolb.Properties.Length is -1 before successful upload 
+                // blockBlolb.Properties.Length is -1 before successful upload
                 return blockBlob.Properties.Length >= 0;
             }
             catch (Exception ex)
@@ -91,6 +91,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
 
             _blobContainer = _blobClient.GetContainerReference(_storageConfig.StorageContainer);
+            _blobContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
         }
     }
 }
