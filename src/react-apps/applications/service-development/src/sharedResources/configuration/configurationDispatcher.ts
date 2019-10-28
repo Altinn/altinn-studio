@@ -12,7 +12,7 @@ export interface IConfigurationDispatcher extends ActionCreatorsMapObject {
   getEnvironments: () => Action;
   getEnvironmentsFulfilled: (result: any) => GetEnvironments.IGetEnvironmentsFulfilled;
   getEnvironmentsRejected: (error: Error) => GetEnvironments.IGetEnvironmentsRejected;
-  getOrgs: () => GetOrgs.IGetOrgs;
+  getOrgs: () => Action;
   getOrgsFulfilled: ( orgs: any ) => GetOrgs.IGetOrgsFulfilled;
   getOrgsRejected: ( error: Error) => GetOrgs.IGetOrgsRejected;
 }

@@ -49,6 +49,7 @@ export const DeployContainer = (props: IDeployContainer) => {
 
   React.useEffect(() => {
     ConfigurationActions.getEnvironments();
+    ConfigurationActions.getOrgs();
     AppDeploymentActions.getAppDeploymentsStartInterval();
 
     return () => {
