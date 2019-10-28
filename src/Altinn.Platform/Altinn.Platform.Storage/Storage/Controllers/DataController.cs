@@ -3,6 +3,7 @@ namespace Altinn.Platform.Storage.Controllers
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Security.Claims;
     using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Primitives;
     using Microsoft.Net.Http.Headers;
 
     /// <summary>
@@ -196,7 +198,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Create and save the data element
+        /// Create and save the data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
@@ -268,7 +270,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Update and save data element.
+        /// Update and save data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
@@ -387,6 +389,25 @@ namespace Altinn.Platform.Storage.Controllers
             else
             {
                 theStream = request.Body;
+                StringValues headerValues;
+                if (request.Headers.TryGetValue("content-disposition", out headerValues))
+                {
+                    string contentDisposition = headerValues.ToString();
+                    List<string> contenDispValues = contentDisposition.Split(';').ToList();
+
+                    string fileNameValue = contenDispValues.FirstOrDefault(x => x.Contains("filename", StringComparison.CurrentCultureIgnoreCase));
+
+                    if (!string.IsNullOrEmpty(fileNameValue))
+                    {
+                        string[] valueParts = fileNameValue.Split('=');
+
+                        if (valueParts.Count() == 2)
+                        {
+                            contentFileName = valueParts[1];
+                        }
+                    }
+                }
+
                 contentType = request.ContentType;
             }
 
