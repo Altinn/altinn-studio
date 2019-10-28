@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.ModelBinding;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Authorization.Controllers
 {
@@ -17,34 +20,52 @@ namespace Altinn.Platform.Authorization.Controllers
     [ApiController]
     public class PolicyController : ControllerBase
     {
+        private readonly ILogger<PolicyController> logger;
         private readonly IPolicyRetrievalPoint _prp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PolicyController"/> class.      
         /// </summary>
         /// <param name="prp">The policy retrieval point.</param>
-        public PolicyController(IPolicyRetrievalPoint prp)
+        /// <param name="logger">logger</param>
+        public PolicyController(
+            IPolicyRetrievalPoint prp,
+            ILogger<PolicyController> logger)
         {
             _prp = prp;
+            this.logger = logger;
         }
 
-        [HttpGet]
-        public async Task<XacmlPolicy> GetPolicy(XacmlContextRequest request)
-        {
-            XacmlPolicy policy = await _prp.GetPolicyAsync(request);
-            return policy;
-        }
-
+        /// <summary>
+        /// Saves policy file to storage    
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="fileStream">The policy file for the app.</param>
         [HttpPost]
-        public async Task<bool> WritePolicy([FromQuery] string org, [FromQuery] string app)
+        public async Task<ActionResult> WritePolicy([FromQuery] string org, [FromQuery] string app, [FromBody] Stream fileStream)
         {
-            throw new NotImplementedException();
-        }
+            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app) || fileStream == null)
+            {
+                return BadRequest();
+            }
 
-        [HttpPut("{org}/{app}")]
-        public async Task<bool> UpdatePolicy([FromQuery] string org, [FromQuery] string app)
-        {
-            throw new NotImplementedException();
+            try
+            {
+                bool successfullyStored = await _prp.WritePolicyAsync(org, app, fileStream);
+
+                if (successfullyStored)
+                {
+                    return Ok();
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                logger.LogError(ex.Message);
+                return BadRequest();
+            }
+
+            return BadRequest();
         }
     }
 }

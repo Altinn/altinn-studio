@@ -39,7 +39,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
-            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app)
+            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app)
                 || fileStream == null || !PolicyFileContainsAppAndOrgAttributes(fileStream))
             {
                 throw new ArgumentException();
