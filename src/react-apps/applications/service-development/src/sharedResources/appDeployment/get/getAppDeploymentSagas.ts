@@ -233,7 +233,7 @@ function* getAppDeploymentIntervalSaga(): SagaIterator {
       // mockDeployments.results[0].created = moment().format();
       // mockDeployments.results[0].build.finished = moment().format();
 
-      const deployments = yield call(get, `${getAppDeploymentsUrl()}?sortDirection=ascending&sortBy=created`);
+      const deployments = yield call(get, `${getAppDeploymentsUrl()}?sortDirection=descending&sortBy=created`);
 
       yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, deployments);
       yield call(delay, 10000);
