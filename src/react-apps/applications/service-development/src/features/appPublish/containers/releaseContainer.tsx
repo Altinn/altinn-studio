@@ -105,7 +105,7 @@ const styles = createStyles({
   },
   appCreateReleaseWrapper: {
     minHeight: '400px',
-    maxHeight: '400px'
+    maxHeight: '400px',
   },
   appCreateReleaseTitle: {
     padding: '1.2rem',
@@ -139,7 +139,7 @@ const styles = createStyles({
     fontSize: '1.4rem',
   },
   renderCannotCreateReleaseIcon: {
-    paddingTop: '2rem'
+    paddingTop: '2rem',
   },
 });
 
@@ -207,7 +207,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     return (
       <Grid
         container={true}
-        direction={'row'}
+        direction={'column'}
         className={classes.cannotCreateReleaseContainer}
         spacing={1}
       >
@@ -254,7 +254,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   }
 
   function renderCreateRelease() {
-    if (!!appReleases.errors.fetchReleaseErrorCode) {
+    if (appReleases.errors.fetchReleaseErrorCode !== null) {
       return null;
     }
     if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus) {
@@ -298,7 +298,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         </Grid>
       );
     }
-    if (!!appReleases.errors.fetchReleaseErrorCode) {
+    if (appReleases.errors.fetchReleaseErrorCode !== null) {
       return null;
     }
     if (!appReleases.releases || !appReleases.releases.length) {
@@ -393,9 +393,13 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     <>
       <Grid
         container={true}
-        direction={'column'}
+        direction={'row'}
         className={classes.appReleaseWrapper}
       >
+        <Grid
+          container={true}
+          direction={'column'}
+        >
         <Grid
           item={true}
         >
@@ -416,12 +420,11 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
             direction={'row'}
             justify={'space-between'}
           >
-            {appReleases.errors.fetchReleaseErrorCode === 0 ?
+            {appReleases.errors.fetchReleaseErrorCode === null ?
               <Grid
                 item={true}
                 xs={10}
               >
-
                 <Typography className={classes.appCreateReleaseTitle}>
                   {
                     !!repoStatus.branch.master &&
@@ -489,13 +492,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           </Typography>
         </Grid>
         <Grid
-          item={true}
+          container={true}
           className={classes.appReleaseHistory}
         >
           {!!appReleases.releases.length &&
             appReleases.releases.map((release: IRelease, index: number) => (
               <ReleaseComponent key={index} release={release} />
             ))}
+        </Grid>
         </Grid>
       </Grid>
       <Popover
