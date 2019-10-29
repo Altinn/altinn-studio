@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace AltinnCore.Designer.Infrastructure
 {
     /// <summary>
-    /// Contains extension methods for registering integrations 
+    /// Contains extension methods for registering integrations
     /// </summary>
     public static class IntegrationRegistration
     {
