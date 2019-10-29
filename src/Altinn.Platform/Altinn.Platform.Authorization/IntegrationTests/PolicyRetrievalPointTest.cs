@@ -1,50 +1,76 @@
+using Altinn.Authorization.ABAC.Constants;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.Configuration;
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.Repositories;
+using Altinn.Platform.Authorization.Services.Implementation;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Authorization.Services.Implementation;
-using Moq;
 using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    /// <summary>
-    /// Test class for <see cref="PolicyRetrievalPoint"/>
-    /// </summary>
-    public class PolicyRetrievalPointTest
+    public class PolicyRetrievalPointTest : IClassFixture<PlatformAuthorizationFixture>
     {
+        Mock<IOptions<AzureStorageConfiguration>> _storageConfigMock;
+        private CloudBlobClient _blobClient;
+        private CloudBlobContainer _blobContainer;
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";
-        private readonly Mock<IPolicyRepository> _policyRepositoryMock;
-        private readonly PolicyRetrievalPoint _sut;
+        private readonly PlatformAuthorizationFixture _fixture;
+        private readonly PolicyRepository _pr;
 
-        public PolicyRetrievalPointTest()
+        public PolicyRetrievalPointTest(PlatformAuthorizationFixture fixture)
         {
-            _policyRepositoryMock = new Mock<IPolicyRepository>();
-            _sut = new PolicyRetrievalPoint(_policyRepositoryMock.Object);
+            _fixture = fixture;
+            _storageConfigMock = new Mock<IOptions<AzureStorageConfiguration>>();
+            _storageConfigMock.Setup(s => s.Value).Returns(new AzureStorageConfiguration()
+            {
+                AccountName = "devstoreaccount1",
+                AccountKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
+                StorageContainer = "metadata",
+                BlobEndPoint = "http://127.0.0.1:10000/devstoreaccount1"
+            });
+
+            // connect to azure blob storage
+            StorageCredentials storageCredentials = new StorageCredentials("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+
+            StorageUri storageUrl = new StorageUri(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
+            _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+            _blobContainer = _blobClient.GetContainerReference("metadata");
+
+            _pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
         }
 
         /// <summary>
-        /// Test case: Get existing file from storage.
+        /// Test case: Get file from storage.
         /// Expected: GetPolicyAsync returns a file that is not null.
         /// </summary>
         [Fact]
         public async Task GetPolicy_TC01()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
-            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")))).ReturnsAsync(dataStream);
+            await PopulateBlobStorage();
+            PolicyRetrievalPoint prp = new PolicyRetrievalPoint(_pr);
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
             // Act
-            var policy = await _sut.GetPolicyAsync(request);
+            XacmlPolicy xacmlPolicy = await prp.GetPolicyAsync(request);
 
             // Assert
-            Assert.NotNull(policy);
+            Assert.NotNull(xacmlPolicy);
         }
 
         /// <summary>
@@ -55,15 +81,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         public async Task GetPolicy_TC02()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
-            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy2.xacml")))).ReturnsAsync(dataStream);
+            PolicyRetrievalPoint prp = new PolicyRetrievalPoint(_pr);
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
             // Act
-            var policy = await _sut.GetPolicyAsync(request);
+            XacmlPolicy xacmlPolicy = await prp.GetPolicyAsync(request);
 
             // Assert
-            Assert.Null(policy);
+            Assert.Null(xacmlPolicy);
         }
 
         /// <summary>
@@ -74,88 +99,12 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         public async Task GetPolicy_TC03()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
-            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")))).ReturnsAsync(dataStream);
+            PolicyRetrievalPoint prp = new PolicyRetrievalPoint(_pr);
             XacmlContextRequest request = new XacmlContextRequest(true, true, new List<XacmlContextAttributes>());
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.GetPolicyAsync(request));
+            await Assert.ThrowsAsync<ArgumentException>(() => prp.GetPolicyAsync(request));
         }
-
-        /// <summary>
-        /// Test case: Write to storage a file that contains the necessary attributes, org and app.
-        /// Expected: WritePolicyAsync returns true.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC01()
-        {
-            // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/skd/taxreport/policy.xml");
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
-
-            // Act
-            bool successfullyStored = await _sut.WritePolicyAsync("org", "app", dataStream);
-
-            // Assert
-            Assert.True(successfullyStored);
-        }
-
-        /// <summary>
-        /// Test case: Write a file to storage where the org parameter arguments is empty.
-        /// Expected: WritePolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC02()
-        {
-            // Arrange
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("", "app", new MemoryStream()));
-        }
-
-        /// <summary>
-        /// Test case: Write a file to storage where the app parameter arguments is empty.
-        /// Expected: WritePolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC03()
-        {
-            // Arrange
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "", new MemoryStream()));
-        }
-
-        /// <summary>
-        /// Test case: Write to storage a file that is null.
-        /// Expected: WritePolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC04()
-        {
-            // Arrange
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "app", null));
-        }
-
-        /// <summary>
-        /// Test case: Write to storage a file that do not contain attribute info about org and app.
-        /// Expected: WritePolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC05()
-        {
-            // Arrange
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "app", new MemoryStream()));
-        }
-
 
         private List<XacmlContextAttributes> GetXacmlContextAttributesWithOrgAndApp()
         {
@@ -164,7 +113,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             XacmlContextAttributes xacmlContext = new XacmlContextAttributes(new Uri(XacmlConstants.MatchAttributeCategory.Resource));
 
             XacmlAttribute xacmlAttributeOrg = new XacmlAttribute(new Uri("urn:altinn:org"), true);
-            xacmlAttributeOrg.AttributeValues.Add(new XacmlAttributeValue(new Uri("urn:altinn:org"), "org"));
+            xacmlAttributeOrg.AttributeValues.Add(new XacmlAttributeValue(new Uri("urn:altinn:org"), ORG));
             xacmlContext.Attributes.Add(xacmlAttributeOrg);
 
             xacmlContexts.Add(xacmlContext);
@@ -172,12 +121,19 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             XacmlContextAttributes xacmlContext2 = new XacmlContextAttributes(new Uri(XacmlConstants.MatchAttributeCategory.Resource));
 
             XacmlAttribute xacmlAttributeApp = new XacmlAttribute(new Uri("urn:altinn:app"), true);
-            xacmlAttributeApp.AttributeValues.Add(new XacmlAttributeValue(new Uri("urn:altinn:app"), "app"));
+            xacmlAttributeApp.AttributeValues.Add(new XacmlAttributeValue(new Uri("urn:altinn:app"), APP));
             xacmlContext2.Attributes.Add(xacmlAttributeApp);
 
             xacmlContexts.Add(xacmlContext2);
 
             return xacmlContexts;
+        }
+
+        private async Task PopulateBlobStorage()
+        {
+            await _blobContainer.CreateIfNotExistsAsync();
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
+            await _pr.WritePolicyAsync($"{ORG}/{APP}/policy.xacml", dataStream);
         }
     }
 }
