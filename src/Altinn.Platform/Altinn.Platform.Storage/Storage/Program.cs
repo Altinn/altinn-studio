@@ -42,6 +42,10 @@ namespace Altinn.Platform.Storage
             Host.CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(webBuilder =>
             {
+                webBuilder.UseKestrel();
+                webBuilder.UseUrls("http://0.0.0.0:5010");
+                webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
+                webBuilder.UseIISIntegration();
                 webBuilder.UseStartup<Startup>();
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
