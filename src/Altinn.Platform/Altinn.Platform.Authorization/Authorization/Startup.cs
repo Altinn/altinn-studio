@@ -42,7 +42,7 @@ namespace Altinn.Platform.Authorization
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddXmlSerializerFormatters(); 
             services.AddSingleton(Configuration);
             services.AddSingleton<IParties, PartiesWrapper>();
             services.AddSingleton<IRoles, RolesWrapper>();
@@ -65,6 +65,7 @@ namespace Altinn.Platform.Authorization
             {
                 // Adding custom modelbinders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
+                options.RespectBrowserAcceptHeader = true;
             });
         }
 

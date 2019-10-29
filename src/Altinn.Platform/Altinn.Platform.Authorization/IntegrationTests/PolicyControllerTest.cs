@@ -53,7 +53,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Write file to storage.
+        /// Test case: Write a xml file to storage.
         /// Expected: WritePolicyAsync returns true and status code 200.
         /// </summary>
         [Fact]
@@ -62,7 +62,26 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Arrange
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/skd/taxreport/policy.xml");
             StreamContent content = new StreamContent(dataStream);
-            //content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: Write a json file to storage.
+        /// Expected: WritePolicyAsync returns true and status code 200.
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC02()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/AltinnApps0009Request.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
             // Act
             HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
@@ -73,19 +92,74 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
         /// <summary>
         /// Test case: Write to storage a file that is null. 
-        /// Expected: GetPolicyAsync returns false and status code 500.
+        /// Expected: GetPolicyAsync returns status code 500.
         /// </summary>
         [Fact]
-        public async Task WritePolicy_TC02()
+        public async Task WritePolicy_TC03()
         {
-            // Arrange
-
-
-            // Act
-
+            // Arrange & Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", null);
 
             // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
+        }
+
+        /// <summary>
+        /// Test case: Write a xml file to storage where org query string is not set.
+        /// Expected: WritePolicyAsync returns status code 500. 
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC04()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/AltinnApps0009Request.json");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?app=app", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: Write a xml file to storage where app query string is not set.
+        /// Expected: WritePolicyAsync returns status code 500. 
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC05()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/skd/taxreport/policy.xml");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        /// <summary>
+        /// Test case: Write to storage a xml file that does not contain necessary information (app and org attribute)
+        /// Expected: WritePolicyAsync returns status code 500. 
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC06()
+        {
+            // Arrange
+            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/AltinnApps0001Request.xml");
+            StreamContent content = new StreamContent(dataStream);
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }

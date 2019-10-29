@@ -137,7 +137,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Write a file to storage where the org and app parameter arguments is empty.
+        /// Test case: Write a file to storage where the org parameter arguments is empty.
         /// Expected: WritePolicyAsync throws ArgumentException.
         /// </summary>
         [Fact]
@@ -147,7 +147,21 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("", "", new MemoryStream()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("", "app", new MemoryStream()));
+        }
+
+        /// <summary>
+        /// Test case: Write a file to storage where the app parameter arguments is empty.
+        /// Expected: WritePolicyAsync throws ArgumentException.
+        /// </summary>
+        [Fact]
+        public async Task WritePolicy_TC03()
+        {
+            // Arrange
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "", new MemoryStream()));
         }
 
         /// <summary>
@@ -155,7 +169,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Expected: WritePolicyAsync throws ArgumentException.
         /// </summary>
         [Fact]
-        public async Task WritePolicy_TC03()
+        public async Task WritePolicy_TC04()
         {
             // Arrange
             _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
@@ -169,7 +183,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Expected: WritePolicyAsync throws ArgumentException.
         /// </summary>
         [Fact]
-        public async Task WritePolicy_TC04()
+        public async Task WritePolicy_TC05()
         {
             // Arrange
             _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);

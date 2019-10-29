@@ -40,15 +40,24 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
-            // Convert to a new Stream because the stream from Request.Body don't support seeking or reading a second time
-            string contentString = await new StreamReader(fileStream, Encoding.UTF8).ReadToEndAsync();
-            byte[] byteArray = Encoding.UTF8.GetBytes(contentString);
-            Stream dataStream = new MemoryStream(byteArray);
-
-            if (string.IsNullOrWhiteSpace(org) || string.IsNullOrWhiteSpace(app)
-                || fileStream == null || !PolicyFileContainsAppAndOrgAttributes(dataStream))
+            if (string.IsNullOrWhiteSpace(org))
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Org can not be null or empty");
+            }
+
+            if (string.IsNullOrWhiteSpace(app))
+            {
+                throw new ArgumentException("App can not be null or empty");
+            }
+
+            if (fileStream == null)
+            {
+                throw new ArgumentException("The policy file can not be null");
+            }
+
+            if (!PolicyFileContainsAppAndOrgAttributes(fileStream))
+            {
+                throw new ArgumentException("The policy file must contain org and app attributes");
             }
 
             //XacmlPolicy xacmlPolicy = ParsePolicy(fileStream);

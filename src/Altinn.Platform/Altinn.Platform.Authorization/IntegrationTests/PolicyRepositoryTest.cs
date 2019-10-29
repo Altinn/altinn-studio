@@ -152,7 +152,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
 
             // Act & Assert       
-            await Assert.ThrowsAsync<Microsoft.WindowsAzure.Storage.StorageException>(() => pr.WritePolicyAsync($"{ORG}/tc-02-app/policy.xml", dataStream));
+            await Assert.ThrowsAsync<StorageException>(() => pr.WritePolicyAsync($"{ORG}/tc-02-app/policy.xml", dataStream));
 
             // Cleanup
             _fixture.StartAndWaitForExit("start");
