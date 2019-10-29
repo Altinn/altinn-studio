@@ -1,6 +1,5 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
 import handleServiceInformationReducer, { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
-import deployReducer, { IDeployState } from '../features/deploy/deployReducer';
 import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import appClusterReducer, { IAppClusterState } from '../sharedResources/appCluster/appClusterReducer';
 import appDeploymentReducer, { IAppDeploymentState } from '../sharedResources/appDeployment/appDeploymentReducer';
@@ -15,7 +14,6 @@ export interface IServiceDevelopmentReducers
   Reducer<IFetchedLanguageState>,
   Reducer<IHandleMergeConflictState>,
   Reducer<IHandleServiceInformationState>,
-  Reducer<IDeployState>,
   Reducer<IApplicationMetadataState>,
   Reducer<IAppClusterState>,
   Reducer<IRepoStatusState>,
@@ -29,7 +27,6 @@ const reducers: IServiceDevelopmentReducers = {
   language: languageReducer,
   handleMergeConflict: handleMergeConflictReducer,
   serviceInformation: handleServiceInformationReducer,
-  deploy: deployReducer,
   applicationMetadataState: applicationMetadataReducer,
   appCluster: appClusterReducer,
   repoStatus: repoStatusReducer,

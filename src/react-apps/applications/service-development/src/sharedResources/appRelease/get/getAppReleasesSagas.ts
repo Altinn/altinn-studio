@@ -2,11 +2,11 @@ import { AxiosError } from 'axios';
 import { delay, SagaIterator } from 'redux-saga';
 import { call, fork, race, take, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError } from '../../../../../shared/src/utils/networking';
-import { get } from '../../../utils/networking';
-import { releasesUrlGet } from '../../../utils/urlHelper';
-import * as AppReleaseActionTypes from './../appReleaseActionTypes';
-import AppReleaseActionDispatcher from './../appReleaseDispatcher';
-import { IRelease, BuildResult, BuildStatus } from '../types';
+// import { get } from '../../../utils/networking';
+// import { releasesUrlGet } from '../../../utils/urlHelper';
+import * as AppReleaseActionTypes from '../appReleaseActionTypes';
+import AppReleaseActionDispatcher from '../appReleaseDispatcher';
+import { BuildResult, BuildStatus, IRelease } from '../types';
 
 const mockResults: IRelease[] = [
   {
@@ -263,8 +263,8 @@ const mockResults: IRelease[] = [
 
 function* getReleasesSaga(): SagaIterator {
   try {
-    const result: any = yield call(get, releasesUrlGet);
-    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, result.results);
+    // const result: any = yield call(get, releasesUrlGet);
+    yield call(AppReleaseActionDispatcher.getAppReleasesFulfilled, mockResults);
   } catch (err) {
     if (checkIfAxiosError(err)) {
       const {response: {status}} = err as AxiosError;
