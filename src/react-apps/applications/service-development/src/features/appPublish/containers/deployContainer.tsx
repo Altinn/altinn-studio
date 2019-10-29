@@ -1,7 +1,9 @@
+import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as moment from 'moment';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import AltinnContentLoader from '../../../../../shared/src/components/molecules/AltinnContentLoader';
+import StudioTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import AppClusterActions from '../../../sharedResources/appCluster/appClusterDispatcher';
 import { IAppClusterState } from '../../../sharedResources/appCluster/appClusterReducer';
 import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
@@ -11,12 +13,27 @@ import ConfigurationActions from '../../../sharedResources/configuration/configu
 import { IConfigurationState } from '../../../sharedResources/configuration/configurationReducer';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
 
-export interface IDeployContainer {
+const theme = createMuiTheme(StudioTheme);
+
+const styles = createStyles({
+  deployContainer: {
+    overflow: 'scroll',
+    [theme.breakpoints.up('xs')]: {
+      height: 'calc(100vh - 55px)',
+    },
+    [theme.breakpoints.up('md')]: {
+      height: 'calc(100vh - 111px)',
+    },
+  },
+});
+
+export interface IDeployContainer extends WithStyles<typeof styles> {
 
 }
 
 const DeployContainer = (props: IDeployContainer) => {
   const { org, app } = window as Window as IAltinnWindow;
+  const { classes } = props;
 
   const [environments, setEnvironments] = React.useState([]);
   const [imageOptions, setImageOptions] = React.useState([]);
@@ -74,7 +91,11 @@ const DeployContainer = (props: IDeployContainer) => {
   };
 
   return (
-    <>
+    <Grid
+      container={true}
+      direction={'row'}
+      className={classes.deployContainer}
+    >
       {isLoading() &&
         <AltinnContentLoader  width={900} height={320}>
           <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
@@ -105,8 +126,8 @@ const DeployContainer = (props: IDeployContainer) => {
           );
         })
       }
-    </>
+    </Grid>
   );
 };
 
-export default DeployContainer;
+export default withStyles(styles)(DeployContainer);

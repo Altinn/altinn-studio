@@ -12,6 +12,7 @@ import AltinnInput from '../../../../../shared/src/components/AltinnInput';
 import AltinnTextArea from '../../../../../shared/src/components/AltinnTextArea';
 import AltinnPopover from '../../../../../shared/src/components/molecules/AltinnPopoverSimple';
 import theme from '../../../../../shared/src/theme/altinnAppTheme';
+import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import AppReleaseActions from '../../../sharedResources/appRelease/appReleaseDispatcher';
 import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
@@ -136,25 +137,13 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
                 <Typography
                   className={classes.createReleaseInvalidTagNameText}
                 >
-                  {
-                    !!language &&
-                      !!language.app_create_release &&
-                      !!language.app_create_release.release_versionnumber_validation ?
-                      language.app_create_release.release_versionnumber_validation :
-                      'language.app_create_release.release_versionnumber_validation'
-                  }
+                  {getLanguageFromKey('app_create_release.release_versionnumber_validation', language)}
                 </Typography>
               </Grid>
               : null
             }
             <AltinnInput
-              label={
-                !!language &&
-                  !!language.app_create_release &&
-                  !!language.app_create_release.release_versionnumber ?
-                  language.app_create_release.release_versionnumber :
-                  'language.app_create_release.release_versionnumber'
-              }
+              label={getLanguageFromKey('app_create_release.release_versionnumber', language)}
               onChange={handleTagNameChange}
               value={tagName}
               widthPercentage={50}
@@ -168,13 +157,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           className={classes.createReleaseFormItem}
         >
           <AltinnTextArea
-            label={
-              !!language &&
-                !!language.app_create_release &&
-                !!language.app_create_release.release_description ?
-                language.app_create_release.release_description :
-                'language.app_create_release.release_description'
-            }
+            label={getLanguageFromKey('app_create_release.release_description', language)}
             value={body}
             onChange={handleBodyChange}
             rows={4}
@@ -189,13 +172,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
             <AltinnButton
               btnRef={ref}
               onClickFunction={handleBuildVersionClick}
-              btnText={
-                !!language &&
-                  !!language.app_create_release &&
-                  !!language.app_create_release.build_version ?
-                  language.app_create_release.build_version :
-                  'language.app_create_release.build_version'
-              }
+              btnText={getLanguageFromKey('app_create_release.build_version', language)}
             />
           </div>
         </Grid>
@@ -238,29 +215,19 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
               className={classes.popoverErrorText}
             >
               {
-                !!language &&
-                !!language.app_create_release_errors &&
-                !!language.app_create_release_errors.build_cannot_start ?
                 <>
-                  {language.app_create_release_errors.build_cannot_start}
+                  {getLanguageFromKey('app_create_release_errors.build_cannot_start', language)}
                   &nbsp;
                   <a href={''} target='_blank'>
-                    {language.app_create_release_errors.altinn_servicedesk}
+                    {getLanguageFromKey('app_create_release_errors.altinn_servicedesk', language)}
                   </a>
-                </> :
-                `language.app_create_release_errors.build_cannot_start language.app_create_release_errors.altinn_servicedesk`
+                </>
               }
             </Typography>
             <Typography
               className={classes.popoverTechnicalErrorText}
             >
-              {
-                !!language &&
-                !!language.app_create_release_errors &&
-                !!language.app_create_release_errors.technical_error_code ?
-                  language.app_create_release_errors.technical_error_code :
-                  'language.app_create_release_errors.technical_error_code'
-              }
+              {getLanguageFromKey('app_create_release_errors.technical_error_code', language)}
               &nbsp;
               {createReleaseErrorCode}
             </Typography>

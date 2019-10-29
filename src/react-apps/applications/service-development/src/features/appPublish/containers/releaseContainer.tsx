@@ -1,5 +1,6 @@
 import {
   CircularProgress,
+  createMuiTheme,
   createStyles,
   Grid,
   Popover,
@@ -11,7 +12,8 @@ import {
 } from '@material-ui/core';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import theme from '../../../../../shared/src/theme/altinnStudioTheme';
+import AltinnStudioTheme from '../../../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import AppReleaseActions from '../../../sharedResources/appRelease/appReleaseDispatcher';
 import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
 import { BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
@@ -28,6 +30,8 @@ interface IStyledTabsProps {
   value: number;
   onChange: (event: React.ChangeEvent<{}>, newValue: number) => void;
 }
+
+const theme = createMuiTheme(AltinnStudioTheme);
 
 const StyledTabs = withStyles(createStyles({
   scroller: {
@@ -76,18 +80,21 @@ const styles = createStyles({
     borderLeft: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
     borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
     display: 'flex',
-    flexDirection: 'column',
-    height: '100%',
-  },
-  appReleaseTabs: {
+    flexDirection: 'row',
+    [theme.breakpoints.up('xs')]: {
+      height: 'calc(100vh - 55px)',
+    },
+    [theme.breakpoints.up('md')]: {
+      height: 'calc(100vh - 111px)',
+    },
     flexGrow: 1,
+    overflowX: 'hidden',
+    overflowY: 'scroll',
   },
   appReleaseCreateRelease: {
     flexGrow: 1,
   },
   appReleaseHistory: {
-    flexGrow: 1,
-    maxHeight: 500,
     overflowY: 'scroll',
   },
   appReleaseHistoryTitle: {
@@ -184,7 +191,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       return (
         <Grid
           container={true}
-          direction={'column'}
+          direction={'row'}
           justify={'center'}
         >
           <Grid
@@ -213,13 +220,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                     padding: '1.2rem',
                   }}
                 >
-                  {
-                    !!language &&
-                      !!language.app_release &&
-                      !!language.app_release.check_status ?
-                      language.app_release.check_status :
-                      'language.app_release.check_status'
-                  }
+                  {getLanguageFromKey('app_release.check_status', language)}
                 </Typography>
               </Grid>
             </Grid>
@@ -303,25 +304,13 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     ) {
       return (
         <Typography>
-          {
-            !!language &&
-              !!language.app_create_release &&
-              !!language.app_create_release.local_changes_cant_build ?
-              language.app_create_release.local_changes_cant_build :
-              'language.app_create_release.local_changes_cant_build'
-          }
+          {getLanguageFromKey('app_create_release.local_changes_cant_build', language)}
         </Typography>
       );
     } else if (!!handleMergeConflict.repoStatus.contentStatus) {
       return (
         <Typography>
-          {
-            !!language &&
-              !!language.app_create_release &&
-              !!language.app_create_release.local_changes_can_build ?
-              language.app_create_release.local_changes_can_build :
-              'language.app_create_release.local_changes_can_build'
-          }
+          {getLanguageFromKey('app_create_release.local_changes_can_build', language)}
         </Typography>
       );
     }
@@ -331,22 +320,15 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     <>
       <Grid
         container={true}
-        direction={'column'}
+        direction={'row'}
         className={classes.appReleaseWrapper}
       >
         <Grid
           item={true}
-          className={classes.appReleaseTabs}
         >
           <StyledTabs value={tabIndex} onChange={handleChangeTabIndex}>
             <StyledTab
-              label={
-                !!language &&
-                  !!language.app_release &&
-                  !!language.app_release.release_tab_versions ?
-                  language.app_release.release_tab_versions :
-                  'language.app_release.release_tab_versions'
-              }
+              label={getLanguageFromKey('app_release.release_tab_versions', language)}
             />
           </StyledTabs>
         </Grid>
@@ -374,54 +356,25 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                   appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
                   !!!handleMergeConflict.repoStatus.contentStatus ?
                   <>
-                    {
-                      !!language &&
-                        !!language.general &&
-                        !!language.general.version ?
-                        language.general.version :
-                        'language.general.version'
-                    }
+                    {getLanguageFromKey('general.version', language)}
                     &nbsp;
                     {appReleases.releases[0].tagName}
-                    {
-                      !!language &&
-                        !!language.general &&
-                        !!language.general.contains ?
-                        language.general.contains :
-                        'language.general.contains'
-                    }
+                    {getLanguageFromKey('general.contains', language)}
                     &nbsp;
                     {!!repoStatus.branch.master ?
                       <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
-                        {
-                          !!language &&
-                            !!language.app_release &&
-                            !!language.app_release.release_title_link ?
-                            language.app_release.release_title_link :
-                            'language.app_release.release_title_link'
-                        }
+                        {getLanguageFromKey('app_release.release_title_link', language)}
                       </a> :
                       null
                     }
                   </>
                   :
                   <>
-                    {!!language &&
-                      !!language.app_release &&
-                      !!language.app_release.release_title ?
-                      language.app_release.release_title :
-                      'language.app_release.release_title'
-                    }
+                    {getLanguageFromKey('app_release.release_title', language)}
                     &nbsp;
                     {!!repoStatus.branch.master ?
                       <a href={getGitCommitLink(repoStatus.branch.master.commit.id)} target={'_blank'}>
-                        {
-                          !!language &&
-                            !!language.app_release &&
-                            !!language.app_release.release_title_link ?
-                            language.app_release.release_title_link :
-                            'language.app_release.release_title_link'
-                        }
+                        {getLanguageFromKey('app_release.release_title_link', language)}
                       </a> :
                       null
                     }
@@ -455,13 +408,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           <Typography
             className={classes.appReleaseHistoryTitle}
           >
-            {
-              !!language &&
-                !!language.app_release &&
-                !!language.app_release.earlier_releases ?
-                language.app_release.earlier_releases :
-                'language.app_release.earlier_releases'
-            }
+            {getLanguageFromKey('app_release.earlier_releases', language)}
           </Typography>
         </Grid>
         <Grid

@@ -10,6 +10,7 @@ import * as Moment from 'moment';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { BuildResult, BuildStatus, IAppReleaseErrors, IBuild, IRelease } from '../../../sharedResources/appRelease/types';
 import { getGitCommitLink, getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 
@@ -39,7 +40,9 @@ const styles = createStyles({
   },
   releaseText: {
     fontSize: '1.6rem',
-  }
+    wordWrap: 'normal',
+    wordBreak: 'break-word',
+  },
 });
 
 export interface IAppReleaseComponent extends WithStyles<typeof styles> {
@@ -82,18 +85,10 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       release.build.status !== BuildStatus.completed &&
       appReleaseErrors.fetchReleaseErrorCode !== null
     ) {
-      try {
-        return language.app_create_release_errors.check_status_on_build_error;
-      } catch (err) {
-        return 'language.app_create_release_errors.check_status_on_build_error';
-      }
+      return getLanguageFromKey('app_create_release_errors.check_status_on_build_error', language);
     }
     if (release.build.status !== BuildStatus.completed) {
-      try {
-        return `${language.app_create_release.release_creating} ${release.createdBy}`;
-      } catch(err) {
-        return `language.app_create_release.release_creating ${release.createdBy}`;
-      }
+      return `${getLanguageFromKey('app_create_release.release_creating', language)} ${release.createdBy}`;
     }
     return release.body;
   }
@@ -116,14 +111,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           <Typography
             className={classes.releaseText}
           >
-            {
-              !!language &&
-                !!language.app_release &&
-                !!language.app_release.release_version ?
-                language.app_release.release_version :
-                'language.app_release.release_version'
-            }
-            {release.tagName}
+            {getLanguageFromKey('app_release.release_version', language)} {release.tagName}
           </Typography>
         </Grid>
         <Grid
@@ -158,13 +146,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
                 href={getReleaseBuildPipelineLink(release.build.id)}
                 target={'_blank'}
               >
-                {
-                  !!language &&
-                    !!language.app_release &&
-                    !!language.app_release.release_build_log ?
-                    language.app_release.release_build_log :
-                    'language.app_release.release_build_log'
-                }
+                {getLanguageFromKey('app_release.release_build_log', language)}
               </a>
             </Typography>
           </Grid>
@@ -177,13 +159,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
               href={getGitCommitLink(release.targetCommitish)}
               target={'_blank'}
             >
-              {
-                !!language &&
-                  !!language.app_release &&
-                  !!language.app_release.release_see_commit ?
-                  language.app_release.release_see_commit :
-                  'language.app_release.release_see_commit'
-              }
+              {getLanguageFromKey('app_release.release_see_commit', language)}
             </a>
           </Typography>
         </Grid>
