@@ -211,11 +211,6 @@ namespace Altinn.Platform.Storage.Controllers
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
-            foreach(Guid r in refs)
-            {
-                _logger.LogInformation(r.ToString());
-            }
-
             if (instanceOwnerId == 0 || string.IsNullOrEmpty(elementType) || Request.Body == null)
             {
                 return BadRequest("Missing parameter values: instanceId, elementType or attached file content cannot be null");
