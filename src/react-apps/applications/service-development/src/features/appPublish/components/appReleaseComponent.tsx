@@ -9,6 +9,7 @@ import {
 import * as Moment from 'moment';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
+import AltinnIcon from '../../../../../shared/src/components/AltinnIcon';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { BuildResult, BuildStatus, IAppReleaseErrors, IBuild, IRelease } from '../../../sharedResources/appRelease/types';

@@ -218,7 +218,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
                 <>
                   {getLanguageFromKey('app_create_release_errors.build_cannot_start', language)}
                   &nbsp;
-                  <a href={''} target='_blank'>
+                  <a href={'mailto:tjenesteeier@altinn.no'} target='_blank'>
                     {getLanguageFromKey('app_create_release_errors.altinn_servicedesk', language)}
                   </a>
                 </>
