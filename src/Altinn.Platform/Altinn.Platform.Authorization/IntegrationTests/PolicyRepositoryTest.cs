@@ -182,26 +182,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         }
 
         /// <summary>
-        /// Test case: Writing a file to storage which fails in the upload process. 
-        /// Expected: WritePolicy returns false.
-        /// UnitTest
-        /// </summary>
-        /* [Fact]
-        public async Task WritePolicy_TC07()
-        {
-            // Arrange
-            await _blobContainer.CreateIfNotExistsAsync();
-            Stream stream = null;
-
-            // Act
-            PolicyRepository pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
-            bool successfullyStored = await pr.WritePolicy($"{ORG}/{APP}/policy.xml", stream);
-
-            // Assert
-            Assert.False(successfullyStored);
-        }*/
-
-        /// <summary>
         /// Test case: Get a file from storage that exists.
         /// Expected: GetPolicy returns MemoryStream.
         /// </summary>
