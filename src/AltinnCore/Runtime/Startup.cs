@@ -269,21 +269,21 @@ namespace AltinnCore.Runtime
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
             });
 
-           appBuilder.UseStatusCodePages(async context =>
-               {
-                   var request = context.HttpContext.Request;
-                   var response = context.HttpContext.Response;
-                   string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
+            appBuilder.UseStatusCodePages(async context =>
+            {
+                var request = context.HttpContext.Request;
+                var response = context.HttpContext.Response;
+                string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
 
-                   // you may also check requests path to do this only for specific methods
-                   // && request.Path.Value.StartsWith("/specificPath")
-                   if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
-                   {
-                       response.Redirect($"account/login?gotoUrl={url}");
-                   }
-               });
+                // you may also check requests path to do this only for specific methods
+                // && request.Path.Value.StartsWith("/specificPath")
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                {
+                    response.Redirect($"account/login?gotoUrl={url}");
+                }
+            });
 
-            appBuilder.UseStatusCodePages(new StaticFileOptions()
+            appBuilder.UseStaticFiles(new StaticFileOptions()
             {
                 OnPrepareResponse = (context) =>
                 {
@@ -530,7 +530,7 @@ namespace AltinnCore.Runtime
             // appBuilder.UseHsts();
             // appBuilder.UseHttpsRedirection();
 
-             appBuilder.UseResponseCompression();
+            appBuilder.UseResponseCompression();
             appBuilder.UseRequestLocalization();
         }
 
