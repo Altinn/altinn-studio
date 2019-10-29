@@ -30,26 +30,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             _fixture = fixture;
             _client = _fixture.GetClient();
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("appliation/xml"));
-      
-
-            /*
-            _storageConfigMock = new Mock<IOptions<AzureStorageConfiguration>>();
-            _storageConfigMock.Setup(s => s.Value).Returns(new AzureStorageConfiguration()
-            {
-                AccountName = "devstoreaccount1",
-                AccountKey = "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==",
-                StorageContainer = "metadata",
-                BlobEndPoint = "http://127.0.0.1:10000/devstoreaccount1"
-            });
-
-            // connect to azure blob storage
-            StorageCredentials storageCredentials = new StorageCredentials("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==");
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-            StorageUri storageUrl = new StorageUri(new Uri("http://127.0.0.1:10000/devstoreaccount1"));
-            _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
-            _blobContainer = _blobClient.GetContainerReference("metadata");
-            */
         }
 
         /// <summary>
