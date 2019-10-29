@@ -19,10 +19,10 @@ const styles = createStyles({
   deployContainer: {
     overflow: 'scroll',
     [theme.breakpoints.up('xs')]: {
-      height: 'calc(100vh - 5.5rem)',
+      height: 'calc(100vh - 55px)',
     },
     [theme.breakpoints.up('md')]: {
-      height: 'calc(100vh - 11.1rem)',
+      height: 'calc(100vh - 111px)',
     },
   },
 });

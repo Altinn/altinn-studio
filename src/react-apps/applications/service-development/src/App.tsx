@@ -44,10 +44,10 @@ const styles = () => createStyles({
   },
   subApp: {
     [theme.breakpoints.up('xs')]: {
-      paddingTop: '5.5rem',
+      paddingTop: '55px',
     },
     [theme.breakpoints.up('md')]: {
-      paddingTop: '11.1rem',
+      paddingTop: '111px',
     },
     background: theme.altinnPalette.primary.greyLight,
     height: '100%',
