@@ -26,7 +26,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         {
             _policyRepositoryMock = new Mock<IPolicyRepository>();
             _sut = new PolicyRetrievalPoint(_policyRepositoryMock.Object);
-
         }
 
         /// <summary>

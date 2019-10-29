@@ -247,7 +247,6 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             {
                 return false;
             }
-
             do
             {
                 streamByte1 = stream1.ReadByte();
