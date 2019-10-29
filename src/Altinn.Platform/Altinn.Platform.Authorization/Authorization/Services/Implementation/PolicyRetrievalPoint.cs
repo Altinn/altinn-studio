@@ -23,6 +23,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly string appAttributeId = "urn:altinn:app";
         private readonly IPolicyRepository _repository;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.      
+        /// </summary>
+        /// <param name="policyRepository">The policy Repository..</param>
         public PolicyRetrievalPoint(IPolicyRepository policyRepository)
         {
             _repository = policyRepository;
@@ -60,8 +64,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException("The policy file must contain org and app attributes");
             }
 
-            //XacmlPolicy xacmlPolicy = ParsePolicy(fileStream);
-
             string filePath = GetAltinnAppsPolicyPath(org, app);
             return await _repository.WritePolicyAsync(filePath, fileStream);
         }
@@ -98,9 +100,14 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
             }
 
-            if (string.IsNullOrEmpty(org) || string.IsNullOrEmpty(app))
+            if (string.IsNullOrEmpty(org))
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Org was not defined");
+            }
+
+            if (string.IsNullOrEmpty(app))
+            {
+                throw new ArgumentException("App was not defined");
             }
 
             return GetAltinnAppsPolicyPath(org, app);
