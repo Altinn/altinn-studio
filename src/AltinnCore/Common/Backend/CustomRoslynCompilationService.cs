@@ -3,21 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.AspNetCore.Mvc.Razor.Internal;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Backend
 {
@@ -199,16 +192,20 @@ namespace AltinnCore.Common.Backend
         /// <returns>The <see cref="MetadataReference"/> instances.</returns>
         protected virtual IList<MetadataReference> GetCompilationReferences()
         {
-            var feature = new MetadataReferenceFeature();
-            _partManager.PopulateFeature(feature);
-            var applicationReferences = feature.MetadataReferences;
+            var applicationReferences = new MetadataReference[]
+{
+                MetadataReference.CreateFromFile(typeof(object).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(System.Runtime.AssemblyTargetedPatchBandAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo).Assembly.Location),
+};
 
             if (_additionalMetadataReferences.Count == 0 && ServiceReferences.Count == 0)
             {
                 return applicationReferences;
             }
 
-            var compilationReferences = new List<MetadataReference>(applicationReferences.Count + _additionalMetadataReferences.Count + ServiceReferences.Count);
+            var compilationReferences = new List<MetadataReference>(applicationReferences.Count() + _additionalMetadataReferences.Count + ServiceReferences.Count);
             compilationReferences.AddRange(applicationReferences);
             compilationReferences.AddRange(_additionalMetadataReferences);
             compilationReferences.AddRange(ServiceReferences.Values);
@@ -272,21 +269,6 @@ namespace AltinnCore.Common.Backend
 #else
             return System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromStream(assemblyStream, pdbStream);
 #endif
-        }
-
-        private CSharpCompilation Rewrite(CSharpCompilation compilation)
-        {
-            var rewrittenTrees = new List<SyntaxTree>();
-            foreach (var tree in compilation.SyntaxTrees)
-            {
-                var semanticModel = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
-                var rewriter = new ExpressionRewriter(semanticModel);
-
-                var rewrittenTree = tree.WithRootAndOptions(rewriter.Visit(tree.GetRoot()), tree.Options);
-                rewrittenTrees.Add(rewrittenTree);
-            }
-
-            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(rewrittenTrees);
         }
     }
 }

@@ -42,7 +42,6 @@ namespace AltinnCore.Common.Clients
                     _registerClient = new HttpClient();
                     _registerClient.BaseAddress = new Uri($"{_platformSettings.GetApiRegisterEndpoint}");
                     _registerClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
                 }
 
                 return _registerClient;

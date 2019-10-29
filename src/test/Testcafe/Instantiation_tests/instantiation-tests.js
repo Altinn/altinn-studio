@@ -1,6 +1,5 @@
 import App from '../app';
-import { Selector, t, ClientFunction } from 'testcafe';
-import axeCheck from 'axe-testcafe';
+import { Selector, t } from 'testcafe';
 import RunTimePage from '../page-objects/runTimePage';
 import DesignerPage from '../page-objects/designerPage';
 import { AutoTestUser } from '../TestData';
@@ -18,17 +17,18 @@ fixture('Instantiation tests')
   })
 
   test("Instantiation of an access controlled app not possible", async () => {
-    await t
-      .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+    await t      
+      .navigateTo(app.baseUrl + 'designer/ttd/party-selection-app#/uieditor')
+      .expect(designer.testeNavigationTab.exists).ok( {timeout: 120000} )
       .click(designer.testeNavigationTab)
       .switchToIframe(runtime.testBrukerIframe)
       .expect(runtime.testUsers[0].exists).ok()
       .hover(runtime.testUsers[0])
       .click(runtime.testUsers[0])
-      .expect(runtime.startNewButton.exists).ok()
+      .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
       .click(runtime.startNewButton)
       .switchToMainWindow()
-      .expect(Selector('span').withText('403'))
+      .expect(Selector('span').withText('403').exists).ok( {timeout: 120000} )
   });
 
   test("Party Selection page with error message and party list", async () => {
@@ -39,7 +39,7 @@ fixture('Instantiation tests')
       .expect(runtime.testUsers[1].exists).ok()
       .hover(runtime.testUsers[1])
       .click(runtime.testUsers[1])
-      .expect(runtime.startNewButton.exists).ok()
+      .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
       .click(runtime.startNewButton)
       .switchToMainWindow()
       .expect(Selector('p').withText('Velg ny aktør under').exists).ok({timeout:5000})

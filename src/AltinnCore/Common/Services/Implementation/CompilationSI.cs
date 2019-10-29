@@ -142,13 +142,37 @@ namespace AltinnCore.Common.Services.Implementation
 
             string assemblyName = Path.GetRandomFileName();
 
-            MetadataReferenceFeature referenceFeature = new MetadataReferenceFeature();
-            _partManager.PopulateFeature(referenceFeature);
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            List<string> assembliesPath = new List<string>();
+         
+            for (int i = 0; i < assemblies.Count(); i++)
+            {
+                if (!assemblies[i].IsDynamic)
+                {
+                    if (!string.IsNullOrEmpty(assemblies[i].FullName) && !string.IsNullOrEmpty(assemblies[i].Location))
+                    {
+                        assembliesPath.Add(assemblies[i].Location);
+                    }
+                }
+            }
+
+            var refFeature = new MetadataReference[assembliesPath.Count];
+            for (int i = 0; i < assembliesPath.Count(); i++)
+            {
+                if (!string.IsNullOrEmpty(assembliesPath[i]))
+                {
+                    if (MetadataReference.CreateFromFile(assembliesPath[i]) != null)
+                    {
+                        refFeature[i] = MetadataReference.CreateFromFile(assembliesPath[i]);
+                    }                    
+                }                
+            }
 
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: syntaxTrees,
-                references: referenceFeature.MetadataReferences,
+                references: refFeature,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             using (var pdbMs = new MemoryStream())

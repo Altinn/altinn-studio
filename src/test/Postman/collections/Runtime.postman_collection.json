@@ -92,9 +92,12 @@
 							"script": {
 								"id": "6505cb59-4588-4d0c-af60-b5faa7dcb8c1",
 								"exec": [
-									"var jsonData = pm.response.json();",
-									"var partyId = jsonData.partyId;",
-									"pm.environment.set(\"instanceOwnerId\",partyId);"
+									"if(pm.response.code == 200)",
+									"{",
+									"    var jsonData = pm.response.json();",
+									"    var partyId = jsonData.partyId;",
+									"    pm.environment.set(\"instanceOwnerId\",partyId);",
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -1126,6 +1129,237 @@
 		{
 			"name": "CleanUp",
 			"item": [
+				{
+					"name": "DELETE App Instance by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							],
+							"query": [
+								{
+									"key": "hard",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Multipart",
+			"item": [
+				{
+					"name": "POST Create Instances with mulipart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a3815326-b103-4737-9025-ee4f947dd1c0",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Create app instance with multipart data - Status - 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+									"        var instanceId = jsonData.id;\r",
+									"        instanceId = instanceId.toString();\r",
+									"        instanceId = instanceId.split('/');\r",
+									"        instanceId = instanceId[1];\r",
+									"        pm.environment.set('instanceId',instanceId);\r",
+									"    }\r",
+									"    if (pm.expect(jsonData.data[0].id).not.eql(null))\r",
+									"    {\r",
+									"        var dataId = jsonData.data[0].id;\r",
+									"        pm.environment.set('dataGuid',dataId);\r",
+									"    }\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "multipart/form-data; boundary=\"abcdefg\"",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueDateTime\": \"2021-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1243\" spesifikasjonsnummer=\"10702\" blankettnummer=\"RF-1117\" tittel=\"Klage på likningen\" gruppeid=\"5800\">\r\n  <Skattyterinfor-grp-5801 gruppeid=\"5801\">\r\n    <info-grp-5802 gruppeid=\"5802\">\r\n      <OppgavegiverNavnPreutfylt-datadef-25795 orid=\"25795\">test</OppgavegiverNavnPreutfylt-datadef-25795>\r\n    </info-grp-5802>\r\n  </Skattyterinfor-grp-5801>\r\n</Skjema>\r\n\r\n--abcdefg--",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Multipart instance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Get multipart app instance by ID - Status - 200\", function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Runtime - Instances - Get multipart app instance by ID - Content - matches\", function() {",
+									"    var jsonData = pm.response.json();",
+									"    var envInstanceId = pm.environment.get(\"instanceId\");",
+									"    var responseInstanceId = jsonData.id;",
+									"    responseInstanceId = responseInstanceId.toString();",
+									"    responseInstanceId = responseInstanceId.split(\"/\");",
+									"    responseInstanceId = responseInstanceId[1];",
+									"    pm.expect(responseInstanceId).to.equal(envInstanceId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Form Data created by mulipart",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"exec": [
+									"pm.test(\"Runtime - Data - GET Form Data created by mulipart - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				},
 				{
 					"name": "DELETE App Instance by Id",
 					"event": [
