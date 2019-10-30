@@ -10,7 +10,7 @@ import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
 // Worker function - polling
 function* getAppDeploymentIntervalSaga(): SagaIterator {
   while (true) {
-      try
+    try {
       const deployments = yield call(get, `${getAppDeploymentsUrl()}?sortDirection=descending&sortBy=created`);
 
       yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, deployments);
