@@ -203,7 +203,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         public async Task GetPolicy_TC02()
         {
             // Arrange & Act
-            Stream stream = await _pr.GetPolicyAsync("org/app1/policy.xml");
+            Stream stream = await _pr.GetPolicyAsync("org/app4/policys.xml");
 
             // Assert
             Assert.Null(stream);

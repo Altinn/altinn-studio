@@ -39,12 +39,11 @@ namespace Altinn.Platform.Authorization.Repositories
         /// <inheritdoc />
         public async Task<Stream> GetPolicyAsync(string filepath)
         {
-            bool blobExists = await _blobContainer.GetBlockBlobReference(filepath).ExistsAsync();
+            CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
+            var memoryStream = new MemoryStream();
 
-            if (blobExists)
+            if (await blockBlob.ExistsAsync())
             {
-                CloudBlockBlob blockBlob = _blobContainer.GetBlockBlobReference(filepath);
-                var memoryStream = new MemoryStream();
                 await blockBlob.DownloadToStreamAsync(memoryStream);
                 memoryStream.Position = 0;
 

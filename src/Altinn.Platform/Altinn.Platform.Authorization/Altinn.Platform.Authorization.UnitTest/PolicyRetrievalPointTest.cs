@@ -20,12 +20,12 @@ namespace Altinn.Platform.Authorization.UnitTest
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";
         private readonly Mock<IPolicyRepository> _policyRepositoryMock;
-        private readonly PolicyRetrievalPoint _sut;
+        private readonly PolicyRetrievalPoint _prp;
 
         public PolicyRetrievalPointTest()
         {
             _policyRepositoryMock = new Mock<IPolicyRepository>();
-            _sut = new PolicyRetrievalPoint(_policyRepositoryMock.Object);
+            _prp = new PolicyRetrievalPoint(_policyRepositoryMock.Object);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
             // Act
-            var policy = await _sut.GetPolicyAsync(request);
+            var policy = await _prp.GetPolicyAsync(request);
 
             // Assert
             Assert.NotNull(policy);
@@ -60,7 +60,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
             // Act
-            var policy = await _sut.GetPolicyAsync(request);
+            var policy = await _prp.GetPolicyAsync(request);
 
             // Assert
             Assert.Null(policy);
@@ -79,7 +79,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             XacmlContextRequest request = new XacmlContextRequest(true, true, new List<XacmlContextAttributes>());
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.GetPolicyAsync(request));
+            await Assert.ThrowsAsync<ArgumentException>(() => _prp.GetPolicyAsync(request));
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act
-            bool successfullyStored = await _sut.WritePolicyAsync("org", "app", dataStream);
+            bool successfullyStored = await _prp.WritePolicyAsync("org", "app", dataStream);
 
             // Assert
             Assert.True(successfullyStored);
@@ -111,7 +111,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("", "app", new MemoryStream()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync("", "app", new MemoryStream()));
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "", new MemoryStream()));
+            await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync("org", "", new MemoryStream()));
         }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Altinn.Platform.Authorization.UnitTest
             _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "app", null));
+            await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync("org", "app", null));
         }
 
         private List<XacmlContextAttributes> GetXacmlContextAttributesWithOrgAndApp()
