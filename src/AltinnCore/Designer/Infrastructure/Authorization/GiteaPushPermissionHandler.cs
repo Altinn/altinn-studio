@@ -38,13 +38,13 @@ namespace AltinnCore.Designer.Infrastructure.Authorization
             AuthorizationHandlerContext context,
             GiteaPushPermissionRequirement requirement)
         {
-            string org = _httpContext.GetRouteValue("org")?.ToString();
-            string app = _httpContext.GetRouteValue("app")?.ToString();
-
             if (_httpContext == null)
             {
                 return;
             }
+
+            string org = _httpContext.GetRouteValue("org")?.ToString();
+            string app = _httpContext.GetRouteValue("app")?.ToString();
 
             if (string.IsNullOrWhiteSpace(org) ||
                 string.IsNullOrWhiteSpace(app))

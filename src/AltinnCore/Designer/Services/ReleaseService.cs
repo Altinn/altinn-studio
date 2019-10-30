@@ -129,7 +129,6 @@ namespace AltinnCore.Designer.Services
         {
             SqlQuerySpec sqlQuery = CreateSqlQueryForUniqueness(release);
             IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuery);
-            ProblemDetails x = new ProblemDetails();
             if (existingReleaseEntity.Any())
             {
                 throw new HttpRequestWithStatusException("A release with the same properties already exist.")
