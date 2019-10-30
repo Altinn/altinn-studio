@@ -38,7 +38,7 @@ namespace AltinnCore.UnitTest.Designer.Controllers
 
             ModelController controller = new ModelController(moqRepository.Object, new TestLoggerFactory());
 
-            IFormFile formFile = AsMockIFormFile("Designer/Edag-latin1.xsd");
+            IFormFile formFile = AsMockIFormFile("Designer/Controllers/Edag-latin1.xsd");
 
             ActionResult result = controller.Upload("Org", "app2", formFile);
 

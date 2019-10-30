@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -140,6 +141,12 @@ namespace AltinnCore.Runtime
                 Directory.CreateDirectory(repoLocation);
             }
 
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
+
+            services.AddMvc().AddNewtonsoftJson();
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
@@ -265,6 +272,20 @@ namespace AltinnCore.Runtime
             appBuilder.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
+            });
+
+            appBuilder.UseStatusCodePages(async context =>
+            {
+                var request = context.HttpContext.Request;
+                var response = context.HttpContext.Response;
+                string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
+
+                // you may also check requests path to do this only for specific methods
+                // && request.Path.Value.StartsWith("/specificPath")
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                {
+                    response.Redirect($"account/login?gotoUrl={url}");
+                }
             });
 
             appBuilder.UseStaticFiles(new StaticFileOptions()
@@ -513,20 +534,6 @@ namespace AltinnCore.Runtime
 
             // appBuilder.UseHsts();
             // appBuilder.UseHttpsRedirection();
-
-            appBuilder.UseStatusCodePages(async context =>
-               {
-                   var request = context.HttpContext.Request;
-                   var response = context.HttpContext.Response;
-                   string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
-
-                   // you may also check requests path to do this only for specific methods
-                   // && request.Path.Value.StartsWith("/specificPath")
-                   if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
-                   {
-                       response.Redirect($"account/login?gotoUrl={url}");
-                   }
-               });
 
             appBuilder.UseResponseCompression();
             appBuilder.UseRequestLocalization();

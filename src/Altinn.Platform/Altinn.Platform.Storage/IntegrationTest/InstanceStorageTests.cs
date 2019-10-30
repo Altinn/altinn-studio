@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
@@ -307,6 +308,41 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                     response.EnsureSuccessStatusCode();
                 }
+            }
+        }
+
+        /// <summary>
+        ///  update an existing data file.
+        /// </summary>
+        // [Fact]
+        public async void UpdateDataFile_SetFileName()
+        {
+            string applicationId = testAppId;
+            int instanceOwnerId = testInstanceOwnerId;
+
+            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+
+            instance = await storageClient.PostDataReadFromFile(instance.Id, "binary_file.pdf", "application/pdf");
+
+            string dataId = instance.Data.Find(m => m.ElementType.Equals("default")).Id;
+
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataId}";
+
+            string dataFile = "image.png";
+
+            using (Stream input = File.OpenRead($"data/{dataFile}"))
+            {
+                HttpContent fileStreamContent = new StreamContent(input);
+                string contentType = "application/xml";
+                string fileName = "Testfile.xml";
+
+                fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+                fileStreamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data; name=" + Path.GetFileNameWithoutExtension(fileName));
+                fileStreamContent.Headers.ContentDisposition.FileName = "TestFileName";
+
+                HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent).ConfigureAwait(false);
+
+                response.EnsureSuccessStatusCode();
             }
         }
     }

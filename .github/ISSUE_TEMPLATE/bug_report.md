@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a bug report to help us improve Altinn Studio
-labels: bug
+labels: kind/bug
 ---
 
 ## Describe the bug

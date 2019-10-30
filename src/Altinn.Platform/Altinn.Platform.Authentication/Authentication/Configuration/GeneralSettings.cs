@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Altinn.Platform.Authentication.Configuration
 {
@@ -151,6 +148,40 @@ namespace Altinn.Platform.Authentication.Configuration
             get
             {
                 return Environment.GetEnvironmentVariable("GeneralSettings__BaseUrl") ?? BaseUrl;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets URL of the well known configuration endpoint for Maskinporten.
+        /// </summary>
+        public string MaskinportenWellKnownConfigEndpoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets URL of the well known configuration endpoint for Maskinporten from kubernetes or appsettings if no environment variable is set.
+        /// </summary>
+        public string GetMaskinportenWellKnownConfigEndpoint
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__" + nameof(MaskinportenWellKnownConfigEndpoint)) ??
+                       MaskinportenWellKnownConfigEndpoint;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the url to the json file which holds the valid organisation entries (which inclides name, organisation number and org identifier)
+        /// </summary>
+        public string OrganisationRepositoryLocation { get; set; }
+
+        /// <summary>
+        /// Gets the url of the list of valid organisation entries (json)
+        /// </summary>
+        public string GetOrganisationRepositoryLocation
+        {
+            get
+            {
+                return Environment.GetEnvironmentVariable("GeneralSettings__" + nameof(OrganisationRepositoryLocation)) ??
+                    OrganisationRepositoryLocation;
             }
         }
     }
