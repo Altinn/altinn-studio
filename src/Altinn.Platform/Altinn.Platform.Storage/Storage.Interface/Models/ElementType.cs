@@ -3,8 +3,6 @@ using System.ComponentModel;
 
 using Newtonsoft.Json;
 
-using Storage.Interface.Models;
-
 namespace Altinn.Platform.Storage.Models
 {
     /// <summary>

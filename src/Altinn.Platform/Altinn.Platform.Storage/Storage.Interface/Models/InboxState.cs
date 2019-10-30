@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System;
 
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
     /// Holds the state of an instance with respect to the Altinn inbox.

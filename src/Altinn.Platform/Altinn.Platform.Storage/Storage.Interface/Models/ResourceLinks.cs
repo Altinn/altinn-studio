@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
     /// represent actual links to resources in various enpoints

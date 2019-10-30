@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
     /// Convenience type to handle multiple languages in a string.

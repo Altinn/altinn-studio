@@ -1,10 +1,8 @@
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 
-namespace Storage.Interface.Clients
+namespace Altinn.Platform.Storage.Clients
 {
 
     /// <summary>

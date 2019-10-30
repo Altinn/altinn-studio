@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Models
 {
     /// <summary>
     /// Information about the platform user, that is the identity of the client doing the action and his/hers authentication level.
