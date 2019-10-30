@@ -59,10 +59,18 @@ export const DeployContainer = (props: IDeployContainer) => {
   }, []);
 
   React.useEffect(() => {
-    if (configuration.environments && configuration.environments.result) {
-      setEnvironments(configuration.environments.result);
+    if (
+      !!orgs.allOrgs &&
+      !!orgs.allOrgs[org] &&
+      !!orgs.allOrgs[org].environments &&
+      !!configuration.environments.result
+    ) {
+      setEnvironments(orgs.allOrgs[org].environments.map(
+        (envName: string) =>
+          configuration.environments.result.find((env: any) => env.name === envName))
+          .filter((element: any) => element != null));
     }
-  }, [configuration]);
+  }, [orgs, configuration]);
 
   React.useEffect(() => {
     environments.map((env: any) => {
@@ -91,42 +99,49 @@ export const DeployContainer = (props: IDeployContainer) => {
     );
   };
 
-  return (
-    <Grid
-      container={true}
-      direction={'row'}
-      className={classes.deployContainer}
-    >
-      {isLoading() &&
+  if (isLoading()) {
+    return (
+      <Grid
+        container={true}
+        direction={'row'}
+        className={classes.deployContainer}
+      >
         <AltinnContentLoader  width={900} height={320}>
           <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
           <rect x='60' y='110' rx='0' ry='0' width='333' height='44' />
           <rect x='60' y='171' rx='0' ry='0' width='202' height='41' />
           <rect x='487' y='111' rx='0' ry='0' width='220' height='42' />
         </AltinnContentLoader>
-      }
-      {!isLoading() &&
-        environments.map((env: any, index: number) => {
-          return(
-            <AppDeploymentComponent
-              key={index}
-              envName={env.name}
-              envObj={env}
-              urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}`}
-              urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}`}
-              deploymentList={
-                appCluster.deploymentList &&
-                appCluster.deploymentList.find((elem: any) => elem.env === env.name)
-              }
-              releases={imageOptions}
-              deployHistory={appDeployments.deployments.filter((deployment: any) => deployment.envName === env.name)}
-              deployError={createAppDeploymentErrors.filter(
-                              (error: ICreateAppDeploymentErrors) => error.env === env.name)}
-              language={language}
-            />
-          );
-        })
-      }
+      </Grid>
+    );
+  }
+
+  return (
+    <Grid
+      container={true}
+      direction={'row'}
+      className={classes.deployContainer}
+    >
+      {environments.map((env: any, index: number) => {
+        return(
+          <AppDeploymentComponent
+            key={index}
+            envName={env.name}
+            envObj={env}
+            urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}`}
+            urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}`}
+            deploymentList={
+              appCluster.deploymentList &&
+              appCluster.deploymentList.find((elem: any) => elem.env === env.name)
+            }
+            releases={imageOptions}
+            deployHistory={appDeployments.deployments.filter((deployment: any) => deployment.envName === env.name)}
+            deployError={createAppDeploymentErrors.filter(
+                            (error: ICreateAppDeploymentErrors) => error.env === env.name)}
+            language={language}
+          />
+        );
+      })}
     </Grid>
   );
 };
