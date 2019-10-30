@@ -16,17 +16,18 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    public class PolicyRepositoryTest : IClassFixture<PlatformAuthorizationFixture>
+    [Collection("Our Test Collection #1")]
+    public class PolicyRepositoryTest : IClassFixture<PolicyRetrivevalPointFixture>
     {
         Mock<IOptions<AzureStorageConfiguration>> _storageConfigMock;
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";
-        private readonly PlatformAuthorizationFixture _fixture;
+        private readonly PolicyRetrivevalPointFixture _fixture;
         private readonly PolicyRepository _sut;
 
-        public PolicyRepositoryTest(PlatformAuthorizationFixture fixture)
+        public PolicyRepositoryTest(PolicyRetrivevalPointFixture fixture)
         {
             _fixture = fixture;
             _storageConfigMock = new Mock<IOptions<AzureStorageConfiguration>>();

@@ -19,13 +19,14 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    public class PolicyControllerTest : IClassFixture<PlatformAuthorizationFixture>
+    [Collection("Our Test Collection #1")]
+    public class PolicyControllerTest : IClassFixture<PolicyRetrivevalPointFixture>
     {
         private readonly HttpClient _client;
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";
-        private readonly PlatformAuthorizationFixture _fixture;
-        public PolicyControllerTest(PlatformAuthorizationFixture fixture)
+        private readonly PolicyRetrivevalPointFixture _fixture;
+        public PolicyControllerTest(PolicyRetrivevalPointFixture fixture)
         {
             _fixture = fixture;
             _client = _fixture.GetClient();

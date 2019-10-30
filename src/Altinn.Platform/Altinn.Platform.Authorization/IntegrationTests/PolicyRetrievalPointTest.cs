@@ -13,6 +13,7 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -21,18 +22,19 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    public class PolicyRetrievalPointTest : IClassFixture<PlatformAuthorizationFixture>
+    [Collection("Our Test Collection #1")]
+    public class PolicyRetrievalPointTest : IClassFixture<PolicyRetrivevalPointFixture>
     {
         Mock<IOptions<AzureStorageConfiguration>> _storageConfigMock;
         private CloudBlobClient _blobClient;
         private CloudBlobContainer _blobContainer;
         private const string ORG = "ttd";
         private const string APP = "repository-test-app";
-        private readonly PlatformAuthorizationFixture _fixture;
+        private readonly PolicyRetrivevalPointFixture _fixture;
         private readonly PolicyRepository _pr;
         private readonly PolicyRetrievalPoint _sut;
 
-        public PolicyRetrievalPointTest(PlatformAuthorizationFixture fixture)
+        public PolicyRetrievalPointTest(PolicyRetrivevalPointFixture fixture)
         {
             _fixture = fixture;
             _storageConfigMock = new Mock<IOptions<AzureStorageConfiguration>>();
