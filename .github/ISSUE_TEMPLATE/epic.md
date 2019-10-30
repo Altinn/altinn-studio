@@ -36,4 +36,5 @@ Lorem ipsum
 Lorem ipsum
 
 ## Dependencies
-> Specify any dependencies by clicking "add dependency" below.
+> Specify any dependencies by clicking "add dependency" below. 
+> NB! Dependencies can only be added and are only visible when the issue is viewed through Zenhub.
