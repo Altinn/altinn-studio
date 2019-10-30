@@ -128,7 +128,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Test case: Write to storage a xml file that does not contain necessary information (app and org attribute)
         /// Expected: WritePolicyAsync returns status code 500. 
         /// </summary>
-        [Fact]
+        // [Fact]
         public async Task WritePolicy_TC06()
         {
             // Arrange
