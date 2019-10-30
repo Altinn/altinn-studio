@@ -33,7 +33,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, MockServices.ContextHandler>();
-                    //services.AddScoped<IPolicyRetrievalPoint, MockServices.PolicyRetrievalPoint>();
+                    services.AddScoped<IPolicyRetrievalPoint, MockServices.PolicyRetrievalPoint>();
                     services.AddScoped<IRoles, MockServices.PolicyInformationPoint>();
                     services.AddScoped<IContextHandler, IntegrationTests.MockServices.ContextHandler>();
                 })
