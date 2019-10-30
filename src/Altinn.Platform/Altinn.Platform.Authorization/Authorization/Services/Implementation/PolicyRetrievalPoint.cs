@@ -40,7 +40,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
+        public Task<bool> WritePolicyAsync(string org, string app, Stream fileStream)
         {
             if (string.IsNullOrWhiteSpace(org))
             {
@@ -57,6 +57,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException("The policy file can not be null");
             }
 
+            return WritePolicyInternalAsync(org, app, fileStream);
+        }
+
+        private async Task<bool> WritePolicyInternalAsync(string org, string app, Stream fileStream)
+        {
             string filePath = GetAltinnAppsPolicyPath(org, app);
             return await _repository.WritePolicyAsync(filePath, fileStream);
         }
