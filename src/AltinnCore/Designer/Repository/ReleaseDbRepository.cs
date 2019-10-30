@@ -15,9 +15,8 @@ namespace AltinnCore.Designer.Repository
         /// </summary>
         public ReleaseDbRepository(
             IOptions<AzureCosmosDbSettings> options,
-            IDocumentClient documentClient,
-            ILogger<DocumentDbRepository> logger)
-            : base(options.Value.ReleaseCollection, options, documentClient, logger)
+            IDocumentClient documentClient)
+            : base(options.Value.ReleaseCollection, options, documentClient)
         {
         }
     }
