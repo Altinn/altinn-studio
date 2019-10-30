@@ -11,7 +11,7 @@ const SelectEnvironments = (store: IServiceDevelopmentState) => store.configurat
 function* getDeploymentsIntervalSaga(): SagaIterator {
   while (true) {
     const { org, app } = window as Window as IAltinnWindow;
-    const environments: any = yield select(SelectEnvironments); // TODO: any
+    const environments: any = yield select(SelectEnvironments);
 
     for (const env of environments) {
       try {
