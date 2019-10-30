@@ -7,7 +7,7 @@
     <CodeAnalysisRuleSet>..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>C:\repos\altinn-studio\src\Altinn.Platform\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.xml</DocumentationFile>
+    <DocumentationFile>C:\repos\altinn-studio\src\Altinn.Platform\Altinn.Platform.Authorization\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.1.61">

@@ -353,6 +353,7 @@ coverage
 /src/Altinn.Platform/Altinn.Platform.Profile/Profile/azds.yaml
 /src/AltinnCore/UnitTest/coverage.opencover.xml
 /src/Altinn.Platform/Altinn.Platform.Authorization/azurite_workspace
+/src/Altinn.Platform/Altinn.Platform.Authorization/Altinn.Authorization.ABAC/Altinn.Authorization.ABAC.xml
 
 ## Java
 *.class
