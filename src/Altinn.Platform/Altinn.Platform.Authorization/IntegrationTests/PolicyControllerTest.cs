@@ -75,7 +75,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Test case: Write to storage a file that is null. 
         /// Expected: GetPolicyAsync returns status code 500.
         /// </summary>
-        [Fact]
+        // [Fact]
         public async Task WritePolicy_TC03()
         {
             // Arrange & Act
@@ -90,7 +90,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Test case: Write a xml file to storage where org query string is not set.
         /// Expected: WritePolicyAsync returns status code 500. 
         /// </summary>
-        [Fact]
+        // [Fact]
         public async Task WritePolicy_TC04()
         {
             // Arrange
