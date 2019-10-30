@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Altinn.Authorization.ABAC.Interface;
-using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Hosting;

@@ -1,19 +1,8 @@
-using Altinn.Authorization.ABAC.Constants;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
-using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Moq;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 

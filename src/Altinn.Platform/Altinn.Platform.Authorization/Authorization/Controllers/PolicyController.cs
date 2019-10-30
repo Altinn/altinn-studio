@@ -1,14 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Interface;
-using Altinn.Authorization.ABAC.Xacml;
-using Altinn.Platform.Authorization.ModelBinding;
-using Altinn.Platform.Authorization.Repositories.Interface;
-using Altinn.Platform.Authorization.Services.Implementation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -55,7 +49,7 @@ namespace Altinn.Platform.Authorization.Controllers
                 return BadRequest("App must be defined in query string");
             }
 
-            // Use Request.Body to capture raw data from body to support other format than just JSON
+            // Use Request.Body to capture raw data from body to support other format than JSON
             Stream content = Request.Body;
 
             // Request.Body returns Stream of type FrameRequestStream which can only be read once

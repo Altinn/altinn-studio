@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using Altinn.Authorization.ABAC.Constants;
@@ -81,20 +79,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     {
                         if (asd.AttributeId.OriginalString.Equals(orgAttributeId))
                         {
-                            foreach (var asff in asd.AttributeValues)
-                            {
-                                org = asff.Value;
-                                break;
-                            }
+                            org = asd.AttributeValues.OfType<XacmlAttributeValue>().FirstOrDefault().Value;
                         }
 
                         if (asd.AttributeId.OriginalString.Equals(appAttributeId))
                         {
-                            foreach (var asff in asd.AttributeValues)
-                            {
-                                app = asff.Value;
-                                break;
-                            }
+                            app = asd.AttributeValues.OfType<XacmlAttributeValue>().FirstOrDefault().Value;
                         }
                     }
                 }

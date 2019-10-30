@@ -20,7 +20,7 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         /// </summary>
         /// <param name="filepath">The file path. </param> 
         /// <param name="fileStream">data to be written to the rule file</param>
-        /// <returns>File stream containing the rule set</returns>
+        /// <returns>Returns true or false depending on whether the upload to storage was successful or not</returns>
         Task<bool> WritePolicyAsync(string filepath, Stream fileStream);
     }
 }

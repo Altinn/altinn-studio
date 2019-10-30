@@ -13,10 +13,6 @@ using Moq;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -32,7 +28,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         private const string APP = "repository-test-app";
         private readonly PolicyRetrivevalPointFixture _fixture;
         private readonly PolicyRepository _pr;
-        private readonly PolicyRetrievalPoint _sut;
+        private readonly PolicyRetrievalPoint _prp;
 
         public PolicyRetrievalPointTest(PolicyRetrivevalPointFixture fixture)
         {
@@ -55,7 +51,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             _blobContainer = _blobClient.GetContainerReference("metadata");
 
             _pr = new PolicyRepository(_storageConfigMock.Object, new Mock<ILogger<PolicyRepository>>().Object);
-            _sut = new PolicyRetrievalPoint(_pr);
+            _prp = new PolicyRetrievalPoint(_pr);
         }
 
         /// <summary>
@@ -70,7 +66,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
             // Act
-            XacmlPolicy xacmlPolicy = await _sut.GetPolicyAsync(request);
+            XacmlPolicy xacmlPolicy = await _prp.GetPolicyAsync(request);
 
             // Assert
             Assert.NotNull(xacmlPolicy);
@@ -87,7 +83,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
             // Act
-            XacmlPolicy xacmlPolicy = await _sut.GetPolicyAsync(request);
+            XacmlPolicy xacmlPolicy = await _prp.GetPolicyAsync(request);
 
             // Assert
             Assert.Null(xacmlPolicy);
@@ -104,7 +100,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             XacmlContextRequest request = new XacmlContextRequest(true, true, new List<XacmlContextAttributes>());
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.GetPolicyAsync(request));
+            await Assert.ThrowsAsync<ArgumentException>(() => _prp.GetPolicyAsync(request));
         }
 
         private List<XacmlContextAttributes> GetXacmlContextAttributesWithOrgAndApp()
