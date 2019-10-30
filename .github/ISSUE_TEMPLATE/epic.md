@@ -16,7 +16,7 @@ Lorem ipsum
 Lorem ipsum
 
 ## Out of scope
-> What's **out** of scope for this Epics?
+> What's **out** of scope for this Epic?
 
 Lorem ipsum
 
