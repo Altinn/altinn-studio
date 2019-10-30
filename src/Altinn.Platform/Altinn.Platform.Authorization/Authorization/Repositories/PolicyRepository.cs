@@ -69,7 +69,7 @@ namespace Altinn.Platform.Authorization.Repositories
             catch (Exception ex)
             {
                 logger.LogError("failed to save policy file. " + ex.Message);
-                throw ex;
+                throw;
             }
         }
 

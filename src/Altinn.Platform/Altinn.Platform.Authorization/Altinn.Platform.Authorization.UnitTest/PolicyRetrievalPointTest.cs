@@ -36,7 +36,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task GetPolicy_TC01()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
+            Stream dataStream = File.OpenRead("Data/policy.xml");
             _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")))).ReturnsAsync(dataStream);
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
@@ -55,7 +55,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task GetPolicy_TC02()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
+            Stream dataStream = File.OpenRead("Data/policy.xml");
             _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy2.xacml")))).ReturnsAsync(dataStream);
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
@@ -74,7 +74,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task GetPolicy_TC03()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
+            Stream dataStream = File.OpenRead("Data/policy.xml");
             _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")))).ReturnsAsync(dataStream);
             XacmlContextRequest request = new XacmlContextRequest(true, true, new List<XacmlContextAttributes>());
 
@@ -83,14 +83,14 @@ namespace Altinn.Platform.Authorization.UnitTest
         }
 
         /// <summary>
-        /// Test case: Write to storage a file that contains the necessary attributes, org and app.
+        /// Test case: Write to storage a file.
         /// Expected: WritePolicyAsync returns true.
         /// </summary>
         [Fact]
         public async Task WritePolicy_TC01()
         {
             // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/skd/taxreport/policy.xml");
+            Stream dataStream = File.OpenRead("Data/policy.xml");
             _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act
@@ -141,21 +141,6 @@ namespace Altinn.Platform.Authorization.UnitTest
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "app", null));
         }
-
-        /// <summary>
-        /// Test case: Write to storage a file that do not contain attribute info about org and app.
-        /// Expected: WritePolicyAsync throws ArgumentException.
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC05()
-        {
-            // Arrange
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _sut.WritePolicyAsync("org", "app", new MemoryStream()));
-        }
-
 
         private List<XacmlContextAttributes> GetXacmlContextAttributesWithOrgAndApp()
         {

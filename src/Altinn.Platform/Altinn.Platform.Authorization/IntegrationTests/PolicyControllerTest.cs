@@ -112,24 +112,5 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
-
-        /// <summary>
-        /// Test case: Write to storage a xml file that does not contain necessary information (app and org attribute)
-        /// Expected: WritePolicyAsync returns status code 500. 
-        /// </summary>
-        [Fact]
-        public async Task WritePolicy_TC06()
-        {
-            // Arrange
-            Stream dataStream = File.OpenRead("Data/Xacml/3.0/AltinnApps/AltinnApps0001Request.xml");
-            StreamContent content = new StreamContent(dataStream);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
-
-            // Act
-            HttpResponseMessage response = await _client.PostAsync("authorization/api/v1/policies?org=org&app=app", content);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        }
     }
 }

@@ -57,11 +57,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException("The policy file can not be null");
             }
 
-            if (!PolicyFileContainsAppAndOrgAttributes(fileStream))
-            {
-                throw new ArgumentException("The policy file must contain org and app attributes");
-            }
-
             string filePath = GetAltinnAppsPolicyPath(org, app);
             return await _repository.WritePolicyAsync(filePath, fileStream);
         }
@@ -79,12 +74,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                     {
                         if (asd.AttributeId.OriginalString.Equals(orgAttributeId))
                         {
-                            org = asd.AttributeValues.OfType<XacmlAttributeValue>().FirstOrDefault().Value;
+                            org = asd.AttributeValues.FirstOrDefault().Value;
                         }
 
                         if (asd.AttributeId.OriginalString.Equals(appAttributeId))
                         {
-                            app = asd.AttributeValues.OfType<XacmlAttributeValue>().FirstOrDefault().Value;
+                            app = asd.AttributeValues.FirstOrDefault().Value;
                         }
                     }
                 }
@@ -118,38 +113,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return policy;
-        }
-
-        private bool PolicyFileContainsAppAndOrgAttributes(Stream stream)
-        {
-            StreamReader sr = new StreamReader(stream);
-            bool orgAttribute = false;
-            bool appAttribute = false;
-            string line;
-
-            while ((line = sr.ReadLine()) != null)
-            {
-                if (line.Contains("urn:altinn:org"))
-                {
-                    orgAttribute = true;
-                }
-
-                if (line.Contains("urn:altinn:app"))
-                {
-                    appAttribute = true;
-                }
-
-                if (orgAttribute && appAttribute)
-                {
-                    stream.Position = 0;
-                    return true;
-                }
-            }
-
-            stream.Position = 0;
-            sr.Close();
-
-            return false;
         }
     }
 }
