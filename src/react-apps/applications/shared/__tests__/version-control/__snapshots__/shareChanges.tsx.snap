@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when its less than an hour since last push and there are changes in the repo 1`] = `
 <button
-  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
+  className="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -59,7 +59,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when its more than an hour since last push and there are changes in the repo 1`] = `
 <button
-  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
+  className="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -116,7 +116,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user has a mergeconflict 1`] = `
 <button
-  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
+  className="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -172,7 +172,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user has no changes in local repo 1`] = `
 <button
-  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
+  className="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
@@ -229,7 +229,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user only has read access to app 1`] = `
 <button
-  className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4 MuiButton-text"
+  className="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-5 ShareChangesComponent-btn-2 ShareChangesComponent-clickable-4"
   disabled={false}
   id="share_changes_button"
   onBlur={[Function]}
