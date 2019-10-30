@@ -1,4 +1,3 @@
-using System;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services.Models;
 

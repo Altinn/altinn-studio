@@ -3,7 +3,6 @@ using System.Linq;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Request.Enums;
-using Microsoft.Azure.Documents.Linq;
 
 namespace AltinnCore.Designer.Repository
 {

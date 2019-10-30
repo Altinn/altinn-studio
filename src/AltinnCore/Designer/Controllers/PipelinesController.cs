@@ -1,17 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Designer.ModelBinding.Constants;
-using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
 
 namespace AltinnCore.Designer.Controllers
 {

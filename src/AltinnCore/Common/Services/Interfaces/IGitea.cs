@@ -31,6 +31,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="owner">the organisation or user</param>
         /// <param name="repository">the repository name</param>
+        /// <param name="createReleaseOption">the options for creating release</param>
         /// <returns>The newly created release</returns>
         Task<RepositoryReleaseModel> CreateReleaseAsync(string owner, string repository, RepositoryCreateReleaseOption createReleaseOption);
 

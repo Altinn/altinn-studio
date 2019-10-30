@@ -1,7 +1,6 @@
 using AltinnCore.Designer.ModelBinding;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Serialization;
 
 namespace AltinnCore.Designer.Infrastructure
 {
