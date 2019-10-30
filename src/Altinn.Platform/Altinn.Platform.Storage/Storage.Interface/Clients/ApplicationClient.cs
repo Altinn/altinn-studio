@@ -48,7 +48,7 @@ namespace Altinn.Platform.Storage.Client
             ElementType defaultElementType = new ElementType
             {
                 Id = "default",
-                AllowedContentType = new List<string>() { "application/xml" }
+                AllowedContentTypes = new List<string>() { "application/xml" }
             };
 
             application.ElementTypes.Add(defaultElementType);

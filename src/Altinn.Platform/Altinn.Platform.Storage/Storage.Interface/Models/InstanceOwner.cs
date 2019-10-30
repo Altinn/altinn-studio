@@ -8,8 +8,14 @@ namespace Altinn.Platform.Storage.Models
     /// </summary>
     [Serializable]
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class InstanceOwnerLookup
+    public class InstanceOwner
     {
+        /// <summary>
+        /// The party id of the instance owner (also called instance owner id)
+        /// </summary>
+        [JsonProperty(PropertyName = "partyId")]
+        public string PartyId { get; set; }
+
         /// <summary>
         /// Person number (national identification number)
         /// </summary>

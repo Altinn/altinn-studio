@@ -12,6 +12,12 @@ namespace Storage.Interface.Models
     public class ApplicationOwnerState
     {
         /// <summary>
+        /// Label mechanism, can be used to set external system references
+        /// </summary>
+        [JsonProperty(PropertyName = "labels")]
+        public List<string> Labels { get; set; }
+
+        /// <summary>
         /// List of messages that may be shown to user.
         /// </summary>
         [JsonProperty(PropertyName = "messages")]

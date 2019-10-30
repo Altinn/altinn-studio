@@ -32,8 +32,8 @@ namespace Altinn.Platform.Storage.Models
         /// List of allowed content types (Mime types).
         /// If null or empty all content types are allowed.
         /// </summary>
-        [JsonProperty(PropertyName = "allowedContentType")]
-        public List<string> AllowedContentType { get; set; }
+        [JsonProperty(PropertyName = "allowedContentTypes")]
+        public List<string> AllowedContentTypes { get; set; }
 
         /// <summary>
         /// Does the data element require application logic (true) or should it be streamed directly to storage (false).
@@ -44,8 +44,14 @@ namespace Altinn.Platform.Storage.Models
         /// <summary>
         /// A reference to the process element id of the task where this data element should be updated.
         /// </summary>
-        [JsonProperty(PropertyName = "task")]
-        public string Task { get; set; }
+        [JsonProperty(PropertyName = "taskId")]
+        public string TaskId { get; set; }
+
+        /// <summary>
+        /// If true the app-backend will attemt to automatically create (or prefill) this data element when the task referred by taskId starts.
+        /// </summary>
+        [JsonProperty(PropertyName = "autoCreate")]
+        public bool? AutoCreate;
 
         /// <summary>
         /// Maximum allowed size of the file in bytes. If missing there is no limit on file size.
