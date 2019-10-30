@@ -50,6 +50,9 @@ export class AltinnSearchInput extends React.Component<IAltinnSearchInputCompone
           id={this.props.id}
           placeholder={this.props.placeholder}
           onChange={this.props.onChangeFunction}
+          inputProps={{
+            "aria-label": this.props.ariaLabel,
+          }}
           InputProps={{
             disableUnderline: true,
             startAdornment:
