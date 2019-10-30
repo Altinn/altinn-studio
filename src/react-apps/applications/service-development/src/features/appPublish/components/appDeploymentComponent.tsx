@@ -102,7 +102,6 @@ const useStyles = makeStyles(() =>
       marginTop: '2.6rem',
     },
     deploySpinnerGridItem: {
-      marginRight: '1.2rem',
       minWidth: '4.4rem',
     },
     deploymentListGrid: {

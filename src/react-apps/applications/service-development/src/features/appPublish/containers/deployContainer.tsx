@@ -46,10 +46,10 @@ export const DeployContainer = (props: IDeployContainer) => {
   const configuration: IConfigurationState = useSelector((state: IServiceDevelopmentState) =>
     state.configuration);
   const language: any = useSelector((state: IServiceDevelopmentState) => state.language);
+  const orgs: any = useSelector((state: IServiceDevelopmentState) => state.configuration.orgs);
 
   React.useEffect(() => {
     ConfigurationActions.getEnvironments();
-    ConfigurationActions.getOrgs();
     AppDeploymentActions.getAppDeploymentsStartInterval();
 
     return () => {
