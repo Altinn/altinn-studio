@@ -13,7 +13,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     }
   >
     <button
-      className="MuiButtonBase-root MuiButton-root CloneButton-cloneButton-105 MuiButton-text"
+      className="MuiButtonBase-root MuiButton-root MuiButton-text CloneButton-cloneButton-105"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
@@ -79,7 +79,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     }
   >
     <button
-      className="MuiButtonBase-root MuiButton-root FetchChangesComponent-clickable-159 FetchChangesComponent-btn-158 MuiButton-text"
+      className="MuiButtonBase-root MuiButton-root MuiButton-text FetchChangesComponent-clickable-170 FetchChangesComponent-btn-169"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
@@ -122,7 +122,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-root MuiGrid-item"
           >
             <p
-              className="MuiTypography-root FetchChangesComponent-color_blueDark-160 MuiTypography-body1"
+              className="MuiTypography-root FetchChangesComponent-color_blueDark-171 MuiTypography-body1"
               id="fetch_changes_btn"
             >
               sync_header.fetch_changes
@@ -136,7 +136,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
     className="MuiGrid-root MuiGrid-item"
   >
     <button
-      className="MuiButtonBase-root MuiButton-root ShareChangesComponent-color_blueDark-165 ShareChangesComponent-btn-162 ShareChangesComponent-clickable-164 MuiButton-text"
+      className="MuiButtonBase-root MuiButton-root MuiButton-text ShareChangesComponent-color_blueDark-176 ShareChangesComponent-btn-173 ShareChangesComponent-clickable-175"
       disabled={false}
       id="share_changes_button"
       onBlur={[Function]}
@@ -180,7 +180,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
             className="MuiGrid-root MuiGrid-item"
           >
             <p
-              className="MuiTypography-root ShareChangesComponent-color_blueDark-165 MuiTypography-body1"
+              className="MuiTypography-root ShareChangesComponent-color_blueDark-176 MuiTypography-body1"
               id="no_changes_to_share_btn"
             >
               sync_header.no_changes_to_share

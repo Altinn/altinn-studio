@@ -23,6 +23,14 @@ exports[`>>> AltinnRadioButton.tsx +++ Should match snapshot with all params  1`
     <span
       className="MuiIconButton-label"
     >
+      <input
+        checked={true}
+        className="PrivateSwitchBase-input-12"
+        id="mock-id"
+        onChange={[Function]}
+        type="radio"
+        value="mock-value"
+      />
       <div
         className="PrivateRadioButtonIcon-root-25 PrivateRadioButtonIcon-checked-27"
       >
@@ -49,14 +57,6 @@ exports[`>>> AltinnRadioButton.tsx +++ Should match snapshot with all params  1`
           />
         </svg>
       </div>
-      <input
-        checked={true}
-        className="PrivateSwitchBase-input-12"
-        id="mock-id"
-        onChange={[Function]}
-        type="radio"
-        value="mock-value"
-      />
     </span>
   </span>
   <span
@@ -87,6 +87,11 @@ exports[`>>> AltinnRadioButton.tsx +++ Should match snapshot with the least amou
   <span
     className="MuiIconButton-label"
   >
+    <input
+      className="PrivateSwitchBase-input-12"
+      onChange={[Function]}
+      type="radio"
+    />
     <div
       className="PrivateRadioButtonIcon-root-25"
     >
@@ -113,11 +118,6 @@ exports[`>>> AltinnRadioButton.tsx +++ Should match snapshot with the least amou
         />
       </svg>
     </div>
-    <input
-      className="PrivateSwitchBase-input-12"
-      onChange={[Function]}
-      type="radio"
-    />
   </span>
 </span>
 `;

@@ -21,6 +21,7 @@ describe('>>> AltinnSearchInput--- Snapshot', () => {
         id={mockId}
         placeholder={mockPlaceholder}
         onChangeFunction={mockOnChangeFunction}
+        ariaLabel={'aria-label'}
       />,
     );
     expect(rendered).toMatchSnapshot();

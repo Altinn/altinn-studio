@@ -22,9 +22,11 @@ exports[`>>> AltinnSearchInput--- Snapshot +++ Should match snapshot with the le
       </div>
       <input
         aria-invalid={false}
+        aria-label="aria-label"
         className="MuiInputBase-input MuiInput-input MuiInputBase-inputAdornedStart"
         disabled={false}
         id="mock id"
+        onAnimationStart={[Function]}
         onBlur={[Function]}
         onChange={[Function]}
         onFocus={[Function]}
