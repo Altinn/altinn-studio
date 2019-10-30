@@ -145,6 +145,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
               <a
                 href={getReleaseBuildPipelineLink(release.build.id)}
                 target={'_blank'}
+                rel='noopener noreferrer'
               >
                 {getLanguageFromKey('app_release.release_build_log', language)}
               </a>
@@ -158,6 +159,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
             <a
               href={getGitCommitLink(release.targetCommitish)}
               target={'_blank'}
+              rel='noopener noreferrer'
             >
               {getLanguageFromKey('app_release.release_see_commit', language)}
             </a>
