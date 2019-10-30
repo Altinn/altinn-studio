@@ -9,6 +9,7 @@ export interface IAltinnSearchInputComponentProvidedProps {
   id: string;
   placeholder: any;
   onChangeFunction: any;
+  ariaLabel: string;
 }
 
 export interface IAltinnSearchInputComponentState {
