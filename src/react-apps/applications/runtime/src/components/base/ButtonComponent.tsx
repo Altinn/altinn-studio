@@ -5,6 +5,9 @@ import { IValidations } from '../../types/global';
 import { canFormBeSaved, getErrorCount } from '../../utils/validation';
 import FormDataActions from './../../features/form/data/actions/index';
 import { IAltinnWindow, IRuntimeState } from './../../types';
+import {
+  appPath,
+} from './../../utils/urlHelper';
 export interface IButtonProvidedProps {
   id: string;
   text: string;
@@ -54,16 +57,21 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
   }
 
   public saveFormData = () => {
-    const { org, app, instanceId } = window as IAltinnWindow;
+    const { org, app, instanceId } = window as Window as IAltinnWindow;
+    console.log('### SAVEFORMDATA: ', `${appPath}/instances/${instanceId}`);
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
+    // `${appPath}/instances/${instanceId}`,
     );
   }
 
   public submitForm = () => {
-    const {org, app, instanceId } = window as IAltinnWindow;
+    const {org, app, instanceId } = window as Window as IAltinnWindow;
+    console.log('### SUBMITFORM: ', `${appPath}/instances/${instanceId}`);
+    console.log('### ORG: ', org, ' APP: ', app);
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
+      // `${appPath}/instances/${instanceId}`,
       'Complete',
     );
   }

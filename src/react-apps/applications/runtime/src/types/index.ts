@@ -14,6 +14,7 @@ import { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import { IPartyState } from '../shared/resources/party/partyReducers';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { ITextResourcesState } from '../shared/resources/textResources/reducer';
+import { IProcessState } from '../sharedResources/process/processReducer';
 
 export interface IRuntimeState {
   formLayout: ILayoutState;
@@ -32,6 +33,7 @@ export interface IRuntimeState {
   instantiation: IInstantiationState;
   organisationMetaData: IOrgsState;
   instanceData: IInstanceDataState;
+  process: IProcessState;
 }
 
 export interface IAltinnWindow extends Window {

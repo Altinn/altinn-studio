@@ -31,7 +31,6 @@ function* instantiationSaga({
           appId : `${org}/${app}`,
           presentationField: { nb: 'Arbeidsmelding' },
       };
-
       post(instantiateUrl, null, formData)
         .then((response: AxiosResponse) => {
           if (response.data.id !== null) {

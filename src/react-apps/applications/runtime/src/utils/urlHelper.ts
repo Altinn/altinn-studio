@@ -3,12 +3,14 @@ const { org, app, reportee } = altinnWindow;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
-
+console.log('### appPath: ', appPath);
 export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${app}/verifySubscription?partyId=${reportee}`;
 export const languageUrl = `${appPath}/api/Language/GetLanguageAsJSON`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
-export const textResourcesUrl = `${appPath}/texts?lang=nb`;
+// New textresourceAPI url:
+// export const textResourcesUrl = `${appPath}/texts?lang=nb`;
+export const textResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
   ${appPath}/api/v1/parties/${partyId}
 `;

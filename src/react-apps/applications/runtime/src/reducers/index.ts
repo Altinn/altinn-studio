@@ -21,8 +21,9 @@ import OrgsReducer, { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import PartyReducer, { IPartyState } from '../shared/resources/party/partyReducers';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
+import processReducer, { IProcessState } from './../sharedResources/process/processReducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -40,6 +41,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T1
   instantiation: T15;
   organisationMetaData: T16;
   instanceData: T17;
+  process: T18;
 }
 
 export interface IRuntimeReducers extends IReducers<
@@ -59,7 +61,8 @@ export interface IRuntimeReducers extends IReducers<
   Reducer<IApplicationMetadataState>,
   Reducer<IInstantiationState>,
   Reducer<IOrgsState>,
-  Reducer<IInstanceDataState>
+  Reducer<IInstanceDataState>,
+  Reducer<IProcessState>
   >,
   ReducersMapObject {
 }
@@ -82,6 +85,7 @@ const reducers: IRuntimeReducers = {
   instantiation: InstantiationReducer,
   organisationMetaData: OrgsReducer,
   instanceData: InstanceDataReducer,
+  process: processReducer,
 };
 
 export default combineReducers(reducers);
