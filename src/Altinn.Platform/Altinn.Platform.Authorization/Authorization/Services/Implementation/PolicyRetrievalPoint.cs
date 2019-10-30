@@ -85,6 +85,11 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 }
             }
 
+            return GetAltinnAppsPolicyPath(org, app);
+        }
+
+        private string GetAltinnAppsPolicyPath(string org, string app)
+        {
             if (string.IsNullOrEmpty(org))
             {
                 throw new ArgumentException("Org was not defined");
@@ -95,11 +100,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException("App was not defined");
             }
 
-            return GetAltinnAppsPolicyPath(org, app);
-        }
-
-        private string GetAltinnAppsPolicyPath(string org, string app)
-        {
             return $"{org}/{app}/policy.xacml";
         }
 

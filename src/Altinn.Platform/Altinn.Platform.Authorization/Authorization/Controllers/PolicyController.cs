@@ -81,7 +81,7 @@ namespace Altinn.Platform.Authorization.Controllers
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
-                return BadRequest("Internal Server Error");
+                return StatusCode(500);
             }
 
             return BadRequest("Something went wrong in the upload of file to storage");
