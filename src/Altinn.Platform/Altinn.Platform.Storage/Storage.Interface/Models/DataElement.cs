@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Storage.Interface.Models;
 
@@ -87,5 +88,11 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
+
+        /// <summary>
+        /// an optional array of data element references
+        /// </summary>
+        [JsonProperty(PropertyName = "refs")]
+        public List<Guid> Refs { get; set; }
     }
 }
