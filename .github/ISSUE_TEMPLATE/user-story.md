@@ -1,7 +1,7 @@
 ---
 name: User story
 about: Create a user story for Altinn Studio
-labels: user-story
+labels: kind/user-story
 ---
 
 ## Description

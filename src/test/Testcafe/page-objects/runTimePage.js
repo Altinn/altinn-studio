@@ -62,7 +62,7 @@ export default class RunTimePage {
     var messagesCount = await messages.count;    
     if (messagesCount > 0) {
         for (var i=0; i<messagesCount; i++) {          
-          var innerTextMessageId = await messages.nth(i).innerText;          
+          var innerTextMessageId = await messages.nth(i).innerText;
           if (innerTextMessageId.includes('Arktivert'))  {
             await t.click(messages.nth(i));
             break;
