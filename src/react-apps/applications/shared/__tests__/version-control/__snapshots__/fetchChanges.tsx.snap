@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot there are no changes in master 1`] = `
 <button
-  className="MuiButtonBase-root MuiButton-root FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2 MuiButton-text"
+  className="MuiButtonBase-root MuiButton-root MuiButton-text FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
@@ -58,7 +58,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
 
 exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot when changes in master 1`] = `
 <button
-  className="MuiButtonBase-root MuiButton-root FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2 MuiButton-text"
+  className="MuiButtonBase-root MuiButton-root MuiButton-text FetchChangesComponent-clickable-3 FetchChangesComponent-btn-2"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}

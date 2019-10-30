@@ -20,6 +20,15 @@ exports[`>>> AltinnCheckBox +++ Should match snapshot 1`] = `
   <span
     className="MuiIconButton-label"
   >
+    <input
+      checked={true}
+      className="PrivateSwitchBase-input-11"
+      data-indeterminate={false}
+      disabled={false}
+      onChange={[Function]}
+      tabIndex={0}
+      type="checkbox"
+    />
     <svg
       aria-hidden="true"
       className="MuiSvgIcon-root"
@@ -31,15 +40,6 @@ exports[`>>> AltinnCheckBox +++ Should match snapshot 1`] = `
         d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
       />
     </svg>
-    <input
-      checked={true}
-      className="PrivateSwitchBase-input-11"
-      data-indeterminate={false}
-      disabled={false}
-      onChange={[Function]}
-      tabIndex={0}
-      type="checkbox"
-    />
   </span>
 </span>
 `;
