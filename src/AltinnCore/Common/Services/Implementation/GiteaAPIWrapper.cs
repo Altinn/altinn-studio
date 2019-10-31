@@ -79,7 +79,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Repository repository = new Repository();
             string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string urlEnd = developerUserName == org ? "user/repos" : "org/" + org + "/repos";
+            string urlEnd = developerUserName == org ? "user/repos" : $"org/{org}/repos";
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, createRepoOption);
             if (response.StatusCode == HttpStatusCode.Created)
             {
