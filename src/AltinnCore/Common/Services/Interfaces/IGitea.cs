@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Common.Models;
 using AltinnCore.RepositoryClient.Model;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -16,7 +13,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Get the current user
         /// </summary>
         /// <returns>The current user</returns>
-        Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser();
+        Task<User> GetCurrentUser();
 
         /// <summary>
         /// Create repository for the org.
@@ -24,16 +21,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">the options for creating repository.</param>
         /// <returns>The newly created repository object.</returns>
-        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
-
-        /// <summary>
-        /// Creates a release for a specific owner and repository
-        /// </summary>
-        /// <param name="owner">the organisation or user</param>
-        /// <param name="repository">the repository name</param>
-        /// <param name="createReleaseOption">the options for creating release</param>
-        /// <returns>The newly created release</returns>
-        Task<RepositoryReleaseModel> CreateReleaseAsync(string owner, string repository, RepositoryCreateReleaseOption createReleaseOption);
+        Task<Repository> CreateRepository(string org, CreateRepoOption createRepoOption);
 
         /// <summary>
         /// Search the repository for the given parameters
@@ -56,7 +44,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Returns organisation that user has access to
         /// </summary>
         /// <returns>A list over organisations</returns>
-        Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations();
+        Task<List<Organization>> GetUserOrganizations();
 
         /// <summary>
         /// List all branches with commit for a repo

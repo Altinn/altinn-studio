@@ -96,21 +96,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<RepositoryReleaseModel> CreateReleaseAsync(string owner, string repository, RepositoryCreateReleaseOption createReleaseOption)
-        {
-            string requestUri = $"repos/{owner}/{repository}/releases";
-            HttpResponseMessage response = await _httpClient.PostAsJsonAsync(requestUri, createReleaseOption);
-            if (response.StatusCode == HttpStatusCode.Created)
-            {
-                return await response.Content.ReadAsAsync<RepositoryReleaseModel>();
-            }
-
-            _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Create repository failed with statuscode " + response.StatusCode + " for " + owner + " and reponame " + repository);
-
-            return null;
-        }
-
-        /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
             User user = GetCurrentUser().Result;
