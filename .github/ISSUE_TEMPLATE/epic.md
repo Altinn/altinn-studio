@@ -4,6 +4,8 @@ about: A top level user requirement or feature area
 labels: Epic
 ---
 
+
+[How to write issues.](https://confluence.brreg.no/x/Wg81Bw) (Only for project members)
 ## Introduction
 > A quick introduction to the user need. Make it clear for who, why and what.
 > Links to relevant resources, documentation of other issues. If ready - a product owner statement of why this is prioritised.
