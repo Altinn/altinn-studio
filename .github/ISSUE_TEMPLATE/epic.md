@@ -8,7 +8,7 @@ labels: Epic
 [How to write and handle issues.](https://confluence.brreg.no/x/Wg81Bw) (Only for project members)
 ## Introduction
 > A quick introduction to the user need. Make it clear for who, why and what.
-> Links to relevant resources, documentation of other issues. If ready - a product owner statement of why this is prioritised.
+> Links to relevant resources, documentation of other issues. If ready - a product owner statement of why this is prioritised and a suggested solution with indication of user stories/tasks in a bullet list.
 
 Lorem ipsum
 
