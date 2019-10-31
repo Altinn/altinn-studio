@@ -31,10 +31,10 @@ namespace AltinnCore.Designer.Controllers
         /// Gets releases based on a query
         /// </summary>
         /// <param name="query">Document query model</param>
-        /// <returns>DocumentResults of type ReleaseEntity</returns>
+        /// <returns>SearchResults of type ReleaseEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<DocumentResults<ReleaseEntity>> Get([FromQuery]DocumentQueryModel query)
+        public async Task<SearchResults<ReleaseEntity>> Get([FromQuery]DocumentQueryModel query)
             => await _releaseService.GetAsync(query);
 
         /// <summary>

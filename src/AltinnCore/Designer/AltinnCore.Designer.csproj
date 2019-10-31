@@ -105,10 +105,6 @@
     </AdditionalFiles>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ViewModels\Response\" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
