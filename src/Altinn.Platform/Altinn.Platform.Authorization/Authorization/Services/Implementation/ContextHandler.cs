@@ -31,7 +31,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="ContextHandler"/> class
         /// </summary>
-        /// <param name="instanceRepository">the instance repository handler</param>
+        /// <param name="policyInformationRepository">the policy information repository handler</param>
         public ContextHandler(
             IPolicyInformationRepository policyInformationRepository)
         {

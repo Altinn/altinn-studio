@@ -125,6 +125,16 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
             return xacmlJsonresponse;
         }
 
+        public static XacmlContextRequest CreateXacmlContextRequest(string testCase)
+        {
+            return XacmlTestDataParser.ParseRequest(testCase + "Request.xml", GetAltinnAppsPath());
+        }
+
+        public static XacmlContextRequest GetEnrichedRequest(string testCase)
+        {
+            return XacmlTestDataParser.ParseRequest(testCase + "EnrichedRequest.xml", GetAltinnAppsPath());
+        }
+
         private static string GetAltinnAppsPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(AltinnApps_DecisionTests).Assembly.CodeBase).LocalPath);
