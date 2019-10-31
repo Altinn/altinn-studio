@@ -7,7 +7,7 @@ namespace AltinnCore.Designer.ViewModels.Response
     /// <summary>
     /// ViewModel for response when returning search results
     /// </summary>
-    public class DocumentResults<T>
+    public class SearchResults<T>
         where T : class
     {
         /// <summary>

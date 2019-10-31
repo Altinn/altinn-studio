@@ -32,10 +32,10 @@ namespace AltinnCore.Designer.Controllers
         /// Gets deployments based on a query
         /// </summary>
         /// <param name="query">Document query model</param>
-        /// <returns>DocumentResults of type DeploymentEntity</returns>
+        /// <returns>SearchResults of type DeploymentEntity</returns>
         [HttpGet]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
-        public async Task<DocumentResults<DeploymentEntity>> Get([FromQuery]DocumentQueryModel query)
+        public async Task<SearchResults<DeploymentEntity>> Get([FromQuery]DocumentQueryModel query)
             => await _deploymentService.GetAsync(query);
 
         /// <summary>
