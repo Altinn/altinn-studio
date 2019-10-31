@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
@@ -9,7 +8,6 @@ using AltinnCore.Designer.ViewModels.Request;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Repository
@@ -23,7 +21,6 @@ namespace AltinnCore.Designer.Repository
         private readonly string _collection;
         private readonly string _database;
         private readonly Uri _collectionUri;
-        private ILogger _logger;
 
         /// <summary>
         /// Constructor
@@ -31,12 +28,10 @@ namespace AltinnCore.Designer.Repository
         protected DocumentDbRepository(
             string collectionName,
             IOptions<AzureCosmosDbSettings> options,
-            IDocumentClient documentClient,
-            ILogger<DocumentDbRepository> logger)
+            IDocumentClient documentClient)
         {
             _collection = collectionName;
             _database = options.Value.Database;
-            _logger = logger;
             _documentClient = documentClient;
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_database, _collection);
 

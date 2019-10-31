@@ -68,8 +68,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
         private async Task<Build> SendRequest(QueueBuildRequest queueBuildRequest)
         {
             string requestBody = JsonConvert.SerializeObject(queueBuildRequest);
-            StringContent httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
-
+            using StringContent httpContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _httpClient.PostAsync("?api-version=5.1", httpContent);
             return await response.Content.ReadAsAsync<Build>();
         }

@@ -3,7 +3,7 @@ namespace AltinnCore.Designer.ModelBinding.Constants
     /// <summary>
     /// Contains constants related to Authorization policies for Altinn
     /// </summary>
-    public class AltinnPolicy
+    public static class AltinnPolicy
     {
         /// <summary>
         /// MustHaveGiteaPushPermission

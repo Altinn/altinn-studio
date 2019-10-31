@@ -14,7 +14,6 @@ namespace AltinnCore.Designer.Infrastructure.Authorization
     public class GiteaPushPermissionHandler : AuthorizationHandler<GiteaPushPermissionRequirement>
     {
         private readonly IGitea _giteaApiWrapper;
-        private readonly ILogger<GiteaPushPermissionHandler> _logger;
         private readonly HttpContext _httpContext;
 
         /// <summary>
@@ -22,15 +21,12 @@ namespace AltinnCore.Designer.Infrastructure.Authorization
         /// </summary>
         /// <param name="giteaApiWrapper">IGitea</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
-        /// <param name="logger">ILogger of type GiteaPushPermissionHandler</param>
         public GiteaPushPermissionHandler(
             IGitea giteaApiWrapper,
-            IHttpContextAccessor httpContextAccessor,
-            ILogger<GiteaPushPermissionHandler> logger)
+            IHttpContextAccessor httpContextAccessor)
         {
             _httpContext = httpContextAccessor.HttpContext;
             _giteaApiWrapper = giteaApiWrapper;
-            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -38,13 +34,13 @@ namespace AltinnCore.Designer.Infrastructure.Authorization
             AuthorizationHandlerContext context,
             GiteaPushPermissionRequirement requirement)
         {
-            string org = _httpContext.GetRouteValue("org")?.ToString();
-            string app = _httpContext.GetRouteValue("app")?.ToString();
-
             if (_httpContext == null)
             {
                 return;
             }
+
+            string org = _httpContext.GetRouteValue("org")?.ToString();
+            string app = _httpContext.GetRouteValue("app")?.ToString();
 
             if (string.IsNullOrWhiteSpace(org) ||
                 string.IsNullOrWhiteSpace(app))

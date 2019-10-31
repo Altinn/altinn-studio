@@ -6,14 +6,12 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
-using AltinnCore.Designer.Services.Mapping;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Options;
@@ -129,7 +127,6 @@ namespace AltinnCore.Designer.Services
         {
             SqlQuerySpec sqlQuery = CreateSqlQueryForUniqueness(release);
             IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuery);
-            ProblemDetails x = new ProblemDetails();
             if (existingReleaseEntity.Any())
             {
                 throw new HttpRequestWithStatusException("A release with the same properties already exist.")

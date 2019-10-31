@@ -3,7 +3,7 @@ replicaCount: 1
 environment: development
 
 image:
-  repository: altinntjenestercontainerregistry.azurecr.io/altinn-core-danijel
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
   containerPort: 5000
   imagePullSecret: acrsecret
 

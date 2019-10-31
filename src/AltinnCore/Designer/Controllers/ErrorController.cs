@@ -38,8 +38,8 @@ namespace AltinnCore.Designer.Controllers
             {
                 Status = (int)FindStatusCode(ex),
                 Instance = feature?.Path,
-                Title = ex.GetType().Name,
-                Detail = ex.StackTrace,
+                Title = ex?.GetType().Name,
+                Detail = ex?.StackTrace,
             };
 
             return StatusCode(problemDetails.Status.Value, problemDetails);
@@ -62,8 +62,8 @@ namespace AltinnCore.Designer.Controllers
             {
                 Status = (int)FindStatusCode(ex),
                 Instance = feature?.Path,
-                Title = isDev ? $"{ex.GetType().Name}: {ex.Message}" : "An error occurred.",
-                Detail = isDev ? ex.StackTrace : null,
+                Title = isDev ? $"{ex?.GetType().Name}: {ex?.Message}" : "An error occurred.",
+                Detail = isDev ? ex?.StackTrace : null,
             };
 
             return StatusCode(problemDetails.Status.Value, problemDetails);
