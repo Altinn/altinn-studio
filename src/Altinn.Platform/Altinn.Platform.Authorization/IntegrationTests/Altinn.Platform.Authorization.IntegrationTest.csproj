@@ -11,8 +11,7 @@
   </PropertyGroup>
 
 <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.7-alpha" />
-    <PackageReference Include="Azurite" Version="2.6.5" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.8-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="3.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     <PackageReference Include="Moq" Version="4.12.0" />
