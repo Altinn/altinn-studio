@@ -64,30 +64,66 @@ namespace Altinn.Platform.Authorization.Repositories
         /// <inheritdoc/>
         public async Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
         {
+            if (instanceOwnerId <= 0)
+            {
+                throw new ArgumentException("Instance owner id cannot be zero or negative");
+            }
+
             string cosmosId = InstanceIdToCosmosId(instanceId);
             Uri uri = UriFactory.CreateDocumentUri(databaseId, instanceCollectionId, cosmosId);
 
-            Instance instance = await _client
+            try
+            {
+                Instance instance = await _client
                 .ReadDocumentAsync<Instance>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
 
-            PostProcess(instance);
+                PostProcess(instance);
 
-            return instance;
+                return instance;
+            }
+            catch (DocumentClientException ex)
+            {
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         /// <inheritdoc/>
         public async Task<Application> GetApplication(string app, string org)
         {
+            if (string.IsNullOrWhiteSpace(org))
+            {
+                throw new ArgumentNullException("Org cannot be null or empty");
+            }
+
             string cosmosAppId = AppIdToCosmosId(app);
             Uri uri = UriFactory.CreateDocumentUri(databaseId, applicationCollectionId, cosmosAppId);
-            Application application = await _client
+
+            try
+            {
+                Application application = await _client
                 .ReadDocumentAsync<Application>(
                     uri,
                     new RequestOptions { PartitionKey = new PartitionKey(org) });
-            PostProcess(application);
-            return application;
+                PostProcess(application);
+
+                return application;
+            }
+            catch (DocumentClientException ex)
+            {
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                throw;
+            }
         }
 
         /// <summary>

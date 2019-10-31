@@ -20,6 +20,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         private readonly PolicyInformationRepository _pir;
         private const string INSTANCE_ID = "50005297/697064e4-4961-428c-ac33-67c4fa99754b";
         private const int INSTANCE_OWNER_ID = 50005297;
+        private const string ORG = "tdd";
+        private const string APP = "tdd-cat";
 
         public PolicyInformationRepositoryTest(PlatformAuthorizationFixture fixture)
         {
@@ -53,7 +55,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Expected: GetInstance returns instance that is not null
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC01()
+        public async Task GetInstance_TC01()
         {
             // Arrange & Act
             Instance instance = await _pir.GetInstance(INSTANCE_ID, INSTANCE_OWNER_ID);
@@ -67,7 +69,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Expected: GetInstance returns null
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC02()
+        public async Task GetInstance_TC02()
         {
             // Arrange & Act
             Instance instance = await _pir.GetInstance(INSTANCE_ID, INSTANCE_OWNER_ID + 1);
@@ -78,21 +80,21 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
         /// <summary>
         /// Test case: Get instance from cosmos where instanceId is null
-        /// Expected: GetInstance throws ArgumentException
+        /// Expected: GetInstance throws ArgumentNullException
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC03()
+        public async Task GetInstance_TC03()
         {
             // Arrange & Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _pir.GetInstance(null, INSTANCE_OWNER_ID));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _pir.GetInstance(null, INSTANCE_OWNER_ID));
         }
 
         /// <summary>
-        /// Test case: Get instance from cosmos where instanceOwnerId is negative or zero
+        /// Test case: Get instance from cosmos where instanceOwnerId is negative or 0
         /// Expected: GetInstance throws ArgumentException
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC04()
+        public async Task GetInstance_TC04()
         {
             // Arrange & Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _pir.GetInstance(INSTANCE_ID, -1));
@@ -103,7 +105,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         /// Expected: GetInstance returns instance with same instanceId and instanceOwnerId as sent in
         /// </summary>
         [Fact]
-        public async Task GetPolicy_TC05()
+        public async Task GetInstance_TC05()
         {
             // Arrange & Act
             Instance instance = await _pir.GetInstance(INSTANCE_ID, INSTANCE_OWNER_ID);
@@ -111,6 +113,71 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             // Assert
             Assert.Equal(INSTANCE_ID, instance.Id);
             Assert.Equal(INSTANCE_OWNER_ID.ToString(), instance.InstanceOwnerId);
+        }
+
+        /// <summary>
+        /// Test case: Get from cosmos an exsisting application 
+        /// Expected: GetInstance returns application that is not null
+        /// </summary>
+        [Fact]
+        public async Task GetApplication_TC01()
+        {
+            // Arrange & Act
+            Application application = await _pir.GetApplication(APP, ORG);
+
+            // Assert
+            Assert.NotNull(application);
+        }
+
+        /// <summary>
+        /// Test case: Get from cosmos an application that do not exist
+        /// Expected: GetInstance returns null
+        /// </summary>
+        [Fact]
+        public async Task GetApplication_TC02()
+        {
+            // Arrange & Act
+            Application application = await _pir.GetApplication(APP + "2", ORG);
+
+            // Assert
+            Assert.Null(application);
+        }
+
+        /// <summary>
+        /// Test case: Get from cosmos an application where app is null
+        /// Expected: GetInstance throws ArgumentNullException
+        /// </summary>
+        [Fact]
+        public async Task GetApplication_TC03()
+        {
+            // Arrange & Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _pir.GetApplication(null, ORG));
+        }
+
+        /// <summary>
+        /// Test case: Get from cosmos an application where org is null
+        /// Expected: GetInstance throws ArgumentNullException
+        /// </summary>
+        [Fact]
+        public async Task GetApplication_TC04()
+        {
+            // Arrange & Act & Assert
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _pir.GetApplication(APP, null));
+        }
+
+        /// <summary>
+        /// Test case: Get from cosmos an exsisting application 
+        /// Expected: GetApplication returns application with the same app and org as sent in 
+        /// </summary>
+        [Fact]
+        public async Task GetApplication_TC05()
+        {
+            // Arrange & Act
+            Application application = await _pir.GetApplication(APP, ORG);
+
+            // Assert
+            Assert.Equal("tdd/cat", application.Id);
+            Assert.Equal(ORG, application.Org);
         }
     }
 }
