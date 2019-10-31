@@ -48,17 +48,69 @@ namespace Altinn.Platform.Authorization.IntegrationTests
             _pir = new PolicyInformationRepository(_dbConfigMock.Object, new Mock<ILogger<PolicyInformationRepository>>().Object);
         }
 
+        /// <summary>
+        /// Test case: Get from cosmos a exsisting instance 
+        /// Expected: GetInstance returns instance that is not null
+        /// </summary>
         [Fact]
         public async Task GetPolicy_TC01()
         {
-            // Arrange
-
-
-            // Act
+            // Arrange & Act
             Instance instance = await _pir.GetInstance(INSTANCE_ID, INSTANCE_OWNER_ID);
 
             // Assert
             Assert.NotNull(instance);
+        }
+
+        /// <summary>
+        /// Test case: Get from cosmos a instance that do not exist 
+        /// Expected: GetInstance returns null
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_TC02()
+        {
+            // Arrange & Act
+            Instance instance = await _pir.GetInstance(INSTANCE_ID, INSTANCE_OWNER_ID + 1);
+
+            // Assert
+            Assert.Null(instance);
+        }
+
+        /// <summary>
+        /// Test case: Get instance from cosmos where instanceId is null
+        /// Expected: GetInstance throws ArgumentException
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_TC03()
+        {
+            // Arrange & Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _pir.GetInstance(null, INSTANCE_OWNER_ID));
+        }
+
+        /// <summary>
+        /// Test case: Get instance from cosmos where instanceOwnerId is negative or zero
+        /// Expected: GetInstance throws ArgumentException
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_TC04()
+        {
+            // Arrange & Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _pir.GetInstance(INSTANCE_ID, -1));
+        }
+
+        /// <summary>
+        /// Test case: Get from cosmos a exsisting instance 
+        /// Expected: GetInstance returns instance with same instanceId and instanceOwnerId as sent in
+        /// </summary>
+        [Fact]
+        public async Task GetPolicy_TC05()
+        {
+            // Arrange & Act
+            Instance instance = await _pir.GetInstance(INSTANCE_ID, INSTANCE_OWNER_ID);
+
+            // Assert
+            Assert.Equal(INSTANCE_ID, instance.Id);
+            Assert.Equal(INSTANCE_OWNER_ID.ToString(), instance.InstanceOwnerId);
         }
     }
 }
