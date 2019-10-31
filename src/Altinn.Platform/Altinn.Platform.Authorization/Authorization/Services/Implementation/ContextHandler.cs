@@ -107,7 +107,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
             if (!resourceAttributeComplete)
             {
-                Instance instanceData = await _policyInformationRepository.GetInstance(instanceAttributeValue, Convert.ToInt32(resourcePartyAttributeValue));
+                Instance instanceData = await _policyInformationRepository.GetInstance(instanceAttributeValue, Convert.ToInt32(userAttributeValue));
 
                 if (string.IsNullOrEmpty(orgAttributeValue))
                 {
