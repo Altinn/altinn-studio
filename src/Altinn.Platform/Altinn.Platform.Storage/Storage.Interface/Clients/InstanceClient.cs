@@ -181,13 +181,19 @@ namespace Altinn.Platform.Storage.Interface.Clients
         /// Creates an instance
         /// </summary>
         /// <param name="appId">application id of the instance (must be registered in platform storage)</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceOwnerPartyId">the instance owner id</param>
         /// <returns>the instance just created</returns>
-        public async Task<Instance> PostInstances(string appId, int instanceOwnerId)
+        public async Task<Instance> PostInstances(string appId, int instanceOwnerPartyId)
         {
             string requestUri = $"{versionPrefix}/instances?appId={appId}";
 
-            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new Instance() { InstanceOwnerId = instanceOwnerId.ToString() }.AsJson());
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new Instance()
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = instanceOwnerPartyId.ToString()
+                }
+            }.AsJson());
             if (response.IsSuccessStatusCode)
             {
                 string json = await response.Content.ReadAsStringAsync();

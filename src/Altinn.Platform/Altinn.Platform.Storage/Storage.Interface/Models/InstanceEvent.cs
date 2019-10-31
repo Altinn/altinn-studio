@@ -40,10 +40,10 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string EventType { get; set; }
 
         /// <summary>
-        /// the instance owner id.
+        /// the instance owner party id.
         /// </summary>
-        [JsonProperty(PropertyName = "instanceOwnerId")]
-        public string InstanceOwnerId { get; set; }
+        [JsonProperty(PropertyName = "instanceOwnerPartyId")]
+        public string InstanceOwnerPartyId { get; set; }
 
         /// <summary>
         /// the user who triggered the event.

@@ -6,13 +6,13 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Model for application element type.
+    /// Model for applications data type.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class ElementType
+    public class DataType
     {
         /// <summary>
-        /// The element type id. It must be unique within the scope of an application.
+        /// The data type id. It must be unique within the scope of an application.
         /// Logical name of the schema of which data elements should be validated against.
         /// Should be in lower case and can only contain letters, dash and numbers. No space or slashes are allowed.
         /// Examples are: main, subschema-x, cv, attachement
@@ -34,22 +34,16 @@ namespace Altinn.Platform.Storage.Interface.Models
         public List<string> AllowedContentTypes { get; set; }
 
         /// <summary>
-        /// Does the data element require application logic (true) or should it be streamed directly to storage (false).
+        /// If the data element require application logic this field has value. Otherwise data will be streamed directly to storage.
         /// </summary>
         [JsonProperty(PropertyName = "appLogic")]
-        public bool AppLogic { get; set; }
+        public ApplicationLogic AppLogic { get; set; }
 
         /// <summary>
         /// A reference to the process element id of the task where this data element should be updated.
         /// </summary>
         [JsonProperty(PropertyName = "taskId")]
         public string TaskId { get; set; }
-
-        /// <summary>
-        /// If true the app-backend will attemt to automatically create (or prefill) this data element when the task referred by taskId starts.
-        /// </summary>
-        [JsonProperty(PropertyName = "autoCreate")]
-        public bool? AutoCreate;
 
         /// <summary>
         /// Maximum allowed size of the file in bytes. If missing there is no limit on file size.

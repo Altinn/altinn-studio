@@ -1,4 +1,6 @@
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
@@ -9,22 +11,22 @@ namespace Altinn.Platform.Storage.Interface.Models
     public class DataElement : ChangableElement
     {
         /// <summary>
-        /// data id, an guid.
+        /// The data element id, a guid.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// The instance id which the data element belongs to. 
+        /// The guid of the instance which the data element belongs to. This field is normally not populated if data element is part of instance metadata.
         /// </summary>
-        [JsonProperty(PropertyName = "instanceId")]
-        public string instanceId;
+        [JsonProperty(PropertyName = "instanceGuid")]
+        public string instanceGuid;
 
         /// <summary>
-        /// the element type, must be equal to the ones defined in application element types.
+        /// the data type, must be equal to the ones defined in application data types.
         /// </summary>
-        [JsonProperty(PropertyName = "elementType")]
-        public string ElementType { get; set; }
+        [JsonProperty(PropertyName = "dataType")]
+        public string DataType { get; set; }
 
         /// <summary>
         /// the name of the data element (file)
@@ -57,12 +59,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         public long FileSize { get; set; }
 
         /// <summary>
-        /// Signature
-        /// </summary>
-        [JsonProperty(PropertyName = "signature")]
-        public string Signature { get; set; }
-
-        /// <summary>
         /// Indicates that the instance owner no longer can update the data element
         /// </summary>
         [JsonProperty(PropertyName = "isLocked")]
@@ -73,6 +69,12 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// </summary>
         [JsonProperty(PropertyName  = "appOwner")]
         public ApplicationOwnerDataState AppOwner;
+
+        /// <summary>
+        /// an optional array of data element references.
+        /// </summary>
+        [JsonProperty(PropertyName = "refs")]
+        public List<Guid> Refs { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()

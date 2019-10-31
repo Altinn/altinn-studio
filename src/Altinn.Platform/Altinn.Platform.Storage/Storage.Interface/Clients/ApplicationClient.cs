@@ -37,16 +37,16 @@ namespace Altinn.Platform.Storage.Interface.Clients
             {
                 Id = appId,
                 Title = title,
-                ElementTypes = new List<ElementType>()
+                DataTypes = new List<DataType>()
             };
 
-            ElementType defaultElementType = new ElementType
+            DataType defaultElementType = new DataType
             {
                 Id = "default",
                 AllowedContentTypes = new List<string>() { "application/xml" }
             };
 
-            application.ElementTypes.Add(defaultElementType);
+            application.DataTypes.Add(defaultElementType);
 
             return CreateApplication(application) ;                     
         }

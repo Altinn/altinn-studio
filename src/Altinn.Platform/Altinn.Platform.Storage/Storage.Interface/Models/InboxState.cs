@@ -25,8 +25,14 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// The date the instance was deleted. 
         /// </summary>
-        [JsonProperty(PropertyName = "deleted")]
-        public DateTime? Deleted { get; set; }
+        [JsonProperty(PropertyName = "softDeleted")]
+        public DateTime? SoftDeleted { get; set; }
+
+        /// <summary>
+        /// The data the instance was marked for hard delete by user.
+        /// </summary>
+        [JsonProperty(PropertyName = "hardDeleted")]
+        public DateTime? HardDeleted { get; set; }
 
         /// <summary>
         /// The title of the instance that be shown in the inbox.

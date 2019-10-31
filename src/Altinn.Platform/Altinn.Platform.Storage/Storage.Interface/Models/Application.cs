@@ -60,10 +60,10 @@ namespace Altinn.Platform.Storage.Interface.Models
         public int? MaxSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the data element types associated with the application
+        /// Gets or sets the data types, the allowed elements of an application instance.
         /// </summary>
-        [JsonProperty(PropertyName = "elementTypes")]
-        public List<ElementType> ElementTypes { get; set; }
+        [JsonProperty(PropertyName = "dataTypes")]
+        public List<DataType> DataTypes { get; set; }
 
         /// <summary>
         /// Gets of sets the different party types allowed to instantiate the application

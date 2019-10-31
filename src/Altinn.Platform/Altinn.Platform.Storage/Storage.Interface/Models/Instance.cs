@@ -17,25 +17,13 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// the guid of the instance. It is same as last part of id attribute.
-        /// </summary>
-        [JsonProperty(PropertyName = "instanceGuid")]
-        public Guid InstanceGuid;
-
-        /// <summary>
-        /// owner of the instance.
-        /// </summary>
-        [JsonProperty(PropertyName = "instanceOwnerId")]
-        public string InstanceOwnerId { get; set; }
-
-        /// <summary>
         /// instance owner information. 
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwner")]
         public InstanceOwner InstanceOwner { get; set; }
 
         /// <summary>
-        /// id of the application, e.g. {org}/{app22}
+        /// id of the application this is an instance of, e.g. {org}/{app22}.
         /// </summary>
         [JsonProperty(PropertyName = "appId")]
         public string AppId { get; set; }
