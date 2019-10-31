@@ -5,7 +5,7 @@ labels: kind/user-story
 ---
 [How to write and handle issues.](https://confluence.brreg.no/x/Wg81Bw) (Only for project members)
 ## Description
-Document the need briefly for the story.
+Document the need briefly for the story. Start with the "who, what, why" eg "As a (type of user), I want (some goal), so that (reason)." The title of the user story should reflect this need in a shorter way.
 
 ## Screenshots
 > Screenshots or links to Figma (make sure your sketch is public)
@@ -31,7 +31,7 @@ Input (beyond tasks) on how the user story should be solved can be put here.
 etc
 
 ## Definition of done
-> Verify that this issue meets [DoD](https://confluence.brreg.no/display/T3KP/Definition+of+Done#DefinitionofDone-DoD%E2%80%93utvikling) before closing. 
+Verify that this issue meets [DoD](https://confluence.brreg.no/display/T3KP/Definition+of+Done#DefinitionofDone-DoD%E2%80%93utvikling) before closing. 
 - [ ] Documentation (if relevant)
 - [ ] Manual test (if needed)
 - [ ] Automated test (if needed)
