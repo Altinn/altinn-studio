@@ -1,7 +1,7 @@
 declare module '@material-ui/core/styles/createMuiTheme' {
   // tslint:disable-next-line:interface-name
   interface Theme {
-    accessability: {
+    accessibility: {
       focusVisible: {
         border: string,
       },
@@ -39,7 +39,7 @@ declare module '@material-ui/core/styles/createMuiTheme' {
 }
 
 const AltinnAppTheme = {
-  accessability: {
+  accessibility: {
     focusVisible: {
       border: '2px solid #1eaef7',
     },

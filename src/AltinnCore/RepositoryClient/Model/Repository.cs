@@ -60,7 +60,7 @@ namespace AltinnCore.RepositoryClient.Model
         public Repository(string CloneUrl = default(string), DateTime? CreatedAt = default(DateTime?), string DefaultBranch = default(string), string Description = default(string), bool? Empty = default(bool?), bool? Fork = default(bool?), long? ForksCount = default(long?), string FullName = default(string), string HtmlUrl = default(string), long? Id = default(long?), bool? Mirror = default(bool?), string Name = default(string), long? OpenIssuesCount = default(long?), User Owner = default(User), Repository Parent = default(Repository), Permission Permissions = default(Permission), bool? _Private = default(bool?), long? Size = default(long?), string SshUrl = default(string), long? StarsCount = default(long?), DateTime? UpdatedAt = default(DateTime?), long? WatchersCount = default(long?), string Website = default(string))
         {
             this.CloneUrl = CloneUrl;
-            this.CreatedAt = CreatedAt.ToString();
+            this.CreatedAt = CreatedAt;
             this.DefaultBranch = DefaultBranch;
             this.Description = Description;
             this.Empty = Empty;
@@ -79,7 +79,7 @@ namespace AltinnCore.RepositoryClient.Model
             this.Size = Size;
             this.SshUrl = SshUrl;
             this.StarsCount = StarsCount;
-            this.UpdatedAt = UpdatedAt.ToString();
+            this.UpdatedAt = UpdatedAt;
             this.WatchersCount = WatchersCount;
             this.Website = Website;
         }
@@ -87,145 +87,145 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// Gets or Sets CloneUrl
         /// </summary>
-        [DataMember(Name="clone_url", EmitDefaultValue=false)]
+        [JsonProperty("clone_url")]
         public string CloneUrl { get; set; }
 
         /// <summary>
         /// Gets or Sets CreatedAt
         /// </summary>
-        [DataMember(Name="created_at", EmitDefaultValue=false)]
-        public string CreatedAt { get; set; }
+        [JsonProperty("created_at")]
+        public DateTime? CreatedAt { get; set; }
 
         /// <summary>
         /// Gets or Sets DefaultBranch
         /// </summary>
-        [DataMember(Name="default_branch", EmitDefaultValue=false)]
+        [JsonProperty("default_branch")]
         public string DefaultBranch { get; set; }
 
         /// <summary>
         /// Gets or Sets Description
         /// </summary>
-        [DataMember(Name="description", EmitDefaultValue=false)]
+        [JsonProperty("description")]
         public string Description { get; set; }
 
         /// <summary>
         /// Gets or Sets Empty
         /// </summary>
-        [DataMember(Name="empty", EmitDefaultValue=false)]
+        [JsonProperty("empty")]
         public bool? Empty { get; set; }
 
         /// <summary>
         /// Gets or Sets Fork
         /// </summary>
-        [DataMember(Name="fork", EmitDefaultValue=false)]
+        [JsonProperty("fork")]
         public bool? Fork { get; set; }
 
         /// <summary>
         /// Gets or Sets ForksCount
         /// </summary>
-        [DataMember(Name="forks_count", EmitDefaultValue=false)]
+        [JsonProperty("forks_count")]
         public long? ForksCount { get; set; }
 
         /// <summary>
         /// Gets or Sets FullName
         /// </summary>
-        [DataMember(Name="full_name", EmitDefaultValue=false)]
+        [JsonProperty("full_name")]
         public string FullName { get; set; }
 
         /// <summary>
         /// Gets or Sets HtmlUrl
         /// </summary>
-        [DataMember(Name="html_url", EmitDefaultValue=false)]
+        [JsonProperty("html_url")]
         public string HtmlUrl { get; set; }
 
         /// <summary>
         /// Gets or Sets Id
         /// </summary>
-        [DataMember(Name="id", EmitDefaultValue=false)]
+        [JsonProperty("id")]
         public long? Id { get; set; }
 
         /// <summary>
         /// Gets or Sets Mirror
         /// </summary>
-        [DataMember(Name="mirror", EmitDefaultValue=false)]
+        [JsonProperty("mirror")]
         public bool? Mirror { get; set; }
 
         /// <summary>
         /// Gets or Sets Name
         /// </summary>
-        [DataMember(Name="name", EmitDefaultValue=false)]
+        [JsonProperty("name")]
         public string Name { get; set; }
 
         /// <summary>
         /// Gets or Sets OpenIssuesCount
         /// </summary>
-        [DataMember(Name="open_issues_count", EmitDefaultValue=false)]
+        [JsonProperty("open_issues_count")]
         public long? OpenIssuesCount { get; set; }
 
         /// <summary>
         /// Gets or Sets Owner
         /// </summary>
-        [DataMember(Name="owner", EmitDefaultValue=false)]
+        [JsonProperty("owner")]
         public User Owner { get; set; }
 
         /// <summary>
         /// Gets or Sets Parent
         /// </summary>
-        [DataMember(Name="parent", EmitDefaultValue=false)]
+        [JsonProperty("parent")]
         public Repository Parent { get; set; }
 
         /// <summary>
         /// Gets or Sets Permissions
         /// </summary>
-        [DataMember(Name="permissions", EmitDefaultValue=false)]
+        [JsonProperty("permissions")]
         public Permission Permissions { get; set; }
 
         /// <summary>
         /// Gets or Sets _Private
         /// </summary>
-        [DataMember(Name="private", EmitDefaultValue=false)]
+        [JsonProperty("private")]
         public bool? IsPrivate { get; set; }
 
         /// <summary>
         /// Gets or Sets Size
         /// </summary>
-        [DataMember(Name="size", EmitDefaultValue=false)]
+        [JsonProperty("size")]
         public long? Size { get; set; }
 
         /// <summary>
         /// Gets or Sets SshUrl
         /// </summary>
-        [DataMember(Name="ssh_url", EmitDefaultValue=false)]
+        [JsonProperty("ssh_url")]
         public string SshUrl { get; set; }
 
         /// <summary>
         /// Gets or Sets StarsCount
         /// </summary>
-        [DataMember(Name="stars_count", EmitDefaultValue=false)]
+        [JsonProperty("stars_count")]
         public long? StarsCount { get; set; }
 
         /// <summary>
         /// Gets or Sets UpdatedAt
         /// </summary>
-        [DataMember(Name="updated_at", EmitDefaultValue=false)]
-        public string UpdatedAt { get; set; }
+        [JsonProperty("updated_at")]
+        public DateTime? UpdatedAt { get; set; }
 
         /// <summary>
         /// Gets or Sets WatchersCount
         /// </summary>
-        [DataMember(Name="watchers_count", EmitDefaultValue=false)]
+        [JsonProperty("watchers_count")]
         public long? WatchersCount { get; set; }
 
         /// <summary>
         /// Gets or Sets Website
         /// </summary>
-        [DataMember(Name="website", EmitDefaultValue=false)]
+        [JsonProperty("website")]
         public string Website { get; set; }
 
         /// <summary>
         /// Gets or sets whether the repository is cloned to local
         /// </summary>
-        [DataMember(Name = "is_cloned_to_local", EmitDefaultValue = false)]
+        [JsonProperty("is_cloned_to_local")]
         public bool IsClonedToLocal { get; set; }
 
         /// <summary>

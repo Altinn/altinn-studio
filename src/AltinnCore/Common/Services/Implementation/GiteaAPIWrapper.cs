@@ -15,11 +15,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implementation for gitea wrapper
+    /// Implementation of the gitea wrapper service.
     /// </summary>
     public class GiteaAPIWrapper : IGitea
     {
@@ -70,14 +71,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Create repository
         /// </summary>
-        /// <param name="owner">the organisation or user</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">the options for creating repository</param>
         /// <returns>The newly created repository</returns>
-        public async Task<Repository> CreateRepository(string owner, CreateRepoOption createRepoOption)
+        public async Task<Repository> CreateRepository(string org, CreateRepoOption createRepoOption)
         {
             AltinnCore.RepositoryClient.Model.Repository repository = new Repository();
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Repository));
-            string urlEnd = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) == owner ? "/user/repos" : "/org/" + owner + "/repos";
+            string urlEnd = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) == org ? "/user/repos" : "/org/" + org + "/repos";
             Uri endpointUrl = new Uri(GetApiBaseUrl() + urlEnd);
             using (HttpClient client = GetApiClient())
             {
@@ -85,11 +86,13 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.Created)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
-                    repository = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.Repository;
+                    StreamReader reader = new StreamReader(stream);
+                    string repo = reader.ReadToEnd();
+                    repository = JsonConvert.DeserializeObject<Repository>(repo);
                 }
                 else
                 {
-                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Create repository failed with statuscode " + response.StatusCode + " for " + owner + " and reponame " + createRepoOption.Name);
+                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Create repository failed with statuscode " + response.StatusCode + " for " + org + " and reponame " + createRepoOption.Name);
                 }
 
                 repository.RepositoryCreatedStatus = response.StatusCode;
@@ -142,12 +145,20 @@ namespace AltinnCore.Common.Services.Implementation
                         Stream stream = await response.Content.ReadAsStreamAsync();
                         if (resultPage == 1 || page == resultPage)
                         {
-                            // This is the first or a specific page requested
-                            repository = serializer.ReadObject(stream) as SearchResults;
+                            // This is the first or a specific page requested                            
+                            SearchResults pageResultRepository = new SearchResults();
+                            StreamReader reader = new StreamReader(stream);
+                            string searchResultText = reader.ReadToEnd();
+                            repository = JsonConvert.DeserializeObject<SearchResults>(searchResultText);
                         }
                         else
                         {
-                            SearchResults pageResultRepository = serializer.ReadObject(stream) as SearchResults;
+                            SearchResults pageResultRepository = new SearchResults();
+                            StreamReader reader = new StreamReader(stream);
+                            string searchResultText = reader.ReadToEnd();
+                            pageResultRepository = JsonConvert.DeserializeObject<SearchResults>(searchResultText);
+
+                            //SearchResults pageResultRepository = serializer.ReadObject(stream) as SearchResults;
                             repository.Data.AddRange(pageResultRepository.Data);
                         }
 
@@ -196,12 +207,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<Repository> GetRepository(string owner, string repository)
+        public async Task<Repository> GetRepository(string org, string repository)
         {
-            Repository returnRepository = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Repository));
+            Repository returnRepository = null;            
 
-            Uri giteaUrl = new Uri(GetApiBaseUrl() + $"/repos/{owner}/{repository}");
+            Uri giteaUrl = new Uri(GetApiBaseUrl() + $"/repos/{org}/{repository}");
 
             using (HttpClient client = GetApiClient())
             {
@@ -209,13 +219,16 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
-                    {
-                        returnRepository = serializer.ReadObject(stream) as Repository;
+                    {                        
+                        StreamReader reader = new StreamReader(stream);
+                        string repo = reader.ReadToEnd();
+                        returnRepository = JsonConvert.DeserializeObject<Repository>(repo);
+
                     }
                 }
                 else
                 {
-                    _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching service {owner}/{repository} failed with reponsecode {response.StatusCode}");
+                    _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching app {org}/{repository} failed with reponsecode {response.StatusCode}");
                 }
             }
 
@@ -227,10 +240,10 @@ namespace AltinnCore.Common.Services.Implementation
                 watch.Stop();
                 _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Islocalrepo - {0} ", watch.ElapsedMilliseconds);
                 watch = System.Diagnostics.Stopwatch.StartNew();
-                Organization org = await GetCachedOrg(returnRepository.Owner.Login);
+                Organization organisation = await GetCachedOrg(returnRepository.Owner.Login);
                 watch.Stop();
                 _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, "Getcachedorg - {0} ", watch.ElapsedMilliseconds);
-                if (org.Id != -1)
+                if (organisation.Id != -1)
                 {
                     returnRepository.Owner.UserType = UserType.Org;
                 }
@@ -242,12 +255,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gets a list over the organizations that the current user has access to.
+        /// Gets a list over the organisations that the current user has access to.
         /// </summary>
         /// <returns>A list over all</returns>
         public async Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations()
         {
-            List<AltinnCore.RepositoryClient.Model.Organization> organizations = null;
+            List<AltinnCore.RepositoryClient.Model.Organization> organisations = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<AltinnCore.RepositoryClient.Model.Organization>));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/user/orgs");
 
@@ -257,7 +270,7 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
-                    organizations = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.Organization>;
+                    organisations = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.Organization>;
                 }
                 else
                 {
@@ -265,47 +278,47 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            return organizations;
+            return organisations;
         }
 
         /// <summary>
-        /// Returns information about a organization based on name
+        /// Returns information about an organisation based on name
         /// </summary>
-        /// <param name="name">The name of the organization</param>
-        /// <returns>The organization</returns>
-        public async Task<AltinnCore.RepositoryClient.Model.Organization> GetOrganization(string name)
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <returns>The organisation object</returns>
+        public async Task<AltinnCore.RepositoryClient.Model.Organization> GetOrganization(string org)
         {
-            AltinnCore.RepositoryClient.Model.Organization organization = null;
+            AltinnCore.RepositoryClient.Model.Organization organisation = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Organization));
-            Uri giteaUrl = new Uri(GetApiBaseUrl() + "/orgs/" + name);
+            Uri giteaUrl = new Uri(GetApiBaseUrl() + "/orgs/" + org);
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
-                    organization = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.Organization;
+                    organisation = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.Organization;
                 }
                 else
                 {
-                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetOrganization failed with statuscode " + response.StatusCode + "for " + name);
+                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetOrganization failed with statuscode " + response.StatusCode + "for " + org);
                 }
             }
 
-            return organization;
+            return organisation;
         }
 
         /// <summary>
         /// Returns all branch information for a repository
         /// </summary>
-        /// <param name="owner">The owner</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repo">The name of the repo</param>
         /// <returns>The branches</returns>
-        public async Task<List<Branch>> GetBranches(string owner, string repo)
+        public async Task<List<Branch>> GetBranches(string org, string repo)
         {
             List<Branch> branches = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<Branch>));
-            Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repo + "/branches");
+            Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + org + "/" + repo + "/branches");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -316,7 +329,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + owner + " " + repo);
+                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranches response failed with statuscode " + response.StatusCode + " for " + org + " " + repo);
                 }
             }
 
@@ -324,11 +337,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Branch> GetBranch(string owner, string repository, string branch)
+        public async Task<Branch> GetBranch(string org, string repository, string branch)
         {
             Branch branchinfo = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Branch));
-            Uri giteaUrl = new Uri($"{GetApiBaseUrl()}/repos/{owner}/{repository}/branches/{branch}");
+            Uri giteaUrl = new Uri($"{GetApiBaseUrl()}/repos/{org}/{repository}/branches/{branch}");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -339,7 +352,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + owner + " / " + repository + " branch: " + branch);
+                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " GetBranch response failed with statuscode " + response.StatusCode + " for " + org + " / " + repository + " branch: " + branch);
                 }
             }
 
@@ -500,14 +513,14 @@ namespace AltinnCore.Common.Services.Implementation
             return htmlValues;
         }
 
-        private bool IsLocalRepo(string org, string service)
+        private bool IsLocalRepo(string org, string app)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (Directory.Exists(localServiceRepoFolder))
+            string localAppRepoFolder = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            if (Directory.Exists(localAppRepoFolder))
             {
                 try
                 {
-                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localAppRepoFolder))
                     {
                         return true;
                     }
@@ -540,20 +553,20 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
-        private async Task<Organization> GetCachedOrg(string orgName)
+        private async Task<Organization> GetCachedOrg(string org)
         {
-            Organization org = null;
-            string cachekey = "org_" + orgName;
+            Organization organisation = null;
+            string cachekey = "org_" + org;
 
-            if (!_cache.TryGetValue(cachekey, out org))
+            if (!_cache.TryGetValue(cachekey, out organisation))
             {
-                org = await GetOrganization(orgName);
+                organisation = await GetOrganization(org);
 
                 // Null value is not cached. so set id property to -1
-                if (org == null)
+                if (organisation == null)
                 {
-                    org = new Organization();
-                    org.Id = -1;
+                    organisation = new Organization();
+                    organisation.Id = -1;
                 }
 
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
@@ -562,10 +575,10 @@ namespace AltinnCore.Common.Services.Implementation
                 .SetSlidingExpiration(TimeSpan.FromSeconds(3600));
 
                 // Save data in cache.
-                _cache.Set(cachekey, org, cacheEntryOptions);
+                _cache.Set(cachekey, organisation, cacheEntryOptions);
             }
 
-            return org;
+            return organisation;
         }
 
         private string GetApiBaseUrl()

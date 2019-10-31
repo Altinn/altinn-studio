@@ -1,7 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+
 using Newtonsoft.Json;
+
 using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Models
@@ -9,7 +10,6 @@ namespace Altinn.Platform.Storage.Models
     /// <summary>
     /// Model for application element type.
     /// </summary>
-    [Serializable]
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ElementType
     {
@@ -27,7 +27,7 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "description")]
         public LanguageString Description { get; set; }
-        
+
         /// <summary>
         /// List of allowed content types (Mime types).
         /// If null or empty all content types are allowed.
@@ -36,31 +36,42 @@ namespace Altinn.Platform.Storage.Models
         public List<string> AllowedContentType { get; set; }
 
         /// <summary>
+        /// Does the data element require application logic (true) or should it be streamed directly to storage (false).
+        /// </summary>
+        [JsonProperty(PropertyName = "appLogic")]
+        public bool AppLogic { get; set; }
+
+        /// <summary>
+        /// A reference to the process element id of the task where this data element should be updated.
+        /// </summary>
+        [JsonProperty(PropertyName = "task")]
+        public string Task { get; set; }
+
+        /// <summary>
         /// Maximum allowed size of the file in bytes. If missing there is no limit on file size.
         /// </summary>
         [JsonProperty(PropertyName = "maxSize")]
         public int? MaxSize { get; set; }
 
         /// <summary>
-        /// Maximum number of instances of same element. Default is 1.
-        /// If negative no limit on number of data elements.
+        /// Maximum number of allowed elements of this type on the same application instance. Default is 1.
         /// </summary>
+        /// <remarks>
+        /// Zero or below indicate unbounded maximum number of elements.
+        /// </remarks>
         [JsonProperty(PropertyName = "maxCount")]
         [DefaultValue(1)]
         public int MaxCount { get; set; }
 
         /// <summary>
-        /// True if signature is required. Default value is false.
+        /// Minimum number of required elements of this type on the same application instance. Default is 1.
         /// </summary>
-        [JsonProperty(PropertyName = "shouldSign")]
-        [DefaultValue(false)]
-        public bool ShouldSign { get; set; }
+        /// <remarks>
+        /// Zero or below indicate that the element type is optional.
+        /// </remarks>
+        [JsonProperty(PropertyName = "minCount")]
+        [DefaultValue(1)]
+        public int MinCount { get; set; }
 
-        /// <summary>
-        /// Encryption required by application. Default value is false.  
-        /// </summary>
-        [JsonProperty(PropertyName = "shouldEncrypt")]
-        [DefaultValue(false)]
-        public bool ShouldEncrypt { get; set; }
     }
 }

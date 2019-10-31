@@ -56,7 +56,11 @@ export class AltinnSearchInput extends React.Component<IAltinnSearchInputCompone
                 position={'end'}
                 classes={{ root: classNames(classes.searchBoxIcon) }}
               >
-                <i className={'fa fa-search'} />
+                <i
+                  className={'fa fa-search'}
+                  title={'Søkeikon'}
+                  aria-label={'Søkeikon'}
+                />
               </InputAdornment>,
             classes: { root: classNames(classes.searchBoxInput) },
           }}

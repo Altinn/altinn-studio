@@ -1,0 +1,15 @@
+The XACML 1.0 specification does not explicitly 
+define the way to convert each of the selected node set 
+into a string representation so that the constructor
+functions can be applied.
+
+In these tests, it is assumed that:
+1) An XML attribute node is converted into 
+the string representation of the attribute value.
+2) An XML text node is converted into 
+the string representation of the text node content.
+
+In the DOM API, such a string representation can 
+be obtained by org.w3c.dom.Node#getNodeValue.
+
+In XACML 1.1, this assumption will be true.

@@ -5,6 +5,7 @@ import { IRuntimeState } from '../../../../../types';
 import { IComponentValidations } from '../../../../../types/global';
 import { getLayoutComponentById } from '../../../../../utils/layout';
 import { validateComponentFormData } from '../../../../../utils/validation';
+import FormDynamicActions from '../../../dynamics/actions';
 import FormValidationActions from '../../../validation/actions';
 import FormDataActions from '../../actions';
 import * as FormDataActionTypes from '../../actions/types';
@@ -26,6 +27,7 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
       yield call(FormDataActions.updateFormDataFulfilled, field, data);
     }
     yield call(FormValidationActions.updateComponentValidations, componentValidations, componentId);
+    yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
   } catch (err) {
     console.error(err);
     yield call(FormDataActions.updateFormDataRejected, err);

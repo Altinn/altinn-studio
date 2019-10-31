@@ -80,14 +80,14 @@ export interface IAccessControlContainerState {
 
 export interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;
-  organization: boolean;
+  organisation: boolean;
   person: boolean;
   subUnit: boolean;
 }
 
 export enum PartyTypes {
   bankruptcy_estate = 'bankruptcyEstate',
-  organization = 'organization',
+  organisation = 'organisation',
   person = 'person',
   sub_unit = 'subUnit',
 }
@@ -117,7 +117,7 @@ export class AccessControlContainerClass extends React.Component<
     if (!partyTypesAllowed) {
       partyTypesAllowed = {
         bankruptcyEstate: false,
-        organization: false,
+        organisation: false,
         person: false,
         subUnit: false,
       };

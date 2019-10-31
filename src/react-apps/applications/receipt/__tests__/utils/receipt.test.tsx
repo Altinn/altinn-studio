@@ -7,7 +7,7 @@ describe('>>> utils/receipt.test.tsx', () => {
   let mockPartyPerson: IParty;
   let mockPartyOrg: IParty;
   let mockLanguage: any;
-  let mockOrganizations: any;
+  let mockOrganisations: any;
   let expectedResult: any;
 
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('>>> utils/receipt.test.tsx', () => {
       ssn: '12345678',
     } as IParty;
     mockPartyOrg = {
-      organization: {
+      organisation: {
         name: 'FIRMA AS',
       },
       orgNumber: '12345',
@@ -38,7 +38,7 @@ describe('>>> utils/receipt.test.tsx', () => {
         reference_number: 'Referansenummer',
       },
     };
-    mockOrganizations = {
+    mockOrganisations = {
       orgs: {
         testOrg: {
           name: {
@@ -56,12 +56,12 @@ describe('>>> utils/receipt.test.tsx', () => {
 
   });
   it('+++ should return instance metadata object with correct values for person', () => {
-    const result = getInstanceMetaDataObject(mockInstance, mockPartyPerson, mockLanguage, mockOrganizations);
+    const result = getInstanceMetaDataObject(mockInstance, mockPartyPerson, mockLanguage, mockOrganisations);
     expect(result).toEqual(expectedResult);
   });
 
   it('+++ should return instance metadata object with correct values for org', () => {
-    const result = getInstanceMetaDataObject(mockInstance, mockPartyOrg, mockLanguage, mockOrganizations);
+    const result = getInstanceMetaDataObject(mockInstance, mockPartyOrg, mockLanguage, mockOrganisations);
     const expectedOrgResult = expectedResult;
     expectedOrgResult.Avsender = '12345-FIRMA AS';
     expect(result).toEqual(expectedOrgResult);

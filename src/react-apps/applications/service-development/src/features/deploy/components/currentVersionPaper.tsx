@@ -40,7 +40,7 @@ interface ICurrentVersionPaperProps {
 export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
   const [imageVersion, setImageVersion] = React.useState(props.imageVersion);
   const { classes } = props;
-  const { org, service } = window as IAltinnWindow;
+  const { org, app } = window as IAltinnWindow;
 
   React.useEffect(() => {
     setImageVersion(props.imageVersion);
@@ -78,11 +78,11 @@ export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
                 {getLanguageFromKey('deploy_to_test.service_url', props.language)}
               </span><br />
               <a
-                href={`https://${org}.apps.${props.env}.${urls.hostname.apps.test}/${org}/${service}/`}
+                href={`https://${org}.apps.${props.env}.${urls.hostname.apps.test}/${org}/${app}/`}
                 target='_blank'
                 className={classes.link}
               >
-                {`${org}.apps.${props.env}.${urls.hostname.apps.test}/${org}/${service}/`}
+                {`${org}.apps.${props.env}.${urls.hostname.apps.test}/${org}/${app}/`}
               </a>
             </Typography>
           </div>

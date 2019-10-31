@@ -4,6 +4,7 @@ export default class RunTimePage {
   constructor() {
     this.openManualTestWindow = Selector('#manual-test-button');
     this.testBrukerIframe = Selector('#root > div > div > div:nth-child(2) > div > div > iframe');
+    this.avgiverIframe = Selector('#root > div > div > div:nth-child(2) > div.jss3 > div > iframe');
     this.testUsers = [
       Selector('strong').withText('Ola'),
       Selector('strong').withText('Kari'),
@@ -43,10 +44,11 @@ export default class RunTimePage {
     this.messagesList = Selector('.table.table-striped.table-bordered').find('tbody');
 
     this.testUserHeader = [
-      Selector('div').withAttribute('title', 'OLA PRIVATPERSON'),
-      Selector('div').withText('Kari'),
-      Selector('div').withText('Anne'),
-      Selector('div').withText('Pål')
+      Selector('div').withAttribute('title', 'OLA  PRIVATPERSON'),
+      Selector('div').withAttribute('title','KARI  SELVSTENDIG'),
+      Selector('div').withAttribute('title','ANNE SOPHIE NÆRINGSDRIVENDE'),
+      Selector('div').withAttribute('title','PÅL  REVISOR'),
+      Selector('div').withAttribute('title','ROAR  SUBUNIT')
     ];
   }
 
@@ -60,7 +62,7 @@ export default class RunTimePage {
     var messagesCount = await messages.count;    
     if (messagesCount > 0) {
         for (var i=0; i<messagesCount; i++) {          
-          var innerTextMessageId = await messages.nth(i).innerText;          
+          var innerTextMessageId = await messages.nth(i).innerText;
           if (innerTextMessageId.includes('Arktivert'))  {
             await t.click(messages.nth(i));
             break;

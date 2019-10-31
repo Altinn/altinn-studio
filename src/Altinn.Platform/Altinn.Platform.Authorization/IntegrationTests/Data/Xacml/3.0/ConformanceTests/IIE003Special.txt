@@ -1,0 +1,53 @@
+Test IIE003 tests that policies included via PolicyIdReference
+are evaluated only when the PolicySet's combining algorithm calls
+for them to be evaluated.  That is, the referenced policies must
+not be evaluated (or syntax- and type-checked) until the
+evaluation of the PolicySet calls for evaluation of the
+referenced policy.
+
+The base PolicySet in IIE003Policy.xml refers to two policies:
+ a. IIE003PolicyId1.xml
+ b. IIE003PolicyId2.xml
+IIE003PolicyId2.xml contains a type mis-match and thus is an
+invalid policy file.
+
+The base PolicySet uses "FirstApplicable", and the policy in
+IIE003PolicyId1.xml is applicable, so the policy in
+IIE003PolicyId2.xml should never be evaluated as part of
+evaluating a Request.
+
+This test may be passed in either of two ways:
+
+1. If your implementation does schema- and type-checks on
+   policies independently of their use in evaluating policies
+   against a specific request, then
+
+   a. Verify that the policy in IIE003PolicyId2.xml fails
+      validity checks, and thus would never be made available to
+      the PDP as part of evaluating a Request.
+
+   b. Make the policy in IIE003PolicyId1.xml available to the PDP
+      using whatever mechanism your implementation uses to
+      resolve PolicyIdReference references.
+
+   c. Evaluate the request in IIE003Request.xml (or its semantic
+      equivalent) against the base policy in IIE003Policy.xml.
+      The result must be match (or be semantically equivalent to)
+      the response in IIE003Response.xml.  You must NOT get any
+      errors due to the policy in IIE003PolicyId2.xml.
+
+2. If your implementation does schema- and type-checks on
+   policies as the policies are evaluated in response to a
+   specific request, then
+
+   a. Make the policies in IIE003PolicyId1.xml and
+      IIE003PolicyId2.xml available to the PDP using whatever
+      mechanism your implementation uses to resolve
+      PolicyIdReference references.
+
+   b. Evaluate the request in IIE003Request.xml (or its semantic
+      equivalent) against the base policy in IIE003Policy.xml.
+      The result must be match (or be semantically equivalent to)
+      the response in IIE003Response.xml.  You must NOT get a
+      result of INDETERMINATE, since IIE003PolicyId2.xml should
+      never be evaluated.

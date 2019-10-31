@@ -1,6 +1,6 @@
 export interface IAltinnWindow extends Window {
   org: string;
-  service: string;
+  app: string;
 }
 
 export interface IInstanceState {
@@ -128,12 +128,12 @@ export interface IParty {
   unitType?: any;
   name?: any;
   isDeleted: boolean;
-  onlyHiearhyElementWithNoAccess: boolean;
+  onlyHierarchyElementWithNoAccess: boolean;
   person: IPerson;
-  organization?: IOrganization;
+  organisation?: IOrganisation;
 }
 
-export interface IOrganization {
+export interface IOrganisation {
   orgNumber: string;
   name: string;
   unitType: string;

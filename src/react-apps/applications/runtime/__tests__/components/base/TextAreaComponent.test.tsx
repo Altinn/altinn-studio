@@ -63,7 +63,7 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
       />,
     );
     expect(wrapper.find('textarea').hasClass('disabled')).toBe(false);
-    expect(wrapper.find('textarea').prop('disabled')).toBe(false);
+    expect(wrapper.find('textarea').prop('readOnly')).toBe(false);
   });
 
   it('+++ should render un-editable component when readOnly is true', () => {
@@ -77,7 +77,7 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
       />,
     );
     expect(wrapper.find('textarea').hasClass('disabled')).toBe(true);
-    expect(wrapper.find('textarea').prop('disabled')).toBe(true);
+    expect(wrapper.find('textarea').prop('readOnly')).toBe(true);
   });
 
 });

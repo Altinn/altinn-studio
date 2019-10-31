@@ -1,10 +1,10 @@
 const appConfig = {
-  serviceConfiguration: {
+  appConfiguration: {
     getCodeLists: (window: Window) => {
       return {
-        codeListUrlPreview: `${window.location.origin}/designer/{SERVICEPATH}/Codelist/Get?name=`,
-        codeListUrlRuntime: `${window.location.origin}/api/Codelist/{SERVICEPATH}/Index/`,
-        servicePathPlaceholder: '{SERVICEPATH}',
+        codeListUrlPreview: `${window.location.origin}/designer/{APPID}/Codelist/Get?name=`,
+        codeListUrlRuntime: `${window.location.origin}/api/Codelist/{APPID}/Index/`,
+        appIdPlaceholder: '{APPID}',
       };
     },
   },

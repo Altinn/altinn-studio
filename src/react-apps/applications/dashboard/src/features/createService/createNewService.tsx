@@ -178,7 +178,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       // tslint:disable-next-line:max-line-length
       const selectedOrgOrUser = this.props.selectableUser.find((user: any) => (user.full_name === this.state.selectedOrgOrUser || user.name === this.state.selectedOrgOrUser));
       // tslint:disable-next-line:max-line-length
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${selectedOrgOrUser.name}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${selectedOrgOrUser.name}&repository=${this.state.repoName}&appTitle=${this.state.serviceName}`;
       post(url).then((result: any) => {
         if (this._isMounted && result.repositoryCreatedStatus === 422) {
           this.setState({
@@ -282,8 +282,8 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
     );
   }
 }
-const combineCurrentUserAndOrg = (organizations: any, user: any) => {
-  const allUsers = organizations.map(({ username, full_name }: any) => ({ name: username, full_name }));
+const combineCurrentUserAndOrg = (organisations: any, user: any) => {
+  const allUsers = organisations.map(({ username, full_name }: any) => ({ name: username, full_name }));
   const currentUserName = { name: user.login, full_name: user.full_name };
   allUsers.push(currentUserName);
   return allUsers;
@@ -296,7 +296,7 @@ const mapStateToProps = (
   return {
     classes: props.classes,
     language: state.language.language,
-    selectableUser: combineCurrentUserAndOrg(state.dashboard.organizations, state.dashboard.user),
+    selectableUser: combineCurrentUserAndOrg(state.dashboard.organisations, state.dashboard.user),
   };
 };
 

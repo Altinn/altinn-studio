@@ -63,7 +63,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Converts the appId "{org}/{appName}" to "{org}-{appName}"
+        /// Converts the appId "{org}/{app}" to "{org}-{app}"
         /// </summary>
         /// <param name="appId">the id to convert</param>
         /// <returns>the converted id</returns>
@@ -82,7 +82,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Converts the cosmosId "{org}-{appName}" to "{org}/{appName}"
+        /// Converts the cosmosId "{org}-{app}" to "{org}/{app}"
         /// </summary>
         /// <param name="cosmosId">the id to convert</param>
         /// <returns>the converted id</returns>
@@ -94,17 +94,17 @@ namespace Altinn.Platform.Storage.Repository
 
             if (firstDash > 0)
             {
-                string appName = cosmosId.Substring(firstDash + 1);
+                string app = cosmosId.Substring(firstDash + 1);
                 string org = cosmosId.Split("-")[0];
 
-                appId = $"{org}/{appName}";
+                appId = $"{org}/{app}";
             }
 
             return appId;
         }
 
         /// <summary>
-        /// fix appId so that cosmos can store it: org/appName-23 -> org-appName-23
+        /// fix appId so that cosmos can store it: org/app-23 -> org-app-23
         /// </summary>
         /// <param name="application">the application to preprocess</param>
         private void PreProcess(Application application)
@@ -113,7 +113,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// postprocess applications so that appId becomes org/appName-23 to use outside cosmos
+        /// postprocess applications so that appId becomes org/app-23 to use outside cosmos
         /// </summary>
         /// <param name="application">the application to postprocess</param>
         private void PostProcess(Application application)

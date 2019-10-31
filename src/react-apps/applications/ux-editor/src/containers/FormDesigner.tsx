@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import FileEditor from '../../../shared/src/file-editor/FileEditor';
 import ServiceLogicMenu from '../../../shared/src/navigation/drawer/rightDrawerMenu';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -145,16 +146,15 @@ class FormDesigner extends React.Component<
   }
 
   public componentDidMount() {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
-    const servicePath = `${org}/${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const appId = `${org}/${app}`;
 
     FormDesignerActionDispatchers.fetchFormLayout(
-      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetFormLayout`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);
     AppDataActionDispatcher.setDesignMode(true);
     ManageServiceConfigurationDispatchers.fetchJsonFile(
-      `${altinnWindow.location.origin}/designer/${
-      servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
+      `${window.location.origin}/designer/${
+        appId}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
   }
   public toggleMenu = () => {
     this.setState({
@@ -250,9 +250,11 @@ class FormDesigner extends React.Component<
                   >
                     <IconButton
                       type='button'
+                      aria-label={getLanguageFromKey('ux_editor.service_logic_icon_aria_label', this.props.language)}
                       className={this.props.classes.button}
                     >
                       <i
+                        title={getLanguageFromKey('ux_editor.service_logic_icon_title', this.props.language)}
                         className={
                           (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
                             this.props.classes.icon) + ' fa fa-logic-no-circle'

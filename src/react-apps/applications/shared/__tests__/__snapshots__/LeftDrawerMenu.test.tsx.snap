@@ -5,18 +5,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mock value is invalid m
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about should render left drawer menu for about option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    className="MuiDrawer-root MuiDrawer-docked LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+      className="MuiPaper-root MuiPaper-elevation0 MuiDrawer-paper LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft MuiDrawer-paperAnchorDockedLeft"
     >
       <hr
-        className="MuiDivider-root-52"
+        className="MuiDivider-root"
       />
       <ul
-        className="MuiList-root-57 MuiList-padding-58"
+        className="MuiList-root MuiList-padding"
       >
         <a
           href="/aboutservice"
@@ -28,13 +28,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -50,7 +50,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Om tjenesten
             </div>
@@ -66,13 +66,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-others"
@@ -88,7 +88,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Roller og rettigheter
             </div>
@@ -104,13 +104,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-settings"
@@ -126,7 +126,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Produksjon
             </div>
@@ -142,13 +142,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-deadline"
@@ -164,7 +164,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Versjonshistorikk
             </div>
@@ -180,13 +180,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -202,7 +202,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Om sluttbrukeren
             </div>
@@ -218,13 +218,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -240,7 +240,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Altinn.no
             </div>
@@ -255,18 +255,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create should render left drawer menu for create option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    className="MuiDrawer-root MuiDrawer-docked LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+      className="MuiPaper-root MuiPaper-elevation0 MuiDrawer-paper LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft MuiDrawer-paperAnchorDockedLeft"
     >
       <hr
-        className="MuiDivider-root-52"
+        className="MuiDivider-root"
       />
       <ul
-        className="MuiList-root-57 MuiList-padding-58"
+        className="MuiList-root MuiList-padding"
       >
         <a
           href="/datamodel"
@@ -278,13 +278,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -300,7 +300,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Datamodell
             </div>
@@ -316,13 +316,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-settings"
@@ -338,7 +338,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               GUI
             </div>
@@ -354,13 +354,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -376,7 +376,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               API
             </div>
@@ -392,13 +392,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -414,7 +414,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Kode
             </div>
@@ -430,13 +430,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -452,7 +452,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Tilgangsstyring
             </div>
@@ -469,18 +469,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is empty s
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is language should render left drawer menu for language option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    className="MuiDrawer-root MuiDrawer-docked LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+      className="MuiPaper-root MuiPaper-elevation0 MuiDrawer-paper LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft MuiDrawer-paperAnchorDockedLeft"
     >
       <hr
-        className="MuiDivider-root-52"
+        className="MuiDivider-root"
       />
       <ul
-        className="MuiList-root-57 MuiList-padding-58"
+        className="MuiList-root MuiList-padding"
       >
         <a
           href="/text"
@@ -492,13 +492,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-settings"
@@ -514,7 +514,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Tekst
             </div>
@@ -530,13 +530,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-settings"
@@ -552,7 +552,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Flere språk
             </div>
@@ -569,18 +569,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is null sh
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish should render left drawer menu for publish option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    className="MuiDrawer-root MuiDrawer-docked LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+      className="MuiPaper-root MuiPaper-elevation0 MuiDrawer-paper LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft MuiDrawer-paperAnchorDockedLeft"
     >
       <hr
-        className="MuiDivider-root-52"
+        className="MuiDivider-root"
       />
       <ul
-        className="MuiList-root-57 MuiList-padding-58"
+        className="MuiList-root MuiList-padding"
       >
         <a
           href="/publish"
@@ -592,13 +592,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-settings"
@@ -614,7 +614,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Produksjonsette
             </div>
@@ -630,13 +630,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -652,7 +652,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Status
             </div>
@@ -667,18 +667,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test should render left drawer menu for test option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    className="MuiDrawer-root MuiDrawer-docked LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+      className="MuiPaper-root MuiPaper-elevation0 MuiDrawer-paper LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft MuiDrawer-paperAnchorDockedLeft"
     >
       <hr
-        className="MuiDivider-root-52"
+        className="MuiDivider-root"
       />
       <ul
-        className="MuiList-root-57 MuiList-padding-58"
+        className="MuiList-root MuiList-padding"
       >
         <a
           href="/test"
@@ -690,13 +690,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-info-circle"
@@ -712,7 +712,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Test
             </div>
@@ -728,13 +728,13 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
           }
         >
           <li
-            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
             disabled={false}
             onMouseEnter={[Function]}
             onMouseLeave={[Function]}
           >
             <div
-              className="MuiListItemIcon-root-73"
+              className="MuiListItemIcon-root"
             >
               <i
                 className="fa fa-integration-test"
@@ -750,7 +750,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
               />
             </div>
             <div
-              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Test i testmiljø
             </div>

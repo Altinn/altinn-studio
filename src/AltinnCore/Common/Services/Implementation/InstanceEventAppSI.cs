@@ -17,7 +17,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// service implementation for instance events for saving to and retrieving from Platform Storage
+    /// App implementation of the instance events service, for saving to and retrieving from Platform Storage.
     /// </summary>
     public class InstanceEventAppSI : IInstanceEvent
     {
@@ -50,7 +50,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName)
+        public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnerId, string org, string app)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             string apiUrl = $"instances/{instanceIdentifier}/events";
@@ -71,7 +71,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string appName, string[] eventTypes, string from, string to)
+        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             string apiUrl = $"{instanceOwnerId}/{instanceId}";
@@ -110,7 +110,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<string> SaveInstanceEvent(object dataToSerialize, string org, string appName)
+        public async Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app)
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.CreatedDateTime = DateTime.UtcNow;

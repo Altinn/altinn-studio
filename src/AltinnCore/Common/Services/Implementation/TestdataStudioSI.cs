@@ -18,7 +18,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Services with functionality for test data under service development
+    /// Studio implementation of the test data service for app development.
     /// </summary>
     public class TestdataStudioSI : ITestdata
     {
@@ -48,11 +48,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string appName)
+        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string org, string app)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             List<ServiceInstance> returnList = new List<ServiceInstance>();
-            List<Instance> instances = _instance.GetInstances(appName, org, instanceOwnerId).Result;
+            List<Instance> instances = _instance.GetInstances(app, org, instanceOwnerId).Result;
             if (instances != null && instances.Count > 0)
             {
                 foreach (Instance instance in instances)
@@ -79,7 +79,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string appName)
+        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string org, string app)
         {
             _logger.LogInformation("GetServicePrefill method is not implemented yet");
             return new List<ServicePrefill>();

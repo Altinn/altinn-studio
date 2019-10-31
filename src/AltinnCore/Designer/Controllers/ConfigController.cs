@@ -2,6 +2,7 @@ using System.IO;
 using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Helpers.Extensions;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,7 @@ namespace AltinnCore.Designer.Controllers
     [Authorize]
     public class ConfigController : Controller
     {
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IRepository _repository;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -35,7 +36,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
-        public ConfigController(IHostingEnvironment hostingEnvironment, IRepository serviceRepositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
+        public ConfigController(IWebHostEnvironment hostingEnvironment, IRepository serviceRepositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = serviceRepositoryService;
@@ -45,23 +46,23 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// View for basic service configuration
+        /// View for basic app configuration
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The View for JSON editor</returns>
-        public IActionResult Index(string org, string service)
+        public IActionResult Index(string org, string app)
         {
             return View();
         }
 
         /// <summary>
-        /// The View for configuration of security for a service
+        /// The View for configuration of security for an app
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The view with JSON editor</returns>
-        public IActionResult Security(string org, string service)
+        public IActionResult Security(string org, string app)
         {
             return View();
         }
@@ -70,14 +71,14 @@ namespace AltinnCore.Designer.Controllers
         /// Common method to update the local config
         /// </summary>
         /// <param name="jsonData">The JSON Data</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The name of the config</param>
         /// <returns>A View with update status</returns>
         [HttpPost]
-        public IActionResult SaveConfig([FromBody]dynamic jsonData, string org, string service, string id)
+        public IActionResult SaveConfig([FromBody]dynamic jsonData, string org, string app, string id)
         {
-            _repository.SaveConfiguration(org, service, id + ".json", jsonData.ToString());
+            _repository.SaveConfiguration(org, app, id + ".json", jsonData.ToString());
             return Json(new
             {
                 Success = true,
@@ -93,21 +94,21 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public IActionResult Schema(string id)
         {
-            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{id}.json");
+            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{id.AsFileName()}.json");
             return Content(schema, "application/json", System.Text.Encoding.UTF8);
         }
 
         /// <summary>
         /// Returns the JSON configuration
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The name on config</param>
         /// <returns>The JSON config</returns>
         [HttpGet]
-        public IActionResult GetConfig(string org, string service, string id)
+        public IActionResult GetConfig(string org, string app, string id)
         {
-            string configJson = _repository.GetConfiguration(org, service, id + ".json");
+            string configJson = _repository.GetConfiguration(org, app, id + ".json");
             if (string.IsNullOrWhiteSpace(configJson))
             {
                 configJson = "{}";
@@ -117,17 +118,17 @@ namespace AltinnCore.Designer.Controllers
 
             return result;
         }
-        
+
         /// <summary>
-        /// Method to retrieve the service description from the metadata file
+        /// Method to retrieve the app description from the metadata file
         /// </summary>
-        /// <param name="org">the owner of the service</param>
-        /// <param name="service">the service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service configuration</returns>
         [HttpGet]
-        public ServiceConfiguration GetServiceConfig(string org, string service)
+        public ServiceConfiguration GetServiceConfig(string org, string app)
         {
-            string serviceConfigPath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
+            string serviceConfigPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;
             var watch = System.Diagnostics.Stopwatch.StartNew();
             if (System.IO.File.Exists(serviceConfigPath))
@@ -142,15 +143,15 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Method to set the service description in the metadata file
+        /// Method to set the app description in the metadata file
         /// </summary>
-        /// <param name="org">the owner of the service</param>
-        /// <param name="service">the service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceConfig">the service config</param>
         [HttpPost]
-        public void SetServiceConfig(string org, string service, [FromBody] dynamic serviceConfig)
+        public void SetServiceConfig(string org, string app, [FromBody] dynamic serviceConfig)
         {
-            string serviceConfigPath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
+            string serviceConfigPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;
 
             if (System.IO.File.Exists(serviceConfigPath))
@@ -166,14 +167,14 @@ namespace AltinnCore.Designer.Controllers
                 new FileInfo(serviceConfigPath).Directory.Create();
                 serviceConfigurationObject = new ServiceConfiguration()
                 {
-                    RepositoryName = service,
+                    RepositoryName = app,
                     ServiceDescription = serviceConfig.serviceDescription.ToString(),
                     ServiceId = serviceConfig.serviceId.ToString(),
                 };
             }
 
             System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
-            _repository.UpdateServiceInformationInApplication(org, service, serviceConfigurationObject);
+            _repository.UpdateServiceInformationInApplication(org, app, serviceConfigurationObject);
         }
     }
 }

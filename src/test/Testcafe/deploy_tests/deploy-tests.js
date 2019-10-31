@@ -24,13 +24,13 @@ fixture('Deploy of app to a test environment tests')
     t.ctx.ikkeTilgang = "Du har ikke tilgang til å legge ut tjenesten";
     t.ctx.leggerUtTjenesten = "Legger ut tjenesten i testmiljøet, det vil ta ca. 1 minutt.";
     await t
-      .useRole(AutoTestUser)
       .resizeWindow(1536, 864)
   });
 
 test('Happy case; deploy an app to a test environment after a change', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/uieditor')
+    .useRole(AutoTestUser)
+    .navigateTo(app.baseUrl + 'designer/ttd/servicedeploy#/uieditor')
   await designer.deleteUIComponentsMethod(t);
   await t   
     .click(designer.hentEndringer)
@@ -60,7 +60,8 @@ test('Happy case; deploy an app to a test environment after a change', async () 
 
 test('App cannot deploy due to compilation error', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/CompileError#/uieditor')    
+    .useRole(AutoTestUser)
+    .navigateTo(app.baseUrl + 'designer/ttd/CompileError#/uieditor')    
     .click(designer.hentEndringer)
     .expect(designer.ingenEndringer.exists).ok({ timeout: 120000 })
     .click(designer.testeNavigationTab) //click twice to remove pop up from "del"
@@ -73,10 +74,11 @@ test('App cannot deploy due to compilation error', async () => {
 
 test('App cannot be deployed due to local changes', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')
+    .useRole(AutoTestUser)
+    .navigateTo(app.baseUrl + 'designer/ttd/servicedeploy#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.hentEndringer)
-    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok()
+    .expect(Selector("h3").withText(t.ctx.tjenesteOppdatert).exists).ok({ timeout: 120000 })
     .click(designer.omNavigationTab) //remove pop up
     .dragToElement(designer.radioButtonComponent, designer.dragToArea)
   await t.eval(() => location.reload(true))
@@ -115,7 +117,8 @@ test('User does not have write access to app, and cannot deploy', async () => {
 
 test('Clone modal functionality', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/tdd/servicedeploy#/aboutservice')
+    .useRole(AutoTestUser)
+    .navigateTo(app.baseUrl + 'designer/ttd/servicedeploy#/aboutservice')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)
     .click(designer.cloneButton)
@@ -126,6 +129,7 @@ test('Clone modal functionality', async () => {
 
 test('Validation of missing datamodel in clone modal', async () => {
   await t
+    .useRole(AutoTestUser)
     .navigateTo(app.baseUrl + 'designer/AutoTest/withoutdatamodel#/uieditor')
     .expect(designer.cloneButton.exists).ok({ timeout: 5000 })
     .hover(designer.cloneButton)

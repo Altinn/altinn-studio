@@ -1,35 +1,44 @@
 using Newtonsoft.Json;
+using System;
 
 namespace Storage.Interface.Models
 {
     /// <summary>
-    /// Holds the process state of an application instance. The process is defined by the application's process specification BPMN file. 
+    /// Holds the process state of an application instance.
+    /// The process is defined by the application's process specification BPMN file. 
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ProcessState
     {
         /// <summary>
-        /// Refers to the current task id of an ongoing process. If process is completed or is in error it will not have value. 
+        /// Indicates the date and time when the process was initialized
         /// </summary>
-        [JsonProperty(PropertyName = "currentTask", NullValueHandling = NullValueHandling.Ignore)]
-        public string CurrentTask { get; set; }
+        [JsonProperty(PropertyName = "started")]
+        public DateTime? Started { get; set; }
 
         /// <summary>
-        /// If process is completed and in a valid end state the value is true, otherwise false or not present. 
+        /// The start event that was used to start the process. 
         /// </summary>
-        [JsonProperty(PropertyName = "isComplete")]
-        public bool? IsComplete { get; set; }
+        [JsonProperty(PropertyName = "startEvent")]
+        public string StartEvent { get; set; }
 
         /// <summary>
-        /// If process has reached an error end event this value is true.
+        /// Contains the task info of the currentTask of an ongoing process.
+        /// If process is not started or ended this field will not have value. 
         /// </summary>
-        [JsonProperty(PropertyName = "isInError")]
-        public bool? IsInError { get; set; }
+        [JsonProperty(PropertyName = "currentTask")]
+        public ProcessElementInfo CurrentTask { get; set; }
 
         /// <summary>
-        /// Refers to the id of an end state of the process. If the process is completed it should be a valid end state. If process is in error it should be a valid error end event.
+        /// The date time the process was ended/completed. 
         /// </summary>
-        [JsonProperty(PropertyName = "endState")]
-        public string EndState { get; set; }
+        [JsonProperty(PropertyName = "ended")]
+        public DateTime? Ended { get; set; }
+
+        /// <summary>
+        /// The end event of the process. 
+        /// </summary>
+        [JsonProperty(PropertyName = "endEvent")]
+        public string EndEvent { get; set; }
     }
 }

@@ -13,16 +13,16 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Instantiates a new instance
         /// </summary>
-        Guid InstantiateInstance(string appName, string org, int instanceOwnerId);
+        Guid InstantiateInstance(string app, string org, int instanceOwnerId);
 
         /// <summary>
         /// Gets the instance
         /// </summary>
-        Task<Instance> GetInstance(string appName, string org, int instanceOwnerId, Guid instanceId);
+        Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId);
 
         /// <summary>
         /// Saves the instance meta data
         /// </summary>
-        void SaveInstance<T>(T dataToSerialize, string appName, string org, int instanceOwnerId, Guid instanceId);
+        void SaveInstance<T>(T dataToSerialize, string app, string org, int instanceOwnerId, Guid instanceId);
     }
 }

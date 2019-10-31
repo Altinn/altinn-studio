@@ -38,9 +38,8 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
   }
 
   public fetchFiles() {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
-    const servicePath = `${org}/${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const appId = `${org}/${app}`;
 
     // ALTINN STUDIO
     // Editor
@@ -49,39 +48,38 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
     // Fetch data model
     appDataActionDispatcher.fetchDataModel(
-      `${altinnWindow.location.origin}/designer/${servicePath}/Model/GetJson`);
+      `${window.location.origin}/designer/${appId}/Model/GetJson`);
     // Fetch form layout
     formDesignerActionDispatchers.fetchFormLayout(
-      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetFormLayout`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);
     // Load text resources
     const languageCode = 'nb-NO';
     appDataActionDispatcher.loadTextResources(
-      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetTextResources/${languageCode}`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetTextResources/${languageCode}`);
     // Fetch ServiceConfigurations
     manageServiceConfigurationActionDispatcher.fetchJsonFile(
-      `${altinnWindow.location.origin}/designer/${
-      servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
+      `${window.location.origin}/designer/${
+        appId}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
     // Fetch rule connections
     appDataActionDispatcher.fetchRuleModel(
-      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetRuleHandler`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetRuleHandler`);
     // Fetch the CodeLists
     appDataActionDispatcher.fetchCodeLists(
-      `${altinnWindow.location.origin}/designer/${servicePath}/CodeList/CodeLists`);
+      `${window.location.origin}/designer/${appId}/CodeList/CodeLists`);
     // Fetch thirdParty Components
     ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponents(
-      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetThirdPartyComponents`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetThirdPartyComponents`);
     // Fetch language
     appDataActionDispatcher.fetchLanguage(
-      `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+      `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
 
   }
 
   public resetFormData = (): JSX.Element => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
-    const servicePath = `${org}/${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const appId = `${org}/${app}`;
     formFillerActionDispatchers.resetFormData(
-      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetFormLayout`);
+      `${window.location.origin}/designer/${appId}/UIEditor/GetFormLayout`);
     return <FormDesigner />;
   }
 

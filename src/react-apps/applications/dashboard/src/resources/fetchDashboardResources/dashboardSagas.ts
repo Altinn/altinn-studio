@@ -27,14 +27,14 @@ export function* fetchCurrentUserSaga({
   }
 }
 
-export function* fetchOrganizationsSaga({
+export function* fetchOrganisationsSaga({
   url,
-}: FetchDashboardActions.IFetchOrganizationsAction): SagaIterator {
+}: FetchDashboardActions.IFetchOrganisationsAction): SagaIterator {
   try {
     const user = yield call(get, url);
-    yield call(FetchDashboardDispatchers.fetchOrganizationsFulfilled, user);
+    yield call(FetchDashboardDispatchers.fetchOrganisationsFulfilled, user);
   } catch (err) {
-    yield call(FetchDashboardDispatchers.fetchOrganizationsRejected, err);
+    yield call(FetchDashboardDispatchers.fetchOrganisationsRejected, err);
   }
 }
 
@@ -52,10 +52,10 @@ export function* watchFetchCurrentUserSaga(): SagaIterator {
   );
 }
 
-export function* watchFetchOrganizationsSaga(): SagaIterator {
+export function* watchFetchOrganisationsSaga(): SagaIterator {
   yield takeLatest(
-    FetchDashboardActionTypes.FETCH_ORGANIZATIONS,
-    fetchOrganizationsSaga,
+    FetchDashboardActionTypes.FETCH_ORGANISATIONS,
+    fetchOrganisationsSaga,
   );
 }
 
@@ -63,5 +63,5 @@ export function* watchFetchOrganizationsSaga(): SagaIterator {
 export default function* (): SagaIterator {
   yield fork(watchFetchServicesSaga);
   yield fork(watchFetchCurrentUserSaga);
-  yield fork(watchFetchOrganizationsSaga);
+  yield fork(watchFetchOrganisationsSaga);
 }

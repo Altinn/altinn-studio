@@ -222,6 +222,9 @@ export function getErrorCount(validations: IValidations) {
   }
   Object.keys(validations).forEach((componentId: string) => {
     const componentValidations: IComponentValidations = validations[componentId];
+    if (componentValidations === null) {
+      return;
+    }
     Object.keys(componentValidations).forEach((bindingKey: string) => {
       const componentErrors = componentValidations[bindingKey].errors;
       if (componentErrors) {
@@ -235,12 +238,15 @@ export function getErrorCount(validations: IValidations) {
 /*
 * Checks if form can be saved. If it contains anything other than valid error messages it returns false
 */
-export function canFormBeSaved(validations: IValidations) {
+export function canFormBeSaved(validations: IValidations): boolean {
   if (!validations) {
     return true;
   }
   const layoutCanBeSaved = Object.keys(validations).every((componentId: string) => {
     const componentValidations: IComponentValidations = validations[componentId];
+    if (componentValidations === null) {
+      return true;
+    }
     const componentCanBeSaved = Object.keys(componentValidations).every((bindingKey: string) => {
       const componentErrors = componentValidations[bindingKey].errors;
       if (componentErrors) {

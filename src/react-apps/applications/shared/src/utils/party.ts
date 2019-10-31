@@ -11,8 +11,8 @@ export function renderPartyName(party: IParty) {
         (party.person.middleName.concat(' ')) : ''),
       party.person.lastName);
     return user.toUpperCase();
-  } else if (party.organization) {
-    return party.organization.name.toUpperCase();
+  } else if (party.organisation) {
+    return party.organisation.name.toUpperCase();
   }
   return null;
 }

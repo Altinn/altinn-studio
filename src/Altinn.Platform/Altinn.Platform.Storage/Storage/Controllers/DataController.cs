@@ -3,12 +3,14 @@ namespace Altinn.Platform.Storage.Controllers
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Security.Claims;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Helpers;
     using Altinn.Platform.Storage.Models;
     using Altinn.Platform.Storage.Repository;
+    using global::Storage.Interface.Enums;
     using global::Storage.Interface.Models;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Features;
@@ -16,6 +18,7 @@ namespace Altinn.Platform.Storage.Controllers
     using Microsoft.AspNetCore.WebUtilities;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Primitives;
     using Microsoft.Net.Http.Headers;
 
     /// <summary>
@@ -29,6 +32,8 @@ namespace Altinn.Platform.Storage.Controllers
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
+        private readonly IInstanceEventRepository instanceEventRepository;
+
         private readonly ILogger _logger;
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -36,18 +41,21 @@ namespace Altinn.Platform.Storage.Controllers
         /// Initializes a new instance of the <see cref="DataController"/> class
         /// </summary>
         /// <param name="dataRepository">the data repository handler</param>
-        /// <param name="instanceRepository">the repository</param>
+        /// <param name="instanceRepository">the indtance repository</param>
         /// <param name="applicationRepository">the application repository</param>
+        /// <param name="instanceEventRepository">the instance event repository</param>
         /// <param name="logger">The logger</param>
         public DataController(
             IDataRepository dataRepository,
             IInstanceRepository instanceRepository,
             IApplicationRepository applicationRepository,
+            IInstanceEventRepository instanceEventRepository,
             ILogger<DataController> logger)
         {
             _dataRepository = dataRepository;
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
+            this.instanceEventRepository = instanceEventRepository;
             _logger = logger;
         }
 
@@ -85,6 +93,8 @@ namespace Altinn.Platform.Storage.Controllers
                     DataElement data = instance.Data.Find(m => m.Id == dataIdString);
                     instance.Data.Remove(data);
                     Instance storedInstance = await _instanceRepository.Update(instance);
+
+                    await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, data);
 
                     return Ok(storedInstance);
                 }
@@ -176,26 +186,30 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             List<DataElement> dataList = new List<DataElement>();
-            foreach (DataElement data in instance.Data)
-            {
-                dataList.Add(data);
-            }
+            await Task.Run(() =>
+                {
+                    foreach (DataElement data in instance.Data)
+                    {
+                        dataList.Add(data);
+                    }
+                });
 
             return Ok(dataList);
         }
 
         /// <summary>
-        /// Create and save the data element
+        /// Create and save the data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
         /// <param name="elementType">the element type to upload data for</param>
+        /// <param name="refs">an optional array of data element references</param>
         /// <returns>If the request was successful or not</returns>
-        /// <!-- POST /instances/{instanceOwnerId}/{instanceGuid}/data?elementType={elementType} -->
+        /// <!-- POST /instances/{instanceOwnerId}/{instanceGuid}/data?elementType={elementType}&refs={refs} -->
         [HttpPost]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerId, Guid instanceGuid, string elementType)
+        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerId, Guid instanceGuid, string elementType, [FromQuery(Name ="refs")]List<Guid> refs = null)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
@@ -223,7 +237,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Requested element type is not declared in application metadata");
             }
 
-            DataElement newData = GetDataElementFromRequest(Request, elementType, instance, out Stream theStream);
+            DataElement newData = GetDataElementFromRequest(Request, elementType, refs, instance, out Stream theStream);
 
             if (theStream == null)
             {
@@ -246,6 +260,8 @@ namespace Altinn.Platform.Storage.Controllers
                 Instance result = await _instanceRepository.Update(instance);
                 InstancesController.AddSelfLinks(Request, result);
 
+                await DispatchEvent(InstanceEventType.Created.ToString(), instance, newData);
+
                 return Ok(result);
             }
             catch (Exception e)
@@ -255,16 +271,17 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Update and save data element.
+        /// Update and save data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
         /// <param name="dataId">the dataId to upload data to</param>
+        /// <param name="refs">an optional array of data element references</param>
         /// <returns>If the request was successful or not</returns>
-        /// <!-- PUT /instances/{instanceOwnerId}/instanceGuid}/data/{dataId} -->
+        /// <!-- PUT /instances/{instanceOwnerId}/instanceGuid}/data/{dataId}?refs={refs} -->
         [HttpPut("{dataId}")]
         [DisableFormValueModelBinding]
-        public async Task<IActionResult> OverwriteData(int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public async Task<IActionResult> OverwriteData(int instanceOwnerId, Guid instanceGuid, Guid dataId, [FromQuery(Name = "refs")]List<Guid> refs = null)
         {
             string instanceId = $"{instanceOwnerId}/{instanceGuid}";
 
@@ -298,7 +315,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     DateTime updateTime = DateTime.UtcNow;
 
-                    DataElement updatedData = GetDataElementFromRequest(Request, data.ElementType, instance, out Stream theStream);
+                    DataElement updatedData = GetDataElementFromRequest(Request, data.ElementType, refs, instance, out Stream theStream);
 
                     if (theStream == null)
                     {
@@ -312,7 +329,7 @@ namespace Altinn.Platform.Storage.Controllers
                     data.FileName = updatedData.FileName;
                     data.LastChangedBy = User.Identity.Name;
                     data.LastChangedDateTime = changedTime;
-
+                    data.Refs = updatedData.Refs;
                     instance.LastChangedDateTime = changedTime;
                     instance.LastChangedBy = User.Identity.Name;
 
@@ -323,7 +340,9 @@ namespace Altinn.Platform.Storage.Controllers
                     {
                         // update instance
                         Instance result = await _instanceRepository.Update(instance);
-                        InstancesController.AddSelfLinks(Request, instance);
+                        InstancesController.AddSelfLinks(Request, result);
+
+                        await DispatchEvent(InstanceEventType.Deleted.ToString(), result, data);
 
                         return Ok(result);
                     }
@@ -336,11 +355,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             return BadRequest("Cannot update data element that is not registered");
         }
-        
+
         /// <summary>
         /// Creates a data element by reading the first multipart element or body of the request.
         /// </summary>
-        private DataElement GetDataElementFromRequest(HttpRequest request, string elementType, Instance instance, out Stream theStream)
+        private DataElement GetDataElementFromRequest(HttpRequest request, string elementType, List<Guid> refs, Instance instance, out Stream theStream)
         {
             DateTime creationTime = DateTime.UtcNow;
 
@@ -372,12 +391,31 @@ namespace Altinn.Platform.Storage.Controllers
             else
             {
                 theStream = request.Body;
+                StringValues headerValues;
+                if (request.Headers.TryGetValue("content-disposition", out headerValues))
+                {
+                    string contentDisposition = headerValues.ToString();
+                    List<string> contenDispValues = contentDisposition.Split(';').ToList();
+
+                    string fileNameValue = contenDispValues.FirstOrDefault(x => x.Contains("filename", StringComparison.CurrentCultureIgnoreCase));
+
+                    if (!string.IsNullOrEmpty(fileNameValue))
+                    {
+                        string[] valueParts = fileNameValue.Split('=');
+
+                        if (valueParts.Count() == 2)
+                        {
+                            contentFileName = valueParts[1];
+                        }
+                    }
+                }
+
                 contentType = request.ContentType;
             }
 
             string user = null;
 
-            DataElement newData = DataElementHelper.CreateDataElement(elementType, instance, creationTime, contentType, contentFileName, fileSize, user);
+            DataElement newData = DataElementHelper.CreateDataElement(elementType, refs, instance, creationTime, contentType, contentFileName, fileSize, user);
 
             return newData;
         }
@@ -438,6 +476,23 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return null;
+        }
+
+        private async Task DispatchEvent(string eventType, Instance instance, DataElement dataElement)
+        {
+            InstanceEvent instanceEvent = new InstanceEvent
+            {
+                AuthenticationLevel = 0, // update when authentication is turned on
+                EventType = eventType,
+                InstanceId = instance.Id,
+                DataId = dataElement.Id,
+                InstanceOwnerId = instance.InstanceOwnerId,
+                UserId = 0, // update when authentication is turned on
+                ProcessInfo = instance.Process,
+                CreatedDateTime = DateTime.UtcNow,
+            };
+
+            await instanceEventRepository.InsertInstanceEvent(instanceEvent);
         }
     }
 }

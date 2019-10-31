@@ -16,8 +16,10 @@
   },
   "author": "Altinn",
   "license": "3-Clause BSD",
+  "resolutions": {
+    "@types/react": "16.9.2"
+  },
   "dependencies": {
-    "babel-core": "6.26.3",
     "react": "16.8.6",
     "react-grid-layout": "0.16.6",
     "react-hot-loader": "4.3.1",
@@ -35,7 +37,7 @@
   "devDependencies": {
     "@types/enzyme": "3.9.4",
     "@types/jest": "23.3.14",
-    "@types/react": "16.8.10",
+    "@types/react": "16.9.2",
     "@types/react-modal": "3.8.1",
     "@types/react-redux": "7.1.2",
     "@types/react-router-dom": "4.3.1",
@@ -44,7 +46,6 @@
     "altinn-designsystem": "2.0.19",
     "awesome-typescript-loader": "5.0.0",
     "babel-jest": "^23.6.0",
-    "babel-preset-react": "6.24.1",
     "cross-env": "5.1.6",
     "css-loader": "2.1.1",
     "enzyme": "3.10.0",
@@ -96,7 +97,7 @@
   "browserslist": [
     ">0.2%",
     "not dead",
-    "not ie <= 11",
+    "not ie <= 10",
     "not op_mini all"
   ]
 }

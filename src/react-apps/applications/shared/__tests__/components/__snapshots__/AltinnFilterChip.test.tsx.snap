@@ -2,7 +2,7 @@
 
 exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with delete icon visible 1`] = `
 <div
-  className="MuiChip-root-4 MuiChip-colorPrimary-5 MuiChip-clickable-7 MuiChip-clickableColorPrimary-8 MuiChip-deletable-10 MuiChip-deletableColorPrimary-11 MuiChip-outlined-13 MuiChip-outlinedPrimary-14 AltinnFilterChip-chip-1"
+  className="MuiChip-root AltinnFilterChip-chip-1 MuiChip-colorPrimary MuiChip-clickableColorPrimary MuiChip-deletableColorPrimary MuiChip-outlined MuiChip-outlinedPrimary MuiChip-clickable MuiChip-deletable"
   onClick={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -10,12 +10,12 @@ exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with delete 
   tabIndex={0}
 >
   <span
-    className="MuiChip-label-23"
+    className="MuiChip-label"
   >
     mock label
   </span>
   <i
-    className="ai ai-delete MuiChip-deleteIcon-24 MuiChip-deleteIconOutlinedColorPrimary-27"
+    className="ai ai-delete MuiChip-deleteIcon MuiChip-deleteIconOutlinedColorPrimary"
     onClick={[Function]}
   />
 </div>
@@ -23,7 +23,7 @@ exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with delete 
 
 exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with sort icon visible 1`] = `
 <div
-  className="MuiChip-root-4 MuiChip-colorPrimary-5 MuiChip-clickable-7 MuiChip-clickableColorPrimary-8 MuiChip-deletable-10 MuiChip-deletableColorPrimary-11 MuiChip-outlined-13 MuiChip-outlinedPrimary-14 mock-class-name AltinnFilterChip-chip-1"
+  className="MuiChip-root mock-class-name AltinnFilterChip-chip-1 MuiChip-colorPrimary MuiChip-clickableColorPrimary MuiChip-deletableColorPrimary MuiChip-outlined MuiChip-outlinedPrimary MuiChip-clickable MuiChip-deletable"
   onClick={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -31,12 +31,12 @@ exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with sort ic
   tabIndex={0}
 >
   <span
-    className="MuiChip-label-23"
+    className="MuiChip-label"
   >
     mock label
   </span>
   <i
-    className="AltinnFilterChip-down-3 MuiChip-deleteIcon-24 MuiChip-deleteIconOutlinedColorPrimary-27"
+    className="AltinnFilterChip-down-3 MuiChip-deleteIcon MuiChip-deleteIconOutlinedColorPrimary"
     onClick={[Function]}
   />
 </div>
@@ -44,14 +44,14 @@ exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with sort ic
 
 exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with the least amount of params 1`] = `
 <div
-  className="MuiChip-root-4 MuiChip-colorPrimary-5 MuiChip-clickable-7 MuiChip-clickableColorPrimary-8 MuiChip-outlined-13 MuiChip-outlinedPrimary-14 AltinnFilterChip-chip-1"
+  className="MuiChip-root AltinnFilterChip-chip-1 MuiChip-colorPrimary MuiChip-clickableColorPrimary MuiChip-outlined MuiChip-outlinedPrimary MuiChip-clickable"
   onKeyDown={[Function]}
   onKeyUp={[Function]}
   role="button"
   tabIndex={0}
 >
   <span
-    className="MuiChip-label-23"
+    className="MuiChip-label"
   >
     mock label
   </span>

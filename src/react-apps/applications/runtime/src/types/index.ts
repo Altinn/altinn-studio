@@ -30,13 +30,13 @@ export interface IRuntimeState {
   party: IPartyState;
   applicationMetadata: IApplicationMetadataState;
   instantiation: IInstantiationState;
-  organizationMetaData: IOrgsState;
+  organisationMetaData: IOrgsState;
   instanceData: IInstanceDataState;
 }
 
 export interface IAltinnWindow extends Window {
   org: string;
-  service: string;
+  app: string;
   instanceId: string;
   reportee: string;
   partyId: number;

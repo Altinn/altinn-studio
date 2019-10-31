@@ -13,6 +13,8 @@ import DeployPaper from '../components/deployPaper';
 import DeployActionDispatcher from '../deployDispatcher';
 import { makeGetCompileStatusResultSelector, makeGetCompileStatusUniqueFilenames } from '../selectors/compileSelectors';
 import { makeGetImageTags } from '../selectors/deploymentListSelectors';
+import AppClusterDispatcher from './../../../sharedResources/appCluster/appClusterDispatcher';
+import RepoStatusDispatcher from './../../../sharedResources/repoStatus/repoStatusDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -127,24 +129,24 @@ export class DeployToTestContainer extends
   }
 
   public fetchCompileStatus = () => {
-    const { org, service } = window as IAltinnWindow;
-    DeployActionDispatcher.fetchCompileStatus(org, service);
+    const { org, app } = window as IAltinnWindow;
+    DeployActionDispatcher.fetchCompileStatus(org, app);
   }
 
   // TODO: Change letEnv to enum when environments are defined later
   public fetchDeployments = (letEnv: string) => {
-    const { org, service } = window as IAltinnWindow;
-    DeployActionDispatcher.fetchDeployments(letEnv, org, service);
+    const { org, app } = window as IAltinnWindow;
+    AppClusterDispatcher.getDeployments(letEnv, org, app);
   }
 
   public fetchMasterRepoStatus = () => {
-    const { org, service } = window as IAltinnWindow;
-    DeployActionDispatcher.fetchMasterRepoStatus(org, service);
+    const { org, app } = window as IAltinnWindow;
+    RepoStatusDispatcher.getMasterRepoStatus(org, app);
   }
 
   public getRepoPermissions = async () => {
-    const { org, service } = window as IAltinnWindow;
-    const url = `${window.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`;
+    const { org, app } = window as IAltinnWindow;
+    const url = `${window.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`;
 
     try {
       const currentRepo = await get(url, { cancelToken: this.source.token });
@@ -196,16 +198,16 @@ export class DeployToTestContainer extends
   }
 
   public startDeployment = (letEnv: string) => {
-    const { org, service } = window as IAltinnWindow;
-    DeployActionDispatcher.deployAltinnApp(letEnv, org, service);
+    const { org, app } = window as IAltinnWindow;
+    DeployActionDispatcher.deployAltinnApp(letEnv, org, app);
     this.fetchDeploymentStatusInterval(letEnv);
   }
 
   public fetchDeploymentStatusInterval = (letEnv: string) => {
-    const { org, service } = window as IAltinnWindow;
+    const { org, app } = window as IAltinnWindow;
     const interval = setInterval(() => {
       DeployActionDispatcher.fetchDeployAltinnAppStatus(
-        letEnv, org, service, this.props.deployStatus[letEnv].result.buildId);
+        letEnv, org, app, this.props.deployStatus[letEnv].result.buildId);
       if (this.props.deployStatus[letEnv].result.finishTime ||
         this.props.deployStatus[letEnv].deployStartedSuccess === false) {
 
@@ -263,7 +265,7 @@ export class DeployToTestContainer extends
               <DeployPaper
                 cSharpCompileStatusSuccess={compileStatus.result && compileStatus.result.succeeded}
                 cSharpCompileStatusUniqueFilenames={this.props.compileStatusUniqueFilenames}
-                deploymentListFetchStatus={this.props.deploymentList[environment].fetchStatus}
+                deploymentListFetchStatus={this.props.deploymentList[environment].getStatus}
                 deployStatus={this.props.deployStatus[environment]}
                 deploySuccess={this.isDeploySuccessful(this.props.deployStatus[environment])}
                 env={environment}
@@ -276,7 +278,6 @@ export class DeployToTestContainer extends
                   this.props.imageVersions)
                 }
                 onClickStartDeployment={this.startDeployment}
-                titleTypographyVariant='h2'
               />
 
             </Grid>
@@ -324,8 +325,8 @@ const makeMapStateToProps = () => {
   ) => {
     return {
       language: state.language,
-      masterRepoStatus: state.deploy.masterRepoStatus,
-      deploymentList: state.deploy.deploymentList,
+      masterRepoStatus: state.repoStatus.branch.master,
+      deploymentList: state.appCluster.deploymentList,
       repoStatus: getRepoStatusSelector(state),
       deployStatus: state.deploy.deployStatus,
       compileStatus: getCompileStatusSelector(state),

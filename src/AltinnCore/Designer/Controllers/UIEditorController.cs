@@ -36,10 +36,10 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// The index action which will show the React form builder
         /// </summary>
-        /// <param name="org">The current service owner</param>
-        /// <param name="service">The current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A view with the React form builder</returns>
-        public IActionResult Index(string org, string service)
+        public IActionResult Index(string org, string app)
         {
             return RedirectToAction("Index", "ServiceDevelopment");
         }
@@ -47,50 +47,50 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Get form layout as JSON
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetFormLayout(string org, string service)
+        public ActionResult GetFormLayout(string org, string app)
         {
-            return Content(_repository.GetJsonFormLayout(org, service), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetJsonFormLayout(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
         /// Get third party components listed as JSON
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetThirdPartyComponents(string org, string service)
+        public ActionResult GetThirdPartyComponents(string org, string app)
         {
-            return Content(_repository.GetJsonThirdPartyComponents(org, service), "text/plain", Encoding.UTF8);
+            return Content(_repository.GetJsonThirdPartyComponents(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
         /// Get rule handler in JSON structure
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetRuleHandler(string org, string service)
+        public ActionResult GetRuleHandler(string org, string app)
         {
-            return Content(_repository.GetRuleHandler(org, service), "application/javascript", Encoding.UTF8);
+            return Content(_repository.GetRuleHandler(org, app), "application/javascript", Encoding.UTF8);
         }
 
         /// <summary>
         /// Get text resource as JSON for specified language
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The language id for the text resource file</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetTextResources(string org, string service, string id)
+        public ActionResult GetTextResources(string org, string app, string id)
         {
-            var result = _repository.GetResource(org, service, id);
+            var result = _repository.GetResource(org, app, id);
             return Content(result);
         }
 
@@ -98,13 +98,13 @@ namespace AltinnCore.Designer.Controllers
         /// Save form layout as JSON
         /// </summary>
         /// <param name="jsonData">The code list data to save</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string service)
+        public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app)
         {
-            _repository.SaveJsonFormLayout(org, service, jsonData.ToString());
+            _repository.SaveJsonFormLayout(org, app, jsonData.ToString());
 
             return Json(new
             {
@@ -117,13 +117,13 @@ namespace AltinnCore.Designer.Controllers
         /// Save form layout as JSON
         /// </summary>
         /// <param name="jsonData">The code list data to save</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult SaveThirdPartyComponents([FromBody] dynamic jsonData, string org, string service)
+        public ActionResult SaveThirdPartyComponents([FromBody] dynamic jsonData, string org, string app)
         {
-            _repository.SaveJsonThirdPartyComponents(org, service, jsonData.ToString());
+            _repository.SaveJsonThirdPartyComponents(org, app, jsonData.ToString());
 
             return Json(new
             {
@@ -136,19 +136,19 @@ namespace AltinnCore.Designer.Controllers
         /// Save JSON data as file
         /// </summary>
         /// <param name="jsonData">The code list data to save</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileName">The filename to be saved as</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult SaveJsonFile([FromBody] dynamic jsonData, string org, string service, string fileName)
+        public ActionResult SaveJsonFile([FromBody] dynamic jsonData, string org, string app, string fileName)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
                 return BadRequest();
             }
 
-            _repository.SaveJsonFile(org, service, jsonData.ToString(), fileName);
+            _repository.SaveJsonFile(org, app, jsonData.ToString(), fileName);
 
             return Json(new
             {
@@ -160,32 +160,32 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Get JSON file in JSON structure
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileName">The filename to read from</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetJsonFile(string org, string service, string fileName)
+        public ActionResult GetJsonFile(string org, string app, string fileName)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
                 return BadRequest();
             }
 
-            return Content(_repository.GetJsonFile(org, service, fileName), "application/javascript", Encoding.UTF8);
+            return Content(_repository.GetJsonFile(org, app, fileName), "application/javascript", Encoding.UTF8);
         }
 
         /// <summary>
         /// Adds the metadata for attachment
         /// </summary>
         /// <param name="applicationMetadata">the application meta data to be updated</param>
-        /// <param name="org">the organisation that owns the application</param>
-        /// <param name="service">the application id</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult AddMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string service)
+        public ActionResult AddMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
         {
-            _repository.AddMetadataForAttachment(org, service, applicationMetadata.ToString());
+            _repository.AddMetadataForAttachment(org, app, applicationMetadata.ToString());
             return Json(new
             {
                 Success = true,
@@ -197,13 +197,13 @@ namespace AltinnCore.Designer.Controllers
         /// Updates the metadata for attachment
         /// </summary>
         /// <param name="applicationMetadata">the application meta data to be updated</param>
-        /// <param name="org">the organisation that owns the application</param>
-        /// <param name="service">the application id</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult UpdateMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string service)
+        public ActionResult UpdateMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
         {
-            _repository.UpdateMetadataForAttachment(org, service, applicationMetadata.ToString());
+            _repository.UpdateMetadataForAttachment(org, app, applicationMetadata.ToString());
             return Json(new
             {
                 Success = true,
@@ -214,14 +214,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Deletes the metadata for attachment
         /// </summary>
-        /// <param name="org">the organisation that owns the application</param>
-        /// <param name="service">the application id</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">the id of the component</param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult DeleteMetadataForAttachment(string org, string service, string id)
+        public ActionResult DeleteMetadataForAttachment(string org, string app, string id)
         {
-            _repository.DeleteMetadataForAttachment(org, service, id);
+            _repository.DeleteMetadataForAttachment(org, app, id);
             return Json(new
             {
                 Success = true,

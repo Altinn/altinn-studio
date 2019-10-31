@@ -11,11 +11,6 @@ namespace AltinnCore.Authentication.Constants
         public const string AuthenticationLevel = "AuthenticationLevel";
 
         /// <summary>
-        /// Social Security Number
-        /// </summary>
-        public const string SSN = "SSN";
-
-        /// <summary>
         /// The UserID for the user profile in the platform
         /// </summary>
         public const string UserId = "UserID";

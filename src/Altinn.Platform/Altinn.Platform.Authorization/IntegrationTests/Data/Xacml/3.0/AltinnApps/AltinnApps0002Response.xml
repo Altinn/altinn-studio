@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Response
+      xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17
+        http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd">
+    <Result>
+        <Decision>Permit</Decision>
+        <Status>
+            <StatusCode
+                  Value="urn:oasis:names:tc:xacml:1.0:status:ok"/>
+        </Status>
+      <Obligations>
+        <Obligation
+            ObligationId="urn:altinn:obligation:authenticationLevel1" FulfillOn="Permit" >
+          <AttributeAssignment
+              AttributeId="urn:altinn:obligation1-assignment1"
+              DataType="http://www.w3.org/2001/XMLSchema#integer"
+              Category="urn:altinn:minimum-authenticationlevel">2</AttributeAssignment>
+        </Obligation>
+      </Obligations>
+      <Attributes Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource">
+        <Attribute IncludeInResult="true" AttributeId="urn:altinn:partyid">
+          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">1000</AttributeValue>
+        </Attribute>
+      </Attributes>
+    </Result>
+</Response>

@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Storage.Interface.Models;
 
@@ -10,7 +8,6 @@ namespace Altinn.Platform.Storage.Models
     /// <summary>
     /// Model to hold a data element.
     /// </summary>
-    [Serializable]
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class DataElement
     {
@@ -91,5 +88,11 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
+
+        /// <summary>
+        /// an optional array of data element references
+        /// </summary>
+        [JsonProperty(PropertyName = "refs")]
+        public List<Guid> Refs { get; set; }
     }
 }

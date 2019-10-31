@@ -1,0 +1,18 @@
+Special Instructions for Test Case II.C.12
+
+The policy for this test contains a static type error.
+
+If an initial policy with static type errors MAY EVER be
+evaluated by the implementation's XACML PDP at the time a Request
+is received, then this test MUST be passed.  In this case, the
+result MUST be consistent with the supplied IIC003Response.xml
+file: it returns a Decision of Indeterminate with a StatusCode
+value of "urn:oasis:names:tc:xacml:1.0:status:processing-error".
+
+If the implementation's XACML PDP CAN NEVER attempt to evaluate
+an initial policy with static type errors at the time a Request
+is received, then the implementation MUST demonstrate that the
+policy in IIA004Policy.xml will be rejected by whatever entity is
+responsible for validating policy syntax in the system in which
+the XACML PDP will be used.  In this case, the supplied Request
+and Response files are not relevant and may be ignored.

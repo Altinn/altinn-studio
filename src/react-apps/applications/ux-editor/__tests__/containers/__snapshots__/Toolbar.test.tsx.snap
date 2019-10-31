@@ -5,19 +5,19 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
   className="col-sm-12"
 >
   <ul
-    className="MuiList-root-5 MuiList-padding-6"
+    className="MuiList-root MuiList-padding"
     id="collapsable-items"
     tabIndex={-1}
   >
     <li
-      className="MuiListItem-root-13 Connect-ToolbarItem--collapsableButton-11 MuiListItem-default-16 MuiListItem-gutters-21"
+      className="MuiListItem-root Connect(ToolbarItem)-collapsableButton-11 MuiListItem-gutters"
       disabled={false}
       onClick={[Function]}
       onKeyPress={[Function]}
       tabIndex={0}
     >
       <div
-        className="Connect-ToolbarItem--listItemIcon-12"
+        className="Connect(ToolbarItem)-listItemIcon-12"
       >
         <i
           className="fa fa-expand-alt fa-rotate-90"
@@ -33,11 +33,11 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
         />
       </div>
       <div
-        className="MuiListItemText-root-26 Connect-ToolbarItem--collapsableButtonTextRoot-10"
+        className="MuiListItemText-root Connect(ToolbarItem)-collapsableButtonTextRoot-10"
       />
     </li>
     <div
-      className="MuiCollapse-container-32 Connect-ToolbarClass--collapsableContainer-4 MuiCollapse-entered-33"
+      className="MuiCollapse-container Connect(ToolbarClass)-collapsableContainer-4 MuiCollapse-entered"
       style={
         Object {
           "minHeight": "0px",
@@ -45,13 +45,13 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
       }
     >
       <div
-        className="MuiCollapse-wrapper-34"
+        className="MuiCollapse-wrapper"
       >
         <div
-          className="MuiCollapse-wrapperInner-35"
+          className="MuiCollapse-wrapperInner"
         >
           <ul
-            className="MuiList-root-5 MuiList-padding-6"
+            className="MuiList-root MuiList-padding"
             id="schema-components"
           >
             <div />
@@ -66,14 +66,14 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
       </div>
     </div>
     <li
-      className="MuiListItem-root-13 Connect-ToolbarItem--collapsableButton-11 MuiListItem-default-16 MuiListItem-gutters-21"
+      className="MuiListItem-root Connect(ToolbarItem)-collapsableButton-11 MuiListItem-gutters"
       disabled={false}
       onClick={[Function]}
       onKeyPress={[Function]}
       tabIndex={0}
     >
       <div
-        className="Connect-ToolbarItem--listItemIcon-12"
+        className="Connect(ToolbarItem)-listItemIcon-12"
       >
         <i
           className="fa fa-expand-alt fa-rotate-90"
@@ -89,11 +89,11 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
         />
       </div>
       <div
-        className="MuiListItemText-root-26 Connect-ToolbarItem--collapsableButtonTextRoot-10"
+        className="MuiListItemText-root Connect(ToolbarItem)-collapsableButtonTextRoot-10"
       />
     </li>
     <div
-      className="MuiCollapse-container-32 Connect-ToolbarClass--collapsableContainer-4 MuiCollapse-entered-33"
+      className="MuiCollapse-container Connect(ToolbarClass)-collapsableContainer-4 MuiCollapse-entered"
       style={
         Object {
           "minHeight": "0px",
@@ -101,13 +101,13 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
       }
     >
       <div
-        className="MuiCollapse-wrapper-34"
+        className="MuiCollapse-wrapper"
       >
         <div
-          className="MuiCollapse-wrapperInner-35"
+          className="MuiCollapse-wrapperInner"
         >
           <ul
-            className="MuiList-root-5 MuiList-padding-6"
+            className="MuiList-root MuiList-padding"
             id="schema-texts"
           >
             <div />
@@ -117,14 +117,14 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
       </div>
     </div>
     <li
-      className="MuiListItem-root-13 Connect-ToolbarItem--collapsableButton-11 MuiListItem-default-16 MuiListItem-gutters-21"
+      className="MuiListItem-root Connect(ToolbarItem)-collapsableButton-11 MuiListItem-gutters"
       disabled={false}
       onClick={[Function]}
       onKeyPress={[Function]}
       tabIndex={0}
     >
       <div
-        className="Connect-ToolbarItem--listItemIcon-12"
+        className="Connect(ToolbarItem)-listItemIcon-12"
       >
         <i
           className="fa fa-expand-alt fa-rotate-90"
@@ -140,11 +140,11 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
         />
       </div>
       <div
-        className="MuiListItemText-root-26 Connect-ToolbarItem--collapsableButtonTextRoot-10"
+        className="MuiListItemText-root Connect(ToolbarItem)-collapsableButtonTextRoot-10"
       />
     </li>
     <div
-      className="MuiCollapse-container-32 Connect-ToolbarClass--collapsableContainer-4 MuiCollapse-entered-33"
+      className="MuiCollapse-container Connect(ToolbarClass)-collapsableContainer-4 MuiCollapse-entered"
       style={
         Object {
           "minHeight": "0px",
@@ -152,13 +152,13 @@ exports[`>>> containers/Toolbar >>> Capture snapshot of Toolbar 1`] = `
       }
     >
       <div
-        className="MuiCollapse-wrapper-34"
+        className="MuiCollapse-wrapper"
       >
         <div
-          className="MuiCollapse-wrapperInner-35"
+          className="MuiCollapse-wrapperInner"
         >
           <ul
-            className="MuiList-root-5 MuiList-padding-6"
+            className="MuiList-root MuiList-padding"
             id="advanced-components"
           >
             <div />

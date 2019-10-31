@@ -2,10 +2,9 @@ import { createStyles, Grid, Typography, withStyles, WithStyles } from '@materia
 import AddIcon from '@material-ui/icons/Add';
 import * as React from 'react';
 import { useSelector } from 'react-redux';
-import { Redirect, RouteProps } from 'react-router';
-import AltinnCheckBox from 'Shared/components/AltinnCheckBox';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
-import { IRuntimeState } from 'src/types';
+import { Redirect, RouteComponentProps, withRouter } from 'react-router';
+import AltinnCheckBox from '../../../../../shared/src/components/AltinnCheckBox';
+import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import Header from '../../../shared/components/altinnAppHeader';
 import AltinnParty from '../../../shared/components/altinnParty';
 import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
@@ -13,12 +12,10 @@ import { IApplicationMetadata } from '../../../shared/resources/applicationMetad
 import { IParty } from '../../../shared/resources/party';
 import PartyActions from '../../../shared/resources/party/partyActions';
 import { IProfile } from '../../../shared/resources/profile';
+import { IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { HttpStatusCodes } from '../../../utils/networking';
 import { capitalizeName } from '../../../utils/stringHelper';
-
-const UNIT_TYPE_BANKRUPTCY_CODE: string = 'KBO';
-const UNIT_TYPE_SUB_UNIT: string = 'BEDR';
-const UNIT_TYPE_SUB_UNIT_AAFY: string = 'AAFY';
 
 const styles = createStyles({
   partySelectionPage: {
@@ -70,32 +67,36 @@ const styles = createStyles({
     fontWeight: 500,
   },
   partySelectionCheckbox: {
+    paddingTop: 24,
     padding: 12,
+  },
+  checkboxLabes: {
+    paddingTop: '1.2rem',
   },
 });
 
-interface IRedirectValidParties {
-  validParties: IParty[];
+interface IRedirectParams {
+  errorCode: HttpStatusCodes;
 }
 
-export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteProps {
+export interface IPartySelectionProps extends WithStyles<typeof styles>, RouteComponentProps {
 }
 
-function PartySelection(props: IPartySelectionProps) {
+const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
-
-  const { classes, location } = props;
+  const { classes, match } = props;
 
   const language: any = useSelector((state: IRuntimeState) => state.language.language);
   const profile: IProfile = useSelector((state: IRuntimeState) => state.profile.profile);
   const parties: IParty[] = useSelector((state: IRuntimeState) => state.party.parties);
   const appMetadata: IApplicationMetadata = useSelector((state: IRuntimeState) =>
     state.applicationMetadata.applicationMetadata);
+  const selectedParty: IParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const [filterString, setFilterString] = React.useState('');
   const [numberOfPartiesShown, setNumberOfPartiesShown] = React.useState(4);
-  const [showSubUnits, setShowSubUnits] = React.useState(false);
-  const [showDeleted, setShowDeleted] = React.useState(true);
+  const [showSubUnits, setShowSubUnits] = React.useState(true);
+  const [showDeleted, setShowDeleted] = React.useState(false);
 
   React.useEffect(() => {
     PartyActions.getParties();
@@ -110,49 +111,7 @@ function PartySelection(props: IPartySelectionProps) {
       return null;
     }
 
-    let validParties: IParty[];
-
-    if (!location.state || !location.state.validParties) {
-      validParties = parties.map((party) => {
-        if (!showDeleted) {
-          if ((party.ssn != null && appMetadata.partyTypesAllowed.person) && !party.isDeleted) {
-            return party;
-          }
-          if ((party.orgNumber != null &&
-            (appMetadata.partyTypesAllowed.organization ||
-              appMetadata.partyTypesAllowed.subUnit ||
-              appMetadata.partyTypesAllowed.bankruptcyEstate)
-            ) && !party.isDeleted) {
-            return party;
-          }
-        } else {
-          if ((party.ssn != null && appMetadata.partyTypesAllowed.person)) {
-            return party;
-          }
-          if (
-              party.orgNumber != null &&
-              (party.unitType === UNIT_TYPE_SUB_UNIT ||
-              party.unitType === UNIT_TYPE_SUB_UNIT_AAFY) &&
-              appMetadata.partyTypesAllowed.subUnit
-            ) {
-            return party;
-          }
-          if (
-            party.orgNumber != null &&
-            party.unitType ===  UNIT_TYPE_BANKRUPTCY_CODE &&
-            appMetadata.partyTypesAllowed.bankruptcyEstate
-          ) {
-            return party;
-          }
-        }
-      }).filter((party) => !party ? null : party);
-    } else {
-      validParties = (location.state as IRedirectValidParties).validParties;
-    }
-
-    let numberOfPartiesRendered: number = 0;
-
-    if (validParties.length === 0) {
+    if (parties.length === 0) {
       return (
         <Redirect
           to={{
@@ -165,26 +124,33 @@ function PartySelection(props: IPartySelectionProps) {
       );
     }
 
+    let numberOfPartiesRendered: number = 0;
+
     return (
       <>
-        {validParties.map((party: IParty, index: number) =>
+        {parties.map((party: IParty, index: number) =>
           party.name.toUpperCase().indexOf(filterString.toUpperCase()) > -1 ?
             numberOfPartiesShown > numberOfPartiesRendered ?
               (() => {
                 numberOfPartiesRendered += 1;
-                return (
-                  <AltinnParty
-                    key={index}
-                    party={party}
-                    onSelectParty={onSelectParty}
-                  />
-                );
+                if (party.isDeleted && !showDeleted) {
+                  return null;
+                } else {
+                  return (
+                    <AltinnParty
+                      key={index}
+                      party={party}
+                      onSelectParty={onSelectParty}
+                      showSubUnits={showSubUnits}
+                    />
+                  );
+                }
               })()
               : null
             : null,
-          )}
-        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < validParties.length ?
-          <Grid container={true}>
+        )}
+        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < parties.length ?
+          <Grid container={true} direction={'row'}>
             {renderShowMoreButton()}
           </Grid>
           : null
@@ -194,31 +160,51 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function getRepresentedPartyName(): string {
-    if (profile.party.name === null) {
+    if (!selectedParty || selectedParty.name === null) {
       return '';
     }
-    return capitalizeName(profile.party.name);
+    return capitalizeName(selectedParty.name);
   }
 
   function templateErrorMessage() {
-    if (!language.party_selection) {
+    if (!language || !language.party_selection) {
       return null;
     }
-    return `
-      ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
-      ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
-      ${language.party_selection.invalid_selection_third_part}
-    `;
+    const params = match.params as IRedirectParams;
+    if (!!params.errorCode) {
+      try {
+        const errorCode: number = parseInt(params.errorCode.toString(), 10);
+        switch (errorCode) {
+          // Keeping the switch statement because we might extends the enums to handle more errors
+          case HttpStatusCodes.Forbidden: {
+            return (
+              <Typography className={classes.partySelectionError}>
+                {`
+                  ${language.party_selection.invalid_selection_first_part} ${getRepresentedPartyName()}.
+                  ${language.party_selection.invalid_selection_second_part} ${templatePartyTypesString()}.
+                  ${language.party_selection.invalid_selection_third_part}
+                `}
+              </Typography>
+            );
+          }
+          default: {
+            return null;
+          }
+        }
+      } catch (err){
+        console.info('Could not parse number from params');
+      }
+    }
   }
 
   function templatePartyTypesString() {
-    if (!language.party_selection) {
+    if (!language || !language.party_selection) {
       return null;
     }
     /*
       This method we allways return the strings in an order of:
       1. private person
-      2. organization
+      2. organisation
       3. sub unit
       4. bankruptcy state
     */
@@ -230,7 +216,7 @@ function PartySelection(props: IPartySelectionProps) {
     if (partyTypesAllowed.person) {
       partyTypes.push(language.party_selection.unit_type_private_person);
     }
-    if (partyTypesAllowed.organization) {
+    if (partyTypesAllowed.organisation) {
       partyTypes.push(language.party_selection.unit_type_company);
     }
     if (partyTypesAllowed.subUnit) {
@@ -266,12 +252,15 @@ function PartySelection(props: IPartySelectionProps) {
   }
 
   function renderShowMoreButton() {
+    if (!language) {
+      return null;
+    }
     return (
       <button
         className={classes.loadMoreButton}
         onClick={increaseNumberOfShownParties}
       >
-        <Grid container={true}>
+        <Grid container={true} direction={'row'}>
           <AddIcon className={classes.loadMoreButtonIcon} />
           <Typography className={classes.loadMoreButtonText}>
             {!language.party_selection ?
@@ -292,8 +281,16 @@ function PartySelection(props: IPartySelectionProps) {
     setShowSubUnits(!showSubUnits);
   }
 
+  if (!language) {
+    return null;
+  }
+
   return (
-    <Grid container={true} className={'container ' + classes.partySelectionPage}>
+    <Grid
+      container={true}
+      direction={'column'}
+      className={'container ' + classes.partySelectionPage}
+    >
       <Header
         language={language}
         profile={profile}
@@ -301,6 +298,7 @@ function PartySelection(props: IPartySelectionProps) {
       />
       <Grid
         container={true}
+        direction={'row'}
         style={{
           display: 'flex',
           flexDirection: 'row',
@@ -312,20 +310,26 @@ function PartySelection(props: IPartySelectionProps) {
             language.party_selection.header
           }
         </Typography>
-        {!location.state || !(location.state as IRedirectValidParties).validParties.length ?
-          null :
-          <Typography className={classes.partySelectionError}>
-            {templateErrorMessage()}
-          </Typography>
-        }
+        {templateErrorMessage()}
       </Grid>
-      <Grid container={true} className={classes.partySearchFieldContainer}>
+      <Grid
+        container={true}
+        direction={'column'}
+        className={classes.partySearchFieldContainer}
+      >
         <AltinnPartySearch
           onSearchUpdated={onFilterStringChange}
         />
       </Grid>
-      <Grid container={true}>
-        <Grid container={true} justify={'space-between'}>
+      <Grid
+        container={true}
+        direction={'column'}
+      >
+        <Grid
+          container={true}
+          justify={'space-between'}
+          direction={'row'}
+        >
           <Grid item={true}>
             <Typography className={classes.partySelectionSubTitle}>
               {!language.party_selection ?
@@ -336,14 +340,16 @@ function PartySelection(props: IPartySelectionProps) {
           </Grid>
 
           <Grid item={true}>
-            <Grid container={true}>
+            <Grid container={true} direction={'row'}>
               <Grid item={true} className={classes.partySelectionCheckbox}>
-                <Grid container={true}>
+                <Grid container={true} direction={'row'}>
                   <AltinnCheckBox
                     checked={showDeleted}
                     onChangeFunction={toggleShowDeleted}
                   />
-                  <Typography>
+                  <Typography
+                    className={classes.checkboxLabes}
+                  >
                     {
                       !language.party_selection ?
                         'party_selection.show_deleted' :
@@ -352,13 +358,18 @@ function PartySelection(props: IPartySelectionProps) {
                   </Typography>
                 </Grid>
               </Grid>
-              <Grid item={true} direction={'row'} className={classes.partySelectionCheckbox}>
-                <Grid container={true}>
+              <Grid
+                item={true}
+                className={classes.partySelectionCheckbox}
+              >
+                <Grid container={true} direction={'row'}>
                   <AltinnCheckBox
                     checked={showSubUnits}
                     onChangeFunction={toggleShowSubUnits}
                   />
-                  <Typography>
+                  <Typography
+                    className={classes.checkboxLabes}
+                  >
                     {
                       !language.party_selection ?
                         'party_selection.show_sub_unit' :
@@ -375,6 +386,6 @@ function PartySelection(props: IPartySelectionProps) {
       </Grid>
     </Grid>
   );
-}
+});
 
-export default withStyles(styles)(PartySelection);
+export default withStyles(styles)(PartySelectionWithRouter);

@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller for all actions related to service rules
+    /// Controller for all actions related to app rules
     /// </summary>
     [Authorize]
     public class RulesController : Controller
@@ -28,9 +28,9 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="RulesController"/> class
         /// </summary>
-        /// <param name="repositoryService">The service repository service</param>
-        /// <param name="compilationService">The service compilation service</param>
-        /// <param name="repositorySettings">The service repository settings</param>
+        /// <param name="repositoryService">The app repository service</param>
+        /// <param name="compilationService">The app compilation service</param>
+        /// <param name="repositorySettings">The app repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         public RulesController(
             IRepository repositoryService,
@@ -45,26 +45,26 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// The default action for this controller, returns a view with all rules for the given service
+        /// The default action for this controller, returns a view with all rules for the given app.
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <returns>View containing details about all rules for the given service</returns>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>View containing details about all rules for the given app.</returns>
         [HttpGet]
-        public IActionResult Index(string org, string service)
+        public IActionResult Index(string org, string app)
         {
-            IList<RuleContainer> rules = _repository.GetRules(org, service);
+            IList<RuleContainer> rules = _repository.GetRules(org, app);
             return View(rules);
         }
 
         /// <summary>
         /// Action returning a view for creating new rules
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>View containing interface for creating a new rule</returns>
         [HttpGet]
-        public IActionResult Create(string org, string service)
+        public IActionResult Create(string org, string app)
         {
             return View();
         }
@@ -72,14 +72,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Action returning a view for updating rules
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The id of the rule to update</param>
         /// <returns>View containing interface for updating a rule</returns>
         [HttpGet]
-        public IActionResult Update(string org, string service, int id)
+        public IActionResult Update(string org, string app, int id)
         {
-            List<RuleContainer> rules = _repository.GetRules(org, service);
+            List<RuleContainer> rules = _repository.GetRules(org, app);
             RuleContainer rule = rules.FirstOrDefault(r => r.Id == id);
 
             return View(rule);
@@ -88,14 +88,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets a rule as JSON, identified by the supplied parameters
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The id of the rule to get</param>
         /// <returns>The requested rule as JSON if it was found, 404 if it was not found</returns>
         [HttpGet]
-        public IActionResult GetById(string org, string service, int id)
+        public IActionResult GetById(string org, string app, int id)
         {
-            RuleContainer rule = _repository.GetRules(org, service)?.FirstOrDefault(r => r.Id == id);
+            RuleContainer rule = _repository.GetRules(org, app)?.FirstOrDefault(r => r.Id == id);
 
             if (rule != null)
             {
@@ -108,15 +108,15 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets all rules for a given service as JSON
+        /// Gets all rules for a given app as JSON.
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <returns>All rules for the given service</returns>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <returns>All rules for the given app.</returns>
         [HttpGet]
-        public IActionResult Get(string org, string service)
+        public IActionResult Get(string org, string app)
         {
-            List<RuleContainer> rules = _repository.GetRules(org, service);
+            List<RuleContainer> rules = _repository.GetRules(org, app);
 
             if (rules != null)
             {
@@ -131,14 +131,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Presenting a view listing all implementation files.
         /// </summary>
-        /// <param name="org">The organization code for the requested service.</param>
-        /// <param name="service">The service short name for the requested service.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The View.</returns>
         [HttpGet]
-        public IActionResult Code(string org, string service)
+        public IActionResult Code(string org, string app)
         {
-            List<AltinnCoreFile> altinnCoreFiles = _repository.GetImplementationFiles(org, service);
-            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, false, null, false);
+            List<AltinnCoreFile> altinnCoreFiles = _repository.GetImplementationFiles(org, app);
+            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, app, false, null, false);
 
             // Check to see if any of the files has compiliation errors or warnings
             foreach (AltinnCoreFile coreFile in altinnCoreFiles)
@@ -159,7 +159,7 @@ namespace AltinnCore.Designer.Controllers
                 }
             }
 
-            string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
+            string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
             ViewBag.HasDataModel = System.IO.File.Exists(filePath);
             ViewBag.CompilationResult = compResult;
             return View(altinnCoreFiles);
@@ -168,11 +168,11 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Presents a view for a specific implementation file.
         /// </summary>
-        /// <param name="org">The organization code for the requested service.</param>
-        /// <param name="service">The service short name for the requested service.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="name">The file Name</param>
         /// <returns>The View.</returns>
-        public IActionResult File(string org, string service, string name)
+        public IActionResult File(string org, string app, string name)
         {
             ViewBag.FileName = name;
             return View();
@@ -181,11 +181,11 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// This method returns the content of a file.
         /// </summary>
-        /// <param name="org">The organization code for the requested service.</param>
-        /// <param name="service">The service short name for the requested service.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="name">The file name.</param>
         /// <returns>The content of the file.</returns>
-        public IActionResult GetFile(string org, string service, string name)
+        public IActionResult GetFile(string org, string app, string name)
         {
             if (!ApplicationHelper.IsValidFilename(name))
             {
@@ -194,26 +194,26 @@ namespace AltinnCore.Designer.Controllers
 
             if (name == "RuleHandler.js")
             {
-                string fileContent = _repository.GetResourceFile(org, service, name);
+                string fileContent = _repository.GetResourceFile(org, app, name);
                 return Content(fileContent);
             }
             else
             {
-                string fileContent = _repository.GetImplementationFile(org, service, name);
+                string fileContent = _repository.GetImplementationFile(org, app, name);
                 return Content(fileContent);
             }
         }
 
         /// <summary>
-        /// Updates a given.
+        /// Updates a given implementation file or the rule handler file.
         /// </summary>
-        /// <param name="org">The organization code for the requested service.</param>
-        /// <param name="service">The service short name for the requested service.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileName">The file name.</param>
         /// <param name="fileContent">The file content.</param>
         /// <returns>Status code.</returns>
         [HttpPost]
-        public IActionResult SaveImplementationFile(string org, string service, string fileName, string fileContent)
+        public IActionResult SaveImplementationFile(string org, string app, string fileName, string fileContent)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
@@ -222,11 +222,11 @@ namespace AltinnCore.Designer.Controllers
 
             if (fileName == "RuleHandler.js")
             {
-                _repository.SaveResourceFile(org, service, fileName, fileContent);
+                _repository.SaveResourceFile(org, app, fileName, fileContent);
             }
             else
             {
-                _repository.SaveImplementationFile(org, service, fileName, fileContent);
+                _repository.SaveImplementationFile(org, app, fileName, fileContent);
             }
 
             return StatusCode(200);
@@ -235,12 +235,12 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Compiles the implementation files.
         /// </summary>
-        /// <param name="org">The organization code for the requested service.</param>
-        /// <param name="service">The service short name for the requested service.</param>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A View with the result.</returns>
-        public IActionResult Compile(string org, string service)
+        public IActionResult Compile(string org, string app)
         {
-            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, false, null, false);
+            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, app, false, null, false);
             ViewBag.CompilationResult = compResult;
             return PartialView("CompilationResult");
         }

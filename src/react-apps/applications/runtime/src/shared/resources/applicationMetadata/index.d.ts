@@ -18,7 +18,7 @@ export interface IApplicationMetadata {
 
 interface IPartyTypesAllowed {
   bankruptcyEstate: boolean;
-  organization: boolean;
+  organisation: boolean;
   person: boolean;
   subUnit: boolean;
 }

@@ -1,0 +1,127 @@
+{
+  "Response" : [ {
+    "Status" : {
+      "StatusCode" : {
+        "Value" : "urn:oasis:names:tc:xacml:1.0:status:ok"
+      }
+    },
+    "Category" : [ {
+      "CategoryId" : "urn:oasis:names:tc:xacml:1.0:subject-category:access-subject",
+      "Attribute" : [ {
+        "Issuer" : "ConformanceTester",
+        "Value" : "Julius Hibbert",
+        "DataType" : "string",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-id"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "Julius Hibbert as string",
+        "DataType" : "string",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-string"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : true,
+        "DataType" : "boolean",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-boolean"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : 56,
+        "DataType" : "integer",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-integer"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : 27.5,
+        "DataType" : "double",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-double"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "2002-03-22",
+        "DataType" : "date",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-date"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "2002-03-22T08:23:47-05:00",
+        "DataType" : "dateTime",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-dateTime"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "P50DT5H4M3S",
+        "DataType" : "dayTimeDuration",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-dayTimeDuration"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "-P5Y3M",
+        "DataType" : "yearMonthDuration",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-yearMonthDuration"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "0bf7a9876cde",
+        "DataType" : "hexBinary",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-hexBinary"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "c3VyZS4=",
+        "DataType" : "base64Binary",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-rfc822Name"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "j_hibbert@medico.com",
+        "DataType" : "rfc822Name",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-rfc822Name"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "CN=Julius Hibbert, O=Medi Corporation, C=US",
+        "DataType" : "x500Name",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-x500Name"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "122.45.38.245/255.255.255.64:8080-8080",
+        "DataType" : "ipAddress",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-ipAddress"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "some.host.name:147-874",
+        "DataType" : "dnsName",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:subject:subject-dnsName"
+      } ]
+    }, {
+      "CategoryId" : "urn:oasis:names:tc:xacml:3.0:attribute-category:resource",
+      "Attribute" : [ {
+        "Issuer" : "ConformanceTester",
+        "Value" : {
+          "Namespaces" : [ {
+            "Namespace" : "urn:oasis:names:tc:xacml:3.0:core:schema:wd-17"
+          }, {
+            "Namespace" : "http://www.w3.org/2001/XMLSchema-instance",
+            "Prefix" : "xsi"
+          } ],
+          "XPathCategory" : "urn:oasis:names:tc:xacml:3.0:attribute-category:resource",
+          "XPath" : "//md:records/md:record"
+        },
+        "DataType" : "xpathExpression",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:resource:xpathExpression"
+      }, {
+        "Issuer" : "ConformanceTester",
+        "Value" : "http://medico.com/record/patient/BartSimpson",
+        "DataType" : "anyURI",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:resource:resource-id"
+      } ]
+    }, {
+      "CategoryId" : "urn:oasis:names:tc:xacml:3.0:attribute-category:action",
+      "Attribute" : [ {
+        "Issuer" : "ConformanceTester",
+        "Value" : "read",
+        "DataType" : "string",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:action:action-id"
+      } ]
+    }, {
+      "CategoryId" : "urn:oasis:names:tc:xacml:3.0:attribute-category:environment",
+      "Attribute" : [ {
+        "Issuer" : "ConformanceTester",
+        "Value" : "08:23:47-05:00",
+        "DataType" : "time",
+        "AttributeId" : "urn:oasis:names:tc:xacml:1.0:environment:current-time"
+      } ]
+    } ],
+    "Decision" : "Permit"
+  } ]
+}

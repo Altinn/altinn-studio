@@ -18,7 +18,7 @@ export interface IPerson {
   addressCity: string;
 }
 
-export interface IOrganization {
+export interface IOrganisation {
   orgNumber: string;
   name: string;
   unitType: string;
@@ -42,7 +42,8 @@ export interface IParty {
   unitType: string;
   name: string;
   isDeleted: boolean;
-  onlyHiearhyElementWithNoAccess: boolean;
+  onlyHierarchyElementWithNoAccess: boolean;
   person?: IPerson;
-  organization?: IOrganization;
+  organisation?: IOrganisation;
+  childParties: IParty[];
 }

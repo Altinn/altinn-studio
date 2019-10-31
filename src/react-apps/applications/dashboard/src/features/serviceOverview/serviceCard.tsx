@@ -79,7 +79,7 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
       <Card elevation={0} className={classNames(classes.card)}>
         <CardActionArea onClick={this.openService}>
           <CardContent>
-            <Grid container={true} spacing={8}>
+            <Grid container={true} spacing={1}>
               <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
                 <Typography
                   variant='h3'

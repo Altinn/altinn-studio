@@ -1,7 +1,4 @@
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Altinn.Platform.Storage.Models
 {
@@ -18,10 +15,10 @@ namespace Altinn.Platform.Storage.Models
         public bool BankruptcyEstate { get; set; }
 
         /// <summary>
-        /// Should a organization be allowed to instantiate
+        /// Should a organisation be allowed to instantiate
         /// </summary>
-        [JsonProperty(PropertyName = "organization")]
-        public bool Organization { get; set; }
+        [JsonProperty(PropertyName = "organisation")]
+        public bool Organisation { get; set; }
 
         /// <summary>
         /// Should a person be allowed to instantiate

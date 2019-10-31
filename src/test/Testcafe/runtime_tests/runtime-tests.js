@@ -1,6 +1,5 @@
 import App from '../app';
 import { Selector, t, ClientFunction } from 'testcafe';
-import axeCheck from 'axe-testcafe';
 import RunTimePage from '../page-objects/runTimePage';
 import { AutoTestUser } from '../TestData';
 
@@ -20,20 +19,20 @@ fixture('Regression tests of apps in runtime')
     await t
       .useRole(AutoTestUser)
       .resizeWindow(1536, 864)
-  })
+  });
 
 
 test('Instantiate an app in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
     .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
+    .expect(runtime.testUsers[1].exists).ok()
+    .hover(runtime.testUsers[1])
+    .click(runtime.testUsers[1])
+    .expect(runtime.startNewButton.exists).ok({ timeout:120000 })
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.testUserHeader[1].exists).ok()
 });
 
 test('Direct link navigation to runtime', async () => {
@@ -82,6 +81,20 @@ test('Validations when uploading file', async () => {
     .expect(runtime.errorMessage).ok()
 });
 
+test('Person cannot preview an app that has been access controlled to subunits only', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/autosubunit#/test')
+    .switchToIframe(runtime.testBrukerIframe)
+    .click(runtime.testUsers[0])
+    .switchToMainWindow()
+    .switchToIframe(runtime.avgiverIframe)
+    .expect(runtime.startNewButton.exists).ok()
+    .expect(runtime.startNewButton.visible).ok()
+    .click(runtime.startNewButton)
+    .switchToMainWindow()
+    .expect(Selector('span').withText('Feil 403').exists).ok()
+    .expect(Selector('h1').withText('Dette er en tjeneste for underenhet').exists).ok()
+});
 
 test('Read-only components test in runtime', async () => {
   await t
@@ -126,13 +139,14 @@ test('Attachment dropdown and download on receipt page', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtimemanual#/test')
     .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
-    .expect(runtime.startNewButton.exists).ok()
+    .expect(runtime.testUsers[1].exists).ok()
+    .hover(runtime.testUsers[1])
+    .click(runtime.testUsers[1])
+    .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
     .click(runtime.startNewButton)
     .switchToMainWindow()
-    .expect(runtime.testUserHeader[0].exists).ok()
+    .expect(runtime.testUserHeader[1].exists).ok()
+    .expect(runtime.fileDropComponent.exists).ok({ timeout: 120000 })
     .clearUpload(runtime.fileDropComponent)    
     .setFilesToUpload(runtime.fileDropComponent, [
       '../testdata/ServiceModel.xsd',
@@ -147,6 +161,7 @@ test('Attachment dropdown and download on receipt page', async () => {
   await t
     .expect(files.exists).ok()
     .expect(files.count).eql(5, {timeout: 180000})
+    .expect(runtime.saveButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 1000 })
     .click(runtime.saveButton)
     .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
     .click(runtime.sendInnButton)
@@ -179,9 +194,10 @@ test('Receipt page test', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/formfilling#/test')
     .switchToIframe(runtime.testBrukerIframe)
-    .expect(runtime.testUsers[0].exists).ok()
-    .hover(runtime.testUsers[0])
-    .click(runtime.testUsers[0])
+    .expect(runtime.testUsers[1].exists).ok()
+    .hover(runtime.testUsers[1])
+    .click(runtime.testUsers[1])
+    .expect(runtime.messagesList.exists).ok( {timeout:120000} )
   await runtime.findAndOpenArchivedMessage(t);
   await t
     .switchToMainWindow()

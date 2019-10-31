@@ -1,7 +1,6 @@
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
+using Newtonsoft.Json;
+using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Models
 {
@@ -66,10 +65,12 @@ namespace Altinn.Platform.Storage.Models
         public int? EndUserSystemId { get; set; }
 
         /// <summary>
-        /// the workflow step during which the event occured
+        /// More information about the process event.
+        /// Contains a snapshot of the changed currentTask element of the instance.
+        /// If event type does not start with process: this field is not present.
         /// </summary>
-        [JsonProperty(PropertyName = "workflowStep")]
-        public string WorkflowStep { get; set; }
+        [JsonProperty(PropertyName = "processInfo")]
+        public ProcessState ProcessInfo { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()

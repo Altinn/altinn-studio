@@ -1,0 +1,31 @@
+{
+  "id": "tdd/xyz23",
+  "org": "tdd",
+  "createdDateTime": "2019-08-21T13:25:04.6627925Z",
+  "createdBy": "dskogan",
+  "lastChangedDateTime": "2019-08-21T13:25:04.6627932Z",
+  "lastChangedBy": "dskogan",
+  "title": { "nb": "xyz23" },
+  "elementTypes": [
+    {
+      "id": "default",
+      "allowedContentType": [
+        "application/xml"
+      ],
+      "appLogic": true,
+      "maxCount": 0,
+      "minCount": 0,
+      "task": "FormFilling_1"
+    },
+    {
+      "id": "db1fa864-6199-494d-8896-9e3d95801248",
+      "allowedContentType": [
+        "application/xml"
+      ],
+      "maxSize": 25,
+      "maxCount": 1,
+      "minCount": 0,
+      "task": "FormFilling_1"
+    }
+  ]
+}

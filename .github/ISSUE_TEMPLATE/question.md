@@ -1,7 +1,7 @@
 ---
 name: Question
 about: Ask a question related to Altinn Studio
-labels: question
+labels: kind/question
 ---
 
 ## Your question

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" PolicyId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIE002:policy1" RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" Version="1.0" xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:policy:schema:os  access_control-xacml-2.0-policy-schema-os.xsd">
+    <Description>
+        Policy1 for Conformance Test IIE002.
+    </Description>
+    <Target/>
+    <Rule Effect="Deny" RuleId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIE002:rule1">
+        <Description>
+            A subject whose name is J. Hibbert may not
+            read Bart Simpson's medical record.  NOTAPPLICABLE
+        </Description>
+        <Target>
+            <AnyOf>
+                <AllOf>
+                    <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+                        <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">J. Hibbert</AttributeValue>
+                        <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id" Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" DataType="http://www.w3.org/2001/XMLSchema#string" MustBePresent="true"/>
+                    </Match>
+                </AllOf>
+            </AnyOf>
+        </Target>
+    </Rule>
+</Policy>

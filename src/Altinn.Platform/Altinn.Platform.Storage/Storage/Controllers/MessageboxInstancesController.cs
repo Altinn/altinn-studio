@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
+using Storage.Interface.Enums;
 using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -19,18 +20,22 @@ namespace Altinn.Platform.Storage.Controllers
     public class MessageBoxInstancesController : ControllerBase
     {
         private readonly IInstanceRepository _instanceRepository;
+        private readonly IInstanceEventRepository _instanceEventRepository;
         private readonly IApplicationRepository _applicationRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MessageBoxInstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
+        /// <param name="instanceEventRepository">the instance event repository service</param>
         /// <param name="applicationRepository">the application repository handler</param>
         public MessageBoxInstancesController(
             IInstanceRepository instanceRepository,
+            IInstanceEventRepository instanceEventRepository,
             IApplicationRepository applicationRepository)
         {
             _instanceRepository = instanceRepository;
+            _instanceEventRepository = instanceEventRepository;
             _applicationRepository = applicationRepository;
         }
 
@@ -121,6 +126,37 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Gets all instances in a given state for a given instance owner.
+        /// </summary>
+        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceGuid">the instance guid</param>
+        /// <returns>list of instances</returns>
+        [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}/events")]
+        public async Task<ActionResult> GetMessageBoxInstanceEvents(
+            [FromRoute] int instanceOwnerId,
+            [FromRoute] Guid instanceGuid)
+        {
+            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string[] eventTypes = new string[]
+            {
+                InstanceEventType.Created.ToString(),
+                InstanceEventType.Deleted.ToString(),
+                InstanceEventType.Saved.ToString(),
+                InstanceEventType.Submited.ToString(),
+                InstanceEventType.Undeleted.ToString()
+            };
+
+            if (string.IsNullOrEmpty(instanceId))
+            {
+                return BadRequest("Unable to perform query.");
+            }
+
+            List<InstanceEvent> result = await _instanceEventRepository.ListInstanceEvents(instanceId, eventTypes, null, null);
+
+            return Ok(InstanceHelper.ConvertToSBLInstanceEvent(result));
+        }
+
+        /// <summary>
         /// Undelete a soft deleted instance
         /// </summary>
         /// <param name="instanceOwnerId">instance owner</param>
@@ -156,18 +192,28 @@ namespace Altinn.Platform.Storage.Controllers
                 instance.InstanceState.IsDeleted = false;
                 instance.LastChangedBy = User.Identity.Name;
                 instance.LastChangedDateTime = DateTime.UtcNow;
+                instance.InstanceState.DeletedDateTime = null;
+
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    CreatedDateTime = DateTime.UtcNow,
+                    AuthenticationLevel = 0, // update when authentication is turned on
+                    EventType = InstanceEventType.Undeleted.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
+                    UserId = 0, // update when authentication is turned on
+                };
 
                 try
                 {
                     await _instanceRepository.Update(instance);
+                    await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
                     return Ok(true);
                 }
                 catch (Exception e)
                 {
                     return StatusCode(500, $"Unknown exception in restore: {e}");
                 }
-
-                // generate instance event 'Undeleted'
             }
 
             return Ok(true);
@@ -208,18 +254,28 @@ namespace Altinn.Platform.Storage.Controllers
             instance.InstanceState.IsDeleted = true;
             instance.InstanceState.IsMarkedForHardDelete = hard;
             instance.LastChangedBy = User.Identity.Name;
-            instance.LastChangedDateTime = DateTime.UtcNow;
+            instance.LastChangedDateTime = instance.InstanceState.DeletedDateTime = DateTime.UtcNow;
+
+            InstanceEvent instanceEvent = new InstanceEvent
+            {
+                CreatedDateTime = DateTime.UtcNow,
+                AuthenticationLevel = 0, // update when authentication is turned on
+                EventType = InstanceEventType.Deleted.ToString(),
+                InstanceId = instance.Id,
+                InstanceOwnerId = instance.InstanceOwnerId.ToString(),
+                UserId = 0, // update when authentication is turned on
+            };
 
             try
             {
                 await _instanceRepository.Update(instance);
+                await _instanceEventRepository.InsertInstanceEvent(instanceEvent);
             }
             catch (Exception e)
             {
                 return StatusCode(500, $"Unknown exception in delete: {e}");
             }
 
-            // generate instance event 'Undeleted'
             return Ok(true);
         }
     }

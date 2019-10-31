@@ -60,12 +60,12 @@ test('Sync a service with master', async () => {
     .dragToElement(designer.inputComponent, designer.dragToArea)
     .click(designer.omNavigationTab)
     .click(designer.lageNavigationTab)
-    .expect(designer.delEndringer.exists).ok()
+    .expect(designer.delEndringer.exists).ok({timeout: 120000})
     .click(designer.delEndringer)
-    .expect(designer.commitMessageBox.exists).ok()
+    .expect(designer.commitMessageBox.exists).ok({timeout: 120000})
     .click(designer.commitMessageBox)
     .typeText(designer.commitMessageBox, "Sync service automated test", { replace: true })
-    .expect(designer.validerEndringer.exists).ok()
+    .expect(designer.validerEndringer.exists).ok({timeout: 120000})
     .click(designer.validerEndringer)
     .expect(designer.delEndringerBlueButton.exists).ok({ timeout: 120000 })
     .click(designer.delEndringerBlueButton)
@@ -122,7 +122,15 @@ test("Fill out Access control information on an app", async () => {
 
 test("User cannot clone an app that does not have a data model", async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/cannotclone#/uieditor')
+    .click(designer.lageNavigationTab)
+    .expect(designer.cloneButton.visible).ok()
+    .click(designer.cloneButton)
+    .expect(designer.dataModelMissing.visible).ok()
+    .click(designer.dataModellLink)
+    .switchToIframe(designer.dataModelIFrame)
+    .expect(designer.dataModelUpload.exists).ok()
+    .expect(designer.dataModelTabs.visible).notOk()
 })
 
 test('Configure and delete rules', async () => {

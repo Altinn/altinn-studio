@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<PolicySet xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides" 
+		PolicySetId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIB301:policyset" 
+		Version="1.0" 
+		xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:policy:schema:os access_control-xacml-2.0-policy-schema-os.xsd">
+    <Description>
+        PolicySet for Conformance Test IIB301.
+        Purpose - Target Matching: Enhanced Target (fail)
+	    Any Subject can perform anVersion 3.0 enhanced Target mixing categories in same logical operation:
+	        	(Doctor AND medical record) AND (read OR write)
+	    Request for this test does not match => NotApplicable
+    </Description>
+    <Target/>
+    
+    
+	<Policy xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+			PolicyId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIB301:policy" 
+			RuleCombiningAlgId="urn:oasis:names:tc:xacml:3.0:rule-combining-algorithm:deny-overrides" 
+			Version="1.0" 
+			xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:policy:schema:os  access_control-xacml-2.0-policy-schema-os.xsd">
+	    <Description>
+	        Any Subject can perform anVersion 3.0 enhanced Target mixing categories in same logical operation:
+	        	(Doctor AND medical record) AND (read OR write)
+	        Request for this test does not match => Indeterminate
+	    </Description>
+	  <Target>
+	    <AnyOf>
+	      <AllOf>
+	        <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+	          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">read</AttributeValue>
+	          <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" 
+	          		Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" 
+	          		DataType="http://www.w3.org/2001/XMLSchema#string" 
+	          		MustBePresent="false"/>
+	        </Match>
+	      </AllOf>
+	      <AllOf>
+	        <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+	          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">write</AttributeValue>
+	          <AttributeDesignator AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id" 
+	          		Category="urn:oasis:names:tc:xacml:3.0:attribute-category:action" 
+	          		DataType="http://www.w3.org/2001/XMLSchema#string" 
+	          		MustBePresent="false"/>
+	        </Match>
+	      </AllOf>
+	    </AnyOf>
+	    <AnyOf>
+	      <AllOf>
+	        <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+	          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">doctor</AttributeValue>
+	          <AttributeDesignator AttributeId="role" 
+	          		Category="urn:oasis:names:tc:xacml:1.0:subject-category:access-subject" 
+	          		DataType="http://www.w3.org/2001/XMLSchema#string" 
+	          		MustBePresent="false"/>
+	        </Match>
+	        <Match MatchId="urn:oasis:names:tc:xacml:1.0:function:string-equal">
+	          <AttributeValue DataType="http://www.w3.org/2001/XMLSchema#string">medical record</AttributeValue>
+	          <AttributeDesignator AttributeId="resource-type" 
+	          		Category="urn:oasis:names:tc:xacml:3.0:attribute-category:resource" 
+	          		DataType="http://www.w3.org/2001/XMLSchema#string" 
+	          		MustBePresent="false"/>
+	        </Match>
+	      </AllOf>
+	    </AnyOf>
+	  </Target>
+	
+	    <Rule Effect="Permit" RuleId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIB301:rule">
+	        <Description>
+	            Always return Permit.
+	        </Description>
+	    </Rule>
+	</Policy>
+</PolicySet>

@@ -4,7 +4,6 @@ using System.IO;
 using System.Net.Http;
 using System.Linq;
 using Newtonsoft.Json;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
 namespace Altinn.Clients.PrefillClient

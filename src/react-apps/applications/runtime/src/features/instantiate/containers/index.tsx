@@ -3,12 +3,13 @@ import * as React from 'react';
 import ContentLoader from 'react-content-loader';
 import { useSelector } from 'react-redux';
 import { Redirect } from 'react-router-dom';
-import AltinnAppTheme from 'Shared/theme/altinnAppTheme';
-import { IAltinnWindow, IRuntimeState } from 'src/types';
 import AltinnModal from '../../../../../shared/src/components/AltinnModal';
+import AltinnAppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IParty } from '../../../shared/resources/party';
+import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { changeBodyBackground } from '../../../utils/bodyStyling';
+import { HttpStatusCodes } from '../../../utils/networking';
 import { post } from '../../../utils/networking';
 import SubscriptionHookError from '../components/subscriptionHookError';
 import InstantiationActions from '../instantiation/actions';
@@ -37,7 +38,7 @@ export interface IServiceInfoProps extends WithStyles<typeof styles> {
 
 function InstantiateContainer(props: IServiceInfoProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.blue);
-  const { org, service } = window as IAltinnWindow;
+  const { org, app } = window as IAltinnWindow;
 
   const [subscriptionHookValid, setSubscriptionHookValid] = React.useState(null);
   const [partyValidation, setPartyValidation] = React.useState(null);
@@ -46,18 +47,24 @@ function InstantiateContainer(props: IServiceInfoProps) {
   const instantiation = useSelector((state: IRuntimeState) => state.instantiation);
   const language = useSelector((state: IRuntimeState) => state.language.language);
   const profile = useSelector((state: IRuntimeState) => state.profile.profile);
-  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
   const textResources = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const selectedParty = useSelector((state: IRuntimeState) => state.party.selectedParty);
 
   const createNewInstance = () => {
+    if (!selectedParty) {
+      return;
+    }
     setInstantiating(true);
-    InstantiationActions.instantiate(org, service);
+    InstantiationActions.instantiate(org, app);
   };
 
   const validatatePartySelection = async () => {
+    if (!selectedParty) {
+      return;
+    }
     try {
       const { data } = await post(
-        `${window.location.origin}/${org}/${service}/api/v1/parties/` +
+        `${window.location.origin}/${org}/${app}/api/v1/parties/` +
         `validateInstantiation?partyId=${selectedParty.partyId}`,
       );
       setPartyValidation(data);
@@ -110,20 +117,17 @@ function InstantiateContainer(props: IServiceInfoProps) {
   };
 
   React.useEffect(() => {
-    if (selectedParty !== null && !instantiating) {
-      validatatePartySelection();
-    }
+    validatatePartySelection();
   }, [selectedParty]);
 
   React.useEffect(() => {
-    if (partyValidation !== null && !instantiating) {
+    if (partyValidation !== null) {
       validateSubscriptionHook();
     }
   }, [partyValidation]);
 
   React.useEffect(() => {
     if (
-      selectedParty !== null &&
       partyValidation !== null &&
       partyValidation.valid &&
       subscriptionHookValid !== null &&
@@ -134,7 +138,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
     ) {
       createNewInstance();
     }
-  }, [selectedParty, partyValidation, subscriptionHookValid, instantiating]);
+  }, [partyValidation, subscriptionHookValid, instantiating, selectedParty]);
 
   if (partyValidation !== null && !partyValidation.valid) {
     if (partyValidation.validParties.length === 0) {
@@ -149,29 +153,14 @@ function InstantiateContainer(props: IServiceInfoProps) {
         />
       );
     } else {
-      console.log('###### REDIRECTING TO /PARTYSELECTION');
       return (
-        <Redirect
-          to={{
-            pathname: '/partyselection',
-            state: {
-              validParties: partyValidation.validParties,
-            },
-          }}
-        />
+        <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
       );
     }
   }
   if (instantiation.error !== null) {
     return (
-      <Redirect
-        to={{
-          pathname: '/error',
-          state: {
-            message: instantiation.error,
-          },
-      }}
-      />
+      <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`}/>
     );
   }
   if (instantiation.instanceId !== null && instantiation.error === null) {
@@ -182,7 +171,7 @@ function InstantiateContainer(props: IServiceInfoProps) {
     return (
       <>
         <AltinnAppHeader profile={profile} language={language}/>
-        {subscriptionHookValid === null && renderModalAndLoader()}
+        {(subscriptionHookValid === null || subscriptionHookValid === true) && renderModalAndLoader()}
         {subscriptionHookValid === false && <SubscriptionHookError textResources={textResources}/>}
       </>
     );

@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -130,7 +131,6 @@ namespace Altinn.Platform.Storage.Repository
                 IDocumentQuery<Instance> documentQuery = queryBuilder.AsDocumentQuery();
 
                 FeedResponse<Instance> feedResponse = await documentQuery.ExecuteNextAsync<Instance>();
-
                 if (!feedResponse.Any())
                 {
                     queryResponse.Count = 0;
@@ -184,6 +184,10 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
                             break;
 
+                        case "instanceOwnerId":
+                            queryBuilder = queryBuilder.Where(i => i.InstanceOwnerId == queryValue);
+                            break;
+
                         case "lastChangedDateTime":
                             queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
                             break;
@@ -202,12 +206,20 @@ namespace Altinn.Platform.Storage.Repository
 
                         case "process.currentTask":
                             string currentTaskId = queryValue;
-                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask == currentTaskId);
+                            queryBuilder = queryBuilder.Where(i => i.Process.CurrentTask.ElementId == currentTaskId);
                             break;
 
                         case "process.isComplete":
                             bool isComplete = bool.Parse(queryValue);
-                            queryBuilder = queryBuilder.Where(i => i.Process.IsComplete == isComplete);
+                            if (isComplete)
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Process.Ended != null);
+                            }
+                            else
+                            {
+                                queryBuilder = queryBuilder.Where(i => i.Process.Ended == null);
+                            }
+
                             break;
 
                         case "labels":

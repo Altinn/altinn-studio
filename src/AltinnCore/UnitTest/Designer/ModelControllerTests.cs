@@ -42,7 +42,7 @@ namespace AltinnCore.UnitTest.Designer
 
             IFormFile formFile = AsMockIFormFile("Designer/Edag-latin1.xsd");
 
-            ActionResult result = controller.Upload("Org", "service2", formFile);
+            ActionResult result = controller.Upload("Org", "app2", formFile);
 
             Assert.NotNull(serviceMetadata);
 
@@ -81,7 +81,7 @@ namespace AltinnCore.UnitTest.Designer
 
             IFormFile formFile = AsMockIFormFile("Common/xsd/ServiceModel.xsd");
 
-            ActionResult result = controller.Upload("Org", "service2", formFile);
+            ActionResult result = controller.Upload("Org", "app2", formFile);
 
             Assert.True(serviceMetadata.Elements.ContainsKey("Skjema.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPostnummerdatadef10441.value"));
 

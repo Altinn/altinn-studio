@@ -53,6 +53,9 @@ export default class DesignerPage {
       this.leftMenuList.withExactText('Kode'),
       this.leftMenuList.withExactText('Tilgangsstyring')
     ];
+    this.dataModelIFrame = Selector("#root > div > div > div:nth-child(2) > div > div > iframe");
+    this.dataModelUpload = Selector("#filelabel");
+    this.dataModelTabs = Selector("#tabs");
 
     //Tilgangstyring tab selectors
     this.konkursBo = Selector("span").withExactText("Konkursbo").sibling(0);
@@ -93,13 +96,8 @@ export default class DesignerPage {
       this.leftMenuList.withExactText('Test i testmiljø')
     ];
 
-    //"publisere" navigation tab selectors
-    this.publisereNavigationTab = Selector('div > a').withExactText('Publisere');
-    this.publisereButton = Selector('#startDeploymentBtn'); //.withText('Start deployment');
-    this.publisereLeftMenuItems = [
-      this.leftMenuList.withExactText('Produksjonsette'),
-      this.leftMenuList.withExactText('Status')
-    ];
+    //"Deploy" navigation tab selectors
+    this.deployNavigationTab = Selector('div > a').withExactText('Deploy');    
 
     //preview tab
     this.previewSaveButton = Selector(".a-btn-success").withText("Save");
@@ -119,7 +117,8 @@ export default class DesignerPage {
 
     //Clone modal
     this.cloneButton = Selector('button').withExactText('Clone');
-    this.copyUrlRepoButton = Selector('#copy-repository-url-button')
+    this.copyUrlRepoButton = Selector('#copy-repository-url-button');
+    this.dataModelMissing = Selector('div > p').withText('Datamodell mangler');
     this.readMoreAltinnDocs = Selector('a').withExactText('Lær mer på Altinn Studio docs');
     this.dataModellLink = Selector('a').withExactText('Gå til datamodell side');
 
@@ -160,14 +159,14 @@ export default class DesignerPage {
 
   async deleteUIComponentsMethod (t) {
     var addedUIComponents = await this.dragToArea.child('div').withAttribute('draggable','true');
-    var numberOfComponents = await addedUIComponents.count;    
-    if (numberOfComponents > 0) {
-    for (var i = 0; i < numberOfComponents; i++) {
-      await t.hover(addedUIComponents.nth(i));
-      await t.click(addedUIComponents.nth(i));
-      }
-    await t.hover(this.removeComponentsButton.parent('button'));
-    await t.click(this.removeComponentsButton.parent('button'));
+    var numberOfComponents = await addedUIComponents.count;      
+    if (numberOfComponents > 0 && !await addedUIComponents.withText('Tomt').exists) {      
+        for (var i = 0; i < numberOfComponents; i++) {
+          await t.hover(addedUIComponents.nth(i));
+          await t.click(addedUIComponents.nth(i));
+        }
+        await t.hover(this.removeComponentsButton.parent('button'));
+        await t.click(this.removeComponentsButton.parent('button'));            
     }
   }
 }

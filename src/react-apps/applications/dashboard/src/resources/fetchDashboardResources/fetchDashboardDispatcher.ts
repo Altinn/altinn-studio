@@ -25,15 +25,15 @@ export interface IFetchDashboardDispatchers extends ActionCreatorsMapObject {
   fetchCurrentUserRejected: (
     error: Error,
   ) => FetchDashboardActions.IFetchCurrentUserRejected;
-  fetchOrganizations: (
+  fetchOrganisations: (
     url: string,
-  ) => FetchDashboardActions.IFetchOrganizationsAction;
-  fetchOrganizationsFulfilled: (
-    organizations: any,
-  ) => FetchDashboardActions.IFetchOrganizationsFulfilled;
-  fetchOrganizationsRejected: (
+  ) => FetchDashboardActions.IFetchOrganisationsAction;
+  fetchOrganisationsFulfilled: (
+    organisations: any,
+  ) => FetchDashboardActions.IFetchOrganisationsFulfilled;
+  fetchOrganisationsRejected: (
     error: Error,
-  ) => FetchDashboardActions.IFetchOrganizationsRejected;
+  ) => FetchDashboardActions.IFetchOrganisationsRejected;
 }
 
 /**
@@ -46,9 +46,9 @@ const actions: IFetchDashboardDispatchers = {
   fetchCurrentUser: FetchDashboardActions.fetchCurrentUserAction,
   fetchCurrentUserFulfilled: FetchDashboardActions.fetchCurrentUserFulfilledAction,
   fetchCurrentUserRejected: FetchDashboardActions.fetchCurrentUserRejectedAction,
-  fetchOrganizations: FetchDashboardActions.fetchOrganizationsAction,
-  fetchOrganizationsFulfilled: FetchDashboardActions.fetchOrganizationsFulfilledAction,
-  fetchOrganizationsRejected: FetchDashboardActions.fetchOrganizationsRejectedAction,
+  fetchOrganisations: FetchDashboardActions.fetchOrganisationsAction,
+  fetchOrganisationsFulfilled: FetchDashboardActions.fetchOrganisationsFulfilledAction,
+  fetchOrganisationsRejected: FetchDashboardActions.fetchOrganisationsRejectedAction,
 };
 
 /**

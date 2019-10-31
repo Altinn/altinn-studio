@@ -13,7 +13,7 @@ namespace AltinnCore.ServiceLibrary.Enums
         /// <summary>
         /// Party Type is Organization
         /// </summary>
-        Organization = 2,
+        Organisation = 2,
 
         /// <summary>
         /// Party Type is Self Identified user
