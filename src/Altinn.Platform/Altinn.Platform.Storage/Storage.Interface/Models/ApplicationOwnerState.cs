@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Various fields that application owner can set. Some can be displayed to the user. Others dictate beahviour.

@@ -4,12 +4,11 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Clients;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Altinn.Platform.Storage.Client
+namespace Altinn.Platform.Storage.Interface.Clients
 {
     /// <summary>
     /// Storage client methods.

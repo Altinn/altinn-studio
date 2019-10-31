@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Holds metadata of an application instance for a particular instance owner.

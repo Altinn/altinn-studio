@@ -3,7 +3,7 @@ using System.ComponentModel;
 
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Model for application element type.

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Abstract supertype for holding change attributes.

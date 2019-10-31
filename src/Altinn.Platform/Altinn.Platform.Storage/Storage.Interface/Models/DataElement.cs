@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Model to hold a data element.

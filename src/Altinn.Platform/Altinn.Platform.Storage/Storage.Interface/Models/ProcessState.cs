@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Holds the process state of an application instance.

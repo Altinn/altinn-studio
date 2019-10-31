@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Model for the instance event.

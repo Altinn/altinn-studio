@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Text;
 
-namespace Altinn.Platform.Storage.Client
+namespace Altinn.Platform.Storage.Interface.Clients
 {
     /// <summary>
     /// Exception class for storage exceptions.

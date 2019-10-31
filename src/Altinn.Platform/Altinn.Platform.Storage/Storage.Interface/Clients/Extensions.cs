@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text;
 
-namespace Altinn.Platform.Storage.Clients
+namespace Altinn.Platform.Storage.Interface.Clients
 {
 
     /// <summary>

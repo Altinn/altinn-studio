@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Net.Http;
-using Altinn.Platform.Storage.Clients;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Client
+namespace Altinn.Platform.Storage.Interface.Clients
 {
     /// <summary>
     /// Client for managing application metadata.
