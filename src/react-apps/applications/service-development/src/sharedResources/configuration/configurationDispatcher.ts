@@ -20,7 +20,6 @@ export interface IConfigurationDispatcher extends ActionCreatorsMapObject {
 /**
  * Define mapping between action and Action dispatcher method
  */
-
 const actions: IConfigurationDispatcher = {
   getEnvironments: GetEnvironments.GetEnvironmentsAction,
   getEnvironmentsFulfilled: GetEnvironments.GetEnvironmentsFulfilledAction,
@@ -29,8 +28,6 @@ const actions: IConfigurationDispatcher = {
   getOrgsFulfilled: GetOrgs.getOrgsFulfilled,
   getOrgsRejected: GetOrgs.getOrgsRejected,
 };
-
-
 
 /**
  * Bind action creators to redux store
