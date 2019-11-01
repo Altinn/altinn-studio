@@ -28,7 +28,7 @@ namespace AltinnCore.UnitTest.Designer.Services
         private readonly Mock<IGitea> _giteaWrapperMock;
 
         /// <summary>
-        /// x
+        /// Initialize for the tests
         /// </summary>
         public ReleaseServiceTests()
         {
