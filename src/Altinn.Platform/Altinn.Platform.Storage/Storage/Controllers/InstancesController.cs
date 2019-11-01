@@ -4,10 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Enums;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-using global::Storage.Interface.Enums;
-using global::Storage.Interface.Models;
 using Halcyon.HAL;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -225,9 +224,9 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 foreach (DataElement dataElement in instance.Data)
                 {
-                    dataElement.DataLinks ??= new ResourceLinks();
+                    dataElement.SelfLinks ??= new ResourceLinks();
 
-                    dataElement.DataLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
+                    dataElement.SelfLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
                 }
             }
         }
@@ -277,7 +276,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return appInfoError;
             }
 
-            if (string.IsNullOrWhiteSpace(instance.InstanceOwnerId))
+            if (string.IsNullOrWhiteSpace(instance.InstanceOwner.PartyId))
             {
                 return BadRequest("Cannot create an instance without an instanceOwnerId.");
             }
@@ -299,13 +298,13 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception storageException)
             {
-                logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwnerId} due to {storageException}");
+                logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException}");
 
                 // compensating action - delete instance
                 await _instanceRepository.Delete(storedInstance);
                 logger.LogError($"Deleted instance {storedInstance.Id}");
 
-                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwnerId} due to {storageException.Message}");
+                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
             }
         }
 
@@ -334,23 +333,20 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound(message);
             }
 
-            existingInstance.AppOwnerState = instance.AppOwnerState;
+            existingInstance.AppOwner = instance.AppOwner;            
             existingInstance.Process = instance.Process;
-            existingInstance.InstanceState = instance.InstanceState;
+            existingInstance.Inbox = instance.Inbox;
 
-            existingInstance.PresentationField = instance.PresentationField;
-            existingInstance.DueDateTime = DateTimeHelper.ConvertToUniversalTime(instance.DueDateTime);
-            existingInstance.VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instance.VisibleDateTime);
-            existingInstance.Labels = instance.Labels;
-
+            existingInstance.DueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
+            
             existingInstance.LastChangedBy = User.Identity.Name;
-            existingInstance.LastChangedDateTime = DateTime.UtcNow;
+            existingInstance.LastChanged = DateTime.UtcNow;
 
             Instance result;
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(instance.InstanceState.IsArchived ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
+                await DispatchEvent(instance.Inbox.Archived.HasValue ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
                 AddSelfLinks(Request, result);
             }
             catch (Exception e)
@@ -408,9 +404,11 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else
             {
-                instance.InstanceState.IsDeleted = true;
+                DateTime now = DateTime.UtcNow;
+
+                instance.Inbox.SoftDeleted = now;
                 instance.LastChangedBy = User.Identity.Name;
-                instance.LastChangedDateTime = instance.InstanceState.DeletedDateTime = DateTime.UtcNow;
+                instance.LastChanged = now;
 
                 try
                 {
@@ -429,22 +427,27 @@ namespace Altinn.Platform.Storage.Controllers
         {
             Instance createdInstance = new Instance()
             {
-                InstanceOwnerId = instanceTemplate.InstanceOwnerId.ToString(),
+                InstanceOwner = instanceTemplate.InstanceOwner,
                 CreatedBy = userId,
-                CreatedDateTime = creationTime,
+                Created = creationTime,
                 LastChangedBy = userId,
-                LastChangedDateTime = creationTime,
+                LastChanged = creationTime,
                 AppId = appInfo.Id,
                 Org = appInfo.Org,
-                VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
-                DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
-                Labels = instanceTemplate.Labels,
-                PresentationField = instanceTemplate.PresentationField,
-                InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },
+                Inbox = new InboxState
+                {
+                    VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.Inbox?.VisibleAfter),
+                    Title = instanceTemplate.Inbox.Title,
+                },
+                DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
+                AppOwner = new ApplicationOwnerState
+                {
+                    Labels = instanceTemplate.AppOwner?.Labels,
+                },                               
             };
 
             // copy applications title to presentation field if not set by instance template
-            if (createdInstance.PresentationField == null && appInfo.Title != null)
+            if (createdInstance.Inbox.Title == null && appInfo.Title != null)
             {
                 LanguageString presentation = new LanguageString();
 
@@ -453,7 +456,7 @@ namespace Altinn.Platform.Storage.Controllers
                     presentation.Add(title.Key, title.Value);
                 }
 
-                createdInstance.PresentationField = presentation;
+                createdInstance.Inbox.Title = presentation;
             }
 
             createdInstance.Data = new List<DataElement>();
@@ -497,13 +500,17 @@ namespace Altinn.Platform.Storage.Controllers
         {
             InstanceEvent instanceEvent = new InstanceEvent
             {
-                AuthenticationLevel = 0, // update when authentication is turned on
                 EventType = eventType,
                 InstanceId = instance.Id,
-                InstanceOwnerId = instance.InstanceOwnerId,
-                UserId = 0, // update when authentication is turned on
+                InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
+                User = new PlatformUser
+                {
+                    UserId = 0, // update when authentication is turned on
+                    AuthenticationLevel = 0, // update when authentication is turned on
+                },
+                
                 ProcessInfo = instance.Process,
-                CreatedDateTime = DateTime.UtcNow,
+                Created = DateTime.UtcNow,
             };
 
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);

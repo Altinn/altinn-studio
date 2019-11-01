@@ -4,13 +4,12 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Clients;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Storage.Interface.Clients;
-using Storage.Interface.Models;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
@@ -67,7 +66,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     {
                         foreach (DataElement element in instance.Data)
                         {
-                            string filename = element.StorageUrl;
+                            string filename = element.BlobStoragePath;
                             string dataUrl = "/data/" + element.Id;
 
                             string dataDeleteUrl = url + dataUrl;

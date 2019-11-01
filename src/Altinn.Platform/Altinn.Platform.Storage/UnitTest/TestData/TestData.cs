@@ -1,3 +1,4 @@
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
 using Storage.Interface.Models;
 using System;
@@ -45,7 +46,7 @@ namespace Altinn.Platform.Storage.UnitTest
         public static Application Application_1 = new Application()
         {
             Id = AppId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
+            Created = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
             Org = Org_1,
             Title = AppTitles_App1
         };
@@ -53,7 +54,7 @@ namespace Altinn.Platform.Storage.UnitTest
         public static Application Application_2 = new Application()
         {
             Id = AppId_2,
-            CreatedDateTime = Convert.ToDateTime("2019-06-20T12:26:07.4135026Z"),
+            Created = Convert.ToDateTime("2019-06-20T12:26:07.4135026Z"),
             Org = Org_1,
             Title = AppTitles_App2
         };
@@ -61,7 +62,7 @@ namespace Altinn.Platform.Storage.UnitTest
         public static Application Application_3 = new Application()
         {
             Id = AppId_3,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
+            Created = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
             Org = Org_2,
             Title = AppTitles_App3
         };
@@ -72,16 +73,13 @@ namespace Altinn.Platform.Storage.UnitTest
             Id = $"{InstanceOwnerId_1}/31d0941f-6d56-40a6-b4a4-b7fe18ccff30",
             AppId = AppId_1,
             CreatedBy = UserId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
+            Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
             InstanceOwnerId = InstanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Inbox = new InboxState
             {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
             },
             LastChangedBy = UserId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = Org_1,
             Process = CreateProcessState()
         };
@@ -104,16 +102,13 @@ namespace Altinn.Platform.Storage.UnitTest
             Id = $"{InstanceOwnerId_1}/c6b37e02-14eb-43a9-852c-a3d3aeffcb44",
             AppId = AppId_1,
             CreatedBy = UserId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
+            Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
             InstanceOwnerId = InstanceOwnerId_1,
-            InstanceState = new InstanceState()
-            {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
+            Inbox = new InboxState
+            { 
             },
             LastChangedBy = UserId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = Org_1,
             Process = CreateProcessState(),
         };
@@ -124,16 +119,13 @@ namespace Altinn.Platform.Storage.UnitTest
             Id = $"{InstanceOwnerId_1}/d851287a-8c7a-4cf1-91ca-7d216c1336c4",
             AppId = AppId_2,
             CreatedBy = UserId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
+            Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
             InstanceOwnerId = InstanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Inbox = new InboxState
             {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
             },
             LastChangedBy = UserId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = Org_1,
             Process = CreateProcessState(),
         };
@@ -144,16 +136,13 @@ namespace Altinn.Platform.Storage.UnitTest
             Id = $"{InstanceOwnerId_1}/96cc315c-c8cc-4775-b81a-5cf134f00df1",
             AppId = AppId_2,
             CreatedBy = UserId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
+            Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
             InstanceOwnerId = InstanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Inbox = new InboxState()
             {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
             },
             LastChangedBy = UserId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = Org_1,
             Process = CreateProcessState(),
         };
@@ -164,16 +153,13 @@ namespace Altinn.Platform.Storage.UnitTest
             Id = $"{InstanceOwnerId_1}/83d87ad9-52a3-44de-aacd-ce79d55ef1f4",
             AppId = AppId_3,
             CreatedBy = UserId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
+            Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
             InstanceOwnerId = InstanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Inbox = new InboxState()
             {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
             },
             LastChangedBy = UserId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = Org_2,
             Process = CreateProcessState(),
         };
@@ -185,16 +171,13 @@ namespace Altinn.Platform.Storage.UnitTest
             Id = $"{InstanceOwnerId_1}/dc489d27-6bf5-437b-95eb-de79c3a20b89",
             AppId = AppId_3,
             CreatedBy = UserId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
+            Created = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
             InstanceOwnerId = InstanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Inbox = new InboxState()
             {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
             },
             LastChangedBy = UserId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = Org_2,
             Process = CreateProcessState(),
         };

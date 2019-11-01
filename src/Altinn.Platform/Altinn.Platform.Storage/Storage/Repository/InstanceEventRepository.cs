@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
@@ -112,12 +113,12 @@ namespace Altinn.Platform.Storage.Repository
 
                 if (fromDateTime.HasValue)
                 {
-                    query = query.Where(i => i.CreatedDateTime > fromDateTime);
+                    query = query.Where(i => i.Created > fromDateTime);
                 }
 
                 if (toDateTime.HasValue)
                 {
-                    query = query.Where(i => i.CreatedDateTime < toDateTime);
+                    query = query.Where(i => i.Created < toDateTime);
                 }
 
                 FeedResponse<InstanceEvent> result = await query.AsDocumentQuery().ExecuteNextAsync<InstanceEvent>();

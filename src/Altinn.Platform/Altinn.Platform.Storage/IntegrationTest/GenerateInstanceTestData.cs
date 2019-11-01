@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using Altinn.Platform.Storage.Client;
-using Altinn.Platform.Storage.Models;
-using Storage.Interface.Models;
+using Altinn.Platform.Storage.Interface.Clients;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
 {
@@ -74,31 +73,37 @@ namespace Altinn.Platform.Storage.Helpers
                     AppId = testAppId,
                     InstanceOwnerId = (i + 1000).ToString(),
                     Process = processState,
-                    LastChangedDateTime = lastChangedDate,
-                    CreatedDateTime = creationDate,
-                    DueDateTime = dueDate,
-                    VisibleDateTime = dueDate.AddDays(-30),
-                    Labels = new List<string>(),
+                    LastChanged = lastChangedDate,
+                    Created = creationDate,
+                    DueBefore = dueDate,
+                    Inbox = new InboxState
+                    {
+                        VisibleAfter = dueDate.AddDays(-30),
+                    },
+                    AppOwner = new ApplicationOwnerState
+                    {
+                        Labels = new List<string>(),
+                    }                    
                 };
 
                 string[] labelIds = { "zero", "one", "two" };
 
                 if (i < 100)
                 {
-                    instance.Labels = null;
+                    instance.AppOwner.Labels = null;
                 }
                 else if (i < 300)
                 {
-                    instance.Labels.Add(labelIds[0]);
+                    instance.AppOwner.Labels.Add(labelIds[0]);
                 }
                 else if (i < 600)
                 {
-                    instance.Labels.Add(labelIds[1]);
+                    instance.AppOwner.Labels.Add(labelIds[1]);
                 }
                 else
                 {
-                    instance.Labels.Add(labelIds[1]);
-                    instance.Labels.Add(labelIds[2]);
+                    instance.AppOwner.Labels.Add(labelIds[1]);
+                    instance.AppOwner.Labels.Add(labelIds[2]);
                 }        
 
                 Instance resultInstance = instanceClient.PostInstances(testAppId, instance).Result;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -225,7 +224,7 @@ namespace Altinn.Platform.Storage.Repository
                         case "labels":
                             foreach (string label in queryValue.Split(","))
                             {
-                                queryBuilder = queryBuilder.Where(i => i.Labels.Contains(label));
+                                queryBuilder = queryBuilder.Where(i => i.AppOwner.Labels.Contains(label));
                             }
 
                             break;
@@ -244,35 +243,35 @@ namespace Altinn.Platform.Storage.Repository
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.DueDateTime > dateValue);
+                return queryBuilder.Where(i => i.DueBefore > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.DueDateTime >= dateValue);
+                return queryBuilder.Where(i => i.DueBefore >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.DueDateTime < dateValue);
+                return queryBuilder.Where(i => i.DueBefore < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.DueDateTime <= dateValue);
+                return queryBuilder.Where(i => i.DueBefore <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.DueDateTime == dateValue);
+                return queryBuilder.Where(i => i.DueBefore == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.DueDateTime == dateValue);
+            return queryBuilder.Where(i => i.DueBefore == dateValue);
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
@@ -283,35 +282,35 @@ namespace Altinn.Platform.Storage.Repository
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.LastChangedDateTime > dateValue);
+                return queryBuilder.Where(i => i.LastChanged > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.LastChangedDateTime >= dateValue);
+                return queryBuilder.Where(i => i.LastChanged >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.LastChangedDateTime < dateValue);
+                return queryBuilder.Where(i => i.LastChanged < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.LastChangedDateTime <= dateValue);
+                return queryBuilder.Where(i => i.LastChanged <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+                return queryBuilder.Where(i => i.LastChanged == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+            return queryBuilder.Where(i => i.LastChanged == dateValue);
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
@@ -322,35 +321,35 @@ namespace Altinn.Platform.Storage.Repository
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.CreatedDateTime > dateValue);
+                return queryBuilder.Where(i => i.Created > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.CreatedDateTime >= dateValue);
+                return queryBuilder.Where(i => i.Created >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.CreatedDateTime < dateValue);
+                return queryBuilder.Where(i => i.Created < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.CreatedDateTime <= dateValue);
+                return queryBuilder.Where(i => i.Created <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+                return queryBuilder.Where(i => i.Created == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+            return queryBuilder.Where(i => i.Created == dateValue);
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
@@ -361,35 +360,35 @@ namespace Altinn.Platform.Storage.Repository
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.VisibleDateTime > dateValue);
+                return queryBuilder.Where(i => i.Inbox.VisibleAfter > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.VisibleDateTime >= dateValue);
+                return queryBuilder.Where(i => i.Inbox.VisibleAfter >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.VisibleDateTime < dateValue);
+                return queryBuilder.Where(i => i.Inbox.VisibleAfter < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.VisibleDateTime <= dateValue);
+                return queryBuilder.Where(i => i.Inbox.VisibleAfter <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+                return queryBuilder.Where(i => i.Inbox.VisibleAfter == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+            return queryBuilder.Where(i => i.Inbox.VisibleAfter == dateValue);
         }
 
         private static DateTime ParseDateTimeIntoUtc(string queryValue)
@@ -456,23 +455,22 @@ namespace Altinn.Platform.Storage.Repository
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime <= DateTime.UtcNow))
-                        .Where(i => !i.InstanceState.IsDeleted)
-                        .Where(i => !i.InstanceState.IsArchived);
+                        .Where(i => (!i.Inbox.VisibleAfter.HasValue || i.Inbox.VisibleAfter <= DateTime.UtcNow))
+                        .Where(i => !i.Inbox.Deleted.HasValue)
+                        .Where(i => !i.Inbox.Archived.HasValue);
             }
             else if (instanceState.Equals("deleted"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                         .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => i.InstanceState.IsDeleted)
-                        .Where(i => !i.InstanceState.IsMarkedForHardDelete);
+                        .Where(i => i.Inbox.Deleted.HasValue);
             }
             else if (instanceState.Equals("archived"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                       .Where(i => i.InstanceState.IsArchived)
-                       .Where(i => !i.InstanceState.IsDeleted);
+                       .Where(i => i.Inbox.Archived.HasValue)
+                       .Where(i => !i.Inbox.Deleted.HasValue);
             }
             else
             {

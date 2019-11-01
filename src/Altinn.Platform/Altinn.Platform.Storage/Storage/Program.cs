@@ -116,24 +116,17 @@ namespace Altinn.Platform.Storage
                 try
                 {
                     // get instrumentation key to set up telemetry
-                    SecretBundle secretBundle = keyVaultClient
-                        .GetSecretAsync(keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
+                    string appInsightsKey = "ApplicationInsights--InstrumentationKey";
 
-                    SetTelemetry(secretBundle.Value);
+                    SecretBundle secretBundle = keyVaultClient
+                        .GetSecretAsync(keyVaultEndpoint, appInsightsKey).Result;
+
+                    Environment.SetEnvironmentVariable(appInsightsKey, secretBundle.Value);
                 }
                 catch (Exception vaultException)
                 {
                     logger.Error($"Could not find secretBundle for application insights {vaultException}");
                 }
-            }
-        }
-
-        private static void SetTelemetry(string instrumentationKey)
-        {
-            logger.Information($"Setting application insights telemetry with instrumentationKey='{instrumentationKey}'");
-            if (!string.IsNullOrEmpty(instrumentationKey))
-            {
-                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
             }
         }
     }

@@ -4,15 +4,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Models;
-using Altinn.Platform.Storage.Repository;
+using Altinn.Platform.Storage.Interface.Clients;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Storage.Interface.Models;
@@ -87,7 +84,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     {
                         foreach (DataElement element in instance.Data)
                         {
-                            string filename = element.StorageUrl;
+                            string filename = element.BlobStoragePath;
                             string dataUrl = "/data/" + element.Id;
 
                             string dataDeleteUrl = url + dataUrl;
@@ -338,8 +335,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // Assert
             Assert.Equal(expectedResult, actualResult);
             Assert.Equal(expectedStatusCode, actualStatusCode);
-            Assert.True(storedInstance.InstanceState.IsDeleted);
-            Assert.False(storedInstance.InstanceState.IsMarkedForHardDelete);
+            Assert.True(storedInstance.Inbox.Deleted.HasValue);
+            /// todo Assert.False(storedInstance.Inbox.MarkedForHardDelete.HasValue);
 
             // Cleanup
             await this.DeleteInstance(instance);
@@ -369,7 +366,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // Assert
             Assert.Equal(expectedResult, actualResult);
             Assert.Equal(expectedStatusCode, actualStatusCode);
-            Assert.True(storedInstance.InstanceState.IsMarkedForHardDelete);
+            /// todo Assert.True(storedInstance.Inbox.MarkedForHardDelete);
 
             // Cleanup
             await this.DeleteInstance(instance);

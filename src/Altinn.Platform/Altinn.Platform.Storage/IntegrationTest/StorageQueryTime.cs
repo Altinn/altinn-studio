@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using Altinn.Platform.Storage.Client;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Clients;
+using Altinn.Platform.Storage.Interface.Models;
 using Serilog;
 using Serilog.Core;
 

@@ -5,6 +5,7 @@ namespace Altinn.Platform.Storage.Repository
     using System.Linq;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Configuration;
+    using Altinn.Platform.Storage.Interface.Models;
     using Altinn.Platform.Storage.Models;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;

@@ -1,26 +1,26 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Enums;
+using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Repository;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Azure.Documents;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Net.Http.Headers;
+
 namespace Altinn.Platform.Storage.Controllers
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Security.Claims;
-    using System.Threading.Tasks;
-    using Altinn.Platform.Storage.Helpers;
-    using Altinn.Platform.Storage.Models;
-    using Altinn.Platform.Storage.Repository;
-    using global::Storage.Interface.Enums;
-    using global::Storage.Interface.Models;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Http.Features;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.AspNetCore.WebUtilities;
-    using Microsoft.Azure.Documents;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Primitives;
-    using Microsoft.Net.Http.Headers;
-
     /// <summary>
     /// api for managing the an instance's data elements
     /// </summary>
@@ -138,7 +138,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 DataElement data = instance.Data.Find(element => element.Id == dataIdString);
 
-                if (string.Equals(data.StorageUrl, storageFileName))
+                if (string.Equals(data.BlobStoragePath, storageFileName))
                 {
                     try
                     {
@@ -231,7 +231,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return appErrorMessage;
             }
 
-            if (!appInfo.ElementTypes.Exists(e => e.Id == elementType))
+            if (!appInfo.DataTypes.Exists(e => e.Id == elementType))
             {
                 return BadRequest("Requested element type is not declared in application metadata");
             }
@@ -253,7 +253,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 // store file as blob
-                newData.FileSize = await _dataRepository.WriteDataToStorage(theStream, newData.StorageUrl);
+                newData.FileSize = await _dataRepository.WriteDataToStorage(theStream, newData.BlobStoragePath);
 
                 // update instance
                 Instance result = await _instanceRepository.Update(instance);
@@ -309,11 +309,11 @@ namespace Altinn.Platform.Storage.Controllers
 
                 string storageFileName = DataElementHelper.DataFileName(instance.AppId, instanceGuid.ToString(), dataIdString);
 
-                if (string.Equals(data.StorageUrl, storageFileName))
+                if (string.Equals(data.BlobStoragePath, storageFileName))
                 {
                     DateTime updateTime = DateTime.UtcNow;
 
-                    DataElement updatedData = GetDataElementFromRequest(Request, data.ElementType, instance, out Stream theStream);
+                    DataElement updatedData = GetDataElementFromRequest(Request, data.DataType, instance, out Stream theStream);
 
                     if (theStream == null)
                     {
@@ -326,9 +326,9 @@ namespace Altinn.Platform.Storage.Controllers
                     data.ContentType = updatedData.ContentType;
                     data.FileName = updatedData.FileName;
                     data.LastChangedBy = User.Identity.Name;
-                    data.LastChangedDateTime = changedTime;
+                    data.LastChanged = changedTime;
 
-                    instance.LastChangedDateTime = changedTime;
+                    instance.LastChanged = changedTime;
                     instance.LastChangedBy = User.Identity.Name;
 
                     // store file as blob
@@ -480,14 +480,17 @@ namespace Altinn.Platform.Storage.Controllers
         {
             InstanceEvent instanceEvent = new InstanceEvent
             {
-                AuthenticationLevel = 0, // update when authentication is turned on
                 EventType = eventType,
                 InstanceId = instance.Id,
                 DataId = dataElement.Id,
-                InstanceOwnerId = instance.InstanceOwnerId,
-                UserId = 0, // update when authentication is turned on
+                InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
+                User = new PlatformUser
+                {
+                    UserId = 0, // update when authentication is turned on
+                    AuthenticationLevel = 0, // update when authentication is turned on
+                },                
                 ProcessInfo = instance.Process,
-                CreatedDateTime = DateTime.UtcNow,
+                Created = DateTime.UtcNow,
             };
 
             await instanceEventRepository.InsertInstanceEvent(instanceEvent);

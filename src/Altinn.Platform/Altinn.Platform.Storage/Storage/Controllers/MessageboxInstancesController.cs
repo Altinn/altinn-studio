@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Enums;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
-using Storage.Interface.Enums;
 using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -183,25 +183,27 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, $"Unknown database exception in restore: {dce}");
             }
 
-            if (instance.InstanceState.IsMarkedForHardDelete)
+            if (instance.Inbox.HardDeleted.HasValue)
             {
-                return BadRequest("Instance was permanently deleted and cannot be restored.");
+                return BadRequest("Instance was permanently deleted an connot be restored.");
             }
-            else if (instance.InstanceState.IsDeleted)
-            {
-                instance.InstanceState.IsDeleted = false;
+            else if (instance.Inbox.SoftDeleted.HasValue)
+            {               
                 instance.LastChangedBy = User.Identity.Name;
-                instance.LastChangedDateTime = DateTime.UtcNow;
-                instance.InstanceState.DeletedDateTime = null;
+                instance.LastChanged = DateTime.UtcNow;
+                instance.Inbox.SoftDeleted = null;
 
                 InstanceEvent instanceEvent = new InstanceEvent
                 {
-                    CreatedDateTime = DateTime.UtcNow,
-                    AuthenticationLevel = 0, // update when authentication is turned on
+                    Created = DateTime.UtcNow,
                     EventType = InstanceEventType.Undeleted.ToString(),
                     InstanceId = instance.Id,
-                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
-                    UserId = 0, // update when authentication is turned on
+                    InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
+                    User = new PlatformUser
+                    {
+                        UserId = 0, // update when authentication is turned on
+                        AuthenticationLevel = 0, // update when authentication is turned on
+                    }
                 };
 
                 try
@@ -251,19 +253,31 @@ namespace Altinn.Platform.Storage.Controllers
                 return StatusCode(500, $"Unknown exception in delete: {e}");
             }
 
-            instance.InstanceState.IsDeleted = true;
-            instance.InstanceState.IsMarkedForHardDelete = hard;
+            DateTime now = DateTime.UtcNow;
+
+            if (hard)
+            {
+                instance.Inbox.HardDeleted = now;
+            }
+            else
+            {
+                instance.Inbox.SoftDeleted = now;
+            }
+
             instance.LastChangedBy = User.Identity.Name;
-            instance.LastChangedDateTime = instance.InstanceState.DeletedDateTime = DateTime.UtcNow;
+            instance.LastChanged = now;
 
             InstanceEvent instanceEvent = new InstanceEvent
             {
-                CreatedDateTime = DateTime.UtcNow,
-                AuthenticationLevel = 0, // update when authentication is turned on
+                Created = DateTime.UtcNow,
                 EventType = InstanceEventType.Deleted.ToString(),
                 InstanceId = instance.Id,
-                InstanceOwnerId = instance.InstanceOwnerId.ToString(),
-                UserId = 0, // update when authentication is turned on
+                InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
+                User = new PlatformUser
+                {
+                    UserId = 0, // update when authentication is turned on
+                    AuthenticationLevel = 0, // update when authentication is turned on
+                },
             };
 
             try

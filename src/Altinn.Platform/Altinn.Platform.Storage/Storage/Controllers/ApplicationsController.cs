@@ -2,16 +2,16 @@ namespace Altinn.Platform.Storage.Controllers
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
+
     using System.Net;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
-    using Altinn.Platform.Storage.Helpers;
-    using Altinn.Platform.Storage.Models;
+    using Altinn.Platform.Storage.Interface.Models;
     using Altinn.Platform.Storage.Repository;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Azure.Documents;
     using Microsoft.Extensions.Logging;
+    using DataType = Altinn.Platform.Storage.Interface.Models.DataType;
 
     /// <summary>
     /// Provides operations for handling application metadata
@@ -146,27 +146,27 @@ namespace Altinn.Platform.Storage.Controllers
             application.Id = appId;
             application.Org = org;
             application.CreatedBy = User.Identity.Name;
-            application.CreatedDateTime = creationTime;
+            application.Created = creationTime;
             application.LastChangedBy = User.Identity.Name;
-            application.LastChangedDateTime = creationTime;
+            application.LastChanged = creationTime;
             if (application.ValidFrom == null)
             {
                 application.ValidFrom = creationTime;
             }
 
-            if (application.ElementTypes == null || application.ElementTypes.Count == 0)
+            if (application.DataTypes == null || application.DataTypes.Count == 0)
             {
-                application.ElementTypes = new List<ElementType>();
+                application.DataTypes = new List<DataType>();
 
-                ElementType form = new ElementType()
+                DataType form = new DataType()
                 {
                     Id = "default",
-                    AllowedContentType = new List<string>(),
+                    AllowedContentTypes = new List<string>(),
                 };
-                form.AllowedContentType.Add("text/xml");
-                form.AllowedContentType.Add("application/xml");
+                form.AllowedContentTypes.Add("text/xml");
+                form.AllowedContentTypes.Add("application/xml");
 
-                application.ElementTypes.Add(form);
+                application.DataTypes.Add(form);
             }
 
             try
@@ -254,15 +254,15 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             existingApplication.LastChangedBy = User.Identity.Name;
-            existingApplication.LastChangedDateTime = DateTime.UtcNow;
+            existingApplication.LastChanged = DateTime.UtcNow;
 
             existingApplication.VersionId = application.VersionId;
             existingApplication.ValidTo = application.ValidTo;
             existingApplication.ValidFrom = application.ValidFrom;
             existingApplication.Title = application.Title;
-            existingApplication.WorkflowId = application.WorkflowId;
+            existingApplication.ProcessId = application.ProcessId;
             existingApplication.MaxSize = application.MaxSize;
-            existingApplication.ElementTypes = application.ElementTypes;
+            existingApplication.DataTypes = application.DataTypes;
             if (existingApplication.PartyTypesAllowed == null)
             {
                 existingApplication.PartyTypesAllowed = new PartyTypesAllowed();
@@ -321,7 +321,7 @@ namespace Altinn.Platform.Storage.Controllers
                     DateTime timestamp = DateTime.UtcNow;
 
                     application.LastChangedBy = User.Identity.Name;
-                    application.LastChangedDateTime = timestamp;
+                    application.LastChanged = timestamp;
                     application.ValidTo = timestamp;
 
                     Application softDeleteApplication = await repository.Update(application);

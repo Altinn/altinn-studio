@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Storage.Interface.Models;
 using Xunit;
 

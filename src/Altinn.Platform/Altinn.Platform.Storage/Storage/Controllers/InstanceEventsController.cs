@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
@@ -40,7 +41,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Missing parameter values: instance event must exist and instanceId must be set");
             }
 
-            instanceEvent.CreatedDateTime = DateTime.UtcNow;
+            instanceEvent.Created = DateTime.UtcNow;
 
             InstanceEvent result = await _repository.InsertInstanceEvent(instanceEvent);
             if (result == null)
