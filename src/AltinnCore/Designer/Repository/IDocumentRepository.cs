@@ -9,7 +9,7 @@ namespace AltinnCore.Designer.Repository
     /// <summary>
     /// Interface
     /// </summary>
-    public interface IDocumentDbRepository
+    public interface IDocumentRepository
     {
         /// <summary>
         /// Creates a item of a specific T in item db

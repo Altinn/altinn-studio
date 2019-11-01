@@ -13,9 +13,9 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Designer.Repository
 {
     /// <summary>
-    /// Implementation of IDocumentDbRepository
+    /// Implementation of IDocumentRepository
     /// </summary>
-    public abstract class DocumentRepository : IDocumentDbRepository
+    public abstract class DocumentRepository : IDocumentRepository
     {
         private readonly IDocumentClient _documentClient;
         private readonly string _collection;
