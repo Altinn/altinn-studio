@@ -229,7 +229,7 @@ public class PDFGenerator {
     String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().getSimpleBinding(), this.formData);
     float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width - 2*textFieldMargin, leading);
     yPoint -= rectHeight;
-    PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight); // trick to get actual rect height
+    PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight);
     widget.setRectangle(rect);
     // Sets border color
     PDAppearanceCharacteristicsDictionary fieldAppearance
