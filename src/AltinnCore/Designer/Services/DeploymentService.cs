@@ -25,8 +25,8 @@ namespace AltinnCore.Designer.Services
     {
         private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
         private readonly ISourceControl _sourceControl;
-        private readonly ReleaseDbRepository _releaseDbRepository;
-        private readonly DeploymentDbRepository _deploymentDbRepository;
+        private readonly ReleaseRepository _releaseRepository;
+        private readonly DeploymentRepository _deploymentRepository;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly IApplicationMetadataService _applicationMetadataService;
@@ -41,14 +41,14 @@ namespace AltinnCore.Designer.Services
             IAzureDevOpsBuildService azureDevOpsBuildService,
             IHttpContextAccessor httpContextAccessor,
             ISourceControl sourceControl,
-            ReleaseDbRepository releaseDbRepository,
-            DeploymentDbRepository deploymentDbRepository,
+            ReleaseRepository releaseRepository,
+            DeploymentRepository deploymentRepository,
             IApplicationMetadataService applicationMetadataService)
         {
             _azureDevOpsBuildService = azureDevOpsBuildService;
             _sourceControl = sourceControl;
-            _releaseDbRepository = releaseDbRepository;
-            _deploymentDbRepository = deploymentDbRepository;
+            _releaseRepository = releaseRepository;
+            _deploymentRepository = deploymentRepository;
             _applicationMetadataService = applicationMetadataService;
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _httpContext = httpContextAccessor.HttpContext;
@@ -76,7 +76,7 @@ namespace AltinnCore.Designer.Services
                 Started = queuedBuild.StartTime
             };
 
-            return await _deploymentDbRepository.CreateAsync(deploymentEntity);
+            return await _deploymentRepository.CreateAsync(deploymentEntity);
         }
 
         /// <inheritdoc/>
@@ -84,7 +84,7 @@ namespace AltinnCore.Designer.Services
         {
             query.App = _app;
             query.Org = _org;
-            IEnumerable<DeploymentEntity> results = await _deploymentDbRepository.GetAsync<DeploymentEntity>(query);
+            IEnumerable<DeploymentEntity> results = await _deploymentRepository.GetAsync<DeploymentEntity>(query);
             return new SearchResults<DeploymentEntity>
             {
                 Results = results
@@ -102,7 +102,7 @@ namespace AltinnCore.Designer.Services
                     new SqlParameter("@buildId", deployment.Build.Id),
                 }
             };
-            IEnumerable<DeploymentEntity> deploymentDocuments = await _deploymentDbRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec);
+            IEnumerable<DeploymentEntity> deploymentDocuments = await _deploymentRepository.GetWithSqlAsync<DeploymentEntity>(sqlQuerySpec);
             DeploymentEntity deploymentEntity = deploymentDocuments.Single();
 
             deploymentEntity.Build.Status = deployment.Build.Status;
@@ -110,13 +110,13 @@ namespace AltinnCore.Designer.Services
             deploymentEntity.Build.Started = deployment.Build.Started;
             deploymentEntity.Build.Finished = deployment.Build.Finished;
 
-            await _deploymentDbRepository.UpdateAsync(deploymentEntity);
+            await _deploymentRepository.UpdateAsync(deploymentEntity);
         }
 
         private async Task<ReleaseEntity> GetSucceededReleaseFromDb(DeploymentEntity deploymentEntity)
         {
             SqlQuerySpec sqlQuerySpec = CreateSqlQueryToGetSucceededRelease(deploymentEntity);
-            IEnumerable<ReleaseEntity> releases = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
+            IEnumerable<ReleaseEntity> releases = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
             return releases.Single();
         }
 

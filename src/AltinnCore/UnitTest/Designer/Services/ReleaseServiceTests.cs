@@ -22,7 +22,7 @@ namespace AltinnCore.UnitTest.Designer.Services
     public class ReleaseServiceTests
     {
         private readonly ReleaseService _sut;
-        private readonly Mock<ReleaseDbRepository> _releaseDbRepoMock;
+        private readonly Mock<ReleaseRepository> _releaseDbRepoMock;
         private readonly Mock<IAzureDevOpsBuildService> _azureDevOpsBuildServiceMock;
         private readonly Mock<ISourceControl> _sourceControlMock;
         private readonly Mock<IGitea> _giteaWrapperMock;
@@ -32,7 +32,7 @@ namespace AltinnCore.UnitTest.Designer.Services
         /// </summary>
         public ReleaseServiceTests()
         {
-            _releaseDbRepoMock = new Mock<ReleaseDbRepository>();
+            _releaseDbRepoMock = new Mock<ReleaseRepository>();
             _azureDevOpsBuildServiceMock = new Mock<IAzureDevOpsBuildService>();
             _sourceControlMock = new Mock<ISourceControl>();
             _giteaWrapperMock = new Mock<IGitea>();

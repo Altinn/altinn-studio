@@ -26,7 +26,7 @@ namespace AltinnCore.Designer.Services
     /// </summary>
     public class ReleaseService : IReleaseService
     {
-        private readonly ReleaseDbRepository _releaseDbRepository;
+        private readonly ReleaseRepository _releaseRepository;
         private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
         private readonly ISourceControl _sourceControl;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
@@ -37,20 +37,20 @@ namespace AltinnCore.Designer.Services
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="releaseDbRepository">Document db repository</param>
+        /// <param name="releaseRepository">Document db repository</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildService">IAzureDevOpsBuildService</param>
         /// <param name="sourceControl">ISourceControl</param>
         /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
         public ReleaseService(
-            ReleaseDbRepository releaseDbRepository,
+            ReleaseRepository releaseRepository,
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildService azureDevOpsBuildService,
             ISourceControl sourceControl,
             IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions)
         {
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
-            _releaseDbRepository = releaseDbRepository;
+            _releaseRepository = releaseRepository;
             _azureDevOpsBuildService = azureDevOpsBuildService;
             _sourceControl = sourceControl;
             _httpContext = httpContextAccessor.HttpContext;
@@ -86,7 +86,7 @@ namespace AltinnCore.Designer.Services
                 Started = queuedBuild.StartTime
             };
 
-            return await _releaseDbRepository.CreateAsync(release);
+            return await _releaseRepository.CreateAsync(release);
         }
 
         /// <inheritdoc/>
@@ -94,7 +94,7 @@ namespace AltinnCore.Designer.Services
         {
             query.Org = _org;
             query.App = _app;
-            IEnumerable<ReleaseEntity> results = await _releaseDbRepository.GetAsync<ReleaseEntity>(query);
+            IEnumerable<ReleaseEntity> results = await _releaseRepository.GetAsync<ReleaseEntity>(query);
             return new SearchResults<ReleaseEntity>
             {
                 Results = results
@@ -112,7 +112,7 @@ namespace AltinnCore.Designer.Services
                     new SqlParameter("@buildId", release.Build.Id),
                 }
             };
-            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
+            IEnumerable<ReleaseEntity> releaseDocuments = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
             ReleaseEntity releaseEntity = releaseDocuments.Single();
 
             releaseEntity.Build.Status = release.Build.Status;
@@ -120,13 +120,13 @@ namespace AltinnCore.Designer.Services
             releaseEntity.Build.Started = release.Build.Started;
             releaseEntity.Build.Finished = release.Build.Finished;
 
-            await _releaseDbRepository.UpdateAsync(releaseEntity);
+            await _releaseRepository.UpdateAsync(releaseEntity);
         }
 
         private async Task ValidateUniquenessOfRelease(ReleaseEntity release)
         {
             SqlQuerySpec sqlQuery = CreateSqlQueryForUniqueness(release);
-            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseDbRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuery);
+            IEnumerable<ReleaseEntity> existingReleaseEntity = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuery);
             if (existingReleaseEntity.Any())
             {
                 throw new HttpRequestWithStatusException("A release with the same properties already exist.")

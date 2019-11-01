@@ -15,7 +15,7 @@ namespace AltinnCore.Designer.Repository
     /// <summary>
     /// Implementation of IDocumentDbRepository
     /// </summary>
-    public abstract class DocumentDbRepository : IDocumentDbRepository
+    public abstract class DocumentRepository : IDocumentDbRepository
     {
         private readonly IDocumentClient _documentClient;
         private readonly string _collection;
@@ -25,7 +25,7 @@ namespace AltinnCore.Designer.Repository
         /// <summary>
         /// Constructor
         /// </summary>
-        protected DocumentDbRepository(
+        protected DocumentRepository(
             string collectionName,
             IOptions<AzureCosmosDbSettings> options,
             IDocumentClient documentClient)

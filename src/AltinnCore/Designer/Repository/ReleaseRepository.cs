@@ -6,17 +6,17 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Designer.Repository
 {
     /// <summary>
-    /// DeploymentDbRepository
+    /// ReleaseRepository
     /// </summary>
-    public class DeploymentDbRepository : DocumentDbRepository
+    public class ReleaseRepository : DocumentRepository
     {
         /// <summary>
-        /// DeploymentDbRepository
+        /// Constructor
         /// </summary>
-        public DeploymentDbRepository(
+        public ReleaseRepository(
             IOptions<AzureCosmosDbSettings> options,
             IDocumentClient documentClient)
-            : base(options.Value.DeploymentCollection, options, documentClient)
+            : base(options.Value.ReleaseCollection, options, documentClient)
         {
         }
     }

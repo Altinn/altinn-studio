@@ -35,8 +35,8 @@ namespace AltinnCore.Designer.Infrastructure
 
                 return documentClient;
             });
-            services.AddTransient<ReleaseDbRepository>();
-            services.AddTransient<DeploymentDbRepository>();
+            services.AddTransient<ReleaseRepository>();
+            services.AddTransient<DeploymentRepository>();
 
             return services;
         }
