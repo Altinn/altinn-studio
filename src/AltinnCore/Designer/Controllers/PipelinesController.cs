@@ -29,10 +29,9 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets a build status from Azure DevOps and updates a specific entity
         /// </summary>
-        /// <returns>Created release</returns>
         [HttpPost("checkreleasebuildstatus")]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult> CheckReleaseStatus(
+        public async Task<IActionResult> CheckReleaseStatus(
             [FromBody] AzureDevOpsWebHookEventModel model,
             [FromServices] IReleaseService releaseService)
         {
@@ -61,10 +60,9 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets a build status from Azure DevOps and updates a specific entity
         /// </summary>
-        /// <returns>Created release</returns>
         [HttpPost("checkdeploymentbuildstatus")]
         [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
-        public async Task<ActionResult> CheckDeploymentStatus(
+        public async Task<IActionResult> CheckDeploymentStatus(
             AzureDevOpsWebHookEventModel model,
             [FromServices] IDeploymentService deploymentService)
         {
