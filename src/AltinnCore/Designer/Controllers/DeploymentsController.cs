@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller for creating, getting and updating deployments
+    /// Controller for creating and getting deployments
     /// </summary>
     [ApiController]
     [Authorize]
