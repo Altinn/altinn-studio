@@ -2,6 +2,7 @@ package altinn.platform.pdf.utils;
 
 import altinn.platform.pdf.models.TextResourceElement;
 import altinn.platform.pdf.models.TextResources;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ public class TextUtils {
    * @param text the text
    * @return the the height needed to fit the text
    */
-  public static float getHeightNeededForText(String text, PDFont font, float fontSize, float width, float leading) throws IOException {
+  public static float getHeightNeededForText(String text, PDFont font, float fontSize, float width) throws IOException {
     float fontHeight = getFontHeight(font, fontSize);
     if (text == null || text.length() == 0) {
       return fontHeight;
@@ -44,8 +45,8 @@ public class TextUtils {
     int numberOfLines = lines.size();
     float heightNeeded = numberOfLines * fontHeight;
     if (lines.size() > 1) {
-      float leadingDiff = (leading - fontHeight);
-      heightNeeded += ((numberOfLines - 1) * leadingDiff);
+      // https://stackoverflow.com/a/17202929
+      heightNeeded += ((numberOfLines - 1) * fontHeight * 0.865);
     }
     return heightNeeded;
 }
@@ -61,7 +62,7 @@ public class TextUtils {
    * @throws IOException
    */
   public static float getHeightNeededForTextBox(String text, PDFont font, float fontSize, float width, float leading) throws IOException {
-    float textHeight = getHeightNeededForText(text, font, fontSize, width, leading);
+    float textHeight = getHeightNeededForText(text, font, fontSize, width);
     float leadingDiff = (leading - fontSize);
     return textHeight + leadingDiff*2;
   }
@@ -95,7 +96,7 @@ public class TextUtils {
             lastSpace = spaceIndex;
           }
           subString = lineInText.substring(0, lastSpace);
-          float subStringWidth = fontSize * font.getStringWidth(subString) / 1000;
+          float subStringWidth = getStringWidth(subString, font, fontSize);
           if (subStringWidth > width) {
             // the word is wider than the width, we need to split the word itself
             List<String> splittedWord = splitWordToFitWidth(subString, font, fontSize, width);
@@ -128,7 +129,7 @@ public class TextUtils {
    * @return the height
    */
   public static float getFontHeight(PDFont font, float fontSize) {
-    return font.getFontDescriptor().getFontBoundingBox().getHeight() / 1000 * fontSize;
+    return (font.getFontDescriptor().getCapHeight() / 1000 * fontSize);
   }
 
   /***

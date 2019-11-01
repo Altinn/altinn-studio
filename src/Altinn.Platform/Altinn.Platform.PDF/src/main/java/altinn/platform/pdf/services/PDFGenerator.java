@@ -11,6 +11,7 @@ import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
@@ -37,6 +38,7 @@ public class PDFGenerator {
   private float fontSize = 10;
   private float headerFontSize = 14;
   private float leading = 1.2f * fontSize;
+  private float textBoxMargin = 5;
   private PDFont font;
   private PDFont fontBold;
   private TextResources textResources;
@@ -83,7 +85,7 @@ public class PDFGenerator {
     fontBold = PDType1Font.HELVETICA_BOLD;
     resources.put(COSName.getPDFName("Helv"), font);
     form.setDefaultResources(resources);
-    String defaultAppearance = "/Helv 10 Tf 0 0 1 rg";
+    String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
     form.setDefaultAppearance(defaultAppearance);
     document.getDocumentCatalog().setAcroForm(form);
 
@@ -222,15 +224,12 @@ public class PDFGenerator {
     String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
     textField.setDefaultAppearance(defaultAppearance);
     textField.setReadOnly(true);
-
     this.form.getFields().add(textField);
     PDAnnotationWidget widget = textField.getWidgets().get(0);
     String value = FormDataUtils.getFormDataByKey(element.getDataModelBindings().getSimpleBinding(), this.formData);
-    float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width, leading);
+    float rectHeight = TextUtils.getHeightNeededForTextBox(value, font, fontSize, width - 2*textFieldMargin, leading);
+    yPoint -= rectHeight;
     PDRectangle rect = new PDRectangle(xPoint, yPoint, width, rectHeight);
-    float actualHeight = rect.getHeight();
-    yPoint -= actualHeight;
-    rect = new PDRectangle(xPoint, yPoint, width, rectHeight); // trick to get actual rect height
     widget.setRectangle(rect);
     // Sets border color
     PDAppearanceCharacteristicsDictionary fieldAppearance
@@ -241,7 +240,7 @@ public class PDFGenerator {
     // adds rect around widget and ands to page
     widget.setPage(currentPage);
     currentPage.getAnnotations().add(widget);
-    if (TextUtils.splitTextToLines(value, font, fontSize, width).size() > 1) {
+    if (TextUtils.splitTextToLines(value, font, fontSize, width - 2*textBoxMargin).size() > 1) {
       textField.setMultiline(true);
     }
     textField.setDoNotScroll(true);
