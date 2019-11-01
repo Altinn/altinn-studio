@@ -24,7 +24,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// api for managing the an instance's data elements
     /// </summary>
-    [Route("storage/api/v1/instances/{instanceOwnerId:int}/{instanceGuid:guid}/data")]
+    [Route("storage/api/v1/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     [ApiController]
     public class DataController : ControllerBase
     {
@@ -64,17 +64,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceGuid">the instance owning the data element</param>
         /// <param name="dataId">the instance of the data element</param>
-        /// <param name="instanceOwnerId">the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">the owner of the instance</param>
         /// <returns>the data element</returns>
         [HttpDelete("{dataId:guid}")]
-        public async Task<IActionResult> Delete(Guid instanceGuid, Guid dataId, int instanceOwnerId)
+        public async Task<IActionResult> Delete(Guid instanceGuid, Guid dataId, int instanceOwnerPartyId)
         {
             _logger.LogInformation($"//DataController // Delete // Starting method");
 
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             // check if instance id exist and user is allowed to change the instance data
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
             if (instance == null)
             {
                 return NotFound("Provided instanceId is unknown to storage service");
@@ -104,27 +104,26 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Save the data element
+        /// Save the data element.
         /// </summary>
-        /// <param name="instanceOwnerId">the instance owner id (an integer)</param>
+        /// <param name="instanceOwnerPartyId">the instance owner id (an integer)</param>
         /// <param name="instanceGuid">the instanceId</param>
         /// <param name="dataId">the data id</param>
         /// <returns>The data file as an asyncronous streame</returns>
         /// <returns>If the request was successful or not</returns>
-        // GET /instances/{instanceId}/data/{dataId}
         [HttpGet("{dataId:guid}")]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        public async Task<IActionResult> Get(int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public async Task<IActionResult> Get(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
-            if (instanceOwnerId == 0)
+            if (instanceOwnerPartyId == 0)
             {
-                return BadRequest("Missing parameter value: instanceOwnerId can not be empty");
+                return BadRequest("Missing parameter value: instanceOwnerPartyId can not be empty");
             }
 
             // check if instance id exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId, instanceOwnerId, out ActionResult errorResult);
+            Instance instance = GetInstance(instanceId, instanceOwnerPartyId, out ActionResult errorResult);
             if (instance == null)
             {
                 return errorResult;
@@ -164,22 +163,22 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Returns a list of data elements of an instance.
         /// </summary>
-        /// <param name="instanceOwnerId">the instance owner id (an integer)</param>
+        /// <param name="instanceOwnerPartyId">the instance owner id (an integer)</param>
         /// <param name="instanceGuid">the guid of the instance</param>
         /// <returns>The list of data elements</returns>
         /// <!-- GET /instances/{instanceId}/data -->
         [HttpGet]
-        public async Task<IActionResult> GetMany(int instanceOwnerId, Guid instanceGuid)
+        public async Task<IActionResult> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
-            if (instanceOwnerId == 0)
+            if (instanceOwnerPartyId == 0)
             {
-                return BadRequest("Missing parameter value: instanceOwnerId can not be empty");
+                return BadRequest("Missing parameter value: instanceOwnerPartyId can not be empty");
             }
 
             // check if instance id exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId, instanceOwnerId, out ActionResult errorResult);
+            Instance instance = GetInstance(instanceId, instanceOwnerPartyId, out ActionResult errorResult);
             if (instance == null)
             {
                 return errorResult;
@@ -200,25 +199,25 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Create and save the data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
         /// <param name="elementType">the element type to upload data for</param>
         /// <returns>If the request was successful or not</returns>
-        /// <!-- POST /instances/{instanceOwnerId}/{instanceGuid}/data?elementType={elementType} -->
+        /// <!-- POST /instances/{instanceOwnerPartyId}/{instanceGuid}/data?elementType={elementType} -->
         [HttpPost]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerId, Guid instanceGuid, string elementType)
+        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerPartyId, Guid instanceGuid, string elementType)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
-            if (instanceOwnerId == 0 || string.IsNullOrEmpty(elementType) || Request.Body == null)
+            if (instanceOwnerPartyId == 0 || string.IsNullOrEmpty(elementType) || Request.Body == null)
             {
                 return BadRequest("Missing parameter values: instanceId, elementType or attached file content cannot be null");
             }
 
             // check if instance exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId, instanceOwnerId, out ActionResult errorMessage);
+            Instance instance = GetInstance(instanceId, instanceOwnerPartyId, out ActionResult errorMessage);
             if (instance == null)
             {
                 return errorMessage;
@@ -272,24 +271,24 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Update and save data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
         /// <param name="dataId">the dataId to upload data to</param>
         /// <returns>If the request was successful or not</returns>
-        /// <!-- PUT /instances/{instanceOwnerId}/instanceGuid}/data/{dataId} -->
+        /// <!-- PUT /instances/{instanceOwnerPartyId}/instanceGuid}/data/{dataId} -->
         [HttpPut("{dataId}")]
         [DisableFormValueModelBinding]
-        public async Task<IActionResult> OverwriteData(int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        public async Task<IActionResult> OverwriteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
-            if (instanceOwnerId == 0 || Request.Body == null)
+            if (instanceOwnerPartyId == 0 || Request.Body == null)
             {
                 return BadRequest("Missing parameter values: instanceId, datafile or attached file content cannot be empty");
             }
 
             // check if instance id exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId, instanceOwnerId, out ActionResult errorMessage);
+            Instance instance = GetInstance(instanceId, instanceOwnerPartyId, out ActionResult errorMessage);
             if (instance == null)
             {
                 return errorMessage;
@@ -447,7 +446,7 @@ namespace Altinn.Platform.Storage.Controllers
             return null;
         }
 
-        private Instance GetInstance(string instanceId, int instanceOwnerId, out ActionResult errorMessage)
+        private Instance GetInstance(string instanceId, int instanceOwnerPartyId, out ActionResult errorMessage)
         {
             // check if instance id exist and user is allowed to change the instance data
             Instance instance;
@@ -455,7 +454,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             try
             {
-                instance = _instanceRepository.GetOne(instanceId, instanceOwnerId).Result;
+                instance = _instanceRepository.GetOne(instanceId, instanceOwnerPartyId).Result;
 
                 return instance;
             }

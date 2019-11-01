@@ -10,7 +10,7 @@ namespace Altinn.Platform.Storage.UnitTest
 {
     public static class TestData
     {
-        public static string InstanceOwnerId_1 = "50000000";
+        public static string InstanceOwnerPartyId_1 = "50000000";
         public static string UserId_1 = "20000000";
 
         public static string Org_1 = "TDD";
@@ -70,11 +70,11 @@ namespace Altinn.Platform.Storage.UnitTest
         // 1st instance of application 1
         public static Instance Instance_1_1 = new Instance()
         {
-            Id = $"{InstanceOwnerId_1}/31d0941f-6d56-40a6-b4a4-b7fe18ccff30",
+            Id = $"{InstanceOwnerPartyId_1}/31d0941f-6d56-40a6-b4a4-b7fe18ccff30",
             AppId = AppId_1,
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
-            InstanceOwnerId = InstanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Inbox = new InboxState
             {
             },
@@ -99,11 +99,11 @@ namespace Altinn.Platform.Storage.UnitTest
         // 2nd instance of application 1
         public static Instance Instance_1_2 = new Instance()
         {
-            Id = $"{InstanceOwnerId_1}/c6b37e02-14eb-43a9-852c-a3d3aeffcb44",
+            Id = $"{InstanceOwnerPartyId_1}/c6b37e02-14eb-43a9-852c-a3d3aeffcb44",
             AppId = AppId_1,
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwnerId = InstanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Inbox = new InboxState
             { 
             },
@@ -116,11 +116,11 @@ namespace Altinn.Platform.Storage.UnitTest
         // 1st instance of application 2
         public static Instance Instance_2_1 = new Instance()
         {
-            Id = $"{InstanceOwnerId_1}/d851287a-8c7a-4cf1-91ca-7d216c1336c4",
+            Id = $"{InstanceOwnerPartyId_1}/d851287a-8c7a-4cf1-91ca-7d216c1336c4",
             AppId = AppId_2,
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
-            InstanceOwnerId = InstanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Inbox = new InboxState
             {
             },
@@ -133,11 +133,11 @@ namespace Altinn.Platform.Storage.UnitTest
         // 2nd instance of application 2
         public static Instance Instance_2_2 = new Instance()
         {
-            Id = $"{InstanceOwnerId_1}/96cc315c-c8cc-4775-b81a-5cf134f00df1",
+            Id = $"{InstanceOwnerPartyId_1}/96cc315c-c8cc-4775-b81a-5cf134f00df1",
             AppId = AppId_2,
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
-            InstanceOwnerId = InstanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Inbox = new InboxState()
             {
             },
@@ -150,11 +150,11 @@ namespace Altinn.Platform.Storage.UnitTest
         // 1st instance of application 3
         public static Instance Instance_3_1 = new Instance()
         {
-            Id = $"{InstanceOwnerId_1}/83d87ad9-52a3-44de-aacd-ce79d55ef1f4",
+            Id = $"{InstanceOwnerPartyId_1}/83d87ad9-52a3-44de-aacd-ce79d55ef1f4",
             AppId = AppId_3,
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
-            InstanceOwnerId = InstanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Inbox = new InboxState()
             {
             },
@@ -168,11 +168,11 @@ namespace Altinn.Platform.Storage.UnitTest
         // 2nd instance of application 3
         public static Instance Instance_3_2 = new Instance()
         {
-            Id = $"{InstanceOwnerId_1}/dc489d27-6bf5-437b-95eb-de79c3a20b89",
+            Id = $"{InstanceOwnerPartyId_1}/dc489d27-6bf5-437b-95eb-de79c3a20b89",
             AppId = AppId_3,
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
-            InstanceOwnerId = InstanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
             Inbox = new InboxState()
             {
             },

@@ -23,7 +23,8 @@ namespace Altinn.Platform.Storage.Repository
         private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
         private readonly string databaseId;
-        private readonly string collectionId;
+        private readonly string collectionId = "instances";
+        private readonly string partitionKey = "/instanceOwner.PartyId";
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
         private readonly ILogger<InstanceRepository> logger;
@@ -51,11 +52,11 @@ namespace Altinn.Platform.Storage.Repository
             _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, _cosmosettings.Collection);
             databaseId = _cosmosettings.Database;
-            collectionId = _cosmosettings.Collection;
+
             _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
 
-            DocumentCollection documentCollection = new DocumentCollection { Id = _cosmosettings.Collection };
-            documentCollection.PartitionKey.Paths.Add("/instanceOwnerId");
+            DocumentCollection documentCollection = new DocumentCollection { Id = collectionId };
+            documentCollection.PartitionKey.Paths.Add(partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 _databaseUri,
@@ -89,7 +90,7 @@ namespace Altinn.Platform.Storage.Repository
             ResourceResponse<Document> instance = await _client
                 .DeleteDocumentAsync(
                     uri.ToString(),
-                    new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
+                    new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwner.PartyId) });
 
             return true;
         }
@@ -183,24 +184,24 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
                             break;
 
-                        case "instanceOwnerId":
-                            queryBuilder = queryBuilder.Where(i => i.InstanceOwnerId == queryValue);
+                        case "instanceOwner.partyId":
+                            queryBuilder = queryBuilder.Where(i => i.InstanceOwner.PartyId == queryValue);
                             break;
 
-                        case "lastChangedDateTime":
+                        case "lastChanged":
                             queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
                             break;
 
-                        case "dueDateTime":
-                            queryBuilder = QueryBuilderForDueDateTime(queryBuilder, queryValue);
+                        case "dueBefore":
+                            queryBuilder = QueryBuilderForDueBefore(queryBuilder, queryValue);
                             break;
 
-                        case "visibleDateTime":
-                            queryBuilder = QueryBuilderForVisibleDateTime(queryBuilder, queryValue);
+                        case "inbox.visibleAfter":
+                            queryBuilder = QueryBuilderForVisibleAfter(queryBuilder, queryValue);
                             break;
 
-                        case "createdDateTime":
-                            queryBuilder = QueryBuilderForCreatedDateTime(queryBuilder, queryValue);
+                        case "created":
+                            queryBuilder = QueryBuilderForCreated(queryBuilder, queryValue);
                             break;
 
                         case "process.currentTask":
@@ -221,7 +222,7 @@ namespace Altinn.Platform.Storage.Repository
 
                             break;
 
-                        case "labels":
+                        case "appOwner.labels":
                             foreach (string label in queryValue.Split(","))
                             {
                                 queryBuilder = queryBuilder.Where(i => i.AppOwner.Labels.Contains(label));
@@ -236,7 +237,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForDueDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        private IQueryable<Instance> QueryBuilderForDueBefore(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
@@ -314,7 +315,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForCreatedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        private IQueryable<Instance> QueryBuilderForCreated(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
@@ -353,7 +354,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForVisibleDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        private IQueryable<Instance> QueryBuilderForVisibleAfter(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
@@ -397,7 +398,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> GetOne(string instanceId, int instanceOwnerId)
+        public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
             string cosmosId = InstanceIdToCosmosId(instanceId);
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosId);
@@ -405,7 +406,7 @@ namespace Altinn.Platform.Storage.Repository
             Instance instance = await _client
                 .ReadDocumentAsync<Instance>(
                     uri,
-                    new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
+                    new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
 
             PostProcess(instance);
 
@@ -413,19 +414,19 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerId)
+        public async Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerPartyId)
         {
-            string instanceOwnerIdString = instanceOwnerId.ToString();
+            string instanceOwnerPartyIdString = instanceOwnerPartyId.ToString();
 
             FeedOptions feedOptions = new FeedOptions
             {
-                PartitionKey = new PartitionKey(instanceOwnerIdString),
+                PartitionKey = new PartitionKey(instanceOwnerPartyIdString),
                 MaxItemCount = 100,
             };
 
             IQueryable<Instance> filter = _client
                 .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                .Where(i => i.InstanceOwnerId == instanceOwnerIdString);
+                .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString);
 
             IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
 
@@ -439,14 +440,14 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerId, string instanceState)
+        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
         {
             List<Instance> instances = new List<Instance>();
-            string instanceOwnerIdString = instanceOwnerId.ToString();
+            string instanceOwnerPartyIdString = instanceOwnerPartyId.ToString();
 
             FeedOptions feedOptions = new FeedOptions
             {
-                PartitionKey = new PartitionKey(instanceOwnerIdString)
+                PartitionKey = new PartitionKey(instanceOwnerPartyIdString)
             };
 
             IQueryable<Instance> filter = null;
@@ -454,23 +455,26 @@ namespace Altinn.Platform.Storage.Repository
             if (instanceState.Equals("active"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                         .Where(i => (!i.Inbox.VisibleAfter.HasValue || i.Inbox.VisibleAfter <= DateTime.UtcNow))
-                        .Where(i => !i.Inbox.Deleted.HasValue)
+                        .Where(i => !i.Inbox.SoftDeleted.HasValue)
+                        .Where(i => !i.Inbox.HardDeleted.HasValue)
                         .Where(i => !i.Inbox.Archived.HasValue);
             }
             else if (instanceState.Equals("deleted"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => i.Inbox.Deleted.HasValue);
+                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
+                        .Where(i => i.Inbox.SoftDeleted.HasValue)
+                        .Where(i => i.Inbox.HardDeleted.HasValue);
             }
             else if (instanceState.Equals("archived"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                       .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
+                       .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
                        .Where(i => i.Inbox.Archived.HasValue)
-                       .Where(i => !i.Inbox.Deleted.HasValue);
+                       .Where(i => !i.Inbox.SoftDeleted.HasValue)
+                       .Where(i => !i.Inbox.HardDeleted.HasValue);
             }
             else
             {
@@ -504,7 +508,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Converts the instanceId (id) of the instance from {instanceOwnerId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
+        /// Converts the instanceId (id) of the instance from {instanceOwnerPartyId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
         private void PreProcess(Instance instance)
@@ -513,12 +517,12 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerId}/{instanceGuid} to be used outside cosmos.
+        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
         private void PostProcess(Instance instance)
         {
-            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
+            instance.Id = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
         }
 
         /// <summary>

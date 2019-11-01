@@ -52,15 +52,15 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Gets all instances for a given instance owner.
         /// </summary>
-        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceOwnerPartyId">the instance owner party id</param>
         /// <returns>list of instances</returns>
-        [HttpGet("{instanceOwnerId:int}")]
-        public async Task<ActionResult> GetInstanceOwners(int instanceOwnerId)
+        [HttpGet("{instanceOwnerPartyId:int}")]
+        public async Task<ActionResult> GetInstanceOwners(int instanceOwnerPartyId)
         {
-            List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerId);
+            List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerPartyId);
             if (result == null || result.Count == 0)
             {
-                return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
+                return NotFound($"Did not find any instances for instanceOwnerPartyId={instanceOwnerPartyId}");
             }
 
             result.ForEach(i => AddSelfLinks(Request, i));
@@ -75,14 +75,13 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="appId">application id</param>
         /// <param name="currentTaskId">running process current task id</param>
         /// <param name="processIsComplete">is process complete</param>
-        /// <param name="processIsInError">is process in error</param>
-        /// <param name="processEndState">process end state</param>
-        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="processEndEvent">process end state</param>
+        /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="labels">labels</param>
-        /// <param name="lastChangedDateTime">last changed date</param>
-        /// <param name="createdDateTime">created time</param>
-        /// <param name="visibleDateTime">the visible date time</param>
-        /// <param name="dueDateTime">the due date time</param>
+        /// <param name="lastChanged">last changed date</param>
+        /// <param name="created">created time</param>
+        /// <param name="visibleAfter">the visible after date time</param>
+        /// <param name="dueBefore">the due before date time</param>
         /// <param name="continuationToken">continuation token</param>
         /// <param name="size">the page size</param>
         /// <returns>list of all instances for given instanceowner</returns>
@@ -93,14 +92,13 @@ namespace Altinn.Platform.Storage.Controllers
             string appId,
             [FromQuery(Name = "process.currentTask")] string currentTaskId,
             [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
-            [FromQuery(Name = "process.isInError")] bool? processIsInError,
-            [FromQuery(Name = "process.endState")] string processEndState,
-            [FromQuery] int? instanceOwnerId,
-            [FromQuery] string labels,
-            [FromQuery] string lastChangedDateTime,
-            [FromQuery] string createdDateTime,
-            [FromQuery] string visibleDateTime,
-            [FromQuery] string dueDateTime,
+            [FromQuery(Name = "process.endEvent")] string processEndEvent,
+            [FromQuery(Name = "instanceOwner.partyId")] int? instanceOwnerPartyId,
+            [FromQuery(Name = "appOwner.labels")] string labels,
+            [FromQuery] string lastChanged,
+            [FromQuery] string created,
+            [FromQuery(Name = "inbox.visibleAfter")] string visibleAfter,
+            [FromQuery] string dueBefore,
             string continuationToken,
             int? size)
         {
@@ -234,18 +232,18 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Gets an instance for a given instance id.
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner id.</param>
+        /// <param name="instanceOwnerPartyId">instance owner id.</param>
         /// <param name="instanceGuid">the guid of the instance.</param>
         /// <returns>an instance.</returns>
-        [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid)
+        [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> Get(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance result;
             try
             {
-                result = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+                result = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
                 AddSelfLinks(Request, result);
 
@@ -278,7 +276,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (string.IsNullOrWhiteSpace(instance.InstanceOwner.PartyId))
             {
-                return BadRequest("Cannot create an instance without an instanceOwnerId.");
+                return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
             }
 
             Instance storedInstance = new Instance();
@@ -311,19 +309,19 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Updates an instance
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
         /// <param name="instance">instance</param>
         /// <returns>The updated instance</returns>
-        [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> Put(int instanceOwnerId, Guid instanceGuid, [FromBody] Instance instance)
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> Put(int instanceOwnerPartyId, Guid instanceGuid, [FromBody] Instance instance)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance existingInstance;
             try
             {
-                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
             }
             catch (Exception e)
             {
@@ -361,19 +359,18 @@ namespace Altinn.Platform.Storage.Controllers
         /// Delete an instance
         /// </summary>
         /// <param name="instanceGuid">instance id</param>
-        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="hard">if true hard delete will take place</param>
         /// <returns>updated instance object</returns>
-        /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}
-        [HttpDelete("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerId, bool? hard)
+        [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerPartyId, bool? hard)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance;
             try
             {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
             }
             catch (DocumentClientException dce)
             {

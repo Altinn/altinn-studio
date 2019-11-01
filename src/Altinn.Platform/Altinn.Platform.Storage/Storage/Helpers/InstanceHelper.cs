@@ -31,7 +31,7 @@ namespace Altinn.Platform.Storage.Helpers
                     CreatedDateTime = (visibleAfter != null && visibleAfter > instance.Created) ? (DateTime)visibleAfter : instance.Created,
                     DueDateTime = instance.DueBefore,
                     Id = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id,
-                    InstanceOwnerId = instance.InstanceOwnerId,
+                    InstanceOwnerId = instance.InstanceOwner.PartyId,
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
@@ -40,9 +40,9 @@ namespace Altinn.Platform.Storage.Helpers
                     AuthorizedForWrite = true,
                     AllowDelete = true,
                     AllowNewCopy = false,
-                    DeletedDateTime = inbox.Deleted,
+                    DeletedDateTime = inbox.SoftDeleted,
                     ArchivedDateTime = inbox.Archived,
-                    DeleteStatus = inbox.Deleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
+                    DeleteStatus = inbox.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
                 });               
             }
 
