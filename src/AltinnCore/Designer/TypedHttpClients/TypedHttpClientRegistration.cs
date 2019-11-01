@@ -27,7 +27,7 @@ namespace AltinnCore.Designer.TypedHttpClients
         /// </summary>
         /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
         /// <param name="config">The Microsoft.Extensions.Configuration.IConfiguration for </param>
-        /// <returns></returns>
+        /// <returns>IServiceCollection</returns>
         public static IServiceCollection RegisterTypedHttpClients(this IServiceCollection services, IConfiguration config)
         {
             services.AddTransient<EnsureSuccessHandler>();
