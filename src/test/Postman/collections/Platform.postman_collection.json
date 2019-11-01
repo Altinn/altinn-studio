@@ -1358,6 +1358,7 @@
 											"    {\r",
 											"        pm.environment.set('dataId',jsonData.data[0].id);\r",
 											"    }\r",
+											"    pm.expect(jsonData.data[0].refs.length).to.equal(1);\r",
 											"});"
 										],
 										"type": "text/javascript"
@@ -1381,7 +1382,7 @@
 									}
 								},
 								"url": {
-									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=attachment",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=attachment&refs={{dataId}}",
 									"protocol": "https",
 									"host": [
 										"platform",
@@ -1400,6 +1401,10 @@
 										{
 											"key": "elementType",
 											"value": "attachment"
+										},
+										{
+											"key": "refs",
+											"value": "{{dataId}}"
 										}
 									]
 								}
@@ -1834,70 +1839,6 @@
 					"_postman_isSubFolder": true
 				},
 				{
-					"name": "CleanUp",
-					"item": [
-						{
-							"name": "DELETE App Instance by Id",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
-										"exec": [
-											"pm.test(\"Platform - Storage - Instance - Delete Instance - Status - 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"    pm.expect(pm.response.text()).equal('true');\r",
-											"});\r",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "Content-Type",
-										"name": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
-								},
-								"url": {
-									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
-									"protocol": "https",
-									"host": [
-										"platform",
-										"{{envUrl}}"
-									],
-									"path": [
-										"storage",
-										"api",
-										"v1",
-										"instances",
-										"{{instanceOwnerId}}",
-										"{{instanceId}}"
-									],
-									"query": [
-										{
-											"key": "hard",
-											"value": "true"
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					],
-					"protocolProfileBehavior": {},
-					"_postman_isSubFolder": true
-				},
-				{
 					"name": "SBL",
 					"item": [
 						{
@@ -2294,7 +2235,10 @@
 									"script": {
 										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
 										"exec": [
-											""
+											"pm.test(\"Platform - Storage - Instance - Delete Instance - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    pm.expect(pm.response.text()).equal('true');\r",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -2430,6 +2374,175 @@
 										"{{instanceOwnerId}}",
 										"{{instanceId}}",
 										"undelete"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "CleanUp",
+					"item": [
+						{
+							"name": "GET Instances by InstanceOwnerID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+										"exec": [
+											"if (pm.response.code == 200)",
+											"{",
+											"    var jsonData = pm.response.json();",
+											"    var instanceCount = jsonData.length;",
+											"    if (instanceCount !== 0)",
+											"    {",
+											"        var instanceId = jsonData[0].id;",
+											"        instanceId = instanceId.split('/');",
+											"        instanceId = instanceId[1];",
+											"        pm.environment.set('instanceId', instanceId);",
+											"    }",
+											"    else",
+											"    {",
+											"        postman.setNextRequest(\"DELETE App\");",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/hal+json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "CleanUp App instances",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}"
+									],
+									"query": [
+										{
+											"key": "hard",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check for more instances",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+										"exec": [
+											"if (pm.response.code == 200)",
+											"    {",
+											"    var jsonData = pm.response.json();",
+											"    var instanceCount = jsonData.length;",
+											"    if (instanceCount !== 0)",
+											"    {",
+											"        var instanceId = jsonData[0].id;",
+											"        instanceId = instanceId.split('/');",
+											"        instanceId = instanceId[1];",
+											"        pm.environment.set('instanceId', instanceId);",
+											"        postman.setNextRequest(\"CleanUp App instances\");",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/hal+json"
+									}
+								],
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}"
 									]
 								}
 							},
