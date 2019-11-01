@@ -35,20 +35,20 @@ public class LayoutUtils {
     TextResourceBindings textResourceBindings = element.getTextResourceBindings();
     if (textResourceBindings.getTitle() != null && !textResourceBindings.getTitle().isEmpty()) {
       String title = TextUtils.getTextResourceByKey(textResourceBindings.getTitle(), textResources);
-      height += TextUtils.getHeightNeededForText(title, font, fontSize, width, leading);
+      height += TextUtils.getHeightNeededForText(title, font, fontSize, width);
       height += textMargin;
     }
 
     if (textResourceBindings.getDescription() != null && !textResourceBindings.getDescription().isEmpty()) {
       String description = TextUtils.getTextResourceByKey(textResourceBindings.getDescription(), textResources);
-      height += TextUtils.getHeightNeededForText(description, font, fontSize, width, leading);
+      height += TextUtils.getHeightNeededForText(description, font, fontSize, width);
       height += textMargin;
     }
 
     if (element.getType().equalsIgnoreCase("fileupload")) {
       List<String> lines = InstanceUtils.getAttachmentsByComponentId(element.getId(), instance);
       for (String line: lines) {
-        height += TextUtils.getHeightNeededForText(line, font, fontSize, width, leading);
+        height += TextUtils.getHeightNeededForText(line, font, fontSize, width);
         height += (leading - fontSize);
       }
     } else {

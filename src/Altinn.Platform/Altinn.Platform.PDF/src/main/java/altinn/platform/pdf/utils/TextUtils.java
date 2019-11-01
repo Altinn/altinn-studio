@@ -36,7 +36,7 @@ public class TextUtils {
    * @param text the text
    * @return the the height needed to fit the text
    */
-  public static float getHeightNeededForText(String text, PDFont font, float fontSize, float width, float leading) throws IOException {
+  public static float getHeightNeededForText(String text, PDFont font, float fontSize, float width) throws IOException {
     float fontHeight = getFontHeight(font, fontSize);
     if (text == null || text.length() == 0) {
       return fontHeight;
@@ -62,7 +62,7 @@ public class TextUtils {
    * @throws IOException
    */
   public static float getHeightNeededForTextBox(String text, PDFont font, float fontSize, float width, float leading) throws IOException {
-    float textHeight = getHeightNeededForText(text, font, fontSize, width, leading);
+    float textHeight = getHeightNeededForText(text, font, fontSize, width);
     float leadingDiff = (leading - fontSize);
     return textHeight + leadingDiff*2;
   }
@@ -91,13 +91,13 @@ public class TextUtils {
         }
         String subString = lineInText.substring(0, spaceIndex);
         float stringWidth = getStringWidth(subString, font, fontSize);
-        if (stringWidth >= width) {
+        if (stringWidth > width) {
           if (lastSpace < 0) {
             lastSpace = spaceIndex;
           }
           subString = lineInText.substring(0, lastSpace);
           float subStringWidth = getStringWidth(subString, font, fontSize);
-          if (subStringWidth >= width) {
+          if (subStringWidth > width) {
             // the word is wider than the width, we need to split the word itself
             List<String> splittedWord = splitWordToFitWidth(subString, font, fontSize, width);
             for (String line: splittedWord) {
