@@ -122,7 +122,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 InstanceId = testInstanceId,
                 EventType = "deleted",
-                InstanceOwnerId = "12346",
+                InstanceOwnerPartyId = "12346",
                 User = new PlatformUser
                 {
                     UserId = 0,
@@ -142,7 +142,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 InstanceId = testInstanceId,
                 EventType = "submited",
-                InstanceOwnerId = "12346",
+                InstanceOwnerPartyId = "12346",
                 User = new PlatformUser
                 {
                     UserId = 0,
@@ -162,7 +162,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 InstanceId = testInstanceId,
                 EventType = "created",
-                InstanceOwnerId = "12346",
+                InstanceOwnerPartyId = "12346",
                 User = new PlatformUser
                 {
                     UserId = 0,

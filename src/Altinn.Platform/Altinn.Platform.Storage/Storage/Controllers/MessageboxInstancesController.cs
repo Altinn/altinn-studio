@@ -185,7 +185,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (instance.Inbox.HardDeleted.HasValue)
             {
-                return BadRequest("Instance was permanently deleted an connot be restored.");
+                return BadRequest("Instance was permanently deleted and cannot be restored.");
             }
             else if (instance.Inbox.SoftDeleted.HasValue)
             {               
@@ -254,6 +254,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             DateTime now = DateTime.UtcNow;
+
+            instance.Inbox ??= new InboxState();
 
             if (hard)
             {

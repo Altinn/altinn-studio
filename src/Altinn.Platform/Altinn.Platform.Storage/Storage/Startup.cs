@@ -52,14 +52,6 @@ namespace Altinn.Platform.Storage
                 services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
             }
 
-            // Need to find out how to add hal with .net core 3.0, is used in IntergrationTest
-            // Add HAL support (Halcyon)
-            /*services.AddMvc().AddMvcOptions(c =>
-            {
-                //c.OutputFormatters.RemoveType<NewtonsoftJsonOutputFormatter>();
-                //c.OutputFormatters.Add(new JsonHalOutputFormatter(new string[] { "application/hal+json" }));
-            });*/
-
             // Add Swagger support (Swashbuckle)
             services.AddSwaggerGen(c =>
             {
@@ -68,6 +60,7 @@ namespace Altinn.Platform.Storage
                 try
                 {
                     c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                    c.IncludeXmlComments("Altinn.Platform.Storage.Interface.xml");
                 }
                 catch
                 {
@@ -103,11 +96,12 @@ namespace Altinn.Platform.Storage
                 // app.UseHsts();
             }
 
-            app.UseSwagger();
+            app.UseSwagger(o => o.RouteTemplate = "storage/swagger/{documentName}/swagger.json");
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("v1/swagger.json", "Altinn Platform Storage API");
+                c.SwaggerEndpoint("/storage/swagger/v1/swagger.json", "Altinn Platform Storage API");
+                c.RoutePrefix = "storage/swagger";
             });
 
             // app.UseHttpsRedirection();

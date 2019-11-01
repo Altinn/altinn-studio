@@ -93,7 +93,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Instance instanceData = new Instance
             {
                 AppId = testAppId,
-                InstanceOwnerId = testInstanceOwnerId.ToString(),
+                InstanceOwner = new InstanceOwner { PartyId = testInstanceOwnerId.ToString() },
             };
 
             string url = $"{versionPrefix}/instances?appId={testAppId}";         
@@ -116,7 +116,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.Equal(createdInstance.Id, actual.Id);
 
-            Assert.Equal(testInstanceOwnerId.ToString(), actual.InstanceOwnerId);
+            Assert.Equal(testInstanceOwnerId.ToString(), actual.InstanceOwner.PartyId);
             Assert.Equal(testAppId, actual.AppId);
         }
 
@@ -230,7 +230,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Instance instance2 = await storageClient.PostDataReadFromFile(instance.Id, "binary_file.pdf", "application/pdf");
             
-            string dataId = instance2.Data.Find(m => m.ElementType.Equals("default")).Id;
+            string dataId = instance2.Data.Find(m => m.DataType.Equals("default")).Id;
 
             string requestUri = $"{versionPrefix}/instances/{instance2.Id}/data/{dataId}";
             
@@ -260,7 +260,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Instance instance2 = await storageClient.PostDataReadFromFile(instance.Id, "image.png", "image/png");
 
-            string dataId = instance2.Data.Find(m => m.ElementType.Equals("default")).Id;
+            string dataId = instance2.Data.Find(m => m.DataType.Equals("default")).Id;
 
             string requestUri = $"{versionPrefix}/instances/{instance2.Id}/data/{dataId}";
 
@@ -290,7 +290,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             
             instance = await storageClient.PostDataReadFromFile(instance.Id, "binary_file.pdf", "application/pdf");
             
-            string dataId = instance.Data.Find(m => m.ElementType.Equals("default")).Id;
+            string dataId = instance.Data.Find(m => m.DataType.Equals("default")).Id;
 
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataId}";
             
@@ -323,7 +323,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             instance = await storageClient.PostDataReadFromFile(instance.Id, "binary_file.pdf", "application/pdf");
 
-            string dataId = instance.Data.Find(m => m.ElementType.Equals("default")).Id;
+            string dataId = instance.Data.Find(m => m.DataType.Equals("default")).Id;
 
             string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataId}";
 

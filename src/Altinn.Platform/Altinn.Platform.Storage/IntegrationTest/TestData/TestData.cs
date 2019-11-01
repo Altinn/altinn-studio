@@ -9,7 +9,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// </summary>
     public class TestData
     {
-        private static string instanceOwnerId_1 = "50000000";
+        private static string instanceOwnerPartyId_1 = "50000000";
         private static string userId_1 = "20000000";
 
         private static string org_1 = "TDD";
@@ -72,7 +72,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Inbox = new InboxState(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = org_1,
@@ -97,7 +98,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Inbox = new InboxState
+            {
+                Archived = DateTime.UtcNow,
+            },
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
@@ -110,7 +115,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Inbox = new InboxState
+            {
+                Archived = DateTime.UtcNow,
+                SoftDeleted = DateTime.UtcNow,
+            },
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
@@ -123,7 +133,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             AppId = AppId_1,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Inbox = new InboxState
+            {
+                Archived = DateTime.UtcNow,
+                SoftDeleted = DateTime.UtcNow,
+                HardDeleted = DateTime.UtcNow,
+            },
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
@@ -136,7 +152,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             AppId = AppId_2,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Inbox = new InboxState
+            {
+            },
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_1,
@@ -149,7 +168,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             AppId = AppId_2,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Inbox = new InboxState(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = org_1,
@@ -162,7 +182,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             AppId = AppId_3,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Inbox = new InboxState(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_2,
@@ -174,7 +195,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             AppId = AppId_3,
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Inbox = new InboxState(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_2,
@@ -200,9 +222,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Gets instance owner id for all test instances
         /// </summary>
         /// <returns></returns>
-        public string GetInstanceOwnerId()
+        public string GetInstanceOwnerPartyId()
         {
-            return instanceOwnerId_1.ToString();
+            return instanceOwnerPartyId_1.ToString();
         }
 
         /// <summary>

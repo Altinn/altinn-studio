@@ -23,7 +23,7 @@ namespace Altinn.Platform.Storage.Helpers
 
             InstanceClient instanceClient = new InstanceClient(client);
 
-            string[] processTaskIds = { "FormFilling_1", "Submit_1", null };
+            string[] processTaskIds = { "Data_1", "Submit_1", null };
             string[] processEndStateIds = { "EndEvent_1", "ErrorEvent_1", null };
 
             Random randomInt = new Random();
@@ -71,7 +71,7 @@ namespace Altinn.Platform.Storage.Helpers
                 {
                     Org = testOrg,
                     AppId = testAppId,
-                    InstanceOwnerId = (i + 1000).ToString(),
+                    InstanceOwner = new InstanceOwner { PartyId = (i + 1000).ToString() },
                     Process = processState,
                     LastChanged = lastChangedDate,
                     Created = creationDate,

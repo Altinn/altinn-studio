@@ -136,16 +136,17 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
-                HALResponse response = new HALResponse(result);
+                QueryResponse<Instance> response = new QueryResponse<Instance>
+                {
+                    Instances = result.Instances,
+                    Count = result.Instances.Count,
+                    TotalHits = result.TotalHits.Value,
+                };
 
                 if (continuationToken == null)
                 {
                     string selfUrl = $"{host}{url}{query}";
-
-                    result.Self = selfUrl;
-
-                    Link selfLink = new Link("self", selfUrl);
-                    response.AddLinks(selfLink);
+                    response.Self = selfUrl;
                 }
                 else
                 {
@@ -156,10 +157,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                     string selfUrl = $"{host}{url}{selfQueryString}";
 
-                    result.Self = selfUrl;
-
-                    Link selfLink = new Link("self", selfUrl);
-                    response.AddLinks(selfLink);
+                    response.Self = selfUrl;
                 }
 
                 if (nextContinuationToken != null)
@@ -171,26 +169,11 @@ namespace Altinn.Platform.Storage.Controllers
 
                     string nextUrl = $"{host}{url}{nextQueryString}";
 
-                    result.Next = nextUrl;
-
-                    Link nextLink = new Link("next", nextUrl);
-                    response.AddLinks(nextLink);
+                    response.Next = nextUrl;
                 }
 
                 // add self links to platform
                 result.Instances.ForEach(i => AddSelfLinks(Request, i));
-
-                StringValues acceptHeader = Request.Headers["Accept"];
-                if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
-                {
-                    /* Response object should be expressed as HAL (Hypertext Application Language) with _embedded and _links.
-                     * Thus we reset the response object's inline instances, next and self elements.*/
-
-                    response.AddEmbeddedCollection("instances", result.Instances);
-                    result.Instances = null;
-                    result.Next = null;
-                    result.Self = null;
-                }
 
                 return Ok(response);
             }
@@ -434,7 +417,7 @@ namespace Altinn.Platform.Storage.Controllers
                 Inbox = new InboxState
                 {
                     VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.Inbox?.VisibleAfter),
-                    Title = instanceTemplate.Inbox.Title,
+                    Title = instanceTemplate.Inbox?.Title,
                 },
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 AppOwner = new ApplicationOwnerState

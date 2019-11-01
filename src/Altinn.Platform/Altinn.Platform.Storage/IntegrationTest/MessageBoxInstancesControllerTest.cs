@@ -31,7 +31,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private static DocumentClient _client;
         private AzureCosmosSettings _cosmosSettings = new AzureCosmosSettings()
         {
-            Collection = "Instance",
+            Collection = "instances",
             Database = "ServiceEngine",
             EndpointUri = "https://localhost:8081",
             PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
@@ -66,7 +66,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         public void Dispose()
         {
-            string requestUri = $"{versionPrefix}/instances?instanceOwnerId={testdata.GetInstanceOwnerId()}";
+            string requestUri = $"{versionPrefix}/instances?instanceOwnerId={testdata.GetInstanceOwnerPartyId()}";
 
             HttpResponseMessage response = client.GetAsync(requestUri).Result;
             string content = response.Content.ReadAsStringAsync().Result;
@@ -116,7 +116,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string expectedTitle = "Test applikasjon 3 bokmål";
 
             // Act
-            HttpResponseMessage response = await client.GetAsync($"{versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerId()}?state=active");
+            HttpResponseMessage response = await client.GetAsync($"{versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerPartyId()}?state=active");
             string responseJson = await response.Content.ReadAsStringAsync();
             List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseJson);
 
@@ -146,7 +146,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string expectedTitle = "Test application 2 english";
 
             // Act
-            HttpResponseMessage response = await client.GetAsync($"{versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerId()}?state=active&language=en");
+            HttpResponseMessage response = await client.GetAsync($"{versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerPartyId()}?state=active&language=en");
             string responseJson = await response.Content.ReadAsStringAsync();
             List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseJson);
 
@@ -179,7 +179,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int expectedCount = 1;
 
             // Act
-            HttpResponseMessage response = await client.GetAsync($"{versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerId()}?state=archived");
+            HttpResponseMessage response = await client.GetAsync($"{versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerPartyId()}?state=archived");
             string responseJson = await response.Content.ReadAsStringAsync();
             List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseJson);
 
@@ -222,7 +222,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
             // Act
-            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}/undelete", null);
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}/undelete", null);
             HttpStatusCode actualStatusCode = response.StatusCode;
             string responseJson = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
@@ -249,7 +249,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string expectedMsg = "Instance was permanently deleted and cannot be restored.";
 
             // Act
-            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}/undelete", null);
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}/undelete", null);
             string actualMgs = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             HttpStatusCode actualStatusCode = response.StatusCode;
 
@@ -275,7 +275,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             bool expectedResult = true;
 
             // Act
-            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}/undelete", null);
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}/undelete", null);
             HttpStatusCode actualStatusCode = response.StatusCode;
             string responseJson = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
@@ -298,11 +298,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             // Arrange
             string instanceId = Guid.NewGuid().ToString();
-            string expectedMsg = $"Didn't find the object that should be restored with instanceId={testdata.GetInstanceOwnerId()}/{instanceId}";
+            string expectedMsg = $"Didn't find the object that should be restored with instanceId={testdata.GetInstanceOwnerPartyId()}/{instanceId}";
             HttpStatusCode expectedStatusCode = HttpStatusCode.NotFound;
 
             // Act
-            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerId()}/{instanceId}/undelete", null);
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerPartyId()}/{instanceId}/undelete", null);
             HttpStatusCode actualStatusCode = response.StatusCode;
             string actualMgs = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
@@ -325,18 +325,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
             bool expectedResult = true;
 
             // Act
-            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}?hard=false");        
+            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}?hard=false");        
             HttpStatusCode actualStatusCode = response.StatusCode;
             string responseJson = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
 
-            Instance storedInstance = await GetInstance(instance.Id, instance.InstanceOwnerId);
+            Instance storedInstance = await GetInstance(instance.Id, instance.InstanceOwner.PartyId);
 
             // Assert
             Assert.Equal(expectedResult, actualResult);
             Assert.Equal(expectedStatusCode, actualStatusCode);
-            Assert.True(storedInstance.Inbox.Deleted.HasValue);
-            /// todo Assert.False(storedInstance.Inbox.MarkedForHardDelete.HasValue);
+            Assert.True(storedInstance.Inbox.SoftDeleted.HasValue);
+            Assert.False(storedInstance.Inbox.HardDeleted.HasValue);
 
             // Cleanup
             await this.DeleteInstance(instance);
@@ -356,17 +356,17 @@ namespace Altinn.Platform.Storage.IntegrationTest
             bool expectedResult = true;
 
             // Act
-            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwnerId}/{instance.Id}?hard=true");
+            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}?hard=true");
             HttpStatusCode actualStatusCode = response.StatusCode;
             string responseJson = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
 
-            Instance storedInstance = await GetInstance(instance.Id, instance.InstanceOwnerId);
+            Instance storedInstance = await GetInstance(instance.Id, instance.InstanceOwner.PartyId);
 
             // Assert
             Assert.Equal(expectedResult, actualResult);
             Assert.Equal(expectedStatusCode, actualStatusCode);
-            /// todo Assert.True(storedInstance.Inbox.MarkedForHardDelete);
+            Assert.True(storedInstance.Inbox.HardDeleted.HasValue);
 
             // Cleanup
             await this.DeleteInstance(instance);
