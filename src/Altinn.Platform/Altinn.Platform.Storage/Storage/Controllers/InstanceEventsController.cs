@@ -12,7 +12,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// API for managing the instance event element
     /// </summary>
-    [Route("storage/api/v1/instances/{instanceOwnerId}/{instanceGuid}/events")]
+    [Route("storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/events")]
     [ApiController]
     public class InstanceEventsController : ControllerBase
     {
@@ -55,16 +55,16 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Get one event.
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="instanceGuid">instance guid</param>
         /// <param name="eventGuid">event guid</param>
         /// <returns>the event</returns>
         [HttpGet("{eventGuid:guid}")]
-        public async Task<ActionResult> GetOne(int instanceOwnerId, Guid instanceGuid, Guid eventGuid)
+        public async Task<ActionResult> GetOne(int instanceOwnerPartyId, Guid instanceGuid, Guid eventGuid)
         {
             try
             {
-                string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+                string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
                 InstanceEvent theEvent = await _repository.GetOneEvent(instanceId, eventGuid);
                 if (theEvent != null)
                 {
@@ -84,7 +84,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="instanceGuid"> Id of instance to retrieve events for. </param>
         /// <param name="eventTypes">Array of event types to filter the events by.</param>
         /// <param name="from"> Lower bound for DateTime span to filter events by.</param>
@@ -98,13 +98,13 @@ namespace Altinn.Platform.Storage.Controllers
         /// -->
         [HttpGet]
         public async Task<ActionResult> Get(
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromQuery] string[] eventTypes,
             [FromQuery] string from,
             [FromQuery] string to)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             if (string.IsNullOrEmpty(instanceId))
             {
@@ -139,14 +139,14 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Deletes all events related to an instance id.
         /// </summary>
-        /// <param name="instanceOwnerId">Id of instance owner to retrieve events for. .</param>
+        /// <param name="instanceOwnerPartyId">Id of instance owner to retrieve events for. .</param>
         /// <param name="instanceGuid">Guid of the instance</param>
         /// <returns>Number of deleted events.</returns>
         /// DELETE storage/api/v1/instances/{instanceId}/events
         [HttpDelete]
-        public async Task<ActionResult> Delete(int instanceOwnerId, Guid instanceGuid)
+        public async Task<ActionResult> Delete(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             if (string.IsNullOrEmpty(instanceId))
             {

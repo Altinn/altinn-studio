@@ -42,12 +42,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Gets all instances in a given state for a given instance owner.
         /// </summary>
-        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceOwnerPartyId">the instance owner id</param>
         /// <param name="state">the instance state; active, archived or deleted</param>
         /// <param name="language"> language nb, en, nn-NO</param>
         /// <returns>list of instances</returns>
-        [HttpGet("{instanceOwnerId:int}")]
-        public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerId, [FromQuery] string state, [FromQuery] string language)
+        [HttpGet("{instanceOwnerPartyId:int}")]
+        public async Task<ActionResult> GetMessageBoxInstanceList(int instanceOwnerPartyId, [FromQuery] string state, [FromQuery] string language)
         {
             string[] allowedStates = new string[] { "active", "archived", "deleted" };
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
@@ -63,11 +63,11 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerId, state);
+            List<Instance> allInstances = await _instanceRepository.GetInstancesInStateOfInstanceOwner(instanceOwnerPartyId, state);
 
             if (allInstances == null || allInstances.Count == 0)
             {
-                return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
+                return NotFound($"Did not find any instances for instanceOwner.PartyId={instanceOwnerPartyId}");
             }
 
             // TODO: authorize instances and filter list
@@ -89,12 +89,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Gets all instances in a given state for a given instance owner.
         /// </summary>
-        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceOwnerPartyId">the instance owner id</param>
         /// <param name="instanceGuid">the instance guid</param>
         /// <param name="language"> language id en, nb, nn-NO"</param>
         /// <returns>list of instances</returns>
-        [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerId, Guid instanceGuid, [FromQuery] string language)
+        [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> GetMessageBoxInstance(int instanceOwnerPartyId, Guid instanceGuid, [FromQuery] string language)
         {
             string[] acceptedLanguages = new string[] { "en", "nb", "nn-no" };
 
@@ -105,9 +105,9 @@ namespace Altinn.Platform.Storage.Controllers
                 languageId = language;
             }
 
-            string instanceId = instanceOwnerId.ToString() + "/" + instanceGuid.ToString();
+            string instanceId = instanceOwnerPartyId.ToString() + "/" + instanceGuid.ToString();
 
-            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+            Instance instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
 
             if (instance == null)
             {
@@ -128,15 +128,15 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Gets all instances in a given state for a given instance owner.
         /// </summary>
-        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceOwnerPartyId">the instance owner id</param>
         /// <param name="instanceGuid">the instance guid</param>
         /// <returns>list of instances</returns>
-        [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}/events")]
+        [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}/events")]
         public async Task<ActionResult> GetMessageBoxInstanceEvents(
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
             string[] eventTypes = new string[]
             {
                 InstanceEventType.Created.ToString(),
@@ -159,19 +159,19 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Undelete a soft deleted instance
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="instanceGuid">instance id</param>
         /// <returns>True if the instance was undeleted.</returns>
-        [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}/undelete")]
-        public async Task<ActionResult> Undelete(int instanceOwnerId, Guid instanceGuid)
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}/undelete")]
+        public async Task<ActionResult> Undelete(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance;
 
             try
             {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
             }
             catch (DocumentClientException dce)
             {
@@ -225,19 +225,19 @@ namespace Altinn.Platform.Storage.Controllers
         /// Marks an instance for deletion in storage.
         /// </summary>
         /// <param name="instanceGuid">instance id</param>
-        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="hard">if true is marked for hard delete.</param>
         /// <returns>true if instance was successfully deleted</returns>
-        /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}?hard={bool}
-        [HttpDelete("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerId, bool hard)
+        /// DELETE /instances/{instanceId}?instanceOwnerPartyId={instanceOwnerPartyId}?hard={bool}
+        [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerPartyId, bool hard)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             Instance instance;
             try
             {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
             }
             catch (DocumentClientException dce)
             {
