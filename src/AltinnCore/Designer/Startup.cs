@@ -58,11 +58,11 @@ namespace AltinnCore.Designer
 
             CreateDirectory();
 
+            services.ConfigureMvc();
             services.ConfigureSettings(Configuration);
             services.RegisterTypedHttpClients(Configuration);
             services.ConfigureAuthentication();
             services.ConfigureApplicationInsight();
-            services.ConfigureMvc();
             services.ConfigureLocalization();
             services.AddPolicyBasedAuthorization();
             
@@ -166,18 +166,11 @@ namespace AltinnCore.Designer
                               app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
+
                 endpoints.MapControllerRoute(
-                          name: "appRoute",
-                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
-                          defaults: new { controller = "Deploy" },
-                          constraints: new
-                          {
-                              controller = @"(Deploy)",
-                          });
-                endpoints.MapControllerRoute(
-                        name: "applicationMetadataApiRoute",
-                        pattern: "designer/api/v1/{org}/{app}",
-                        defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
+                       name: "applicationMetadataApiRoute",
+                       pattern: "designer/api/v1/{org}/{app}",
+                       defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
 
                 endpoints.MapControllerRoute(
                         name: "reposRoute",

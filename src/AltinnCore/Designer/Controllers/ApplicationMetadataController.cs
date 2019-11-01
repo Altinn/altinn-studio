@@ -11,7 +11,7 @@ namespace Designer.Controllers
     /// </summary>
     [ApiController]
     [Authorize]
-    [Route("/designer/api/v1/{org}/{app}/[controller]")]
+    [Route("/designer/api/v1/{org}/{app}")]
     public class ApplicationMetadataController : ControllerBase
     {
         private readonly IRepository _repository;
@@ -35,6 +35,7 @@ namespace Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The application metadata</returns>
         [HttpGet]
+        [ActionName("ApplicationMetadata")]
         public ActionResult GetApplicationMetadata(string org, string app)
         {
             Application application = _repository.GetApplication(org, app);
@@ -54,6 +55,7 @@ namespace Designer.Controllers
         /// <param name="applicationMetadata">The application metadata</param>
         /// <returns>The updated application metadata</returns>
         [HttpPut]
+        [ActionName("ApplicationMetadata")]
         public ActionResult UpdateApplicationMetadata(string org, string app, [FromBody] Application applicationMetadata)
         {
             if (_repository.UpdateApplication(org, app, applicationMetadata))
@@ -74,6 +76,7 @@ namespace Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The created application metadata</returns>
         [HttpPost]
+        [ActionName("ApplicationMetadata")]
         public ActionResult CreateApplicationMetadata(string org, string app)
         {
             if (_repository.GetApplication(org, app) != null)
