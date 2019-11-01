@@ -171,7 +171,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appOwner}}/{{appName}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+							"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1127,65 +1127,6 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "CleanUp",
-			"item": [
-				{
-					"name": "DELETE App Instance by Id",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
-						},
-						"url": {
-							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
-							"protocol": "https",
-							"host": [
-								"platform",
-								"{{envUrl}}"
-							],
-							"path": [
-								"storage",
-								"api",
-								"v1",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}"
-							],
-							"query": [
-								{
-									"key": "hard",
-									"value": "true"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
 			"name": "Multipart",
 			"item": [
 				{
@@ -1359,9 +1300,71 @@
 						}
 					},
 					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "CleanUp",
+			"item": [
+				{
+					"name": "GET Instances by InstanceOwnerID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"exec": [
+									"if (pm.response.code == 200)",
+									"{",
+									"    var jsonData = pm.response.json();",
+									"    var instanceCount = jsonData.length;",
+									"    if (instanceCount !== 0)",
+									"    {",
+									"        var instanceId = jsonData[0].id;",
+									"        instanceId = instanceId.split('/');",
+									"        instanceId = instanceId[1];",
+									"        pm.environment.set('instanceId', instanceId);",
+									"    }",
+									"    else",
+									"    {",
+									"        postman.setNextRequest(\"DELETE App\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/hal+json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}"
+							]
+						}
+					},
+					"response": []
 				},
 				{
-					"name": "DELETE App Instance by Id",
+					"name": "CleanUp App instances",
 					"event": [
 						{
 							"listen": "test",
@@ -1412,6 +1415,81 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Check for more instances",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+								"exec": [
+									"if (pm.response.code == 200)",
+									"    {",
+									"    var jsonData = pm.response.json();",
+									"    var instanceCount = jsonData.length;",
+									"    if (instanceCount !== 0)",
+									"    {",
+									"        var instanceId = jsonData[0].id;",
+									"        instanceId = instanceId.split('/');",
+									"        instanceId = instanceId[1];",
+									"        pm.environment.set('instanceId', instanceId);",
+									"        postman.setNextRequest(\"CleanUp App instances\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/hal+json"
+							}
+						],
+						"url": {
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"storage",
+								"api",
+								"v1",
+								"instances",
+								"{{instanceOwnerId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "45ab2130-e9f6-418a-a4a5-cc2d29771c5e",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "6d0848a4-075b-44d1-9be4-91036fbee672",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			],
 			"protocolProfileBehavior": {}
