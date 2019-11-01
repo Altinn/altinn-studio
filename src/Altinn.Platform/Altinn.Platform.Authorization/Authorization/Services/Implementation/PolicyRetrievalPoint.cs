@@ -7,6 +7,7 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.Helpers.Extensions;
 using Altinn.Platform.Authorization.Repositories.Interface;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
@@ -105,7 +106,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException("App was not defined");
             }
 
-            return $"{org}/{app}/policy.xacml";
+            return $"{org.AsFileName()}/{app.AsFileName()}/policy.xacml";
         }
 
         private static XacmlPolicy ParsePolicy(Stream stream)
