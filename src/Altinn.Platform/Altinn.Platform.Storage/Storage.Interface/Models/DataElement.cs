@@ -1,6 +1,6 @@
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
@@ -71,7 +71,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         public ApplicationOwnerDataState AppOwner;
 
         /// <summary>
-        /// an optional array of data element references.
+        /// an optional array of data element references
         /// </summary>
         [JsonProperty(PropertyName = "refs")]
         public List<Guid> Refs { get; set; }

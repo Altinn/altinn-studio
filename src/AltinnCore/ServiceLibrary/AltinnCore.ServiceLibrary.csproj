@@ -17,14 +17,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />      
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
     <PackageReference Include="NuGet.CommandLine" Version="4.9.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.7-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.8-alpha" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">

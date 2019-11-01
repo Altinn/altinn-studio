@@ -229,6 +229,7 @@ export class ServicesOverviewComponent extends React.Component<IServicesOverview
               >
                 <AltinnSearchInput
                   id={'service-search'}
+                  ariaLabel={getLanguageFromKey('dashboard.search_service', this.props.language)}
                   placeholder={getLanguageFromKey('dashboard.search_service', this.props.language)}
                   onChangeFunction={this.updateSearchSting}
                 />
