@@ -10,7 +10,7 @@ namespace AltinnCore.Designer.TypedHttpClients.Exceptions
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="message">A custom message for this certain message</param>
+        /// <param name="message">A custom message for this specific exception</param>
         public NotFoundHttpRequestException(string message)
             : base(message)
         {
