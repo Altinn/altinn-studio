@@ -7,7 +7,7 @@ using AltinnCore.Designer.ViewModels.Request.Enums;
 namespace AltinnCore.Designer.Repository
 {
     /// <summary>
-    /// a
+    /// Contains extension methods for IQueryable of T
     /// </summary>
     public static class QueryableExtensions
     {

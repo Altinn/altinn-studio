@@ -1,6 +1,5 @@
 using AltinnCore.Designer.Infrastructure.Models;
 using Microsoft.Azure.Documents;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Repository
