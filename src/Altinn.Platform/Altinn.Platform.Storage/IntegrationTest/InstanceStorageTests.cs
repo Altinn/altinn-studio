@@ -26,7 +26,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string testOrg = "tests";
         private string testAppId = "tests/sailor";
         private readonly int testInstanceOwnerId = 500;
-        private readonly string elementType = "default";
+        private readonly string dataType = "default";
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -123,7 +123,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that the GET returns a proper encoding.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstancesAndCheckEncoding()
         {
             await storageClient.PostInstances(testAppId, testInstanceOwnerId);
@@ -138,7 +138,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Store a json file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void StoreAForm()
         {
             object jsonContent = new
@@ -151,7 +151,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // create instance
             Instance newInstance = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
 
-            string requestUri = $"{versionPrefix}/instances/{newInstance.Id}/data?elementType={elementType}";
+            string requestUri = $"{versionPrefix}/instances/{newInstance.Id}/data?elementType={dataType}";
 
             // post the file
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
@@ -162,27 +162,28 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Store a binary file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void StoreABinaryFile()
         {
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
-            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?elementType={elementType}";
-            
-            using (Stream input = File.OpenRead("data/binary_file.pdf"))
-            {
-                HttpContent fileStreamContent = new StreamContent(input);
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
 
-                using (MultipartFormDataContent formData = new MultipartFormDataContent())
-                {
-                    formData.Add(fileStreamContent, elementType, "binary_file.pdf");
-                    HttpResponseMessage response = await client.PostAsync(requestUri, formData);
+            Stream input = new FileStream("data/binary_file.pdf", FileMode.Open); // File.OpenRead("data/binary_file.pdf");
+           
+            HttpContent fileStreamContent = new StreamContent(input);
 
-                    response.EnsureSuccessStatusCode();
-                }
-            }
+            MultipartFormDataContent formData = new MultipartFormDataContent();
+                
+            formData.Add(fileStreamContent, dataType, "binary_file.pdf");
+
+            await fileStreamContent.LoadIntoBufferAsync();
+
+            HttpResponseMessage response = await client.PostAsync(requestUri, formData);
+
+            response.EnsureSuccessStatusCode();                
         }
 
         private Application CreateTestApplication()
@@ -220,7 +221,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Read a binary file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetABinaryFile()
         {
             string applicationId = testAppId;
@@ -250,7 +251,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Read a binary file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void StoreAndGetImageFile()
         {
             string applicationId = testAppId;
@@ -280,7 +281,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  update an existing data file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void UpdateDataFile()
         {
             string applicationId = testAppId;
@@ -302,7 +303,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                 using (MultipartFormDataContent dataContent = new MultipartFormDataContent())
                 {
-                    dataContent.Add(fileStreamContent, elementType, dataFile);
+                    dataContent.Add(fileStreamContent, dataType, dataFile);
                     HttpResponseMessage response = client.PutAsync(requestUri, dataContent).Result;
 
                     response.EnsureSuccessStatusCode();
@@ -313,7 +314,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  update an existing data file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void UpdateDataFile_SetFileName()
         {
             string applicationId = testAppId;

@@ -386,6 +386,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
         /// <summary>
         ///  Queries ended time.
+        ///  </summary>        
         [Fact]
         public async void GetInstancesWithEndedProcess()
         {

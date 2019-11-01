@@ -60,6 +60,8 @@ namespace Altinn.Platform.Storage
                 try
                 {
                     c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+
+                    // hardcoded since nuget restore does not export the xml file.
                     c.IncludeXmlComments("Altinn.Platform.Storage.Interface.xml");
                 }
                 catch

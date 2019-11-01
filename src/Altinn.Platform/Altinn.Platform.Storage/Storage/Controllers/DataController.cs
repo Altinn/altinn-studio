@@ -201,17 +201,17 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
-        /// <param name="elementType">the element type to upload data for</param>
+        /// <param name="dataType">the element type to upload data for</param>
         /// <returns>If the request was successful or not</returns>
         /// <!-- POST /instances/{instanceOwnerPartyId}/{instanceGuid}/data?elementType={elementType} -->
         [HttpPost]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
-        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerPartyId, Guid instanceGuid, string elementType)
+        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerPartyId, Guid instanceGuid, string dataType)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
-            if (instanceOwnerPartyId == 0 || string.IsNullOrEmpty(elementType) || Request.Body == null)
+            if (instanceOwnerPartyId == 0 || string.IsNullOrEmpty(dataType) || Request.Body == null)
             {
                 return BadRequest("Missing parameter values: instanceId, elementType or attached file content cannot be null");
             }
@@ -230,12 +230,12 @@ namespace Altinn.Platform.Storage.Controllers
                 return appErrorMessage;
             }
 
-            if (!appInfo.DataTypes.Exists(e => e.Id == elementType))
+            if (!appInfo.DataTypes.Exists(e => e.Id == dataType))
             {
                 return BadRequest("Requested element type is not declared in application metadata");
             }
 
-            DataElement newData = GetDataElementFromRequest(Request, elementType, instance, out Stream theStream);
+            DataElement newData = GetDataElementFromRequest(Request, dataType, instance, out Stream theStream);
 
             if (theStream == null)
             {
@@ -356,7 +356,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Creates a data element by reading the first multipart element or body of the request.
         /// </summary>
-        private DataElement GetDataElementFromRequest(HttpRequest request, string elementType, Instance instance, out Stream theStream)
+        private DataElement GetDataElementFromRequest(HttpRequest request, string dataType, Instance instance, out Stream theStream)
         {
             DateTime creationTime = DateTime.UtcNow;
 
@@ -371,11 +371,19 @@ namespace Altinn.Platform.Storage.Controllers
                 MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(request.ContentType);
                 string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
 
-                MultipartReader reader = new MultipartReader(boundary, request.Body);
-                MultipartSection section = reader.ReadNextSectionAsync().Result;
+                MultipartSection section = null;
+                try
+                {
+                    MultipartReader reader = new MultipartReader(boundary, request.Body);
+                    section = reader.ReadNextSectionAsync().Result;
 
-                theStream = section.Body;
-                contentType = section.ContentType;
+                    theStream = section.Body;
+                    contentType = section.ContentType;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
 
                 bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
 
@@ -412,7 +420,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             string user = null;
 
-            DataElement newData = DataElementHelper.CreateDataElement(elementType, instance, creationTime, contentType, contentFileName, fileSize, user);
+            DataElement newData = DataElementHelper.CreateDataElement(dataType, instance, creationTime, contentType, contentFileName, fileSize, user);
 
             return newData;
         }
