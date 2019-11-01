@@ -22,7 +22,7 @@ namespace AltinnCore.Designer.Services
         /// Gets releases based on a query
         /// </summary>
         /// <param name="query">ReleaseQueryModel</param>
-        /// <returns></returns>
+        /// <returns>SearchResults of type ReleaseEntity</returns>
         Task<SearchResults<ReleaseEntity>> GetAsync(DocumentQueryModel query);
 
         /// <summary>
