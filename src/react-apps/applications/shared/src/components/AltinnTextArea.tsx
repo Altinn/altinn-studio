@@ -60,7 +60,7 @@ function AltinnTextArea(props: IAltinnTextAreaProps) {
         container={true}
         direction={'row'}
         style={{
-          width: !!widthPercentage ? `${widthPercentage}%`: '100%',
+          width: !!widthPercentage ? `${widthPercentage}%` : '100%',
         }}
       >
         <textarea
@@ -70,11 +70,11 @@ function AltinnTextArea(props: IAltinnTextAreaProps) {
         />
       </Grid>
     </Grid>
-  )
+  );
 }
 
 AltinnTextArea.defaultProps = {
   showLabel: true,
-}
+};
 
 export default withStyles(styles)(AltinnTextArea);

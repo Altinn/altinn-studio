@@ -43,7 +43,7 @@ const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
         <Typography className={classNames(classes.spinnerText)}>{props.spinnerText}</Typography>
       }
     </div>
-  )
-}
+  );
+};
 
 export default AltinnSpinner;
