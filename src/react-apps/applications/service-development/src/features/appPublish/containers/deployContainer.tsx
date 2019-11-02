@@ -73,9 +73,11 @@ export const DeployContainer = (props: IDeployContainer) => {
   }, [orgs, configuration]);
 
   React.useEffect(() => {
-    environments.map((env: any) => {
+    if (environments.length) {
       AppClusterActions.getDeploymentsStartInterval();
-    });
+    } else {
+      AppClusterActions.getDeploymentsStopInterval();
+    }
   }, [environments, appDeployments]);
 
   React.useEffect(() => {
