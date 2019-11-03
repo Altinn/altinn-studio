@@ -123,7 +123,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
@@ -133,6 +132,22 @@ namespace AltinnCore.Runtime
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddResponseCompression();
+            services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
+                {
+                    IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                    IConfigurationSection serviceRepSettings = Configuration.GetSection("ServiceRepositorySettings");
+                    string uriString = serviceRepSettings["ApiEndPoint"];
+                    Uri uri = new Uri(uriString + "/");
+                    httpClient.BaseAddress = uri;
+                    httpClient.DefaultRequestHeaders.Add(
+                        General.AuthorizationTokenHeaderName,
+                        AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
+                })
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                    new HttpClientHandler
+                    {
+                        AllowAutoRedirect = true
+                    });
 
             string repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
