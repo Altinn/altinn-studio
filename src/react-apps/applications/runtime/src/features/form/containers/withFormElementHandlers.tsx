@@ -7,6 +7,7 @@ import { IRuntimeState } from '../../../types';
 import { IComponentValidations } from '../../../types/global';
 import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } from '../layout';
+import { Grid, Popper } from '@material-ui/core';
 
 export interface IProvidedProps {
   id: string;
@@ -25,8 +26,22 @@ export interface IProps extends IProvidedProps {
   textResources: any[];
 }
 
+export interface IState {
+  helpIconRef: React.RefObject<HTMLDivElement>;
+  openPopover: boolean;
+}
+
 export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
-  class FormComponentWithHandlers extends React.Component<IProps> {
+  class FormComponentWithHandlers extends React.Component<IProps, IState> {
+    constructor(props: IProps) {
+      super(props);
+
+      this.state = {
+        helpIconRef: !!props.textResourceBindings.help ? React.createRef() : null,
+        openPopover: false,
+      }
+    }
+
     public renderLabel = (): JSX.Element => {
       if (this.props.type === 'Header' ||
         this.props.type === 'Paragraph' ||
@@ -67,6 +82,36 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       return null;
     }
 
+    public renderHelpText = (): JSX.Element => {
+      if (!!this.props.textResourceBindings.help) {
+        const { helpIconRef } = this.state;
+        return (
+          <i
+            className={'fa fa-circlecheck'}
+            tabIndex={0}
+            onFocus={this.openHelpPopover}
+            onBlur={this.closeHelpPopover}
+            onMouseEnter={this.openHelpPopover}
+            onMouseLeave={this.closeHelpPopover}
+            ref={helpIconRef}
+          />
+        );
+      }
+      return null;
+    }
+
+    public openHelpPopover = (): void => {
+      this.setState({
+        openPopover: true,
+      });
+    }
+
+    public closeHelpPopover = (): void => {
+      this.setState({
+        openPopover: false,
+      });
+    }
+
     public handleDataUpdate = (data: any) => this.props.handleDataUpdate(data);
 
     public getTextResource = (resourceKey: string): string => {
@@ -75,6 +120,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     }
 
     public render(): JSX.Element {
+      const { helpIconRef, openPopover } = this.state;
       const { id, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
       const validations = this.getAdressComponentValidations();
@@ -84,15 +130,47 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
 
       return (
         <>
-          {this.renderLabel()}
-          {this.renderDescription()}
-          <WrappedComponent
-            id={id}
-            text={text}
-            handleDataChange={this.handleDataUpdate}
-            {...passThroughProps}
-          />
-          {this.errorMessage()}
+          <Grid
+            container={true}
+            direction={'column'}
+          >
+            <Grid
+              container={true}
+              direction={'row'}
+              spacing={2}
+            >
+              <Grid item={true}>
+                {this.renderLabel()}
+                {this.renderDescription()}
+              </Grid>
+              <Grid item={true}>
+                {this.renderHelpText()}
+              </Grid>
+
+            </Grid>
+            <WrappedComponent
+              id={id}
+              text={text}
+              handleDataChange={this.handleDataUpdate}
+              {...passThroughProps}
+            />
+            {this.errorMessage()}
+          </Grid>
+          {!!helpIconRef ?
+            <Popper
+              anchorEl={helpIconRef.current}
+              open={openPopover}
+              placement={'bottom-start'}
+              style={{
+                backgroundColor: 'white',
+                border: '1px solid black',
+                padding: '1.2rem'
+              }}
+            >
+              {this.getTextResource(this.props.textResourceBindings.help)}
+            </Popper> :
+            null
+          }
         </>
       );
     }
