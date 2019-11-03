@@ -1,4 +1,4 @@
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../shared/src/utils/language';
 import { IFormData } from '../features/form/data/reducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
 import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
@@ -143,7 +143,11 @@ export function validateComponentFormData(
         );
       } else {
         validationErrors.push(
-          `${key}: ${dataModelFieldElement.Restrictions[key].Value}`,
+          getParsedLanguageFromKey(
+            `validation_errors.${key}`,
+            language,
+            [dataModelFieldElement.Restrictions[key].Value],
+          ),
         );
       }
     }
