@@ -451,7 +451,11 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                         {getLanguageFromKey('app_release.release_title', language)}
                         &nbsp;
                       {!!repoStatus.branch.master ?
-                          <a href={getGitCommitLink(repoStatus.branch.master.commit.id)} target={'_blank'}>
+                          <a
+                            href={getGitCommitLink(repoStatus.branch.master.commit.id)}
+                            target={'_blank'}
+                            rel='noopener noreferrer'
+                          >
                             {getLanguageFromKey('app_release.release_title_link', language)}
                           </a> :
                           null
