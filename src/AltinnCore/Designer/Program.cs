@@ -51,7 +51,6 @@ namespace AltinnCore.Designer
                 if (basePath == "/")
                 {
                     config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
-                    config.AddJsonFile(basePath + $"app/appsettings.{envName}.json", optional: true, reloadOnChange: true);
                 }
                 else
                 {
