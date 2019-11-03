@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Constants;
 using AltinnCore.Common.Enums;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.Authorization;
@@ -30,6 +34,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using CacheControlHeaderValue = Microsoft.Net.Http.Headers.CacheControlHeaderValue;
 
 namespace AltinnCore.Runtime
 {
@@ -118,11 +123,11 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
+            services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton<IPrefill, PrefillSI>();
             services.AddSingleton(Configuration);

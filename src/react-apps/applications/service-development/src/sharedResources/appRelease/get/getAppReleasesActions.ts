@@ -20,12 +20,24 @@ export function getAppReleasesFulfilled(releases: IRelease[]): IGetReleaseAction
 }
 
 export interface IGetReleaseActionRejected extends Action {
-  error: Error;
+  errorCode: number;
 }
 
-export function getAppReleasesRejected(error: Error): IGetReleaseActionRejected {
+export function getAppReleasesRejected(errorCode: number): IGetReleaseActionRejected {
   return {
     type: AppReleaseActionTypes.GET_APP_RELEASES_REJECTED,
-    error,
+    errorCode,
+  };
+}
+
+export function startGetAppReleasesInterval(): Action {
+  return {
+    type: AppReleaseActionTypes.GET_APP_RELEASES_START_INTERVAL,
+  };
+}
+
+export function stopGetAppReleasesInterval(): Action {
+  return {
+    type: AppReleaseActionTypes.GET_APP_RELEASES_STOP_INTERVAL,
   };
 }
