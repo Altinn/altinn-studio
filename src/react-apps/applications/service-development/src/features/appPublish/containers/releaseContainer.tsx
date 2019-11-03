@@ -290,7 +290,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                     padding: '1.2rem',
                   }}
                 >
-                  {getLanguageFromKey('app_release.check_status', language)}
+                  {getLanguageFromKey('app_create_release.check_status', language)}
                 </Typography>
               </Grid>
             </Grid>
@@ -346,7 +346,6 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       return null;
     }
     if (
-      !!handleMergeConflict.repoStatus.contentStatus &&
       !!handleMergeConflict.repoStatus.contentStatus ||
       !!handleMergeConflict.repoStatus.aheadBy
     ) {
@@ -400,110 +399,110 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           container={true}
           direction={'column'}
         >
-        <Grid
-          item={true}
-        >
-          <StyledTabs value={tabIndex} onChange={handleChangeTabIndex}>
-            <StyledTab
-              label={getLanguageFromKey('app_release.release_tab_versions', language)}
-            />
-          </StyledTabs>
-        </Grid>
+          <Grid
+            item={true}
+          >
+            <StyledTabs value={tabIndex} onChange={handleChangeTabIndex}>
+              <StyledTab
+                label={getLanguageFromKey('app_release.release_tab_versions', language)}
+              />
+            </StyledTabs>
+          </Grid>
 
-        <Grid
-          container={true}
-          direction={'column'}
-          className={classes.appCreateReleaseWrapper}
-        >
           <Grid
             container={true}
-            direction={'row'}
-            justify={'space-between'}
+            direction={'column'}
+            className={classes.appCreateReleaseWrapper}
           >
-            {appReleases.errors.fetchReleaseErrorCode === null ?
+            <Grid
+              container={true}
+              direction={'row'}
+              justify={'space-between'}
+            >
+              {appReleases.errors.fetchReleaseErrorCode === null ?
+                <Grid
+                  item={true}
+                  xs={10}
+                >
+                  <Typography className={classes.appCreateReleaseTitle}>
+                    {
+                      !!repoStatus.branch.master &&
+                        !!repoStatus.branch.master.commit &&
+                        !!appReleases.releases &&
+                        !!appReleases.releases.length &&
+                        appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
+                        !!!handleMergeConflict.repoStatus.contentStatus ?
+                        <>
+                          {getLanguageFromKey('general.version', language)}
+                          &nbsp;
+                      {appReleases.releases[0].tagName}
+                          {getLanguageFromKey('general.contains', language)}
+                          &nbsp;
+                      {!!repoStatus.branch.master ?
+                            <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
+                              {getLanguageFromKey('app_release.release_title_link', language)}
+                            </a> :
+                            null
+                          }
+                        </>
+                        :
+                        <>
+                          {getLanguageFromKey('app_release.release_title', language)}
+                          &nbsp;
+                      {!!repoStatus.branch.master ?
+                            <a
+                              href={getGitCommitLink(repoStatus.branch.master.commit.id)}
+                              target={'_blank'}
+                              rel='noopener noreferrer'
+                            >
+                              {getLanguageFromKey('app_release.release_title_link', language)}
+                            </a> :
+                            null
+                          }
+                        </>
+                    }
+                  </Typography>
+                </Grid> :
+                renderCannotCreateRelease()
+              }
               <Grid
                 item={true}
-                xs={10}
+                className={classes.appCreateReleaseStatusIcon}
+                onClick={handlePopoverOpenClicked}
+                onMouseOver={handlePopoverOpenHover}
+                onMouseLeave={handlePopoverClose}
+                tabIndex={0}
+                onKeyPress={handlePopoverKeyPress}
+                xs={1}
               >
-                <Typography className={classes.appCreateReleaseTitle}>
-                  {
-                    !!repoStatus.branch.master &&
-                      !!repoStatus.branch.master.commit &&
-                      !!appReleases.releases &&
-                      !!appReleases.releases.length &&
-                      appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
-                      !!!handleMergeConflict.repoStatus.contentStatus ?
-                      <>
-                        {getLanguageFromKey('general.version', language)}
-                        &nbsp;
-                      {appReleases.releases[0].tagName}
-                        {getLanguageFromKey('general.contains', language)}
-                        &nbsp;
-                      {!!repoStatus.branch.master ?
-                          <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
-                            {getLanguageFromKey('app_release.release_title_link', language)}
-                          </a> :
-                          null
-                        }
-                      </>
-                      :
-                      <>
-                        {getLanguageFromKey('app_release.release_title', language)}
-                        &nbsp;
-                      {!!repoStatus.branch.master ?
-                          <a
-                            href={getGitCommitLink(repoStatus.branch.master.commit.id)}
-                            target={'_blank'}
-                            rel='noopener noreferrer'
-                          >
-                            {getLanguageFromKey('app_release.release_title_link', language)}
-                          </a> :
-                          null
-                        }
-                      </>
-                  }
-                </Typography>
-              </Grid> :
-              renderCannotCreateRelease()
-            }
+                {renderStatusIcon()}
+              </Grid>
+            </Grid>
             <Grid
               item={true}
-              className={classes.appCreateReleaseStatusIcon}
-              onClick={handlePopoverOpenClicked}
-              onMouseOver={handlePopoverOpenHover}
-              onMouseLeave={handlePopoverClose}
-              tabIndex={0}
-              onKeyPress={handlePopoverKeyPress}
-              xs={1}
+              className={classes.appReleaseCreateRelease}
             >
-              {renderStatusIcon()}
+              {renderCreateRelease()}
             </Grid>
           </Grid>
           <Grid
             item={true}
-            className={classes.appReleaseCreateRelease}
           >
-            {renderCreateRelease()}
+            <Typography
+              className={classes.appReleaseHistoryTitle}
+            >
+              {getLanguageFromKey('app_release.earlier_releases', language)}
+            </Typography>
           </Grid>
-        </Grid>
-        <Grid
-          item={true}
-        >
-          <Typography
-            className={classes.appReleaseHistoryTitle}
+          <Grid
+            container={true}
+            className={classes.appReleaseHistory}
           >
-            {getLanguageFromKey('app_release.earlier_releases', language)}
-          </Typography>
-        </Grid>
-        <Grid
-          container={true}
-          className={classes.appReleaseHistory}
-        >
-          {!!appReleases.releases.length &&
-            appReleases.releases.map((release: IRelease, index: number) => (
-              <ReleaseComponent key={index} release={release} />
-            ))}
-        </Grid>
+            {!!appReleases.releases.length &&
+              appReleases.releases.map((release: IRelease, index: number) => (
+                <ReleaseComponent key={index} release={release} />
+              ))}
+          </Grid>
         </Grid>
       </Grid>
       <Popover
