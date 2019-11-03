@@ -30,25 +30,19 @@ namespace AltinnCore.Runtime.Controllers
     /// </summary>
     public class InstanceController : Controller
     {
-        private readonly IRepository _repository;
         private readonly IApplication _application;
         private readonly IAuthorization _authorization;
         private readonly IRegister _register;
-        private readonly IProfile _profile;
-        private readonly IER _er;
-        private readonly ILogger _logger;
         private readonly IForm _form;
         private readonly IExecution _execution;
         private readonly IArchive _archive;
         private readonly ITestdata _testdata;
         private readonly UserHelper _userHelper;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflow _workflowSI;
         private readonly IInstance _instance;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
         private readonly IPrefill _prefill;
-        private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
 
         private const string FORM_ID = "default";
@@ -98,24 +92,18 @@ namespace AltinnCore.Runtime.Controllers
             IOptions<GeneralSettings> generalSettings)
         {
             _authorization = authorizationService;
-            _logger = logger;
-            _profile = profileService;
             _register = registerService;
-            _er = erService;
             _form = formService;
-            _repository = repositoryService;
             _execution = serviceExecutionService;
             _userHelper = new UserHelper(profileService, _register, generalSettings);
             _archive = archiveService;
             _testdata = testDataService;
-            _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
             _platformSI = platformSI;
             _data = dataSI;
             _prefill = prefill;
             _application = application;
-            _settings = repositorySettings.Value;
             _generalSettings = generalSettings.Value;
         }
 
