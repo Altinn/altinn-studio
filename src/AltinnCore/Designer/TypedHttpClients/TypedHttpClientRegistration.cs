@@ -56,7 +56,7 @@ namespace AltinnCore.Designer.TypedHttpClients
                 {
                     IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
                     IConfigurationSection serviceRepSettings = config.GetSection("ServiceRepositorySettings");
-                    string uriString = Environment.GetEnvironmentVariable("ServiceRepositorySettings__ApiEndPoint") ?? serviceRepSettings["ApiEndPoint"];
+                    string uriString = serviceRepSettings["ApiEndPoint"];
                     Uri uri = new Uri(uriString + "/");
                     httpClient.BaseAddress = uri;
                     httpClient.DefaultRequestHeaders.Add(
