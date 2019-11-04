@@ -23,6 +23,6 @@ namespace Altinn.Platform.Authorization.Configuration
         /// <summary>
         /// url for the blob end point
         /// </summary>
-        public string BlobEndPoint { get; set; }
+        public string AuthorizationBlobEndpoint { get; set; }
     }
 }
