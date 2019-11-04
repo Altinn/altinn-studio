@@ -8,7 +8,6 @@ using System.Xml;
 using System.Xml.Linq;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Constants;
-using Altinn.App.Services.Factories.ModelFactory;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Helpers.Extensions;
 using Altinn.App.Services.Interface;

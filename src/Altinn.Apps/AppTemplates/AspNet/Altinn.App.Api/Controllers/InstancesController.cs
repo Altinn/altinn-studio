@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Common.Interface;
 using Altinn.App.Common.RequestHandling;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
@@ -37,6 +38,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IRegister registerService;
         private readonly IRepository repositoryService;
         private readonly IPlatformServices platformService;
+        private readonly IAltinnApp altinnApp;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -50,7 +52,8 @@ namespace Altinn.App.Api.Controllers
             IExecution executionService,
             IProfile profileService,
             IPlatformServices platformService,
-            IRepository repositoryService)
+            IRepository repositoryService,
+            IAltinnApp altinnApp)
         {
             this.logger = logger;
             this.instanceService = instanceService;
@@ -59,6 +62,7 @@ namespace Altinn.App.Api.Controllers
             this.registerService = registerService;
             this.platformService = platformService;
             this.repositoryService = repositoryService;
+            this.altinnApp = altinnApp;
 
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
@@ -295,12 +299,12 @@ namespace Altinn.App.Api.Controllers
                 logger.LogInformation($"Storing part {part.Name}");
                 object data = new StreamReader(part.Stream).ReadToEnd();
 
-                IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, part.Name, true);
+                // TODO. Datatype
 
                 instanceWithData = await dataService.InsertFormData(
                     data,
                     instanceGuid,
-                    serviceImplementation.GetServiceModelType(),
+                    altinnApp.GetAppModelType("default"),
                     org,
                     app,
                     instanceOwnerIdAsInt);
@@ -345,32 +349,6 @@ namespace Altinn.App.Api.Controllers
             }                        
 
             return instanceTemplate;
-        }
-
-        /// <summary>
-        /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
-        /// </summary>
-        /// <param name="org">unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="elementType">the data element type</param>
-        /// <param name="startApp">indicates if the app should be started or just opened</param>
-        /// <returns>the serviceImplementation object which represents the application business logic</returns>
-        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startApp = false)
-        {
-            logger.LogInformation($"Preparing data element instantiation for {elementType}");
-
-            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startApp);
-
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
-            requestContext.Party = requestContext.UserContext.Party;
-
-            ServiceContext serviceContext = executionService.GetServiceContext(org, app, startApp);
-
-            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
-            serviceImplementation.SetPlatformServices(platformService);
-
-            return serviceImplementation;
         }
     }
 }

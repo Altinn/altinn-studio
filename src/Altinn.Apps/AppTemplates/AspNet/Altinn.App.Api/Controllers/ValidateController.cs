@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
+using Altinn.App.Common.Interface;
 using Altinn.App.Common.Models;
 using Altinn.App.Common.Validation;
 using Altinn.App.Services.Configuration;
@@ -32,6 +33,7 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly UserHelper userHelper;
         private readonly IPlatformServices platformService;
         private readonly IApplication appService;
+        private readonly IAltinnApp altinnApp;
 
         /// <summary>
         /// Initialises a new instance of the <see cref="ValidateController"/> class
@@ -45,7 +47,8 @@ namespace AltinnCore.Runtime.RestControllers
             IProfile profileService,
             IPlatformServices platformService,
             IInstanceEvent eventService,
-            IApplication appService)
+            IApplication appService,
+            IAltinnApp altinnApp)
         {
             this.instanceService = instanceService;
             this.dataService = dataService;
@@ -53,6 +56,7 @@ namespace AltinnCore.Runtime.RestControllers
             this.platformService = platformService;
             this.appService = appService;
             this.userHelper = new UserHelper(profileService, registerService, generalSettings);
+
         }
 
         /// <summary>
@@ -70,9 +74,7 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceId)
         {
-            ServiceContext serviceContext = executionService.GetServiceContext(org, app, false);
-
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
+               Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
             {
                 return NotFound();
@@ -85,6 +87,9 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             Application application = await appService.GetApplication(org, app);
+
+            // Todo. Figure out where to get this from
+            Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
 
             List<ValidationIssue> messages = new List<ValidationIssue>();
             foreach (ElementType elementType in application.ElementTypes.Where(et => et.Task == taskId))
@@ -99,7 +104,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceContext.ServiceText, null, "nb-NO")
+                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb-NO")
                     };
                     messages.Add(message);
                 }
@@ -112,14 +117,14 @@ namespace AltinnCore.Runtime.RestControllers
                         Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, serviceContext.ServiceText, null, "nb-NO")
+                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null,  null, "nb-NO")
                     };
                     messages.Add(message);
                 }
 
                 foreach (DataElement dataElement in elements)
                 {
-                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, dataElement, serviceContext));
+                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, dataElement, serviceText));
                 }
             }
 
@@ -150,13 +155,15 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] Guid instanceId,
             [FromRoute] Guid dataGuid)
         {
-            ServiceContext serviceContext = executionService.GetServiceContext(org, app, false);
-
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
             {
                 return NotFound();
             }
+
+            // Todo. Figure out where to get this from
+            Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
+
 
             if (instance.Process?.CurrentTask == null)
             {
@@ -181,7 +188,7 @@ namespace AltinnCore.Runtime.RestControllers
                 throw new ValidationException("Unknown element type.");
             }
 
-            messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, element, serviceContext));
+            messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, element, serviceText));
 
             string taskId = instance.Process.CurrentTask.ElementId;
             if (!elementType.Task.Equals(taskId, StringComparison.OrdinalIgnoreCase))
@@ -193,7 +200,7 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = element.Id,
                     Severity = ValidationIssueSeverity.Warning,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceContext.ServiceText, null, "nb-NO")
+                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb-NO")
                 };
                 messages.Add(message);
             }
@@ -201,7 +208,7 @@ namespace AltinnCore.Runtime.RestControllers
             return Ok(messages);
         }
 
-        private async Task<List<ValidationIssue>> ValidateDataElement(string org, string app, int instanceOwnerId, Guid instanceId, ElementType elementType, DataElement dataElement, ServiceContext serviceContext)
+        private async Task<List<ValidationIssue>> ValidateDataElement(string org, string app, int instanceOwnerId, Guid instanceId, ElementType elementType, DataElement dataElement, Dictionary<string, Dictionary<string, string>> serviceText)
         {
             List<ValidationIssue> messages = new List<ValidationIssue>();
 
@@ -214,7 +221,7 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceContext.ServiceText, null, "nb-NO")
+                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceText, null, "nb-NO")
                 };
                 messages.Add(message);
             }
@@ -231,7 +238,7 @@ namespace AltinnCore.Runtime.RestControllers
                         TargetId = dataElement.Id,
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceContext.ServiceText, null, "nb-NO")
+                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb-NO")
                     };
                     messages.Add(message);
                 }
@@ -246,33 +253,32 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceContext.ServiceText, null, "nb-NO")
+                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb-NO")
                 };
                 messages.Add(message);
             }
 
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, serviceContext);
+          
             if (elementType.AppLogic)
             {
-                Type modelType = serviceImplementation.GetServiceModelType();
+                // TODO. Figure out this datamodel type thing
+                Type modelType = altinnApp.GetAppModelType("default");
                 dynamic data = dataService.GetFormData(instanceId, modelType, org, app, instanceOwnerId, Guid.Parse(dataElement.Id));
                 
-                serviceImplementation.SetServiceModel(data);
-
                 TryValidateModel(data);
 
-                await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
+                await altinnApp.RunAppEvent(AppEventType.Validation, data);
 
                 if (!ModelState.IsValid)
                 {
-                    messages.AddRange(MapModelStateToIssueList(ModelState, dataElement.Id, dataElement.ElementType, serviceContext));
+                    messages.AddRange(MapModelStateToIssueList(ModelState, dataElement.Id, dataElement.ElementType, serviceText));
                 }
             }
 
             return messages;
         }
 
-        private List<ValidationIssue> MapModelStateToIssueList(ModelStateDictionary modelState, string elementId, string elementType, ServiceContext serviceContext)
+        private List<ValidationIssue> MapModelStateToIssueList(ModelStateDictionary modelState, string elementId, string elementType, Dictionary<string, Dictionary<string, string>> serviceText)
         {
             List<ValidationIssue> messages = new List<ValidationIssue>();
             foreach (string modelKey in modelState.Keys)
@@ -290,7 +296,7 @@ namespace AltinnCore.Runtime.RestControllers
                             TargetId = elementId,
                             Field = modelKey,
                             Severity = ValidationIssueSeverity.Error,
-                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO")
+                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceText, null, "nb-NO")
                         }; 
                         messages.Add(message);
                     }
@@ -298,28 +304,6 @@ namespace AltinnCore.Runtime.RestControllers
             }
 
             return messages;
-        }
-
-        /// <summary>
-        /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
-        /// </summary>
-        /// <param name="org">unique identifier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="serviceContext">The current service context</param>
-        /// <param name="startApp">indicates if the app should be started or just opened</param>
-        /// <returns>the serviceImplementation object which represents the application business logic</returns>
-        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, ServiceContext serviceContext, bool startApp = false)
-        {
-            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startApp);
-
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
-            requestContext.Party = requestContext.UserContext.Party;
-
-            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
-            serviceImplementation.SetPlatformServices(platformService);
-
-            return serviceImplementation;
         }
     }
 }

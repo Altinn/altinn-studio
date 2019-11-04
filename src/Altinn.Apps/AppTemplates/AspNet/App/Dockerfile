@@ -1,23 +1,13 @@
-#altinn-runtime with sdk
-FROM altinntjenestercontainerregistry.azurecr.io/altinn-runtime:latest AS build
-WORKDIR /AltinnService/
-COPY AltinnService.csproj ./
-COPY Implementation/* ./
-COPY Model/*.cs ./
-RUN dotnet publish -o publish/
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS build
+WORKDIR /App
+
+COPY App .
+
+RUN dotnet build Altinn.App.csproj -c Release -o /app_output
+RUN dotnet publish Altinn.App.csproj -c Release -o /app_output
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.0-alpine AS final
+EXPOSE 5005
 WORKDIR /app
-
-#copy altinn-runtime app
-COPY --from=build /app .
-
-#copy service
-WORKDIR /AltinnService/bin/
-COPY --from=build /AltinnService/publish/AltinnService* ./
-WORKDIR /AltinnService/
-COPY . .
-WORKDIR /app
-
-#entrypoint
-ENTRYPOINT ["dotnet", "AltinnCore.Runtime.dll"]
+COPY --from=build /app_output .
+ENTRYPOINT ["dotnet", "Altinn.App.dll"]

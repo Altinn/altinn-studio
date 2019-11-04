@@ -8,6 +8,7 @@ using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
+using Altinn.App.Services.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -41,7 +42,6 @@ namespace Altinn.App
             services.AddSingleton<IInstance, InstanceAppSI>();
             services.AddSingleton<IData, DataAppSI>();
             services.AddSingleton<IProcess, ProcessAppSI>();
-            services.AddSingleton<ITestdata, TestdataAppSI>();
             services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
             services.AddSingleton<IAuthorization, AuthorizationAppSI>();
             services.AddSingleton<IApplication, ApplicationAppSI>();
@@ -51,8 +51,7 @@ namespace Altinn.App
             services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
             services.AddSingleton<IAuthentication, AuthenticationAppSI>();
-            services.AddSingleton<IArchive, ArchiveStudioSI>();
-            services.AddSingleton<IForm, FormStudioSI>(); 
+            services.AddSingleton<IReiseApi, ReiseApi>();
 
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));

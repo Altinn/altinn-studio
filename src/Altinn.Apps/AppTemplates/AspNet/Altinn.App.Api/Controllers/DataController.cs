@@ -304,32 +304,30 @@ namespace Altinn.App.Api.Controllers
         {
             bool startService = true;
             Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType, startService);
 
-            object serviceModel;
+            object appModel;
 
             if (Request.ContentType == null)
             {
-                serviceModel = serviceImplementation.CreateNewServiceModel();
+                appModel = altinnApp.CreateNewAppModel(elementType);
             }
             else
             {
-                serviceModel = ParseContentAndDeserializeServiceModel(serviceImplementation.GetServiceModelType(), out ActionResult contentError);
+                appModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(elementType), out ActionResult contentError);
                 if (contentError != null)
                 {
                     return contentError;
                 }
             }
 
-            serviceImplementation.SetServiceModel(serviceModel);
 
             // send events to trigger application business logic
-            await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
-            await serviceImplementation.RunServiceEvent(ServiceEventType.ValidateInstantiation);
+            await altinnApp.RunAppEvent(AppEventType.Instantiation, appModel);
+            await altinnApp.RunAppEvent(AppEventType.ValidateInstantiation, appModel);
 
             SelfLinkHelper.SetInstanceAppSelfLinks(instanceBefore, Request);
 
-            Instance instanceAfter = await dataService.InsertFormData(serviceModel, instanceGuid, serviceImplementation.GetServiceModelType(), org, app, int.Parse(instanceBefore.InstanceOwnerId));
+            Instance instanceAfter = await dataService.InsertFormData(appModel, instanceGuid, altinnApp.GetAppModelType(elementType), org, app, int.Parse(instanceBefore.InstanceOwnerId));
             SelfLinkHelper.SetInstanceAppSelfLinks(instanceAfter, Request);
             List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);
             string dataUrl = createdElements.First().DataLinks.Apps;
@@ -413,32 +411,6 @@ namespace Altinn.App.Api.Controllers
             {
                 return StatusCode(500, $"Something went wrong when deleting data element {dataGuid} for instance {instanceGuid}");
             }
-        }
-
-        /// <summary>
-        /// Prepares the service implementation for a given dataElement, that has an xsd or json-schema.
-        /// </summary>
-        /// <param name="org">unique identfier of the organisation responsible for the app</param>
-        /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="elementType">the data element type</param>
-        /// <param name="startApp">indicates if the app should be started or just opened</param>
-        /// <returns>the serviceImplementation object which represents the application business logic</returns>
-        private async Task<IServiceImplementation> PrepareServiceImplementation(string org, string app, string elementType, bool startApp = false)
-        {
-            logger.LogInformation($"Prepare application model for {elementType}");
-
-            IServiceImplementation serviceImplementation = executionService.GetServiceImplementation(org, app, startApp);
-
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await userHelper.GetUserContext(HttpContext);
-            requestContext.Party = requestContext.UserContext.Party;
-
-            ServiceContext serviceContext = executionService.GetServiceContext(org, app, startApp);
-
-            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
-            serviceImplementation.SetPlatformServices(platformService);
-
-            return serviceImplementation;
         }
 
         private object ParseContentAndDeserializeServiceModel(Type modelType, out ActionResult error)
@@ -534,30 +506,26 @@ namespace Altinn.App.Api.Controllers
         Guid dataGuid,
         string elementType)
         {
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType);
-
-            // Get Form Data from data service. Assumes that the data element is form data.
-            object serviceModel = dataService.GetFormData(
+             // Get Form Data from data service. Assumes that the data element is form data.
+            object appModel = dataService.GetFormData(
                 instanceGuid,
-                serviceImplementation.GetServiceModelType(),
+                altinnApp.GetAppModelType(elementType),
                 org,
                 app,
                 instanceOwnerId,
                 dataGuid);
 
-            if (serviceModel == null)
+            if (appModel == null)
             {
                 return BadRequest($"Did not find form data for data element {dataGuid}");
             }
 
-            // Assing the populated service model to the service implementation
-            serviceImplementation.SetServiceModel(serviceModel);
-
+   
             // send events to trigger application business logic
-            await serviceImplementation.RunServiceEvent(ServiceEventType.DataRetrieval);
-            await serviceImplementation.RunServiceEvent(ServiceEventType.Calculation);
+            await altinnApp.RunAppEvent(AppEventType.DataRetrieval, appModel);
+            await altinnApp.RunAppEvent(AppEventType.Calculation, appModel);
 
-            return Ok(serviceModel);
+            return Ok(appModel);
         }
 
         private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
@@ -571,9 +539,8 @@ namespace Altinn.App.Api.Controllers
         private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, string elementType)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, elementType);
 
-            object serviceModel = ParseContentAndDeserializeServiceModel(serviceImplementation.GetServiceModelType(), out ActionResult contentError);
+            object serviceModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(elementType), out ActionResult contentError);
 
             if (contentError != null)
             {
@@ -585,11 +552,9 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("No data found in content");
             }
 
-            serviceImplementation.SetServiceModel(serviceModel);
-
             // send events to trigger application business logic
-            await serviceImplementation.RunServiceEvent(ServiceEventType.DataRetrieval);
-            await serviceImplementation.RunServiceEvent(ServiceEventType.Calculation);
+            await altinnApp.RunAppEvent(AppEventType.DataRetrieval, serviceModel);
+            await altinnApp.RunAppEvent(AppEventType.Calculation, serviceModel);
 
             try
             {
@@ -597,7 +562,7 @@ namespace Altinn.App.Api.Controllers
                 TryValidateModel(serviceModel);
 
                 // send events to trigger application business logic
-                await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
+                await altinnApp.RunAppEvent(AppEventType.Validation, serviceModel);
             }
             catch (Exception ex)
             {
@@ -608,7 +573,7 @@ namespace Altinn.App.Api.Controllers
             Instance instanceAfter = await this.dataService.UpdateData(
                 serviceModel,
                 instanceGuid,
-                serviceImplementation.GetServiceModelType(),
+                altinnApp.GetAppModelType(elementType),
                 org,
                 app,
                 int.Parse(instance.InstanceOwnerId),

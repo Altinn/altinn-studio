@@ -50,59 +50,6 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IServiceImplementation GetServiceImplementation(string org, string app, bool startAppFlag)
-        {
-            string assemblykey = $"{org}_{app}";
-            string implementationTypeName = null;
-            Type type = null;
-
-            if (_assemblyNames.ContainsKey(assemblykey))
-            {
-                implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(app)) + ".ServiceImplementation," + _assemblyNames[assemblykey];
-
-                type = Type.GetType(implementationTypeName);
-
-                if (type != null)
-                {
-                    return (IServiceImplementation)Activator.CreateInstance(Type.GetType(implementationTypeName));
-                }
-            }
-
-            implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(app)) + ".ServiceImplementation";
-
-            Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(_settings.BaseResourceFolderContainer + _settings.GetBinaryFolder() + "AltinnService.dll");
-
-            type = asm.GetType(implementationTypeName);
-
-            if (type != null)
-            {
-                _assemblyNames.Add(assemblykey, asm.FullName);
-            }
-
-            dynamic serviceImplementation = Activator.CreateInstance(type);
-            return (IServiceImplementation)serviceImplementation;
-        }
-
-        /// <inheritdoc/>
-        public ServiceContext GetServiceContext(string org, string app, bool startAppFlag)
-        {
-            var context = new ServiceContext
-            {
-                ServiceModelType = GetServiceImplementation(org, app, startAppFlag).GetServiceModelType(),
-                ServiceMetaData = _repository.GetServiceMetaData(org, app),
-                CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = _repository.GetWorkFlow(org, app),
-            };
-
-            if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)
-            {
-                context.RootName = context.ServiceMetaData.Elements.Values.First(e => e.ParentElement == null).Name;
-            }
-
-            return context;
-        }
-
-        /// <inheritdoc/>
         public Guid GetNewServiceInstanceID()
         {
             return Guid.NewGuid();

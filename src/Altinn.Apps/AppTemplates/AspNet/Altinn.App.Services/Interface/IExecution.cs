@@ -9,24 +9,6 @@ namespace Altinn.App.Services.Interface
     public interface IExecution
     {
         /// <summary>
-        /// Returns the ServiceImplementation for an app.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
-        /// <returns>The ServiceImplementation.</returns>
-        IServiceImplementation GetServiceImplementation(string org, string app, bool startAppFlag);
-
-        /// <summary>
-        /// Returns the ServiceContext.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="startAppFlag">Flag to determine if the app should run/re-run.</param>
-        /// <returns>The ServiceContext.</returns>
-        ServiceContext GetServiceContext(string org, string app, bool startAppFlag);
-
-        /// <summary>
         /// Returns a new instanceId for an app.
         /// </summary>
         /// <returns>The instanceId.</returns>
