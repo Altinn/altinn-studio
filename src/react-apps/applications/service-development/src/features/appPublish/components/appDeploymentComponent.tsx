@@ -354,7 +354,12 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           <Grid item={true} xs={true}>
             {deploymentStatus === deploymentStatusEnum.inProgress &&
               <Typography>
-                {deployHistory[0].createdBy} deployer versjon {deployHistory[0].tagName}
+                {getParsedLanguageFromKey('app_deploy_messages.deploy_in_progress', language, [
+                    deployHistory[0].createdBy,
+                    deployHistory[0].tagName,
+                    getAzureDevopsBuildResultUrl(deployHistory[0].build.id),
+                  ],
+                )}
               </Typography>
             }
             {deploymentStatus === deploymentStatusEnum.succeeded &&
