@@ -15,6 +15,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.image.containerPort }}
           {{- if eq (required "evironment not set" .Values.environment) "development"}}

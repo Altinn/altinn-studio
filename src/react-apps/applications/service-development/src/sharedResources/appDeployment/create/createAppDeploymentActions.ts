@@ -1,37 +1,50 @@
 import { Action } from 'redux';
 import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
+import { IDeployment } from '../types';
 
-export interface ICreateDeployment extends Action {
-  tag_name: string;
-  env_name: string;
+export interface ICreateAppDeployment extends Action {
+  tagName: string;
+  envObj: ICreateAppDeploymentEnvObject;
 }
 
-export function createDeployment(tagName: string, envName: string): ICreateDeployment {
+export interface ICreateAppDeploymentEnvObject {
+  'hostname': string;
+  'app': string;
+  'platformPrefix': string;
+  'name': string;
+  'type': string;
+}
+
+export function createAppDeployment(tagName: string, envObj: ICreateAppDeploymentEnvObject): ICreateAppDeployment {
   return {
     type: AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT,
-    tag_name: tagName,
-    env_name: envName,
+    tagName,
+    envObj,
   };
 }
 
-export interface ICreateDeploymentFulfilled extends Action {
-  id: string;
+export interface ICreateAppDeploymentFulfilled extends Action {
+  result: IDeployment;
+  envName: string;
 }
 
-export function createDeploymentFulfilled(id: string): ICreateDeploymentFulfilled {
+export function createAppDeploymentFulfilled(result: IDeployment, envName: string): ICreateAppDeploymentFulfilled {
   return {
     type: AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT_FULFILLED,
-    id,
+    result,
+    envName,
   };
 }
 
-export interface ICreateDeploymentRejected extends Action {
+export interface ICreateAppDeploymentRejected extends Action {
   error: Error;
+  envName: string;
 }
 
-export function createDeploymentRejected(error: Error): ICreateDeploymentRejected {
+export function createAppDeploymentRejected(error: Error, envName: string): ICreateAppDeploymentRejected {
   return {
     type: AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT_REJECTED,
     error,
+    envName,
   };
 }

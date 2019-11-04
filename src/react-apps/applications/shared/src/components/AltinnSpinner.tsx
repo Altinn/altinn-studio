@@ -1,11 +1,9 @@
-import { CircularProgress, createMuiTheme, createStyles, Typography } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
+import { CircularProgress, createMuiTheme, createStyles, makeStyles, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnSpinnerComponentProvidedProps {
-  classes: any;
   id?: string;
   spinnerText?: any;
   styleObj?: object;
@@ -13,37 +11,39 @@ export interface IAltinnSpinnerComponentProvidedProps {
 
 const theme = createMuiTheme(altinnTheme);
 
-const styles = createStyles({
-  spinner: {
-    color: theme.altinnPalette.primary.blueDark,
-    marginRight: 'auto',
-    marginLeft: 'auto',
-    display: 'inline-block',
+const useStyles = makeStyles(() =>
+  createStyles({
+    spinner: {
+      color: theme.altinnPalette.primary.blueDark,
+      marginRight: 'auto',
+      marginLeft: 'auto',
+      display: 'inline-block',
+    },
+    spinnerText: {
+      display: 'inline-block',
+      fontSize: 16,
+      marginLeft: '10px',
+      verticalAlign: 'middle',
+      marginBottom: '25px',
+    },
   },
-  spinnerText: {
-    display: 'inline-block',
-    fontSize: 16,
-    marginLeft: '10px',
-    verticalAlign: 'middle',
-    marginBottom: '25px',
-  },
-});
+  ),
+);
 
-export class AltinnSpinner extends React.Component<IAltinnSpinnerComponentProvidedProps, any> {
-  public render() {
-    const { classes } = this.props;
-    return (
-      <div className={classNames(this.props.styleObj)}>
-        <CircularProgress
-          className={classNames(classes.spinner)}
-          id={this.props.id ? this.props.id : null}
-        />
-        {this.props.spinnerText &&
-          <Typography className={classNames(classes.spinnerText)}>{this.props.spinnerText}</Typography>
-        }
-      </div>
-    );
-  }
-}
+const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
+  const classes = useStyles(props);
 
-export default withStyles(styles)(AltinnSpinner);
+  return (
+    <div className={classNames(props.styleObj)}>
+      <CircularProgress
+        className={classNames(classes.spinner)}
+        id={props.id ? props.id : null}
+      />
+      {props.spinnerText &&
+        <Typography className={classNames(classes.spinnerText)}>{props.spinnerText}</Typography>
+      }
+    </div>
+  );
+};
+
+export default AltinnSpinner;

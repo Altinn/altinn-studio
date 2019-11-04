@@ -1,6 +1,6 @@
 import { Action } from 'redux';
 import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
-import { IDeployment } from '../types';
+import { IDeploymentResults } from '../types';
 
 export function getAppDeployments(): Action {
   return {
@@ -9,10 +9,10 @@ export function getAppDeployments(): Action {
 }
 
 export interface IGetAppDeploymentsFulfilled extends Action {
-  deployments: IDeployment[];
+  deployments: IDeploymentResults;
 }
 
-export function getAppDeploymentsFulfilled(deployments: IDeployment[]): IGetAppDeploymentsFulfilled {
+export function getAppDeploymentsFulfilled(deployments: IDeploymentResults): IGetAppDeploymentsFulfilled {
   return {
     type: AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_FULFILLED,
     deployments,
@@ -27,5 +27,17 @@ export function getAppDeploymentsRejected(error: Error): IGetAppDeploymentsRejec
   return {
     type: AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_REJECTED,
     error,
+  };
+}
+
+export function getAppDeploymentsStartInterval(): Action {
+  return {
+    type: AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_START_INTERVAL,
+  };
+}
+
+export function getAppDeploymentsStopInterval(): Action {
+  return {
+    type: AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_STOP_INTERVAL,
   };
 }
