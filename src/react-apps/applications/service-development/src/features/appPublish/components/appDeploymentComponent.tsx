@@ -475,6 +475,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
                 url={urlToApp}
                 linkTxt={urlToAppLinkTxt}
                 shouldShowIcon={false}
+                openInNewTab={true}
               />
             </Grid>
           </Grid>

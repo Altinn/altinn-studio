@@ -8,6 +8,7 @@ export interface IAltinnLinkCompontentProvidedProps {
   classes: any;
   url: string;
   linkTxt: string;
+  openInNewTab?: boolean;
   shouldShowIcon: boolean;
 }
 
@@ -31,9 +32,9 @@ const styles = {
 // tslint:disable-next-line:max-line-length
 export class AltinnLink extends React.Component<IAltinnLinkCompontentProvidedProps, IAltinnLinkComponentState> {
   public render() {
-    const { classes } = this.props;
+    const { classes, openInNewTab } = this.props;
     return (
-      <a href={this.props.url} className={classes.link}>
+      <a href={this.props.url} className={classes.link} target={openInNewTab ? '_blank' : ''}>
         {this.props.linkTxt}
         {this.props.shouldShowIcon &&
           <AltinnIcon
