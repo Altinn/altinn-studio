@@ -24,12 +24,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private InstanceClient instanceClient;
-        private ApplicationClient appClient;
-        private TestData testdata;
+        private readonly InstanceClient instanceClient;
+        private readonly ApplicationClient appClient;
+        private readonly TestData testdata;
         private readonly List<string> appIds;
         private static DocumentClient _client;
-        private AzureCosmosSettings _cosmosSettings = new AzureCosmosSettings()
+        private readonly AzureCosmosSettings _cosmosSettings = new AzureCosmosSettings()
         {
             Collection = "instances",
             Database = "ServiceEngine",

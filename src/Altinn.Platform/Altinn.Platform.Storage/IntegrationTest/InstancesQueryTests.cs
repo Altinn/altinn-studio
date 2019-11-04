@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using Altinn.Platform.Storage.Helpers;
@@ -208,7 +209,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(4, totalHits);
+            Assert.Equal(2, totalHits);
         }
 
         /// <summary>
@@ -229,7 +230,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(3, totalHits);
+            Assert.Equal(1, totalHits);
         }
 
         /// <summary>
@@ -382,6 +383,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.Contains("application/json", contentType);
 
             string jsonString = await response.Content.ReadAsStringAsync();
+
+            QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(jsonString);
+
+            Assert.True(queryResponse.Instances.Count > 2);
         }
 
         /// <summary>
@@ -410,13 +415,46 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
 #pragma warning disable xUnit1013
         /// <summary>
-        /// Method to load data file with 1000 instances into cosmos db. Undocument the [Fact] line, run
+        /// Method to generate data with 1000 instances into cosmos db. Undocument the [Fact] line, run
         /// the test once, make the fact a comment again and run tests. 
         /// </summary>        
         // [Fact]
-        public void LoadData()
+        public void GenerateData()
         {
             DatabaseFixture.GenerateTestdata(fixture.CreateClient());
+        }
+
+        /// <summary>
+        /// Method to load data file with 1000 instances into cosmos db.Undocument the[Fact] line, run
+        ///  the test once, make the fact a comment again and run tests.       
+        /// </summary>
+        // [Fact]
+        public void LoadData()
+        {
+            DatabaseFixture.LoadData(testAppId, storageClient);
+        }
+
+        /// <summary>
+        /// Saves data in cosmos db to file.
+        /// </summary>
+        // [Fact]
+        public void SaveData()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000";
+
+            HttpResponseMessage response = client.GetAsync(url).Result;
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = response.Content.ReadAsStringAsync().Result;
+
+            QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(jsonString);
+
+            queryResponse.Next = null;
+            queryResponse.Self = null;
+
+            File.WriteAllText("../../../data/m1000-instances.json", JsonConvert.SerializeObject(queryResponse, Formatting.Indented));          
         }
     }
 }
