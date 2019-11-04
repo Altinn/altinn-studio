@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
 EndProject
@@ -10,7 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Altinn3.ruleset = Altinn3.ruleset
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authentication", "Authentication\Altinn.Platform.Authentication.csproj", "{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authentication", "Authentication\Altinn.Platform.Authentication.csproj", "{A7470874-7D29-4526-A9C6-4133595C1182}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authentication.IntegrationTests", "Altinn.Platform.Authentication.IntegrationTests\Altinn.Platform.Authentication.IntegrationTests.csproj", "{C30FD85C-F773-4BF8-A65C-14CCF977A76A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,10 +24,14 @@ Global
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Release|Any CPU.Build.0 = Release|Any CPU
-		{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7470874-7D29-4526-A9C6-4133595C1182}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7470874-7D29-4526-A9C6-4133595C1182}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7470874-7D29-4526-A9C6-4133595C1182}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7470874-7D29-4526-A9C6-4133595C1182}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C30FD85C-F773-4BF8-A65C-14CCF977A76A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C30FD85C-F773-4BF8-A65C-14CCF977A76A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C30FD85C-F773-4BF8-A65C-14CCF977A76A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C30FD85C-F773-4BF8-A65C-14CCF977A76A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

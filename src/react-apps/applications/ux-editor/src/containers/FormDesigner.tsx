@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import FileEditor from '../../../shared/src/file-editor/FileEditor';
 import ServiceLogicMenu from '../../../shared/src/navigation/drawer/rightDrawerMenu';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -249,9 +250,11 @@ class FormDesigner extends React.Component<
                   >
                     <IconButton
                       type='button'
+                      aria-label={getLanguageFromKey('ux_editor.service_logic_icon_aria_label', this.props.language)}
                       className={this.props.classes.button}
                     >
                       <i
+                        title={getLanguageFromKey('ux_editor.service_logic_icon_title', this.props.language)}
                         className={
                           (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
                             this.props.classes.icon) + ' fa fa-logic-no-circle'

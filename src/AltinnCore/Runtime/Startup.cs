@@ -3,13 +3,17 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Constants;
 using AltinnCore.Common.Enums;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.Authorization;
@@ -22,6 +26,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -29,6 +34,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
+using CacheControlHeaderValue = Microsoft.Net.Http.Headers.CacheControlHeaderValue;
 
 namespace AltinnCore.Runtime
 {
@@ -121,12 +127,27 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton<IPrefill, PrefillSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddResponseCompression();
+            services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
+                {
+                    IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                    IConfigurationSection serviceRepSettings = Configuration.GetSection("ServiceRepositorySettings");
+                    string uriString = serviceRepSettings["ApiEndPoint"];
+                    Uri uri = new Uri(uriString + "/");
+                    httpClient.BaseAddress = uri;
+                    httpClient.DefaultRequestHeaders.Add(
+                        General.AuthorizationTokenHeaderName,
+                        AuthenticationHelper.GetDeveloperTokenHeaderValue(httpContextAccessor.HttpContext));
+                })
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                    new HttpClientHandler
+                    {
+                        AllowAutoRedirect = true
+                    });
 
             string repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
@@ -134,6 +155,11 @@ namespace AltinnCore.Runtime
             {
                 Directory.CreateDirectory(repoLocation);
             }
+
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
 
             services.AddMvc().AddNewtonsoftJson();
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
@@ -261,6 +287,20 @@ namespace AltinnCore.Runtime
             appBuilder.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Altinn Apps Runtime API");
+            });
+
+            appBuilder.UseStatusCodePages(async context =>
+            {
+                var request = context.HttpContext.Request;
+                var response = context.HttpContext.Response;
+                string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
+
+                // you may also check requests path to do this only for specific methods
+                // && request.Path.Value.StartsWith("/specificPath")
+                if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
+                {
+                    response.Redirect($"account/login?gotoUrl={url}");
+                }
             });
 
             appBuilder.UseStaticFiles(new StaticFileOptions()
@@ -509,20 +549,6 @@ namespace AltinnCore.Runtime
 
             // appBuilder.UseHsts();
             // appBuilder.UseHttpsRedirection();
-
-            appBuilder.UseStatusCodePages(async context =>
-               {
-                   var request = context.HttpContext.Request;
-                   var response = context.HttpContext.Response;
-                   string url = $"https://{request.Host.ToString()}{request.Path.ToString()}";
-
-                   // you may also check requests path to do this only for specific methods
-                   // && request.Path.Value.StartsWith("/specificPath")
-                   if (response.StatusCode == (int)HttpStatusCode.Unauthorized)
-                   {
-                       response.Redirect($"account/login?gotoUrl={url}");
-                   }
-               });
 
             appBuilder.UseResponseCompression();
             appBuilder.UseRequestLocalization();
