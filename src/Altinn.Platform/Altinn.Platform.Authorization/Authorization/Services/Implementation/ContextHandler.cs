@@ -32,10 +32,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// Initializes a new instance of the <see cref="ContextHandler"/> class
         /// </summary>
         /// <param name="policyInformationRepository">the policy information repository handler</param>
+        /// <param name="rolesWrapper">the roles handler</param>
         public ContextHandler(
-            IPolicyInformationRepository policyInformationRepository)
+            IPolicyInformationRepository policyInformationRepository, IRoles rolesWrapper)
         {
             _policyInformationRepository = policyInformationRepository;
+            _rolesWrapper = rolesWrapper;
         }
 
         /// <summary>
@@ -85,12 +87,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.TaskAttribute))
                 {
                     taskAttributeValue = attribute.AttributeValues.First().Value;
-                }
-
-                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.UserAttribute))
-                {
-                    userAttributeValue = attribute.AttributeValues.First().Value;
-                }
+                }               
             }
 
             bool resourceAttributeComplete = false;
@@ -104,32 +101,45 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 // The resource attributes are complete
                 resourceAttributeComplete = true;
             }
+            else if (!string.IsNullOrEmpty(orgAttributeValue) &&
+                !string.IsNullOrEmpty(appAttributeValue) &&
+                string.IsNullOrEmpty(instanceAttributeValue) &&
+                !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
+                string.IsNullOrEmpty(taskAttributeValue))
+            {
+                // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
 
             if (!resourceAttributeComplete)
             {
-                Instance instanceData = await _policyInformationRepository.GetInstance(instanceAttributeValue, Convert.ToInt32(userAttributeValue));
-
-                if (string.IsNullOrEmpty(orgAttributeValue))
+                if (!string.IsNullOrEmpty(instanceAttributeValue))
                 {
-                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.OrgAttribute, instanceData.Org));
-                }
+                    Instance instanceData = await _policyInformationRepository.GetInstance(instanceAttributeValue);
 
-                if (string.IsNullOrEmpty(appAttributeValue))
-                {
-                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.AppAttribute, instanceData.AppId));
-                }
+                    if (string.IsNullOrEmpty(orgAttributeValue))
+                    {
+                        resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.OrgAttribute, instanceData.Org));
+                    }
 
-                if (string.IsNullOrEmpty(taskAttributeValue))
-                {
-                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.TaskAttribute, instanceData.Process.CurrentTask.ElementId));
-                }
+                    if (string.IsNullOrEmpty(appAttributeValue))
+                    {
+                        string app = instanceData.AppId.Split("/")[1];
+                        resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.AppAttribute, app));
+                    }
 
-                if (string.IsNullOrEmpty(resourcePartyAttributeValue))
-                {
-                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.PartyAttribute, instanceData.InstanceOwnerId));
-                }
+                    if (string.IsNullOrEmpty(taskAttributeValue))
+                    {
+                        resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.TaskAttribute, instanceData.Process.CurrentTask.ElementId));
+                    }
 
-                resourcePartyAttributeValue = instanceData.InstanceOwnerId;
+                    if (string.IsNullOrEmpty(resourcePartyAttributeValue))
+                    {
+                        resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.PartyAttribute, instanceData.InstanceOwnerId));
+                    }
+
+                    resourcePartyAttributeValue = instanceData.InstanceOwnerId;
+                }
             }
 
             await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
@@ -176,7 +186,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             }
 
             return attribute;
-
         }
     }
 }

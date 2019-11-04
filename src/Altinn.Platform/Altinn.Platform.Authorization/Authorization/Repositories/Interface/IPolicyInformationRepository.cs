@@ -17,6 +17,13 @@ namespace Altinn.Platform.Authorization.Repositories.Interface
         Task<Instance> GetInstance(string instanceId, int instanceOwnerId);
 
         /// <summary>
+        /// Gets the information of a given instance
+        /// </summary>
+        /// <param name="instanceId">the instance id</param>
+        /// <returns></returns>
+        Task<Instance> GetInstance(string instanceId);
+
+        /// <summary>
         /// Gets the application information of a given instance
         /// </summary>
         /// <param name="app">Application identifier which is unique within an organisation.</param>

@@ -95,6 +95,14 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
+        public async Task<Instance> GetInstance(string instanceId)
+        {
+            string cosmosId = InstanceIdToCosmosId(instanceId);
+            int instanceOwnerId = GetInstanceOwnerIdFromInstanceId(instanceId);
+            return await GetInstance(instanceId, instanceOwnerId);
+        }
+
+        /// <inheritdoc/>
         public async Task<Application> GetApplication(string app, string org)
         {
             if (string.IsNullOrWhiteSpace(org))
@@ -202,6 +210,25 @@ namespace Altinn.Platform.Authorization.Repositories
             }
 
             return cosmosId;
+        }
+
+        /// <summary>
+        /// An instanceId should follow this format {int}/{guid}.
+        /// Cosmos does not allow / in id.
+        /// But in some old cases instanceId is just {guid}.
+        /// </summary>
+        /// <param name="instanceId">the id to convert to cosmos</param>
+        /// <returns>the guid of the instance</returns>
+        private int GetInstanceOwnerIdFromInstanceId(string instanceId)
+        {
+            string instanceOwnerId = string.Empty;
+
+            if (instanceId != null && instanceId.Contains("/"))
+            {
+                instanceOwnerId = instanceId.Split("/")[0];
+            }
+
+            return Convert.ToInt32(instanceOwnerId);
         }
     }
 }
