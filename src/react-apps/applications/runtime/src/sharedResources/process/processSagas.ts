@@ -1,7 +1,9 @@
 import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
-import { watchgetProcessStateSaga } from './getProcessState/getProcessStateSagas';
+import { watchGetProcessStateSaga } from './getProcessState/getProcessStateSagas';
+import { watchStartProcessSaga } from './startProcess/startProcessSagas';
 
 export function* processSagas(): SagaIterator {
-  yield fork(watchgetProcessStateSaga);
+  yield fork(watchGetProcessStateSaga);
+  yield fork(watchStartProcessSaga);
 }

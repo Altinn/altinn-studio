@@ -9,7 +9,6 @@ import FormDataModelActions from '../datamodell/actions';
 import FormDynamicActions from '../dynamics/actions';
 import FormLayoutActions from '../layout/actions';
 import FormRuleActions from '../rules/actions';
-import FormWorkflowActions from '../workflow/actions';
 import ProcessDispatcher from './../../../sharedResources/process/processDispatcher';
 import FormFiller from './FormFiller';
 
@@ -18,6 +17,7 @@ import {
 } from '../../../utils/urlHelper';
 
 import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { WorkflowSteps } from '../workflow/typings';
 
 export default (props) => {
   const {
@@ -29,7 +29,7 @@ export default (props) => {
     },
   } = props;
 
-  // const process = useSelector((state: IRuntimeState) => state.process);
+  const processState = useSelector((state: IRuntimeState) => state.process.state);
 
   (window as Window as IAltinnWindow).instanceId = partyId  + '/' + instanceGuid;
 
@@ -52,17 +52,12 @@ export default (props) => {
     FormRuleActions.fetchRuleModel(
       `${window.location.origin}/${org}/${app}/api/resource/RuleHandler.js`,
     );
-// Old workflow, remove
-    // FormWorkflowActions.getCurrentState(
-    //   // tslint:disable-next-line:max-line-length
-    //   `${window.location.origin}/${org}/${app}/api/workflow/${instanceId}/GetCurrentState`,
-    // );
 
-    // `${window.location.origin}/${org}/${app}/instances/${instanceId}/process`,
-
-    ProcessDispatcher.getProcessState(
-      instanceId,
-    );
+    if (processState == null) {
+      ProcessDispatcher.getProcessState();
+    } else if (processState === WorkflowSteps.Unknown.valueOf()) {
+      ProcessDispatcher.startProcess();
+    }
 
     FormDynamicActions.fetchFormDynamics(
       `${window.location.origin}/${org}/${app}/api/resource/ServiceConfigurations.json`,
@@ -74,12 +69,8 @@ export default (props) => {
 
     AttachmentActions.fetchAttachments();
 
-  }, []);
-  // React.useEffect(() => {
+  }, [processState]);
 
-  //   // do do do
-
-  // }, [process]);
   return (
     <FormFiller />
   );

@@ -1,9 +1,10 @@
-const altinnWindow = window as any;
-const { org, app, reportee } = altinnWindow;
+import { IAltinnWindow } from 'src/types';
+
+const altinnWindow = window as Window as IAltinnWindow;
+const { org, app, reportee, instanceId } = altinnWindow;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
-console.log('### appPath: ', appPath);
 export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${app}/verifySubscription?partyId=${reportee}`;
 export const languageUrl = `${appPath}/api/Language/GetLanguageAsJSON`;
 export const profileApiUrl = `${appPath}/api/v1/profile/user`;
@@ -24,6 +25,14 @@ export const instancesControllerUrl: string = `${appPath}/instances`;
 export const partySelectionUrl: string = `${appPath}/#/partyselection`;
 export const refreshJwtTokenUrl: string = `${appPath}/api/authentication/keepAlive`;
 export const reactErrorPage: string = `${appPath}/#/error`;
+
+export function getProcessStateUrl() {
+  return `${appPath}/instances/${altinnWindow.instanceId}/process`;
+}
+
+export function getStartProcessUrl() {
+  return `${appPath}/instances/${altinnWindow.instanceId}/process/start`;
+}
 
 export const getEnvironmentLoginUrl: () => string = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.

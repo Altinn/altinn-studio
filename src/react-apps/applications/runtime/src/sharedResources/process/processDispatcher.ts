@@ -1,16 +1,20 @@
 /* tslint:disable:max-line-length */
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
-import * as ProcessStateActions from './getProcessState/getProcessStateActions';
+import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
+import * as StartProcessActions from './startProcess/startProcessActions';
 
 /**
  * Define a interface describing the the different Actions available
  * and which datamodel those actions expect.
  */
 export interface IProcessStateDispatchers extends ActionCreatorsMapObject {
-  getProcessState: (instanceId: string) => ProcessStateActions.IGetProcessState;
-  getProcessStateFulfilled: (result: any) => ProcessStateActions.IGetProcessStateFulfilled;
-  getProcessStateRejected: (result: Error) => ProcessStateActions.IGetProcessStateRejected;
+  getProcessState: () => Action;
+  getProcessStateFulfilled: (result: any) => GetProcessStateActions.IGetProcessStateFulfilled;
+  getProcessStateRejected: (result: Error) => GetProcessStateActions.IGetProcessStateRejected;
+  startProcess: () => Action;
+  startProcessFulfilled: (result: any) => StartProcessActions.IStartProcessFulfilled;
+  startProcessRejected: (Error: Error) => StartProcessActions.IStartProcessRejected;
 }
 
 /**
@@ -18,9 +22,12 @@ export interface IProcessStateDispatchers extends ActionCreatorsMapObject {
  */
 
 const actions: IProcessStateDispatchers = {
-  getProcessState: ProcessStateActions.getProcessStateAction,
-  getProcessStateFulfilled: ProcessStateActions.getProcessStateFulfilledAction,
-  getProcessStateRejected: ProcessStateActions.getProcessStateRejectedAction,
+  getProcessState: GetProcessStateActions.getProcessStateAction,
+  getProcessStateFulfilled: GetProcessStateActions.getProcessStateFulfilledAction,
+  getProcessStateRejected: GetProcessStateActions.getProcessStateRejectedAction,
+  startProcess: StartProcessActions.startProcess,
+  startProcessFulfilled: StartProcessActions.startProcessFulfilled,
+  startProcessRejected: StartProcessActions.startProcessRejected,
 };
 
 /**

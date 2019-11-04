@@ -1,19 +1,15 @@
 import { Action } from 'redux';
 import * as ActionTypes from '../processActionTypes';
 
-export interface IGetProcessState extends Action {
-  instanceId: string;
-}
 export interface IGetProcessStateFulfilled extends Action {
   result: any;
 }
 export interface IGetProcessStateRejected extends Action {
   error: Error;
 }
-export function getProcessStateAction(instanceId: string): IGetProcessState {
+export function getProcessStateAction(): Action {
   return {
     type: ActionTypes.GET_PROCESS_STATE,
-    instanceId,
   };
 }
 export function getProcessStateFulfilledAction(result: any): IGetProcessStateFulfilled {
