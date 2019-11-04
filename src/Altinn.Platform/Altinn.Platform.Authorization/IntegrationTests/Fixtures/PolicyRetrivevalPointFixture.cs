@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using Altinn.Authorization.ABAC.Interface;
+using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -10,16 +12,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
 {
-    public class PlatformAuthorizationFixture : IDisposable
+    public class PolicyRetrivevalPointFixture : IDisposable
     {
         private readonly TestServer testServer;
+        private readonly Process process;
 
         /// <summary>
         /// Gets the client.
         /// </summary>
         public HttpClient Client { get; }
 
-        public PlatformAuthorizationFixture()
+        public PolicyRetrivevalPointFixture()
         {
             string[] args = { };
 
@@ -30,7 +33,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
                 .ConfigureTestServices(services =>
                 {
                     services.AddScoped<IContextHandler, MockServices.ContextHandler>();
-                    services.AddScoped<IPolicyRetrievalPoint, MockServices.PolicyRetrievalPoint>();
+                    services.AddScoped<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
                     services.AddScoped<IRoles, MockServices.PolicyInformationPoint>();
                     services.AddScoped<IContextHandler, IntegrationTests.MockServices.ContextHandler>();
                 })
@@ -45,6 +48,19 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
 
             testServer = new TestServer(builder);
             Client = testServer.CreateClient();
+
+            //setting up storage emmulator
+            process = new Process
+            {
+                StartInfo = {
+                UseShellExecute = false,
+                FileName = @"C:\Program Files (x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe",
+            }
+            };
+
+            StartAndWaitForExit("stop");
+            StartAndWaitForExit("clear all");
+            StartAndWaitForExit("start");
         }
 
         private string GetContentRootPath()
@@ -71,6 +87,14 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
         {
             Client.Dispose();
             testServer.Dispose();
+            StartAndWaitForExit("stop");
         }
+        public void StartAndWaitForExit(string arguments)
+        {
+            process.StartInfo.Arguments = arguments;
+            process.Start();
+            process.WaitForExit(10000);
+        }
+
     }
 }
