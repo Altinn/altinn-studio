@@ -174,14 +174,16 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Stream input = new FileStream("data/binary_file.pdf", FileMode.Open); // File.OpenRead("data/binary_file.pdf");
            
             HttpContent fileStreamContent = new StreamContent(input);
+            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+            fileStreamContent.Headers.Add("content-disposition", "filename=binary_file.pdf");
 
-            MultipartFormDataContent formData = new MultipartFormDataContent();
+            //MultipartFormDataContent formData = new MultipartFormDataContent();
                 
-            formData.Add(fileStreamContent, dataType, "binary_file.pdf");
+            //formData.Add(fileStreamContent, dataType, "binary_file.pdf");
 
             await fileStreamContent.LoadIntoBufferAsync();
 
-            HttpResponseMessage response = await client.PostAsync(requestUri, formData);
+            HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent);
 
             response.EnsureSuccessStatusCode();                
         }
