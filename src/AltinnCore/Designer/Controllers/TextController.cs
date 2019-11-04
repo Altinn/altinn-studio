@@ -23,7 +23,7 @@ namespace AltinnCore.Designer.Controllers
     [Authorize]
     public class TextController : Controller
     {
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IRepository _repository;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -37,7 +37,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
-        public TextController(IHostingEnvironment hostingEnvironment, IRepository repositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger)
+        public TextController(IWebHostEnvironment hostingEnvironment, IRepository repositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TextController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repositoryService;

@@ -1,7 +1,7 @@
 ---
 name: Analysis
 about: Create an analysis for a specific area in Altinn Studio
-labels: analysis
+labels: kind/analysis
 ---
 
 ## Description

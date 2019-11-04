@@ -22,7 +22,7 @@ namespace AltinnCore.Designer.Controllers
     [Authorize]
     public class ConfigController : Controller
     {
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IRepository _repository;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -36,7 +36,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repositorySettings">The repository settings.</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="logger">the log handler.</param>
-        public ConfigController(IHostingEnvironment hostingEnvironment, IRepository serviceRepositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
+        public ConfigController(IWebHostEnvironment hostingEnvironment, IRepository serviceRepositoryService, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ConfigController> logger)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = serviceRepositoryService;

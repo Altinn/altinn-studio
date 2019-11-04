@@ -1,5 +1,5 @@
 {
-  "name": "testcafe",
+  "name": "uitests",
   "version": "1.0.0",
   "description": "UI tests for Altinn tjenester 3.0",
   "main": "app.js",
@@ -12,15 +12,15 @@
   "license": "3-Clause BSD",
   "devDependencies": {
     "axe-testcafe": "^1.1.0",
-    "cross-env": "^5.2.0",
+    "cross-env": "^5.2.1",
     "minimist": "^1.2.0",
     "process": "^0.11.10",
-    "testcafe": "^0.22.0",
+    "testcafe": "^1.6.0",
     "testcafe-browser-provider-puppeteer": "^1.4.0",
-    "tslint": "^5.17.0"
+    "tslint": "^5.20.0"
   },
   "dependencies": {
-    "testcafe-react-selectors": "^3.1.0",
+    "testcafe-react-selectors": "^3.2.0",
     "testcafe-reporter-junit": "^3.0.0"
   }
 }
