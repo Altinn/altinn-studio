@@ -15,7 +15,6 @@ namespace Altinn.Platform.Authorization.UnitTest.Util
             Assert.Equal(expected.GetResourceAttributes().Attributes.Count, actual.GetResourceAttributes().Attributes.Count);
             Assert.Equal(expected.GetSubjectAttributes().Attributes.Count, actual.GetSubjectAttributes().Attributes.Count);
             AssertEqual(expected.Attributes, actual.Attributes);
-
         }
 
         private static void AssertEqual(ICollection<XacmlContextAttributes> expected, ICollection<XacmlContextAttributes> actual)

@@ -49,15 +49,6 @@ namespace Altinn.Platform.Authorization.Repositories
             databaseId = _cosmosettings.Database;
             instanceCollectionId = _cosmosettings.InstanceCollection;
             applicationCollectionId = _cosmosettings.ApplicationCollection;
-            /*_client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
-
-            DocumentCollection documentCollection = new DocumentCollection { Id = _cosmosettings.Collection };
-            documentCollection.PartitionKey.Paths.Add("/instanceOwnerId");
-
-            _client.CreateDocumentCollectionIfNotExistsAsync(
-                _databaseUri,
-                documentCollection).GetAwaiter().GetResult();*/
-
             _client.OpenAsync();
         }
 
@@ -125,6 +116,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (DocumentClientException ex)
             {
+                logger.LogError(ex.Message);
                 return null;
             }
             catch (Exception ex)
