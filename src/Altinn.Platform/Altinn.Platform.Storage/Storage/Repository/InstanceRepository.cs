@@ -239,6 +239,9 @@ namespace Altinn.Platform.Storage.Repository
                             }
 
                             break;
+
+                        default:
+                            throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }
                 }
             }

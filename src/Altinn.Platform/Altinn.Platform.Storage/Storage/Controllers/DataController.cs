@@ -372,19 +372,13 @@ namespace Altinn.Platform.Storage.Controllers
                 string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
 
                 MultipartSection section = null;
-                try
-                {
-                    MultipartReader reader = new MultipartReader(boundary, request.Body);
-                    section = reader.ReadNextSectionAsync().Result;
+      
+                MultipartReader reader = new MultipartReader(boundary, request.Body);
+                section = reader.ReadNextSectionAsync().Result;
 
-                    theStream = section.Body;
-                    contentType = section.ContentType;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
-
+                theStream = section.Body;
+                contentType = section.ContentType;
+       
                 bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
 
                 if (hasContentDisposition)
@@ -396,8 +390,7 @@ namespace Altinn.Platform.Storage.Controllers
             else
             {
                 theStream = request.Body;
-                StringValues headerValues;
-                if (request.Headers.TryGetValue("content-disposition", out headerValues))
+                if (request.Headers.TryGetValue("Content-Disposition", out StringValues headerValues))
                 {
                     string contentDisposition = headerValues.ToString();
                     List<string> contenDispValues = contentDisposition.Split(';').ToList();

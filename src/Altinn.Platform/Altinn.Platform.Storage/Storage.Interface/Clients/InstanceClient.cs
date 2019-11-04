@@ -16,7 +16,7 @@ namespace Altinn.Platform.Storage.Interface.Clients
     public class InstanceClient
     {
         private readonly HttpClient client;
-        private readonly string elementType = "default";
+        private readonly string dataType = "default";
         private readonly string versionPrefix = "storage/api/v1";
         private readonly string hostName;
 
@@ -39,42 +39,37 @@ namespace Altinn.Platform.Storage.Interface.Clients
         /// <param name="contentType">d</param>
         public async Task<Instance> PostDataReadFromFile(string instanceId, string fileName, string contentType)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?elementType={elementType}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?dataType={dataType}";
 
-            using (Stream input = File.OpenRead($"data/{fileName}"))
+            using Stream input = File.OpenRead($"data/{fileName}");
+          
+            HttpContent fileStreamContent = new StreamContent(input);
+            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+
+            using MultipartFormDataContent multipartFormData = new MultipartFormDataContent
             {
-                HttpContent fileStreamContent = new StreamContent(input);
-                fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+                { fileStreamContent, dataType, fileName }
+            };
 
-                using (MultipartFormDataContent multipartFormData = new MultipartFormDataContent())
-                {
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, multipartFormData);
 
-                    multipartFormData.Add(fileStreamContent, elementType, fileName);
-
-                    HttpResponseMessage response = await client.PostAsync(hostName + requestUri, multipartFormData);
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string json = response.Content.ReadAsStringAsync().Result;
-                        return JsonConvert.DeserializeObject<Instance>(json);
-                    }
-
-                    throw new StorageClientException($"Http error: {response.ReasonPhrase}");
-                }
+            if (response.IsSuccessStatusCode)
+            {
+                string json = response.Content.ReadAsStringAsync().Result;
+                return JsonConvert.DeserializeObject<Instance>(json);
             }
 
+            throw new StorageClientException($"Http error: {response.ReasonPhrase}");                   
         }
 
         /// <summary>
         /// Creates data.
         /// </summary>
         /// <param name="instanceId">a</param>
-        /// <param name="fileName">c</param>
-        /// <param name="contentType">d</param>
         /// <param name="content">f</param>
-        public async Task<Instance> PostData(string instanceId,string fileName, string contentType, Dictionary<string, object> content)
+        public async Task<Instance> PostData(string instanceId, Dictionary<string, object> content)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?elementType={elementType}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?dataType={dataType}";
 
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, content.AsJson());
 
@@ -92,12 +87,10 @@ namespace Altinn.Platform.Storage.Interface.Clients
         /// </summary>
         /// <param name="instanceId">the instance id</param>
         /// <param name="dataId">the data id</param>
-        /// <param name="fileName">a file name</param>
-        /// <param name="contentType">content type</param>
         /// <param name="content">content as json</param>
-        public async Task<Instance> PutData(string instanceId, string dataId,  string fileName, string contentType, Dictionary<string, string> content)
+        public async Task<Instance> PutData(string instanceId, string dataId, Dictionary<string, string> content)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?elementType={elementType}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?dataType={dataType}";
 
             HttpResponseMessage response = await client.PutAsync(requestUri, content.AsJson());
 

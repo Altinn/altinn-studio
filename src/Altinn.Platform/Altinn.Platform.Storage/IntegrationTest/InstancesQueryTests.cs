@@ -275,6 +275,20 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
+        ///  Check that storage returns bad request if illegal query parameter is set.
+        /// </summary>
+        [Fact]
+        public async void GetInstancesWithIllegalQueryParam()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?instanceOwnerId=500";
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);            
+        }
+
+        /// <summary>
         ///  Checks that multiple instances can be returned with org query param.
         /// </summary>
         [Fact]

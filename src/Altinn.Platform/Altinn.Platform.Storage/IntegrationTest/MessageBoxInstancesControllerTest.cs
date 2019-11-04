@@ -66,7 +66,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         public void Dispose()
         {
-            string requestUri = $"{versionPrefix}/instances?instanceOwnerId={testdata.GetInstanceOwnerPartyId()}";
+            string requestUri = $"{versionPrefix}/instances?instanceOwner.partyId={testdata.GetInstanceOwnerPartyId()}";
 
             HttpResponseMessage response = client.GetAsync(requestUri).Result;
             string content = response.Content.ReadAsStringAsync().Result;
