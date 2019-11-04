@@ -241,7 +241,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=gt:2019-07-01&visibleDateTime=lt:2019-08-01";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&inbox.visibleAfter=gt:2019-07-01&inbox.visibleAfter=lt:2019-08-01";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();

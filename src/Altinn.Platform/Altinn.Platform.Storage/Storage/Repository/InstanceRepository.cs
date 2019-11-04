@@ -93,7 +93,7 @@ namespace Altinn.Platform.Storage.Repository
 
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
 
-            ResourceResponse<Document> instance = await _client
+            _ = await _client
                 .DeleteDocumentAsync(
                     uri.ToString(),
                     new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwner.PartyId) });
@@ -182,6 +182,14 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     switch (queryParameter)
                     {
+                        case "size":
+                            // handled outside this, it is a valid parameter.
+                            break;
+
+                        case "continuationToken":
+                            // handled outside this method, it is a valid parameter.
+                            break;
+
                         case "appId":
                             queryBuilder = queryBuilder.Where(i => i.AppId == queryValue);
                             break;

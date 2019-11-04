@@ -75,6 +75,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="currentTaskId">running process current task id</param>
         /// <param name="processIsComplete">is process complete</param>
         /// <param name="processEndEvent">process end state</param>
+        /// <param name="processEnded">process ended value</param>
         /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="labels">labels</param>
         /// <param name="lastChanged">last changed date</param>
@@ -92,6 +93,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "process.currentTask")] string currentTaskId,
             [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
             [FromQuery(Name = "process.endEvent")] string processEndEvent,
+            [FromQuery(Name = "process.ended")] string processEnded,
             [FromQuery(Name = "instanceOwner.partyId")] int? instanceOwnerPartyId,
             [FromQuery(Name = "appOwner.labels")] string labels,
             [FromQuery] string lastChanged,
