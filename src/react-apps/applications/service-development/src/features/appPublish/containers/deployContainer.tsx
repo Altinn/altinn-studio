@@ -9,6 +9,7 @@ import { IAppClusterState } from '../../../sharedResources/appCluster/appCluster
 import AppDeploymentActions from '../../../sharedResources/appDeployment/appDeploymentDispatcher';
 import { IAppDeploymentState, ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/appDeploymentReducer';
 import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
+import { BuildResult } from '../../../sharedResources/appRelease/types';
 import ConfigurationActions from '../../../sharedResources/configuration/configurationDispatcher';
 import { IConfigurationState } from '../../../sharedResources/configuration/configurationReducer';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
@@ -81,9 +82,10 @@ export const DeployContainer = (props: IDeployContainer) => {
   }, [environments, appDeployments]);
 
   React.useEffect(() => {
-    const tempImages = deployableImages.releases.map((image) => {
-      const releaseTime = moment.utc(new Date(image.created)).format('DD.MM.YY [kl.] hh:mm');
-
+    const tempImages = deployableImages.releases
+      .filter((image) => image.build.result === BuildResult.succeeded)
+      .map((image) => {
+      const releaseTime = moment(new Date(image.created)).format('DD.MM.YY [kl.] HH:mm');
       return {
         value: image.tagName,
         label: `Version ${image.tagName} (${releaseTime})`,
