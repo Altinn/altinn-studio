@@ -86,8 +86,8 @@ namespace AltinnCore.Designer
                         logger.Error($"Could not find secretBundle for application insights {vaultException}");
                     }
                 }
-
-                if (hostingEnvironment.IsDevelopment())
+                
+                if (hostingEnvironment.IsDevelopment() && basePath != "/")
                 {
                     config.AddJsonFile(Directory.GetCurrentDirectory() + $"/appsettings.{envName}.json", optional: true, reloadOnChange: true);
                 }
