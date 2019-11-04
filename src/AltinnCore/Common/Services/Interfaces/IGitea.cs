@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.RepositoryClient.Model;
 
@@ -15,7 +13,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Get the current user
         /// </summary>
         /// <returns>The current user</returns>
-        Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser();
+        Task<User> GetCurrentUser();
 
         /// <summary>
         /// Create repository for the org.
@@ -23,7 +21,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">the options for creating repository.</param>
         /// <returns>The newly created repository object.</returns>
-        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
+        Task<Repository> CreateRepository(string org, CreateRepoOption createRepoOption);
 
         /// <summary>
         /// Search the repository for the given parameters
@@ -46,14 +44,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Returns organisation that user has access to
         /// </summary>
         /// <returns>A list over organisations</returns>
-        Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations();
-
-        /// <summary>
-        /// Returns information about a organisation based on name
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <returns>The organisation object</returns>
-        Task<Organization> GetOrganization(string org);
+        Task<List<Organization>> GetUserOrganizations();
 
         /// <summary>
         /// List all branches with commit for a repo

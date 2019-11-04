@@ -1,29 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using AltinnCore.Authentication.Constants;
-using AltinnCore.Authentication.JwtCookie;
-using AltinnCore.Common.Backend;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Services.Implementation;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.Authorization;
-using AltinnCore.Designer.ModelBinding;
-using AltinnCore.ServiceLibrary.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Reflection;
+using AltinnCore.Designer.Infrastructure;
+using AltinnCore.Designer.Infrastructure.Authorization;
+using AltinnCore.Designer.TypedHttpClients;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
+using Microsoft.AspNetCore.Http.Headers;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 
 namespace AltinnCore.Designer
 {
@@ -54,116 +44,40 @@ namespace AltinnCore.Designer
         /// <param name="services">The services available for asp.net Core</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            // Adding services to Dependency Injection TODO: Make this environment specific
-            services.AddSingleton<IExecution, ExecutionStudioSI>();
-            services.AddSingleton<IInstance, InstanceStudioSI>();
-            services.AddSingleton<IData, DataStudioSI>();
-            services.AddSingleton<IWorkflow, WorkflowStudioSI>();
-            services.AddSingleton<ITestdata, TestdataStudioSI>();
-            services.AddSingleton<IDSF, RegisterDSFStudioSI>();
-            services.AddSingleton<IER, RegisterERStudioSI>();
-            services.AddSingleton<IRegister, RegisterStudioSI>();
-            services.AddSingleton<IProfile, ProfileStudioSI>();
-
-            services.AddSingleton<IArchive, ArchiveStudioSI>();
-            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
-            services.AddSingleton<ICompilation, CompilationSI>();
-            services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IForm, FormStudioSI>();
-            services.AddSingleton<IRepository, RepositorySI>();
-            services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<IGitea, GiteaAPIWrapper>();
-            services.AddSingleton<ISourceControl, SourceControlSI>();
-            services.AddSingleton<ITestdata, TestdataStudioSI>();
-            services.AddSingleton<IApplication, ApplicationStudioSI>();
-            services.AddSingleton(Configuration);
-            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-            services.AddMemoryCache();
-            services.AddResponseCompression();
-
-            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
-            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
-                                : Configuration["ServiceRepositorySettings:RepositoryLocation"];
-
-            if (!Directory.Exists(repoLocation))
-            {
-                Directory.CreateDirectory(repoLocation);
-            }
-
             services.Configure<KestrelServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
             });
-            services.AddControllers().AddNewtonsoftJson();
-            services.AddMvc(options => options.EnableEndpointRouting = false);
-            services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
-            services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
-            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
-            services.Configure<CertificateSettings>(Configuration);
-            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
 
-            services.AddRazorPages();
+            services.RegisterServiceImplementations(Configuration);
+            services.RegisterIntegrations(Configuration);
 
-            // Configure Authentication
-            // Use [Authorize] to require login on MVC Controller Actions
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                {
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
-                })
-                .AddCookie(options =>
-                {
-                    options.AccessDeniedPath = "/Home/NotAuthorized/";
-                    options.LoginPath = "/Home/Login/";
-                    options.LogoutPath = "/Home/Logout/";
-                    options.Cookie.Name = Common.Constants.General.DesignerCookieName;
-                    options.Events = new CookieAuthenticationEvents
-                    {
-                        // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
-                    };
-                });
+            services.AddHttpContextAccessor();
+            services.AddMemoryCache();
+            services.AddResponseCompression();
 
-            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
-            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
+            CreateDirectory();
+
+            services.ConfigureMvc();
+            services.ConfigureSettings(Configuration);
+            services.RegisterTypedHttpClients(Configuration);
+            services.ConfigureAuthentication();
+            services.ConfigureApplicationInsight();
+            services.ConfigureLocalization();
+            services.AddPolicyBasedAuthorization();
+            
+            services.AddSwaggerGen(c =>
             {
-                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
-                services.AddApplicationInsightsKubernetesEnricher();
-            }
-
-            IMvcBuilder mvc = services.AddControllers().AddControllersAsServices();
-            mvc.Services.AddRazorPages();
-
-            mvc.Services.Configure<MvcOptions>(options =>
-            {
-                // Adding custom modelbinders
-                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());                
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Designer API", Version = "v1" });
+                try
+                {
+                    c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                }
+                catch
+                {
+                    // Catch swashbuckle exception if it doesn't find the generated XML documentation file
+                }
             });
-            mvc.AddXmlSerializerFormatters();
-
-            services.AddLocalization();
-            services.Configure<RequestLocalizationOptions>(
-                options =>
-                {
-                    List<CultureInfo> supportedCultures = new List<CultureInfo>
-                        {
-                            // The current supported languages. Can easily be added more.
-                            new CultureInfo("en-US"),
-                            new CultureInfo("nb-NO"),
-                            new CultureInfo("nn-NO"),
-                        };
-
-                    options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
-                    options.SupportedCultures = supportedCultures;
-                    options.SupportedUICultures = supportedCultures;
-                });
-            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
         }
 
         /// <summary>
@@ -176,24 +90,35 @@ namespace AltinnCore.Designer
         {
             if (env.IsDevelopment())
             {
-                appBuilder.UseDeveloperExceptionPage();
+                appBuilder.UseExceptionHandler("/error-local-development");
             }
             else
             {
-                appBuilder.UseExceptionHandler("/Error");
+                appBuilder.UseExceptionHandler("/error");
             }
 
-            appBuilder.UseStaticFiles(new StaticFileOptions()
+            appBuilder.UseStaticFiles(new StaticFileOptions
             {
-                OnPrepareResponse = (context) =>
+                OnPrepareResponse = context =>
                 {
-                    var headers = context.Context.Response.GetTypedHeaders();
-                    headers.CacheControl = new CacheControlHeaderValue()
+                    ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
+                    headers.CacheControl = new CacheControlHeaderValue
                     {
                         Public = true,
                         MaxAge = TimeSpan.FromMinutes(60),
                     };
                 },
+            });
+
+            const string swaggerRoutePrefix = "designer/swagger";
+            appBuilder.UseSwagger(c =>
+            {
+                c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
+            });
+            appBuilder.UseSwaggerUI(c =>
+            {
+                c.RoutePrefix = swaggerRoutePrefix;
+                c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
             });
 
             appBuilder.UseRouting();
@@ -241,18 +166,11 @@ namespace AltinnCore.Designer
                               app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
+
                 endpoints.MapControllerRoute(
-                          name: "appRoute",
-                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
-                          defaults: new { controller = "Deploy" },
-                          constraints: new
-                          {
-                              controller = @"(Deploy)",
-                          });
-                endpoints.MapControllerRoute(
-                        name: "applicationMetadataApiRoute",
-                        pattern: "designer/api/v1/{org}/{app}",
-                        defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
+                       name: "applicationMetadataApiRoute",
+                       pattern: "designer/api/v1/{org}/{app}",
+                       defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
 
                 endpoints.MapControllerRoute(
                         name: "reposRoute",
@@ -272,19 +190,27 @@ namespace AltinnCore.Designer
             });
         }
 
-        /// <summary>
-        ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
-        /// </summary>
-        /// <returns>Telemetry instrumentation key</returns>
-        public string GetApplicationInsightsKeyFromEnvironment()
+        private void CreateDirectory()
         {
-            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
-            if (string.IsNullOrEmpty(evironmentKey))
-            {
-                return null;
-            }
+            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
+            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+            string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
+                                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation")
+                                : Configuration["ServiceRepositorySettings:RepositoryLocation"];
 
-            return evironmentKey;
+            if (!Directory.Exists(repoLocation))
+            {
+                Directory.CreateDirectory(repoLocation);
+            }
+        }
+
+        private static string GetXmlCommentsPathForControllers()
+        {
+            // locate the xml file being generated by .NET
+            string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.XML";
+            string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+
+            return xmlPath;
         }
     }
 }

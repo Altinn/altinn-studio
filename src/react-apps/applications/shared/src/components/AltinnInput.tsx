@@ -1,84 +1,120 @@
-import { createMuiTheme, FormControl, Grid, TextField } from '@material-ui/core';
+import {
+  createMuiTheme,
+  createStyles,
+  Grid,
+  Input,
+  InputLabel,
+  WithStyles,
+} from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface IAltinnInputCompontentProvidedProps {
-  classes: any;
-  id: string;
-  placeholder?: any;
-  onChangeFunction: any;
-  fullWidth?: boolean;
-  width?: number;
-  disabled?: boolean;
-  iconString?: string;
-}
-
-export interface IAltinnInputComponentState {
-}
-
 const theme = createMuiTheme(altinnTheme);
-
-const styles = {
-  searchBox: {
-    background: 'none',
-    height: 36,
-  },
-  searchBoxEnabled: {
-    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
-  },
-  searchBoxDisabled: {
-    border: '1px solid ' + theme.altinnPalette.primary.grey,
+const styles = createStyles({
+  altinnInputWrapper: {
+    height: 'auto',
+    width: 'auto',
   },
   altinnInput: {
-    fontSize: '16px',
-    color: theme.altinnPalette.primary.black,
-    padding: '6px',
+    backgroundColor: theme.altinnPalette.primary.white,
+    border: `2px solid ${theme.altinnPalette.primary.blue}`,
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  altinnInputValidationError: {
+    backgroundColor: theme.altinnPalette.primary.white,
+    border: `2px solid ${theme.altinnPalette.primary.red}`,
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  altinnInputField: {
+    fontSize: '1.6rem',
+    border: 0,
+    outline: 'none',
+    flexGrow: 2,
+    maxWidth: 'match-parent',
   },
   altinnInputIcon: {
     color: theme.altinnPalette.primary.black,
-    fontSize: '25px',
-    marginLeft: '5px',
-    padding: 6,
+    fontSize: '2.5rem',
+    padding: '1.6rem 1rem 1.6rem 1rem',
+    flexGrow: 0,
+    alignSelf: 'stretch',
   },
-};
+  altinnInputLabel: {
+    color: theme.altinnPalette.primary.black,
+    fontSize: '1.6rem',
+    paddingBottom: '1rem',
+  },
+});
 
-// tslint:disable-next-line:max-line-length
-export class AltinnInput extends React.Component<IAltinnInputCompontentProvidedProps, IAltinnInputComponentState> {
-  public render() {
-    const { classes, iconString } = this.props;
-    return (
-      <FormControl
-        classes={{
-          root: classNames(classes.searchBox, {
-            [classes.searchBoxEnabled]: !this.props.disabled,
-            [classes.searchBoxDisabled]: this.props.disabled,
-          }),
-        }}
-        fullWidth={true}
-        style={{
-          width: this.props.width ? this.props.width : null,
-        }}
-      >
-        <Grid item={true}>
-          {!iconString !== null &&
-            <i className={`${classes.altinnInputIcon} ${iconString}`} />
-          }
-          <TextField
-            disabled={this.props.disabled}
-            id={this.props.id}
-            placeholder={this.props.placeholder}
-            onChange={this.props.onChangeFunction}
-            InputProps={{
-              disableUnderline: true,
-              classes: { root: classNames(classes.altinnInput) },
-            }}
-          />
-        </Grid>
-      </FormControl>
-    );
-  }
+export interface IAltinnInputProps extends
+  React.InputHTMLAttributes<any>,
+  WithStyles<typeof styles> {
+  iconString?: string;
+  widthPercentage?: number;
+  showLabel?: boolean;
+  validationError?: boolean;
+  label: string;
 }
+
+function AltinnInput(props: IAltinnInputProps) {
+  const inputRef = React.createRef<HTMLInputElement>();
+  const { classes, iconString, label, widthPercentage, showLabel, validationError, ...rest } = props;
+
+  function focusInput() {
+    inputRef.current.focus();
+  }
+
+  return (
+    <Grid
+      container={true}
+      direction={'column'}
+      onClick={focusInput}
+      aria-label={label}
+      className={classes.altinnInputWrapper}
+      style={{
+        width: !!widthPercentage ? `${widthPercentage}%` : '100%',
+      }}
+    >
+      {showLabel ?
+        <InputLabel
+          className={classes.altinnInputLabel}
+        >
+          {label}
+        </InputLabel>
+        : null
+      }
+      <Grid
+        container={true}
+        direction={'row'}
+        className={validationError ? classes.altinnInputValidationError : classes.altinnInput}
+      >
+      {!!iconString ?
+        <i className={`${classes.altinnInputIcon} ${iconString}`} onClick={focusInput}/> :
+        null
+      }
+        <Input
+          style={{
+            padding: '0rem 0.5rem 0rem 0.5rem',
+          }}
+          inputRef={inputRef}
+          className={classes.altinnInputField}
+          aria-label={label}
+          aria-required={'true'}
+          tabIndex={0}
+          disableUnderline={true}
+          {...rest}
+        />
+      </Grid>
+    </Grid>
+  );
+}
+
+AltinnInput.defaultProps = {
+  showLabel: true,
+  validationError: false,
+};
 
 export default withStyles(styles)(AltinnInput);
