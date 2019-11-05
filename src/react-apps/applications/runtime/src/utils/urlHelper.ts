@@ -26,6 +26,10 @@ export const partySelectionUrl: string = `${appPath}/#/partyselection`;
 export const refreshJwtTokenUrl: string = `${appPath}/api/authentication/keepAlive`;
 export const reactErrorPage: string = `${appPath}/#/error`;
 
+export function getDataElementUrl(dataGuid: string) {
+  return `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
+}
+
 export function getProcessStateUrl() {
   return `${appPath}/instances/${altinnWindow.instanceId}/process`;
 }

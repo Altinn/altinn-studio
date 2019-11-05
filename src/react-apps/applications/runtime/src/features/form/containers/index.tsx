@@ -16,6 +16,7 @@ import {
   appPath,
 } from '../../../utils/urlHelper';
 
+import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { WorkflowSteps } from '../workflow/typings';
 
@@ -58,6 +59,8 @@ export default (props) => {
     } else if (processState === WorkflowSteps.Unknown.valueOf()) {
       ProcessDispatcher.startProcess();
     }
+
+    InstanceDataActions.getInstanceData(partyId, instanceGuid);
 
     FormDynamicActions.fetchFormDynamics(
       `${window.location.origin}/${org}/${app}/api/resource/ServiceConfigurations.json`,

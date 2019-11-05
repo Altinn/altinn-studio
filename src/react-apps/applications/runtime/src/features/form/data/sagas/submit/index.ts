@@ -1,9 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
+import { put } from 'Shared/utils/networking';
 import { IRuntimeState } from 'src/types';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
-import { put } from '../../../../../utils/networking';
+import { getDataElementUrl } from '../../../../../utils/urlHelper';
 import {
   canFormBeSaved, mapApiValidationsToRedux, validateEmptyFields, validateFormComponents,
   validateFormData,
@@ -37,6 +38,13 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
       validations = Object.assign(validations, emptyFieldsValidations);
     }
     if (canFormBeSaved(validations)) {
+      const dataElementGuid = state.instanceData.instance.data.find((e) => e.elementType === 'default').id;
+      console.log('dataElementGuid', dataElementGuid);
+      const result = yield call(put, getDataElementUrl(dataElementGuid), model);
+      // TODO: Run validations if apiMode is complete
+      // TODO: Move process to next step
+
+      /* OLD IMPLEMENTATION
       console.log('### FORMCANBESAVED, URL: ', url, ' apimode: ', apiMode, ' model: ', model);
       const result = yield call(put, url, apiMode || 'Update', model);
       yield call(FormDataActions.submitFormDataFulfilled);
@@ -51,6 +59,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
           window.location.replace(`${window.location.origin}${result.nextStepUrl}`);
         }
       }
+      */
     } else {
       FormValidationActions.updateValidations(validations);
     }
