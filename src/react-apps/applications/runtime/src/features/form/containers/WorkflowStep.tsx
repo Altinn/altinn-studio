@@ -4,14 +4,13 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-import FormFillerActions from '../data/actions';
+import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IProfile } from '../../../shared/resources/profile';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
 import { IValidations } from '../../../types/global';
 import ReceiptContainer from '../../receipt/containers/receiptContainer';
-
-import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
+import FormFillerActions from '../data/actions';
 
 export interface IProcessStepProvidedProps {
   header: string;
