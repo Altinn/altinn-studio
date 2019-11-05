@@ -1,7 +1,7 @@
 import { IAltinnWindow } from 'src/types';
 
 const altinnWindow = window as Window as IAltinnWindow;
-const { org, app, reportee, instanceId } = altinnWindow;
+const { org, app, reportee } = altinnWindow;
 const origin = window.location.origin;
 
 export const appPath = `${origin}/${org}/${app}`;
@@ -34,8 +34,19 @@ export function getProcessStateUrl() {
   return `${appPath}/instances/${altinnWindow.instanceId}/process`;
 }
 
-export function getStartProcessUrl() {
-  return `${appPath}/instances/${altinnWindow.instanceId}/process/start`;
+export function getStartProcessUrl(instanceId: string) {
+  if (!instanceId) {
+    instanceId = altinnWindow.instanceId;
+  }
+  return `${origin}/${org}/${app}/instances/${instanceId}/process/start`;
+}
+
+export function getCreateInstancesUrl(partyId: string) {
+  return `${origin}/${org}/${app}/instances?instanceOwnerId=${partyId}`;
+}
+
+export function getCreateDataElementUrl(instanceId: string, elementType: string) {
+  return `${origin}/${org}/${app}/instances/${instanceId}/data?elementType=${elementType}`;
 }
 
 export const getEnvironmentLoginUrl: () => string = () => {
