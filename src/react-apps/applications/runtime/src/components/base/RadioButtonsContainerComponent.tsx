@@ -52,14 +52,15 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
 
   return (
     <div
-      className={
-        'form-check a-radioButtons pl-0'
-        +
-        (isStacked ?
-          ' form-check-stacked' :
-          ' form-check-inline'
-        )
-      }
+      className={classNames(
+        'form-check',
+        'a-radioButtons',
+        'pl-0',
+        {
+          'form-check-stacked': isStacked,
+          'form-check-inline': !isStacked,
+        },
+      )}
       id={props.id}
       style={isStacked ? {} : { alignItems: 'start' }}
     >
@@ -70,6 +71,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
           key={index}
           onClick={props.readOnly ?
             null : () => onDataChange(option.value)}
+          style={index !== 0 ? { marginTop: '2.4rem' } : {}}
         >
           <input
             type='radio'
@@ -79,8 +81,13 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
             onChange={emptyFunction}
           />
           <label
-            className={classNames('custom-control-label', 'pl-3',
-              { 'disabled-radio-button': props.readOnly })}
+            className={classNames(
+              'custom-control-label',
+              'pl-3',
+              {
+                'disabled-radio-button': props.readOnly,
+              },
+            )}
           >
             {option.label}
           </label>

@@ -10,6 +10,16 @@ export interface IHeaderState { }
 
 export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState> {
 
+  public h2style = {
+    marginTop: '4.8rem',
+    marginBottom: '0',
+  };
+
+  public h3style = {
+    marginTop: '4.8rem',
+    marginBottom: '0',
+  };
+
   public renderHeader(): JSX.Element {
     switch (this.props.size) {
       case ('S'): {
@@ -17,11 +27,11 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
       }
 
       case ('M'): {
-        return <h3 id={this.props.id}>{this.props.text}</h3>;
+        return <h3 id={this.props.id} style={this.h3style}>{this.props.text}</h3>;
       }
 
       case ('L'): {
-        return <h2 id={this.props.id}>{this.props.text}</h2>;
+        return <h2 id={this.props.id} style={this.h2style}>{this.props.text}</h2>;
       }
 
       default: {

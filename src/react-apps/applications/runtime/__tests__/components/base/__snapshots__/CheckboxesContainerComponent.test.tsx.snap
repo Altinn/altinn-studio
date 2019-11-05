@@ -2,7 +2,7 @@
 
 exports[`>>> components/base/CheckboxesContainerComponent.tsx >>> Capture snapshot of CheckboxesContainerComponent 1`] = `
 <div
-  className="form-check a-form-checkboxes pl-0 form-check-inline"
+  className="form-check a-radioButtons pl-0 form-check-inline"
   id="mock-id"
   style={
     Object {
@@ -13,6 +13,7 @@ exports[`>>> components/base/CheckboxesContainerComponent.tsx >>> Capture snapsh
   <div
     className="custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3"
     onClick={[Function]}
+    style={Object {}}
   >
     <input
       checked={false}
@@ -31,6 +32,11 @@ exports[`>>> components/base/CheckboxesContainerComponent.tsx >>> Capture snapsh
   <div
     className="custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3"
     onClick={[Function]}
+    style={
+      Object {
+        "marginTop": "2.4rem",
+      }
+    }
   >
     <input
       checked={false}
