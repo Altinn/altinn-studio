@@ -19,8 +19,7 @@ namespace Altinn.Platform.Storage.Repository
     /// Repository operations for application instances.
     /// </summary>
     public class InstanceRepository : IInstanceRepository
-    {
-        private readonly Uri databaseUri;
+    {        
         private readonly Uri collectionUri;
         private readonly string databaseId;
         private readonly string collectionId = "instances";
@@ -49,7 +48,7 @@ namespace Altinn.Platform.Storage.Repository
 
             _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
 
-            databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
+            Uri databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
             collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, collectionId);
             databaseId = _cosmosettings.Database;
 
