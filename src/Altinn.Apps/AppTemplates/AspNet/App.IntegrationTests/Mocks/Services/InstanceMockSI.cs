@@ -36,7 +36,10 @@ namespace App.IntegrationTests.Mocks.Services
         {
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceId);
 
-            instance.Data = GetDataElements(org, app, instanceOwnerId, instanceId);
+            if (instance != null)
+            {
+                instance.Data = GetDataElements(org, app, instanceOwnerId, instanceId);
+            }
             return Task.FromResult(instance);
         }
 
@@ -74,13 +77,16 @@ namespace App.IntegrationTests.Mocks.Services
             string path = GetDataPath(org, app, instanceOwnerId, instanceId);
             List<DataElement> dataElements = new List<DataElement>();
 
-            string[] files = Directory.GetFiles(path);
-
-            foreach (string file in files)
+            if (Directory.Exists(path))
             {
-                string content = System.IO.File.ReadAllText(Path.Combine(path, file));
-                DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
-                dataElements.Add(dataElement);
+                string[] files = Directory.GetFiles(path);
+
+                foreach (string file in files)
+                {
+                    string content = System.IO.File.ReadAllText(Path.Combine(path, file));
+                    DataElement dataElement = (DataElement)JsonConvert.DeserializeObject(content, typeof(DataElement));
+                    dataElements.Add(dataElement);
+                }
             }
 
             return dataElements;

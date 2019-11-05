@@ -37,7 +37,20 @@ namespace App.IntegrationTests.Mocks.Services
 
         public object GetFormData(Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
-            throw new NotImplementedException();
+            string dataPath = GetDataBlobPath(org, app, instanceOwnerId, instanceGuid, dataId);
+
+            XmlSerializer serializer = new XmlSerializer(type);
+            try
+            {
+                using (FileStream SourceStream = File.Open(dataPath, FileMode.OpenOrCreate))
+                {
+                    return serializer.Deserialize(SourceStream);
+                }
+            }
+            catch(Exception ex)
+            {
+                return Activator.CreateInstance(type);
+            }
         }
 
         public Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
@@ -100,6 +113,11 @@ namespace App.IntegrationTests.Mocks.Services
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\",org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
         }
 
+        private string GetDataBlobPath(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataId)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\blob\" + dataId.ToString());
+        }
 
         private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {

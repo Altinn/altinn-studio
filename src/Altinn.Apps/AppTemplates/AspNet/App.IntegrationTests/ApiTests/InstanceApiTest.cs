@@ -1,23 +1,14 @@
-using Altinn.App;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.Authentication.Constants;
-using AltinnCore.Authentication.JwtCookie;
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Xunit;
 

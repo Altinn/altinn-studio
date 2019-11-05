@@ -35,10 +35,15 @@ namespace Altinn.App
             // Add API controllers from Altinn.App.Api 
             services.AddControllers().AddApplicationPart(typeof(InstancesController).Assembly);
 
+            // Dot net services
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             // Internal Application services
             services.AddSingleton<IApplication, ApplicationAppSI>();
             services.AddSingleton<IExecution, ExecutionAppSI>();
             services.AddSingleton<IProcess, ProcessAppSI>();
+            services.AddSingleton<IRepository, RepositorySI>();
+            services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
 
             // Services for Altinn Platform components
             services.AddSingleton<IAuthentication, AuthenticationAppSI>();
@@ -53,18 +58,8 @@ namespace Altinn.App
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AltinnApp>();
-
-
-            services.AddSingleton<IRepository, RepositorySI>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
-            services.AddSingleton<IPlatformServices, PlatformStudioSI>();
-            
-            // App specific Interfaces             
-            services.AddSingleton<IReiseApi, ReiseApi>();
-
-
-
+                       
+            // Application Settings 
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
