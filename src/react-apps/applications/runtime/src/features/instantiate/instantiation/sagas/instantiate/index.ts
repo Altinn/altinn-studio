@@ -1,4 +1,3 @@
-import { AxiosError, AxiosResponse } from 'axios';
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 
@@ -6,7 +5,7 @@ import { IParty } from '../../../../../shared/resources/party';
 import { IRuntimeState } from '../../../../../types';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { post } from '../../../../../utils/networking';
-import { getCreateDataElementUrl, getCreateInstancesUrl, instantiateUrl, reactErrorPage, getStartProcessUrl } from '../../../../../utils/urlHelper';
+import { getCreateDataElementUrl, getCreateInstancesUrl, getStartProcessUrl } from '../../../../../utils/urlHelper';
 import InstantiationActions from '../../actions';
 import { IInstantiate } from '../../actions/instantiate';
 import * as InstantiationActionTypes from '../../actions/types';
@@ -17,10 +16,7 @@ const SelectedPartySelector = ((state: IRuntimeState) => state.party.selectedPar
 const FormDataSelector = ((state: IRuntimeState) => state.formData.formData);
 const DataModelSelector = ((state: IRuntimeState) => state.formDataModel.dataModel);
 
-function* instantiationSaga({
-  org,
-  app,
-}: IInstantiate): SagaIterator {
+function* instantiationSaga(): SagaIterator {
   try {
     const instantitationState: IInstantiationState = yield select(InstantiatingSelector);
     if (!instantitationState.instantiating) {

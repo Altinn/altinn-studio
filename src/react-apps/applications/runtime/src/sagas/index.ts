@@ -19,6 +19,7 @@ import OrgsSagas from '../shared/resources/orgs/orgsSagas';
 import PartySagas from '../shared/resources/party/partySagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
 import TextResourcesSagas from '../shared/resources/textResources/sagas';
+import { processSagas } from './../sharedResources/process/processSagas';
 
 function* root(): SagaIterator {
   yield fork(FormConfigSagas);
@@ -38,6 +39,7 @@ function* root(): SagaIterator {
   yield fork(InstantiationSagas);
   yield fork(OrgsSagas);
   yield fork(InstanceDataSagas);
+  yield fork(processSagas);
 }
 
 export const initSagas: () => Task = () => sagaMiddleware.run(root);

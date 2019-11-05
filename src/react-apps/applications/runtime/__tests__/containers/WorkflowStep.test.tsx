@@ -112,7 +112,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#1EAEF7');
+    expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#1EAEF7');
   });
 
   it('+++ should render receipt when step is "archived"', () => {
@@ -140,7 +140,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
+    expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
   });
 
   it('+++ should render submit when step is "submit"', () => {
@@ -154,7 +154,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.exists('#workflowSubmitStepButton')).toEqual(true);
+    expect(wrapper.exists('#processSubmitStepButton')).toEqual(true);
   });
   it('+++ should map unmappedValidations if there are any and create error report', () => {
     const createStore = configureStore();

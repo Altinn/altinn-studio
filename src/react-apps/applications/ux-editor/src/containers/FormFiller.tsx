@@ -68,6 +68,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 
   public submitForm = () => {
+    console.log('#### submitForm inside Formfiller')
     const { org, app, instanceId } = window as IAltinnWindow;
     FormFillerActionDispatchers.submitFormData(`
       ${window.location.origin}/${org}/${app}/api/${instanceId}`, 'Complete');

@@ -87,6 +87,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
     }
 
     case actionTypes.SUBMIT_FORM_DATA_FULFILLED: {
+      console.log('actionTypes.SUBMIT_FORM_DATA_FULFILLED: ')
       return Immutable<IFormDataState>(state, {
         unsavedChanges: {
           $set: false,
