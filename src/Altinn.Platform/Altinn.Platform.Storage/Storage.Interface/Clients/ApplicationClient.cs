@@ -3,7 +3,7 @@ using System.Net.Http;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Interface.Clients
+namespace Altinn.Platform.Storage.Clients
 {
     /// <summary>
     /// Client for managing application metadata.
@@ -48,7 +48,7 @@ namespace Altinn.Platform.Storage.Interface.Clients
 
             application.DataTypes.Add(defaultElementType);
 
-            return CreateApplication(application) ;                     
+            return CreateApplication(application);                     
         }
 
         /// <summary>

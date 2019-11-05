@@ -8,7 +8,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Altinn.Platform.Storage.Interface.Clients
+namespace Altinn.Platform.Storage.Clients
 {
     /// <summary>
     /// Storage client methods.
@@ -16,7 +16,6 @@ namespace Altinn.Platform.Storage.Interface.Clients
     public class InstanceClient
     {
         private readonly HttpClient client;
-        private readonly string dataType = "default";
         private readonly string versionPrefix = "storage/api/v1";
         private readonly string hostName;
 
@@ -29,100 +28,6 @@ namespace Altinn.Platform.Storage.Interface.Clients
         {
             this.client = client;
             this.hostName = hostName;
-        }
-
-        /// <summary>
-        /// Creates data from file.
-        /// </summary>
-        /// <param name="instanceId">a</param>
-        /// <param name="fileName">c</param>
-        /// <param name="contentType">d</param>
-        public async Task<Instance> PostDataReadFromFile(string instanceId, string fileName, string contentType)
-        {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?dataType={dataType}";
-
-            using Stream input = File.OpenRead($"data/{fileName}");
-          
-            HttpContent fileStreamContent = new StreamContent(input);
-            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-
-            using MultipartFormDataContent multipartFormData = new MultipartFormDataContent
-            {
-                { fileStreamContent, dataType, fileName }
-            };
-
-            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, multipartFormData);
-
-            if (response.IsSuccessStatusCode)
-            {
-                string json = response.Content.ReadAsStringAsync().Result;
-                return JsonConvert.DeserializeObject<Instance>(json);
-            }
-
-            throw new StorageClientException($"Http error: {response.ReasonPhrase}");                   
-        }
-
-        /// <summary>
-        /// Creates data.
-        /// </summary>
-        /// <param name="instanceId">a</param>
-        /// <param name="content">f</param>
-        public async Task<Instance> PostData(string instanceId, Dictionary<string, object> content)
-        {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?dataType={dataType}";
-
-            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, content.AsJson());
-
-            if (response.IsSuccessStatusCode)
-            {
-                string json = response.Content.ReadAsStringAsync().Result;
-                return JsonConvert.DeserializeObject<Instance>(json);
-            }
-
-            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
-        }
-
-        /// <summary>
-        /// Updates data.
-        /// </summary>
-        /// <param name="instanceId">the instance id</param>
-        /// <param name="dataId">the data id</param>
-        /// <param name="content">content as json</param>
-        public async Task<Instance> PutData(string instanceId, string dataId, Dictionary<string, string> content)
-        {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?dataType={dataType}";
-
-            HttpResponseMessage response = await client.PutAsync(requestUri, content.AsJson());
-
-            if (response.IsSuccessStatusCode)
-            {
-                string json = response.Content.ReadAsStringAsync().Result;
-                return JsonConvert.DeserializeObject<Instance>(json);
-            }
-
-            throw new StorageClientException($"PUT error: {response.ReasonPhrase}");
-        }
-
-        /// <summary>
-        ///  Gets a data element.
-        /// </summary>
-        /// <param name="instanceId">the instance id</param>
-        /// <param name="dataId">the data id</param>
-        /// <returns>the data content as byte array</returns>
-        public async Task<byte[]> GetData(string instanceId, string dataId)
-        {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}";
-
-            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
-
-            if (response.IsSuccessStatusCode)
-            {
-                response.EnsureSuccessStatusCode();
-
-                return await response.Content.ReadAsByteArrayAsync();
-            }
-
-            throw new StorageClientException($"GET error: {response.ReasonPhrase}");
         }
 
         /// <summary>
@@ -240,6 +145,7 @@ namespace Altinn.Platform.Storage.Interface.Clients
                     {
                         eventTypeList.Append(",");
                     }
+
                     eventTypeList.Append(type);
                 }
 
@@ -280,7 +186,6 @@ namespace Altinn.Platform.Storage.Interface.Clients
             }
 
             throw new StorageClientException($"POST error: {response.ReasonPhrase}");
-
         }
 
         /// <summary>
@@ -318,6 +223,57 @@ namespace Altinn.Platform.Storage.Interface.Clients
             }
 
             throw new StorageClientException($"DELETE error: {response.ReasonPhrase}");
+        }
+
+        /// <summary>
+        /// Post a file as an atachment to storage.
+        /// </summary>
+        /// <returns>The HttpResponseMessage</returns>
+        public async Task<HttpResponseMessage> PostFileAsAttachment(Instance instance, string dataType, string fileName, string contentType)
+        {
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
+
+            Stream input = File.OpenRead($"data/{fileName}");
+
+            HttpContent fileStreamContent = new StreamContent(input);
+            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse($"{contentType}");
+            fileStreamContent.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");
+
+            await fileStreamContent.LoadIntoBufferAsync();
+
+            HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent);
+
+            return response;
+        }
+
+        /// <summary>
+        /// Post a data file as a stream content to storage.
+        /// </summary>
+        /// <returns>http response message</returns>
+        public async Task<HttpResponseMessage> PostFileAsStream(Instance instance, string dataType, string fileName, string contentType)
+        {
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
+
+            Stream input = File.OpenRead($"data/{fileName}");
+
+            HttpContent fileStreamContent = new StreamContent(input);
+            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse($"{contentType}");
+            fileStreamContent.Headers.Add("Content-Disposition", $"attachment; filename={fileName}");           
+
+            HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent);
+
+            return response;
+        }
+
+        /// <summary>
+        /// Post file as attachment.
+        /// </summary>
+        /// <returns>the data element</returns>
+        public async Task<DataElement> PostFileAsAttachmentAndReturnMetadata(Instance instance, string dataType, string fileName, string contentType)
+        {
+            HttpResponseMessage response = await PostFileAsAttachment(instance, dataType, fileName, contentType);
+
+            return JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync());
         }
     }
 }

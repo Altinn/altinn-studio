@@ -4,8 +4,8 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Interface.Clients;
 using Altinn.Platform.Storage.Interface.Models;
 using Xunit;
 

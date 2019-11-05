@@ -1,10 +1,9 @@
-using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text;
+using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Interface.Clients
+namespace Altinn.Platform.Storage.Clients
 {
-
     /// <summary>
     /// Class to wrap a json object into a StringContent with correct encoding and content type.
     /// </summary>
@@ -18,5 +17,4 @@ namespace Altinn.Platform.Storage.Interface.Clients
         public static StringContent AsJson(this object o)
         => new StringContent(JsonConvert.SerializeObject(o), Encoding.UTF8, "application/json");
     }
-
 }

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Interface.Clients;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Xunit;

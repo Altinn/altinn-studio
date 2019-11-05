@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Altinn.Platform.Storage.Interface.Clients
+namespace Altinn.Platform.Storage.Clients
 {
     /// <summary>
     /// Exception class for storage exceptions.
@@ -27,10 +27,8 @@ namespace Altinn.Platform.Storage.Interface.Clients
         }
 
         /// <summary>
-        /// Sonarcloud wanted this 
+        /// Serialise this
         /// </summary>
-        /// <param name="info"></param>
-        /// <param name="context"></param>
         protected StorageClientException(SerializationInfo info, StreamingContext context)
              : base(info, context)
         {
