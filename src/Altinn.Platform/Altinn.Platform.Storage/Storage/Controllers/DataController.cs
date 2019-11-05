@@ -255,13 +255,14 @@ namespace Altinn.Platform.Storage.Controllers
                 // store file as blob
                 newData.FileSize = await _dataRepository.WriteDataToStorage(theStream, newData.BlobStoragePath);
 
-                // update instance
+                // update instance and data result
                 Instance result = await _instanceRepository.Update(instance);
                 InstancesController.AddSelfLinks(Request, result);
+                DataElement dataResult = result.Data.Find(d => d.Id == newData.Id);
 
-                await DispatchEvent(InstanceEventType.Created.ToString(), instance, newData);
+                await DispatchEvent(InstanceEventType.Created.ToString(), instance, dataResult);                
 
-                return Ok(newData);
+                return Created(dataResult.SelfLinks.Platform, dataResult);
             }
             catch (Exception e)
             {
