@@ -1,5 +1,8 @@
+import { Grid, Popper } from '@material-ui/core';
+import { styled } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import theme from '../../../../../shared/src/theme/altinnAppTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { makeGetLayout } from '../../../selectors/getLayoutData';
 import { makeGetComponentValidationsSelector } from '../../../selectors/getValidations';
@@ -7,7 +10,31 @@ import { IRuntimeState } from '../../../types';
 import { IComponentValidations } from '../../../types/global';
 import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } from '../layout';
-import { Grid, Popper } from '@material-ui/core';
+
+const HelpTextPopoverWrapper = styled('div')({
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '40px',
+  minWidth: '40px',
+  padding: '1.2rem',
+  paddingTop: 0,
+});
+
+const HelpTextPopoverIcon = styled('i')({
+  'paddingTop': '1.2rem',
+  'height': '24px',
+  'width': '24px',
+  'color': theme.altinnPalette.primary.blue,
+  '&:hover': {
+    color: theme.altinnPalette.primary.blueDarker,
+  },
+  '&:focus': {
+    color: theme.altinnPalette.primary.blue,
+  },
+  '&:active': {
+    color: theme.altinnPalette.primary.blue,
+  },
+});
 
 export interface IProvidedProps {
   id: string;
@@ -39,7 +66,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       this.state = {
         helpIconRef: !!props.textResourceBindings.help ? React.createRef() : null,
         openPopover: false,
-      }
+      };
     }
 
     public renderLabel = (): JSX.Element => {
@@ -86,30 +113,51 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       if (!!this.props.textResourceBindings.help) {
         const { helpIconRef } = this.state;
         return (
-          <i
-            className={'fa fa-circlecheck'}
+          <HelpTextPopoverWrapper
             tabIndex={0}
-            onFocus={this.openHelpPopover}
-            onBlur={this.closeHelpPopover}
-            onMouseEnter={this.openHelpPopover}
-            onMouseLeave={this.closeHelpPopover}
+            onClick={this.toggleClickPopover}
+            onKeyUp={this.toggleKeypressPopover}
+            onBlur={this.toggleBlurPopover}
             ref={helpIconRef}
-          />
+          >
+            <HelpTextPopoverIcon
+              className={
+                this.state.openPopover ?
+                'ai ai-circle-minus' :
+                'ai ai-circle-plus'
+              }
+            />
+          </HelpTextPopoverWrapper>
         );
       }
       return null;
     }
 
-    public openHelpPopover = (): void => {
-      this.setState({
-        openPopover: true,
-      });
+    public toggleClickPopover = (): void => {
+      this.setState((prev: IState) => ({
+        openPopover: !prev.openPopover,
+      }));
     }
 
-    public closeHelpPopover = (): void => {
-      this.setState({
-        openPopover: false,
-      });
+    public toggleKeypressPopover = (event: React.KeyboardEvent): void => {
+      if ((event.key === ' ' || event.key === 'Enter') && !this.state.openPopover) {
+        this.setState({
+          openPopover: true,
+        });
+      }
+      if (event.key === 'Escape' && this.state.openPopover) {
+        this.setState({
+          openPopover: false,
+        });
+      }
+    }
+
+    public toggleBlurPopover = () => {
+      if (this.state.openPopover) {
+        this.setState({
+          openPopover: false,
+        });
+      }
     }
 
     public handleDataUpdate = (data: any) => this.props.handleDataUpdate(data);
@@ -140,8 +188,13 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
               spacing={2}
             >
               <Grid item={true}>
-                {this.renderLabel()}
-                {this.renderDescription()}
+                <Grid
+                  container={true}
+                  direction={'column'}
+                >
+                  {this.renderLabel()}
+                  {this.renderDescription()}
+                </Grid>
               </Grid>
               <Grid item={true}>
                 {this.renderHelpText()}
@@ -164,7 +217,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
               style={{
                 backgroundColor: 'white',
                 border: '1px solid black',
-                padding: '1.2rem'
+                padding: '1.2rem',
               }}
             >
               {this.getTextResource(this.props.textResourceBindings.help)}
