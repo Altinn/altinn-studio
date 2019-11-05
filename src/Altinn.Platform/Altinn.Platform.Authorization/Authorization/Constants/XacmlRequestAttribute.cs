@@ -23,7 +23,7 @@ namespace Altinn.Platform.Authorization.Constants
         /// <summary>
         /// xacml string that represents isntance
         /// </summary>
-        public const string InstanceAttribute = "urn:altinn:instance-id";
+        public const string InstanceAttribute = "urn:altinn:instanceid";
 
         /// <summary>
         /// xacml string that represents task
@@ -38,7 +38,7 @@ namespace Altinn.Platform.Authorization.Constants
         /// <summary>
         /// xacml string that represents user
         /// </summary>
-        public const string UserAttribute = "urn:altinn:user-id";
+        public const string UserAttribute = "urn:altinn:userid";
 
         /// <summary>
         /// xacml string that represents role
