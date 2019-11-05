@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Interface.Clients;
 using Altinn.Platform.Storage.Interface.Models;
@@ -12,7 +13,6 @@ using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Storage.Interface.Models;
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest

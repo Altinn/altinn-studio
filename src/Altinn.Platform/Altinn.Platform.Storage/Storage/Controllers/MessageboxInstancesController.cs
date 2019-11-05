@@ -8,7 +8,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
-using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Controllers
 {

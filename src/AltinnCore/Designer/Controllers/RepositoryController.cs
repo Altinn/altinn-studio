@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
+using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
@@ -14,7 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using RepositoryModel = AltinnCore.RepositoryClient.Model.Repository;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -51,12 +50,12 @@ namespace AltinnCore.Designer.Controllers
         /// Returns a list over repositories
         /// </summary>
         /// <param name="repositorySearch">The search params</param>
-        /// <returns>List of repostories that user has access to.</returns>
+        /// <returns>List of repositories that user has access to.</returns>
         [HttpGet]
-        public List<Repository> Search(RepositorySearch repositorySearch)
+        public List<RepositoryModel> Search(RepositorySearch repositorySearch)
         {
-            SearchResults repositorys = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
-            return repositorys.Data;
+            SearchResults repositories = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
+            return repositories.Data;
         }
 
         /// <summary>
@@ -66,9 +65,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repository">The app repository</param>
         /// <returns>The given app repository</returns>
         [HttpGet]
-        public Repository GetRepository(string org, string repository)
+        public RepositoryModel GetRepository(string org, string repository)
         {
-            Repository returnRepository = _giteaApi.GetRepository(org, repository).Result;
+            RepositoryModel returnRepository = _giteaApi.GetRepository(org, repository).Result;
             return returnRepository;
         }
 
@@ -81,23 +80,6 @@ namespace AltinnCore.Designer.Controllers
         {
             List<Organization> orglist = _giteaApi.GetUserOrganizations().Result;
             return orglist == null ? new List<Organization>() : orglist;
-        }
-
-        /// <summary>
-        /// Returns a specic organisation.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <returns>The organisation.</returns>
-        [HttpGet]
-        public ActionResult<Organization> Organization(string org)
-        {
-            Organization organisation = _giteaApi.GetOrganization(org).Result;
-            if (organisation != null)
-            {
-                return organisation;
-            }
-
-            return NotFound();
         }
 
         /// <summary>
@@ -217,10 +199,8 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repository">The repository</param>
         /// <returns>List of repos</returns>
         [HttpGet]
-        public List<Branch> Branches(string org, string repository)
-        {
-            return _giteaApi.GetBranches(org, repository).Result;
-        }
+        public async Task<List<Branch>> Branches(string org, string repository)
+            => await _giteaApi.GetBranches(org, repository);
 
         /// <summary>
         /// Returns information about a given branch
@@ -230,10 +210,8 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="branch">Name of branch</param>
         /// <returns>The branch info</returns>
         [HttpGet]
-        public Branch Branch(string org, string repository, string branch)
-        {
-            return _giteaApi.GetBranch(org, repository, branch).Result;
-        }
+        public async Task<Branch> Branch(string org, string repository, string branch)
+            => await _giteaApi.GetBranch(org, repository, branch);
 
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
@@ -329,7 +307,7 @@ namespace AltinnCore.Designer.Controllers
         /// </returns>
         [Authorize]
         [HttpPost]
-        public Repository CreateService(string org, string repository, string appTitle)
+        public RepositoryModel CreateService(string org, string repository, string appTitle)
         {
             ServiceConfiguration serviceConfiguration = new ServiceConfiguration
             {
@@ -347,9 +325,9 @@ namespace AltinnCore.Designer.Controllers
             }
             else
             {
-                return new Repository()
+                return new RepositoryModel
                 {
-                    RepositoryCreatedStatus = System.Net.HttpStatusCode.UnprocessableEntity,
+                    RepositoryCreatedStatus = HttpStatusCode.UnprocessableEntity,
                 };
             }
         }

@@ -1,17 +1,22 @@
 export interface IBuild {
   id: string;
+  status: string|number;
+  result: string|number;
+  started: string;
+  finished: string;
 }
 
 export interface IDeployment {
   id: string;
-  tag_name: string;
+  tagName: string;
   app: string;
   org: string;
-  env_name: string;
-  created_by: string;
+  envName: string;
+  createdBy: string;
   created: string;
-  status: string;
-  started: string;
-  finished: string;
   build: IBuild;
+}
+
+export interface IDeploymentResults {
+  results: IDeployment[];
 }

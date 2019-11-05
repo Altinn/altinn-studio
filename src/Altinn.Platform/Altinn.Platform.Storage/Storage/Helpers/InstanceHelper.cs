@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
-using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
 {

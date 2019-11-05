@@ -124,7 +124,7 @@
     <None Update="Common\xsd\Skattemelding_v6.25.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Designer\Edag-latin1.xsd">
+    <None Update="Designer\Controllers\Edag-latin1.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Runtime\data\CreatedInstanceFromStorage.json">

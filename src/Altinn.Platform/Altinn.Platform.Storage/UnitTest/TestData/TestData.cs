@@ -1,10 +1,7 @@
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Models;
-using Storage.Interface.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 
 namespace Altinn.Platform.Storage.UnitTest
 {

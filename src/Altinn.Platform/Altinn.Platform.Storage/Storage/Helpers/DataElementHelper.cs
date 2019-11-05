@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Models;
-using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
 {
@@ -17,7 +13,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// Creates a data element based on element type, instance id, content type, content file name and file size. 
         /// </summary>
         /// <returns>DataElement</returns>
-        public static DataElement CreateDataElement(string dataType, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user)
+        public static DataElement CreateDataElement(string dataType, List<Guid> refs, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user)
         {
             string dataId = Guid.NewGuid().ToString();
             
@@ -33,6 +29,7 @@ namespace Altinn.Platform.Storage.Helpers
                 LastChangedBy = user,
                 LastChanged = creationTime,
                 FileSize = fileSize,
+                Refs = refs,
             };
 
             string guidFromInstanceId = instance.Id;

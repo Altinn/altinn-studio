@@ -43,9 +43,7 @@ namespace Altinn.Platform.Storage
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
-
                 webBuilder.UseUrls("http://*:5010");
- 
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {

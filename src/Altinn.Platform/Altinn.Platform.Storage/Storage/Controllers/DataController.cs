@@ -89,7 +89,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     // Update instance record
                     DataElement data = instance.Data.Find(m => m.Id == dataIdString);
-                    instance.Data.Remove(data);                    
+                    instance.Data.Remove(data);
                     Instance storedInstance = await _instanceRepository.Update(instance);
 
                     await DispatchEvent(InstanceEventType.Deleted.ToString(), instance, data);
@@ -145,7 +145,7 @@ namespace Altinn.Platform.Storage.Controllers
                         {
                             return NotFound("Unable to read data storage for " + dataIdString);
                         }
-                        
+
                         return File(dataStream, data.ContentType, data.FileName);
                     }
                     catch (Exception e)
@@ -201,13 +201,14 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="instanceGuid">the instance to update</param>
         /// <param name="dataType">the element type to upload data for</param>
+        /// <param name="refs">an optional array of data element references</param>
         /// <returns>If the request was successful or not</returns>
         /// <!-- POST /instances/{instanceOwnerPartyId}/{instanceGuid}/data?elementType={elementType} -->
         [HttpPost]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
         [ProducesResponseType(typeof(DataElement), 201)]
-        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerPartyId, Guid instanceGuid, string dataType)
+        public async Task<IActionResult> CreateAndUploadData(int instanceOwnerPartyId, Guid instanceGuid, string dataType, [FromQuery(Name ="refs")]List<Guid> refs = null)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -235,7 +236,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Requested element type is not declared in application metadata");
             }
 
-            DataElement newData = GetDataElementFromRequest(Request, dataType, instance, out Stream theStream);
+            DataElement newData = GetDataElementFromRequest(Request, dataType, refs, instance, out Stream theStream);
 
             if (theStream == null)
             {
@@ -274,12 +275,13 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerPartyId">instance owner party id</param>
         /// <param name="instanceGuid">the instance to update</param>
         /// <param name="dataId">the dataId to upload data to</param>
+        /// <param name="refs">an optional array of data element references</param>
         /// <returns>data element metadata that records the successfull update</returns>
         /// <!-- PUT /instances/{instanceOwnerPartyId}/instanceGuid}/data/{dataId} -->
         [HttpPut("{dataId}")]
         [DisableFormValueModelBinding]
         [ProducesResponseType(typeof(DataElement), 200)]
-        public async Task<IActionResult> OverwriteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
+        public async Task<IActionResult> OverwriteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId, [FromQuery(Name = "refs")]List<Guid> refs = null)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
@@ -313,7 +315,7 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     DateTime updateTime = DateTime.UtcNow;
 
-                    DataElement updatedData = GetDataElementFromRequest(Request, data.DataType, instance, out Stream theStream);
+                    DataElement updatedData = GetDataElementFromRequest(Request, data.DataType, refs, instance, out Stream theStream);
 
                     if (theStream == null)
                     {
@@ -329,6 +331,9 @@ namespace Altinn.Platform.Storage.Controllers
                     data.LastChanged = changedTime;
 
                     instance.LastChanged = changedTime;
+
+                    data.Refs = updatedData.Refs;
+
                     instance.LastChangedBy = User.Identity.Name;
 
                     // store file as blob
@@ -353,11 +358,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             return BadRequest("Cannot update data element that is not registered");
         }
-        
+
         /// <summary>
         /// Creates a data element by reading the first multipart element or body of the request.
         /// </summary>
-        private DataElement GetDataElementFromRequest(HttpRequest request, string dataType, Instance instance, out Stream theStream)
+        private DataElement GetDataElementFromRequest(HttpRequest request, string elementType, List<Guid> refs, Instance instance, out Stream theStream)
         {
             DateTime creationTime = DateTime.UtcNow;
 
@@ -414,7 +419,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             string user = null;
 
-            DataElement newData = DataElementHelper.CreateDataElement(dataType, instance, creationTime, contentType, contentFileName, fileSize, user);
+            DataElement newData = DataElementHelper.CreateDataElement(elementType, refs, instance, creationTime, contentType, contentFileName, fileSize, user);
 
             return newData;
         }
