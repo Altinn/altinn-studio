@@ -18,7 +18,7 @@ namespace Altinn.Platform.Authorization.Repositories
         private readonly string databaseId;
         private readonly string instanceCollectionId;
         private readonly string applicationCollectionId;
-        private DocumentClient _client;
+        private readonly DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
         private readonly ILogger<PolicyInformationRepository> logger;
 

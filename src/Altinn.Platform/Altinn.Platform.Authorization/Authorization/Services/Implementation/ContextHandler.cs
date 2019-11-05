@@ -109,35 +109,32 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 resourceAttributeComplete = true;
             }
 
-            if (!resourceAttributeComplete)
+            if (!resourceAttributeComplete && !string.IsNullOrEmpty(instanceAttributeValue))
             {
-                if (!string.IsNullOrEmpty(instanceAttributeValue))
+                Instance instanceData = await _policyInformationRepository.GetInstance(instanceAttributeValue);
+
+                if (string.IsNullOrEmpty(orgAttributeValue))
                 {
-                    Instance instanceData = await _policyInformationRepository.GetInstance(instanceAttributeValue);
-
-                    if (string.IsNullOrEmpty(orgAttributeValue))
-                    {
-                        resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.OrgAttribute, instanceData.Org));
-                    }
-
-                    if (string.IsNullOrEmpty(appAttributeValue))
-                    {
-                        string app = instanceData.AppId.Split("/")[1];
-                        resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.AppAttribute, app));
-                    }
-
-                    if (string.IsNullOrEmpty(taskAttributeValue))
-                    {
-                        resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.TaskAttribute, instanceData.Process.CurrentTask.ElementId));
-                    }
-
-                    if (string.IsNullOrEmpty(resourcePartyAttributeValue))
-                    {
-                        resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.PartyAttribute, instanceData.InstanceOwnerId));
-                    }
-
-                    resourcePartyAttributeValue = instanceData.InstanceOwnerId;
+                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.OrgAttribute, instanceData.Org));
                 }
+
+                if (string.IsNullOrEmpty(appAttributeValue))
+                {
+                    string app = instanceData.AppId.Split("/")[1];
+                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.AppAttribute, app));
+                }
+
+                if (string.IsNullOrEmpty(taskAttributeValue))
+                {
+                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.TaskAttribute, instanceData.Process.CurrentTask.ElementId));
+                }
+
+                if (string.IsNullOrEmpty(resourcePartyAttributeValue))
+                {
+                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.PartyAttribute, instanceData.InstanceOwnerId));
+                }
+
+                resourcePartyAttributeValue = instanceData.InstanceOwnerId;
             }
 
             await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
