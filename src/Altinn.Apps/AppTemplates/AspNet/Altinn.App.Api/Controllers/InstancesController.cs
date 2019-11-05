@@ -37,7 +37,6 @@ namespace Altinn.App.Api.Controllers
         private readonly UserHelper userHelper;
         private readonly IRegister registerService;
         private readonly IRepository repositoryService;
-        private readonly IPlatformServices platformService;
         private readonly IAltinnApp altinnApp;
 
         /// <summary>
@@ -51,7 +50,6 @@ namespace Altinn.App.Api.Controllers
             IData dataService,
             IExecution executionService,
             IProfile profileService,
-            IPlatformServices platformService,
             IRepository repositoryService,
             IAltinnApp altinnApp)
         {
@@ -60,7 +58,6 @@ namespace Altinn.App.Api.Controllers
             this.dataService = dataService;
             this.executionService = executionService;
             this.registerService = registerService;
-            this.platformService = platformService;
             this.repositoryService = repositoryService;
             this.altinnApp = altinnApp;
 

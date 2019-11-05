@@ -32,26 +32,38 @@ namespace Altinn.App
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Add API controllers from Altinn.App.Api 
             services.AddControllers().AddApplicationPart(typeof(InstancesController).Assembly);
-            services.AddTransient<IAltinnApp, AltinnApp>();
+
+            // Internal Application services
+            services.AddSingleton<IApplication, ApplicationAppSI>();
             services.AddSingleton<IExecution, ExecutionAppSI>();
+            services.AddSingleton<IProcess, ProcessAppSI>();
+
+            // Services for Altinn Platform components
+            services.AddSingleton<IAuthentication, AuthenticationAppSI>();
+            services.AddSingleton<IAuthorization, AuthorizationAppSI>();
+            services.AddSingleton<IData, DataAppSI>();
             services.AddSingleton<IDSF, RegisterDSFAppSI>();
             services.AddSingleton<IER, RegisterERAppSI>();
-            services.AddSingleton<IRegister, RegisterAppSI>();
-            services.AddSingleton<IProfile, ProfileAppSI>();
             services.AddSingleton<IInstance, InstanceAppSI>();
-            services.AddSingleton<IData, DataAppSI>();
-            services.AddSingleton<IProcess, ProcessAppSI>();
             services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
-            services.AddSingleton<IAuthorization, AuthorizationAppSI>();
-            services.AddSingleton<IApplication, ApplicationAppSI>();
-            services.AddSingleton<IWorkflow, WorkflowAppSI>();
+            services.AddSingleton<IProfile, ProfileAppSI>();
+            services.AddSingleton<IRegister, RegisterAppSI>();
+
+            // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
+            services.AddTransient<IAltinnApp, AltinnApp>();
+
+
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IHttpClientAccessor, HttpClientAccessor>();
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
-            services.AddSingleton<IAuthentication, AuthenticationAppSI>();
+            
+            // App specific Interfaces             
             services.AddSingleton<IReiseApi, ReiseApi>();
+
+
 
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));

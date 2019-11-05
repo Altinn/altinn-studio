@@ -9,7 +9,6 @@ using Altinn.App.Common.Validation;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Enums;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,7 +30,6 @@ namespace AltinnCore.Runtime.RestControllers
         private readonly IInstance instanceService;
         private readonly IExecution executionService;
         private readonly UserHelper userHelper;
-        private readonly IPlatformServices platformService;
         private readonly IApplication appService;
         private readonly IAltinnApp altinnApp;
 
@@ -45,7 +43,6 @@ namespace AltinnCore.Runtime.RestControllers
             IData dataService,
             IExecution executionService,
             IProfile profileService,
-            IPlatformServices platformService,
             IInstanceEvent eventService,
             IApplication appService,
             IAltinnApp altinnApp)
@@ -53,7 +50,6 @@ namespace AltinnCore.Runtime.RestControllers
             this.instanceService = instanceService;
             this.dataService = dataService;
             this.executionService = executionService;
-            this.platformService = platformService;
             this.appService = appService;
             this.userHelper = new UserHelper(profileService, registerService, generalSettings);
 

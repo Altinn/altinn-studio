@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Models;
 
 namespace Altinn.App.Services.Interface
@@ -20,12 +19,6 @@ namespace Altinn.App.Services.Interface
         /// Gets the instance list
         /// </summary>
         Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerId);
-
-        /// <summary>
-        /// Stores the form data
-        /// </summary>
-        [Obsolete("Method is deprecated, please use CreateInstance instead")]
-        Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation);
 
         /// <summary>
         /// update instance metadata

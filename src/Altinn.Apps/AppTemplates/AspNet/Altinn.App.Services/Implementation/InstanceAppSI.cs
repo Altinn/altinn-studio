@@ -29,7 +29,6 @@ namespace Altinn.App.Services.Implementation
     {
         private readonly IData _data;
         private readonly PlatformSettings _platformSettings;
-        private readonly IWorkflow _workflow;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
@@ -48,7 +47,6 @@ namespace Altinn.App.Services.Implementation
         public InstanceAppSI(
             IData data,
             IOptions<PlatformSettings> platformSettings,
-            IWorkflow workflowSI,
             ILogger<InstanceAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions,
@@ -56,60 +54,10 @@ namespace Altinn.App.Services.Implementation
         {
             _data = data;
             _platformSettings = platformSettings.Value;
-            _workflow = workflowSI;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
             _client = httpClientAccessor.StorageClient;
-        }
-
-        /// <inheritdoc />
-        [Obsolete("Method is deprecated, please use CreateInstance instead")]
-        public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
-        {
-            Guid instanceId;
-            Instance instance = null;
-            string org = startServiceModel.Org;
-            string app = startServiceModel.Service;
-            int instanceOwnerId = startServiceModel.PartyId;
-
-            Instance instanceTemplate = new Instance()
-            {
-                InstanceOwnerId = instanceOwnerId.ToString(),
-                Process = new ProcessState()
-                {
-                    Started = DateTime.UtcNow,
-                    CurrentTask = new ProcessElementInfo
-                    {
-                        Started = DateTime.UtcNow,
-                        
-                        ElementId = _workflow.GetInitialServiceState(org, app).State.ToString(),
-                    }
-                },
-            };
-
-            Instance createdInstance = await CreateInstance(org, app, instanceTemplate);
-
-            if (createdInstance == null)
-            {
-                return null;
-            }
-
-            instanceId = Guid.Parse(createdInstance.Id.Split("/")[1]);
-
-           
-            // Save instantiated form model
-            instance = await _data.InsertFormData(
-                serviceModel,
-                instanceId,
-                serviceImplementation.GetServiceModelType(),
-                org,
-                app,
-                instanceOwnerId);
-
-            instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
-
-            return instance;
         }
 
         /// <inheritdoc />

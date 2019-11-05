@@ -1,16 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Loader;
 using System.Text;
 using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Constants;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -24,7 +18,6 @@ namespace Altinn.App.Services.Implementation
     public class ExecutionAppSI : IExecution
     {
         private readonly ServiceRepositorySettings _settings;
-        private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
 
@@ -34,17 +27,14 @@ namespace Altinn.App.Services.Implementation
         /// Initializes a new instance of the <see cref="ExecutionAppSI"/> class.
         /// </summary>
         /// <param name="settings">The app repository settings.</param>
-        /// <param name="repositoryService">The repository service needed</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
         public ExecutionAppSI(
             IOptions<ServiceRepositorySettings> settings,
-            IRepository repositoryService,
             IHttpContextAccessor httpContextAccessor,
             IHostingEnvironment hostingEnvironment)
         {
             _settings = settings.Value;
-            _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
             _hostingEnvironment = hostingEnvironment;
         }

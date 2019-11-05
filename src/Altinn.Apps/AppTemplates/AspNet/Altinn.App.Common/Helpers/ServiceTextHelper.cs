@@ -49,7 +49,7 @@ namespace Altinn.App.Common.Helpers
         /// <param name="requestContext">the request context</param>
         /// <param name="serviceContext">the servie context</param>
         /// <returns>The edited service text</returns>
-        public static string SetTextParams(string serviceText, RequestContext requestContext, ServiceContext serviceContext)
+        public static string SetTextParams(string serviceText, RequestContext requestContext)
         {
             if (serviceText.Contains("{altinncore:"))
             {
