@@ -152,13 +152,13 @@ namespace AltinnCore.Runtime.Authorization
             return resourceAttributes;
         }
 
-        private XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType = "string", string Issuer = "altinn")
+        private XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType = "string", string issuer = "altinn")
         {
             XacmlJsonAttribute xacmlJsonAttribute = new XacmlJsonAttribute();
 
             xacmlJsonAttribute.AttributeId = attributeId;
             xacmlJsonAttribute.DataType = dataType;
-            xacmlJsonAttribute.Issuer = Issuer;
+            xacmlJsonAttribute.Issuer = issuer;
             xacmlJsonAttribute.Value = value;
 
             return xacmlJsonAttribute;
