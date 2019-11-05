@@ -30,10 +30,11 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Inserts new instance event into the instanceEvent collection.
         /// </summary>
-        /// <param name="instanceEvent">Id of instance to retrieve events for. </param>
-        /// <returns>The stored instance event.</returns>
+        /// <param name="instanceEvent">The instance event object to be inserted</param>
+        /// <returns>The stored instance event object</returns>
         /// POST storage/api/v1/instances/{instanceId}/events
         [HttpPost]
+        [ProducesResponseType(typeof(InstanceEvent), 201)]
         public async Task<ActionResult> Post([FromBody] InstanceEvent instanceEvent)
         {
             if (instanceEvent == null || instanceEvent.InstanceId == null)
@@ -49,7 +50,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Unable to write new instance event to database");
             }
 
-            return Ok(result);
+            return Created(result.Id.ToString(), result);
         }
 
         /// <summary>
@@ -60,6 +61,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="eventGuid">event guid</param>
         /// <returns>the event</returns>
         [HttpGet("{eventGuid:guid}")]
+        [ProducesResponseType(typeof(InstanceEvent), 200)]
         public async Task<ActionResult> GetOne(int instanceOwnerPartyId, Guid instanceGuid, Guid eventGuid)
         {
             try
@@ -97,6 +99,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23&eventTypes=deleted,submited
         /// -->
         [HttpGet]
+        [ProducesResponseType(typeof(List<InstanceEvent>), 200)]
         public async Task<ActionResult> Get(
             [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,

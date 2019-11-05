@@ -252,7 +252,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 AddSelfLinks(Request, storedInstance);
 
-                return Ok(storedInstance);
+                return Created(storedInstance.SelfLinks.Platform, storedInstance);
             }
             catch (Exception storageException)
             {

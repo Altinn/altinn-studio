@@ -40,6 +40,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="org">application owner id</param>
         /// <returns>list of all applications for a given owner</returns>
         [HttpGet("{org}")]
+        [ProducesResponseType(typeof(List<Application>), 200)]
         public async Task<ActionResult> GetMany(string org)
         {
             if (string.IsNullOrEmpty(org) || org.Contains("-") || org.Contains(" "))
@@ -77,6 +78,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         [HttpGet("{org}/{app}")]
+        [ProducesResponseType(typeof(Application), 200)]
         public async Task<ActionResult> GetOne(string org, string app)
         {
             string appId = $"{org}/{app}";
@@ -111,6 +113,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="application">the application metadata object to store</param>
         /// <returns>the applicaiton metadata object</returns>
         [HttpPost]
+        [ProducesResponseType(typeof(Application), 201)]
         public async Task<ActionResult> Post(string appId, [FromBody] Application application)
         {
             if (!IsValidAppId(appId))
@@ -175,7 +178,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 logger.LogInformation($"Application {appId} sucessfully stored", result);
 
-                return Ok(result);
+                return Created(appId, result);
             }
             catch (Exception e)
             {
@@ -220,10 +223,11 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Updates an application
+        /// Updates an application metadata object.
         /// </summary>
         /// <returns>the updated application metadata object</returns>
         [HttpPut("{org}/{app}")]
+        [ProducesResponseType(typeof(Application), 200)]
         public async Task<ActionResult> Put(string org, string app, [FromBody] Application application)
         {
             string appId = $"{org}/{app}";
@@ -294,13 +298,15 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Delete an application
+        /// Delete an application metadata object. Applications will not be deleted, but will be marked as deleted.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="hard">if true hard delete will take place</param>
-        /// <returns>updated application object</returns>
+        /// <returns>(200) updated application object, or no content if hard delete</returns>
         [HttpDelete("{org}/{app}")]
+        [ProducesResponseType(typeof(Application), 202)]
+        [ProducesResponseType(204)]
         public async Task<ActionResult> Delete(string org, string app, bool? hard)
         {
             string appId = $"{org}/{app}";
@@ -326,7 +332,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                     Application softDeleteApplication = await repository.Update(application);
 
-                    return Ok(softDeleteApplication);
+                    return Accepted(softDeleteApplication);
                 }
             }
             catch (DocumentClientException dce)

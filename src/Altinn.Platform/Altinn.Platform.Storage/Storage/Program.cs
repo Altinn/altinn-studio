@@ -43,8 +43,9 @@ namespace Altinn.Platform.Storage
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
+
                 webBuilder.UseUrls("http://*:5010");
-                webBuilder.UseKestrel();
+ 
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
@@ -65,11 +66,12 @@ namespace Altinn.Platform.Storage
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             });
 
-            // Parameters required for integration with SBL in local development             
-            /*
-         .UseUrls("http://0.0.0.0:5010")
-        .UseContentRoot(Directory.GetCurrentDirectory())
-        .UseIISIntegration() */
+        // Parameters required for integration with SBL in local development             
+        /*
+            .UseUrls("http://0.0.0.0:5010")
+            .UseKestrel();
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .UseIISIntegration() */
 
         /// <summary>
         /// Load the configuration settings for the program.

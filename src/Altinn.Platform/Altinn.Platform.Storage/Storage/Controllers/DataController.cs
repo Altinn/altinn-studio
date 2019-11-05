@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
@@ -104,15 +102,15 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Save the data element.
+        /// Gets a data file from storage. The content type is the same as the file was stored with.
         /// </summary>
-        /// <param name="instanceOwnerPartyId">the instance owner id (an integer)</param>
+        /// <param name="instanceOwnerPartyId">the instance owner pq45y id</param>
         /// <param name="instanceGuid">the instanceId</param>
         /// <param name="dataId">the data id</param>
-        /// <returns>The data file as an asyncronous streame</returns>
-        /// <returns>If the request was successful or not</returns>
+        /// <returns>The data file as an asyncronous stream</returns>
         [HttpGet("{dataId:guid}")]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(200)]
         public async Task<IActionResult> Get(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -168,6 +166,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>The list of data elements</returns>
         /// <!-- GET /instances/{instanceId}/data -->
         [HttpGet]
+        [ProducesResponseType(typeof(List<DataElement>), 200)]
         public async Task<IActionResult> GetMany(int instanceOwnerPartyId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -207,6 +206,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPost]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(typeof(DataElement), 201)]
         public async Task<IActionResult> CreateAndUploadData(int instanceOwnerPartyId, Guid instanceGuid, string dataType)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -260,7 +260,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                 await DispatchEvent(InstanceEventType.Created.ToString(), instance, newData);
 
-                return Ok(result);
+                return Ok(newData);
             }
             catch (Exception e)
             {
@@ -269,15 +269,16 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Update and save data element. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
+        /// Replaces an existing data element whit the attached file. The StreamContent.Headers.ContentDisposition.FileName property shall be used to set the filename on client side
         /// </summary>
-        /// <param name="instanceOwnerPartyId">instance owner id</param>
+        /// <param name="instanceOwnerPartyId">instance owner party id</param>
         /// <param name="instanceGuid">the instance to update</param>
         /// <param name="dataId">the dataId to upload data to</param>
-        /// <returns>If the request was successful or not</returns>
+        /// <returns>data element metadata that records the successfull update</returns>
         /// <!-- PUT /instances/{instanceOwnerPartyId}/instanceGuid}/data/{dataId} -->
         [HttpPut("{dataId}")]
         [DisableFormValueModelBinding]
+        [ProducesResponseType(typeof(DataElement), 200)]
         public async Task<IActionResult> OverwriteData(int instanceOwnerPartyId, Guid instanceGuid, Guid dataId)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -341,7 +342,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                         await DispatchEvent(InstanceEventType.Deleted.ToString(), result, data);
 
-                        return Ok(result);
+                        return Ok(data);
                     }
 
                     return UnprocessableEntity($"Could not process attached file");
