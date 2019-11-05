@@ -251,4 +251,4 @@ const mapStateToProps = (state: IRuntimeState, props: IProcessStepProvidedProps)
   };
 };
 
-export const WorkflowStep = connect(mapStateToProps)(ProcessStepComponent);
+export const ProcessStep = connect(mapStateToProps)(ProcessStepComponent);

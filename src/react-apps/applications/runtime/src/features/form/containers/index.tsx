@@ -17,7 +17,7 @@ import {
 } from '../../../utils/urlHelper';
 
 import { IAltinnWindow, IRuntimeState } from '../../../types';
-import { WorkflowSteps } from '../workflow/typings';
+import { ProcessSteps } from './../../../sharedResources/process/typings';
 
 export default (props) => {
   const {
@@ -55,7 +55,7 @@ export default (props) => {
 
     if (processState == null) {
       ProcessDispatcher.getProcessState();
-    } else if (processState === WorkflowSteps.Unknown.valueOf()) {
+    } else if (processState === ProcessSteps.Unknown.valueOf()) {
       ProcessDispatcher.startProcess();
     }
 

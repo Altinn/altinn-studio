@@ -1,6 +1,5 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
-import { WorkflowSteps } from 'src/features/form/workflow/typings';
 import { get} from '../../../../../shared/src/utils/networking';
 import { getProcessStateUrl } from '../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
