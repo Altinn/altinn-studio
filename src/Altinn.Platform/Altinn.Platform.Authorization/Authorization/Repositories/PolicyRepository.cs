@@ -81,7 +81,7 @@ namespace Altinn.Platform.Authorization.Repositories
             // creating blob client
             if (_storageConfig.AccountName.StartsWith("devstoreaccount1"))
             {
-                StorageUri storageUrl = new StorageUri(new Uri(_storageConfig.AuthorizationBlobEndpoint));
+                StorageUri storageUrl = new StorageUri(new Uri(_storageConfig.BlobEndpoint));
                 _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
             }
             else
@@ -89,9 +89,7 @@ namespace Altinn.Platform.Authorization.Repositories
                 _blobClient = storageAccount.CreateCloudBlobClient();
             }
 
-            // copy back in once new key is created in azure key vault
-            // blobContainer = _blobClient.GetContainerReference(_storageConfig.StorageContainer); 
-            _blobContainer = _blobClient.GetContainerReference("metadata");
+            _blobContainer = _blobClient.GetContainerReference(_storageConfig.MetadataContainer);
             _blobContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
         }
     }
