@@ -12,6 +12,7 @@ using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -45,7 +46,7 @@ namespace Altinn.Platform.Authorization
         /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddXmlSerializerFormatters(); 
             services.AddSingleton(Configuration);
             services.AddSingleton<IParties, PartiesWrapper>();
             services.AddSingleton<IRoles, RolesWrapper>();
@@ -59,10 +60,16 @@ namespace Altinn.Platform.Authorization
             services.AddHttpClient<SBLClient>();
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
+
             services.AddMvc(options =>
             {
                 // Adding custom modelbinders
                 options.ModelBinderProviders.Insert(0, new XacmlRequestApiModelBinderProvider());
+                options.RespectBrowserAcceptHeader = true;
             });
 
             // Add Swagger support (Swashbuckle)

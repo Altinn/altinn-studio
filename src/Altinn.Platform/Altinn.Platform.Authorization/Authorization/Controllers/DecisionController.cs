@@ -176,7 +176,7 @@ namespace Altinn.Platform.Authorization.Controllers
         private async Task<XacmlContextResponse> Authorize(XacmlContextRequest decisionRequest)
         {
             decisionRequest = await this._contextHandler.Enrich(decisionRequest);
-            XacmlPolicy policy = this._prp.GetPolicy(decisionRequest);
+            XacmlPolicy policy = await this._prp.GetPolicyAsync(decisionRequest);
 
             PolicyDecisionPoint pdp = new PolicyDecisionPoint();
             XacmlContextResponse xacmlContextResponse = pdp.Authorize(decisionRequest, policy);
