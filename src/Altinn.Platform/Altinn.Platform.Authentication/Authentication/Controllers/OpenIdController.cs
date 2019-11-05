@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Authentication.Configuration;
@@ -12,11 +10,9 @@ using Altinn.Platform.Authentication.Model;
 using AltinnCore.Authentication.Constants;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Options;
-using Microsoft.Net.Http.Headers;
 
 namespace Altinn.Platform.Authentication.Controllers
 {
