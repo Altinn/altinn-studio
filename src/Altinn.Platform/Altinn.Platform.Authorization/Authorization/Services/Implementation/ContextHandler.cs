@@ -57,7 +57,6 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             string instanceAttributeValue = string.Empty;
             string resourcePartyAttributeValue = string.Empty;
             string taskAttributeValue = string.Empty;
-            string userAttributeValue = string.Empty;
 
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
 

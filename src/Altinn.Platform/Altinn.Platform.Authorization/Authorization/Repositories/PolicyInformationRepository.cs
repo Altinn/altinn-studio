@@ -57,7 +57,13 @@ namespace Altinn.Platform.Authorization.Repositories
             }
 
             return GetInstanceInternal(instanceId, instanceOwnerId);
+        }
 
+        /// <inheritdoc/>
+        public async Task<Instance> GetInstance(string instanceId)
+        {
+            int instanceOwnerId = GetInstanceOwnerIdFromInstanceId(instanceId);
+            return await GetInstance(instanceId, instanceOwnerId);
         }
 
         private async Task<Instance> GetInstanceInternal(string instanceId, int instanceOwnerId)
@@ -89,18 +95,11 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> GetInstance(string instanceId)
-        {
-            int instanceOwnerId = GetInstanceOwnerIdFromInstanceId(instanceId);
-            return await GetInstance(instanceId, instanceOwnerId);
-        }
-
-        /// <inheritdoc/>
         public Task<Application> GetApplication(string app, string org)
         {
             if (string.IsNullOrWhiteSpace(org))
             {
-                throw new ArgumentNullException("org cannot be null or empty");
+                throw new ArgumentNullException(nameof(org));
             }
 
             return GetApplicationInternal(app, org);
