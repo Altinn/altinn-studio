@@ -49,11 +49,12 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Gets all instances for a given instance owner.
+        /// Gets all instances for a given instance owner. Currently a maximum of 100 instances will be returned.
         /// </summary>
         /// <param name="instanceOwnerPartyId">the instance owner party id</param>
-        /// <returns>list of instances</returns>
+        /// <returns>list of instances</returns>        
         [HttpGet("{instanceOwnerPartyId:int}")]
+        [ProducesResponseType(typeof(List<Instance>), 200)]
         public async Task<ActionResult> GetInstanceOwners(int instanceOwnerPartyId)
         {
             List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerPartyId);
@@ -68,7 +69,7 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Get all instances for a given org or appId. Only one parameter at the time.
+        /// Get all instances that match the given query parameters. Parameters can be combined. Unknown or illegal parameter values will result in 400 - bad request.
         /// </summary>
         /// <param name="org">application owner</param>
         /// <param name="appId">application id</param>
@@ -87,6 +88,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>list of all instances for given instanceowner</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
         [HttpGet]
+        [ProducesResponseType(typeof(QueryResponse<Instance>), 200)]
         public async Task<ActionResult> GetInstances(
             string org,
             string appId,
@@ -180,36 +182,8 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError("exception", e);
-                return StatusCode(500, $"Unable to perform query due to: {e.Message}");
-            }
-        }
-
-        /// <summary>
-        ///   Annotate instance with self links to platform for the instance and each of its data elements.
-        /// </summary>
-        /// <param name="request">the http request which has the path to the request</param>
-        /// <param name="instance">the instance to annotate</param>
-        public static void AddSelfLinks(HttpRequest request, Instance instance)
-        {
-            string selfLink = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.Path}";
-
-            int start = selfLink.IndexOf("/instances");
-            selfLink = selfLink.Substring(0, start) + "/instances";
-
-            selfLink += $"/{instance.Id}";
-
-            instance.SelfLinks ??= new ResourceLinks();
-            instance.SelfLinks.Platform = selfLink;
-
-            if (instance.Data != null)
-            {
-                foreach (DataElement dataElement in instance.Data)
-                {
-                    dataElement.SelfLinks ??= new ResourceLinks();
-
-                    dataElement.SelfLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
-                }
+                logger.LogError($"Unable to perform query on instances due to: {e}");
+                return StatusCode(500, $"Unable to perform query on instances due to: {e.Message}");
             }
         }
 
@@ -220,6 +194,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceGuid">the guid of the instance.</param>
         /// <returns>an instance.</returns>
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [ProducesResponseType(typeof(Instance), 200)]
         public async Task<ActionResult> Get(int instanceOwnerPartyId, Guid instanceGuid)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -249,6 +224,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPost]
         [Consumes("application/json")]
         [Produces("application/json")]
+        [ProducesResponseType(typeof(Instance), 201)]
         public async Task<ActionResult> Post(string appId, [FromBody] Instance instance)
         {
             // check if metadata exists
@@ -284,20 +260,22 @@ namespace Altinn.Platform.Storage.Controllers
 
                 // compensating action - delete instance
                 await _instanceRepository.Delete(storedInstance);
-                logger.LogError($"Deleted instance {storedInstance.Id}");
 
+                logger.LogError($"Deleted instance {storedInstance.Id}");
                 return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
             }
         }
 
         /// <summary>
-        /// Updates an instance
+        /// Updates an instance.
         /// </summary>
-        /// <param name="instanceOwnerPartyId">instance owner</param>
-        /// <param name="instanceGuid">instance id</param>
-        /// <param name="instance">instance</param>
+        /// <param name="instanceOwnerPartyId">instance owner party id</param>
+        /// <param name="instanceGuid">instance guid</param>
+        /// <param name="instance">instance with updated parameters</param>
         /// <returns>The updated instance</returns>
         [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [ProducesResponseType(typeof(Instance), 200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult> Put(int instanceOwnerPartyId, Guid instanceGuid, [FromBody] Instance instance)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -333,20 +311,24 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
+                logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
                 return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
             }
 
             return Ok(result);
         }
 
-        /// <summary>
+        /// <summary>.
         /// Delete an instance
         /// </summary>
-        /// <param name="instanceGuid">instance id</param>
-        /// <param name="instanceOwnerPartyId">instance owner</param>
-        /// <param name="hard">if true hard delete will take place</param>
-        /// <returns>updated instance object</returns>
+        /// <param name="instanceGuid">instance guid</param>
+        /// <param name="instanceOwnerPartyId">instance owner party id</param>
+        /// <param name="hard">if true hard delete will take place. if false, the instance gets its inbox.softDelete attribut set to todays date and time.</param>
+        /// <returns>(202) updated instance object or (204) no content if hard delete</returns>
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [ProducesResponseType(typeof(Instance), 202)] // Accepted
+        [ProducesResponseType(204)] // No Content
+        [ProducesResponseType(404)]
         public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerPartyId, bool? hard)
         {
             string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
@@ -363,10 +345,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
                 }
 
+                logger.LogError($"Cannot delete instance {instanceId}. Due to {dce}");
                 return StatusCode(500, $"Unknown database exception in delete: {dce}");
             }
             catch (Exception e)
             {
+                logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
                 return StatusCode(500, $"Unknown exception in delete: {e}");
             }
 
@@ -376,11 +360,12 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     await _instanceRepository.Delete(instance);
 
-                    return Ok(true);
+                    return NoContent();
                 }
                 catch (Exception e)
                 {
-                    return StatusCode(500, $"Unknown exception in delete: {e}");
+                    logger.LogError($"Unexpected exception in delete: {e}");
+                    return StatusCode(500, $"Unexpected exception in delete: {e.Message}");
                 }
             }
             else
@@ -395,11 +380,40 @@ namespace Altinn.Platform.Storage.Controllers
                 {
                     Instance softDeletedInstance = await _instanceRepository.Update(instance);
 
-                    return Ok(softDeletedInstance);
+                    return Accepted(softDeletedInstance);
                 }
                 catch (Exception e)
                 {
-                    return StatusCode(500, $"Unknown exception in delete: {e}");
+                    logger.LogError($"Unexpeced exception when updating instance after soft delete: {e}");
+                    return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        ///   Annotate instance with self links to platform for the instance and each of its data elements.
+        /// </summary>
+        /// <param name="request">the http request which has the path to the request</param>
+        /// <param name="instance">the instance to annotate</param>
+        public static void AddSelfLinks(HttpRequest request, Instance instance)
+        {
+            string selfLink = $"{request.Scheme}://{request.Host.ToUriComponent()}{request.Path}";
+
+            int start = selfLink.IndexOf("/instances");
+            selfLink = selfLink.Substring(0, start) + "/instances";
+
+            selfLink += $"/{instance.Id}";
+
+            instance.SelfLinks ??= new ResourceLinks();
+            instance.SelfLinks.Platform = selfLink;
+
+            if (instance.Data != null)
+            {
+                foreach (DataElement dataElement in instance.Data)
+                {
+                    dataElement.SelfLinks ??= new ResourceLinks();
+
+                    dataElement.SelfLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
                 }
             }
         }
