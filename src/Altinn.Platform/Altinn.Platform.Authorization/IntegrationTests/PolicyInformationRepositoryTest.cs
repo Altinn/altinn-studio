@@ -1,5 +1,6 @@
 using Altinn.Platform.Authorization.Configuration;
 using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
+using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Repositories;
 using Altinn.Platform.Storage.Models;
 using Microsoft.Azure.Documents;
@@ -274,7 +275,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         private async Task PopulateCosmosDbAsyncWithInstance()
         {
             Uri uri = UriFactory.CreateDocumentCollectionUri(databaseId, instanceCollectionId);
-            Stream dataStream = File.OpenRead("Data/Instances/50013976/f3fc6233-1631-429d-8405-e1678f88dbd7.json");
+            Stream dataStream = File.OpenRead(Path.Combine(TestSetupUtil.GetInstancePath(), "50013976/f3fc6233-1631-429d-8405-e1678f88dbd7.json"));
             dataStream.Position = 0;
 
             string json = "";
@@ -300,7 +301,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         private async Task PopulateCosmosDbAsyncWithApplication()
         {
             Uri uri = UriFactory.CreateDocumentCollectionUri(databaseId, "applications");
-            Stream dataStream = File.OpenRead("Data/Applications/tdd/cat/tdd-cat.json");
+            Stream dataStream = File.OpenRead(Path.Combine(TestSetupUtil.GetApplicationPath(), "tdd/cat/tdd-cat.json"));
             dataStream.Position = 0;
 
             string json = "";
