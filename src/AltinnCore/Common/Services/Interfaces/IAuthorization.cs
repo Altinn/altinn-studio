@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,5 +25,12 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="partyId">The party id.</param>
         /// <returns> Boolean indicating whether or not the user can represent the selected party.</returns>
         Task<bool?> ValidateSelectedParty(int userId, int partyId);
+
+        /// <summary>
+        /// Sends in a request to check if the person is authorized
+        /// </summary>
+        /// <param name="xacmlJsonRequest">The Xacml Json Request</param>
+        /// <returns>The Xacml Json repsons will tell if the user is authorized or not</returns>
+        Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest);
     }
 }

@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using AltinnCore.Common.Clients;
@@ -44,6 +47,32 @@ namespace AltinnCore.Common.Services.Implementation
             _authClient = httpClientAccessor.AuthorizationClient;
             _cookieOptions = cookieOptions.Value;
             _logger = logger;
+        }
+
+        /// <inheritdoc/>
+        public async Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest)
+        {
+            XacmlJsonResponse xacmlJsonResponse = null;
+            string apiUrl = $"decision";
+
+            try
+            {
+                string jsonString = JsonConvert.SerializeObject(xacmlJsonRequest);
+                StringContent httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = _authClient.PostAsync(apiUrl, httpContent).Result;
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string responseData = response.Content.ReadAsStringAsync().Result;
+                    xacmlJsonResponse = JsonConvert.DeserializeObject<XacmlJsonResponse>(responseData);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Unable to retrieve Xacml Json response. An error occured {e.Message}");
+            }
+
+            return xacmlJsonResponse;
         }
 
         /// <inheritdoc />
