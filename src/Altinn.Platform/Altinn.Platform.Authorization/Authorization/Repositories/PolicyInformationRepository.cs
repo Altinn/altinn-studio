@@ -15,12 +15,10 @@ namespace Altinn.Platform.Authorization.Repositories
     /// </summary>
     public class PolicyInformationRepository : IPolicyInformationRepository
     {
-        private readonly Uri _databaseUri;
-        private readonly Uri _collectionUri;
         private readonly string databaseId;
         private readonly string instanceCollectionId;
         private readonly string applicationCollectionId;
-        private static DocumentClient _client;
+        private DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
         private readonly ILogger<PolicyInformationRepository> logger;
 
@@ -44,8 +42,6 @@ namespace Altinn.Platform.Authorization.Repositories
 
             _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
 
-            _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
-            _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, _cosmosettings.InstanceCollection);
             databaseId = _cosmosettings.Database;
             instanceCollectionId = _cosmosettings.InstanceCollection;
             applicationCollectionId = _cosmosettings.ApplicationCollection;
@@ -53,13 +49,19 @@ namespace Altinn.Platform.Authorization.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
+        public Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
         {
             if (instanceOwnerId <= 0)
             {
                 throw new ArgumentException("Instance owner id cannot be zero or negative");
             }
 
+            return GetInstanceInternal(instanceId, instanceOwnerId);
+
+        }
+
+        private async Task<Instance> GetInstanceInternal(string instanceId, int instanceOwnerId)
+        {
             string cosmosId = InstanceIdToCosmosId(instanceId);
             Uri uri = UriFactory.CreateDocumentUri(databaseId, instanceCollectionId, cosmosId);
 
@@ -76,6 +78,7 @@ namespace Altinn.Platform.Authorization.Repositories
             }
             catch (DocumentClientException ex)
             {
+                logger.LogError(ex.Message);
                 return null;
             }
             catch (Exception ex)
@@ -88,19 +91,23 @@ namespace Altinn.Platform.Authorization.Repositories
         /// <inheritdoc/>
         public async Task<Instance> GetInstance(string instanceId)
         {
-            string cosmosId = InstanceIdToCosmosId(instanceId);
             int instanceOwnerId = GetInstanceOwnerIdFromInstanceId(instanceId);
             return await GetInstance(instanceId, instanceOwnerId);
         }
 
         /// <inheritdoc/>
-        public async Task<Application> GetApplication(string app, string org)
+        public Task<Application> GetApplication(string app, string org)
         {
             if (string.IsNullOrWhiteSpace(org))
             {
-                throw new ArgumentNullException("Org cannot be null or empty");
+                throw new ArgumentNullException("org cannot be null or empty");
             }
 
+            return GetApplicationInternal(app, org);
+        }
+
+        private async Task<Application> GetApplicationInternal(string app, string org)
+        {
             string cosmosAppId = AppIdToCosmosId(app);
             Uri uri = UriFactory.CreateDocumentUri(databaseId, applicationCollectionId, cosmosAppId);
 
@@ -133,6 +140,15 @@ namespace Altinn.Platform.Authorization.Repositories
         private void PostProcess(Application application)
         {
             application.Id = CosmosIdToAppId(application.Id);
+        }
+
+        /// <summary>
+        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerId}/{instanceGuid} to be used outside cosmos.
+        /// </summary>
+        /// <param name="instance">the instance to preprocess</param>
+        private void PostProcess(Instance instance)
+        {
+            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
         }
 
         /// <summary>
@@ -174,15 +190,6 @@ namespace Altinn.Platform.Authorization.Repositories
             }
 
             return appId;
-        }
-
-        /// <summary>
-        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerId}/{instanceGuid} to be used outside cosmos.
-        /// </summary>
-        /// <param name="instance">the instance to preprocess</param>
-        private void PostProcess(Instance instance)
-        {
-            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
         }
 
         /// <summary>
