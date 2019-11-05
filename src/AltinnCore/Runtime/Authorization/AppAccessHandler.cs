@@ -62,16 +62,19 @@ namespace AltinnCore.Runtime.Authorization
             // Decied if request is permitted by the respons it gets from pdp
             List<XacmlJsonResult> results = response.Response;
 
+            // Checks that we only got one result
             if (results.Count != 1)
             {
                 context.Fail();
             }
 
+            // Checks that the respons is nothing else than "permit"
             if (!results.First().Decision.Equals(XacmlContextDecision.Permit.ToString()))
             {
                 context.Fail();
             }
 
+            // Checks that the user has the minimum authentication level if required 
             if (results.First().Obligations != null && results.Count > 0)
             {
                 List<XacmlJsonObligationOrAdvice> obligationList = results.First().Obligations;
