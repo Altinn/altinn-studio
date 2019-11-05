@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AltinnCore.Designer.Services.Models;
 
 namespace AltinnCore.Designer.Services
 {
@@ -13,7 +14,11 @@ namespace AltinnCore.Designer.Services
         /// <param name="org">Organisation</param>
         /// <param name="app">Application</param>
         /// <param name="commitId">Commit Id</param>
-        /// <returns></returns>
-        Task RegisterApplicationInStorageAsync(string org, string app, string commitId);
+        /// <param name="deploymentEnvironment">EnvironmentModel</param>
+        Task RegisterApplicationInStorageAsync(
+            string org,
+            string app,
+            string commitId,
+            EnvironmentModel deploymentEnvironment);
     }
 }

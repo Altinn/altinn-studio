@@ -65,7 +65,7 @@ namespace AltinnCore.Designer.Services
             deploymentEntity.EnvironmentName = deployment.Environment.Name;
 
             ReleaseEntity release = await GetSucceededReleaseFromDb(deploymentEntity);
-            await _applicationMetadataService.RegisterApplicationInStorageAsync(_org, _app, release.TargetCommitish);
+            await _applicationMetadataService.RegisterApplicationInStorageAsync(_org, _app, release.TargetCommitish, deployment.Environment);
 
             Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.Environment.Hostname);
 
