@@ -7,7 +7,10 @@ image:
   containerPort: 5000
   imagePullSecret: acrsecret
 
-host: staging.altinn.studio
+hosts:
+  development: dev.altinn.studio
+  staging: staging.altinn.studio
+  production: altinn.studio
 
 service:
   externalPort: 3000
@@ -56,13 +59,13 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud/authorization/api/v1/
     - name: PlatformSettings__ApiAuthorizationEndpointHost
       value: https://platform.at21.altinn.cloud
-  production:
+  staging:
     - name: ASPNETCORE_ENVIRONMENT
-      value: Production
+      value: Staging
     - name: ASPNETCORE_URLS
       value: http://+:5000
     - name: GeneralSettings__HostName
-      value: altinn.studio
+      value: staging.altinn.studio
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
@@ -74,7 +77,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPoint
       value: http://altinn-repositories:3000/api/v1
     - name: ServiceRepositorySettings__GiteaLoginUrl
-      value: https://altinn.studio/repos/user/login
+      value: https://staging.altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
@@ -99,13 +102,13 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud/authorization/api/v1/
     - name: PlatformSettings__ApiAuthorizationEndpointHost
       value: https://platform.at21.altinn.cloud
-  staging:
+  production:
     - name: ASPNETCORE_ENVIRONMENT
-      value: Staging
+      value: Production
     - name: ASPNETCORE_URLS
       value: http://+:5000
     - name: GeneralSettings__HostName
-      value: staging.altinn.studio
+      value: altinn.studio
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
@@ -117,7 +120,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPoint
       value: http://altinn-repositories:3000/api/v1
     - name: ServiceRepositorySettings__GiteaLoginUrl
-      value: https://staging.altinn.studio/repos/user/login
+      value: https://altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL

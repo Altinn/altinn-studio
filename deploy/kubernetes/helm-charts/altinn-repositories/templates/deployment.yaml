@@ -14,15 +14,11 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}
-          {{- if eq (required ".Values.environment not set" .Values.environment) "development" }}
-          image: "{{ .Values.image.repositoryDev }}:{{ .Values.image.tag }}"
+          {{- if not (hasKey $.Values.image.repository $.Values.environment) }}
+            {{ fail "the chosen environment has no container registry repository" }}
           {{- end }}
-          {{- if eq (required ".Values.environment not set" .Values.environment) "production" }}
-          image: "{{ .Values.image.repositoryProd }}:{{ .Values.image.tag }}"
-          {{- end }}
-          {{- if eq (required ".Values.environment not set" .Values.environment) "staging" }}
-          image: "{{ .Values.image.repositoryStaging }}:{{ .Values.image.tag }}"
-          {{- end }}
+          {{- $repository := index $.Values.image.repository $.Values.environment }}
+          image: "{{ $repository }}:{{ $.Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.image.containerPort }}
