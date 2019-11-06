@@ -49,18 +49,9 @@ namespace AltinnCore.Designer.Services
             _org = org;
             _app = app;
             _commitId = commitId;
-            CreateHttpClient(deploymentEnvironment);
-            Application applicationFromRepository = _repository.GetApplication(org, app);
+            _httpClient = GetHttpClientFromHttpClientFactory(deploymentEnvironment);
 
-            // for old apps the application meta data file was not generated, so create the application meta data file
-            // but the metadata for attachment will not be available on deployment
-            if (applicationFromRepository == null)
-            {
-                // TODO: Application title handling (issue #2053/#1725)
-                _repository.CreateApplication(org, app, app);
-                applicationFromRepository = _repository.GetApplication(org, app);
-            }
-
+            Application applicationFromRepository = CreateRepositoryAppForOldApps();
             Application application;
             try
             {
@@ -76,11 +67,29 @@ namespace AltinnCore.Designer.Services
             await UpdateApplicationMetadata(application, applicationFromRepository);
         }
 
-        private void CreateHttpClient(EnvironmentModel deploymentEnvironment)
+        private Application CreateRepositoryAppForOldApps()
         {
-            _httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
-            var uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/storage/api/v1/applications";
-            _httpClient.BaseAddress = new Uri(uri);
+            Application applicationFromRepository = _repository.GetApplication(_org, _app);
+
+            // for old apps the application meta data file was not generated, so create the application meta data file
+            // but the metadata for attachment will not be available on deployment
+            if (applicationFromRepository == null)
+            {
+                // TODO: Application title handling (issue #2053/#1725)
+                _repository.CreateApplication(_org, _app, _app);
+                applicationFromRepository = _repository.GetApplication(_org, _app);
+            }
+
+            return applicationFromRepository;
+        }
+
+        private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
+        {
+            var httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
+            var uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/storage/api/v1/applications/";
+            httpClient.BaseAddress = new Uri(uri);
+
+            return httpClient;
         }
 
         private async Task<Application> GetApplication()
