@@ -117,9 +117,9 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IApplication, ApplicationAppSI>();
             }
 
+            //services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
             services.AddSingleton<IArchive, ArchiveStudioSI>();
-            services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
@@ -217,8 +217,8 @@ namespace AltinnCore.Runtime
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement(ActionType.Read)));
-                options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement(ActionType.Write)));
+                //options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement(ActionType.Read.ToString())));
+                //options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement(ActionType.Write.ToString())));
                 options.AddPolicy("ServiceRead", policy => policy.Requirements.Add(new ServiceAccessRequirement(ActionType.Read)));
             });
 

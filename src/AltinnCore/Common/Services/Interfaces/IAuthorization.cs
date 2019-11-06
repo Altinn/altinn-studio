@@ -25,12 +25,5 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="partyId">The party id.</param>
         /// <returns> Boolean indicating whether or not the user can represent the selected party.</returns>
         Task<bool?> ValidateSelectedParty(int userId, int partyId);
-
-        /// <summary>
-        /// Sends in a request to check if the user is permitted to execute task
-        /// </summary>
-        /// <param name="xacmlJsonRequest">The Xacml Json Request</param>
-        /// <returns>The Xacml Json response will tell if the user has permission or not</returns>
-        Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest);
     }
 }

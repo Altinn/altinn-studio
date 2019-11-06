@@ -1,22 +1,18 @@
-namespace AltinnCore.Runtime.Authorization
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Security.Claims;
-    using System.Threading.Tasks;
-    using Altinn.Authorization.ABAC.Xacml;
-    using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-    using AltinnCore.Authentication.Constants;
-    using AltinnCore.Common.Constants;
-    using AltinnCore.Common.Enums;
-    using AltinnCore.Common.Services.Interfaces;
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Mvc.Filters;
-    using Microsoft.AspNetCore.Routing;
-    using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
+namespace Altinn.Common.PEP.Authorization
+{
     /// <summary>
     /// AuthorizationHandler that is created for handling access to service instances.
     /// Authorizes based om InstanceAccessRequirement and instance id from route
@@ -38,7 +34,8 @@ namespace AltinnCore.Runtime.Authorization
         /// <summary>
         /// Initializes a new instance of the <see cref="AppAccessHandler"/> class.
         /// </summary>
-        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
+        /// <param name="authorizationService">The authorizationService</param>
         public AppAccessHandler(IHttpContextAccessor httpContextAccessor, IAuthorization authorizationService)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -60,7 +57,6 @@ namespace AltinnCore.Runtime.Authorization
             // Decide if request is permitted by the response it gets from pdp
             List<XacmlJsonResult> results = response.Response;
 
-            // Checks that we only got one result
             if (results.Count != 1)
             {
                 context.Fail();
@@ -97,13 +93,8 @@ namespace AltinnCore.Runtime.Authorization
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
 
-            // Subject
             request.AccessSubject.Add(CreateSubjectCategory(context.User.Claims));
-
-            // Action
             request.Action.Add(CreateActionCategory(requirement.ActionType));
-
-            // Resource
             request.Resource.Add(CreateResourceCategory(_httpContextAccessor.HttpContext.GetRouteData()));
 
             return request;
@@ -138,13 +129,8 @@ namespace AltinnCore.Runtime.Authorization
             string org = routeData.Values[ParamOrg] as string;
             string instanceOwnerId = routeData.Values[ParamInstanceOwnerId] as string;
 
-            // InstanceId
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceInstanceId, instanceOwnerId + "/" + instanceGuid));
-
-            // Org
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org));
-
-            // App
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app));
 
             return resourceAttributes;
@@ -160,40 +146,6 @@ namespace AltinnCore.Runtime.Authorization
             xacmlJsonAttribute.Value = value;
 
             return xacmlJsonAttribute;
-        }
-
-        /// <summary>
-        /// Method that authorized the user for a instance access
-        /// </summary>
-        /// <param name="user">The authenticated user</param>
-        /// <param name="instanceID">The instanceID</param>
-        /// <param name="actionType">The action type to authorize against</param>
-        /// <param name="requredAuthLevel">The required authentication level</param>
-        /// <returns>Returns a boolean defining if user is authorized</returns>
-        private bool AuthorizeAccess(ClaimsPrincipal user, Guid instanceID, string actionType, out int requredAuthLevel)
-        {
-            // TODO. Call Context Handler to get the following information
-            // Who owns the instance, and what is the service for it
-            // TODO Get the userID and authentication level from Claimsprincipal
-            int currentAuthLevel = 0;
-            foreach (Claim claim in user.Claims)
-            {
-                if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel))
-                {
-                    currentAuthLevel = Convert.ToInt32(claim.Value);
-                }
-            }
-
-            if (currentAuthLevel < 2)
-            {
-                requredAuthLevel = 2;
-            }
-            else
-            {
-                requredAuthLevel = 0;
-            }
-
-            return true;
         }
     }
 }

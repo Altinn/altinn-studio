@@ -1,7 +1,6 @@
-using AltinnCore.Common.Enums;
 using Microsoft.AspNetCore.Authorization;
 
-namespace AltinnCore.Runtime.Authorization
+namespace Altinn.Common.PEP.Authorization
 {
     /// <summary>
     /// Requirement uses for authorization policies used for accessing service instances
