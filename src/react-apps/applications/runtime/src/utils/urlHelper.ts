@@ -34,7 +34,7 @@ export function getProcessStateUrl() {
   return `${appPath}/instances/${altinnWindow.instanceId}/process`;
 }
 
-export function getStartProcessUrl(instanceId: string) {
+export function getStartProcessUrl(instanceId?: string) {
   if (!instanceId) {
     instanceId = altinnWindow.instanceId;
   }
