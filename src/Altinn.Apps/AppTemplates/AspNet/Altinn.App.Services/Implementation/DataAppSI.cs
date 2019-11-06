@@ -71,23 +71,22 @@ namespace Altinn.App.Services.Implementation
             DataElement dataElement;
 
             XmlSerializer serializer = new XmlSerializer(type);
-            using (MemoryStream stream = new MemoryStream())
-            {
-                serializer.Serialize(stream, dataToSerialize);
-                stream.Position = 0;
-                StreamContent streamContent = new StreamContent(stream);
-                streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
-                Task<HttpResponseMessage> response = _client.PostAsync(apiUrl, streamContent);
-                if (!response.Result.IsSuccessStatusCode)
-                {
-                    _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instanceGuid, response.Result.StatusCode);
-                    return null;
-                }
+            using MemoryStream stream = new MemoryStream();
 
-                string instanceData = await response.Result.Content.ReadAsStringAsync();
-                dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
+            serializer.Serialize(stream, dataToSerialize);
+            stream.Position = 0;
+            StreamContent streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+            Task<HttpResponseMessage> response = _client.PostAsync(apiUrl, streamContent);
+            if (!response.Result.IsSuccessStatusCode)
+            {
+                _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instanceGuid, response.Result.StatusCode);
+                return null;
             }
 
+            string instanceData = await response.Result.Content.ReadAsStringAsync();
+            dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
+            
             return dataElement;
         }
 
@@ -100,23 +99,21 @@ namespace Altinn.App.Services.Implementation
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
             XmlSerializer serializer = new XmlSerializer(type);
-            using (MemoryStream stream = new MemoryStream())
+            using MemoryStream stream = new MemoryStream();
+            serializer.Serialize(stream, dataToSerialize);
+            stream.Position = 0;
+            StreamContent streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
+
+            Task<HttpResponseMessage> response = _client.PutAsync(apiUrl, streamContent);
+            if (!response.Result.IsSuccessStatusCode)
             {
-                serializer.Serialize(stream, dataToSerialize);
-                stream.Position = 0;
-                StreamContent streamContent = new StreamContent(stream);
-                streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/xml");
-
-                Task<HttpResponseMessage> response = _client.PutAsync(apiUrl, streamContent);
-                if (!response.Result.IsSuccessStatusCode)
-                {
-                    _logger.LogError($"Unable to save form model for instance {instanceGuid}");
-                }
-
-                string instanceData = await response.Result.Content.ReadAsStringAsync();
-                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
-                return dataElement;
+                _logger.LogError($"Unable to save form model for instance {instanceGuid}");
             }
+
+            string instanceData = await response.Result.Content.ReadAsStringAsync();
+            DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
+            return dataElement;
         }
 
         /// <inheritdoc />
