@@ -7,3 +7,6 @@ export const GET_APP_RELEASES_REJECTED: string = `${moduleName}.GET_APP_RELEASES
 export const CREATE_APP_RELEASE: string = `${moduleName}.CREATE_APP_RELEASE`;
 export const CREATE_APP_RELEASE_FULFILLED: string = `${moduleName}.CREATE_APP_RELEASE_FULFILLED`;
 export const CREATE_APP_RELEASE_REJECTED: string = `${moduleName}.CREATE_APP_RELEASE_REJECTED`;
+
+export const GET_APP_RELEASES_START_INTERVAL: string = `${moduleName}.GET_APP_RELEASES_START_INTERVAL`;
+export const GET_APP_RELEASES_STOP_INTERVAL: string = `${moduleName}.GET_APP_RELEASES_STOP_INTERVAL`;

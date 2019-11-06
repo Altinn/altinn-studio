@@ -1,21 +1,42 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as AppReleaseActionTypes from './appDeploymentActionTypes';
-import { ICreateDeploymentRejected } from './create/createAppDeploymentActions';
+import * as AppDeploymentActionTypes from './appDeploymentActionTypes';
+import { ICreateAppDeploymentFulfilled, ICreateAppDeploymentRejected } from './create/createAppDeploymentActions';
 import { IGetAppDeploymentsFulfilled, IGetAppDeploymentsRejected } from './get/getAppDeploymentActions';
 import { IDeployment } from './types';
 
 export interface IAppDeploymentState {
   deployments: IDeployment[];
-  error: Error;
+  getAppDeploymentsError: Error;
+  createAppDeploymentErrors: ICreateAppDeploymentErrors[];
+}
+
+export interface ICreateAppDeploymentErrors {
+  env: string;
+  errorMessage: string;
+  errorCode: string;
 }
 
 const initialState: IAppDeploymentState = {
   deployments: [],
-  error: null,
+  getAppDeploymentsError: null,
+  createAppDeploymentErrors: [],
 };
 
-const appReleaseReducer: Reducer<IAppDeploymentState> = (
+update.extend('$updateCreateAppDeploymentError', (params: any, original: any) => {
+  const newState = original.filter((elem: any) => elem.env !== params.env );
+
+  const newAppDeploymentError: ICreateAppDeploymentErrors = {
+    env: params.env,
+    errorMessage: params.error ? params.error.message : null,
+    errorCode: params.error ? params.error.response.status : null,
+  };
+
+  newState.push(newAppDeploymentError);
+  return newState;
+});
+
+const appDeploymentReducer: Reducer<IAppDeploymentState> = (
   state: IAppDeploymentState = initialState,
   action?: Action,
 ): IAppDeploymentState => {
@@ -23,37 +44,47 @@ const appReleaseReducer: Reducer<IAppDeploymentState> = (
     return state;
   }
   switch (action.type) {
-    case AppReleaseActionTypes.GET_APP_DEPLOYMENTS_FULFILLED: {
+    case AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_FULFILLED: {
       const { deployments } = action as IGetAppDeploymentsFulfilled;
       return update<IAppDeploymentState>(state, {
         deployments: {
-          $set: deployments,
+          $set: deployments.results,
         },
-        error: {
+        getAppDeploymentsError: {
           $set: null,
         },
       });
     }
-    case AppReleaseActionTypes.GET_APP_DEPLOYMENTS_REJECTED: {
+    case AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_REJECTED: {
       const { error } = action as IGetAppDeploymentsRejected;
       return update<IAppDeploymentState>(state, {
-        error: {
-          $set: error,
+        getAppDeploymentsError: {
+          $set: error.message,
         },
       });
     }
-    case AppReleaseActionTypes.CREATE_APP_DEPLOYMENT_FULFILLED: {
+    case AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT_FULFILLED: {
+      const { result, envName } = action as ICreateAppDeploymentFulfilled;
       return update<IAppDeploymentState>(state, {
-        error: {
-          $set: null,
+        deployments: {
+          $unshift: [result],
+        },
+        createAppDeploymentErrors: {
+          $updateCreateAppDeploymentError: {
+            env: envName,
+            error: null,
+          },
         },
       });
     }
-    case AppReleaseActionTypes.CREATE_APP_DEPLOYMENT_REJECTED: {
-      const { error } = action as ICreateDeploymentRejected;
+    case AppDeploymentActionTypes.CREATE_APP_DEPLOYMENT_REJECTED: {
+      const { error, envName } = action as ICreateAppDeploymentRejected;
       return update<IAppDeploymentState>(state, {
-        error: {
-          $set: error,
+        createAppDeploymentErrors: {
+          $updateCreateAppDeploymentError: {
+            env: envName,
+            error,
+          },
         },
       });
     }
@@ -63,4 +94,4 @@ const appReleaseReducer: Reducer<IAppDeploymentState> = (
   }
 };
 
-export default appReleaseReducer;
+export default appDeploymentReducer;
