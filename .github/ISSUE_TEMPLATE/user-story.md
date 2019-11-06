@@ -32,7 +32,7 @@ Input (beyond tasks) on how the user story should be solved can be put here.
 etc
 
 ## Definition of done
-Verify that this issue meets [DoD](https://confluence.brreg.no/display/T3KP/Definition+of+Done#DefinitionofDone-DoD%E2%80%93utvikling) before closing. 
+Verify that this issue meets [DoD](https://confluence.brreg.no/display/T3KP/Definition+of+Done#DefinitionofDone-DoD%E2%80%93utvikling) (Only for project members) before closing. 
 - [ ] Documentation (if relevant)
 - [ ] Manual test (if needed)
 - [ ] Automated test (if needed)
