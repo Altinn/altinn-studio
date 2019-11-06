@@ -9,13 +9,12 @@ using Altinn.App.Common.Process.Elements;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Storage.Interface.Models;
 
 namespace Altinn.App.Api.Controllers
 {
@@ -564,11 +563,14 @@ namespace Altinn.App.Api.Controllers
             InstanceEvent instanceEvent = new InstanceEvent
             {
                 InstanceId = instance.Id,
-                InstanceOwnerId = instance.InstanceOwnerId,
+                InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
                 EventType = eventType,
-                CreatedDateTime = now,
-                UserId = userContext.UserId,
-                AuthenticationLevel = userContext.AuthenticationLevel,
+                Created = now,
+                User = new PlatformUser
+                {
+                    UserId = userContext.UserId,
+                    AuthenticationLevel = userContext.AuthenticationLevel,
+                },
                 ProcessInfo = instance.Process,
             };
 

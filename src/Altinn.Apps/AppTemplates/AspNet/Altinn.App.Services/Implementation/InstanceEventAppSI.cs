@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
@@ -113,7 +113,7 @@ namespace Altinn.App.Services.Implementation
         public async Task<string> SaveInstanceEvent(object dataToSerialize, string org, string app)
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
-            instanceEvent.CreatedDateTime = DateTime.UtcNow;
+            instanceEvent.Created = DateTime.UtcNow;
             string apiUrl = $"instances/{instanceEvent.InstanceId}/events";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);

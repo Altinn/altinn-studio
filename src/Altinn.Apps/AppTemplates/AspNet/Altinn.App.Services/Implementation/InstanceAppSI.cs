@@ -10,15 +10,14 @@ using Altinn.App.Services.Enums;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Storage.Interface.Clients;
-using Storage.Interface.Models;
+
 
 namespace Altinn.App.Services.Implementation
 {
@@ -154,8 +153,7 @@ namespace Altinn.App.Services.Implementation
                 ElementId = WorkflowStep.Archived.ToString(),
             };
 
-            instance.InstanceState.IsArchived = true;
-            instance.InstanceState.ArchivedDateTime = DateTime.UtcNow;
+            instance.Inbox.Archived = DateTime.UtcNow;
 
             instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
             return instance;
