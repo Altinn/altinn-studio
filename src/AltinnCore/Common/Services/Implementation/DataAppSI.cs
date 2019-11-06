@@ -279,10 +279,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string elementType, string attachmentName, HttpRequest request)
         {
             string instanceIdentifier = $"{instanceOwnerId}/{instanceGuid}";
-            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={attachmentType}&attachmentName={attachmentName}";
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceIdentifier}/data?elementType={elementType}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             Instance instance;
 
@@ -306,7 +306,7 @@ namespace AltinnCore.Common.Services.Implementation
                     string instancedata = await response.Content.ReadAsStringAsync();
                     instance = JsonConvert.DeserializeObject<Instance>(instancedata);
 
-                    return instance.Data.Find(m => m.FileName.Equals(attachmentName));
+                    return instance.Data.Find(m => m.ElementType.Equals(elementType));
                 }
                 else
                 {
