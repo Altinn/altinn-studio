@@ -54,7 +54,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private async Task EnrichResourceAttributes(XacmlContextRequest request)
         {
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
-            XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(request, resourceContextAttributes);
+            XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
 
             bool resourceAttributeComplete = false;
 
@@ -92,7 +92,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
         }
 
-        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextRequest request, XacmlContextAttributes resourceContextAttributes)
+        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
         {
             XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
@@ -127,14 +127,12 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             return resourceAttributes;
         }
 
-        private XacmlContextAttributes AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
         {
             if (string.IsNullOrEmpty(attributeValue))
             {
                 resourceAttributes.Attributes.Add(GetAttribute(attributeId, newAttributeValue));
-            }
-
-            return resourceAttributes;
+            }            
         }
 
         private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
