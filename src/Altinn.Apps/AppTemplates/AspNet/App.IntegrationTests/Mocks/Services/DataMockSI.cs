@@ -1,6 +1,6 @@
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
@@ -53,19 +53,19 @@ namespace App.IntegrationTests.Mocks.Services
             }
         }
 
-        public Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, HttpRequest request)
+        public Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string dataType, HttpRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<Instance> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId)
+        public async Task<DataElement> InsertFormData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, string dataType)
         {
             Guid dataGuid = Guid.NewGuid();
             string dataPath = GetDataPath(org, app, instanceOwnerId, instanceGuid);
 
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
 
-            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), ElementType = "default" };
+            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), DataType = dataType };
            
             try
             {
@@ -91,7 +91,7 @@ namespace App.IntegrationTests.Mocks.Services
             
             instance.Data = GetDataElements(org, app, instanceOwnerId, instanceGuid);
 
-            return instance;
+            return dataElement;
         }
 
 
@@ -102,7 +102,7 @@ namespace App.IntegrationTests.Mocks.Services
             throw new NotImplementedException();
         }
 
-        public Task<Instance> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
+        public Task<DataElement> UpdateData<T>(T dataToSerialize, Guid instanceGuid, Type type, string org, string app, int instanceOwnerId, Guid dataId)
         {
             throw new NotImplementedException();
         }
