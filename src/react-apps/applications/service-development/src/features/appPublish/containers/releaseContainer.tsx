@@ -105,7 +105,6 @@ const styles = createStyles({
   },
   appCreateReleaseWrapper: {
     minHeight: '400px',
-    maxHeight: '400px',
   },
   appCreateReleaseTitle: {
     padding: '1.2rem',
