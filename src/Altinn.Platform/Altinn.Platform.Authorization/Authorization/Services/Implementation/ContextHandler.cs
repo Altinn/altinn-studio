@@ -6,6 +6,7 @@ using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Platform.Authorization.Constants;
+using Altinn.Platform.Authorization.Models;
 using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Storage.Models;
@@ -52,76 +53,78 @@ namespace Altinn.Platform.Authorization.Services.Implementation
 
         private async Task EnrichResourceAttributes(XacmlContextRequest request)
         {
-            string orgAttributeValue = string.Empty;
-            string appAttributeValue = string.Empty;
-            string instanceAttributeValue = string.Empty;
-            string resourcePartyAttributeValue = string.Empty;
-            string taskAttributeValue = string.Empty;
-
             XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
+            XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(request, resourceContextAttributes);
+
+            bool resourceAttributeComplete = false;
+
+            if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.TaskValue))
+            {
+                // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
+            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+                string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+                string.IsNullOrEmpty(resourceAttributes.TaskValue))
+            {
+                // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
+
+            if (!resourceAttributeComplete && !string.IsNullOrEmpty(resourceAttributes.InstanceValue))
+            {
+                Instance instanceData = await _policyInformationRepository.GetInstance(resourceAttributes.InstanceValue);
+
+                AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.OrgAttribute, resourceAttributes.OrgValue, instanceData.Org);
+                string app = instanceData.AppId.Split("/")[1];
+                AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.AppAttribute, resourceAttributes.AppValue, app);
+                AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, resourceAttributes.TaskValue, instanceData.Process.CurrentTask.ElementId);
+                AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, resourceAttributes.ResourcePartyValue, instanceData.InstanceOwnerId);
+                resourceAttributes.ResourcePartyValue = instanceData.InstanceOwnerId;
+            }
+
+            await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
+        }
+
+        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextRequest request, XacmlContextAttributes resourceContextAttributes)
+        {
+            XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
 
             foreach (XacmlAttribute attribute in resourceContextAttributes.Attributes)
             {
                 if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.OrgAttribute))
                 {
-                    orgAttributeValue = attribute.AttributeValues.First().Value;
+                    resourceAttributes.OrgValue = attribute.AttributeValues.First().Value;
                 }
 
                 if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.AppAttribute))
                 {
-                    appAttributeValue = attribute.AttributeValues.First().Value;
+                    resourceAttributes.AppValue = attribute.AttributeValues.First().Value;
                 }
 
                 if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.InstanceAttribute))
                 {
-                    instanceAttributeValue = attribute.AttributeValues.First().Value;
+                    resourceAttributes.InstanceValue = attribute.AttributeValues.First().Value;
                 }
 
                 if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.PartyAttribute))
                 {
-                    resourcePartyAttributeValue = attribute.AttributeValues.First().Value;
+                    resourceAttributes.ResourcePartyValue = attribute.AttributeValues.First().Value;
                 }
 
                 if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.TaskAttribute))
                 {
-                    taskAttributeValue = attribute.AttributeValues.First().Value;
-                }               
+                    resourceAttributes.TaskValue = attribute.AttributeValues.First().Value;
+                }
             }
 
-            bool resourceAttributeComplete = false;
-
-            if (!string.IsNullOrEmpty(orgAttributeValue) &&
-                !string.IsNullOrEmpty(appAttributeValue) &&
-                !string.IsNullOrEmpty(instanceAttributeValue) &&
-                !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-                !string.IsNullOrEmpty(taskAttributeValue))
-            {
-                // The resource attributes are complete
-                resourceAttributeComplete = true;
-            }
-            else if (!string.IsNullOrEmpty(orgAttributeValue) &&
-                !string.IsNullOrEmpty(appAttributeValue) &&
-                string.IsNullOrEmpty(instanceAttributeValue) &&
-                !string.IsNullOrEmpty(resourcePartyAttributeValue) &&
-                string.IsNullOrEmpty(taskAttributeValue))
-            {
-                // The resource attributes are complete
-                resourceAttributeComplete = true;
-            }
-
-            if (!resourceAttributeComplete && !string.IsNullOrEmpty(instanceAttributeValue))
-            {
-                Instance instanceData = await _policyInformationRepository.GetInstance(instanceAttributeValue);
-
-                resourceContextAttributes = AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.OrgAttribute, orgAttributeValue, instanceData.Org);
-                string app = instanceData.AppId.Split("/")[1];
-                resourceContextAttributes = AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.AppAttribute, appAttributeValue, app);
-                resourceContextAttributes = AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, orgAttributeValue, instanceData.Process.CurrentTask.ElementId);
-                resourceContextAttributes = AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, orgAttributeValue, instanceData.InstanceOwnerId);
-                resourcePartyAttributeValue = instanceData.InstanceOwnerId;
-            }
-
-            await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
+            return resourceAttributes;
         }
 
         private XacmlContextAttributes AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
