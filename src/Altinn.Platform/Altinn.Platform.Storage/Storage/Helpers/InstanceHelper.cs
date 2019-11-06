@@ -22,8 +22,8 @@ namespace Altinn.Platform.Storage.Helpers
 
             foreach (Instance instance in instances)
             {
-                InboxState inbox = instance.Inbox;
-                DateTime? visibleAfter = inbox.VisibleAfter;
+                InstanceStatus status = instance.Status;
+                DateTime? visibleAfter = instance.VisibleAfter;
 
                 messageBoxInstances.Add(new MessageBoxInstance()
                 {                    
@@ -39,9 +39,9 @@ namespace Altinn.Platform.Storage.Helpers
                     AuthorizedForWrite = true,
                     AllowDelete = true,
                     AllowNewCopy = false,
-                    DeletedDateTime = inbox.SoftDeleted,
-                    ArchivedDateTime = inbox.Archived,
-                    DeleteStatus = inbox.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
+                    DeletedDateTime = status.SoftDeleted,
+                    ArchivedDateTime = status.Archived,
+                    DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
                 });               
             }
 

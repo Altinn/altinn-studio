@@ -420,35 +420,35 @@ namespace Altinn.Platform.Storage.Repository
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.Inbox.VisibleAfter > dateValue);
+                return queryBuilder.Where(i => i.VisibleAfter > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.Inbox.VisibleAfter >= dateValue);
+                return queryBuilder.Where(i => i.VisibleAfter >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.Inbox.VisibleAfter < dateValue);
+                return queryBuilder.Where(i => i.VisibleAfter < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.Inbox.VisibleAfter <= dateValue);
+                return queryBuilder.Where(i => i.VisibleAfter <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.Inbox.VisibleAfter == dateValue);
+                return queryBuilder.Where(i => i.VisibleAfter == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.Inbox.VisibleAfter == dateValue);
+            return queryBuilder.Where(i => i.VisibleAfter == dateValue);
         }
 
         private static DateTime ParseDateTimeIntoUtc(string queryValue)
@@ -515,25 +515,25 @@ namespace Altinn.Platform.Storage.Repository
             {
                 filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                        .Where(i => (!i.Inbox.VisibleAfter.HasValue || i.Inbox.VisibleAfter <= DateTime.UtcNow))
-                        .Where(i => !i.Inbox.SoftDeleted.HasValue)
-                        .Where(i => !i.Inbox.HardDeleted.HasValue)
-                        .Where(i => !i.Inbox.Archived.HasValue);
+                        .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
+                        .Where(i => !i.Status.SoftDeleted.HasValue)
+                        .Where(i => !i.Status.HardDeleted.HasValue)
+                        .Where(i => !i.Status.Archived.HasValue);
             }
             else if (instanceState.Equals("deleted"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
                         .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                        .Where(i => i.Inbox.SoftDeleted.HasValue)
-                        .Where(i => i.Inbox.HardDeleted.HasValue);
+                        .Where(i => i.Status.SoftDeleted.HasValue)
+                        .Where(i => i.Status.HardDeleted.HasValue);
             }
             else if (instanceState.Equals("archived"))
             {
                 filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
-                       .Where(i => i.Inbox.Archived.HasValue)
-                       .Where(i => !i.Inbox.SoftDeleted.HasValue)
-                       .Where(i => !i.Inbox.HardDeleted.HasValue);
+                       .Where(i => i.Status.Archived.HasValue)
+                       .Where(i => !i.Status.SoftDeleted.HasValue)
+                       .Where(i => !i.Status.HardDeleted.HasValue);
             }
             else
             {

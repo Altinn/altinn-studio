@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Model to hold a instance owner element.
+    /// Model to hold an instance owner element.
     /// </summary>
     [Serializable]
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
@@ -17,13 +17,13 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string PartyId { get; set; }
 
         /// <summary>
-        /// Person number (national identification number). Null if the party is an org.
+        /// Person number (national identification number) of the party. Null if the party is not a person.
         /// </summary>
         [JsonProperty(PropertyName = "personNumber")]
         public string PersonNumber { get; set; }
 
         /// <summary>
-        /// organisation number party represents an organisation. Null if the party is a person.
+        /// Organisation number of the party. Null if the party is not an organisation.
         /// </summary>
         [JsonProperty(PropertyName = "organisationNumber")]
         public string OrganisationNumber { get; set; }

@@ -48,7 +48,7 @@ namespace Altinn.Platform.Storage.Clients
                 return instance;
             }
 
-            throw new StorageClientException($"GET error: {response.ReasonPhrase}");
+            throw new StorageClientException($"GET error: {response.Content?.ReadAsStringAsync()}");
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Altinn.Platform.Storage.Clients
                 return instances;
             }
 
-            throw new StorageClientException($"GET error: {response.ReasonPhrase}");
+            throw new StorageClientException($"GET error: {response.Content?.ReadAsStringAsync()}");
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Altinn.Platform.Storage.Clients
                 return instance;
             }
 
-            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
+            throw new StorageClientException($"POST error: {response.Content?.ReadAsStringAsync()}");
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Altinn.Platform.Storage.Clients
                 return instance;
             }
 
-            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
+            throw new StorageClientException($"POST error: {response.Content?.ReadAsStringAsync()}");
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace Altinn.Platform.Storage.Clients
                 return instanceEvents;
             }
 
-            throw new StorageClientException($"GET error:  {response.ReasonPhrase}");
+            throw new StorageClientException($"GET error:  {response.Content?.ReadAsStringAsync()}");
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace Altinn.Platform.Storage.Clients
                 return newId;
             }
 
-            throw new StorageClientException($"POST error: {response.ReasonPhrase}");
+            throw new StorageClientException($"POST error: {response.Content?.ReadAsStringAsync()}");
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Altinn.Platform.Storage.Clients
                 return true;
             }
 
-            throw new StorageClientException($"DELETE error: {response.ReasonPhrase}");
+            throw new StorageClientException($"DELETE error: {response.Content?.ReadAsStringAsync()}");
         }
 
         /// <summary>
@@ -222,7 +222,7 @@ namespace Altinn.Platform.Storage.Clients
                 return true;
             }
 
-            throw new StorageClientException($"DELETE error: {response.ReasonPhrase}");
+            throw new StorageClientException($"DELETE error: {response.Content?.ReadAsStringAsync()}");
         }
 
         /// <summary>

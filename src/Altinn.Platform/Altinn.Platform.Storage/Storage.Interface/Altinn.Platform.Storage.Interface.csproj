@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.3.4</Version>
+    <Version>1.3.5</Version>
     <Description>Altinn.Platform.Storage.Interface is a package for models used by platform storage</Description>
-    <PackageTags>altinn studio, Altinn.Platform, Altinn.Platform.Storage.Interface</PackageTags>
+    <PackageTags>Altinn Studio, Altinn.Platform, Altinn.Platform.Storage.Interface</PackageTags>
     <PackageId>Altinn.Platform.Storage.Interface</PackageId>
     <Company>Altinn</Company>
     <Product>StorageInterface</Product>

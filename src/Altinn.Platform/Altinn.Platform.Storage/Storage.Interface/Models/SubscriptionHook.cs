@@ -7,7 +7,6 @@ namespace Altinn.Platform.Storage.Interface.Models
     /// </summary>
     public class SubscriptionHook
     {
-
         /// <summary>
         /// The service code
         /// </summary>

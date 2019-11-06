@@ -64,7 +64,7 @@ namespace Altinn.Platform.Storage.Clients
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new StorageClientException($"POST failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new StorageClientException($"POST failed: {response.StatusCode} - {response.Content?.ReadAsStringAsync()}");
             }
             
             string json = response.Content.ReadAsStringAsync().Result;
@@ -88,7 +88,7 @@ namespace Altinn.Platform.Storage.Clients
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new StorageClientException($"PUT failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new StorageClientException($"PUT failed: {response.StatusCode} - {response.Content?.ReadAsStringAsync()}");
             }
             
             string json = response.Content.ReadAsStringAsync().Result;        
@@ -110,7 +110,7 @@ namespace Altinn.Platform.Storage.Clients
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new StorageClientException($"GET failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new StorageClientException($"GET failed: {response.StatusCode} - {response.Content?.ReadAsStringAsync()}");
             }
 
             string json = response.Content.ReadAsStringAsync().Result;
@@ -132,7 +132,7 @@ namespace Altinn.Platform.Storage.Clients
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new StorageClientException($"DELETE failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new StorageClientException($"DELETE failed: {response.StatusCode} - {response.Content?.ReadAsStringAsync()}");
             }
             
             string json = response.Content.ReadAsStringAsync().Result;

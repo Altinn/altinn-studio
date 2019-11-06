@@ -76,10 +76,7 @@ namespace Altinn.Platform.Storage.Helpers
                     LastChanged = lastChangedDate,
                     Created = creationDate,
                     DueBefore = dueDate,
-                    Inbox = new InboxState
-                    {
-                        VisibleAfter = dueDate.AddDays(-30),
-                    },
+                    VisibleAfter = dueDate.AddDays(-30),
                     AppOwner = new ApplicationOwnerState
                     {
                         Labels = new List<string>(),

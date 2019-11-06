@@ -295,7 +295,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             existingInstance.AppOwner = instance.AppOwner;            
             existingInstance.Process = instance.Process;
-            existingInstance.Inbox = instance.Inbox;
+            existingInstance.Status = instance.Status;
 
             existingInstance.DueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
             
@@ -306,7 +306,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(instance.Inbox.Archived.HasValue ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
+                await DispatchEvent(instance.Status.Archived.HasValue ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
                 AddSelfLinks(Request, result);
             }
             catch (Exception e)
@@ -372,7 +372,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 DateTime now = DateTime.UtcNow;
 
-                instance.Inbox.SoftDeleted = now;
+                instance.Status.SoftDeleted = now;
                 instance.LastChangedBy = User.Identity.Name;
                 instance.LastChanged = now;
 
@@ -429,10 +429,10 @@ namespace Altinn.Platform.Storage.Controllers
                 LastChanged = creationTime,
                 AppId = appInfo.Id,
                 Org = appInfo.Org,
-                Inbox = new InboxState
-                {
-                    VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.Inbox?.VisibleAfter),
-                    Title = instanceTemplate.Inbox?.Title,
+                VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
+                Title = instanceTemplate.Title,
+                Status = new InstanceStatus
+                {                    
                 },
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 AppOwner = new ApplicationOwnerState
@@ -442,7 +442,7 @@ namespace Altinn.Platform.Storage.Controllers
             };
 
             // copy applications title to presentation field if not set by instance template
-            if (createdInstance.Inbox.Title == null && appInfo.Title != null)
+            if (createdInstance.Title == null && appInfo.Title != null)
             {
                 LanguageString presentation = new LanguageString();
 
@@ -451,7 +451,7 @@ namespace Altinn.Platform.Storage.Controllers
                     presentation.Add(title.Key, title.Value);
                 }
 
-                createdInstance.Inbox.Title = presentation;
+                createdInstance.Title = presentation;
             }
 
             createdInstance.Data = new List<DataElement>();

@@ -1,7 +1,5 @@
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Altinn.Platform.Storage.Interface.Models
 {
@@ -12,25 +10,25 @@ namespace Altinn.Platform.Storage.Interface.Models
     public abstract class ChangableElement
     {
         /// <summary>
-        /// create date and time for the instance.
+        /// Creation time for the element.
         /// </summary>
         [JsonProperty(PropertyName = "created")]
         public DateTime Created { get; set; }
 
         /// <summary>
-        /// user id of the user who created the instance.
+        /// User id of the user who created it.
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
         public string CreatedBy { get; set; }
 
         /// <summary>
-        /// last changed date time for the instance.
+        /// Last changed date/time for the element.
         /// </summary>
         [JsonProperty(PropertyName = "lastChanged")]
         public DateTime? LastChanged { get; set; }
 
         /// <summary>
-        /// user id of the user who last changed the instance.
+        /// User id of the user who last changed it.
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }

@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Controllers
     public class ApplicationsController : ControllerBase
     {
         private readonly IApplicationRepository repository;
-        private ILogger logger;
+        private readonly ILogger logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationsController"/> class

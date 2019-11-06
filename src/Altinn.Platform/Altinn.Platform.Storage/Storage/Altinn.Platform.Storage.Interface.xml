@@ -4,19 +4,19 @@
         <name>Altinn.Platform.Storage.Interface</name>
     </assembly>
     <members>
-        <member name="T:Altinn.Platform.Storage.Interface.Clients.ApplicationClient">
+        <member name="T:Altinn.Platform.Storage.Clients.ApplicationClient">
             <summary>
             Client for managing application metadata.
             </summary>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.ApplicationClient.#ctor(System.Net.Http.HttpClient,System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.ApplicationClient.#ctor(System.Net.Http.HttpClient,System.String)">
             <summary>
             Constructor
             </summary>
             <param name="client">the http client to use</param>
             <param name="enpointUrl">the url of the endpoint</param>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.ApplicationClient.CreateApplication(System.String,Altinn.Platform.Storage.Interface.Models.LanguageString)">
+        <member name="M:Altinn.Platform.Storage.Clients.ApplicationClient.CreateApplication(System.String,Altinn.Platform.Storage.Interface.Models.LanguageString)">
             <summary>
             Creates and stores an application with an appId and a title.
             </summary>
@@ -24,101 +24,66 @@
             <param name="title">the title of the application</param>
             <returns></returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.ApplicationClient.CreateApplication(Altinn.Platform.Storage.Interface.Models.Application)">
+        <member name="M:Altinn.Platform.Storage.Clients.ApplicationClient.CreateApplication(Altinn.Platform.Storage.Interface.Models.Application)">
             <summary>
             Stores application from an application instance.
             </summary>
             <param name="application">the application to store</param>
             <returns></returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.ApplicationClient.UpdateApplication(Altinn.Platform.Storage.Interface.Models.Application)">
+        <member name="M:Altinn.Platform.Storage.Clients.ApplicationClient.UpdateApplication(Altinn.Platform.Storage.Interface.Models.Application)">
             <summary>
             Updates and application
             </summary>
             <param name="application">the application that should be updated</param>
             <returns>the updated application</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.ApplicationClient.GetApplication(System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.ApplicationClient.GetApplication(System.String)">
             <summary>
             Fetches the application with a given id.
             </summary>
             <param name="appId">the application id</param>
             <returns>the application object</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.ApplicationClient.DeleteApplication(System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.ApplicationClient.DeleteApplication(System.String)">
             <summary>
             Deletes an application in storage.
             </summary>
             <param name="appId">the application ied</param>
             <returns>the application object that was deleted</returns>
         </member>
-        <member name="T:Altinn.Platform.Storage.Interface.Clients.Extensions">
+        <member name="T:Altinn.Platform.Storage.Clients.Extensions">
             <summary>
             Class to wrap a json object into a StringContent with correct encoding and content type.
             </summary>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.Extensions.AsJson(System.Object)">
+        <member name="M:Altinn.Platform.Storage.Clients.Extensions.AsJson(System.Object)">
             <summary>
              Wrapper method.
             </summary>
             <param name="o">the json object to wrap.</param>
             <returns>a StringContent object.</returns>
         </member>
-        <member name="T:Altinn.Platform.Storage.Interface.Clients.InstanceClient">
+        <member name="T:Altinn.Platform.Storage.Clients.InstanceClient">
             <summary>
             Storage client methods.
             </summary>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.#ctor(System.Net.Http.HttpClient,System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.#ctor(System.Net.Http.HttpClient,System.String)">
             <summary>
             Create a client.
             </summary>
             <param name="client">the http client</param>
             <param name="hostName">the host name</param>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.PostDataReadFromFile(System.String,System.String,System.String)">
-            <summary>
-            Creates data from file.
-            </summary>
-            <param name="instanceId">a</param>
-            <param name="fileName">c</param>
-            <param name="contentType">d</param>
-        </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.PostData(System.String,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.Object})">
-            <summary>
-            Creates data.
-            </summary>
-            <param name="instanceId">a</param>
-            <param name="fileName">c</param>
-            <param name="contentType">d</param>
-            <param name="content">f</param>
-        </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.PutData(System.String,System.String,System.String,System.String,System.Collections.Generic.Dictionary{System.String,System.String})">
-            <summary>
-            Updates data.
-            </summary>
-            <param name="instanceId">the instance id</param>
-            <param name="dataId">the data id</param>
-            <param name="fileName">a file name</param>
-            <param name="contentType">content type</param>
-            <param name="content">content as json</param>
-        </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.GetData(System.String,System.String)">
-            <summary>
-             Gets a data element.
-            </summary>
-            <param name="instanceId">the instance id</param>
-            <param name="dataId">the data id</param>
-            <returns>the data content as byte array</returns>
-        </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.GetInstances(System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.GetInstances(System.String)">
             <summary>
             Get an instance.
             </summary>
             <param name="instanceId">the instance id</param>
             <returns>the instance object</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.GetInstancesForOrg(System.String,System.Int32)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.GetInstancesForOrg(System.String,System.Int32)">
             <summary>
             Get all instances for an org.
             </summary>
@@ -126,7 +91,7 @@
             <param name="size">the size of the collection to return.</param>
             <returns>the instance object</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.PostInstances(System.String,System.Int32)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.PostInstances(System.String,System.Int32)">
             <summary>
             Creates an instance
             </summary>
@@ -134,7 +99,7 @@
             <param name="instanceOwnerPartyId">the instance owner id</param>
             <returns>the instance just created</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.PostInstances(System.String,Altinn.Platform.Storage.Interface.Models.Instance)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.PostInstances(System.String,Altinn.Platform.Storage.Interface.Models.Instance)">
             <summary>
             Creates an instance
             </summary>
@@ -142,7 +107,7 @@
             <param name="instanceTemplate">the instance template to base the instance on</param>
             <returns>the instance just created</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.GetInstanceEvents(System.String,System.String[],System.String,System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.GetInstanceEvents(System.String,System.String[],System.String,System.String)">
             <summary>
             Retrieves all instance events related to given instance, listed event types and given time frame from instanceEvent collection.
             </summary>
@@ -152,53 +117,69 @@
             <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
             <returns>List of intance events.</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.PostInstanceEvent(Altinn.Platform.Storage.Interface.Models.InstanceEvent)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.PostInstanceEvent(Altinn.Platform.Storage.Interface.Models.InstanceEvent)">
             <summary>
             Inserts new instance event into the instanceEvent collection.
             </summary>
             <param name="instanceEvent">Instance event to be stored. </param>
             <returns>The stored instance event.</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.DeleteInstance(System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.DeleteInstance(System.String)">
             <summary>
             Deletes an instance (for testing purposes)
             </summary>
             <param name="instanceId">the id of the instance.</param>
             <returns>tru if deletion was successfull otherwise throws an exception</returns>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.InstanceClient.DeleteInstanceEvents(System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.DeleteInstanceEvents(System.String)">
             <summary>
             Deletes all events related to an instance id.
             </summary>
             <param name="instanceId">Id of instance to retrieve events for. </param>
             <returns>True if instance events were successfully deleted.</returns>
         </member>
-        <member name="T:Altinn.Platform.Storage.Interface.Clients.StorageClientException">
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.PostFileAsAttachment(Altinn.Platform.Storage.Interface.Models.Instance,System.String,System.String,System.String)">
+            <summary>
+            Post a file as an atachment to storage.
+            </summary>
+            <returns>The HttpResponseMessage</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.PostFileAsStream(Altinn.Platform.Storage.Interface.Models.Instance,System.String,System.String,System.String)">
+            <summary>
+            Post a data file as a stream content to storage.
+            </summary>
+            <returns>http response message</returns>
+        </member>
+        <member name="M:Altinn.Platform.Storage.Clients.InstanceClient.PostFileAsAttachmentAndReturnMetadata(Altinn.Platform.Storage.Interface.Models.Instance,System.String,System.String,System.String)">
+            <summary>
+            Post file as attachment.
+            </summary>
+            <returns>the data element</returns>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Clients.StorageClientException">
             <summary>
             Exception class for storage exceptions.
             </summary>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.StorageClientException.#ctor(System.String)">
+        <member name="M:Altinn.Platform.Storage.Clients.StorageClientException.#ctor(System.String)">
             <summary>
             Exception with plain message.
             </summary>
             <param name="message">the message</param>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.StorageClientException.#ctor(System.String,System.Exception)">
+        <member name="M:Altinn.Platform.Storage.Clients.StorageClientException.#ctor(System.String,System.Exception)">
             <summary>
             Exception with message and inner exception
             </summary>
             <param name="message">the message</param>
             <param name="inner">the exception</param>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.StorageClientException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+        <member name="M:Altinn.Platform.Storage.Clients.StorageClientException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
             <summary>
-            Sonarcloud wanted this 
+            Serialise this
             </summary>
-            <param name="info"></param>
-            <param name="context"></param>
         </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Clients.StorageClientException.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+        <member name="M:Altinn.Platform.Storage.Clients.StorageClientException.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
             <summary>
             Gets the object data
             </summary>
@@ -363,22 +344,22 @@
         </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.ChangableElement.Created">
             <summary>
-            create date and time for the instance.
+            Creation time for the element.
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.ChangableElement.CreatedBy">
             <summary>
-            user id of the user who created the instance.
+            User id of the user who created it.
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.ChangableElement.LastChanged">
             <summary>
-            last changed date time for the instance.
+            Last changed date/time for the element.
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.ChangableElement.LastChangedBy">
             <summary>
-            user id of the user who last changed the instance.
+            User id of the user who last changed it.
             </summary>
         </member>
         <member name="T:Altinn.Platform.Storage.Interface.Models.DataElement">
@@ -499,36 +480,6 @@
             Zero or below indicate that the element type is optional.
             </remarks>
         </member>
-        <member name="T:Altinn.Platform.Storage.Interface.Models.InboxState">
-            <summary>
-            Holds the state of an instance with respect to the Altinn inbox.
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Interface.Models.InboxState.VisibleAfter">
-            <summary>
-            The visible attribute controls when the instance should be visible in the inbox.
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Interface.Models.InboxState.Archived">
-            <summary>
-            The date the instance was archived.
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Interface.Models.InboxState.SoftDeleted">
-            <summary>
-            The date the instance was deleted. 
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Interface.Models.InboxState.HardDeleted">
-            <summary>
-            The data the instance was marked for hard delete by user.
-            </summary>
-        </member>
-        <member name="P:Altinn.Platform.Storage.Interface.Models.InboxState.Title">
-            <summary>
-            The title of the instance that be shown in the inbox.
-            </summary>
-        </member>
         <member name="T:Altinn.Platform.Storage.Interface.Models.Instance">
             <summary>
             Holds metadata of an application instance for a particular instance owner.
@@ -564,14 +515,24 @@
             Due date to submit the instance to application owner.
             </summary>
         </member>
+        <member name="P:Altinn.Platform.Storage.Interface.Models.Instance.VisibleAfter">
+            <summary>
+            The visible attribute controls when the instance should be visible for the party.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Interface.Models.Instance.Title">
+            <summary>
+            The title of the instance, can be shown in message box.
+            </summary>
+        </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.Instance.Process">
             <summary>
             Process state section
             </summary>
         </member>
-        <member name="P:Altinn.Platform.Storage.Interface.Models.Instance.Inbox">
+        <member name="P:Altinn.Platform.Storage.Interface.Models.Instance.Status">
             <summary>
-            Section for inbox properties
+            Section for status properties
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.Instance.AppOwner">
@@ -639,7 +600,7 @@
         </member>
         <member name="T:Altinn.Platform.Storage.Interface.Models.InstanceOwner">
             <summary>
-            Model to hold a instance owner element.
+            Model to hold an instance owner element.
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.InstanceOwner.PartyId">
@@ -649,37 +610,44 @@
         </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.InstanceOwner.PersonNumber">
             <summary>
-            Person number (national identification number). Null if the party is an org.
+            Person number (national identification number) of the party. Null if the party is not a person.
             </summary>
         </member>
         <member name="P:Altinn.Platform.Storage.Interface.Models.InstanceOwner.OrganisationNumber">
             <summary>
-            organisation number party represents an organisation. Null if the party is a person.
+            Organisation number of the party. Null if the party is not an organisation.
+            </summary>
+        </member>
+        <member name="T:Altinn.Platform.Storage.Interface.Models.InstanceStatus">
+            <summary>
+            Holds the state of an instance with respect to the Altinn inbox.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Interface.Models.InstanceStatus.Archived">
+            <summary>
+            The date the instance was archived.
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Interface.Models.InstanceStatus.SoftDeleted">
+            <summary>
+            The date the instance was deleted. 
+            </summary>
+        </member>
+        <member name="P:Altinn.Platform.Storage.Interface.Models.InstanceStatus.HardDeleted">
+            <summary>
+            The data the instance was marked for hard delete by user.
             </summary>
         </member>
         <member name="T:Altinn.Platform.Storage.Interface.Models.LanguageString">
             <summary>
             Convenience type to handle multiple languages in a string.
             </summary>
+            
         </member>
         <member name="M:Altinn.Platform.Storage.Interface.Models.LanguageString.#ctor">
             <summary>
             public constructor
             </summary>
-        </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Models.LanguageString.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>
-            Required by sonarcloud
-            </summary>
-            <param name="info">info</param>
-            <param name="context">context </param>
-        </member>
-        <member name="M:Altinn.Platform.Storage.Interface.Models.LanguageString.GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>
-            Get object data.
-            </summary>
-            <param name="info">info</param>
-            <param name="context">context</param>
         </member>
         <member name="T:Altinn.Platform.Storage.Interface.Models.PartyTypesAllowed">
             <summary>

@@ -335,8 +335,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // Assert
             Assert.Equal(expectedResult, actualResult);
             Assert.Equal(expectedStatusCode, actualStatusCode);
-            Assert.True(storedInstance.Inbox.SoftDeleted.HasValue);
-            Assert.False(storedInstance.Inbox.HardDeleted.HasValue);
+            Assert.True(storedInstance.Status.SoftDeleted.HasValue);
+            Assert.False(storedInstance.Status.HardDeleted.HasValue);
 
             // Cleanup
             await this.DeleteInstance(instance);
@@ -366,7 +366,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // Assert
             Assert.Equal(expectedResult, actualResult);
             Assert.Equal(expectedStatusCode, actualStatusCode);
-            Assert.True(storedInstance.Inbox.HardDeleted.HasValue);
+            Assert.True(storedInstance.Status.HardDeleted.HasValue);
 
             // Cleanup
             await this.DeleteInstance(instance);
