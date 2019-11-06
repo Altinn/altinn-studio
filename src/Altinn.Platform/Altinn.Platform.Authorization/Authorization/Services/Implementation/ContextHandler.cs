@@ -113,31 +113,25 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             {
                 Instance instanceData = await _policyInformationRepository.GetInstance(instanceAttributeValue);
 
-                if (string.IsNullOrEmpty(orgAttributeValue))
-                {
-                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.OrgAttribute, instanceData.Org));
-                }
-
-                if (string.IsNullOrEmpty(appAttributeValue))
-                {
-                    string app = instanceData.AppId.Split("/")[1];
-                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.AppAttribute, app));
-                }
-
-                if (string.IsNullOrEmpty(taskAttributeValue))
-                {
-                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.TaskAttribute, instanceData.Process.CurrentTask.ElementId));
-                }
-
-                if (string.IsNullOrEmpty(resourcePartyAttributeValue))
-                {
-                    resourceContextAttributes.Attributes.Add(GetAttribute(XacmlRequestAttribute.PartyAttribute, instanceData.InstanceOwnerId));
-                }
-
+                resourceContextAttributes = AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.OrgAttribute, orgAttributeValue, instanceData.Org);
+                string app = instanceData.AppId.Split("/")[1];
+                resourceContextAttributes = AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.AppAttribute, appAttributeValue, app);
+                resourceContextAttributes = AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, orgAttributeValue, instanceData.Process.CurrentTask.ElementId);
+                resourceContextAttributes = AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, orgAttributeValue, instanceData.InstanceOwnerId);
                 resourcePartyAttributeValue = instanceData.InstanceOwnerId;
             }
 
             await EnrichSubjectAttributes(request, resourcePartyAttributeValue);
+        }
+
+        private XacmlContextAttributes AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        {
+            if (string.IsNullOrEmpty(attributeValue))
+            {
+                resourceAttributes.Attributes.Add(GetAttribute(attributeId, newAttributeValue));
+            }
+
+            return resourceAttributes;
         }
 
         private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
