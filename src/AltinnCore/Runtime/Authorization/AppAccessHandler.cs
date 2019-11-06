@@ -30,10 +30,10 @@ namespace AltinnCore.Runtime.Authorization
         private const string XacmlResourceInstanceId = "urn:altinn:instance-id";
         private const string XacmlResourceOrgId = "urn:altinn:org";
         private const string XacmlResourceAppId = "urn:altinn:app";
+        private const string ParamInstanceOwnerId = "instanceOwnerId";
         private const string ParamInstanceGuid = "instanceGuid";
         private const string ParamApp = "app";
         private const string ParamOrg = "org";
-        private const string ParamInstanceOwnerId = "instanceOwnerId";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppAccessHandler"/> class.
@@ -55,11 +55,9 @@ namespace AltinnCore.Runtime.Authorization
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
             XacmlJsonRequest request = CreateXacmlJsonRequest(context, requirement);
-
-            // Send request
             XacmlJsonResponse response = await _authorizationService.GetDecisionForRequest(request);
 
-            // Decied if request is permitted by the respons it gets from pdp
+            // Decide if request is permitted by the response it gets from pdp
             List<XacmlJsonResult> results = response.Response;
 
             // Checks that we only got one result
@@ -68,7 +66,7 @@ namespace AltinnCore.Runtime.Authorization
                 context.Fail();
             }
 
-            // Checks that the respons is nothing else than "permit"
+            // Checks that the response is nothing else than "permit"
             if (!results.First().Decision.Equals(XacmlContextDecision.Permit.ToString()))
             {
                 context.Fail();
@@ -115,7 +113,7 @@ namespace AltinnCore.Runtime.Authorization
         {
             XacmlJsonCategory subjectAttributes = new XacmlJsonCategory();
 
-            // Mapping all claims on user to a XacmlJsonAttribute
+            // Mapping all claims on user to attributes
             foreach (Claim claim in claims)
             {
                 subjectAttributes.Attribute.Add(CreateXacmlJsonAttribute(claim.Type, claim.ValueType, claim.Issuer, claim.Value));
@@ -143,10 +141,10 @@ namespace AltinnCore.Runtime.Authorization
             // InstanceId
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceInstanceId, instanceOwnerId + "/" + instanceGuid));
 
-            // OrgId
+            // Org
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org));
 
-            // AppId
+            // App
             resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app));
 
             return resourceAttributes;

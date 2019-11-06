@@ -27,10 +27,10 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<bool?> ValidateSelectedParty(int userId, int partyId);
 
         /// <summary>
-        /// Sends in a request to check if the person is authorized
+        /// Sends in a request to check if the user is permitted to execute task
         /// </summary>
         /// <param name="xacmlJsonRequest">The Xacml Json Request</param>
-        /// <returns>The Xacml Json repsons will tell if the user is authorized or not</returns>
+        /// <returns>The Xacml Json response will tell if the user has permission or not</returns>
         Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest);
     }
 }
