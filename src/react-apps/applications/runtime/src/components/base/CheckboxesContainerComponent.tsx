@@ -73,7 +73,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
       <div
         className={classNames(
           'form-check',
-          'a-radioButtons',
+          'a-form-checkboxes',
           'pl-0',
           {
             'form-check-stacked': isStacked,
