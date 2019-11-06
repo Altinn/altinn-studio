@@ -43,4 +43,10 @@ COPY /src/Altinn.Apps/AppTemplates/AspNet/App.sln ./Templates/AspNet
 #RUN mv Templates ..
 RUN mv Testdata ..
 
+# setup the user and group
+# the user will have no password, using shell /bin/false and using the group dotnet
+RUN addgroup dotnet && adduser -G dotnet -D -s /bin/false dotnet
+# update permissions of files if neccessary before becoming dotnet user
+USER dotnet
+
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]
