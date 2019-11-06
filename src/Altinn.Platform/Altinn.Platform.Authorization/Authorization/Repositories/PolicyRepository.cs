@@ -79,9 +79,9 @@ namespace Altinn.Platform.Authorization.Repositories
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
 
             // creating blob client
-            if (_storageConfig.AccountName.StartsWith(_storageConfig.AccountName))
+            if (_storageConfig.AccountName.StartsWith("devstoreaccount1"))
             {
-                StorageUri storageUrl = new StorageUri(new Uri(_storageConfig.BlobEndPoint));
+                StorageUri storageUrl = new StorageUri(new Uri(_storageConfig.BlobEndpoint));
                 _blobClient = new CloudBlobClient(storageUrl, storageCredentials);
             }
             else
@@ -89,7 +89,7 @@ namespace Altinn.Platform.Authorization.Repositories
                 _blobClient = storageAccount.CreateCloudBlobClient();
             }
 
-            _blobContainer = _blobClient.GetContainerReference(_storageConfig.StorageContainer);
+            _blobContainer = _blobClient.GetContainerReference(_storageConfig.MetadataContainer);
             _blobContainer.CreateIfNotExistsAsync().GetAwaiter().GetResult();
         }
     }
