@@ -38,4 +38,4 @@ Verify that this issue meets [DoD](https://confluence.brreg.no/display/T3KP/Defi
 - [ ] Automated test (if needed)
 - [ ] QA
 - [ ] Test
-- [ ] All tasks in this userstory are closed
+- [ ] All tasks in this userstory are closed (i.e. remaining tasks are moved to other user stories or marked obsolete)
