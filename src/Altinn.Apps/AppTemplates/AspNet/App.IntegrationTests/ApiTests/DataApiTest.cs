@@ -30,6 +30,9 @@ namespace App.IntegrationTests.ApiTests
         [Fact]
         public async Task Data_Post_WithoutContent_OK()
         {
+            Guid guid = new Guid("36133fb5-a9f2-45d4-90b1-f6d93ad40713");
+            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1000, guid);
+
             string token = PrincipalUtil.GetToken(1);
 
             HttpClient client = GetTestClient();
@@ -42,6 +45,7 @@ namespace App.IntegrationTests.ApiTests
             string responseContent = response.Content.ReadAsStringAsync().Result;
 
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            TestDataUtil.DeleteDataForInstance("tdd", "endring-av-navn", 1000, guid);
         }
 
 

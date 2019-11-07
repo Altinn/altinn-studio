@@ -65,14 +65,14 @@ namespace App.IntegrationTests.Mocks.Services
 
             Instance instance = GetTestInstance(app, org, instanceOwnerId, instanceGuid);
 
-            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), ElementType = "default" };
+            DataElement dataElement = new DataElement() { Id = dataGuid.ToString(), ElementType = "default", CreatedDateTime = DateTime.Now };
            
             try
             {
 
                 Directory.CreateDirectory(dataPath + @"blob");
 
-                using (Stream stream = File.Open(dataPath + @"blob\" + dataGuid.ToString() + ".xml" , FileMode.Create, FileAccess.ReadWrite))
+                using (Stream stream = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.Create, FileAccess.ReadWrite))
                 {
                     XmlSerializer serializer = new XmlSerializer(type);
                     serializer.Serialize(stream, dataToSerialize);
