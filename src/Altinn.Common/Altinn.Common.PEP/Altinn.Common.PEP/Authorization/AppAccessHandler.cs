@@ -49,7 +49,6 @@ namespace Altinn.Common.PEP.Authorization
         /// <param name="context">The context</param>
         /// <param name="requirement">The requirement</param>
         /// <returns>A Task</returns>
-        [assembly: InternalsVisibleTo("TestsAssembly")]
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
             XacmlJsonRequest request = CreateXacmlJsonRequest(context, requirement);
