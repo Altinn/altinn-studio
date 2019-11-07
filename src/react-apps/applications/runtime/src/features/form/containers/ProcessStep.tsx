@@ -105,19 +105,6 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
     return this.props.children;
   }
 
-  public renderSubmit(): React.ReactNode {
-    return (
-      <button
-        type='submit'
-        className={'a-btn a-btn-success'}
-        onClick={this.handleSubmitForm}
-        id='processSubmitStepButton'
-      >
-        {getLanguageFromKey('general.submit', this.props.language)}
-      </button>
-    );
-  }
-
   public renderReceipt = () => {
     return (
       <div id='receiptWrapper'>
@@ -195,9 +182,6 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
                         <div className='modal-body a-modal-body'>
                           {this.props.step === ProcessSteps.FormFilling &&
                             this.renderFormFiller()
-                          }
-                          {this.props.step === ProcessSteps.Submit &&
-                            this.renderSubmit()
                           }
                           {this.props.step === ProcessSteps.Archived &&
                             <div id='ReceiptContainer'>

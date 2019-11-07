@@ -143,19 +143,6 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
   });
 
-  it('+++ should render submit when step is "submit"', () => {
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <ProcessStep
-            header={mockHeader}
-            step={ProcessSteps.Submit}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper.exists('#processSubmitStepButton')).toEqual(true);
-  });
   it('+++ should map unmappedValidations if there are any and create error report', () => {
     const createStore = configureStore();
     const newState = {
@@ -195,7 +182,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <Provider store={mockStore}>
           <ProcessStep
             header={mockHeader}
-            step={ProcessSteps.Submit}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
@@ -242,7 +229,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <Provider store={mockStore}>
           <ProcessStep
             header={mockHeader}
-            step={ProcessSteps.Submit}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
@@ -301,7 +288,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         <Provider store={mockStore}>
           <ProcessStep
             header={mockHeader}
-            step={ProcessSteps.Submit}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
