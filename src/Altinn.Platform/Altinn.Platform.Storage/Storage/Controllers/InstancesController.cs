@@ -100,7 +100,7 @@ namespace Altinn.Platform.Storage.Controllers
             [FromQuery(Name = "appOwner.labels")] string labels,
             [FromQuery] string lastChanged,
             [FromQuery] string created,
-            [FromQuery(Name = "inbox.visibleAfter")] string visibleAfter,
+            [FromQuery(Name = "visibleAfter")] string visibleAfter,
             [FromQuery] string dueBefore,
             string continuationToken,
             int? size)
@@ -323,7 +323,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceGuid">instance guid</param>
         /// <param name="instanceOwnerPartyId">instance owner party id</param>
-        /// <param name="hard">if true hard delete will take place. if false, the instance gets its inbox.softDelete attribut set to todays date and time.</param>
+        /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
         /// <returns>(202) updated instance object or (204) no content if hard delete</returns>
         [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [ProducesResponseType(typeof(Instance), 202)] // Accepted

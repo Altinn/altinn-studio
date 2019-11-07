@@ -65,7 +65,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&inbox.visibleAfter=gt:2019-05-01";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=gt:2019-05-01";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -170,7 +170,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&inbox.visibleAfter=2019-50-01";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=2019-50-01";
 
             HttpResponseMessage response = await client.GetAsync(url);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -184,7 +184,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&inbox.visibleAfter=lt:2017-12-31";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=lt:2017-12-31";
 
             HttpResponseMessage response = await client.GetAsync(url);
 
@@ -199,7 +199,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&inbox.visibleAfter=2019-07-10T00:00:00Z";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=2019-07-10T00:00:00Z";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -209,7 +209,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(2, totalHits);
+            Assert.Equal(5, totalHits);
         }
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&inbox.visibleAfter=2019-03-25T02:00:00%2B02:00";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=2019-03-25T02:00:00%2B02:00";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -230,7 +230,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(1, totalHits);
+            Assert.Equal(3, totalHits);
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&inbox.visibleAfter=gt:2019-07-01&inbox.visibleAfter=lt:2019-08-01";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=gt:2019-07-01&visibleAfter=lt:2019-08-01";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();

@@ -209,7 +209,7 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = QueryBuilderForDueBefore(queryBuilder, queryValue);
                             break;
 
-                        case "inbox.visibleAfter":
+                        case "visibleAfter":
                             queryBuilder = QueryBuilderForVisibleAfter(queryBuilder, queryValue);
                             break;
 

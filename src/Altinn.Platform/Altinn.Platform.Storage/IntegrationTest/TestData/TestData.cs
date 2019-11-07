@@ -73,7 +73,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Inbox = new InboxState(),
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = org_1,
@@ -99,7 +99,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Inbox = new InboxState
+            Status = new InstanceStatus
             {
                 Archived = DateTime.UtcNow,
             },
@@ -116,7 +116,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Inbox = new InboxState
+            Status = new InstanceStatus
             {
                 Archived = DateTime.UtcNow,
                 SoftDeleted = DateTime.UtcNow,
@@ -134,7 +134,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Inbox = new InboxState
+            Status = new InstanceStatus
             {
                 Archived = DateTime.UtcNow,
                 SoftDeleted = DateTime.UtcNow,
@@ -153,7 +153,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Inbox = new InboxState
+            Status = new InstanceStatus
             {
             },
             LastChangedBy = userId_1,
@@ -169,7 +169,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Inbox = new InboxState(),
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = org_1,
@@ -183,7 +183,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Inbox = new InboxState(),
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_2,
@@ -196,7 +196,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             CreatedBy = userId_1,
             Created = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
-            Inbox = new InboxState(),
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
             LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_2,
