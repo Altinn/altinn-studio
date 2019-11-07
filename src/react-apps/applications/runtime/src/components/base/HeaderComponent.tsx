@@ -20,10 +20,15 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
     marginBottom: '0',
   };
 
+  public h4style = {
+    marginTop: '4.8rem',
+    marginBottom: '0',
+  };
+
   public renderHeader(): JSX.Element {
     switch (this.props.size) {
       case ('S'): {
-        return <h4 id={this.props.id}>{this.props.text}</h4>;
+        return <h4 id={this.props.id} style={this.h4style}>{this.props.text}</h4>;
       }
 
       case ('M'): {

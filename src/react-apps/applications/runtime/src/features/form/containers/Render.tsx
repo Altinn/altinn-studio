@@ -25,15 +25,13 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
             );
           } else {
             return (
-              <>
-                <Grid item={true} key={component.id} xs={12}>
-                  <FormGroup>
-                    <GenericComponent
-                      {...component as ILayoutComponent}
-                    />
-                  </FormGroup>
-                </Grid>
-              </>
+              <Grid item={true} key={component.id} xs={12}>
+                <FormGroup>
+                  <GenericComponent
+                    {...component as ILayoutComponent}
+                  />
+                </FormGroup>
+              </Grid>
             );
           }
         })}
