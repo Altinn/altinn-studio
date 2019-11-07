@@ -1,8 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import * as CompleteProcessActions from './completeProcess/completeProcessActions';
 import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
 import * as ProcessActionTypes from './processActionTypes';
-import * as StartProcessActions from './startProcess/startProcessActions';
 
 import {
   ProcessSteps,
@@ -26,14 +26,11 @@ const processReducer: Reducer<IProcessState> = (
     return state;
   }
   switch (action.type) {
-
     case ProcessActionTypes.GET_PROCESS_STATE_FULFILLED: {
-      const processState = (action as GetProcessStateActions.IGetProcessStateFulfilled).result;
+      const processStep = (action as GetProcessStateActions.IGetProcessStateFulfilled).processStep;
       return update<IProcessState>(state, {
         $set: {
-          // state: processState,
-          // state: 1,
-          state: ProcessSteps[processState.currentTask.name],
+          state: processStep,
           error: null,
         },
       });
@@ -48,18 +45,18 @@ const processReducer: Reducer<IProcessState> = (
       });
     }
 
-    case ProcessActionTypes.START_PROCESS_FULFILLED: {
-      const result = (action as StartProcessActions.IStartProcessFulfilled).result;
+    case ProcessActionTypes.COMPLETE_PROCESS_FULFILLED: {
+      const processStep = (action as CompleteProcessActions.ICompleteProcessFulfilled).processStep;
       return update<IProcessState>(state, {
         $set: {
-          state: ProcessSteps[result.currentTask.name],
+          state: processStep,
           error: null,
         },
       });
     }
 
-    case ProcessActionTypes.START_PROCESS_REJECTED: {
-      const error = (action as StartProcessActions.IStartProcessRejected).error;
+    case ProcessActionTypes.COMPLETE_PROCESS_REJECTED: {
+      const error = (action as CompleteProcessActions.ICompleteProcessRejected).error;
       return update<IProcessState>(state, {
         $set: {
           error,

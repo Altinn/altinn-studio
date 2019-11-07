@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, select, takeLatest } from 'redux-saga/effects';
 
+import InstanceDataActions from '../../../../../shared/resources/instanceData/instanceDataActions';
 import { IParty } from '../../../../../shared/resources/party';
 import { IRuntimeState } from '../../../../../types';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
@@ -27,6 +28,7 @@ function* instantiationSaga(): SagaIterator {
       // Creates a new instance
       const instanceResponse = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
       const instanceId = instanceResponse.data.id;
+      console.log('instanceId', instanceId);
 
       // Creates default data element
       const dataModel = yield select(DataModelSelector);
@@ -42,7 +44,11 @@ function* instantiationSaga(): SagaIterator {
       // Start process
       yield call(post, getStartProcessUrl(instanceId));
 
-      InstantiationActions.instantiateFulfilled(instanceId);
+      // Fetch new instance metadata
+      const splitInstanceId = instanceId.split('/');
+      yield call(InstanceDataActions.getInstanceData, splitInstanceId[0], splitInstanceId[1]);
+
+      yield call (InstantiationActions.instantiateFulfilled, instanceId);
     }
   } catch (err) {
     yield call(InstantiationActions.instantiateRejected, err);

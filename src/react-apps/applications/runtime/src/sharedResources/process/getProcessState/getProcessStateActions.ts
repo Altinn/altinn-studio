@@ -1,8 +1,9 @@
 import { Action } from 'redux';
 import * as ActionTypes from '../processActionTypes';
+import { ProcessSteps } from '../typings';
 
 export interface IGetProcessStateFulfilled extends Action {
-  result: any;
+  processStep: ProcessSteps;
 }
 export interface IGetProcessStateRejected extends Action {
   error: Error;
@@ -12,10 +13,10 @@ export function getProcessStateAction(): Action {
     type: ActionTypes.GET_PROCESS_STATE,
   };
 }
-export function getProcessStateFulfilledAction(result: any): IGetProcessStateFulfilled {
+export function getProcessStateFulfilledAction(processStep: ProcessSteps): IGetProcessStateFulfilled {
   return {
     type: ActionTypes.GET_PROCESS_STATE_FULFILLED,
-    result,
+    processStep,
   };
 }
 export function getProcessStateRejectedAction(error: Error): IGetProcessStateRejected {

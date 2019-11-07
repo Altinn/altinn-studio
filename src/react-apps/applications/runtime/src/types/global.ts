@@ -195,3 +195,30 @@ export interface IAttachmentApiResponse {
   size: number;
   id: string;
 }
+
+export enum Severity {
+  Unspecified = 0,
+  Error = 1,
+  Warning = 2,
+  Informational = 3,
+}
+
+export interface IValidationIssue {
+  /** The seriousness of the identified issue. */
+  severity: Severity;
+
+  /** A reference to the type of element the issue is about. E.g.: Instance, DataElement etc. */
+  scope: string;
+
+  /** The unique id of the specific element with the identified issue. */
+  targetId: string;
+
+  /** A reference to a property the issue is a bout. */
+  field: string;
+
+  /** A system readable identification of the type of issue. */
+  code: string;
+
+  /** A human readable description of the issue. */
+  description: string;
+}

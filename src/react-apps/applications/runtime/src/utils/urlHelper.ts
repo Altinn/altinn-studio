@@ -34,19 +34,27 @@ export function getProcessStateUrl() {
   return `${appPath}/instances/${altinnWindow.instanceId}/process`;
 }
 
-export function getStartProcessUrl(instanceId: string) {
+export function getStartProcessUrl(instanceId?: string) {
   if (!instanceId) {
     instanceId = altinnWindow.instanceId;
   }
-  return `${origin}/${org}/${app}/instances/${instanceId}/process/start`;
+  return `${appPath}/instances/${instanceId}/process/start`;
 }
 
 export function getCreateInstancesUrl(partyId: string) {
-  return `${origin}/${org}/${app}/instances?instanceOwnerId=${partyId}`;
+  return `${appPath}/instances?instanceOwnerId=${partyId}`;
 }
 
 export function getCreateDataElementUrl(instanceId: string, elementType: string) {
-  return `${origin}/${org}/${app}/instances/${instanceId}/data?elementType=${elementType}`;
+  return `${appPath}/instances/${instanceId}/data?elementType=${elementType}`;
+}
+
+export function getValidationUrl(instanceId: string, dataElementId: string) {
+  return `${appPath}/instances/${instanceId}/data/${dataElementId}/validate`;
+}
+
+export function getCompleteProcessUrl() {
+ return `${appPath}/instances/${altinnWindow.instanceId}/process/completeProcess`;
 }
 
 export const getEnvironmentLoginUrl: () => string = () => {

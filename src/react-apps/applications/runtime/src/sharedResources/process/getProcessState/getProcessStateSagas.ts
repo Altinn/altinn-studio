@@ -1,19 +1,22 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
-import { WorkflowSteps } from 'src/features/form/workflow/typings';
-import { get} from '../../../../../shared/src/utils/networking';
+import { get } from '../../../../../shared/src/utils/networking';
 import { getProcessStateUrl } from '../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessStateDispatchers from '../processDispatcher';
+import { ProcessSteps } from '../typings';
 
 export function* getProcessStateSaga(): SagaIterator {
   try {
-    const result = yield call(get, getProcessStateUrl());
-    if (!!!result) {
-      const unknwonResult = {currentTask: {name: 'Unknown'}};
-      yield call(ProcessStateDispatchers.getProcessStateFulfilled, unknwonResult);
+    const processState = yield call(get, getProcessStateUrl());
+    if (!processState) {
+      yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Unknown);
     } else {
-      yield call(ProcessStateDispatchers.getProcessStateFulfilled, result);
+      if (processState.ended) {
+        yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.Archived);
+      } else {
+        yield call(ProcessStateDispatchers.getProcessStateFulfilled, ProcessSteps.FormFilling);
+      }
     }
   } catch (err) {
     yield call(ProcessStateDispatchers.getProcessStateRejected, err);

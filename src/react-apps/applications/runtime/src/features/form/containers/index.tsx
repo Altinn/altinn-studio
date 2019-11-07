@@ -17,8 +17,8 @@ import {
 } from '../../../utils/urlHelper';
 
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
+import { ProcessSteps } from '../../../sharedResources/process/typings';
 import { IAltinnWindow, IRuntimeState } from '../../../types';
-import { WorkflowSteps } from '../workflow/typings';
 
 export default (props) => {
   const {
@@ -54,11 +54,7 @@ export default (props) => {
       `${window.location.origin}/${org}/${app}/api/resource/RuleHandler.js`,
     );
 
-    if (processState == null) {
-      ProcessDispatcher.getProcessState();
-    } else if (processState === WorkflowSteps.Unknown.valueOf()) {
-      ProcessDispatcher.startProcess();
-    }
+    ProcessDispatcher.getProcessState();
 
     InstanceDataActions.getInstanceData(partyId, instanceGuid);
 

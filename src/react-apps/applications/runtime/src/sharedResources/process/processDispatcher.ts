@@ -1,44 +1,45 @@
 /* tslint:disable:max-line-length */
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
+import * as CompleteProcessActions from './completeProcess/completeProcessActions';
 import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
-import * as StartProcessActions from './startProcess/startProcessActions';
+import { ProcessSteps } from './typings';
 
 /**
  * Define a interface describing the the different Actions available
  * and which datamodel those actions expect.
  */
-export interface IProcessStateDispatchers extends ActionCreatorsMapObject {
+export interface IProcessDispatchers extends ActionCreatorsMapObject {
   getProcessState: () => Action;
-  getProcessStateFulfilled: (result: any) => GetProcessStateActions.IGetProcessStateFulfilled;
+  getProcessStateFulfilled: (processStep: ProcessSteps) => GetProcessStateActions.IGetProcessStateFulfilled;
   getProcessStateRejected: (result: Error) => GetProcessStateActions.IGetProcessStateRejected;
-  startProcess: () => Action;
-  startProcessFulfilled: (result: any) => StartProcessActions.IStartProcessFulfilled;
-  startProcessRejected: (Error: Error) => StartProcessActions.IStartProcessRejected;
+  completeProcess: () => Action;
+  completeProcessFulfilled: (processStep: ProcessSteps) => CompleteProcessActions.ICompleteProcessFulfilled;
+  completeProcessRejected: (error: Error) => CompleteProcessActions.ICompleteProcessRejected;
 }
 
 /**
  * Define mapping between action and Action dispatcher method
  */
 
-const actions: IProcessStateDispatchers = {
+const actions: IProcessDispatchers = {
   getProcessState: GetProcessStateActions.getProcessStateAction,
   getProcessStateFulfilled: GetProcessStateActions.getProcessStateFulfilledAction,
   getProcessStateRejected: GetProcessStateActions.getProcessStateRejectedAction,
-  startProcess: StartProcessActions.startProcess,
-  startProcessFulfilled: StartProcessActions.startProcessFulfilled,
-  startProcessRejected: StartProcessActions.startProcessRejected,
+  completeProcess: CompleteProcessActions.completeProcess,
+  completeProcessFulfilled: CompleteProcessActions.getProcessStateFulfilledAction,
+  completeProcessRejected: CompleteProcessActions.getProcessStateRejectedAction,
 };
 
 /**
  * Bind action creators to redux store
  */
-const ProcessStateActionDispatchers: IProcessStateDispatchers = bindActionCreators<
+const ProcessDispatcher: IProcessDispatchers = bindActionCreators<
   any,
-  IProcessStateDispatchers
+  IProcessDispatchers
 >(actions, store.dispatch);
 
 /**
  * Export the dispatcher to be used from REACT components
  */
-export default ProcessStateActionDispatchers;
+export default ProcessDispatcher;

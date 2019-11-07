@@ -7,3 +7,7 @@ export const GET_PROCESS_STATE_REJECTED: string = `${moduleName}.GET_PROCESS_STA
 export const START_PROCESS: string = `${moduleName}.START_PROCESS`;
 export const START_PROCESS_FULFILLED: string = `${moduleName}.START_PROCESS_FULFILLED`;
 export const START_PROCESS_REJECTED: string = `${moduleName}.START_PROCESS_REJECTED`;
+
+export const COMPLETE_PROCESS: string = `${moduleName}.COMPLETE_PROCESS`;
+export const COMPLETE_PROCESS_FULFILLED: string = `${moduleName}.COMPLETE_PROCESS_FULFILLED`;
+export const COMPLETE_PROCESS_REJECTED: string = `${moduleName}.COMPLETE_PROCESS_REJECTED`;
