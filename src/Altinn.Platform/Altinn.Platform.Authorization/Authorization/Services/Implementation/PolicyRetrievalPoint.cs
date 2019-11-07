@@ -23,7 +23,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly IPolicyRepository _repository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.      
+        /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.
         /// </summary>
         /// <param name="policyRepository">The policy Repository..</param>
         public PolicyRetrievalPoint(IPolicyRepository policyRepository)
