@@ -5,9 +5,6 @@ import { IValidations } from '../../types/global';
 import { canFormBeSaved, getErrorCount } from '../../utils/validation';
 import FormDataActions from './../../features/form/data/actions/index';
 import { IAltinnWindow, IRuntimeState } from './../../types';
-import {
-  appPath,
-} from './../../utils/urlHelper';
 export interface IButtonProvidedProps {
   id: string;
   text: string;
@@ -60,7 +57,6 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
     const { org, app, instanceId } = window as Window as IAltinnWindow;
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-    // `${appPath}/instances/${instanceId}`,
     );
   }
 
@@ -68,7 +64,6 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
     const {org, app, instanceId } = window as Window as IAltinnWindow;
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-      // `${appPath}/instances/${instanceId}`,
       'Complete',
     );
   }
