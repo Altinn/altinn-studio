@@ -34,7 +34,7 @@ namespace App.IntegrationTests.ApiTests
 
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1000/36133fb5-a9f2-45d4-90b1-f6d93ad40713/data/?elementType=default")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1000/36133fb5-a9f2-45d4-90b1-f6d93ad40713/data?dataType=default")
             {
             };
 

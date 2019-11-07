@@ -17,7 +17,7 @@ namespace Altinn.App.Common.Interface
         /// Creates a new Instance of the service model
         /// </summary>
         /// <returns>An instance of the service model</returns>
-        object CreateNewAppModel(string elementType);
+        object CreateNewAppModel(string dataType);
 
         /// <summary>
         /// Event that is triggered 

@@ -244,13 +244,13 @@ namespace Altinn.App.Api.Controllers
                 return NotFound("Did not find data element");
             }
 
-            string elementType = dataElement.DataType;
+            string dataType = dataElement.DataType;
 
-            bool? appLogic = await RequiresAppLogic(org, app, elementType);
+            bool? appLogic = await RequiresAppLogic(org, app, dataType);
 
             if (appLogic == null)
             {
-                string errorMsg = $"Could not determine if {elementType} requires app logic for application {org}/{app}";
+                string errorMsg = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
                 logger.LogError(errorMsg);
                 return BadRequest(errorMsg);
             }
@@ -394,14 +394,14 @@ namespace Altinn.App.Api.Controllers
             return serviceModel;
         }
 
-        private async Task<bool?> RequiresAppLogic(string org, string app, string elementTypeId)
+        private async Task<bool?> RequiresAppLogic(string org, string app, string dataType)
         {
             bool? appLogic = false;
             
             try
             {
                 Application application = await appService.GetApplication(org, app);
-                appLogic = application.DataTypes.Where(e => e.Id == elementTypeId).Select(e => e.AppLogic != null).First();
+                appLogic = application.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic != null).First();
             }
             catch (Exception)
             {
@@ -413,7 +413,7 @@ namespace Altinn.App.Api.Controllers
 
         /// <summary>
         ///  Gets a data element (form data) from storage and performs business logic on it (e.g. to calculate certain fields) before it is returned.
-        ///  If more there are more data elements of the same elementType only the first one is returned. In that case use the more spesific
+        ///  If more there are more data elements of the same dataType only the first one is returned. In that case use the more spesific
         ///  GET method to fetch a particular data element. 
         /// </summary>
         /// <returns>data element is returned in response body</returns>
@@ -423,12 +423,12 @@ namespace Altinn.App.Api.Controllers
         int instanceOwnerId,
         Guid instanceGuid,
         Guid dataGuid,
-        string elementType)
+        string dataType)
         {
              // Get Form Data from data service. Assumes that the data element is form data.
             object appModel = dataService.GetFormData(
                 instanceGuid,
-                altinnApp.GetAppModelType(elementType),
+                altinnApp.GetAppModelType(dataType),
                 org,
                 app,
                 instanceOwnerId,

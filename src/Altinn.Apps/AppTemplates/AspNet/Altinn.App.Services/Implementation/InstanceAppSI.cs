@@ -154,7 +154,7 @@ namespace Altinn.App.Services.Implementation
                 ElementId = WorkflowStep.Archived.ToString(),
             };
 
-            instance.Inbox.Archived = DateTime.UtcNow;
+            instance.Status.Archived = DateTime.UtcNow;
 
             instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
             return instance;
