@@ -88,12 +88,17 @@ namespace Altinn.Common.PEP.Authorization
                 }
             }
 
+            context.Succeed();
             await Task.CompletedTask;
         }
 
         private XacmlJsonRequest CreateXacmlJsonRequest(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
             XacmlJsonRequest request = new XacmlJsonRequest();
+
+            request.AccessSubject = new List<XacmlJsonCategory>();
+            request.Action = new List<XacmlJsonCategory>();
+            request.Resource = new List<XacmlJsonCategory>();
 
             request.AccessSubject.Add(CreateSubjectCategory(context.User.Claims));
             request.Action.Add(CreateActionCategory(requirement.ActionType));
@@ -105,6 +110,7 @@ namespace Altinn.Common.PEP.Authorization
         private XacmlJsonCategory CreateSubjectCategory(IEnumerable<Claim> claims)
         {
             XacmlJsonCategory subjectAttributes = new XacmlJsonCategory();
+            subjectAttributes.Attribute = new List<XacmlJsonAttribute>();
 
             // Mapping all claims on user to attributes
             foreach (Claim claim in claims)
@@ -118,6 +124,7 @@ namespace Altinn.Common.PEP.Authorization
         private XacmlJsonCategory CreateActionCategory(string actionType)
         {
             XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
+            actionAttributes.Attribute = new List<XacmlJsonAttribute>();
             actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, defaultType, defaultIssuer));
             return actionAttributes;
         }
@@ -125,6 +132,7 @@ namespace Altinn.Common.PEP.Authorization
         private XacmlJsonCategory CreateResourceCategory(RouteData routeData)
         {
             XacmlJsonCategory resourceAttributes = new XacmlJsonCategory();
+            resourceAttributes.Attribute = new List<XacmlJsonAttribute>();
 
             string instanceGuid = routeData.Values[ParamInstanceGuid] as string;
             string app = routeData.Values[ParamApp] as string;

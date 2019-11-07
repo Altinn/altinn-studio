@@ -1,3 +1,5 @@
+using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -37,11 +39,11 @@ namespace Altinn.Common.PEP.Authorization
             // create the requirement
             var requirement = new AppAccessRequirement("read");
 
+            // create the user
             List<Claim> claims = new List<Claim>();
-            // type, value, valyetupe, issuer
+            // type, value, valuetupe, issuer
             claims.Add(new Claim("name", "Ola", "string", "org"));
 
-            // create the user
             var user = new ClaimsPrincipal(
                 new ClaimsIdentity(
                         claims
@@ -62,19 +64,25 @@ namespace Altinn.Common.PEP.Authorization
 
             // Mock http
             HttpContext httpContext = new DefaultHttpContext();
-            httpContext.Request.RouteValues.Add("org", "Org");
-            httpContext.Request.RouteValues.Add("app", "App");
+            httpContext.Request.RouteValues.Add("org", "myOrg");
+            httpContext.Request.RouteValues.Add("app", "myApp");
             httpContext.Request.RouteValues.Add("instanceGuid", "asdfg");
             httpContext.Request.RouteValues.Add("InstanceOwnerId", "1000");
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
 
-            RouteData routedata2 = _httpContextAccessorMock.Object.HttpContext.GetRouteData();
+            // Mock authorization
+            XacmlJsonResponse response = new XacmlJsonResponse();
+            response.Response = new List<XacmlJsonResult>();
+            XacmlJsonResult result = new XacmlJsonResult();
+            result.Decision = XacmlContextDecision.Permit.ToString();
+            response.Response.Add(result);
+            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
             // Act
             await _aah.HandleAsync(context);
 
             // Assert
-            Assert.False(context.HasSucceeded);
+            Assert.True(context.HasSucceeded);
         }
     }
 }
