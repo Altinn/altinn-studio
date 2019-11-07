@@ -1,4 +1,4 @@
-import { Grid, Popper } from '@material-ui/core';
+import { Grid, Popper, Typography } from '@material-ui/core';
 import { styled } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -14,26 +14,33 @@ import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } 
 const HelpTextPopoverWrapper = styled('div')({
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '40px',
-  minWidth: '40px',
-  padding: '1.2rem',
-  paddingTop: 0,
+  width: '20px',
+  height: '24px',
 });
 
 const HelpTextPopoverIcon = styled('i')({
   'paddingTop': '1.2rem',
-  'height': '24px',
-  'width': '24px',
+  'fontSize': '2rem',
   'color': theme.altinnPalette.primary.blue,
   '&:hover': {
     color: theme.altinnPalette.primary.blueDarker,
   },
-  '&:focus': {
-    color: theme.altinnPalette.primary.blue,
-  },
-  '&:active': {
-    color: theme.altinnPalette.primary.blue,
-  },
+});
+
+const PopperWrapper = styled('div')({
+  padding: '1.2rem',
+  backgroundColor: theme.altinnPalette.primary.yellowLight,
+  border: `1px solid ${theme.altinnPalette.primary.black}`,
+});
+
+const PopperWrapperArrow = styled('div')({
+  backgroundColor: theme.altinnPalette.primary.yellowLight,
+  height: '20px',
+  width: '20px',
+  transform: 'rotate(45deg)',
+  marginTop: '-1rem',
+  borderBottom: `1px solid ${theme.altinnPalette.primary.black}`,
+  borderRight: `1px solid ${theme.altinnPalette.primary.black}`,
 });
 
 export interface IProvidedProps {
@@ -55,6 +62,7 @@ export interface IProps extends IProvidedProps {
 
 export interface IState {
   helpIconRef: React.RefObject<HTMLDivElement>;
+  popperArrowRef: React.RefObject<HTMLDivElement>;
   openPopover: boolean;
 }
 
@@ -65,6 +73,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
 
       this.state = {
         helpIconRef: !!props.textResourceBindings.help ? React.createRef() : null,
+        popperArrowRef: React.createRef(),
         openPopover: false,
       };
     }
@@ -168,7 +177,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     }
 
     public render(): JSX.Element {
-      const { helpIconRef, openPopover } = this.state;
+      const { helpIconRef, popperArrowRef, openPopover } = this.state;
       const { id, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
       const validations = this.getAdressComponentValidations();
@@ -213,16 +222,29 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
             <Popper
               anchorEl={helpIconRef.current}
               open={openPopover}
-              placement={'bottom-start'}
-              style={{
-                backgroundColor: 'white',
-                border: '1px solid black',
-                padding: '1.2rem',
+              placement={'top'}
+              modifiers={{
+                flip: {
+                  enabled: true,
+                },
+                preventOverflow: {
+                  enabled: true,
+                  boundariesElement: 'scrollParent',
+                },
+                arrow: {
+                  enabled: true,
+                  element: popperArrowRef.current,
+                },
               }}
             >
-              {this.getTextResource(this.props.textResourceBindings.help)}
-            </Popper> :
-            null
+              <PopperWrapperArrow ref={popperArrowRef}/>
+                <PopperWrapper>
+                  <Typography>
+                    {this.getTextResource(this.props.textResourceBindings.help)}
+                  </Typography>
+                </PopperWrapper>
+            </Popper>
+            : null
           }
         </>
       );
