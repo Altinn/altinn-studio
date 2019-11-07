@@ -30,6 +30,8 @@ namespace Altinn.Common.PEP.Authorization
         private const string ParamInstanceGuid = "instanceGuid";
         private const string ParamApp = "app";
         private const string ParamOrg = "org";
+        private const string defaultIssuer = "Altinn";
+        private const string defaultType = "string";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppAccessHandler"/> class.
@@ -107,7 +109,7 @@ namespace Altinn.Common.PEP.Authorization
             // Mapping all claims on user to attributes
             foreach (Claim claim in claims)
             {
-                subjectAttributes.Attribute.Add(CreateXacmlJsonAttribute(claim.Type, claim.ValueType, claim.Issuer, claim.Value));
+                subjectAttributes.Attribute.Add(CreateXacmlJsonAttribute(claim.Type, claim.Value, claim.ValueType, claim.Issuer));
             }
 
             return subjectAttributes;
@@ -116,7 +118,7 @@ namespace Altinn.Common.PEP.Authorization
         private XacmlJsonCategory CreateActionCategory(string actionType)
         {
             XacmlJsonCategory actionAttributes = new XacmlJsonCategory();
-            actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType));
+            actionAttributes.Attribute.Add(CreateXacmlJsonAttribute(MatchAttributeIdentifiers.ActionId, actionType, defaultType, defaultIssuer));
             return actionAttributes;
         }
 
@@ -129,21 +131,21 @@ namespace Altinn.Common.PEP.Authorization
             string org = routeData.Values[ParamOrg] as string;
             string instanceOwnerId = routeData.Values[ParamInstanceOwnerId] as string;
 
-            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceInstanceId, instanceOwnerId + "/" + instanceGuid));
-            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org));
-            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app));
+            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceInstanceId, instanceOwnerId + "/" + instanceGuid, defaultType, defaultIssuer));
+            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceOrgId, org, defaultType, defaultIssuer));
+            resourceAttributes.Attribute.Add(CreateXacmlJsonAttribute(XacmlResourceAppId, app, defaultType, defaultIssuer));
 
             return resourceAttributes;
         }
 
-        private XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType = "string", string issuer = "altinn")
+        private XacmlJsonAttribute CreateXacmlJsonAttribute(string attributeId, string value, string dataType, string issuer)
         {
             XacmlJsonAttribute xacmlJsonAttribute = new XacmlJsonAttribute();
 
             xacmlJsonAttribute.AttributeId = attributeId;
+            xacmlJsonAttribute.Value = value;
             xacmlJsonAttribute.DataType = dataType;
             xacmlJsonAttribute.Issuer = issuer;
-            xacmlJsonAttribute.Value = value;
 
             return xacmlJsonAttribute;
         }

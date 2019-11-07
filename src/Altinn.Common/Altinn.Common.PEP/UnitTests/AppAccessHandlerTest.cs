@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Moq;
 using System;
+using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -36,10 +37,14 @@ namespace Altinn.Common.PEP.Authorization
             // create the requirement
             var requirement = new AppAccessRequirement("read");
 
+            List<Claim> claims = new List<Claim>();
+            // type, value, valyetupe, issuer
+            claims.Add(new Claim("name", "Ola", "string", "org"));
+
             // create the user
             var user = new ClaimsPrincipal(
                 new ClaimsIdentity(
-                    // no claims added
+                        claims
                     ));
 
             // create the resource
@@ -56,13 +61,11 @@ namespace Altinn.Common.PEP.Authorization
                 );
 
             // Mock http
-            RouteData routeData = new RouteData();
-            routeData.Values.Add("org", "myOrg");
-            routeData.Values.Add("app", "myApp");
             HttpContext httpContext = new DefaultHttpContext();
-            httpContext.Request.Path = new PathString("/decision?org=org&app=app");
-            
-            //httpContext.Setup(h => h.GetRouteData()).Returns(routeData);
+            httpContext.Request.RouteValues.Add("org", "Org");
+            httpContext.Request.RouteValues.Add("app", "App");
+            httpContext.Request.RouteValues.Add("instanceGuid", "asdfg");
+            httpContext.Request.RouteValues.Add("InstanceOwnerId", "1000");
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
 
             RouteData routedata2 = _httpContextAccessorMock.Object.HttpContext.GetRouteData();
