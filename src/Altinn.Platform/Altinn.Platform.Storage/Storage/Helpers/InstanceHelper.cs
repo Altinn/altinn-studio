@@ -27,7 +27,7 @@ namespace Altinn.Platform.Storage.Helpers
 
                 messageBoxInstances.Add(new MessageBoxInstance()
                 {                    
-                    CreatedDateTime = (visibleAfter != null && visibleAfter > instance.Created) ? (DateTime)visibleAfter : instance.Created,
+                    CreatedDateTime = (visibleAfter != null && visibleAfter > instance.Created) ? (DateTime)visibleAfter : instance.Created.Value,
                     DueDateTime = instance.DueBefore,
                     Id = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id,
                     InstanceOwnerId = instance.InstanceOwner.PartyId,

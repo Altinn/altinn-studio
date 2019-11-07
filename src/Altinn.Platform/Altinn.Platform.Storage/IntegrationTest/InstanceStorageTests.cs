@@ -366,7 +366,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             DataElement dataElement2 = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync());         
 
-            Assert.Equal("Testfile.xml", dataElement2.FileName);            
+            Assert.Equal("Testfile.xml", dataElement2.Filename);            
         }
     }
 }

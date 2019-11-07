@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Model to hold a data element.
+    /// Model to hold metadata about a data type element.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class DataElement : ChangableElement
@@ -32,8 +32,8 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// the name of the data element (file)
         /// </summary>
-        [JsonProperty(PropertyName = "fileName")]
-        public string FileName { get; set; }
+        [JsonProperty(PropertyName = "filename")]
+        public string Filename { get; set; }
 
         /// <summary>
         /// contentType of data element (file) stored
@@ -56,14 +56,14 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// <summary>
         /// Size of file in bytes
         /// </summary>
-        [JsonProperty(PropertyName = "fileSize")]
-        public long FileSize { get; set; }
+        [JsonProperty(PropertyName = "size")]
+        public long Size { get; set; }
 
         /// <summary>
-        /// Indicates that the instance owner no longer can update the data element
+        /// Indicates that element cannot be updated
         /// </summary>
-        [JsonProperty(PropertyName = "isLocked")]
-        public bool IsLocked { get; set; }
+        [JsonProperty(PropertyName = "locked")]
+        public bool Locked { get; set; }
 
         /// <summary>
         /// Holds information about when the application owner has downloaded and confirmed download of the element.

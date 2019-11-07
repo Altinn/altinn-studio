@@ -25,10 +25,10 @@ namespace Altinn.Platform.Storage.Helpers
                 ContentType = contentType,
                 CreatedBy = user,
                 Created = creationTime,
-                FileName = contentFileName,
+                Filename = contentFileName,
                 LastChangedBy = user,
                 LastChanged = creationTime,
-                FileSize = fileSize,
+                Size = fileSize,
                 Refs = refs,
             };
 

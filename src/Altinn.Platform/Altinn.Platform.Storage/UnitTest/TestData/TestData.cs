@@ -72,7 +72,7 @@ namespace Altinn.Platform.Storage.UnitTest
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
-            Inbox = new InboxState
+            Status = new InstanceStatus
             {
             },
             LastChangedBy = UserId_1,
@@ -101,7 +101,7 @@ namespace Altinn.Platform.Storage.UnitTest
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
-            Inbox = new InboxState
+            Status = new InstanceStatus
             { 
             },
             LastChangedBy = UserId_1,
@@ -118,7 +118,7 @@ namespace Altinn.Platform.Storage.UnitTest
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
-            Inbox = new InboxState
+            Status = new InstanceStatus
             {
             },
             LastChangedBy = UserId_1,
@@ -135,7 +135,7 @@ namespace Altinn.Platform.Storage.UnitTest
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
-            Inbox = new InboxState()
+            Status = new InstanceStatus
             {
             },
             LastChangedBy = UserId_1,
@@ -152,7 +152,7 @@ namespace Altinn.Platform.Storage.UnitTest
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
-            Inbox = new InboxState()
+            Status = new InstanceStatus
             {
             },
             LastChangedBy = UserId_1,
@@ -170,7 +170,7 @@ namespace Altinn.Platform.Storage.UnitTest
             CreatedBy = UserId_1,
             Created = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
             InstanceOwner = new InstanceOwner { PartyId = InstanceOwnerPartyId_1 },
-            Inbox = new InboxState()
+            Status = new InstanceStatus
             {
             },
             LastChangedBy = UserId_1,

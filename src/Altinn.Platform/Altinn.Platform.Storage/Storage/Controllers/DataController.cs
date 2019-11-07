@@ -146,7 +146,7 @@ namespace Altinn.Platform.Storage.Controllers
                             return NotFound("Unable to read data storage for " + dataIdString);
                         }
 
-                        return File(dataStream, data.ContentType, data.FileName);
+                        return File(dataStream, data.ContentType, data.Filename);
                     }
                     catch (Exception e)
                     {
@@ -253,7 +253,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 // store file as blob
-                newData.FileSize = await _dataRepository.WriteDataToStorage(theStream, newData.BlobStoragePath);
+                newData.Size = await _dataRepository.WriteDataToStorage(theStream, newData.BlobStoragePath);
 
                 // update instance and data result
                 Instance result = await _instanceRepository.Update(instance);
@@ -327,7 +327,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                     // update data record
                     data.ContentType = updatedData.ContentType;
-                    data.FileName = updatedData.FileName;
+                    data.Filename = updatedData.Filename;
                     data.LastChangedBy = User.Identity.Name;
                     data.LastChanged = changedTime;
 
@@ -338,9 +338,9 @@ namespace Altinn.Platform.Storage.Controllers
                     instance.LastChangedBy = User.Identity.Name;
 
                     // store file as blob
-                    data.FileSize = _dataRepository.WriteDataToStorage(theStream, storageFileName).Result;
+                    data.Size = _dataRepository.WriteDataToStorage(theStream, storageFileName).Result;
 
-                    if (data.FileSize > 0)
+                    if (data.Size > 0)
                     {
                         // update instance
                         Instance result = await _instanceRepository.Update(instance);
