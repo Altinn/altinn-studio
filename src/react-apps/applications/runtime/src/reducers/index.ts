@@ -18,9 +18,9 @@ import InstanceDataReducer, { IInstanceDataState } from '../shared/resources/ins
 import LanguageReducer, { ILanguageState } from '../shared/resources/language/languageReducers';
 import OrgsReducer, { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import PartyReducer, { IPartyState } from '../shared/resources/party/partyReducers';
+import processReducer, { IProcessState } from '../shared/resources/process/processReducer';
 import ProfileReducer, { IProfileState } from '../shared/resources/profile/profileReducers';
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
-import processReducer, { IProcessState } from './../sharedResources/process/processReducer';
 
 export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> {
   formLayout: T1;

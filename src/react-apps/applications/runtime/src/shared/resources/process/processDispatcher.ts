@@ -1,7 +1,7 @@
 /* tslint:disable:max-line-length */
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../../store';
-import { ProcessSteps } from '../../types';
+import { store } from '../../../store';
+import { ProcessSteps } from '../../../types';
 import * as CompleteProcessActions from './completeProcess/completeProcessActions';
 import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
 

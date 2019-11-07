@@ -2,7 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import { get, put } from 'Shared/utils/networking';
 import { IRuntimeState } from 'src/types';
-import ProcessDispatcher from '../../../../../sharedResources/process/processDispatcher';
+import ProcessDispatcher from '../../../../../shared/resources/process/processDispatcher';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { getDataElementUrl, getValidationUrl } from '../../../../../utils/urlHelper';

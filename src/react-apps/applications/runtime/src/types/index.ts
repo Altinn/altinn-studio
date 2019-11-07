@@ -11,9 +11,9 @@ import { IInstanceDataState } from '../shared/resources/instanceData/instanceDat
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 import { IOrgsState } from '../shared/resources/orgs/orgsReducers';
 import { IPartyState } from '../shared/resources/party/partyReducers';
+import { IProcessState } from '../shared/resources/process/processReducer';
 import { IProfileState } from '../shared/resources/profile/profileReducers';
 import { ITextResourcesState } from '../shared/resources/textResources/reducer';
-import { IProcessState } from '../sharedResources/process/processReducer';
 
 export interface IRuntimeState {
   formLayout: ILayoutState;
