@@ -28,7 +28,6 @@ function* instantiationSaga(): SagaIterator {
       // Creates a new instance
       const instanceResponse = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
       const instanceId = instanceResponse.data.id;
-      console.log('instanceId', instanceId);
 
       // Creates default data element
       const dataModel = yield select(DataModelSelector);

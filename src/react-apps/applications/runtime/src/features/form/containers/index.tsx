@@ -60,7 +60,7 @@ export default (props) => {
 
     AttachmentActions.fetchAttachments();
 
-  }, [processState]);
+  }, []);
 
   return (
     <FormFiller />

@@ -13,7 +13,6 @@ import * as FormDataActionTypes from '../../actions/types';
 const SelectFormDataModel: (store: any) => any = (store: any) => store.formDataModel.dataModel;
 
 function* fetchFormDataSaga({ url }: IFetchFormData): SagaIterator {
-  console.log('### inside: fetchFormDataSaga, url: ', url);
   try {
     const fetchedLayout = yield call(get, url);
     const dataModel = yield select(SelectFormDataModel);
