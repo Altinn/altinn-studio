@@ -136,6 +136,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
     btnConfirmText: string;
     btnMethod: () => void;
     btnCancelText: string;
+    btnPrimaryId: string;
     children: any;
     anchorOrigin: any;
     transformOrigin: any;
@@ -146,6 +147,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
     btnConfirmText: '',
     btnMethod: null,
     btnCancelText: '',
+    btnPrimaryId: null,
     children: null,
     anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
     transformOrigin: { horizontal: 'left', vertical: 'bottom' },
@@ -238,6 +240,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
       btnMethod: handleDeployButtonConfirmation,
       btnConfirmText: 'Ja',
       btnCancelText: 'avbryt',
+      btnPrimaryId: `deploy-button-${envName}-confirm`,
       anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
       transformOrigin: { horizontal: 'left', vertical: 'bottom' },
     });
@@ -288,7 +291,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
       <Typography>
         {getLanguageFromKey('app_deploy_messages.choose_version', language)}
       </Typography>
-      <div className={classes.select}>
+      <div className={classes.select} id={`deploy-select-${envName}`}>
         <Select
           className='basic-single'
           classNamePrefix='select'
@@ -306,6 +309,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           btnText={getLanguageFromKey('app_deploy_messages.btn_deploy_new_version', language)}
           disabled={deployButtonDisabled}
           onClickFunction={deployButtonConfirmationPopover}
+          id={`deploy-button-${envName.toLowerCase()}`}
         />
         <AltinnPopoverSimple
           classes={{}}
@@ -509,12 +513,17 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
                     [envName.toUpperCase()],
                   )}
                 </Typography>
-                <div className={classes.tableWrapper}>
+                <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
                   <Table
                     stickyHeader={true}
                     className={classes.table}
                     size='small'
-                    aria-label={getParsedLanguageFromKey('app_deploy_table.deploy_table_aria', language, [envName], true)}
+                    aria-label={getParsedLanguageFromKey(
+                      'app_deploy_table.deploy_table_aria',
+                      language,
+                      [envName],
+                      true,
+                    )}
                   >
                     <TableHead>
                       <TableRow className={classes.tableRow}>
