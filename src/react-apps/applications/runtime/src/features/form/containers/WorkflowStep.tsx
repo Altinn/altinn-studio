@@ -81,7 +81,11 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     return (
       <div className='a-modal-navbar'>
         {this.props.step === WorkflowSteps.FormFilling &&
-          <button type='button' className='a-modal-back a-js-tabable-popover' aria-label='Tilbake'>
+          <button
+            type='button'
+            className='a-modal-back a-js-tabable-popover'
+            aria-label={getLanguageFromKey('general.back', this.props.language)}
+          >
             <span className='ai-stack'>
               <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
               <i className='ai-stack-1x ai ai-back' aria-hidden='true' />
@@ -91,7 +95,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
         <button
           type='button'
           className='a-modal-close a-js-tabable-popover'
-          aria-label='Lukk'
+          aria-label={getLanguageFromKey('general.close', this.props.language)}
           onClick={this.handleModalCloseButton}
         >
           <span className='ai-stack'>
@@ -104,7 +108,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public handleSubmitForm = () => {
-    const { org, app, instanceId } = window as IAltinnWindow;
+    const { org, app, instanceId } = window as Window as IAltinnWindow;
     FormFillerActions.completeAndSendInForm(
       `${window.location.origin}/${org}/${app}/${instanceId}/CompleteAndSendIn`);
   }
