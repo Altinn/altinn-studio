@@ -369,6 +369,7 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
             currentValidations[key] = componentValidations[key];
           } else {
             currentValidations[key].errors = currentValidations[key].errors.concat(componentValidations[key].errors);
+            // tslint:disable-next-line: max-line-length
             currentValidations[key].warnings = currentValidations[key].warnings.concat(componentValidations[key].warnings);
           }
         });
@@ -392,39 +393,6 @@ export function mapDataElementValidationToRedux(validations: IValidationIssue[],
 
   return validationResult;
 }
-
-
-/*
-  if (component) {
-      if (validationResult[component.id]) {
-        const currentValidations = validationResult[component.id];
-        if (!currentValidations.fieldKey) {
-          currentValidations.fieldKey = {errors: [], warnings: []};
-        }
-        currentValidations.validationKey.errors.concat(componentValidation.validationKey.errors);
-        currentValidations.validationKey.warnings.concat(componentValidation.validationKey.warnings);
-        validationResult[component.id] = currentValidations;
-      } else {
-        validationResult[component.id] = componentValidation;
-      }
-    } else {
-      // If no component corresponds to validation key, add validation messages
-      // as unmapped.
-      if (validationResult.unmapped) {
-        const currentValidations = validationResult.umapped;
-        if (!currentValidations.fieldKey) {
-          currentValidations.fieldKey = {errors: [], warnings: []};
-        }
-        currentValidations.validationKey.errors.concat(componentValidation.validationKey.errors);
-        currentValidations.validationKey.warnings.concat(componentValidation.validationKey.warnings);
-
-      } else {
-        validationResult.unmapped = {
-          [validationKey]: validations[validationKey],
-        };
-      }
-    }
-*/
 
 function runValidation(
   validationFunction: string,
