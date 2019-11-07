@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         /// Creation time for the element.
         /// </summary>
         [JsonProperty(PropertyName = "created")]
-        public DateTime Created { get; set; }
+        public DateTime? Created { get; set; }
 
         /// <summary>
         /// User id of the user who created it.
