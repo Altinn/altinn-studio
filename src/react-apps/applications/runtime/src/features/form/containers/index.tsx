@@ -23,8 +23,6 @@ export default (props) => {
     },
   } = props;
 
-  const processState = useSelector((state: IRuntimeState) => state.process.state);
-
   (window as Window as IAltinnWindow).instanceId = partyId  + '/' + instanceGuid;
 
   React.useEffect(() => {
