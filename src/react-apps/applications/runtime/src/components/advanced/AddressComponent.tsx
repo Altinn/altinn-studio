@@ -132,7 +132,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     }
     if (!houseNumber.match(new RegExp('^[a-z,A-Z]{1}[0-9]{4}$')) && houseNumber !== '') {
       validationErrors.houseNumber = getLanguageFromKey(
-        'address_component.validation_error_houseNumber', this.props.language,
+        'address_component.validation_error_house_number', this.props.language,
         );
     } else {
       validationErrors.houseNumber = null;
