@@ -27,7 +27,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 policyDocument.Load(Path.Combine(GetConformancePath(), testcase + "Request.xml"));
             }
 
-            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, "/api/Decision")
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, "authorization/api/v1/Decision")
             {
                 Content = new StringContent(policyDocument.OuterXml, Encoding.UTF8, "application/xml")
             };
@@ -51,7 +51,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 requestText = System.IO.File.ReadAllText(Path.Combine(GetConformancePath(), testcase + "Request.json"));
             }
 
-            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, "/api/Decision")
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Post, "authorization/api/v1/Decision")
             {
                 Content = new StringContent(requestText, Encoding.UTF8, "application/json")
             };

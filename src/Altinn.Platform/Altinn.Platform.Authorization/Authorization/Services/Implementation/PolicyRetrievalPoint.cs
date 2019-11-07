@@ -106,7 +106,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException("App was not defined");
             }
 
-            return $"{org.AsFileName()}/{app.AsFileName()}/policy.xacml";
+            return $"{org.AsFileName()}/{app.AsFileName()}/policy.xml";
         }
 
         private static XacmlPolicy ParsePolicy(Stream stream)
