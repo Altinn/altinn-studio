@@ -6,8 +6,8 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-
-import { WorkflowStep, WorkflowSteps } from '../../src/features/form/containers/WorkflowStep';
+import { ProcessStep } from '../../src/features/form/containers/ProcessStep';
+import { ProcessSteps } from '../../src/types';
 
 describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
   let mockHeader: string;
@@ -76,9 +76,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const rendered = renderer.create(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.FormFilling}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
@@ -90,9 +90,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.FormFilling}
+            step={ProcessSteps.FormFilling}
             children={<div id='mockFormFiller' />}
           />
         </Provider>
@@ -105,9 +105,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.FormFilling}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
@@ -119,9 +119,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Archived}
+            step={ProcessSteps.Archived}
           />
         </Provider>
       </MemoryRouter>,
@@ -133,9 +133,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Archived}
+            step={ProcessSteps.Archived}
           />
         </Provider>
       </MemoryRouter>,
@@ -147,9 +147,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Submit}
+            step={ProcessSteps.Submit}
           />
         </Provider>
       </MemoryRouter>,
@@ -193,9 +193,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Submit}
+            step={ProcessSteps.Submit}
           />
         </Provider>
       </MemoryRouter>,
@@ -240,9 +240,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Submit}
+            step={ProcessSteps.Submit}
           />
         </Provider>
       </MemoryRouter>,
@@ -299,9 +299,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Submit}
+            step={ProcessSteps.Submit}
           />
         </Provider>
       </MemoryRouter>,
