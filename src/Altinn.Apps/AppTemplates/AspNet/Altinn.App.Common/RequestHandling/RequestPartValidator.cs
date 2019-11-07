@@ -93,14 +93,14 @@ namespace Altinn.App.Common.RequestHandling
                 }
             }
 
-            foreach (DataType elementType in appInfo.DataTypes)
+            foreach (DataType dataType in appInfo.DataTypes)
             {
-                if (elementType.MaxCount > 0)
+                if (dataType.MaxCount > 0)
                 {
-                    int partCount = parts.Count(p => p.Name == elementType.Id);
-                    if (elementType.MaxCount < partCount)
+                    int partCount = parts.Count(p => p.Name == dataType.Id);
+                    if (dataType.MaxCount < partCount)
                     {
-                        return $"The list of parts contains more elements of type '{elementType.Id}' than the element type allows.";
+                        return $"The list of parts contains more elements of type '{dataType.Id}' than the element type allows.";
                     }
                 }
             }
