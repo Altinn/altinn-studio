@@ -92,12 +92,12 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             this.onBlurField(AddressKeys.postPlace);
           });
         } else {
-          this.setState({
+          this.setState((_state, props) => ({
             postPlace: '',
             validations: {
-              zipCode: getLanguageFromKey('address_component.validation_error_zipcode', this.props.language),
+              zipCode: getLanguageFromKey('address_component.validation_error_zipcode', props.language),
             },
-          });
+          }));
         }
       } else {
         this.setState({
