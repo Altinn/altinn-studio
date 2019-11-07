@@ -3,17 +3,18 @@ import { call, select, takeLatest } from 'redux-saga/effects';
 import { get, put } from 'Shared/utils/networking';
 import { IRuntimeState } from 'src/types';
 import ProcessDispatcher from '../../../../../sharedResources/process/processDispatcher';
-import { IRuntimeStore, IValidationIssue } from '../../../../../types/global';
+import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { getDataElementUrl, getValidationUrl } from '../../../../../utils/urlHelper';
 import {
-  canFormBeSaved, mapApiValidationsToRedux, mapDataElementValidationToRedux, validateEmptyFields,
+  canFormBeSaved,
+  mapDataElementValidationToRedux,
+  validateEmptyFields,
   validateFormComponents,
   validateFormData,
 } from '../../../../../utils/validation';
 import { ILayoutState } from '../../../layout/reducer';
 import FormValidationActions from '../../../validation/actions';
-import WorkflowActions from '../../../workflow/actions';
 import FormDataActions from '../../actions';
 import {
   ISubmitDataAction,
@@ -58,25 +59,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
           yield call(ProcessDispatcher.completeProcess);
         }
       }
-
       yield call(FormDataActions.submitFormDataFulfilled);
-
-      /* OLD IMPLEMENTATION
-      console.log('### FORMCANBESAVED, URL: ', url, ' apimode: ', apiMode, ' model: ', model);
-      const result = yield call(put, url, apiMode || 'Update', model);
-      yield call(FormDataActions.submitFormDataFulfilled);
-      console.log('### RESULT: ', result);
-      if (result.status === 0 && result.nextState) {
-        WorkflowActions.setCurrentState(result.nextState);
-      }
-      const currentUrl = window.location.href.replace(window.location.origin, '');
-      if (result.status === 0 && result.nextStepUrl && result.nextStepUrl !== currentUrl) {
-        // If next step is placed somewhere other then the SPA, for instance payment, we must redirect.
-        if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
-          window.location.replace(`${window.location.origin}${result.nextStepUrl}`);
-        }
-      }
-      */
     } else {
       FormValidationActions.updateValidations(validations);
     }

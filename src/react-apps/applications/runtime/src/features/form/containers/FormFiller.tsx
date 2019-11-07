@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey, getUserLanguage } from '../../../../../shared/src/utils/language';
-import { IRuntimeState } from '../../../types';
-import { ProcessSteps } from './../../../sharedResources/process/typings';
+import { IRuntimeState, ProcessSteps } from '../../../types';
+import { ProcessStep } from './ProcessStep';
 import Render from './Render';
-import { WorkflowStep } from './WorkflowStep';
 
 export interface IFormFillerProps {
   applicationMetadata: any;
@@ -26,7 +25,7 @@ const FormFiller = (props: IFormFillerProps) => {
   }, [props]);
 
   return (
-    <WorkflowStep
+    <ProcessStep
       header={
         props.applicationMetadata &&
           props.applicationMetadata.title[userLanguage] ? props.applicationMetadata.title[userLanguage] :
@@ -37,7 +36,7 @@ const FormFiller = (props: IFormFillerProps) => {
       <div className='row'>
         <Render />
       </div>
-    </WorkflowStep>
+    </ProcessStep>
   );
 };
 

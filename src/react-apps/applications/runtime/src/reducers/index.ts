@@ -11,7 +11,6 @@ import FormDynamics from '../features/form/dynamics/reducer';
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
 import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
 import ValidationReducer, { IValidationState } from '../features/form/validation/reducer';
-import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import InstantiationReducer, { IInstantiationState } from '../features/instantiate/instantiation/reducer';
 import ApplicationMetadataReducer, { IApplicationMetadataState } from '../shared/resources/applicationMetadata/reducer';
 import AttachmentReducer, { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
@@ -23,32 +22,30 @@ import ProfileReducer, { IProfileState } from '../shared/resources/profile/profi
 import TextResourcesReducer, { ITextResourcesState } from '../shared/resources/textResources/reducer';
 import processReducer, { IProcessState } from './../sharedResources/process/processReducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
-  formWorkflow: T4;
-  formDataModel: T5;
-  attachments: T6;
-  formDynamics: T7;
-  formRules?: T8;
-  language: T9;
-  textResources: T10;
-  profile: T11;
-  formValidations: T12;
-  party: T13;
-  applicationMetadata: T14;
-  instantiation: T15;
-  organisationMetaData: T16;
-  instanceData: T17;
-  process: T18;
+  formDataModel: T4;
+  attachments: T5;
+  formDynamics: T6;
+  formRules?: T7;
+  language: T8;
+  textResources: T9;
+  profile: T10;
+  formValidations: T11;
+  party: T12;
+  applicationMetadata: T13;
+  instantiation: T14;
+  organisationMetaData: T15;
+  instanceData: T16;
+  process: T17;
 }
 
 export interface IRuntimeReducers extends IReducers<
   Reducer<ILayoutState>,
   Reducer<IFormDataState>,
   Reducer<IFormConfigState>,
-  Reducer<IWorkflowState>,
   Reducer<IDataModelState>,
   Reducer<IAttachmentState>,
   Reducer<IFormDynamicState>,
@@ -71,7 +68,6 @@ const reducers: IRuntimeReducers = {
   formLayout: FormLayoutReducer,
   formData: FormDataReducer,
   formConfig: FormConfigState,
-  formWorkflow: FormWorkflowReducer,
   formDataModel: FormDataModel,
   attachments: AttachmentReducer,
   formDynamics: FormDynamics,

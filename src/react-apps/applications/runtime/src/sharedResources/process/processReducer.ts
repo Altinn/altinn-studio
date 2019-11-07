@@ -1,12 +1,9 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { ProcessSteps} from '../../types';
 import * as CompleteProcessActions from './completeProcess/completeProcessActions';
 import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
 import * as ProcessActionTypes from './processActionTypes';
-
-import {
-  ProcessSteps,
-} from './typings';
 
 export interface IProcessState {
   state: ProcessSteps;

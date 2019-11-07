@@ -3,7 +3,6 @@ import { IFormDataState } from '../features/form/data/reducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/reducer';
-import { IWorkflowState } from '../features/form/workflow/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 
@@ -11,7 +10,6 @@ export interface IRuntimeStore {
   formLayout: ILayoutState;
   formData: IFormDataState;
   formConfig: IFormConfigState;
-  formWorkflow: IWorkflowState;
   formDataModel: IDataModelState;
   attachments: IAttachmentState;
   formDynamics: IFormDynamicState;
@@ -194,31 +192,4 @@ export interface IAttachmentApiResponse {
   name: string;
   size: number;
   id: string;
-}
-
-export enum Severity {
-  Unspecified = 0,
-  Error = 1,
-  Warning = 2,
-  Informational = 3,
-}
-
-export interface IValidationIssue {
-  /** The seriousness of the identified issue. */
-  severity: Severity;
-
-  /** A reference to the type of element the issue is about. E.g.: Instance, DataElement etc. */
-  scope: string;
-
-  /** The unique id of the specific element with the identified issue. */
-  targetId: string;
-
-  /** A reference to a property the issue is a bout. */
-  field: string;
-
-  /** A system readable identification of the type of issue. */
-  code: string;
-
-  /** A human readable description of the issue. */
-  description: string;
 }

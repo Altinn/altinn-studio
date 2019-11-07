@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { useSelector } from 'react-redux';
 import AttachmentActions from '../../../shared/resources/attachments/attachmentActions';
+import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
-
+import { IAltinnWindow, IRuntimeState } from '../../../types';
 import FormDataActions from '../data/actions';
 import FormDataModelActions from '../datamodell/actions';
 import FormDynamicActions from '../dynamics/actions';
@@ -11,14 +12,6 @@ import FormLayoutActions from '../layout/actions';
 import FormRuleActions from '../rules/actions';
 import ProcessDispatcher from './../../../sharedResources/process/processDispatcher';
 import FormFiller from './FormFiller';
-
-import {
-  appPath,
-} from '../../../utils/urlHelper';
-
-import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
-import { ProcessSteps } from '../../../sharedResources/process/typings';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
 
 export default (props) => {
   const {
@@ -47,8 +40,7 @@ export default (props) => {
       `${window.location.origin}/${org}/${app}/api/resource/FormLayout.json`,
     );
     FormDataActions.fetchFormData(
-      // `${window.location.origin}/${org}/${app}/api/${instanceId}`,
-      `${appPath}/instances/${instanceId}/`,
+      `${window.location.origin}/${org}/${app}/api/${instanceId}`,
     );
     FormRuleActions.fetchRuleModel(
       `${window.location.origin}/${org}/${app}/api/resource/RuleHandler.js`,

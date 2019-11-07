@@ -1,6 +1,6 @@
 import { Action } from 'redux';
+import { ProcessSteps } from '../../../types';
 import * as ActionTypes from '../processActionTypes';
-import { ProcessSteps } from '../typings';
 
 export interface IGetProcessStateFulfilled extends Action {
   processStep: ProcessSteps;

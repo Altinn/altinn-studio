@@ -1,9 +1,9 @@
 /* tslint:disable:max-line-length */
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
+import { ProcessSteps } from '../../types';
 import * as CompleteProcessActions from './completeProcess/completeProcessActions';
 import * as GetProcessStateActions from './getProcessState/getProcessStateActions';
-import { ProcessSteps } from './typings';
 
 /**
  * Define a interface describing the the different Actions available

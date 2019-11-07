@@ -7,7 +7,7 @@ import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IProfile } from '../../../shared/resources/profile';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IAltinnWindow, IRuntimeState, ProcessSteps } from '../../../types';
 import { IValidations } from '../../../types/global';
 import ReceiptContainer from '../../receipt/containers/receiptContainer';
 import FormFillerActions from '../data/actions';
@@ -15,16 +15,6 @@ import FormFillerActions from '../data/actions';
 export interface IProcessStepProvidedProps {
   header: string;
   step: ProcessSteps;
-}
-
-/*
-  Reflects enum at server side
-*/
-export enum ProcessSteps {
-  Unknown = 0,
-  FormFilling = 1,
-  Submit = 2,
-  Archived = 3,
 }
 
 export interface IProcessStepProps extends IProcessStepProvidedProps {
@@ -251,4 +241,4 @@ const mapStateToProps = (state: IRuntimeState, props: IProcessStepProvidedProps)
   };
 };
 
-export const WorkflowStep = connect(mapStateToProps)(ProcessStepComponent);
+export const ProcessStep = connect(mapStateToProps)(ProcessStepComponent);

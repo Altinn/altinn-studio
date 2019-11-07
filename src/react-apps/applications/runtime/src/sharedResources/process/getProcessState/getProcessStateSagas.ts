@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../../../shared/src/utils/networking';
+import { ProcessSteps } from '../../../types';
 import { getProcessStateUrl } from '../../../utils/urlHelper';
 import * as ProcessStateActionTypes from '../processActionTypes';
 import ProcessStateDispatchers from '../processDispatcher';
-import { ProcessSteps } from '../typings';
 
 export function* getProcessStateSaga(): SagaIterator {
   try {
