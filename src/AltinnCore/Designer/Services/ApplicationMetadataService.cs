@@ -3,10 +3,14 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
+using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Rest.TransientFaultHandling;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Designer.Services
 {
@@ -18,6 +22,9 @@ namespace AltinnCore.Designer.Services
         private readonly ILogger _logger;
         private readonly IRepository _repository;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IGitea _giteaApiWrapper;
+        private readonly ISourceControl _sourceControl;
+        private readonly ServiceRepositorySettings _serviceRepositorySettings;
         private HttpClient _httpClient;
         private string _commitId;
         private string _org;
@@ -29,14 +36,20 @@ namespace AltinnCore.Designer.Services
         /// <param name="logger">ILogger of type ApplicationMetadataService</param>
         /// <param name="repository">IRepository</param>
         /// <param name="httpClientFactory">IHttpClientFactory</param>
+        /// <param name="giteaApiWrapper">IGitea</param>
+        /// <param name="repositorySettings">IOptions of type ServiceRepositorySettings</param>
         public ApplicationMetadataService(
             ILogger<ApplicationMetadataService> logger,
             IRepository repository,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IGitea giteaApiWrapper,
+            IOptions<ServiceRepositorySettings> repositorySettings)
         {
             _logger = logger;
             _repository = repository;
             _httpClientFactory = httpClientFactory;
+            _giteaApiWrapper = giteaApiWrapper;
+            _serviceRepositorySettings = repositorySettings.Value;
         }
 
         /// <inheritdoc />
@@ -51,11 +64,11 @@ namespace AltinnCore.Designer.Services
             _commitId = commitId;
             _httpClient = GetHttpClientFromHttpClientFactory(deploymentEnvironment);
 
-            Application applicationFromRepository = CreateRepositoryAppForOldApps();
+            Application applicationFromRepository = await GetOrCreateRepositoryAppForOldApps();
             Application application;
             try
             {
-                application = await GetApplication();
+                application = await GetApplicationMetadataFromStorage();
             }
             catch (HttpRequestWithStatusException e) when (e.StatusCode == HttpStatusCode.NotFound)
             {
@@ -67,20 +80,22 @@ namespace AltinnCore.Designer.Services
             await UpdateApplicationMetadata(application, applicationFromRepository);
         }
 
-        private Application CreateRepositoryAppForOldApps()
+        private async Task<Application> GetOrCreateRepositoryAppForOldApps()
         {
-            Application applicationFromRepository = _repository.GetApplication(_org, _app);
+            // TODO  Remove these calls when Gitea API has a better way to get the a specific file on a specific commit
+            string filePath = await GetApplicationMetadataFilePath();
+            string file = await _giteaApiWrapper.GetFileAsync(_org, _app, filePath);
+            Application appMetadata = JsonConvert.DeserializeObject<Application>(file);
 
-            // for old apps the application meta data file was not generated, so create the application meta data file
-            // but the metadata for attachment will not be available on deployment
-            if (applicationFromRepository == null)
-            {
-                // TODO: Application title handling (issue #2053/#1725)
-                _repository.CreateApplication(_org, _app, _app);
-                applicationFromRepository = _repository.GetApplication(_org, _app);
-            }
+            return appMetadata;
+        }
 
-            return applicationFromRepository;
+        private async Task<string> GetApplicationMetadataFilePath()
+        {
+            GitTreeStructure gitTree = await _giteaApiWrapper.GetGitTreeAsync(_org, _app, _commitId);
+            const string metadataFolderName = ServiceRepositorySettings.METADATA_FOLDER_NAME;
+            string applicationMetadataFileName = _serviceRepositorySettings.ApplicationMetadataFileName;
+            return $"{gitTree.Sha}/{metadataFolderName}{applicationMetadataFileName}";
         }
 
         private HttpClient GetHttpClientFromHttpClientFactory(EnvironmentModel deploymentEnvironment)
@@ -92,7 +107,7 @@ namespace AltinnCore.Designer.Services
             return httpClient;
         }
 
-        private async Task<Application> GetApplication()
+        private async Task<Application> GetApplicationMetadataFromStorage()
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"{_org}/{_app}");
             return await response.Content.ReadAsAsync<Application>();
