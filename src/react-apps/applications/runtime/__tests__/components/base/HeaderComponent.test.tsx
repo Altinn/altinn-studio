@@ -64,7 +64,12 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         size={'S'}
       />,
     );
-    expect(wrapper.contains(<h4 id={'mock-id'}>test</h4>)).toBe(true);
+
+    expect(wrapper.find('h2')).toHaveLength(0);
+    expect(wrapper.find('h3')).toHaveLength(0);
+    expect(wrapper.find(`h4[id='${mockId}']`)).toHaveLength(1);
+    expect(wrapper.find('h4')).toHaveLength(1);
+
   });
 
   it('+++ should render <h4> if size is not defined', () => {
@@ -74,6 +79,6 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         text={mockText}
       />,
     );
-    expect(wrapper.contains(<h4 id={'mock-id'}>test</h4>)).toBe(true);
+    expect(wrapper.find(`h4[id='${mockId}']`)).toHaveLength(1);
   });
 });
