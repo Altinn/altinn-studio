@@ -161,7 +161,7 @@ namespace AltinnCore.Runtime.RestControllers
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
 
 
-            if (instance.Process?.CurrentTask == null)
+            if (instance.Process?.CurrentTask?.ElementId == null)
             {
                 throw new ValidationException("Unable to validate instance without a started process.");
             }
