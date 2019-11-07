@@ -340,6 +340,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     if (
       !repoStatus.branch.master ||
       !handleMergeConflict.repoStatus.contentStatus ||
+      !handleMergeConflict.repoStatus.contentStatus.length ||
       !appReleases.releases.length
     ) {
       return null;
