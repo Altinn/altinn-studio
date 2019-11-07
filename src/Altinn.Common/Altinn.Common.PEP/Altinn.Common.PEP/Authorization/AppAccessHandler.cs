@@ -88,7 +88,7 @@ namespace Altinn.Common.PEP.Authorization
                 }
             }
 
-            context.Succeed();
+            context.Succeed(requirement);
             await Task.CompletedTask;
         }
 
