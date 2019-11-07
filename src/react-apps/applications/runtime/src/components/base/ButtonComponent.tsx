@@ -58,7 +58,6 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
   public saveFormData = () => {
     const { org, app, instanceId } = window as Window as IAltinnWindow;
-    console.log('### SAVEFORMDATA: ', `${appPath}/instances/${instanceId}`);
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
     // `${appPath}/instances/${instanceId}`,
@@ -67,8 +66,6 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
   public submitForm = () => {
     const {org, app, instanceId } = window as Window as IAltinnWindow;
-    console.log('### SUBMITFORM: ', `${appPath}/instances/${instanceId}`);
-    console.log('### ORG: ', org, ' APP: ', app);
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
       // `${appPath}/instances/${instanceId}`,
