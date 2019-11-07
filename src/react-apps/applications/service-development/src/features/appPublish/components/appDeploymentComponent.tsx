@@ -497,7 +497,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
 
           <Grid item={true} className={classes.deploymentListGrid}>
             {succeededDeployHistory.length === 0 ? (
-              <Typography>
+              <Typography id={`deploy-history-for-${envName}-unavailable`}>
                 {getParsedLanguageFromKey(
                   'app_deploy_table.deployed_version_history_empty',
                    language,
@@ -506,7 +506,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
               </Typography>
             ) : (
               <>
-                <Typography>
+                <Typography id={`deploy-history-for-${envName}-available`}>
                   {getParsedLanguageFromKey(
                     'app_deploy_table.deployed_version_history',
                     language,
