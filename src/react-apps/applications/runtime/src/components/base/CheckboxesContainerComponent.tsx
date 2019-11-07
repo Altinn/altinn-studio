@@ -71,13 +71,15 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     const isStacked: boolean = (this.props.options.length > 2);
     return (
       <div
-        className={
-          'form-check a-form-checkboxes pl-0' +
-          (isStacked ?
-            ' form-check-stacked' :
-            ' form-check-inline'
-          )
-        }
+        className={classNames(
+          'form-check',
+          'a-form-checkboxes',
+          'pl-0',
+          {
+            'form-check-stacked': isStacked,
+            'form-check-inline': !isStacked,
+          },
+        )}
         id={this.props.id}
         style={isStacked ? {} : { alignItems: 'start' }}
       >
@@ -87,6 +89,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
             className={classNames('custom-control', 'custom-checkbox', 'a-custom-checkbox', 'pl-0', 'pr-4 mr-3',
               { 'no-cursor': this.props.readOnly })}
             onClick={this.props.readOnly ? null : this.onDataChanged.bind(this, option.value, index, option.label)}
+            style={index !== 0 ? { marginTop: '2.4rem' } : {}}
           >
             <input
               type='checkbox'
@@ -97,8 +100,13 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
               onChange={this.emptyFunction}
             />
             <label
-              className={classNames('custom-control-label', 'pl-3',
-                { 'disabled-checkbox no-cursor': this.props.readOnly })}
+              className={classNames(
+                'custom-control-label',
+                'pl-3',
+                {
+                  'disabled-checkbox no-cursor': this.props.readOnly,
+                },
+              )}
             >
               {option.label}
             </label>

@@ -3,17 +3,16 @@ import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
 import { watchHandleFetchInitialCommitSaga, watchHandleFetchServiceConfigSaga, watchHandleFetchServiceNameSaga, watchHandleFetchServiceSaga, watchHandleSaveServiceConfigSaga, watchHandleSaveServiceNameSaga } from '../features/administration/handleServiceInformationSagas';
-import { deploySagas } from '../features/deploy/deploySagas';
 import { watchHandleMergeConflictSaga } from '../features/handleMergeConflict/handleMergeConflictSagas';
 import { appDeploymentSagas } from '../sharedResources/appDeployment/appDeploymentSagas';
 import { applicationMetadataSagas } from '../sharedResources/applicationMetadata/applicationMetadataSagas';
 import { appReleaseSagas } from '../sharedResources/appRelease/appReleaseSagas';
 import languageSagas from '../utils/fetchLanguage/languageSagas';
 import { appClusterSagas } from './../sharedResources/appCluster/appClusterSagas';
+import { configurationSagas } from './../sharedResources/configuration/configurationSagas';
 import { repoStatusSagas } from './../sharedResources/repoStatus/repoStatusSagas';
 
 function* root(): SagaIterator {
-  yield fork(deploySagas);
   yield fork(languageSagas);
   yield fork(watchHandleMergeConflictSaga);
   yield fork(watchHandleFetchServiceSaga);
@@ -27,6 +26,7 @@ function* root(): SagaIterator {
   yield fork(repoStatusSagas);
   yield fork(appReleaseSagas);
   yield fork(appDeploymentSagas);
+  yield fork(configurationSagas);
 }
 
 export const run: () => Task = () => sagaMiddleware.run(root);

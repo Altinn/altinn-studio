@@ -1,57 +1,38 @@
+// import * as moment from 'moment';
 import { SagaIterator } from 'redux-saga';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import { delay } from 'redux-saga';
+import { call, fork, race, take } from 'redux-saga/effects';
+import { get } from '../../../../../shared/src/utils/networking';
+import { getAppDeploymentsUrl } from '../../../utils/urlHelper';
 import * as AppDeploymentActionTypes from '../appDeploymentActionTypes';
 import AppDeploymentActionDispatcher from '../appDeploymentDispatcher';
-import { IDeployment } from '../types';
 
-const mockDeployments: IDeployment[] = [
-  {
-    id: 'deployment_1_id',
-    tag_name: 'deployment_1_tag_name',
-    app: 'deployment_1_app',
-    org: 'deployment_1_org',
-    env_name: 'deployment_1_env_name',
-    created_by: 'deployment_1_created_by',
-    created: 'deployment_1_created',
-    status: 'deployment_1_status',
-    started: 'deployment_1_started',
-    finished: 'deployment_1_finished',
-    build: {
-      id: 'deployment_1_build_id',
-    },
-  },
-  {
-    id: 'deployment_2_id',
-    tag_name: 'deployment_2_tag_name',
-    app: 'deployment_2_app',
-    org: 'deployment_2_org',
-    env_name: 'deployment_2_env_name',
-    created_by: 'deployment_2_created_by',
-    created: 'deployment_2_created',
-    status: 'deployment_2_status',
-    started: 'deployment_2_started',
-    finished: 'deployment_2_finished',
-    build: {
-      id: 'deployment_2_build_id',
-    },
-  },
-]
+// Worker function - polling
+function* getAppDeploymentIntervalSaga(): SagaIterator {
+  while (true) {
+    try {
+      const deployments = yield call(get, `${getAppDeploymentsUrl()}?sortDirection=descending&sortBy=created`);
 
-function* getAppDeploymentSaga(): SagaIterator {
-  try {
-    yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, mockDeployments);
-  } catch (err) {
-    yield call(AppDeploymentActionDispatcher.getAppDeploymentsRejected, err);
+      yield call(AppDeploymentActionDispatcher.getAppDeploymentsFulfilled, deployments);
+      yield call(delay, 10000);
+    } catch (err) {
+      yield call(AppDeploymentActionDispatcher.getAppDeploymentsRejected, err);
+      yield call(delay, 10000);
+    }
   }
 }
 
-export function* watchGetAppDeploymentSaga(): SagaIterator {
-  yield takeLatest(
-    AppDeploymentActionTypes.GET_APP_DEPLOYMENTS,
-    getAppDeploymentSaga,
-  );
+// Interval watcher function
+function* watchGetAppDeploymentIntervalSaga(): SagaIterator {
+  while (true) {
+    yield take(AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_START_INTERVAL);
+    yield race({
+      do: call(getAppDeploymentIntervalSaga),
+      cancel: take(AppDeploymentActionTypes.GET_APP_DEPLOYMENTS_STOP_INTERVAL),
+    });
+  }
 }
 
 export default function*(): SagaIterator {
-  yield fork(watchGetAppDeploymentSaga);
+  yield fork(watchGetAppDeploymentIntervalSaga);
 }

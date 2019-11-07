@@ -16,13 +16,13 @@ namespace Altinn.Platform.Authorization.Configuration
         public string AccountKey { get; set; }
 
         /// <summary>
-        /// name of the storage container in the storage account
+        /// name of the authorization storage container in the storage account
         /// </summary>
-        public string StorageContainer { get; set; }
+        public string MetadataContainer { get; set; }
 
         /// <summary>
         /// url for the blob end point
         /// </summary>
-        public string BlobEndPoint { get; set; }
+        public string BlobEndpoint { get; set; }
     }
 }

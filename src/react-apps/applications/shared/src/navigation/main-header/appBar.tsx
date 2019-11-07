@@ -44,6 +44,7 @@ const styles = createStyles({
     borderBottom: '1px solid',
     borderBottomColor: '#C9C9C9',
     color: altinnTheme.altinnPalette.primary.black,
+    position: 'fixed',
   },
   breadCrumb: {
     paddingLeft: 30,

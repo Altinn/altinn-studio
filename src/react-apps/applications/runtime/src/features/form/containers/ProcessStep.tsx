@@ -70,7 +70,11 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
     return (
       <div className='a-modal-navbar'>
         {this.props.step === ProcessSteps.FormFilling &&
-          <button type='button' className='a-modal-back a-js-tabable-popover' aria-label='Tilbake'>
+          <button
+            type='button'
+            className='a-modal-back a-js-tabable-popover'
+            aria-label={getLanguageFromKey('general.back', this.props.language)}
+          >
             <span className='ai-stack'>
               <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
               <i className='ai-stack-1x ai ai-back' aria-hidden='true' />
@@ -80,7 +84,7 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
         <button
           type='button'
           className='a-modal-close a-js-tabable-popover'
-          aria-label='Lukk'
+          aria-label={getLanguageFromKey('general.close', this.props.language)}
           onClick={this.handleModalCloseButton}
         >
           <span className='ai-stack'>

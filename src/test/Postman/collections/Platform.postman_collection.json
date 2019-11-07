@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "c3779123-b868-442e-b3ad-acc0228c94fc",
+		"_postman_id": "39ff785a-dcc0-4165-ab13-c427b4b78e6f",
 		"name": "Platform",
 		"description": "Collection that tests the full integration between current Altinn platform and SBL bridge",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -558,6 +558,70 @@
 								{
 									"key": "offeredbypartyid",
 									"value": "{{partyID}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Upload Policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "72982299-cf05-46fd-bda1-7c358d148ded",
+								"exec": [
+									"pm.test(\"Platform - Authorization - Post Upload Policy xacml - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "policy.xml"
+							},
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/policies?org={{org}}&app={{app}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"policies"
+							],
+							"query": [
+								{
+									"key": "org",
+									"value": "{{org}}"
+								},
+								{
+									"key": "app",
+									"value": "{{app}}"
 								}
 							]
 						}
@@ -2644,12 +2708,11 @@
 							}
 						},
 						"url": {
-							"raw": "platform.at21.altinn.cloud/pdf/api/v1/generate",
+							"raw": "https://platform.{{envUrl}}/pdf/api/v1/generate",
+							"protocol": "https",
 							"host": [
 								"platform",
-								"at21",
-								"altinn",
-								"cloud"
+								"{{envUrl}}"
 							],
 							"path": [
 								"pdf",

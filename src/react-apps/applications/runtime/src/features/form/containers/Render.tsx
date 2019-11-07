@@ -1,3 +1,5 @@
+import FormGroup from '@material-ui/core/FormGroup';
+import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { GenericComponent } from '../../../components/GenericComponent';
@@ -14,7 +16,7 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
   public render(): JSX.Element {
     const { layout } = this.props;
     return (
-      <div className='col-12'>
+      <Grid container={true}>
         {layout && layout.map((component: ILayoutComponent | ILayoutGroup) => {
           if (component.type.toLowerCase() === 'group') {
             return (
@@ -23,19 +25,17 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
             );
           } else {
             return (
-              <div className='row mt-2' key={component.id}>
-                <div className='col'>
-                  <div className='a-form-group'>
-                    <GenericComponent
-                      {...component as ILayoutComponent}
-                    />
-                  </div>
-                </div>
-              </div>
+              <Grid item={true} key={component.id} xs={12}>
+                <FormGroup>
+                  <GenericComponent
+                    {...component as ILayoutComponent}
+                  />
+                </FormGroup>
+              </Grid>
             );
           }
         })}
-      </div>
+      </Grid>
     );
   }
 }

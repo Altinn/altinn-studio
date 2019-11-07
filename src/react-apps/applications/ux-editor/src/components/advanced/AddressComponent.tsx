@@ -201,11 +201,13 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     }
     return (
       <div className={'address-component'}>
-        <label className={'address-component-label'}>{
-          // This has been implemented for the sake of validating new textResource binding POC
-          (!this.props.component.textResourceBindings.address) ? 'Adresse' :
-            this.props.getTextResource(this.props.component.textResourceBindings.address)
-        }</label>
+        <label className={'address-component-label'}>
+          {
+            // This has been implemented for the sake of validating new textResource binding POC
+            (!this.props.component.textResourceBindings.address) ? 'Adresse' :
+              this.props.getTextResource(this.props.component.textResourceBindings.address)
+          }
+        </label>
         <input
           className={'form-control'}
           value={address}

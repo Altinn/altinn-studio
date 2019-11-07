@@ -2,7 +2,7 @@
 
 exports[`>>> components/advanced/AddressComponent.tsx snapshot >>> Capture snapshot of AddressComponent 1`] = `
 <div
-  className="address-component pb-2"
+  className="address-component"
 >
   <label
     className="address-component-label"
