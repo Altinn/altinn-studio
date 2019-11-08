@@ -53,8 +53,10 @@ namespace Altinn.Platform.Authorization
             services.AddSingleton<IContextHandler, ContextHandler>();
             services.AddSingleton<IPolicyRetrievalPoint, PolicyRetrievalPoint>();
             services.AddSingleton<IPolicyRepository, PolicyRepository>();
+            services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
+            services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.AddHttpClient<PartyClient>();
             services.AddHttpClient<RolesClient>();
             services.AddHttpClient<SBLClient>();

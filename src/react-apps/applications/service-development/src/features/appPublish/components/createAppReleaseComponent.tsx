@@ -27,7 +27,7 @@ const styles = createStyles({
     padding: '1.2rem',
   },
   createReleaseInvalidTagNameWrapper: {
-    padding: '2rem 2rem 0rem 2rem',
+    padding: '1.2rem 0rem 1.2rem 0rem',
   },
   createReleaseErrorPopoverRoot: {
     backgroundColor: theme.altinnPalette.primary.redLight,
@@ -127,12 +127,13 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         >
           <Grid
             container={true}
-            direction={'row-reverse'}
+            direction={'column-reverse'}
             justify={'flex-end'}
           >
             {!versionNameValid() ?
               <Grid
                 className={classes.createReleaseInvalidTagNameWrapper}
+                item={true}
               >
                 <Typography
                   className={classes.createReleaseInvalidTagNameText}

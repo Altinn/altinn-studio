@@ -34,9 +34,10 @@ export function renderSelectDataModelBinding(
   label?: string,
   returnValue?: any,
   key: string = 'simpleBinding',
+  uniqueKey?: any,
 ): JSX.Element {
   return (
-    <div>
+    <div key={uniqueKey ? uniqueKey : ''}>
       {renderPropertyLabel(label ?
         language.ux_editor.modal_properties_data_model_helper + ' ' + language.general.for + ' ' + label :
         language.ux_editor.modal_properties_data_model_helper)

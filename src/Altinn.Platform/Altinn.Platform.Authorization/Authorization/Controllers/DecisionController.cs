@@ -21,7 +21,7 @@ namespace Altinn.Platform.Authorization.Controllers
     /// This is the controller responsible for Policy Enformcent Point endpoint.
     /// It returns a Xacml Context Reponse based on a Context Request
     /// </summary>
-    [Route("api/[controller]")]
+    [Route("authorization/api/v1/[controller]")]
     [ApiController]
     public class DecisionController : ControllerBase
     {
@@ -66,6 +66,12 @@ namespace Altinn.Platform.Authorization.Controllers
                 XacmlContextResponse xacmlContextResponse = new XacmlContextResponse(result);
                 return CreateResponse(xacmlContextResponse);
             }
+        }
+
+        [HttpGet]
+        public string Get()
+        {
+            return "test string";
         }
 
         private async Task<XacmlJsonResponse> Authorize(XacmlJsonRequest decisionRequest)

@@ -13,6 +13,7 @@ exports[`>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot >>>
   <div
     className="custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio"
     onClick={[Function]}
+    style={Object {}}
   >
     <input
       checked={false}
@@ -30,6 +31,11 @@ exports[`>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot >>>
   <div
     className="custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio"
     onClick={[Function]}
+    style={
+      Object {
+        "marginTop": "2.4rem",
+      }
+    }
   >
     <input
       checked={false}

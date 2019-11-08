@@ -136,6 +136,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
     btnConfirmText: string;
     btnMethod: () => void;
     btnCancelText: string;
+    btnPrimaryId: string;
     children: any;
     anchorOrigin: any;
     transformOrigin: any;
@@ -146,6 +147,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
     btnConfirmText: '',
     btnMethod: null,
     btnCancelText: '',
+    btnPrimaryId: null,
     children: null,
     anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
     transformOrigin: { horizontal: 'left', vertical: 'bottom' },
@@ -238,6 +240,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
       btnMethod: handleDeployButtonConfirmation,
       btnConfirmText: 'Ja',
       btnCancelText: 'avbryt',
+      btnPrimaryId: `deploy-button-${envName.toLowerCase()}-confirm`,
       anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
       transformOrigin: { horizontal: 'left', vertical: 'bottom' },
     });
@@ -288,7 +291,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
       <Typography>
         {getLanguageFromKey('app_deploy_messages.choose_version', language)}
       </Typography>
-      <div className={classes.select}>
+      <div className={classes.select} id={`deploy-select-${envName.toLowerCase()}`}>
         <Select
           className='basic-single'
           classNamePrefix='select'
@@ -306,6 +309,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           btnText={getLanguageFromKey('app_deploy_messages.btn_deploy_new_version', language)}
           disabled={deployButtonDisabled}
           onClickFunction={deployButtonConfirmationPopover}
+          id={`deploy-button-${envName.toLowerCase()}`}
         />
         <AltinnPopoverSimple
           classes={{}}
@@ -492,62 +496,83 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           </Grid>
 
           <Grid item={true} className={classes.deploymentListGrid}>
-            <Typography>
-            {getParsedLanguageFromKey('app_deploy_table.deployed_version_history', language, [envName.toUpperCase()])}
-            </Typography>
-            <div className={classes.tableWrapper}>
-              <Table
-                stickyHeader={true}
-                className={classes.table}
-                size='small'
-                aria-label={getParsedLanguageFromKey('app_deploy_table.deploy_table_aria', language, [envName], true)}
-              >
-                <TableHead>
-                  <TableRow className={classes.tableRow}>
-                    <TableCell className={classes.colorBlack}>
-                      <Typography>
-                        {getParsedLanguageFromKey('app_deploy_table.version_col', language)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell className={classes.colorBlack}>
-                      <Typography>
-                        {getParsedLanguageFromKey('app_deploy_table.available_version_col', language)}
-                      </Typography>
-                    </TableCell>
-                    <Hidden mdDown={true}>
-                      <TableCell className={classes.colorBlack}>
-                        <Typography>
-                          {getParsedLanguageFromKey('app_deploy_table.deployed_by_col', language)}
-                        </Typography>
-                      </TableCell>
-                    </Hidden>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {succeededDeployHistory.map((deploy: any, index: number) => (
-                    <TableRow key={index} className={classes.tableRow}>
-                      <TableCell component='th' scope='row'>
-                        <Typography>
-                          {deploy.tagName}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography>
-                          {moment(new Date(deploy.build.finished)).format('DD.MM.YY [kl.] HH:mm')}
-                        </Typography>
-                      </TableCell>
-                      <Hidden mdDown={true}>
-                        <TableCell>
+            {succeededDeployHistory.length === 0 ? (
+              <Typography id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
+                {getParsedLanguageFromKey(
+                  'app_deploy_table.deployed_version_history_empty',
+                   language,
+                   [envName.toUpperCase()],
+                )}
+              </Typography>
+            ) : (
+              <>
+                <Typography id={`deploy-history-for-${envName.toLowerCase()}-available`}>
+                  {getParsedLanguageFromKey(
+                    'app_deploy_table.deployed_version_history',
+                    language,
+                    [envName.toUpperCase()],
+                  )}
+                </Typography>
+                <div className={classes.tableWrapper} id={`deploy-history-table-${envName.toLowerCase()}`}>
+                  <Table
+                    stickyHeader={true}
+                    className={classes.table}
+                    size='small'
+                    aria-label={getParsedLanguageFromKey(
+                      'app_deploy_table.deploy_table_aria',
+                      language,
+                      [envName],
+                      true,
+                    )}
+                  >
+                    <TableHead>
+                      <TableRow className={classes.tableRow}>
+                        <TableCell className={classes.colorBlack}>
                           <Typography>
-                            {deploy.createdBy}
+                            {getParsedLanguageFromKey('app_deploy_table.version_col', language)}
                           </Typography>
                         </TableCell>
-                      </Hidden>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                        <TableCell className={classes.colorBlack}>
+                          <Typography>
+                            {getParsedLanguageFromKey('app_deploy_table.available_version_col', language)}
+                          </Typography>
+                        </TableCell>
+                        <Hidden mdDown={true}>
+                          <TableCell className={classes.colorBlack}>
+                            <Typography>
+                              {getParsedLanguageFromKey('app_deploy_table.deployed_by_col', language)}
+                            </Typography>
+                          </TableCell>
+                        </Hidden>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {succeededDeployHistory.map((deploy: any, index: number) => (
+                        <TableRow key={index} className={classes.tableRow}>
+                          <TableCell component='th' scope='row'>
+                            <Typography>
+                              {deploy.tagName}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography>
+                              {moment(new Date(deploy.build.finished)).format('DD.MM.YY HH:mm')}
+                            </Typography>
+                          </TableCell>
+                          <Hidden mdDown={true}>
+                            <TableCell>
+                              <Typography>
+                                {deploy.createdBy}
+                              </Typography>
+                            </TableCell>
+                          </Hidden>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
           </Grid>
 
         </Grid>

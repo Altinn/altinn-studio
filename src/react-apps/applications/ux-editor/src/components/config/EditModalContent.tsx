@@ -418,7 +418,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
               )
             }
 
-            {Object.keys(AddressKeys).map((value: AddressKeys) => {
+            {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
               const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
               if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
                 return null;
@@ -431,6 +431,7 @@ export class EditModalContentComponent extends React.Component<IEditModalContent
                   getTextResourceByAddressKey(value, this.props.language),
                   value,
                   value,
+                  index,
                 )
               );
             })}
