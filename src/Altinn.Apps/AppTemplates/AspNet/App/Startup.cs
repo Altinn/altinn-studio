@@ -9,6 +9,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Interfaces;
+using Altinn.Common.PEP.Authorization;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -89,6 +90,10 @@ namespace Altinn.App
                     options.Cookie.Name = "AltinnStudioRuntime";
                 });
 
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement("Read")));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
