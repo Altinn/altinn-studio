@@ -1,22 +1,22 @@
 {
   "id": "tdd/endring-av-navn",
   "org": "tdd",
-  "createdDateTime": "2019-09-24T10:02:41.0839253Z",
+  "created": "2019-09-24T10:02:41.0839253Z",
   "createdBy": "Kritsi",
-  "lastChangedDateTime": "2019-09-24T10:02:41.0839254Z",
+  "lastChanged": "2019-09-24T10:02:41.0839254Z",
   "lastChangedBy": "Kritsi",
   "title": {
     "nb": "Endring av navn (RF-1453)",
     "nb-NO": "Endring av navn (RF-1453)"
   },
-  "elementTypes": [
+  "dataTypes": [
     {
       "id": "default",
-      "allowedContentType": [ "application/xml" ],
-      "maxCount": 0,
-      "shouldSign": false,
-      "shouldEncrypt": true,
-      "appLogic":  true
+      "allowedContentTypes": [ "application/xml" ],
+      "maxCount": 1,
+      "appLogic": {
+        "autoCreate": true
+      }
     }
   ]
 }

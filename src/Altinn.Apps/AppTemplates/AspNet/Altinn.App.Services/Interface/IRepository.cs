@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Xml.Linq;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Workflow;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Services.Interface
 {

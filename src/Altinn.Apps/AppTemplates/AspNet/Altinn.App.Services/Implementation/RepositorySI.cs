@@ -1,27 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Text;
-using System.Xml;
-using System.Xml.Linq;
 using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Constants;
 using Altinn.App.Services.Helpers;
-using Altinn.App.Services.Helpers.Extensions;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
 using Altinn.App.Services.Models.Workflow;
-using Altinn.App.Services.ServiceMetadata;
-using Altinn.Platform.Storage.Models;
-using LibGit2Sharp;
-using Manatee.Json.Schema;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Services.Implementation
 {

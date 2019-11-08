@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Services.Interface
 {
@@ -13,29 +13,29 @@ namespace Altinn.App.Services.Interface
         /// <summary>
         /// Gets the instance
         /// </summary>
-        Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId);
+        Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId);
 
         /// <summary>
         /// Gets the instance list
         /// </summary>
-        Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerId);
+        Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerPartyId);
 
         /// <summary>
         /// update instance metadata
         /// </summary>
-        Task<Instance> UpdateInstance(object dataToSerialize, string app, string org, int instanceOwnerId, Guid instanceId);
+        Task<Instance> UpdateInstance(object dataToSerialize, string app, string org, int instanceOwnerPartyId, Guid instanceId);
 
         /// <summary>
         /// update instance metadata
         /// </summary>
-        Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string app, string org, int instanceOwnerId, Guid instanceId);
+        Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string app, string org, int instanceOwnerPartyId, Guid instanceId);
 
         /// <summary>
         /// Creates an instance of an application with no data.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="instanceTemplate">the instance template to create (must have instanceOwnerId or instanceOwnerLookup set)</param>
+        /// <param name="instanceTemplate">the instance template to create (must have instanceOwner with partyId, personNumber or organisationNumber set)</param>
         /// <returns>The created instance</returns>
         Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate);
     }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Common.RequestHandling
 {
@@ -39,7 +39,7 @@ namespace Altinn.App.Common.RequestHandling
             }
             else
             {
-                ElementType elementType = appInfo.ElementTypes.Find(e => e.Id == part.Name);
+                DataType elementType = appInfo.DataTypes.Find(e => e.Id == part.Name);
 
                 if (elementType == null)
                 {
@@ -55,7 +55,7 @@ namespace Altinn.App.Common.RequestHandling
                     string contentTypeWithoutEncoding = part.ContentType.Split(";")[0];
 
                     // TODO: Support for any content type?
-                    if (!elementType.AllowedContentType.Contains(contentTypeWithoutEncoding))
+                    if (!elementType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
                     {
                         return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{elementType}'";
                     }
@@ -93,14 +93,14 @@ namespace Altinn.App.Common.RequestHandling
                 }
             }
 
-            foreach (ElementType elementType in appInfo.ElementTypes)
+            foreach (DataType dataType in appInfo.DataTypes)
             {
-                if (elementType.MaxCount > 0)
+                if (dataType.MaxCount > 0)
                 {
-                    int partCount = parts.Count(p => p.Name == elementType.Id);
-                    if (elementType.MaxCount < partCount)
+                    int partCount = parts.Count(p => p.Name == dataType.Id);
+                    if (dataType.MaxCount < partCount)
                     {
-                        return $"The list of parts contains more elements of type '{elementType.Id}' than the element type allows.";
+                        return $"The list of parts contains more elements of type '{dataType.Id}' than the element type allows.";
                     }
                 }
             }
