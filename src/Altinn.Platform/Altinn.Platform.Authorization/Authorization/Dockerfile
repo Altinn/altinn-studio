@@ -3,7 +3,6 @@ WORKDIR Authorization/
 
 COPY Authorization ./Authorization
 COPY Authorization.Interface ./Authorization.Interface
-COPY Altinn.Authorization.ABAC ./Altinn.Authorization.ABAC
 WORKDIR Authorization/
 
 RUN dotnet build Altinn.Platform.Authorization.csproj -c Release -o /app_output
