@@ -26,11 +26,11 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
           } else {
             return (
               <Grid item={true} key={component.id} xs={12}>
-                <FormGroup>
+                <div className='a-form-group'>
                   <GenericComponent
                     {...component as ILayoutComponent}
                   />
-                </FormGroup>
+                </div>
               </Grid>
             );
           }
