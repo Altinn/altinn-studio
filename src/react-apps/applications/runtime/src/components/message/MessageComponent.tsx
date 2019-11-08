@@ -1,3 +1,4 @@
+import classNames = require('classnames');
 import * as React from 'react';
 
 export type MessageType = 'message' | 'info' | 'error' | 'success';
@@ -12,31 +13,19 @@ export interface IMessageComponentProps {
 export interface IMessageComponentState { }
 
 class MessageComponent extends React.Component<IMessageComponentProps, IMessageComponentState> {
-
-  public getMessageClasses = () => {
-    let classes = 'field-validation-error a-message';
-    switch (this.props.messageType) {
-      case 'info':
-        classes += ' a-message-info';
-        break;
-      case 'error':
-        classes += ' a-message-error';
-        break;
-      case 'success':
-        classes += ' a-message-success';
-        break;
-      default:
-        break;
-    }
-
-    return classes;
-  }
-
   public render() {
     return (
       <div
         id={this.props.id}
-        className={this.getMessageClasses()}
+        className={classNames(
+          'field-validation-error',
+          'a-message',
+          {
+            'a-message-info': this.props.messageType === 'info',
+            'a-message-error': this.props.messageType === 'error',
+            'a-message-success': this.props.messageType === 'success',
+          },
+        )}
         style={this.props.style}
       >
         {this.props.message ? this.props.message : this.props.children}

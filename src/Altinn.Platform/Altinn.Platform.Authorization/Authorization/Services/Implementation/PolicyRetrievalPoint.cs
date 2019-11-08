@@ -23,7 +23,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         private readonly IPolicyRepository _repository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.      
+        /// Initializes a new instance of the <see cref="PolicyRetrievalPoint"/> class.
         /// </summary>
         /// <param name="policyRepository">The policy Repository..</param>
         public PolicyRetrievalPoint(IPolicyRepository policyRepository)
@@ -106,7 +106,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 throw new ArgumentException("App was not defined");
             }
 
-            return $"{org.AsFileName()}/{app.AsFileName()}/policy.xacml";
+            return $"{org.AsFileName()}/{app.AsFileName()}/policy.xml";
         }
 
         private static XacmlPolicy ParsePolicy(Stream stream)

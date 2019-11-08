@@ -30,6 +30,7 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
         onClick={this.submitForm}
         disabled={disabled}
         id={this.props.id}
+        style={{ marginBottom: '0' }}
       >
         {this.props.text}
       </button>
@@ -47,6 +48,7 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
         onClick={this.saveFormData}
         disabled={disabled}
         id='saveBtn'
+        style={{ marginBottom: '0' }}
       >
         Lagre
       </button>
@@ -54,14 +56,14 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
   }
 
   public saveFormData = () => {
-    const { org, app, instanceId } = window as IAltinnWindow;
+    const { org, app, instanceId } = window as Window as IAltinnWindow;
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
     );
   }
 
   public submitForm = () => {
-    const {org, app, instanceId } = window as IAltinnWindow;
+    const {org, app, instanceId } = window as Window as IAltinnWindow;
     FormDataActions.submitFormData(
       `${window.location.origin}/${org}/${app}/api/${instanceId}`,
       'Complete',
@@ -70,8 +72,8 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
   public render() {
     return (
-      <div className='row mt-3'>
-        <div className='a-btn-group'>
+      <div className='row'>
+        <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
           {this.renderSaveButton()}
           {this.renderSubmitButton()}
         </div>
