@@ -55,6 +55,7 @@ export const DeployContainer = (props: IDeployContainer) => {
 
     return () => {
       AppDeploymentActions.getAppDeploymentsStopInterval();
+      AppClusterActions.getDeploymentsStopInterval();
     };
 
   }, []);
