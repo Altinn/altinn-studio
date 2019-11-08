@@ -243,7 +243,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
       btnMethod: handleDeployButtonConfirmation,
       btnConfirmText: 'Ja',
       btnCancelText: 'avbryt',
-      btnPrimaryId: `deploy-button-${envName}-confirm`,
+      btnPrimaryId: `deploy-button-${envName.toLowerCase()}-confirm`,
       anchorOrigin: { horizontal: 'right', vertical: 'bottom' },
       transformOrigin: { horizontal: 'left', vertical: 'bottom' },
     });
@@ -294,7 +294,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
       <Typography>
         {getLanguageFromKey('app_deploy_messages.choose_version', language)}
       </Typography>
-      <div className={classes.select} id={`deploy-select-${envName}`}>
+      <div className={classes.select} id={`deploy-select-${envName.toLowerCase()}`}>
         <Select
           className='basic-single'
           classNamePrefix='select'
@@ -500,7 +500,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
 
           <Grid item={true} className={classes.deploymentListGrid}>
             {succeededDeployHistory.length === 0 ? (
-              <Typography id={`deploy-history-for-${envName}-unavailable`}>
+              <Typography id={`deploy-history-for-${envName.toLowerCase()}-unavailable`}>
                 {getParsedLanguageFromKey(
                   'app_deploy_table.deployed_version_history_empty',
                    language,
@@ -509,7 +509,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
               </Typography>
             ) : (
               <>
-                <Typography id={`deploy-history-for-${envName}-available`}>
+                <Typography id={`deploy-history-for-${envName.toLowerCase()}-available`}>
                   {getParsedLanguageFromKey(
                     'app_deploy_table.deployed_version_history',
                     language,
@@ -559,7 +559,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
                           </TableCell>
                           <TableCell>
                             <Typography>
-                              {moment(new Date(deploy.build.finished)).format('DD.MM.YY [kl.] HH:mm')}
+                              {moment(new Date(deploy.build.finished)).format('DD.MM.YY HH:mm')}
                             </Typography>
                           </TableCell>
                           <Hidden mdDown={true}>
