@@ -556,7 +556,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
                           </TableCell>
                           <TableCell>
                             <Typography>
-                              {moment(new Date(deploy.build.finished)).format('DD.MM.YY [kl.] HH:mm')}
+                              {moment(new Date(deploy.build.finished)).format('DD.MM.YY HH:mm')}
                             </Typography>
                           </TableCell>
                           <Hidden mdDown={true}>
