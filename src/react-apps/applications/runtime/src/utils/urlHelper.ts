@@ -65,7 +65,6 @@ export const getEnvironmentLoginUrl: () => string = () => {
     return `https://platform${domainSplitted[2]}.${domainSplitted[3]}` +
       `/authentication/api/v1/authentication?goto=${window.location.href}`;
   } else {
-    // TODO: what if altinn3?
     throw new Error('Unknown domain');
   }
 };
