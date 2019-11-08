@@ -77,15 +77,9 @@ namespace Altinn.Platform.Authentication.Configuration
         public string PlatformEndpoint { get; set; }
 
         /// <summary>
-        /// Gets the platform endpoint from kubernetes environment variables and appsettings if environment variable is not set
+        /// Gets the platform endpoint from kubernetes environment variables or appsettings if environment variable is missing
         /// </summary>
-        public string GetPlatformEndpoint
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("GeneralSettings__PlatformEndpoint") ?? PlatformEndpoint;
-            }
-        }
+        public string GetPlatformEndpoint => GetEnvironmentOrPropertyValue(nameof(PlatformEndpoint));
 
         /// <summary>
         /// Gets or sets the claims identity
@@ -183,6 +177,26 @@ namespace Altinn.Platform.Authentication.Configuration
                 return Environment.GetEnvironmentVariable("GeneralSettings__" + nameof(OrganisationRepositoryLocation)) ??
                     OrganisationRepositoryLocation;
             }
+        }
+
+        /// <summary>
+        /// Get value from environment variable with key equals "GeneralSettings__" + propertyName or directly from
+        /// the property if the environment variable is missing.
+        /// </summary>
+        /// <param name="propertyName">The name of a property in this class.</param>
+        /// <returns>The identified value</returns>
+        /// <remarks>This method is using reflection. Avoid it if a value is being accessed frequently. Like in a loop.</remarks>
+        private string GetEnvironmentOrPropertyValue(string propertyName)
+        {
+            var prop = this.GetType().GetProperty(propertyName);
+            if (prop == null)
+            {
+                throw new ArgumentException($"This class does not have any property with the name {propertyName}");
+            }
+
+            string envValue = Environment.GetEnvironmentVariable("GeneralSettings__" + propertyName);
+
+            return envValue ?? prop.GetValue(this).ToString();
         }
     }
 }
