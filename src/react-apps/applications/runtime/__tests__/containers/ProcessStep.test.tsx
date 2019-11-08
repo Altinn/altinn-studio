@@ -6,8 +6,8 @@ import { Provider } from 'react-redux';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-
-import { WorkflowStep, WorkflowSteps } from '../../src/features/form/containers/WorkflowStep';
+import { ProcessStep } from '../../src/features/form/containers/ProcessStep';
+import { ProcessSteps } from '../../src/types';
 
 describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
   let mockHeader: string;
@@ -76,9 +76,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const rendered = renderer.create(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.FormFilling}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
@@ -90,9 +90,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.FormFilling}
+            step={ProcessSteps.FormFilling}
             children={<div id='mockFormFiller' />}
           />
         </Provider>
@@ -105,23 +105,23 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.FormFilling}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#1EAEF7');
+    expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#1EAEF7');
   });
 
   it('+++ should render receipt when step is "archived"', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Archived}
+            step={ProcessSteps.Archived}
           />
         </Provider>
       </MemoryRouter>,
@@ -133,29 +133,16 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Archived}
+            step={ProcessSteps.Archived}
           />
         </Provider>
       </MemoryRouter>,
     );
-    expect(wrapper.find('#workflowContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
+    expect(wrapper.find('#processContainer').prop('style')).toHaveProperty('backgroundColor', '#D4F9E4');
   });
 
-  it('+++ should render submit when step is "submit"', () => {
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <WorkflowStep
-            header={mockHeader}
-            step={WorkflowSteps.Submit}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper.exists('#workflowSubmitStepButton')).toEqual(true);
-  });
   it('+++ should map unmappedValidations if there are any and create error report', () => {
     const createStore = configureStore();
     const newState = {
@@ -193,9 +180,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Submit}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
@@ -240,9 +227,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Submit}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
@@ -299,9 +286,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
     const wrapper = mount(
       <MemoryRouter>
         <Provider store={mockStore}>
-          <WorkflowStep
+          <ProcessStep
             header={mockHeader}
-            step={WorkflowSteps.Submit}
+            step={ProcessSteps.FormFilling}
           />
         </Provider>
       </MemoryRouter>,
