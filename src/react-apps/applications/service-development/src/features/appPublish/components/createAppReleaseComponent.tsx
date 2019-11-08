@@ -98,7 +98,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
   }
 
   function handleBuildVersionClick(event: React.MouseEvent) {
-    if (versionNameValid() && tagName !== '' && body !== '') {
+    if (versionNameValid() && tagName !== '') {
       AppReleaseActions.createAppRelease(tagName, tagName, body, repoStatus.branch.master.commit.id);
       setTagName('');
       setBody('');
