@@ -9,6 +9,8 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/{instanceId}")]
         public IActionResult Index([FromRoute] string org, [FromRoute] string app, [FromRoute] Guid? instanceId)
         {
+            ViewBag.org = org;
+            ViewBag.app = app;
             return PartialView("Index");
         }
     }

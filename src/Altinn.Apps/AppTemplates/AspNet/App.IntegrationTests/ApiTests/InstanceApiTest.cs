@@ -63,6 +63,23 @@ namespace App.IntegrationTests
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
+        [Fact]
+        public async Task Instance_Post_Ok()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/skd/taxreport/instances/")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+
 
         private HttpClient GetTestClient()
         {
