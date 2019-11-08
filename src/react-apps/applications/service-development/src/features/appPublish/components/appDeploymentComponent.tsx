@@ -6,6 +6,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
@@ -61,6 +62,7 @@ const useStyles = makeStyles(() =>
     },
     select: {
       maxWidth: '34rem',
+      zIndex: 900,
     },
     gridItem: {
       paddingRight: '2rem',
@@ -123,14 +125,15 @@ const useStyles = makeStyles(() =>
 const AppDeploymentComponent = (props: IReceiptContainerProps) => {
   const classes = useStyles(props);
 
-  const [selectedImageTag, setSelectedImageTag] = React.useState(null);
-  const [deployInProgress, setDeployInProgress] = React.useState(null);
-  const [deployButtonDisabled, setDeployButtonDisabled] = React.useState(true);
-  const [succeededDeployHistory, setSucceededDeployHistory] = React.useState([]);
-  const [shouldDisplayDeployStatus, setShouldDisplayDeployStatus] = React.useState(false);
-  const [deploymentStatus, setDeploymentStatus] = React.useState(null);
-
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [deployButtonDisabled, setDeployButtonDisabled] = React.useState(true);
+  const [deployInProgress, setDeployInProgress] = React.useState(null);
+  const [deploymentStatus, setDeploymentStatus] = React.useState(null);
+  const [selectedImageTag, setSelectedImageTag] = React.useState(null);
+  const [shouldDisplayDeployStatus, setShouldDisplayDeployStatus] = React.useState(false);
+  const [succeededDeployHistory, setSucceededDeployHistory] = React.useState([]);
+
+  const breakpointMdUp = useMediaQuery(theme.breakpoints.up('md'));
 
   interface IPopoverState  {
     btnConfirmText: string;
@@ -489,7 +492,7 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
             </Grid>
           </Grid>
 
-          <Grid item={true} xs={7} lg={5} className={classNames(classes.dropdownGrid)}>
+          <Grid item={true} xs={12} sm={12} md={5} className={classNames(classes.dropdownGrid)}>
             {deploymentList && deploymentList.getStatus.success === true && returnDeployDropDown()}
             {deploymentList && deploymentList.getStatus.success === false && returnDeployUnavailable()}
 
@@ -513,9 +516,9 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
                     [envName.toUpperCase()],
                   )}
                 </Typography>
-                <div className={classes.tableWrapper} id={`deploy-history-table-${envName.toLowerCase()}`}>
+                <div className={classes.tableWrapper} id={`deploy-history-table-${envName}`}>
                   <Table
-                    stickyHeader={true}
+                    stickyHeader={breakpointMdUp ? true : false}
                     className={classes.table}
                     size='small'
                     aria-label={getParsedLanguageFromKey(
