@@ -22,7 +22,6 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string collectionId = "dataElements";
         private readonly string partitionKey = "/instanceGuid";
         private static DocumentClient _client;
-        private readonly AzureCosmosSettings _cosmosettings;
         private readonly AzureStorageConfiguration _storageConfiguration;
         private CloudBlobClient blobClient;
         private CloudBlobContainer container;
