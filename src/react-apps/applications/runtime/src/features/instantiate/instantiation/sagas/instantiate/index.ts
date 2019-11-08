@@ -8,7 +8,6 @@ import { convertDataBindingToModel } from '../../../../../utils/databindings';
 import { post } from '../../../../../utils/networking';
 import { getCreateDataElementUrl, getCreateInstancesUrl, getStartProcessUrl } from '../../../../../utils/urlHelper';
 import InstantiationActions from '../../actions';
-import { IInstantiate } from '../../actions/instantiate';
 import * as InstantiationActionTypes from '../../actions/types';
 import { IInstantiationState } from '../../reducer';
 
