@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

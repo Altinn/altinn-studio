@@ -5,7 +5,7 @@ using Altinn.App.Common.Models;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

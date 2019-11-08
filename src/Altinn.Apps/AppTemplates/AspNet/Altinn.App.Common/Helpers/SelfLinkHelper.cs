@@ -1,7 +1,6 @@
 using System;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
-using Storage.Interface.Models;
 
 namespace Altinn.App.Common.Helpers
 {
@@ -42,8 +41,8 @@ namespace Altinn.App.Common.Helpers
             {
                 foreach (DataElement dataElement in instance.Data)
                 {
-                    dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
-                    dataElement.DataLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
+                    dataElement.SelfLinks = dataElement.SelfLinks ?? new ResourceLinks();
+                    dataElement.SelfLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
                 }
             }
         }
@@ -51,10 +50,11 @@ namespace Altinn.App.Common.Helpers
         /// <summary>
         /// Sets the application specific self links.
         /// </summary>
+        /// <param name="instanceOwnerPartyId">the instance owner</param>
         /// <param name="instanceGuid">the instance guid for the instance the data element belongs to</param>
         /// <param name="dataElement">the data element to set links for</param>
         /// <param name="request">the http request to extract host and path name</param>
-        public static void SetDataAppSelfLinks(Guid instanceGuid, DataElement dataElement, HttpRequest request)
+        public static void SetDataAppSelfLinks(int instanceOwnerPartyId, Guid instanceGuid, DataElement dataElement, HttpRequest request)
         {
             string host = $"https://{request.Host.ToUriComponent()}";
             string url = request.Path;
@@ -67,11 +67,11 @@ namespace Altinn.App.Common.Helpers
                 selfLink = selfLink.Substring(0, start) + "/instances";
             }
 
-            selfLink += $"/{instanceGuid.ToString()}";
+            selfLink += $"/{instanceOwnerPartyId}/{instanceGuid.ToString()}";
 
-            dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
+            dataElement.SelfLinks = dataElement.SelfLinks ?? new ResourceLinks();
 
-            dataElement.DataLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
+            dataElement.SelfLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
         }
 
     }

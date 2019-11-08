@@ -9,13 +9,11 @@ using Altinn.App.Common.Validation;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Enums;
 using Altinn.App.Services.Interface;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
-
-using Storage.Interface.Models;
 
 namespace AltinnCore.Runtime.RestControllers
 {
@@ -88,11 +86,11 @@ namespace AltinnCore.Runtime.RestControllers
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
 
             List<ValidationIssue> messages = new List<ValidationIssue>();
-            foreach (ElementType elementType in application.ElementTypes.Where(et => et.Task == taskId))
+            foreach (DataType dataType in application.DataTypes.Where(et => et.TaskId == taskId))
             {
-                List<DataElement> elements = instance.Data.Where(d => d.ElementType == elementType.Id).ToList();
+                List<DataElement> elements = instance.Data.Where(d => d.DataType == dataType.Id).ToList();
 
-                if (elementType.MaxCount > 0 && elementType.MaxCount < elements.Count)
+                if (dataType.MaxCount > 0 && dataType.MaxCount < elements.Count)
                 {
                     ValidationIssue message = new ValidationIssue
                     {
@@ -105,7 +103,7 @@ namespace AltinnCore.Runtime.RestControllers
                     messages.Add(message);
                 }
 
-                if (elementType.MinCount > 0 && elementType.MinCount > elements.Count)
+                if (dataType.MinCount > 0 && dataType.MinCount > elements.Count)
                 {
                     ValidationIssue message = new ValidationIssue
                     {
@@ -120,7 +118,7 @@ namespace AltinnCore.Runtime.RestControllers
 
                 foreach (DataElement dataElement in elements)
                 {
-                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, dataElement, serviceText));
+                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, dataType, dataElement, serviceText));
                 }
             }
 
@@ -177,22 +175,22 @@ namespace AltinnCore.Runtime.RestControllers
 
             Application application = await appService.GetApplication(org, app);
 
-            ElementType elementType = application.ElementTypes.FirstOrDefault(et => et.Id == element.ElementType);
+            DataType dataType = application.DataTypes.FirstOrDefault(et => et.Id == element.DataType);
 
-            if (elementType == null)
+            if (dataType == null)
             {
                 throw new ValidationException("Unknown element type.");
             }
 
-            messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, elementType, element, serviceText));
+            messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, dataType, element, serviceText));
 
             string taskId = instance.Process.CurrentTask.ElementId;
-            if (!elementType.Task.Equals(taskId, StringComparison.OrdinalIgnoreCase))
+            if (!dataType.TaskId.Equals(taskId, StringComparison.OrdinalIgnoreCase))
             {
                 ValidationIssue message = new ValidationIssue
                 {
                     Code = ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask,
-                    Scope = element.ElementType,
+                    Scope = element.DataType,
                     TargetId = element.Id,
                     Severity = ValidationIssueSeverity.Warning,
                     Description = ServiceTextHelper.GetServiceText(
@@ -204,7 +202,7 @@ namespace AltinnCore.Runtime.RestControllers
             return Ok(messages);
         }
 
-        private async Task<List<ValidationIssue>> ValidateDataElement(string org, string app, int instanceOwnerId, Guid instanceId, ElementType elementType, DataElement dataElement, Dictionary<string, Dictionary<string, string>> serviceText)
+        private async Task<List<ValidationIssue>> ValidateDataElement(string org, string app, int instanceOwnerId, Guid instanceId, DataType dataType, DataElement dataElement, Dictionary<string, Dictionary<string, string>> serviceText)
         {
             List<ValidationIssue> messages = new List<ValidationIssue>();
 
@@ -213,7 +211,7 @@ namespace AltinnCore.Runtime.RestControllers
                 ValidationIssue message = new ValidationIssue
                 {
                     Code = ValidationIssueCodes.DataElementCodes.MissingContentType,
-                    Scope = dataElement.ElementType,
+                    Scope = dataElement.DataType,
                     TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
@@ -225,12 +223,12 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 string contentTypeWithoutEncoding = dataElement.ContentType.Split(";")[0];
 
-                if (elementType.AllowedContentType.All(ct => !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)))
+                if (dataType.AllowedContentTypes.All(ct => !ct.Equals(contentTypeWithoutEncoding, StringComparison.OrdinalIgnoreCase)))
                 {
                     ValidationIssue message = new ValidationIssue
                     {
                         Code = ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed,
-                        Scope = dataElement.ElementType,
+                        Scope = dataElement.DataType,
                         TargetId = dataElement.Id,
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
@@ -240,12 +238,12 @@ namespace AltinnCore.Runtime.RestControllers
                 }
             }
 
-            if (elementType.MaxSize.HasValue && elementType.MaxSize > 0 && elementType.MaxSize < dataElement.FileSize)
+            if (dataType.MaxSize.HasValue && dataType.MaxSize > 0 && dataType.MaxSize < dataElement.Size)
             {
                 ValidationIssue message = new ValidationIssue
                 {
                     Code = ValidationIssueCodes.DataElementCodes.DataElementTooLarge,
-                    Scope = dataElement.ElementType,
+                    Scope = dataElement.DataType,
                     TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
@@ -253,9 +251,8 @@ namespace AltinnCore.Runtime.RestControllers
                 };
                 messages.Add(message);
             }
-
-
-            if (elementType.AppLogic)
+          
+            if (dataType.AppLogic != null)
             {
                 // TODO. Figure out this datamodel type thing
                 Type modelType = altinnApp.GetAppModelType("default");
@@ -267,14 +264,14 @@ namespace AltinnCore.Runtime.RestControllers
 
                 if (!ModelState.IsValid)
                 {
-                    messages.AddRange(MapModelStateToIssueList(ModelState, dataElement.Id, dataElement.ElementType, serviceText));
+                    messages.AddRange(MapModelStateToIssueList(ModelState, dataElement.Id, dataElement.DataType, serviceText));
                 }
             }
 
             return messages;
         }
 
-        private List<ValidationIssue> MapModelStateToIssueList(ModelStateDictionary modelState, string elementId, string elementType, Dictionary<string, Dictionary<string, string>> serviceText)
+        private List<ValidationIssue> MapModelStateToIssueList(ModelStateDictionary modelState, string elementId, string dataType, Dictionary<string, Dictionary<string, string>> serviceText)
         {
             List<ValidationIssue> messages = new List<ValidationIssue>();
             foreach (string modelKey in modelState.Keys)
@@ -288,7 +285,7 @@ namespace AltinnCore.Runtime.RestControllers
                         ValidationIssue message = new ValidationIssue
                         {
                             Code = error.ErrorMessage,
-                            Scope = elementType,
+                            Scope = dataType,
                             TargetId = elementId,
                             Field = modelKey,
                             Severity = ValidationIssueSeverity.Error,
