@@ -332,7 +332,7 @@ namespace Altinn.App.Api.Controllers
 
             if (dataStream != null)
             {
-                return File(dataStream, dataElement.ContentType, dataElement.FileName);
+                return File(dataStream, dataElement.ContentType, dataElement.Filename);
             }
             else
             {

@@ -206,8 +206,8 @@ namespace Altinn.App.Services.Implementation
                         attachments.Add(new Attachment
                         {
                             Id = data.Id,
-                            Name = data.FileName,
-                            Size = data.FileSize
+                            Name = data.Filename,
+                            Size = data.Size,
                         });
                     }
                 }
