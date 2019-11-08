@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
@@ -43,6 +42,7 @@ namespace Altinn.Platform.Storage
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseStartup<Startup>();
+                webBuilder.UseUrls("http://*:5010");
             })
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
@@ -62,11 +62,13 @@ namespace Altinn.Platform.Storage
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             });
-        /* // Parameters required for integration with SBL in local development             
-         .UseKestrel()
-         .UseUrls("http://0.0.0.0:5010")
-        .UseContentRoot(Directory.GetCurrentDirectory())
-        .UseIISIntegration() */
+
+        // Parameters required for integration with SBL in local development             
+        /*
+            .UseUrls("http://0.0.0.0:5010")
+            .UseKestrel();
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .UseIISIntegration() */
 
         /// <summary>
         /// Load the configuration settings for the program.
@@ -116,24 +118,17 @@ namespace Altinn.Platform.Storage
                 try
                 {
                     // get instrumentation key to set up telemetry
-                    SecretBundle secretBundle = keyVaultClient
-                        .GetSecretAsync(keyVaultEndpoint, "ApplicationInsights--InstrumentationKey").Result;
+                    string appInsightsKey = "ApplicationInsights--InstrumentationKey";
 
-                    SetTelemetry(secretBundle.Value);
+                    SecretBundle secretBundle = keyVaultClient
+                        .GetSecretAsync(keyVaultEndpoint, appInsightsKey).Result;
+
+                    Environment.SetEnvironmentVariable(appInsightsKey, secretBundle.Value);
                 }
                 catch (Exception vaultException)
                 {
                     logger.Error($"Could not find secretBundle for application insights {vaultException}");
                 }
-            }
-        }
-
-        private static void SetTelemetry(string instrumentationKey)
-        {
-            logger.Information($"Setting application insights telemetry with instrumentationKey='{instrumentationKey}'");
-            if (!string.IsNullOrEmpty(instrumentationKey))
-            {
-                TelemetryConfiguration.Active.InstrumentationKey = instrumentationKey;
             }
         }
     }

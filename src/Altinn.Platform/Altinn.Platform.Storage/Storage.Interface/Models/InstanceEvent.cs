@@ -1,8 +1,7 @@
 using System;
 using Newtonsoft.Json;
-using Storage.Interface.Models;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Model for the instance event.
@@ -11,19 +10,19 @@ namespace Altinn.Platform.Storage.Models
     public class InstanceEvent
     {
         /// <summary>
-        /// unique identifier of the event
+        /// unique identifier of the event.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public Guid? Id { get; set; }
 
         /// <summary>
-        /// the instance the event refers to
+        /// the instance the event refers to {instanceOwnerId}/{instanceGuid}.
         /// </summary>
         [JsonProperty(PropertyName = "instanceId")]
         public string InstanceId { get; set; }
 
         /// <summary>
-        /// the data element which the event refers to
+        /// the data element which the event refers to, or null.
         /// </summary>
         [JsonProperty(PropertyName = "dataId")]
         public string DataId { get; set; }
@@ -31,38 +30,26 @@ namespace Altinn.Platform.Storage.Models
         /// <summary>
         /// event creation date-time
         /// </summary>
-        [JsonProperty(PropertyName = "createdDateTime")]
-        public DateTime? CreatedDateTime { get; set; }
+        [JsonProperty(PropertyName = "created")]
+        public DateTime? Created { get; set; }
 
         /// <summary>
-        /// the event type, e.g. created, saved, workflow-change
+        /// the event type, e.g. created, saved, process-change.
         /// </summary>
         [JsonProperty(PropertyName = "eventType")]
         public string EventType { get; set; }
 
         /// <summary>
-        /// the instance owner id
+        /// the instance owner party id.
         /// </summary>
-        [JsonProperty(PropertyName = "instanceOwnerId")]
-        public string InstanceOwnerId { get; set; }
+        [JsonProperty(PropertyName = "instanceOwnerPartyId")]
+        public string InstanceOwnerPartyId { get; set; }
 
         /// <summary>
-        /// the user who created
+        /// the user who triggered the event.
         /// </summary>
-        [JsonProperty(PropertyName = "userId")]
-        public int? UserId { get; set; }
-
-        /// <summary>
-        /// the authentication level for the user which triggered the event
-        /// </summary>
-        [JsonProperty(PropertyName = "authenticationLevel")]
-        public int AuthenticationLevel { get; set; }
-
-        /// <summary>
-        /// the end user system that triggered the event
-        /// </summary>
-        [JsonProperty(PropertyName = "endUserSystemId")]
-        public int? EndUserSystemId { get; set; }
+        [JsonProperty(PropertyName = "user")]
+        public PlatformUser User;
 
         /// <summary>
         /// More information about the process event.

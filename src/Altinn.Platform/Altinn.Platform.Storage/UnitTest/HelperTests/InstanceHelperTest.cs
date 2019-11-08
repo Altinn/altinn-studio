@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
-using Storage.Interface.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Xunit;
 
 namespace Altinn.Platform.Storage.UnitTest

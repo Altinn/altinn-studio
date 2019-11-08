@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Model for the different party types which are allowed to instantiate an application

@@ -1,13 +1,12 @@
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// A subscription hook uses an existing T2 service to evaluate if the instanceOwnerId can instantiate the app.
+    /// A subscription hook uses an existing T2 service to evaluate if the instance owner can instantiate the app.
     /// </summary>
     public class SubscriptionHook
     {
-
         /// <summary>
         /// The service code
         /// </summary>

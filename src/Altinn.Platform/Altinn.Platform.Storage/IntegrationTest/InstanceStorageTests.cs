@@ -4,13 +4,13 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using Altinn.Platform.Storage.Client;
+using System.Threading.Tasks;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Storage.Interface.Clients;
-using Storage.Interface.Models;
+
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
@@ -22,12 +22,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private InstanceClient storageClient;
+        private readonly InstanceClient storageClient;
         private string instanceId;
         private readonly string testOrg = "tests";
-        private string testAppId = "tests/sailor";
+        private readonly string testAppId = "tests/sailor";
         private readonly int testInstanceOwnerId = 500;
-        private readonly string elementType = "default";
+        private readonly string dataType = "default";
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -49,7 +49,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         public void Dispose()
         {
-            string requestUri = $"{versionPrefix}/instances?org={testOrg}";            
+            string requestUri = $"{versionPrefix}/instances?org={testOrg}";
 
             HttpResponseMessage response = client.GetAsync(requestUri).Result;
             string content = response.Content.ReadAsStringAsync().Result;
@@ -67,7 +67,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     {
                         foreach (DataElement element in instance.Data)
                         {
-                            string filename = element.StorageUrl;
+                            string filename = element.BlobStoragePath;
                             string dataUrl = "/data/" + element.Id;
 
                             string dataDeleteUrl = url + dataUrl;
@@ -90,14 +90,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         [Fact]
         public async void CreateInstanceReturnsNewIdAndNextGetReturnsSameId()
-        {           
+        {
             Instance instanceData = new Instance
             {
                 AppId = testAppId,
-                InstanceOwnerId = testInstanceOwnerId.ToString(),
+                InstanceOwner = new InstanceOwner { PartyId = testInstanceOwnerId.ToString() },
             };
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}";         
+            string url = $"{versionPrefix}/instances?appId={testAppId}";
 
             HttpResponseMessage postResponse = await client.PostAsync(url, instanceData.AsJson());
 
@@ -117,14 +117,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Assert.Equal(createdInstance.Id, actual.Id);
 
-            Assert.Equal(testInstanceOwnerId.ToString(), actual.InstanceOwnerId);
+            Assert.Equal(testInstanceOwnerId.ToString(), actual.InstanceOwner.PartyId);
             Assert.Equal(testAppId, actual.AppId);
         }
 
         /// <summary>
         ///  Checks that the GET returns a proper encoding.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstancesAndCheckEncoding()
         {
             await storageClient.PostInstances(testAppId, testInstanceOwnerId);
@@ -139,7 +139,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Store a json file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void StoreAForm()
         {
             object jsonContent = new
@@ -152,7 +152,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             // create instance
             Instance newInstance = await storageClient.PostInstances(testAppId, testInstanceOwnerId);
 
-            string requestUri = $"{versionPrefix}/instances/{newInstance.Id}/data?elementType={elementType}";
+            string requestUri = $"{versionPrefix}/instances/{newInstance.Id}/data?dataType={dataType}";
 
             // post the file
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
@@ -163,28 +163,56 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Store a binary file.
         /// </summary>
-        // [Fact]
-        public async void StoreABinaryFile()
+        [Fact]
+        public async void StoreABinaryFileAsAttachment()
+        {
+            string applicationId = testAppId;
+            int instanceOwnerId = testInstanceOwnerId;
+            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+            HttpResponseMessage response = await storageClient.PostFileAsAttachment(instance, "default", "binary_file.pdf", "application/pdf");
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
+        /// Store a binary file by stream.
+        /// </summary>
+        [Fact]
+        public async void StoreABinaryFileByStream()
+        {
+            string applicationId = testAppId;
+            int instanceOwnerId = testInstanceOwnerId;
+            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
+            HttpResponseMessage response = await storageClient.PostFileAsStream(instance, "default", "binary_file.pdf", "application/pdf");
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        /// <summary>
+        /// Stores a file in multipart format.
+        /// </summary>
+        [Fact]
+        public async void StoreABinaryFileAsMultipart()
         {
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
-            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?elementType={elementType}";
-            
-            using (Stream input = File.OpenRead("data/binary_file.pdf"))
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data?dataType={dataType}";
+
+            Stream input = File.OpenRead("data/binary_file.pdf");
+
+            HttpContent fileStreamContent = new StreamContent(input);
+
+            using MultipartFormDataContent formData = new MultipartFormDataContent
             {
-                HttpContent fileStreamContent = new StreamContent(input);
+                { fileStreamContent, dataType, "binary_file.pdf" }
+            };
 
-                using (MultipartFormDataContent formData = new MultipartFormDataContent())
-                {
-                    formData.Add(fileStreamContent, elementType, "binary_file.pdf");
-                    HttpResponseMessage response = await client.PostAsync(requestUri, formData);
+            HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent);
 
-                    response.EnsureSuccessStatusCode();
-                }
-            }
-        }
+            response.EnsureSuccessStatusCode();
+        } 
 
         private Application CreateTestApplication()
         {
@@ -219,39 +247,37 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Read a binary file.
+        /// Read a binary file 
         /// </summary>
-        // [Fact]
-        public async void GetABinaryFile()
+        [Fact]
+        public async void GetABinaryFileByStream()
         {
             string applicationId = testAppId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);           
+            Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
 
-            Instance instance2 = await storageClient.PostDataReadFromFile(instance.Id, "binary_file.pdf", "application/pdf");
-            
-            string dataId = instance2.Data.Find(m => m.ElementType.Equals("default")).Id;
+            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
+                 
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
 
-            string requestUri = $"{versionPrefix}/instances/{instance2.Id}/data/{dataId}";
+            using HttpResponseMessage response2 = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
             
-            using (HttpResponseMessage response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead))
+            if (response2.IsSuccessStatusCode)
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    using (Stream remoteStream = await response.Content.ReadAsStreamAsync())
-                    using (var output = File.Create("test.pdf"))
-                    {
-                        await remoteStream.CopyToAsync(output);
-                    }
-                }
+                using Stream remoteStream = await response2.Content.ReadAsStreamAsync();
+                using var output = File.Create("test.pdf");
+                
+                await remoteStream.CopyToAsync(output);                
             }
+
+            Assert.True(File.Exists("test.pdf"));
         }
 
         /// <summary>
         /// Read a binary file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void StoreAndGetImageFile()
         {
             string applicationId = testAppId;
@@ -259,29 +285,27 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
 
-            Instance instance2 = await storageClient.PostDataReadFromFile(instance.Id, "image.png", "image/png");
+            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "image.png", "image/png");
+            
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
 
-            string dataId = instance2.Data.Find(m => m.ElementType.Equals("default")).Id;
-
-            string requestUri = $"{versionPrefix}/instances/{instance2.Id}/data/{dataId}";
-
-            using (HttpResponseMessage response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead))
+            using HttpResponseMessage response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead);
+            
+            if (response.IsSuccessStatusCode)
             {
-                if (response.IsSuccessStatusCode)
-                {
-                    using (Stream remoteStream = await response.Content.ReadAsStreamAsync())
-                    using (var output = File.Create("test.png"))
-                    {
-                        await remoteStream.CopyToAsync(output);
-                    }                    
-                }
+                using Stream remoteStream = await response.Content.ReadAsStreamAsync();
+                using FileStream output = File.Create("test.png");                
+
+                await remoteStream.CopyToAsync(output);                             
             }
+
+            Assert.True(File.Exists("test.png"));
         }
 
         /// <summary>
         ///  update an existing data file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void UpdateDataFile()
         {
             string applicationId = testAppId;
@@ -289,32 +313,30 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
             
-            instance = await storageClient.PostDataReadFromFile(instance.Id, "binary_file.pdf", "application/pdf");
-            
-            string dataId = instance.Data.Find(m => m.ElementType.Equals("default")).Id;
+            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");           
 
-            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataId}";
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
             
             string dataFile = "image.png";
 
-            using (Stream input = File.OpenRead($"data/{dataFile}"))
+            using Stream input = File.OpenRead($"data/{dataFile}");
+          
+            HttpContent fileStreamContent = new StreamContent(input);
+
+            using MultipartFormDataContent dataContent = new MultipartFormDataContent
             {
-                HttpContent fileStreamContent = new StreamContent(input);
+                { fileStreamContent, dataType, dataFile }
+            };
 
-                using (MultipartFormDataContent dataContent = new MultipartFormDataContent())
-                {
-                    dataContent.Add(fileStreamContent, elementType, dataFile);
-                    HttpResponseMessage response = client.PutAsync(requestUri, dataContent).Result;
+            HttpResponseMessage response = await client.PutAsync(requestUri, fileStreamContent);
 
-                    response.EnsureSuccessStatusCode();
-                }
-            }
+            response.EnsureSuccessStatusCode();            
         }
 
         /// <summary>
         ///  update an existing data file.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void UpdateDataFile_SetFileName()
         {
             string applicationId = testAppId;
@@ -322,28 +344,29 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             Instance instance = await storageClient.PostInstances(applicationId, instanceOwnerId);
 
-            instance = await storageClient.PostDataReadFromFile(instance.Id, "binary_file.pdf", "application/pdf");
+            DataElement dataElement = await storageClient.PostFileAsAttachmentAndReturnMetadata(instance, "default", "binary_file.pdf", "application/pdf");
 
-            string dataId = instance.Data.Find(m => m.ElementType.Equals("default")).Id;
-
-            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataId}";
+            string requestUri = $"{versionPrefix}/instances/{instance.Id}/data/{dataElement.Id}";
 
             string dataFile = "image.png";
 
-            using (Stream input = File.OpenRead($"data/{dataFile}"))
-            {
-                HttpContent fileStreamContent = new StreamContent(input);
-                string contentType = "application/xml";
-                string fileName = "Testfile.xml";
+            using Stream input = File.OpenRead($"data/{dataFile}");
+            
+            HttpContent fileStreamContent = new StreamContent(input);
+            string contentType = "application/xml";
+            string fileName = "Testfile.xml";
 
-                fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-                fileStreamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data; name=" + Path.GetFileNameWithoutExtension(fileName));
-                fileStreamContent.Headers.ContentDisposition.FileName = "TestFileName";
+            fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+            fileStreamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data; name=" + Path.GetFileNameWithoutExtension(fileName));
+            fileStreamContent.Headers.ContentDisposition.FileName = fileName;
 
-                HttpResponseMessage response = await client.PostAsync(requestUri, fileStreamContent).ConfigureAwait(false);
+            HttpResponseMessage response = await client.PutAsync(requestUri, fileStreamContent).ConfigureAwait(false);
 
-                response.EnsureSuccessStatusCode();
-            }
+            response.EnsureSuccessStatusCode();
+
+            DataElement dataElement2 = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync());         
+
+            Assert.Equal("Testfile.xml", dataElement2.Filename);            
         }
     }
 }

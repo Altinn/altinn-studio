@@ -3,18 +3,16 @@ using System.ComponentModel;
 
 using Newtonsoft.Json;
 
-using Storage.Interface.Models;
-
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Model for application element type.
+    /// Model for applications data type.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class ElementType
+    public class DataType
     {
         /// <summary>
-        /// The element type id. It must be unique within the scope of an application.
+        /// The data type id. It must be unique within the scope of an application.
         /// Logical name of the schema of which data elements should be validated against.
         /// Should be in lower case and can only contain letters, dash and numbers. No space or slashes are allowed.
         /// Examples are: main, subschema-x, cv, attachement
@@ -32,20 +30,20 @@ namespace Altinn.Platform.Storage.Models
         /// List of allowed content types (Mime types).
         /// If null or empty all content types are allowed.
         /// </summary>
-        [JsonProperty(PropertyName = "allowedContentType")]
-        public List<string> AllowedContentType { get; set; }
+        [JsonProperty(PropertyName = "allowedContentTypes")]
+        public List<string> AllowedContentTypes { get; set; }
 
         /// <summary>
-        /// Does the data element require application logic (true) or should it be streamed directly to storage (false).
+        /// If the data element require application logic this field has value. Otherwise data will be streamed directly to storage.
         /// </summary>
         [JsonProperty(PropertyName = "appLogic")]
-        public bool AppLogic { get; set; }
+        public ApplicationLogic AppLogic { get; set; }
 
         /// <summary>
         /// A reference to the process element id of the task where this data element should be updated.
         /// </summary>
-        [JsonProperty(PropertyName = "task")]
-        public string Task { get; set; }
+        [JsonProperty(PropertyName = "taskId")]
+        public string TaskId { get; set; }
 
         /// <summary>
         /// Maximum allowed size of the file in bytes. If missing there is no limit on file size.

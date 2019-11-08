@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Primitives;
 
 namespace Altinn.Platform.Storage.Repository
@@ -14,17 +13,17 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Gets all the instances for an instance owner
         /// </summary>
-        /// <param name="instanceOwnerId">the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">the owner of the instance</param>
         /// <returns>The list of instances for an instance owner</returns>
-        Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerId);
+        Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerPartyId);
 
         /// <summary>
         /// Gets all the instances for an instance owner that should be visible for the user and in a given state
         /// </summary>
-        /// <param name="instanceOwnerId">the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">the owner of the instance</param>
         /// <param name="instanceState">instance state. Valid values: active, archived, deleted</param>
         /// <returns>The list of instances for an instance owner</returns>
-        Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerId, string instanceState);
+        Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState);
 
         /// <summary>
         /// Gets all the instances for an app
@@ -39,9 +38,9 @@ namespace Altinn.Platform.Storage.Repository
         /// Get an instance for a given instance id
         /// </summary>
         /// <param name="instanceId">the instance id</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <param name="instanceOwnerPartyId">the instance owner id</param>
         /// <returns>The instance for the given parameters</returns>
-        Task<Instance> GetOne(string instanceId, int instanceOwnerId);
+        Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId);
 
         /// <summary>
         /// insert new instance into collection

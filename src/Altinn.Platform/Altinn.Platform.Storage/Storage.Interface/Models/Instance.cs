@@ -1,117 +1,80 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Storage.Interface.Models;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Holds metadata of an application instance for a particular instance owner.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class Instance
+    public class Instance : ChangableElement
     {
         /// <summary>
-        /// unique id of the instance {integer}/{guid}
+        /// The unique id of the instance {instanceOwnerId}/{instanceGuid}.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// owner of the instance.
+        /// instance owner information. 
         /// </summary>
-        [JsonProperty(PropertyName = "instanceOwnerId")]
-        public string InstanceOwnerId { get; set; }
+        [JsonProperty(PropertyName = "instanceOwner")]
+        public InstanceOwner InstanceOwner { get; set; }
 
         /// <summary>
-        /// instance owner lookup. Only to be used when instantiating an application instance. Will be set to null by storage.
-        /// </summary>
-        [JsonProperty(PropertyName = "instanceOwnerLookup")]
-        public InstanceOwnerLookup InstanceOwnerLookup { get; set; }
-
-        /// <summary>
-        /// Links to access the instance resource
-        /// </summary>
-        [JsonProperty(PropertyName = "selfLinks")]
-        public ResourceLinks SelfLinks { get; set; }
-
-        /// <summary>
-        /// id of the application, e.g. org/app22
+        /// id of the application this is an instance of, e.g. {org}/{app22}.
         /// </summary>
         [JsonProperty(PropertyName = "appId")]
         public string AppId { get; set; }
 
         /// <summary>
-        /// application owner for the service, should be lower case.
+        /// application owner identifier, usually a abbreviation of organisation name. All in lower case.
         /// </summary>
         [JsonProperty(PropertyName = "org")]
         public string Org { get; set; }
 
         /// <summary>
-        /// Label mechanism, can be used to set external system references
+        /// Links to access the instance metadata resource.
         /// </summary>
-        [JsonProperty(PropertyName = "labels")]
-        public List<string> Labels { get; set; }
+        [JsonProperty(PropertyName = "selfLinks")]
+        public ResourceLinks SelfLinks { get; set; }
 
         /// <summary>
-        /// create date and time for the instance
+        /// Due date to submit the instance to application owner.
         /// </summary>
-        [JsonProperty(PropertyName = "createdDateTime")]
-        public DateTime CreatedDateTime { get; set; }
+        [JsonProperty(PropertyName = "dueBefore")]
+        public DateTime? DueBefore { get; set; }
 
         /// <summary>
-        /// user id of the user who created the instance
+        /// The visible attribute controls when the instance should be visible for the party.
         /// </summary>
-        [JsonProperty(PropertyName = "createdBy")]
-        public string CreatedBy { get; set; }
+        [JsonProperty(PropertyName = "visibleAfter")]
+        public DateTime? VisibleAfter { get; set; }
 
         /// <summary>
-        /// last changed date time for the instance
+        /// The title of the instance, can be shown in message box.
         /// </summary>
-        [JsonProperty(PropertyName = "lastChangedDateTime")]
-        public DateTime? LastChangedDateTime { get; set; }
+        [JsonProperty(PropertyName = "title")]
+        public LanguageString Title { get; set; }
 
         /// <summary>
-        /// user id of the user who last changed the instance
-        /// </summary>
-        [JsonProperty(PropertyName = "lastChangedBy")]
-        public string LastChangedBy { get; set; }
-
-        /// <summary>
-        /// due date to submit the instance to application owner.
-        /// </summary>
-        [JsonProperty(PropertyName = "dueDateTime")]
-        public DateTime? DueDateTime { get; set; }
-
-        /// <summary>
-        /// date time to show the instance in inbox
-        /// </summary>
-        [JsonProperty(PropertyName = "visibleDateTime")]
-        public DateTime? VisibleDateTime { get; set; }
-
-        /// <summary>
-        /// title of the instance
-        /// </summary>
-        [JsonProperty(PropertyName = "presentationField")]
-        public LanguageString PresentationField { get; set; }
-
-        /// <summary>
-        /// Workflow state section
+        /// Process state section
         /// </summary>
         [JsonProperty(PropertyName = "process")]
         public ProcessState Process { get; set; }
 
         /// <summary>
-        /// Section for instance state properties
+        /// Section for status properties
         /// </summary>
-        [JsonProperty(PropertyName = "instanceState")]
-        public InstanceState InstanceState { get; set; }
+        [JsonProperty(PropertyName = "status")]
+        public InstanceStatus Status { get; set; }
 
         /// <summary>
-        /// Section for app owner state properties
+        /// Section for app owner properties.
         /// </summary>
-        [JsonProperty(PropertyName = "appOwnerState")]
-        public ApplicationOwnerState AppOwnerState { get; set; }
+        [JsonProperty(PropertyName = "appOwner")]
+        public ApplicationOwnerState AppOwner { get; set; }
 
         /// <summary>
         /// the data elements associated with the instance
