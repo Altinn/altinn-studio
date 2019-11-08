@@ -10,7 +10,7 @@ using Altinn.App.Common.Interface;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Enums;
 using Altinn.App.Services.Interface;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -22,14 +22,12 @@ namespace Altinn.App.Api.Controllers
     /// <summary>
     /// The data controller handles creation, update, validation and calculation of data elements.
     /// </summary>
-    [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceGuid:guid}/data")]
+    [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceGuid:guid}/data")]
     public class DataController : ControllerBase
     {
         private readonly ILogger<DataController> logger;
         private readonly IData dataService;
         private readonly IInstance instanceService;
-        private readonly IExecution executionService;
-        private readonly UserHelper userHelper;
         private readonly IApplication appService;
         private readonly IAltinnApp altinnApp;
 
@@ -38,24 +36,15 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// The data controller is responsible for adding business logic to the data elements.
         /// </summary>
-        /// <param name="generalSettings">settings </param>
         /// <param name="logger">logger</param>
-        /// <param name="registerService">register service</param>
         /// <param name="instanceService">instance service to store instances</param>
         /// <param name="dataService">dataservice</param>
-        /// <param name="executionService">execution service to execute data element logic</param>
-        /// <param name="profileService">profile service to access profile information about users and parties</param>
-        /// <param name="platformService">platform</param>
         /// <param name="appService">application service for accessing application metadata.</param>
         /// <param name="altinnApp">The app logic for current service</param>
         public DataController(
-            IOptions<GeneralSettings> generalSettings,
             ILogger<DataController> logger,
-            IRegister registerService,
             IInstance instanceService,
             IData dataService,
-            IExecution executionService,
-            IProfile profileService,
             IApplication appService,
             IAltinnApp altinnApp)
         {
@@ -63,9 +52,7 @@ namespace Altinn.App.Api.Controllers
 
             this.instanceService = instanceService;
             this.dataService = dataService;
-            this.executionService = executionService;
             this.appService = appService;
-            this.userHelper = new UserHelper(profileService, registerService, generalSettings);
             this.altinnApp = altinnApp;
         }
 
@@ -74,24 +61,23 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that this the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that this the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
-        /// <param name="elementType">identifies the data element type to create</param>
-        /// <param name="attachmentName">attachment name</param>
+        /// <param name="dataType">identifies the data element type to create</param>
         /// <returns>A list is returned if multiple elements are created.</returns>
         [Authorize]
         [HttpPost]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(typeof(DataElement), 201)]
         public async Task<ActionResult> Create(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
-            [FromQuery] string elementType,
-            [FromQuery] string attachmentName = "attachment")
+            [FromQuery] string dataType)
         {
-            if (string.IsNullOrWhiteSpace(elementType))
+            if (string.IsNullOrWhiteSpace(dataType))
             {
                 return BadRequest("Element type must be provided.");
             }
@@ -102,16 +88,16 @@ namespace Altinn.App.Api.Controllers
                 return NotFound($"AppId {org}/{app} was not found");
             }
 
-            ElementType elementTypeFromMetadata = application.ElementTypes.FirstOrDefault(e => e.Id.Equals(elementType, StringComparison.InvariantCultureIgnoreCase));
+            DataType dataTypeFromMetadata = application.DataTypes.FirstOrDefault(e => e.Id.Equals(dataType, StringComparison.InvariantCultureIgnoreCase));
 
-            if (elementTypeFromMetadata == null)
+            if (dataTypeFromMetadata == null)
             {
-                return BadRequest($"Element type {elementType} not allowed for instance {instanceGuid}.");
+                return BadRequest($"Element type {dataType} not allowed for instance {instanceGuid}.");
             }
 
-            bool appLogic = elementTypeFromMetadata.AppLogic;
+            bool appLogic = dataTypeFromMetadata.AppLogic != null;
 
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound($"Did not find instance {instance}");
@@ -119,11 +105,11 @@ namespace Altinn.App.Api.Controllers
 
             if (appLogic)
             {
-                return await CreateAppModelData(org, app, instance, elementType);
+                return await CreateAppModelData(org, app, instance, dataType);
             }
             else
             {
-                return await CreateBinaryData(org, app, instance, elementType, attachmentName);
+                return await CreateBinaryData(org, app, instance, dataType);
             }
         }
 
@@ -132,7 +118,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>     
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to get</param>
         /// <returns>The data element is returned in the body of the response</returns>
@@ -141,11 +127,11 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult> Get(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound($"Did not find instance {instance}");
@@ -158,22 +144,22 @@ namespace Altinn.App.Api.Controllers
                 return NotFound("Did not find data element");
             }
 
-            string elementType = dataElement.ElementType;
+            string dataType = dataElement.DataType;
 
-            bool? appLogic = await RequiresAppLogic(org, app, elementType);
+            bool? appLogic = await RequiresAppLogic(org, app, dataType);
 
             if (appLogic == null)
             {
-                string error = $"Could not determine if {elementType} requires app logic for application {org}/{app}";
+                string error = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
                 logger.LogError(error);
                 return BadRequest(error);
             }
             else if ((bool)appLogic)
             {
-                return await GetFormData(org, app, instanceOwnerId, instanceGuid, dataGuid, elementType);
+                return await GetFormData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataType);
             }
 
-            return await GetBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid, dataElement);
+            return await GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, dataElement);
         }
 
         /// <summary>
@@ -181,7 +167,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <returns>The updated data element.</returns>
@@ -189,14 +175,15 @@ namespace Altinn.App.Api.Controllers
         [HttpPut("{dataGuid:guid}")]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
+        [ProducesResponseType(typeof(DataElement), 201)]
         public async Task<ActionResult> Put(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound("Did not find instance");
@@ -209,21 +196,21 @@ namespace Altinn.App.Api.Controllers
                 return NotFound("Did not find data element");
             }
 
-            string elementType = dataElement.ElementType;
+            string dataType = dataElement.DataType;
 
-            bool? appLogic = await RequiresAppLogic(org, app, elementType);
+            bool? appLogic = await RequiresAppLogic(org, app, dataType);
 
             if (appLogic == null)
             {
-                logger.LogError($"Could not determine if {elementType} requires app logic for application {org}/{app}");
-                return BadRequest($"Could not determine if element type {elementType} requires application logic.");
+                logger.LogError($"Could not determine if {dataType} requires app logic for application {org}/{app}");
+                return BadRequest($"Could not determine if data type {dataType} requires application logic.");
             }
             else if ((bool)appLogic)
             {
-                return await PutFormData(org, app, instance, dataGuid, elementType);
+                return await PutFormData(org, app, instance, dataGuid, dataType);
             }
 
-            return await PutBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+            return await PutBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         }
 
         /// <summary>
@@ -231,7 +218,7 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
+        /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <returns>The updated data element.</returns>
@@ -240,11 +227,11 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult> Delete(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromRoute] Guid dataGuid)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceGuid);
             if (instance == null)
             {
                 return NotFound("Did not find instance");
@@ -257,13 +244,13 @@ namespace Altinn.App.Api.Controllers
                 return NotFound("Did not find data element");
             }
 
-            string elementType = dataElement.ElementType;
+            string dataType = dataElement.DataType;
 
-            bool? appLogic = await RequiresAppLogic(org, app, elementType);
+            bool? appLogic = await RequiresAppLogic(org, app, dataType);
 
             if (appLogic == null)
             {
-                string errorMsg = $"Could not determine if {elementType} requires app logic for application {org}/{app}";
+                string errorMsg = $"Could not determine if {dataType} requires app logic for application {org}/{app}";
                 logger.LogError(errorMsg);
                 return BadRequest(errorMsg);
             }
@@ -273,83 +260,43 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("Deleting form data is not possible at this moment.");
             }
 
-            return await DeleteBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+            return await DeleteBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
         }
 
-        private async Task<ActionResult> CreateBinaryData(string org, string app, Instance instanceBefore, string elementType, string attachmentName)
+        private async Task<ActionResult> CreateBinaryData(string org, string app, Instance instanceBefore, string dataType)
         {
-            int instanceOwnerId = int.Parse(instanceBefore.Id.Split("/")[0]);
+            int instanceOwnerPartyId = int.Parse(instanceBefore.Id.Split("/")[0]);
             Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
 
-            DataElement dataElement = await dataService.InsertBinaryData(org, app, instanceOwnerId, instanceGuid, elementType, attachmentName, Request);
+            DataElement dataElement = await dataService.InsertBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataType, Request);
 
             if (Guid.Parse(dataElement.Id) == Guid.Empty)
             {
-                return StatusCode(500, $"Cannot store form attachment on instance {instanceOwnerId}/{instanceGuid}");
+                return StatusCode(500, $"Cannot store form attachment on instance {instanceOwnerPartyId}/{instanceGuid}");
             }
 
-            SelfLinkHelper.SetDataAppSelfLinks(instanceGuid, dataElement, Request);
-            return Created(dataElement.StorageUrl, new List<DataElement>() { dataElement });
+            SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
+            return Created(dataElement.SelfLinks.Apps, dataElement);
         }
-
-        private async Task<ActionResult> CreateFormData(
-            string org,
-            string app,
-            Instance instanceBefore,
-            string elementType)
-        {
-            bool startService = true;
-            Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
-
-            object appModel;
-
-            if (Request.ContentType == null)
-            {
-                appModel = altinnApp.CreateNewAppModel(elementType);
-            }
-            else
-            {
-                appModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(elementType), out ActionResult contentError);
-                if (contentError != null)
-                {
-                    return contentError;
-                }
-            }
-
-
-            // send events to trigger application business logic
-            await altinnApp.RunAppEvent(AppEventType.Instantiation, appModel);
-            await altinnApp.RunAppEvent(AppEventType.ValidateInstantiation, appModel);
-
-            SelfLinkHelper.SetInstanceAppSelfLinks(instanceBefore, Request);
-
-            Instance instanceAfter = await dataService.InsertFormData(appModel, instanceGuid, altinnApp.GetAppModelType(elementType), org, app, int.Parse(instanceBefore.InstanceOwnerId));
-            SelfLinkHelper.SetInstanceAppSelfLinks(instanceAfter, Request);
-            List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);
-            string dataUrl = createdElements.First().DataLinks.Apps;
-
-            return Created(dataUrl, createdElements);
-        }
-
 
         private async Task<ActionResult> CreateAppModelData(
-    string org,
-    string app,
-    Instance instanceBefore,
-    string elementType)
+            string org,
+            string app,
+            Instance instance,
+            string dataType)
         {
             bool startService = true;
-            Guid instanceGuid = Guid.Parse(instanceBefore.Id.Split("/")[1]);
+            Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             
             object appModel;
 
             if (Request.ContentType == null)
             {
-                appModel = altinnApp.CreateNewAppModel(elementType);;
+                appModel = altinnApp.CreateNewAppModel(dataType);;
             }
             else
             {
-                appModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(elementType), out ActionResult contentError);
+                appModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(dataType), out ActionResult contentError);
                 if (contentError != null)
                 {
                     return contentError;
@@ -360,14 +307,12 @@ namespace Altinn.App.Api.Controllers
             // send events to trigger application business logic
             await altinnApp.RunAppEvent(AppEventType.AppModelCreation, appModel);
 
-            SelfLinkHelper.SetInstanceAppSelfLinks(instanceBefore, Request);
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
-            Instance instanceAfter = await dataService.InsertFormData(appModel, instanceGuid, altinnApp.GetAppModelType(elementType), org, app, int.Parse(instanceBefore.InstanceOwnerId));
-            SelfLinkHelper.SetInstanceAppSelfLinks(instanceAfter, Request);
-            List<DataElement> createdElements = CompareAndReturnCreatedElements(instanceBefore, instanceAfter);
-            string dataUrl = createdElements.First().DataLinks.Apps;
+            DataElement dataElement = await dataService.InsertFormData(appModel, instanceGuid, altinnApp.GetAppModelType(dataType), org, app, instanceOwnerPartyId, dataType);
+            SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
-            return Created(dataUrl, createdElements);
+            return Created(dataElement.SelfLinks.Apps, dataElement);
         }
 
 
@@ -378,16 +323,16 @@ namespace Altinn.App.Api.Controllers
         private async Task<ActionResult> GetBinaryData(
             string org,
             string app,
-            int instanceOwnerId,
+            int instanceOwnerPartyId,
             Guid instanceGuid,
             Guid dataGuid,
             DataElement dataElement)
         {
-            Stream dataStream = await dataService.GetBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid);
+            Stream dataStream = await dataService.GetBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid);
 
             if (dataStream != null)
             {
-                return File(dataStream, dataElement.ContentType, dataElement.FileName);
+                return File(dataStream, dataElement.ContentType, dataElement.Filename);
             }
             else
             {
@@ -449,36 +394,14 @@ namespace Altinn.App.Api.Controllers
             return serviceModel;
         }
 
-        private List<DataElement> CompareAndReturnCreatedElements(Instance before, Instance after)
-        {
-            if (before.Data == null)
-            {
-                return after.Data;
-            }
-
-            HashSet<string> dataGuidsBefore = before.Data.Select(d => d.Id).ToHashSet();
-            HashSet<string> dataGuidsAfter = after.Data.Select(d => d.Id).ToHashSet();
-
-            IEnumerable<string> dataGuidsCreated = dataGuidsAfter.Except(dataGuidsBefore);
-
-            List<DataElement> elementsCreated = new List<DataElement>();
-
-            foreach (string guid in dataGuidsCreated)
-            {
-                elementsCreated.Add(after.Data.Find(d => d.Id == guid));
-            }
-
-            return elementsCreated;
-        }
-
-        private async Task<bool?> RequiresAppLogic(string org, string app, string elementTypeId)
+        private async Task<bool?> RequiresAppLogic(string org, string app, string dataType)
         {
             bool? appLogic = false;
             
             try
             {
                 Application application = await appService.GetApplication(org, app);
-                appLogic = application.ElementTypes.Where(e => e.Id == elementTypeId).Select(e => e.AppLogic).First();
+                appLogic = application.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic != null).First();
             }
             catch (Exception)
             {
@@ -490,7 +413,7 @@ namespace Altinn.App.Api.Controllers
 
         /// <summary>
         ///  Gets a data element (form data) from storage and performs business logic on it (e.g. to calculate certain fields) before it is returned.
-        ///  If more there are more data elements of the same elementType only the first one is returned. In that case use the more spesific
+        ///  If more there are more data elements of the same dataType only the first one is returned. In that case use the more spesific
         ///  GET method to fetch a particular data element. 
         /// </summary>
         /// <returns>data element is returned in response body</returns>
@@ -500,12 +423,12 @@ namespace Altinn.App.Api.Controllers
         int instanceOwnerId,
         Guid instanceGuid,
         Guid dataGuid,
-        string elementType)
+        string dataType)
         {
              // Get Form Data from data service. Assumes that the data element is form data.
             object appModel = dataService.GetFormData(
                 instanceGuid,
-                altinnApp.GetAppModelType(elementType),
+                altinnApp.GetAppModelType(dataType),
                 org,
                 app,
                 instanceOwnerId,
@@ -524,19 +447,19 @@ namespace Altinn.App.Api.Controllers
             return Ok(appModel);
         }
 
-        private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid)
+        private async Task<ActionResult> PutBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid)
         {
-            DataElement dataElement = await dataService.UpdateBinaryData(org, app, instanceOwnerId, instanceGuid, dataGuid, Request);
-            SelfLinkHelper.SetDataAppSelfLinks(instanceGuid, dataElement, Request);
+            DataElement dataElement = await dataService.UpdateBinaryData(org, app, instanceOwnerPartyId, instanceGuid, dataGuid, Request);
+            SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
-            return Created(dataElement.StorageUrl, new List<DataElement>() { dataElement });
+            return Created(dataElement.SelfLinks.Apps, dataElement);
         }
 
-        private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, string elementType)
+        private async Task<ActionResult> PutFormData(string org, string app, Instance instance, Guid dataGuid, string dataType)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            object serviceModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(elementType), out ActionResult contentError);
+            object serviceModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(dataType), out ActionResult contentError);
 
             if (contentError != null)
             {
@@ -565,21 +488,23 @@ namespace Altinn.App.Api.Controllers
                 logger.LogError($"Validation errors are currently ignored: {ex.Message}");
             }
 
+            int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
+
             // Save Formdata to database
-            Instance instanceAfter = await this.dataService.UpdateData(
+            DataElement updatedDataElement = await this.dataService.UpdateData(
                 serviceModel,
                 instanceGuid,
-                altinnApp.GetAppModelType(elementType),
+                altinnApp.GetAppModelType(dataType),
                 org,
                 app,
-                int.Parse(instance.InstanceOwnerId),
+                instanceOwnerPartyId,
                 dataGuid);
 
-            SelfLinkHelper.SetInstanceAppSelfLinks(instanceAfter, Request);
-            DataElement updatedElement = instanceAfter.Data.First(d => d.Id == dataGuid.ToString());
-            string dataUrl = updatedElement.DataLinks.Apps;
+            SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, updatedDataElement, Request);
+   
+            string dataUrl = updatedDataElement.SelfLinks.Apps;
 
-            return Created(dataUrl, updatedElement);
+            return Created(dataUrl, updatedDataElement);
         }
 
     }

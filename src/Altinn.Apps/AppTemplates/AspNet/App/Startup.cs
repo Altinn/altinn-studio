@@ -33,7 +33,7 @@ namespace Altinn.App
         public void ConfigureServices(IServiceCollection services)
         {
             // Add API controllers from Altinn.App.Api 
-            services.AddControllers().AddApplicationPart(typeof(InstancesController).Assembly);
+            services.AddControllersWithViews().AddApplicationPart(typeof(InstancesController).Assembly);
 
             // Dot net services
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

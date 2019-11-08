@@ -1,6 +1,6 @@
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;

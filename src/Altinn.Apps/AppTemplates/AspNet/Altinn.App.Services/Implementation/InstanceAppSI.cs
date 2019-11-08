@@ -10,15 +10,15 @@ using Altinn.App.Services.Enums;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Clients;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Storage.Interface.Clients;
-using Storage.Interface.Models;
+
 
 namespace Altinn.App.Services.Implementation
 {
@@ -154,8 +154,7 @@ namespace Altinn.App.Services.Implementation
                 ElementId = WorkflowStep.Archived.ToString(),
             };
 
-            instance.InstanceState.IsArchived = true;
-            instance.InstanceState.ArchivedDateTime = DateTime.UtcNow;
+            instance.Status.Archived = DateTime.UtcNow;
 
             instance = await UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
             return instance;
@@ -164,7 +163,7 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public async Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
-            string apiUrl = $"instances?appId={org}/{app}&instanceOwnerId={instanceTemplate.InstanceOwnerId}";
+            string apiUrl = $"instances?appId={org}/{app}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
@@ -173,7 +172,7 @@ namespace Altinn.App.Services.Implementation
 
             if (response.IsSuccessStatusCode)
             {
-                Instance createdInstance = await response.Content.ReadAsAsync<Instance>();
+                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
 
                 return createdInstance;
             }

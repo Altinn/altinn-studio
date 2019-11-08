@@ -1,10 +1,8 @@
 using Altinn.App.Services.Interface;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace App.IntegrationTests.Mocks.Services

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Altinn.App.Services.Enums;
 using Altinn.App.Services.Models;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Common.Helpers
 {

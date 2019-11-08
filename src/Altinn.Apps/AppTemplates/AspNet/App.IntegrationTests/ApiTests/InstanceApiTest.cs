@@ -1,6 +1,6 @@
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Interface;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using Microsoft.AspNetCore.TestHost;
@@ -44,7 +44,7 @@ namespace App.IntegrationTests
             Instance instance = (Instance)JsonConvert.DeserializeObject(responseContent, typeof(Instance));
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("1000", instance.InstanceOwnerId);
+            Assert.Equal("1000", instance.InstanceOwner.PartyId);
         }
 
         [Fact]
@@ -62,6 +62,23 @@ namespace App.IntegrationTests
             string responseContent = response.Content.ReadAsStringAsync().Result;
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
+
+        [Fact]
+        public async Task Instance_Post_Ok()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/skd/taxreport/instances/")
+            {
+            };
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = response.Content.ReadAsStringAsync().Result;
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
 
 
         private HttpClient GetTestClient()
