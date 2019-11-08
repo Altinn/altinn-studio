@@ -1,10 +1,8 @@
 {
-  "id": "orgName/appName",
-  "org": "orgName",
-  "createdDateTime": "yyyy-MM-ddTHH:mm:ss",
+  "id": "tdd/aa-template-test", 
+  "org": "tdd",
+  "createdDateTime": "2019-09-16T22:22:22",
   "createdBy": "username",
-  "lastChangedDateTime": "yyyy-MM-ddTHH:mm:ss",
-  "lastChangedBy": "username",
   "title": { "nb": "titleName" },
   "elementTypes": [
     {
