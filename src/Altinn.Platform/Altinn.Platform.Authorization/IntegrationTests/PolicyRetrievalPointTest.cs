@@ -130,7 +130,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
         {
             await _blobContainer.CreateIfNotExistsAsync();
             Stream dataStream = File.OpenRead("Data/Xacml/3.0/PolicyRepository/IIA003Policy.xml");
-            await _pr.WritePolicyAsync($"{ORG}/{APP}/policy.xacml", dataStream);
+            await _pr.WritePolicyAsync($"{ORG}/{APP}/policy.xml", dataStream);
         }
     }
 }

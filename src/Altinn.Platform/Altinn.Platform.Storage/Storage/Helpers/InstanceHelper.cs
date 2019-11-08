@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
-using Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
 {
@@ -25,12 +22,15 @@ namespace Altinn.Platform.Storage.Helpers
 
             foreach (Instance instance in instances)
             {
+                InstanceStatus status = instance.Status;
+                DateTime? visibleAfter = instance.VisibleAfter;
+
                 messageBoxInstances.Add(new MessageBoxInstance()
-                {
-                    CreatedDateTime = (instance.VisibleDateTime != null && instance.VisibleDateTime > instance.CreatedDateTime) ? (DateTime)instance.VisibleDateTime : instance.CreatedDateTime,
-                    DueDateTime = instance.DueDateTime,
+                {                    
+                    CreatedDateTime = (visibleAfter != null && visibleAfter > instance.Created) ? (DateTime)visibleAfter : instance.Created.Value,
+                    DueDateTime = instance.DueBefore,
                     Id = instance.Id.Contains("/") ? instance.Id.Split("/")[1] : instance.Id,
-                    InstanceOwnerId = instance.InstanceOwnerId,
+                    InstanceOwnerId = instance.InstanceOwner.PartyId,
                     LastChangedBy = instance.LastChangedBy,
                     Org = instance.Org,
                     AppName = instance.AppId.Split('/')[1],
@@ -39,10 +39,10 @@ namespace Altinn.Platform.Storage.Helpers
                     AuthorizedForWrite = true,
                     AllowDelete = true,
                     AllowNewCopy = false,
-                    DeletedDateTime = instance.InstanceState.DeletedDateTime,
-                    ArchivedDateTime = instance.InstanceState.ArchivedDateTime,
-                    DeleteStatus = instance.InstanceState.IsDeleted ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
-                });
+                    DeletedDateTime = status.SoftDeleted,
+                    ArchivedDateTime = status.Archived,
+                    DeleteStatus = status.SoftDeleted.HasValue ? DeleteStatusType.SoftDeleted : DeleteStatusType.Default,
+                });               
             }
 
             return messageBoxInstances;
@@ -61,9 +61,9 @@ namespace Altinn.Platform.Storage.Helpers
                     new SblInstanceEvent()
                     {
                         Id = instanceEvent.Id,
-                        UserId = instanceEvent.UserId,
-                        CreatedDateTime = instanceEvent.CreatedDateTime,
-                        EndUserSystemId = instanceEvent.EndUserSystemId,
+                        UserId = instanceEvent.User.UserId,
+                        CreatedDateTime = instanceEvent.Created,
+                        EndUserSystemId = instanceEvent.User.EndUserSystemId,
                         EventType = instanceEvent.EventType
                     });
             }

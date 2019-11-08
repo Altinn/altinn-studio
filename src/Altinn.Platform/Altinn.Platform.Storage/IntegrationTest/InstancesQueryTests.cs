@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
-using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Storage.Interface.Models;
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
@@ -16,7 +16,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests data service REST api.
     /// </summary>
-    public class InstancesQueryAndHALTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>
+    public class InstancesQueryTests : IClassFixture<PlatformStorageFixture>, IClassFixture<DatabaseFixture>
     {
         private readonly PlatformStorageFixture fixture;
         private readonly InstanceClient storageClient;
@@ -29,7 +29,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
-        public InstancesQueryAndHALTests(PlatformStorageFixture fixture)
+        public InstancesQueryTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
             this.storageClient = new InstanceClient(this.fixture.CreateClient());
@@ -40,14 +40,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessCurrentTaskSubmit()
         {
             HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&process.currentTask=Submit_1";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -62,14 +60,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with query param. gt: - greater than, lt: - less than
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessVisibleDateTimeGt()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=gt:2019-05-01";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=gt:2019-05-01";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -85,14 +81,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with labels.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessLabels()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&labels=zero";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&appOwner.labels=zero";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -108,14 +102,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with labels.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessTwoLabels()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&labels=one&labels=two";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&appOwner.labels=one&appOwner.labels=two";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -131,12 +123,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with labels.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessOneLabelWithOne()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&labels=one";
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&appOwner.labels=one";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -152,14 +144,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with labels.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessOneLabelWithOneCommaTwo()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&labels=one,two";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&appOwner.labels=one,two";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -173,16 +163,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        ///  Checks that wrong syntax is ignored
+        ///  Checks that wrong syntax returns bad request
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessIllegalVisibleDateTime()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=2019-50-01";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=2019-50-01";
 
             HttpResponseMessage response = await client.GetAsync(url);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -191,14 +179,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Query with no result set
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessNoResult()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleDateTime=lt:2017-12-31";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=100&visibleAfter=lt:2017-12-31";
 
             HttpResponseMessage response = await client.GetAsync(url);
 
@@ -208,14 +194,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessVisibleDateTimeEq()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=2019-07-10T00:00:00Z";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=2019-07-10T00:00:00Z";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -225,20 +209,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(1, totalHits);
+            Assert.Equal(5, totalHits);
         }
 
         /// <summary>
         ///  Checks that a local date performs ok.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessVisibleLocalDate()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=2019-08-25T02:00:00%2B02:00";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=2019-03-25T02:00:00%2B02:00";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -248,20 +230,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             int totalHits = jsonObject["totalHits"].Value<int>();
 
-            Assert.Equal(7, totalHits);
+            Assert.Equal(3, totalHits);
         }
 
         /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void QueryProcessVisibleDateTimeBetween()
         {
             HttpClient client = fixture.CreateClient();
 
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleDateTime=gt:2019-07-01&visibleDateTime=lt:2019-08-01";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000&visibleAfter=gt:2019-07-01&visibleAfter=lt:2019-08-01";
 
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
@@ -277,7 +257,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that the GET returns an instance owners codes
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstancesForInstanceOwner()
         {
             HttpClient client = fixture.CreateClient();
@@ -295,9 +275,23 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
+        ///  Check that storage returns bad request if illegal query parameter is set.
+        /// </summary>
+        [Fact]
+        public async void GetInstancesWithIllegalQueryParam()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?instanceOwnerId=500";
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);            
+        }
+
+        /// <summary>
         ///  Checks that multiple instances can be returned with org query param.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstancesForOrg()
         {
             HttpClient client = fixture.CreateClient();
@@ -317,48 +311,26 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        ///  Checks that requested HAL return hal+json.
-        /// </summary>
-        // [Fact]
-        public async void GetInstancesWithAcceptHAL()
-        {
-            HttpClient client = fixture.CreateClient();
-
-            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1";
-
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
-
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-
-            string contentType = response.Content.Headers.ContentType.ToString();
-
-            Assert.Contains("application/hal+json", contentType);
-        }
-
-        /// <summary>
         ///  Checks that multiple instances can be returned with query param.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstancesWithContinuationTokenAndGetNext()
         {
             HttpClient client = fixture.CreateClient();
 
             string url = $"{versionPrefix}/instances?appId={testAppId}&size=500";
 
-            client.DefaultRequestHeaders.Add("Accept", "application/hal+json");
-
             HttpResponseMessage response = await client.GetAsync(url);
             response.EnsureSuccessStatusCode();
 
             string jsonString = await response.Content.ReadAsStringAsync();
             JObject jsonObject = JObject.Parse(jsonString);
-            var result = jsonObject["_embedded"]["instances"];
+            var result = jsonObject["instances"];
 
             List<Instance> instances = result.ToObject<List<Instance>>();
             Assert.Equal(500, instances.Count);
 
-            var nextUrl = jsonObject["_links"]["next"]["href"].ToString();
+            var nextUrl = jsonObject["next"].ToString();
 
             HttpResponseMessage response2 = await client.GetAsync(nextUrl);
             response2.EnsureSuccessStatusCode();
@@ -366,14 +338,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string jsonString2 = await response2.Content.ReadAsStringAsync();
             JObject jsonObject2 = JObject.Parse(jsonString2);
 
-            var result2 = jsonObject2["_embedded"]["instances"];
+            var result2 = jsonObject2["instances"];
             List<Instance> instances2 = result2.ToObject<List<Instance>>();
             Assert.Equal(500, instances2.Count);
             
-            var selfUrl = jsonObject2["_links"]["self"];
+            var selfUrl = jsonObject2["self"];
             Assert.NotNull(selfUrl);
 
-            var selfUrl2 = jsonObject2["_links"]["self"]["href"].ToString();
+            var selfUrl2 = jsonObject2["self"].ToString();
 
             HttpResponseMessage response3 = await client.GetAsync(selfUrl2);
             response3.EnsureSuccessStatusCode();            
@@ -407,7 +379,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that multiple instances can be returned with org query param.
         /// </summary>
-        // [Fact]
+        [Fact]
         public async void GetInstancesWithAcceptJson()
         {
             HttpClient client = fixture.CreateClient();
@@ -425,17 +397,78 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.Contains("application/json", contentType);
 
             string jsonString = await response.Content.ReadAsStringAsync();
+
+            QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(jsonString);
+
+            Assert.True(queryResponse.Instances.Count > 2);
+        }
+
+        /// <summary>
+        ///  Queries ended time.
+        ///  </summary>        
+        [Fact]
+        public async void GetInstancesWithEndedProcess()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&process.ended=lt:2019-02-01";            
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string contentType = response.Content.Headers.ContentType.ToString();
+
+            Assert.Contains("application/json", contentType);
+
+            string jsonString = await response.Content.ReadAsStringAsync();
+
+            QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(jsonString);
+
+            Assert.True(queryResponse.TotalHits > 500);
         }
 
 #pragma warning disable xUnit1013
         /// <summary>
-        /// Method to load data file with 1000 instances into cosmos db. Undocument the [Fact] line, run
+        /// Method to generate data with 1000 instances into cosmos db. Undocument the [Fact] line, run
         /// the test once, make the fact a comment again and run tests. 
         /// </summary>        
+        // [Fact]
+        public void GenerateData()
+        {
+            DatabaseFixture.GenerateTestdata(fixture.CreateClient());
+        }
+
+        /// <summary>
+        /// Method to load data file with 1000 instances into cosmos db.Undocument the[Fact] line, run
+        ///  the test once, make the fact a comment again and run tests.       
+        /// </summary>
         // [Fact]
         public void LoadData()
         {
             DatabaseFixture.LoadData(testAppId, storageClient);
+        }
+
+        /// <summary>
+        /// Saves data in cosmos db to file.
+        /// </summary>
+        // [Fact]
+        public void SaveData()
+        {
+            HttpClient client = fixture.CreateClient();
+
+            string url = $"{versionPrefix}/instances?appId={testAppId}&size=1000";
+
+            HttpResponseMessage response = client.GetAsync(url).Result;
+            response.EnsureSuccessStatusCode();
+
+            string jsonString = response.Content.ReadAsStringAsync().Result;
+
+            QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(jsonString);
+
+            queryResponse.Next = null;
+            queryResponse.Self = null;
+
+            File.WriteAllText("../../../data/m1000-instances.json", JsonConvert.SerializeObject(queryResponse, Formatting.Indented));          
         }
     }
 }

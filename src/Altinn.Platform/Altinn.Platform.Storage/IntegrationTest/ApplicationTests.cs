@@ -2,13 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
-using Serilog;
-using Serilog.Core;
-using Storage.Interface.Clients;
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
@@ -23,10 +20,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly ApplicationClient applicationClient;
         private readonly string versionPrefix = "/storage/api/v1";
         private readonly string org = "test";
-
-        private Logger logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApplicationTests"/> class.
@@ -66,8 +59,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             else
             {
                 string json = listResponse.Content.ReadAsStringAsync().Result;
-
-                logger.Error(json);
             }
         }
 
@@ -102,8 +93,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             postResponse.EnsureSuccessStatusCode();
 
             string content = postResponse.Content.ReadAsStringAsync().Result;
-
-            logger.Information(content);
         }
 
         /// <summary>

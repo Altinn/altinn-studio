@@ -1,5 +1,5 @@
 ---
-name: Epic User Story
+name: Epic
 about: A top level user requirement or feature area
 labels: Epic
 ---

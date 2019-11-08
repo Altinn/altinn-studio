@@ -13,7 +13,7 @@ export function* watchFetchAttachmentsSaga(): SagaIterator {
 
 export function* fetchAttachments(): SagaIterator {
   try {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
     const { org, app, instanceId } = altinnWindow;
     const appId = `${org}/${app}`;
     const attachmentListUrl = `${altinnWindow.location.origin}/${appId}/api/attachment/` +

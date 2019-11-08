@@ -1,33 +1,39 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using Storage.Interface.Models;
 
-namespace Altinn.Platform.Storage.Models
+
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
-    /// Model to hold a data element.
+    /// Model to hold metadata about a data type element.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class DataElement
+    public class DataElement : ChangableElement
     {
         /// <summary>
-        /// data id, an guid.
+        /// The data element id, a guid.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
         /// <summary>
-        /// the element type, must be equal to the ones defined in application element types.
+        /// The guid of the instance which the data element belongs to. This field is normally not populated if data element is part of instance metadata.
         /// </summary>
-        [JsonProperty(PropertyName = "elementType")]
-        public string ElementType { get; set; }
+        [JsonProperty(PropertyName = "instanceGuid")]
+        public string instanceGuid;
+
+        /// <summary>
+        /// the data type, must be equal to the ones defined in application data types.
+        /// </summary>
+        [JsonProperty(PropertyName = "dataType")]
+        public string DataType { get; set; }
 
         /// <summary>
         /// the name of the data element (file)
         /// </summary>
-        [JsonProperty(PropertyName = "fileName")]
-        public string FileName { get; set; }
+        [JsonProperty(PropertyName = "filename")]
+        public string Filename { get; set; }
 
         /// <summary>
         /// contentType of data element (file) stored
@@ -36,63 +42,45 @@ namespace Altinn.Platform.Storage.Models
         public string ContentType { get; set; }
 
         /// <summary>
-        /// path to blob storage
+        /// path to blob storage. Might be nullified in export.
         /// </summary>
-        [JsonProperty(PropertyName = "storageUrl")]
-        public string StorageUrl { get; set; }
+        [JsonProperty(PropertyName = "blobStoragePath")]
+        public string BlobStoragePath { get; set; }
 
         /// <summary>
         /// Links to access the data elements
         /// </summary>
-        [JsonProperty(PropertyName = "dataLinks")]
-        public ResourceLinks DataLinks { get; set; }
+        [JsonProperty(PropertyName = "selfLinks")]
+        public ResourceLinks SelfLinks { get; set; }
 
         /// <summary>
         /// Size of file in bytes
         /// </summary>
-        [JsonProperty(PropertyName = "fileSize")]
-        public long FileSize { get; set; }
+        [JsonProperty(PropertyName = "size")]
+        public long Size { get; set; }
 
         /// <summary>
-        /// Signature
+        /// Indicates that element cannot be updated
         /// </summary>
-        [JsonProperty(PropertyName = "signature")]
-        public string Signature { get; set; }
+        [JsonProperty(PropertyName = "locked")]
+        public bool Locked { get; set; }
 
         /// <summary>
-        /// Indicates that the instance owner no longer can update the data element
+        /// Holds information about when the application owner has downloaded and confirmed download of the element.
         /// </summary>
-        [JsonProperty(PropertyName = "isLocked")]
-        public bool IsLocked { get; set; }
+        [JsonProperty(PropertyName  = "appOwner")]
+        public ApplicationOwnerDataState AppOwner;
 
         /// <summary>
-        /// create date and time for the data element
-        /// </summary>
-        [JsonProperty(PropertyName = "createdDateTime")]
-        public DateTime CreatedDateTime { get; set; }
-
-        /// <summary>
-        /// user id of the user who created the data element
-        /// </summary>
-        [JsonProperty(PropertyName = "createdBy")]
-        public string CreatedBy { get; set; }
-
-        /// <summary>
-        /// last changed date time for the data element
-        /// </summary>
-        [JsonProperty(PropertyName = "lastChangedDateTime")]
-        public DateTime? LastChangedDateTime { get; set; }
-
-        /// <summary>
-        /// user id of the user who last changed the instance
-        /// </summary>
-        [JsonProperty(PropertyName = "lastChangedBy")]
-        public string LastChangedBy { get; set; }
-
-        /// <summary>
-        /// an optional array of data element references
+        /// an optional array of data element references.
         /// </summary>
         [JsonProperty(PropertyName = "refs")]
         public List<Guid> Refs { get; set; }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
+        }
     }
 }
