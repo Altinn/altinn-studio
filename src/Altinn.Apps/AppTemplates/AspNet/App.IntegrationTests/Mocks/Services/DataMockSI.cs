@@ -72,7 +72,7 @@ namespace App.IntegrationTests.Mocks.Services
 
                 Directory.CreateDirectory(dataPath + @"blob");
 
-                using (Stream stream = File.Open(dataPath + @"blob\" + dataGuid.ToString() + ".xml" , FileMode.Create, FileAccess.ReadWrite))
+                using (Stream stream = File.Open(dataPath + @"blob\" + dataGuid.ToString(), FileMode.Create, FileAccess.ReadWrite))
                 {
                     XmlSerializer serializer = new XmlSerializer(type);
                     serializer.Serialize(stream, dataToSerialize);

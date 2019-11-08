@@ -68,13 +68,13 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceId)
         {
-               Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
             if (instance == null)
             {
                 return NotFound();
             }
 
-            string taskId = instance.Process.CurrentTask.ElementId;
+            string taskId = instance.Process?.CurrentTask?.ElementId;
             if (taskId == null)
             {
                 throw new ValidationException("Unable to validate instance without a started process.");
@@ -111,7 +111,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null,  null, "nb-NO")
+                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb-NO")
                     };
                     messages.Add(message);
                 }
@@ -159,7 +159,7 @@ namespace AltinnCore.Runtime.RestControllers
             Dictionary<string, Dictionary<string, string>> serviceText = new Dictionary<string, Dictionary<string, string>>();
 
 
-            if (instance.Process?.CurrentTask == null)
+            if (instance.Process?.CurrentTask?.ElementId == null)
             {
                 throw new ValidationException("Unable to validate instance without a started process.");
             }
@@ -198,7 +198,7 @@ namespace AltinnCore.Runtime.RestControllers
                 };
                 messages.Add(message);
             }
-            
+
             return Ok(messages);
         }
 
@@ -251,14 +251,13 @@ namespace AltinnCore.Runtime.RestControllers
                 };
                 messages.Add(message);
             }
-
           
             if (dataType.AppLogic != null)
             {
                 // TODO. Figure out this datamodel type thing
                 Type modelType = altinnApp.GetAppModelType("default");
                 dynamic data = dataService.GetFormData(instanceId, modelType, org, app, instanceOwnerId, Guid.Parse(dataElement.Id));
-                
+
                 TryValidateModel(data);
 
                 await altinnApp.RunAppEvent(AppEventType.Validation, data);
@@ -291,7 +290,7 @@ namespace AltinnCore.Runtime.RestControllers
                             Field = modelKey,
                             Severity = ValidationIssueSeverity.Error,
                             Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceText, null, "nb-NO")
-                        }; 
+                        };
                         messages.Add(message);
                     }
                 }
