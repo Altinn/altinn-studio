@@ -7,23 +7,28 @@ import { IRuntimeState } from '../../../../types';
 import { post } from '../../../../utils/networking';
 import AttachmentDispatcher from '../attachmentActions';
 import * as AttachmentActionsTypes from '../attachmentActionTypes';
+import { appPath } from './../../../../utils/urlHelper';
 import * as uploadActions from './uploadAttachmentActions';
 
 export function* uploadAttachmentSaga(
   { file, attachmentType, tmpAttachmentId, componentId }: uploadActions.IUploadAttachmentAction): SagaIterator {
   const state: IRuntimeState = yield select();
   const language = state.language.language;
+
   try {
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
-    const { org, app, instanceId } = window as IAltinnWindow;
-    const appId = `${org}/${app}`;
+    const { org, app, instanceId } = window as Window as IAltinnWindow;
+
     const data = new FormData();
     data.append('file', file);
-    const fileUploadLink = `${window.location.origin}/${appId}/api/attachment/` +
-      `${instanceId}/SaveFormAttachment?attachmentType=${attachmentType}&attachmentName=${file.name}`;
+
+    const fileUploadLink = `${appPath}/instances/` +
+      `${instanceId}/data/?elementType=${attachmentType}&attachmentName=${file.name}`;
+
     const response = yield call(post, fileUploadLink, null, data);
+
     if (response.status === 200) {
       const attachment: IAttachment
         = { name: file.name, size: file.size, uploaded: true, id: response.data.id, deleting: false };

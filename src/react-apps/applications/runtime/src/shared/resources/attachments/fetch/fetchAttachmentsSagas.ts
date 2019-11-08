@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest } from 'redux-saga/effects';
+import { call, takeLatest, select } from 'redux-saga/effects';
 import { IAttachments } from '..';
-import { IAltinnWindow } from '../../../../types';
+import { IAltinnWindow, IRuntimeState } from '../../../../types';
 import { mapAttachmentListApiResponseToAttachments } from '../../../../utils/attachment';
 import { get } from '../../../../utils/networking';
 import AttachmentDispatcher from '../attachmentActions';
@@ -13,15 +13,22 @@ export function* watchFetchAttachmentsSaga(): SagaIterator {
 
 export function* fetchAttachments(): SagaIterator {
   try {
-    const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-    const { org, app, instanceId } = altinnWindow;
-    const appId = `${org}/${app}`;
-    const attachmentListUrl = `${altinnWindow.location.origin}/${appId}/api/attachment/` +
-    `${instanceId}/GetFormAttachments`;
-    const response = yield call(get, attachmentListUrl);
-    const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
-    yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
+    // console.error('**** INSIDE');
+    // const state: IRuntimeState = yield select();
+    // console.error('instance', state.instanceData);
+    // const attachments = state.instanceData.instance.data;
+    // console.error('**** attachments', attachments);
+
+    // const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
+    // const { org, app, instanceId } = altinnWindow;
+    // const appId = `${org}/${app}`;
+    // const attachmentListUrl = `${altinnWindow.location.origin}/${appId}/api/attachment/` +
+    // `${instanceId}/GetFormAttachments`;
+    // const response = yield call(get, attachmentListUrl);
+    // const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
+    // yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
+
   } catch (err) {
-    yield call(AttachmentDispatcher.fetchAttachmentsRejected, err);
+    // yield call(AttachmentDispatcher.fetchAttachmentsRejected, err);
   }
 }

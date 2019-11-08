@@ -56,8 +56,6 @@ export default (props) => {
       `${window.location.origin}/${org}/${app}/api/v1/profile/user`,
     );
 
-    AttachmentActions.fetchAttachments();
-
   }, []);
 
   return (
