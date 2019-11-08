@@ -59,6 +59,7 @@ namespace App.IntegrationTests.ApiTests
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
             {
             };
+            httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Read");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
@@ -122,7 +124,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to get</param>
         /// <returns>The data element is returned in the body of the response</returns>
-        [Authorize]
+        [Authorize(Policy = "InstanceRead")]
         [HttpGet("{dataGuid:guid?}")]
         public async Task<ActionResult> Get(
             [FromRoute] string org,
