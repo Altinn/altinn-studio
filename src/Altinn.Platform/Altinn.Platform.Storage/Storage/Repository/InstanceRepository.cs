@@ -37,38 +37,20 @@ namespace Altinn.Platform.Storage.Repository
         {
             this.logger = logger;
 
-            // Retrieve configuration values from appsettings.json
-            _cosmosettings = cosmosettings.Value;
+            var database = new CosmosDatabaseHandler(cosmosettings.Value);
 
-            ConnectionPolicy connectionPolicy = new ConnectionPolicy
-            {
-                ConnectionMode = ConnectionMode.Gateway,
-                ConnectionProtocol = Protocol.Https,
-            };
+            _client = database.CreateDatabaseAndCollection(collectionId);
+            collectionUri = database.CollectionUri;
+            Uri databaseUri = database.DatabaseUri;
+            databaseId = database.DatabaseName;
 
-            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
-
-            Uri databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
-            collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, collectionId);
-            databaseId = _cosmosettings.Database;
-
-            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
-
-            PartitionKeyDefinition partitionKeyDefinition = new PartitionKeyDefinition();
-
-            partitionKeyDefinition.Paths.Add(partitionKey);
-
-            DocumentCollection documentCollection = new DocumentCollection
-            {
-                Id = collectionId,
-                PartitionKey = partitionKeyDefinition,
-            };            
+            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 databaseUri,
                 documentCollection).GetAwaiter().GetResult();
 
-            _client.OpenAsync();
+            _client.OpenAsync();                    
         }
 
         /// <inheritdoc/>

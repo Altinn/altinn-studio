@@ -36,7 +36,7 @@ namespace Altinn.Platform.Storage
         /// </summary>
         /// <param name="services">the service configuration</param>        
         public void ConfigureServices(IServiceCollection services)
-        {
+        {            
             services.AddControllers().AddNewtonsoftJson();
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
@@ -44,7 +44,7 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
-            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
+            services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();            
 
             string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
             if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
