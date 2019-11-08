@@ -56,9 +56,16 @@ namespace Altinn.Common.PEP.Authorization
             XacmlJsonRequest request = CreateXacmlJsonRequest(context, requirement);
             XacmlJsonResponse response = await _authorizationService.GetDecisionForRequest(request);
 
-            // Decide if request is permitted by the response it gets from pdp
+            if(response == null || response.Response == null)
+            {
+                context.Fail();
+                return;
+            }
+
+            // Get the list of results from response
             List<XacmlJsonResult> results = response.Response;
 
+            // We only ask for permission for one request and then only want one result
             if (results.Count != 1)
             {
                 context.Fail();

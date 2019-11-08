@@ -30,49 +30,27 @@ namespace Altinn.Common.PEP.Authorization
 
         /// <summary>
         /// Test case: Send request and get response that fulfills all requirements
-        /// Expected: context will succeed
+        /// Expected: Context will succeed
         /// </summary>
         [Fact]
         public async Task HandleRequirementAsync_TC01Async()
         {
             // Arrange 
-            // create the requirement
-            var requirement = new AppAccessRequirement("read");
-
-            // create the user
-            List<Claim> claims = new List<Claim>();
-            // type, value, valuetupe, issuer
-            claims.Add(new Claim("name", "Ola", "string", "org"));
-
-            var user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
-
-            // create the resource
-            var resource = new Document
-            {
-                // set any properties here
-            };
-
-            // create the context
+            AppAccessRequirement requirement = new AppAccessRequirement("read");
+            ClaimsPrincipal user = CreateUser();
+            Document resource = new Document();
             AuthorizationHandlerContext context = new AuthorizationHandlerContext(
                 new[] { requirement },
                 user,
                 resource
                 );
-
-            // Mock http
-            HttpContext httpContext = new DefaultHttpContext();
-            httpContext.Request.RouteValues.Add("org", "myOrg");
-            httpContext.Request.RouteValues.Add("app", "myApp");
-            httpContext.Request.RouteValues.Add("instanceGuid", "asdfg");
-            httpContext.Request.RouteValues.Add("InstanceOwnerId", "1000");
+            HttpContext httpContext = CreateHttpContext();
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
 
-            // Mock authorization
+            // Create response 
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = new List<XacmlJsonResult>();
+            // Set result to premit
             XacmlJsonResult result = new XacmlJsonResult();
             result.Decision = XacmlContextDecision.Permit.ToString();
             response.Response.Add(result);
@@ -88,49 +66,27 @@ namespace Altinn.Common.PEP.Authorization
 
         /// <summary>
         /// Test case: Send request and get respons with result deny
-        /// Expected: context will fail
+        /// Expected: Context will fail
         /// </summary>
         [Fact]
         public async Task HandleRequirementAsync_TC02Async()
         {
             // Arrange 
-            // create the requirement
-            var requirement = new AppAccessRequirement("read");
-
-            // create the user
-            List<Claim> claims = new List<Claim>();
-            // type, value, valuetupe, issuer
-            claims.Add(new Claim("name", "Ola", "string", "org"));
-
-            var user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
-
-            // create the resource
-            var resource = new Document
-            {
-                // set any properties here
-            };
-
-            // create the context
+            AppAccessRequirement requirement = new AppAccessRequirement("read");
+            ClaimsPrincipal user = CreateUser();
+            Document resource = new Document();
             AuthorizationHandlerContext context = new AuthorizationHandlerContext(
                 new[] { requirement },
                 user,
                 resource
                 );
-
-            // Mock http
-            HttpContext httpContext = new DefaultHttpContext();
-            httpContext.Request.RouteValues.Add("org", "myOrg");
-            httpContext.Request.RouteValues.Add("app", "myApp");
-            httpContext.Request.RouteValues.Add("instanceGuid", "asdfg");
-            httpContext.Request.RouteValues.Add("InstanceOwnerId", "1000");
+            HttpContext httpContext = CreateHttpContext();
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
 
-            // Mock authorization
+            // Create response 
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = new List<XacmlJsonResult>();
+            // Add result and set decision to deny
             XacmlJsonResult result = new XacmlJsonResult();
             result.Decision = XacmlContextDecision.Deny.ToString();
             response.Response.Add(result);
@@ -146,52 +102,31 @@ namespace Altinn.Common.PEP.Authorization
 
         /// <summary>
         /// Test case: Send request and get respons with two results
-        /// Expected: context will fail
+        /// Expected: Context will fail
         /// </summary>
         [Fact]
         public async Task HandleRequirementAsync_TC03Async()
         {
             // Arrange 
-            // create the requirement
-            var requirement = new AppAccessRequirement("read");
-
-            // create the user
-            List<Claim> claims = new List<Claim>();
-            // type, value, valuetupe, issuer
-            claims.Add(new Claim("name", "Ola", "string", "org"));
-
-            var user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
-
-            // create the resource
-            var resource = new Document
-            {
-                // set any properties here
-            };
-
-            // create the context
+            AppAccessRequirement requirement = new AppAccessRequirement("read");
+            ClaimsPrincipal user = CreateUser();
+            Document resource = new Document();
             AuthorizationHandlerContext context = new AuthorizationHandlerContext(
                 new[] { requirement },
                 user,
                 resource
                 );
-
-            // Mock http
-            HttpContext httpContext = new DefaultHttpContext();
-            httpContext.Request.RouteValues.Add("org", "myOrg");
-            httpContext.Request.RouteValues.Add("app", "myApp");
-            httpContext.Request.RouteValues.Add("instanceGuid", "asdfg");
-            httpContext.Request.RouteValues.Add("InstanceOwnerId", "1000");
+            HttpContext httpContext = CreateHttpContext();
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
 
-            // Mock authorization
+            // Create response
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = new List<XacmlJsonResult>();
+            // Add result and set decision to permit
             XacmlJsonResult result = new XacmlJsonResult();
             result.Decision = XacmlContextDecision.Permit.ToString();
             response.Response.Add(result);
+            // Add extra result
             response.Response.Add(new XacmlJsonResult());
             _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
@@ -211,54 +146,32 @@ namespace Altinn.Common.PEP.Authorization
         public async Task HandleRequirementAsync_TC04Async()
         {
             // Arrange 
-            // create the requirement
-            var requirement = new AppAccessRequirement("read");
-
-            // create the user
-            List<Claim> claims = new List<Claim>();
-            // type, value, valuetupe, issuer
-            claims.Add(new Claim("name", "Ola", "string", "org"));
-            claims.Add(new Claim("AuthenticationLevel", "2", "string", "org"));
-
-            var user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
-
-            // create the resource
-            var resource = new Document
-            {
-                // set any properties here
-            };
-
-            // create the context
+            AppAccessRequirement requirement = new AppAccessRequirement("read");
+            ClaimsPrincipal user = CreateUser();
+            Document resource = new Document();
             AuthorizationHandlerContext context = new AuthorizationHandlerContext(
                 new[] { requirement },
                 user,
                 resource
                 );
-
-            // Mock http
-            HttpContext httpContext = new DefaultHttpContext();
-            httpContext.Request.RouteValues.Add("org", "myOrg");
-            httpContext.Request.RouteValues.Add("app", "myApp");
-            httpContext.Request.RouteValues.Add("instanceGuid", "asdfg");
-            httpContext.Request.RouteValues.Add("InstanceOwnerId", "1000");
+            HttpContext httpContext = CreateHttpContext();
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
 
-            // Mock authorization
+            // Create response
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = new List<XacmlJsonResult>();
+            // Add result and set decision to permit
             XacmlJsonResult result = new XacmlJsonResult();
             result.Decision = XacmlContextDecision.Permit.ToString();
             response.Response.Add(result);
+            // Add obligation to result with a minimum authentication level attribute
+            XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
+            obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
             XacmlJsonAttributeAssignment authenticationAttribute = new XacmlJsonAttributeAssignment()
             {
                 Category = "urn:altinn:minimum-authenticationlevel",
                 Value = "2"
             };
-            XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
-            obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
             obligation.AttributeAssignment.Add(authenticationAttribute);
             result.Obligations = new List<XacmlJsonObligationOrAdvice>();
             result.Obligations.Add(obligation);
@@ -280,54 +193,32 @@ namespace Altinn.Common.PEP.Authorization
         public async Task HandleRequirementAsync_TC05Async()
         {
             // Arrange 
-            // create the requirement
-            var requirement = new AppAccessRequirement("read");
-
-            // create the user
-            List<Claim> claims = new List<Claim>();
-            // type, value, valuetupe, issuer
-            claims.Add(new Claim("name", "Ola", "string", "org"));
-            claims.Add(new Claim("AuthenticationLevel", "2", "string", "org"));
-
-            var user = new ClaimsPrincipal(
-                new ClaimsIdentity(
-                        claims
-                    ));
-
-            // create the resource
-            var resource = new Document
-            {
-                // set any properties here
-            };
-
-            // create the context
+            AppAccessRequirement requirement = new AppAccessRequirement("read");
+            ClaimsPrincipal user = CreateUser();
+            Document resource = new Document();
             AuthorizationHandlerContext context = new AuthorizationHandlerContext(
                 new[] { requirement },
                 user,
                 resource
                 );
-
-            // Mock http
-            HttpContext httpContext = new DefaultHttpContext();
-            httpContext.Request.RouteValues.Add("org", "myOrg");
-            httpContext.Request.RouteValues.Add("app", "myApp");
-            httpContext.Request.RouteValues.Add("instanceGuid", "asdfg");
-            httpContext.Request.RouteValues.Add("InstanceOwnerId", "1000");
+            HttpContext httpContext = CreateHttpContext();
             _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
 
-            // Mock authorization
+            // Create response
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = new List<XacmlJsonResult>();
+            // Add result and set decision to permit
             XacmlJsonResult result = new XacmlJsonResult();
             result.Decision = XacmlContextDecision.Permit.ToString();
             response.Response.Add(result);
+            // Add obligation to result with a minimum authentication level attribute
+            XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
+            obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
             XacmlJsonAttributeAssignment authenticationAttribute = new XacmlJsonAttributeAssignment()
             {
                 Category = "urn:altinn:minimum-authenticationlevel",
                 Value = "3"
             };
-            XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
-            obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
             obligation.AttributeAssignment.Add(authenticationAttribute);
             result.Obligations = new List<XacmlJsonObligationOrAdvice>();
             result.Obligations.Add(obligation);
@@ -339,6 +230,97 @@ namespace Altinn.Common.PEP.Authorization
             // Assert
             Assert.False(context.HasSucceeded);
             Assert.True(context.HasFailed);
+        }
+
+        /// <summary>
+        /// Test case: Send request and get response that is null
+        /// Expected: Context will fail 
+        /// </summary>
+        [Fact]
+        public async Task HandleRequirementAsync_TC06Async()
+        {
+            // Arrange 
+            AppAccessRequirement requirement = new AppAccessRequirement("read");
+            ClaimsPrincipal user = CreateUser();
+            Document resource = new Document();
+            AuthorizationHandlerContext context = new AuthorizationHandlerContext(
+                new[] { requirement },
+                user,
+                resource
+                );
+            HttpContext httpContext = CreateHttpContext();
+            _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
+
+            // Create response 
+            XacmlJsonResponse response = null;
+            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+
+            // Act
+            await _aah.HandleAsync(context);
+
+            // Assert
+            Assert.False(context.HasSucceeded);
+            Assert.True(context.HasFailed);
+        }
+
+        /// <summary>
+        /// Test case: Send request and get response with a result list that is null
+        /// Expected: Context will fail 
+        /// </summary>
+        [Fact]
+        public async Task HandleRequirementAsync_TC07Async()
+        {
+            // Arrange 
+            AppAccessRequirement requirement = new AppAccessRequirement("read");
+            ClaimsPrincipal user = CreateUser();
+            Document resource = new Document();
+            AuthorizationHandlerContext context = new AuthorizationHandlerContext(
+                new[] { requirement },
+                user,
+                resource
+                );
+            HttpContext httpContext = CreateHttpContext();
+            _httpContextAccessorMock.Setup(h => h.HttpContext).Returns(httpContext);
+
+            // Create response with a result list that is null
+            XacmlJsonResponse response = new XacmlJsonResponse();
+            response.Response = null;
+            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+
+            // Act
+            await _aah.HandleAsync(context);
+
+            // Assert
+            Assert.False(context.HasSucceeded);
+            Assert.True(context.HasFailed);
+        }
+
+        private ClaimsPrincipal CreateUser()
+        {
+            // Create the user
+            List<Claim> claims = new List<Claim>();
+
+            // type, value, valuetupe, issuer
+            claims.Add(new Claim("name", "Ola", "string", "org"));
+            claims.Add(new Claim("AuthenticationLevel", "2", "string", "org"));
+
+            ClaimsPrincipal user = new ClaimsPrincipal(
+                new ClaimsIdentity(
+                        claims
+                    ));
+
+            return user;
+        }
+
+        private HttpContext CreateHttpContext()
+        {
+            HttpContext httpContext = new DefaultHttpContext();
+            httpContext.Request.RouteValues.Add("org", "myOrg");
+            httpContext.Request.RouteValues.Add("app", "myApp");
+            httpContext.Request.RouteValues.Add("instanceGuid", "asdfg");
+            httpContext.Request.RouteValues.Add("InstanceOwnerId", "1000");
+
+            return httpContext;
         }
     }
 }
