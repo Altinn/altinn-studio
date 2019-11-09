@@ -1,13 +1,16 @@
 {
-  "id": "tdd/aa-template-test", 
-  "org": "tdd",
-  "createdDateTime": "2019-09-16T22:22:22",
-  "createdBy": "username",
+  "id": "$appId$",
+  "org": "$org$",
+  "createdDateTime": "$time$",
+  "createdBy": "$username$",
+  "lastChangedDateTime": "$time$",
+  "lastChangedBy": "$username$",
   "title": { "nb": "titleName" },
   "elementTypes": [
     {
       "id": "default",
       "allowedContentType": [ "application/xml" ],
+      "applogic": true,
       "maxCount": 0,
       "shouldSign": false,
       "shouldEncrypt": true
@@ -18,9 +21,5 @@
     "organization": false,
     "person": false,
     "subUnit": false
-  },
-  "subscriptionHook": {
-    "serviceCode": "",
-    "editionCode": ""
   }
 }

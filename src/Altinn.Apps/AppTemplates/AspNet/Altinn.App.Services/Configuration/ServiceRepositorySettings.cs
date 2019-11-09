@@ -316,7 +316,7 @@ namespace Altinn.App.Services.Configuration
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetServicePath(string org, string app, string developer = null)
+        public string GetAppPath(string org, string app, string developer = null)
         {
             org = org.AsFileName();
             app = app.AsFileName();
@@ -424,7 +424,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetServicePackagesPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + PACKAGES_LOCATION;
+            return GetAppPath(org, app, developer) + PACKAGES_LOCATION;
         }
 
         /// <summary>
@@ -436,7 +436,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetTemporaryPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + TEMP_LOCATION;
+            return GetAppPath(org, app, developer) + TEMP_LOCATION;
         }
 
         /// <summary>
@@ -448,7 +448,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetResourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME;
+            return GetAppPath(org, app, developer) + RESOURCE_FOLDER_NAME;
         }
 
         /// <summary>
@@ -460,7 +460,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetDynamicsPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME + DYNAMICS_FOLDER_NAME;
+            return GetAppPath(org, app, developer) + RESOURCE_FOLDER_NAME + DYNAMICS_FOLDER_NAME;
         }
 
         /// <summary>
@@ -472,7 +472,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path to the calculation folder, ending with '/'</returns>
         public string GetCalculationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + IMPLEMENTATION_FOLDER_NAME + CALCULATION_FOLDER_NAME;
+            return GetAppPath(org, app, developer) + IMPLEMENTATION_FOLDER_NAME + CALCULATION_FOLDER_NAME;
         }
 
         /// <summary>
@@ -484,7 +484,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path to the validation folder, ending with '/'</returns>
         public string GetValidationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + IMPLEMENTATION_FOLDER_NAME + VALIDATION_FOLDER_NAME;
+            return GetAppPath(org, app, developer) + IMPLEMENTATION_FOLDER_NAME + VALIDATION_FOLDER_NAME;
         }
 
         /// <summary>
@@ -496,7 +496,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetTestPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + TEST_FOLDER_NAME;
+            return GetAppPath(org, app, developer) + TEST_FOLDER_NAME;
         }
 
         /// <summary>
@@ -508,7 +508,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetDeploymentPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + DEPLOYMENT_FOLDER_NAME;
+            return GetAppPath(org, app, developer) + DEPLOYMENT_FOLDER_NAME;
         }
 
         /// <summary>
@@ -532,7 +532,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetMetadataPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + METADATA_FOLDER_NAME;
+            return METADATA_FOLDER_NAME;
         }
 
         /// <summary>
@@ -544,7 +544,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetCodelistPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + CODELISTS_FOLDER_NAME;
+            return GetAppPath(org, app, developer) + CODELISTS_FOLDER_NAME;
         }
 
         /// <summary>
@@ -610,7 +610,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetModelPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Model/";
+            return  "Models/";
         }
 
         /// <summary>
@@ -622,7 +622,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetImplementationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Implementation/";
+            return GetAppPath(org, app, developer) + "Implementation/";
         }
 
         /// <summary>
@@ -634,7 +634,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path to the workflow folder, ending with "/"</returns>
         public string GetWorkflowPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Workflow/";
+            return GetAppPath(org, app, developer) + "Workflow/";
         }
 
         /// <summary>
@@ -646,7 +646,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path to the Authorization directory, ending with "/"</returns>
         public string GetAuthorizationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Authorization/";
+            return GetAppPath(org, app, developer) + "Authorization/";
         }
 
         /// <summary>
@@ -658,7 +658,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRulesPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Rules/";
+            return GetAppPath(org, app, developer) + "Rules/";
         }
 
         /// <summary>
@@ -670,7 +670,7 @@ namespace Altinn.App.Services.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetDataSourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "DataSource/";
+            return GetAppPath(org, app, developer) + "DataSource/";
         }
 
         /// <summary>
