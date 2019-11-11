@@ -17,7 +17,7 @@ import { IComponentValidations } from '../../../types/global';
 import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } from '../layout';
 
-export interface IProvidedProps {
+export interface IProvidedProps extends WithStyles<typeof styles> {
   id: string;
   handleDataUpdate: (data: any) => void;
   dataModelBindings: IDataModelBindings;
@@ -63,7 +63,7 @@ const styles = createStyles({
   },
 });
 
-export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
+export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): any => {
   class FormComponentWithHandlers extends React.Component<IProps & WithStyles<typeof styles>, IState> {
     constructor(props: IProps) {
       super(props);
