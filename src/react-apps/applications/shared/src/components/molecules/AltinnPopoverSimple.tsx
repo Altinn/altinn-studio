@@ -1,5 +1,5 @@
 import { Button, createMuiTheme, createStyles, Grid, makeStyles } from '@material-ui/core';
-import Popover, { PopoverOrigin, PopoverProps } from '@material-ui/core/Popover';
+import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 

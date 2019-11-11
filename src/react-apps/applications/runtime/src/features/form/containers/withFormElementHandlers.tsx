@@ -1,10 +1,9 @@
 import { Grid, Typography } from '@material-ui/core';
 import {
+  createMuiTheme,
   createStyles,
-  styled,
   WithStyles,
   withStyles,
-  createMuiTheme,
 } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
