@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Altinn.Authorization.ABAC\Altinn.Authorization.ABAC.csproj" />
     <ProjectReference Include="..\Authorization\Altinn.Platform.Authorization.csproj" />
   </ItemGroup>
 
