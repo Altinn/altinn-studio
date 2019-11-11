@@ -1,8 +1,15 @@
-import { Grid, Popper, Typography } from '@material-ui/core';
-import { styled } from '@material-ui/core/styles';
+import { Grid, Typography } from '@material-ui/core';
+import {
+  createStyles,
+  styled,
+  WithStyles,
+  withStyles,
+  createMuiTheme,
+} from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import theme from '../../../../../shared/src/theme/altinnAppTheme';
+import AltinnPopover from '../../../../../shared/src/components/molecules/AltinnPopoverSimple';
+import AppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { makeGetLayout } from '../../../selectors/getLayoutData';
 import { makeGetComponentValidationsSelector } from '../../../selectors/getValidations';
@@ -10,38 +17,6 @@ import { IRuntimeState } from '../../../types';
 import { IComponentValidations } from '../../../types/global';
 import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } from '../layout';
-
-const HelpTextPopoverWrapper = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  width: '20px',
-  height: '24px',
-});
-
-const HelpTextPopoverIcon = styled('i')({
-  'paddingTop': '1.2rem',
-  'fontSize': '2rem',
-  'color': theme.altinnPalette.primary.blue,
-  '&:hover': {
-    color: theme.altinnPalette.primary.blueDarker,
-  },
-});
-
-const PopperWrapper = styled('div')({
-  padding: '1.2rem',
-  backgroundColor: theme.altinnPalette.primary.yellowLight,
-  border: `1px solid ${theme.altinnPalette.primary.black}`,
-});
-
-const PopperWrapperArrow = styled('div')({
-  backgroundColor: theme.altinnPalette.primary.yellowLight,
-  height: '20px',
-  width: '20px',
-  transform: 'rotate(45deg)',
-  marginTop: '-1rem',
-  borderBottom: `1px solid ${theme.altinnPalette.primary.black}`,
-  borderRight: `1px solid ${theme.altinnPalette.primary.black}`,
-});
 
 export interface IProvidedProps {
   id: string;
@@ -62,18 +37,40 @@ export interface IProps extends IProvidedProps {
 
 export interface IState {
   helpIconRef: React.RefObject<HTMLDivElement>;
-  popperArrowRef: React.RefObject<HTMLDivElement>;
   openPopover: boolean;
 }
 
+const theme = createMuiTheme(AppTheme);
+
+const styles = createStyles({
+  helpTextIcon: {
+    'width': '44px',
+    'height': '44px',
+    'paddingTop': '2rem',
+    'fontSize': '3rem',
+    'color': theme.altinnPalette.primary.blue,
+    '&:hover': {
+      color: theme.altinnPalette.primary.blueDarker,
+    },
+  },
+  helpTextPopoverPaper: {
+    backgroundColor: theme.altinnPalette.primary.yellowLight,
+    height: 'auto',
+    width: 'auto',
+  },
+  helpTextPopoverText: {
+    position: 'relative',
+    width: '100%',
+  },
+});
+
 export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
-  class FormComponentWithHandlers extends React.Component<IProps, IState> {
+  class FormComponentWithHandlers extends React.Component<IProps & WithStyles<typeof styles>, IState> {
     constructor(props: IProps) {
       super(props);
 
       this.state = {
         helpIconRef: !!props.textResourceBindings.help ? React.createRef() : null,
-        popperArrowRef: React.createRef(),
         openPopover: false,
       };
     }
@@ -98,6 +95,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
             {this.props.required ? null :
               <span className='label-optional'>({getLanguageFromKey('general.optional', this.props.language)})</span>
             }
+            {this.renderHelpText()}
           </label>
         );
       }
@@ -120,23 +118,16 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
 
     public renderHelpText = (): JSX.Element => {
       if (!!this.props.textResourceBindings.help) {
-        const { helpIconRef } = this.state;
+        const { classes } = this.props;
+        const { helpIconRef, openPopover } = this.state;
         return (
-          <HelpTextPopoverWrapper
+          <i
+            className={`${classes.helpTextIcon} ${openPopover ? 'ai ai-circle-minus' : 'ai ai-circle-plus'}`}
             tabIndex={0}
             onClick={this.toggleClickPopover}
             onKeyUp={this.toggleKeypressPopover}
-            onBlur={this.toggleBlurPopover}
             ref={helpIconRef}
-          >
-            <HelpTextPopoverIcon
-              className={
-                this.state.openPopover ?
-                'ai ai-circle-minus' :
-                'ai ai-circle-plus'
-              }
-            />
-          </HelpTextPopoverWrapper>
+          />
         );
       }
       return null;
@@ -154,19 +145,12 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
           openPopover: true,
         });
       }
-      if (event.key === 'Escape' && this.state.openPopover) {
-        this.setState({
-          openPopover: false,
-        });
-      }
     }
 
-    public toggleBlurPopover = () => {
-      if (this.state.openPopover) {
-        this.setState({
-          openPopover: false,
-        });
-      }
+    public closePopover = () => {
+      this.setState({
+        openPopover: false,
+      });
     }
 
     public handleDataUpdate = (data: any) => this.props.handleDataUpdate(data);
@@ -177,8 +161,8 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     }
 
     public render(): JSX.Element {
-      const { helpIconRef, popperArrowRef, openPopover } = this.state;
-      const { id, ...passThroughProps } = this.props;
+      const { helpIconRef, openPopover } = this.state;
+      const { id, classes, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
       const validations = this.getAdressComponentValidations();
       if (validations !== null) {
@@ -201,14 +185,14 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
                   container={true}
                   direction={'column'}
                 >
-                  {this.renderLabel()}
-                  {this.renderDescription()}
+                  <Grid item={true}>
+                    {this.renderLabel()}
+                  </Grid>
+                  <Grid item={true}>
+                    {this.renderDescription()}
+                  </Grid>
                 </Grid>
               </Grid>
-              <Grid item={true}>
-                {this.renderHelpText()}
-              </Grid>
-
             </Grid>
             <WrappedComponent
               id={id}
@@ -219,31 +203,28 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
             {this.errorMessage()}
           </Grid>
           {!!helpIconRef ?
-            <Popper
-              anchorEl={helpIconRef.current}
-              open={openPopover}
-              placement={'top'}
-              modifiers={{
-                flip: {
-                  enabled: true,
-                },
-                preventOverflow: {
-                  enabled: true,
-                  boundariesElement: 'scrollParent',
-                },
-                arrow: {
-                  enabled: true,
-                  element: popperArrowRef.current,
-                },
+            <AltinnPopover
+              anchorOrigin={{
+                horizontal: 'right',
+                vertical: 'top',
+              }}
+              transformOrigin={{
+                horizontal: 'right',
+                vertical: 'bottom',
+              }}
+              backgroundColor={theme.altinnPalette.primary.yellowLight.toString()}
+              anchorEl={openPopover ? helpIconRef.current : null}
+              handleClose={this.closePopover}
+              popoverClasses={{
+                paper: classes.helpTextPopoverPaper,
               }}
             >
-              <PopperWrapperArrow ref={popperArrowRef}/>
-                <PopperWrapper>
-                  <Typography>
-                    {this.getTextResource(this.props.textResourceBindings.help)}
-                  </Typography>
-                </PopperWrapper>
-            </Popper>
+              <Typography
+                className={classes.helpTextPopoverText}
+              >
+                {this.getTextResource(this.props.textResourceBindings.help)}
+              </Typography>
+            </AltinnPopover>
             : null
           }
         </>
@@ -306,5 +287,5 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     return mapStateToProps;
   };
 
-  return connect(makeMapStateToProps)(FormComponentWithHandlers);
+  return connect(makeMapStateToProps)(withStyles(styles)(FormComponentWithHandlers));
 };

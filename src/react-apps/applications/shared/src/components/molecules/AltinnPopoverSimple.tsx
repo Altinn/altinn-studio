@@ -1,9 +1,9 @@
 import { Button, createMuiTheme, createStyles, Grid, makeStyles } from '@material-ui/core';
-import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
+import Popover, { PopoverOrigin, PopoverProps } from '@material-ui/core/Popover';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
-export interface IAltinnPopoverProvidedProps {
+export interface IAltinnPopoverProps {
   anchorEl: any;
   anchorOrigin: PopoverOrigin;
   btnClick?: any;
@@ -14,14 +14,12 @@ export interface IAltinnPopoverProvidedProps {
   handleClose: any;
   paperProps?: any;
   transformOrigin: PopoverOrigin;
-}
-
-export interface IAltinnPopoverProps extends IAltinnPopoverProvidedProps {
-
-}
-
-export interface IAltinnPopoverState {
-
+  backgroundColor?: string;
+  children: React.ReactNode;
+  popoverClasses?: {
+    paper?: string;
+    root?: string;
+  };
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -82,10 +80,11 @@ const defaultTransformOrigin: PopoverOrigin = {
   vertical: 'top',
 };
 
-const AltinnPopoverComponent = (props: any) => {
+const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
   const {
     anchorOrigin = defaultAnchorOrigin,
     transformOrigin = defaultTransformOrigin,
+    popoverClasses,
   } = props;
 
   const classes = useStyles(props);
@@ -110,6 +109,7 @@ const AltinnPopoverComponent = (props: any) => {
         transformOrigin={transformOrigin}
         anchorReference='anchorEl'
         PaperProps={{ square: true, ...props.paperProps }}
+        classes={popoverClasses}
       >
         <Grid container={true} direction='column' className={classes.popover}>
           <Grid item={true}>
