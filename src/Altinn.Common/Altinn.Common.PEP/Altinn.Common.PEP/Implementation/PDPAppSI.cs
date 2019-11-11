@@ -14,7 +14,7 @@ namespace Altinn.Common.PEP.Implementation
     /// <summary>
     /// App implementation of the authorization service where the app uses the Altinn platform api.
     /// </summary>
-    public class AuthorizationAppSI : IAuthorization
+    public class PDPAppSI : IPDP
     {
         private readonly HttpClient _authClient;
         private readonly ILogger _logger;
@@ -24,9 +24,9 @@ namespace Altinn.Common.PEP.Implementation
         /// </summary>
         /// <param name="httpClientAccessor">The Http client accessor</param>
         /// <param name="logger">the handler for logger service</param>
-        public AuthorizationAppSI(
+        public PDPAppSI(
                 IHttpClientAccessor httpClientAccessor,
-                ILogger<AuthorizationAppSI> logger)
+                ILogger<PDPAppSI> logger)
         {
             _authClient = httpClientAccessor.AuthorizationClient;
             _logger = logger;

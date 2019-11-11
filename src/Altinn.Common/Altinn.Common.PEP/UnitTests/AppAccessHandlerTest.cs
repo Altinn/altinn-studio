@@ -1,12 +1,9 @@
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
-using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Moq;
-using System;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
 using System.Security.Claims;
@@ -18,14 +15,14 @@ namespace Altinn.Common.PEP.Authorization
     public class AppAccessHandlerTest 
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-        private readonly Mock<IAuthorization> _authorizationMock;
+        private readonly Mock<IPDP> _pdpMock;
         private readonly AppAccessHandler _aah;
 
         public AppAccessHandlerTest()
         {
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _authorizationMock = new Mock<IAuthorization>();
-            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _authorizationMock.Object);
+            _pdpMock = new Mock<IPDP>();
+            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object);
         }
 
         /// <summary>
@@ -54,7 +51,7 @@ namespace Altinn.Common.PEP.Authorization
             XacmlJsonResult result = new XacmlJsonResult();
             result.Decision = XacmlContextDecision.Permit.ToString();
             response.Response.Add(result);
-            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+            _pdpMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
             // Act
             await _aah.HandleAsync(context);
@@ -90,7 +87,7 @@ namespace Altinn.Common.PEP.Authorization
             XacmlJsonResult result = new XacmlJsonResult();
             result.Decision = XacmlContextDecision.Deny.ToString();
             response.Response.Add(result);
-            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+            _pdpMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
             // Act
             await _aah.HandleAsync(context);
@@ -128,7 +125,7 @@ namespace Altinn.Common.PEP.Authorization
             response.Response.Add(result);
             // Add extra result
             response.Response.Add(new XacmlJsonResult());
-            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+            _pdpMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
             // Act
             await _aah.HandleAsync(context);
@@ -175,7 +172,7 @@ namespace Altinn.Common.PEP.Authorization
             obligation.AttributeAssignment.Add(authenticationAttribute);
             result.Obligations = new List<XacmlJsonObligationOrAdvice>();
             result.Obligations.Add(obligation);
-            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+            _pdpMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
             // Act
             await _aah.HandleAsync(context);
@@ -222,7 +219,7 @@ namespace Altinn.Common.PEP.Authorization
             obligation.AttributeAssignment.Add(authenticationAttribute);
             result.Obligations = new List<XacmlJsonObligationOrAdvice>();
             result.Obligations.Add(obligation);
-            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+            _pdpMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
             // Act
             await _aah.HandleAsync(context);
@@ -253,7 +250,7 @@ namespace Altinn.Common.PEP.Authorization
 
             // Create response 
             XacmlJsonResponse response = null;
-            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+            _pdpMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
             // Act
             await _aah.HandleAsync(context);
@@ -285,7 +282,7 @@ namespace Altinn.Common.PEP.Authorization
             // Create response with a result list that is null
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = null;
-            _authorizationMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
+            _pdpMock.Setup(a => a.GetDecisionForRequest(It.IsAny<XacmlJsonRequest>())).Returns(Task.FromResult(response));
 
             // Act
             await _aah.HandleAsync(context);

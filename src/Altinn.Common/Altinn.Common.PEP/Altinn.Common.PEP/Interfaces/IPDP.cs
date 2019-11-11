@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Altinn.Common.PEP.Interfaces
 {
-    public interface IAuthorization
+    public interface IPDP
     {
         /// <summary>
         /// Sends in a request to check if the user is permitted to execute task

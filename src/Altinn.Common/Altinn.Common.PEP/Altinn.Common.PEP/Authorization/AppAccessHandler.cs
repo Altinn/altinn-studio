@@ -22,7 +22,7 @@ namespace Altinn.Common.PEP.Authorization
     public class AppAccessHandler : AuthorizationHandler<AppAccessRequirement>
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IAuthorization _authorizationService;
+        private readonly IPDP _pdp;
         private const string XacmlResourceInstanceId = "urn:altinn:instance-id";
         private const string XacmlResourceOrgId = "urn:altinn:org";
         private const string XacmlResourceAppId = "urn:altinn:app";
@@ -37,11 +37,11 @@ namespace Altinn.Common.PEP.Authorization
         /// Initializes a new instance of the <see cref="AppAccessHandler"/> class.
         /// </summary>
         /// <param name="httpContextAccessor">The http context accessor</param>
-        /// <param name="authorizationService">The authorizationService</param>
-        public AppAccessHandler(IHttpContextAccessor httpContextAccessor, IAuthorization authorizationService)
+        /// <param name="pdp">The pdp</param>
+        public AppAccessHandler(IHttpContextAccessor httpContextAccessor, IPDP pdp)
         {
             _httpContextAccessor = httpContextAccessor;
-            _authorizationService = authorizationService;
+            _pdp = pdp;
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Altinn.Common.PEP.Authorization
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
             XacmlJsonRequest request = CreateXacmlJsonRequest(context, requirement);
-            XacmlJsonResponse response = await _authorizationService.GetDecisionForRequest(request);
+            XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
             if(response == null || response.Response == null)
             {
