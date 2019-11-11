@@ -72,11 +72,9 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
   public render() {
     return (
-      <div className='row'>
-        <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
-          {this.renderSaveButton()}
-          {this.renderSubmitButton()}
-        </div>
+      <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
+        {this.renderSaveButton()}
+        {this.renderSubmitButton()}
       </div>
     );
   }
