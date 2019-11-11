@@ -88,6 +88,7 @@ namespace App.IntegrationTests
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<IInstance, InstanceMockSI>();
+                    services.AddSingleton<IApplication, ApplicationMockSI>();
                 });
             })
             .CreateClient();
