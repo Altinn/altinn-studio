@@ -2,6 +2,7 @@ using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,12 +12,61 @@ namespace App.IntegrationTests.Mocks.Services
     {
         public Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest)
         {
-            // Create response
+            List<XacmlJsonCategory> resources = xacmlJsonRequest.Resource;
+
+            XacmlJsonAttribute attribute = resources.Select(r => r.Attribute.Find(a => a.Value.Equals("endring-av-navn"))).FirstOrDefault();
+
+            // Create response and result
             XacmlJsonResponse response = new XacmlJsonResponse();
             response.Response = new List<XacmlJsonResult>();
-            // Add result and set decision to permit
             XacmlJsonResult result = new XacmlJsonResult();
-            result.Decision = XacmlContextDecision.Permit.ToString();
+
+            if (attribute != null)
+            {
+                // Set decision to permit
+                result.Decision = XacmlContextDecision.Permit.ToString();
+                response.Response.Add(result);
+
+                return Task.FromResult(response);
+            }
+
+            XacmlJsonAttribute attribute2 = resources.Select(r => r.Attribute.Find(a => a.Value.Equals("endring-av-navn2"))).FirstOrDefault();
+
+            if (attribute2 != null)
+            {
+                // Set decision to permit
+                result.Decision = XacmlContextDecision.Permit.ToString();
+                response.Response.Add(result);
+                response.Response.Add(new XacmlJsonResult());
+
+                return Task.FromResult(response);
+            }
+
+            XacmlJsonAttribute attribute3 = resources.Select(r => r.Attribute.Find(a => a.Value.Equals("endring-av-navn3"))).FirstOrDefault();
+
+            if (attribute3 != null)
+            {
+                // Set decision to permit
+                result.Decision = XacmlContextDecision.Permit.ToString();
+                response.Response.Add(result);
+
+                // Add obligation to result with a minimum authentication level attribute
+                XacmlJsonObligationOrAdvice obligation = new XacmlJsonObligationOrAdvice();
+                obligation.AttributeAssignment = new List<XacmlJsonAttributeAssignment>();
+                XacmlJsonAttributeAssignment authenticationAttribute = new XacmlJsonAttributeAssignment()
+                {
+                    Category = "urn:altinn:minimum-authenticationlevel",
+                    Value = "2"
+                };
+                obligation.AttributeAssignment.Add(authenticationAttribute);
+                result.Obligations = new List<XacmlJsonObligationOrAdvice>();
+                result.Obligations.Add(obligation);
+
+                return Task.FromResult(response);
+            }
+
+            // Set decision to deny
+            result.Decision = XacmlContextDecision.Deny.ToString();
             response.Response.Add(result);
 
             return Task.FromResult(response);
