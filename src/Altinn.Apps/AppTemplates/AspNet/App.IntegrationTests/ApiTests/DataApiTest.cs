@@ -78,6 +78,7 @@ namespace App.IntegrationTests.ApiTests
                     services.AddSingleton<IApplication, ApplicationMockSI>();
                     services.AddSingleton<IData, DataMockSI>();
                     services.AddTransient<IAltinnApp, App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
+                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
                 });
             })
             .CreateClient();
