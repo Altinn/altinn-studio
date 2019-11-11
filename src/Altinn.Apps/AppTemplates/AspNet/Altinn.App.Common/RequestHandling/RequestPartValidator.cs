@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Altinn.Platform.Storage.Interface.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Common.RequestHandling
 {
@@ -10,15 +12,15 @@ namespace Altinn.App.Common.RequestHandling
     /// </summary>
     public class RequestPartValidator
     {
-        private readonly Application appInfo;
-
+        private readonly Application _appInfo;
         /// <summary>
         /// Initializes a new instance of the <see cref="RequestPartValidator"/> class with the given application info.
         /// </summary>
         /// <param name="appInfo">The application metadata to use when validating a <see cref="RequestPart"/>.</param>
         public RequestPartValidator(Application appInfo)
         {
-            this.appInfo = appInfo;
+    
+            _appInfo = appInfo;
         }
 
         /// <summary>
@@ -39,7 +41,14 @@ namespace Altinn.App.Common.RequestHandling
             }
             else
             {
-                DataType elementType = appInfo.DataTypes.Find(e => e.Id == part.Name);
+                Console.WriteLine($"// {DateTime.Now} // Debug // Part : {part}");
+                Console.WriteLine($"// {DateTime.Now} // Debug // Part name: {part.Name}");
+                Console.WriteLine($"// {DateTime.Now} // Debug // appinfo : {_appInfo}");
+                Console.WriteLine($"// {DateTime.Now} // Debug // appinfo.Id : {_appInfo.Id}");
+
+                DataType elementType = _appInfo.DataTypes.Find(e => e.Id == part.Name);
+
+                Console.WriteLine($"// {DateTime.Now} // Debug // elementType : {elementType}");
 
                 if (elementType == null)
                 {
@@ -93,7 +102,7 @@ namespace Altinn.App.Common.RequestHandling
                 }
             }
 
-            foreach (DataType dataType in appInfo.DataTypes)
+            foreach (DataType dataType in _appInfo.DataTypes)
             {
                 if (dataType.MaxCount > 0)
                 {
