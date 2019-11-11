@@ -4,45 +4,34 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-import FormFillerActions from '../../../features/form/data/actions';
+import { returnUrlToMessagebox } from '../../../../../shared/src/utils/urlHelper';
 import AltinnAppHeader from '../../../shared/components/altinnAppHeader';
 import { IProfile } from '../../../shared/resources/profile';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IAltinnWindow, IRuntimeState, ProcessSteps } from '../../../types';
 import { IValidations } from '../../../types/global';
 import ReceiptContainer from '../../receipt/containers/receiptContainer';
+import FormFillerActions from '../data/actions';
 
-import { returnUrlToMessagebox } from './../../../../../shared/src/utils/urlHelper';
-
-export interface IWorkflowStepProvidedProps {
+export interface IProcessStepProvidedProps {
   header: string;
-  step: WorkflowSteps;
+  step: ProcessSteps;
 }
 
-/*
-  Reflects enum at server side
-*/
-export enum WorkflowSteps {
-  Unknown = 0,
-  FormFilling = 1,
-  Submit = 2,
-  Archived = 3,
-}
-
-export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
+export interface IProcessStepProps extends IProcessStepProvidedProps {
   profile: IProfile;
   language: any;
   errorList: string[];
 }
 
-export interface IWorkflowStepState {
-  workflowStep: WorkflowSteps;
+export interface IProcessStepState {
+  processStep: ProcessSteps;
 }
 
-class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflowStepState> {
-  constructor(props: IWorkflowStepProps, state: IWorkflowStepState) {
+class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessStepState> {
+  constructor(props: IProcessStepProps, state: IProcessStepState) {
     super(props, state);
     this.state = {
-      workflowStep: props.step,
+      processStep: props.step,
     };
   }
 
@@ -52,7 +41,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
         className={classNames(
           'modal-header',
           'a-modal-header',
-          {['a-modal-background-success']: this.props.step === WorkflowSteps.Archived},
+          {['a-modal-background-success']: this.props.step === ProcessSteps.Archived},
         )}
       >
         <div className='a-iconText a-iconText-background a-iconText-large'>
@@ -60,7 +49,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             <i className='fa fa-corp a-icon' aria-hidden='true' />
           </div>
           <h1 className='a-iconText-text mb-0'>
-            <span className='a-iconText-text-large'>{this.props.step === WorkflowSteps.Archived ? (
+            <span className='a-iconText-text-large'>{this.props.step === ProcessSteps.Archived ? (
               <span>{getLanguageFromKey('receipt.receipt', this.props.language)}</span>
             ) : (this.props.header)}</span>
           </h1>
@@ -80,7 +69,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public renderNavBar = () => {
     return (
       <div className='a-modal-navbar'>
-        {this.props.step === WorkflowSteps.FormFilling &&
+        {this.props.step === ProcessSteps.FormFilling &&
           <button
             type='button'
             className='a-modal-back a-js-tabable-popover'
@@ -114,19 +103,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
   public renderFormFiller = () => {
     return this.props.children;
-  }
-
-  public renderSubmit(): React.ReactNode {
-    return (
-      <button
-        type='submit'
-        className={'a-btn a-btn-success'}
-        onClick={this.handleSubmitForm}
-        id='workflowSubmitStepButton'
-      >
-        {getLanguageFromKey('general.submit', this.props.language)}
-      </button>
-    );
   }
 
   public renderReceipt = () => {
@@ -184,17 +160,17 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 
   public render() {
-    const isWorkflowStepsArchived = Boolean(this.props.step === WorkflowSteps.Archived);
-    const backgroundColor = isWorkflowStepsArchived ? '#D4F9E4' : '#1EAEF7';
+    const isProcessStepsArchived = Boolean(this.props.step === ProcessSteps.Archived);
+    const backgroundColor = isProcessStepsArchived ? '#D4F9E4' : '#1EAEF7';
 
     return (
-      <div id='workflowContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
+      <div id='processContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
         <div className='container'>
           <AltinnAppHeader
             language={this.props.language}
             profile={this.props.profile}
           />
-            <div className={classNames('row', {['d-print-none']: isWorkflowStepsArchived})}>
+            <div className={classNames('row', {['d-print-none']: isProcessStepsArchived})}>
               <div className='col-xl-10 offset-xl-1 a-p-static'>
                 {this.renderErrorReport()}
                 {this.renderNavBar()}
@@ -204,13 +180,10 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                       <div className='modal-content'>
                         {this.renderHeader()}
                         <div className='modal-body a-modal-body'>
-                          {this.props.step === WorkflowSteps.FormFilling &&
+                          {this.props.step === ProcessSteps.FormFilling &&
                             this.renderFormFiller()
                           }
-                          {this.props.step === WorkflowSteps.Submit &&
-                            this.renderSubmit()
-                          }
-                          {this.props.step === WorkflowSteps.Archived &&
+                          {this.props.step === ProcessSteps.Archived &&
                             <div id='ReceiptContainer'>
                               <ReceiptContainer/>
                             </div>
@@ -222,7 +195,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                 </div>
               </div>
             </div>
-            {this.props.step === WorkflowSteps.Archived &&
+            {this.props.step === ProcessSteps.Archived &&
               <Box display='none' displayPrint='block'>
                 <Typography variant='h2' style={{marginBottom: '2.1rem'}}>
                   {getLanguageFromKey('receipt.receipt', this.props.language)}
@@ -247,7 +220,7 @@ const getErrorList = (validations: IValidations) => {
   });
 };
 
-const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
+const mapStateToProps = (state: IRuntimeState, props: IProcessStepProvidedProps): IProcessStepProps => {
   return {
     profile: state.profile.profile,
     language: state.language ? state.language.language : {},
@@ -256,4 +229,4 @@ const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps
   };
 };
 
-export const WorkflowStep = connect(mapStateToProps)(WorkflowStepComponent);
+export const ProcessStep = connect(mapStateToProps)(ProcessStepComponent);

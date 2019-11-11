@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Contains information about the current task/event element of a process

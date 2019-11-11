@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -20,11 +19,11 @@ namespace Altinn.Platform.Storage.Repository
     /// Repository operations for application instances.
     /// </summary>
     public class InstanceRepository : IInstanceRepository
-    {
-        private readonly Uri _databaseUri;
-        private readonly Uri _collectionUri;
+    {        
+        private readonly Uri collectionUri;
         private readonly string databaseId;
-        private readonly string collectionId;
+        private readonly string collectionId = "instances";
+        private readonly string partitionKey = "/instanceOwner/partyId";
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
         private readonly ILogger<InstanceRepository> logger;
@@ -38,31 +37,20 @@ namespace Altinn.Platform.Storage.Repository
         {
             this.logger = logger;
 
-            // Retrieve configuration values from appsettings.json
-            _cosmosettings = cosmosettings.Value;
+            var database = new CosmosDatabaseHandler(cosmosettings.Value);
 
-            ConnectionPolicy connectionPolicy = new ConnectionPolicy
-            {
-                ConnectionMode = ConnectionMode.Gateway,
-                ConnectionProtocol = Protocol.Https,
-            };
+            _client = database.CreateDatabaseAndCollection(collectionId);
+            collectionUri = database.CollectionUri;
+            Uri databaseUri = database.DatabaseUri;
+            databaseId = database.DatabaseName;
 
-            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
-
-            _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
-            _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, _cosmosettings.Collection);
-            databaseId = _cosmosettings.Database;
-            collectionId = _cosmosettings.Collection;
-            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
-
-            DocumentCollection documentCollection = new DocumentCollection { Id = _cosmosettings.Collection };
-            documentCollection.PartitionKey.Paths.Add("/instanceOwnerId");
+            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
-                _databaseUri,
+                databaseUri,
                 documentCollection).GetAwaiter().GetResult();
 
-            _client.OpenAsync();
+            _client.OpenAsync();                    
         }
 
         /// <inheritdoc/>
@@ -70,9 +58,8 @@ namespace Altinn.Platform.Storage.Repository
         {
             PreProcess(instance);
 
-            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, instance);
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(collectionUri, instance);
             Document document = createDocumentResponse.Resource;
-
             Instance instanceStored = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
             PostProcess(instanceStored);
@@ -87,10 +74,10 @@ namespace Altinn.Platform.Storage.Repository
 
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
 
-            ResourceResponse<Document> instance = await _client
+            _ = await _client
                 .DeleteDocumentAsync(
                     uri.ToString(),
-                    new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
+                    new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwner.PartyId) });
 
             return true;
         }
@@ -114,7 +101,7 @@ namespace Altinn.Platform.Storage.Repository
                 feedOptions.RequestContinuation = continuationToken;
             }
 
-            IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions);
+            IQueryable<Instance> queryBuilder = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions);
 
             try
             {
@@ -176,6 +163,14 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     switch (queryParameter)
                     {
+                        case "size":
+                            // handled outside this, it is a valid parameter.
+                            break;
+
+                        case "continuationToken":
+                            // handled outside this method, it is a valid parameter.
+                            break;
+
                         case "appId":
                             queryBuilder = queryBuilder.Where(i => i.AppId == queryValue);
                             break;
@@ -184,24 +179,24 @@ namespace Altinn.Platform.Storage.Repository
                             queryBuilder = queryBuilder.Where(i => i.Org == queryValue);
                             break;
 
-                        case "instanceOwnerId":
-                            queryBuilder = queryBuilder.Where(i => i.InstanceOwnerId == queryValue);
+                        case "instanceOwner.partyId":
+                            queryBuilder = queryBuilder.Where(i => i.InstanceOwner.PartyId == queryValue);
                             break;
 
-                        case "lastChangedDateTime":
+                        case "lastChanged":
                             queryBuilder = QueryBuilderForLastChangedDateTime(queryBuilder, queryValue);
                             break;
 
-                        case "dueDateTime":
-                            queryBuilder = QueryBuilderForDueDateTime(queryBuilder, queryValue);
+                        case "dueBefore":
+                            queryBuilder = QueryBuilderForDueBefore(queryBuilder, queryValue);
                             break;
 
-                        case "visibleDateTime":
-                            queryBuilder = QueryBuilderForVisibleDateTime(queryBuilder, queryValue);
+                        case "visibleAfter":
+                            queryBuilder = QueryBuilderForVisibleAfter(queryBuilder, queryValue);
                             break;
 
-                        case "createdDateTime":
-                            queryBuilder = QueryBuilderForCreatedDateTime(queryBuilder, queryValue);
+                        case "created":
+                            queryBuilder = QueryBuilderForCreated(queryBuilder, queryValue);
                             break;
 
                         case "process.currentTask":
@@ -222,13 +217,20 @@ namespace Altinn.Platform.Storage.Repository
 
                             break;
 
-                        case "labels":
+                        case "process.ended":
+                            queryBuilder = QueryBuilderForEnded(queryBuilder, queryValue);
+                            break;
+
+                        case "appOwner.labels":
                             foreach (string label in queryValue.Split(","))
                             {
-                                queryBuilder = queryBuilder.Where(i => i.Labels.Contains(label));
+                                queryBuilder = queryBuilder.Where(i => i.AppOwner.Labels.Contains(label));
                             }
 
                             break;
+
+                        default:
+                            throw new ArgumentException($"Unknown query parameter: {queryParameter}");
                     }
                 }
             }
@@ -237,42 +239,42 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForDueDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        private IQueryable<Instance> QueryBuilderForDueBefore(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.DueDateTime > dateValue);
+                return queryBuilder.Where(i => i.DueBefore > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.DueDateTime >= dateValue);
+                return queryBuilder.Where(i => i.DueBefore >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.DueDateTime < dateValue);
+                return queryBuilder.Where(i => i.DueBefore < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.DueDateTime <= dateValue);
+                return queryBuilder.Where(i => i.DueBefore <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.DueDateTime == dateValue);
+                return queryBuilder.Where(i => i.DueBefore == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.DueDateTime == dateValue);
+            return queryBuilder.Where(i => i.DueBefore == dateValue);
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
@@ -283,113 +285,152 @@ namespace Altinn.Platform.Storage.Repository
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.LastChangedDateTime > dateValue);
+                return queryBuilder.Where(i => i.LastChanged > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.LastChangedDateTime >= dateValue);
+                return queryBuilder.Where(i => i.LastChanged >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.LastChangedDateTime < dateValue);
+                return queryBuilder.Where(i => i.LastChanged < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.LastChangedDateTime <= dateValue);
+                return queryBuilder.Where(i => i.LastChanged <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+                return queryBuilder.Where(i => i.LastChanged == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.LastChangedDateTime == dateValue);
+            return queryBuilder.Where(i => i.LastChanged == dateValue);
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForCreatedDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        private IQueryable<Instance> QueryBuilderForEnded(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.CreatedDateTime > dateValue);
+                return queryBuilder.Where(i => i.Process.Ended > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.CreatedDateTime >= dateValue);
+                return queryBuilder.Where(i => i.Process.Ended >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.CreatedDateTime < dateValue);
+                return queryBuilder.Where(i => i.Process.Ended < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.CreatedDateTime <= dateValue);
+                return queryBuilder.Where(i => i.Process.Ended <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+                return queryBuilder.Where(i => i.Process.Ended == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.CreatedDateTime == dateValue);
+            return queryBuilder.Where(i => i.Process.Ended == dateValue);
         }
 
         // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
-        private IQueryable<Instance> QueryBuilderForVisibleDateTime(IQueryable<Instance> queryBuilder, string queryValue)
+        private IQueryable<Instance> QueryBuilderForCreated(IQueryable<Instance> queryBuilder, string queryValue)
         {
             DateTime dateValue;
 
             if (queryValue.StartsWith("gt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.VisibleDateTime > dateValue);
+                return queryBuilder.Where(i => i.Created > dateValue);
             }
 
             if (queryValue.StartsWith("gte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.VisibleDateTime >= dateValue);
+                return queryBuilder.Where(i => i.Created >= dateValue);
             }
 
             if (queryValue.StartsWith("lt:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.VisibleDateTime < dateValue);
+                return queryBuilder.Where(i => i.Created < dateValue);
             }
 
             if (queryValue.StartsWith("lte:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
-                return queryBuilder.Where(i => i.VisibleDateTime <= dateValue);
+                return queryBuilder.Where(i => i.Created <= dateValue);
             }
 
             if (queryValue.StartsWith("eq:"))
             {
                 dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
-                return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+                return queryBuilder.Where(i => i.Created == dateValue);
             }
 
             dateValue = ParseDateTimeIntoUtc(queryValue);
-            return queryBuilder.Where(i => i.VisibleDateTime == dateValue);
+            return queryBuilder.Where(i => i.Created == dateValue);
+        }
+
+        // Limitations in queryBuilder.Where interface forces me to duplicate the datetime methods
+        private IQueryable<Instance> QueryBuilderForVisibleAfter(IQueryable<Instance> queryBuilder, string queryValue)
+        {
+            DateTime dateValue;
+
+            if (queryValue.StartsWith("gt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleAfter > dateValue);
+            }
+
+            if (queryValue.StartsWith("gte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.VisibleAfter >= dateValue);
+            }
+
+            if (queryValue.StartsWith("lt:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleAfter < dateValue);
+            }
+
+            if (queryValue.StartsWith("lte:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(4));
+                return queryBuilder.Where(i => i.VisibleAfter <= dateValue);
+            }
+
+            if (queryValue.StartsWith("eq:"))
+            {
+                dateValue = ParseDateTimeIntoUtc(queryValue.Substring(3));
+                return queryBuilder.Where(i => i.VisibleAfter == dateValue);
+            }
+
+            dateValue = ParseDateTimeIntoUtc(queryValue);
+            return queryBuilder.Where(i => i.VisibleAfter == dateValue);
         }
 
         private static DateTime ParseDateTimeIntoUtc(string queryValue)
@@ -398,7 +439,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<Instance> GetOne(string instanceId, int instanceOwnerId)
+        public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
         {
             string cosmosId = InstanceIdToCosmosId(instanceId);
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, cosmosId);
@@ -406,7 +447,7 @@ namespace Altinn.Platform.Storage.Repository
             Instance instance = await _client
                 .ReadDocumentAsync<Instance>(
                     uri,
-                    new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
+                    new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerPartyId.ToString()) });
 
             PostProcess(instance);
 
@@ -414,19 +455,19 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerId)
+        public async Task<List<Instance>> GetInstancesOfInstanceOwner(int instanceOwnerPartyId)
         {
-            string instanceOwnerIdString = instanceOwnerId.ToString();
+            string instanceOwnerPartyIdString = instanceOwnerPartyId.ToString();
 
             FeedOptions feedOptions = new FeedOptions
             {
-                PartitionKey = new PartitionKey(instanceOwnerIdString),
+                PartitionKey = new PartitionKey(instanceOwnerPartyIdString),
                 MaxItemCount = 100,
             };
 
             IQueryable<Instance> filter = _client
-                .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                .Where(i => i.InstanceOwnerId == instanceOwnerIdString);
+                .CreateDocumentQuery<Instance>(collectionUri, feedOptions)
+                .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString);
 
             IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
 
@@ -440,39 +481,41 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <inheritdoc/>
-        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerId, string instanceState)
+        public async Task<List<Instance>> GetInstancesInStateOfInstanceOwner(int instanceOwnerPartyId, string instanceState)
         {
             List<Instance> instances = new List<Instance>();
-            string instanceOwnerIdString = instanceOwnerId.ToString();
+            string instanceOwnerPartyIdString = instanceOwnerPartyId.ToString();
 
             FeedOptions feedOptions = new FeedOptions
             {
-                PartitionKey = new PartitionKey(instanceOwnerIdString)
+                PartitionKey = new PartitionKey(instanceOwnerPartyIdString)
             };
 
             IQueryable<Instance> filter = null;
 
             if (instanceState.Equals("active"))
             {
-                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => (!i.VisibleDateTime.HasValue || i.VisibleDateTime <= DateTime.UtcNow))
-                        .Where(i => !i.InstanceState.IsDeleted)
-                        .Where(i => !i.InstanceState.IsArchived);
+                filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
+                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
+                        .Where(i => (!i.VisibleAfter.HasValue || i.VisibleAfter <= DateTime.UtcNow))
+                        .Where(i => !i.Status.SoftDeleted.HasValue)
+                        .Where(i => !i.Status.HardDeleted.HasValue)
+                        .Where(i => !i.Status.Archived.HasValue);
             }
             else if (instanceState.Equals("deleted"))
             {
-                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                        .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                        .Where(i => i.InstanceState.IsDeleted)
-                        .Where(i => !i.InstanceState.IsMarkedForHardDelete);
+                filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
+                        .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
+                        .Where(i => i.Status.SoftDeleted.HasValue)
+                        .Where(i => i.Status.HardDeleted.HasValue);
             }
             else if (instanceState.Equals("archived"))
             {
-                filter = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
-                       .Where(i => i.InstanceOwnerId == instanceOwnerIdString)
-                       .Where(i => i.InstanceState.IsArchived)
-                       .Where(i => !i.InstanceState.IsDeleted);
+                filter = _client.CreateDocumentQuery<Instance>(collectionUri, feedOptions)
+                       .Where(i => i.InstanceOwner.PartyId == instanceOwnerPartyIdString)
+                       .Where(i => i.Status.Archived.HasValue)
+                       .Where(i => !i.Status.SoftDeleted.HasValue)
+                       .Where(i => !i.Status.HardDeleted.HasValue);
             }
             else
             {
@@ -506,7 +549,7 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Converts the instanceId (id) of the instance from {instanceOwnerId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
+        /// Converts the instanceId (id) of the instance from {instanceOwnerPartyId}/{instanceGuid} to {instanceGuid} to use as id in cosmos.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
         private void PreProcess(Instance instance)
@@ -515,12 +558,12 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerId}/{instanceGuid} to be used outside cosmos.
+        /// Converts the instanceId (id) of the instance from {instanceGuid} to {instanceOwnerPartyId}/{instanceGuid} to be used outside cosmos.
         /// </summary>
         /// <param name="instance">the instance to preprocess</param>
         private void PostProcess(Instance instance)
         {
-            instance.Id = $"{instance.InstanceOwnerId}/{instance.Id}";
+            instance.Id = $"{instance.InstanceOwner.PartyId}/{instance.Id}";
         }
 
         /// <summary>

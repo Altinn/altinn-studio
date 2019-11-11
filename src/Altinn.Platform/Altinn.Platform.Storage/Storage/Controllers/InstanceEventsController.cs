@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,7 +11,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// API for managing the instance event element
     /// </summary>
-    [Route("storage/api/v1/instances/{instanceOwnerId}/{instanceGuid}/events")]
+    [Route("storage/api/v1/instances/{instanceOwnerPartyId}/{instanceGuid}/events")]
     [ApiController]
     public class InstanceEventsController : ControllerBase
     {
@@ -29,10 +29,11 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Inserts new instance event into the instanceEvent collection.
         /// </summary>
-        /// <param name="instanceEvent">Id of instance to retrieve events for. </param>
-        /// <returns>The stored instance event.</returns>
+        /// <param name="instanceEvent">The instance event object to be inserted</param>
+        /// <returns>The stored instance event object</returns>
         /// POST storage/api/v1/instances/{instanceId}/events
         [HttpPost]
+        [ProducesResponseType(typeof(InstanceEvent), 201)]
         public async Task<ActionResult> Post([FromBody] InstanceEvent instanceEvent)
         {
             if (instanceEvent == null || instanceEvent.InstanceId == null)
@@ -40,7 +41,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Missing parameter values: instance event must exist and instanceId must be set");
             }
 
-            instanceEvent.CreatedDateTime = DateTime.UtcNow;
+            instanceEvent.Created = DateTime.UtcNow;
 
             InstanceEvent result = await _repository.InsertInstanceEvent(instanceEvent);
             if (result == null)
@@ -48,22 +49,23 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Unable to write new instance event to database");
             }
 
-            return Ok(result);
+            return Created(result.Id.ToString(), result);
         }
 
         /// <summary>
         /// Get one event.
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceOwnerPartyId">instance owner</param>
         /// <param name="instanceGuid">instance guid</param>
         /// <param name="eventGuid">event guid</param>
         /// <returns>the event</returns>
         [HttpGet("{eventGuid:guid}")]
-        public async Task<ActionResult> GetOne(int instanceOwnerId, Guid instanceGuid, Guid eventGuid)
+        [ProducesResponseType(typeof(InstanceEvent), 200)]
+        public async Task<ActionResult> GetOne(int instanceOwnerPartyId, Guid instanceGuid, Guid eventGuid)
         {
             try
             {
-                string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+                string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
                 InstanceEvent theEvent = await _repository.GetOneEvent(instanceId, eventGuid);
                 if (theEvent != null)
                 {
@@ -83,7 +85,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="instanceGuid"> Id of instance to retrieve events for. </param>
         /// <param name="eventTypes">Array of event types to filter the events by.</param>
         /// <param name="from"> Lower bound for DateTime span to filter events by.</param>
@@ -96,14 +98,15 @@ namespace Altinn.Platform.Storage.Controllers
         /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23&eventTypes=deleted,submited
         /// -->
         [HttpGet]
+        [ProducesResponseType(typeof(List<InstanceEvent>), 200)]
         public async Task<ActionResult> Get(
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceGuid,
             [FromQuery] string[] eventTypes,
             [FromQuery] string from,
             [FromQuery] string to)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             if (string.IsNullOrEmpty(instanceId))
             {
@@ -138,14 +141,14 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Deletes all events related to an instance id.
         /// </summary>
-        /// <param name="instanceOwnerId">Id of instance owner to retrieve events for. .</param>
+        /// <param name="instanceOwnerPartyId">Id of instance owner to retrieve events for. .</param>
         /// <param name="instanceGuid">Guid of the instance</param>
         /// <returns>Number of deleted events.</returns>
         /// DELETE storage/api/v1/instances/{instanceId}/events
         [HttpDelete]
-        public async Task<ActionResult> Delete(int instanceOwnerId, Guid instanceGuid)
+        public async Task<ActionResult> Delete(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
 
             if (string.IsNullOrEmpty(instanceId))
             {

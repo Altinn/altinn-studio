@@ -1,21 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
 using Altinn.Platform.Authentication.Controllers;
 using Altinn.Platform.Authentication.Maskinporten;
+
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
 using Newtonsoft.Json;
+
 using Xunit;
 
-namespace Altinn.Platform.Authentication.IntegrationTests
+namespace Altinn.Platform.Authentication.IntegrationTests.Controllers
 {
     /// <summary>
     /// Represents a collection of unit test with all integration tests of the <see cref="AuthenticationController"/> class.

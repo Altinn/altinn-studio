@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
-using Storage.Interface.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.Helpers
 {
@@ -16,7 +13,7 @@ namespace Altinn.Platform.Storage.Helpers
         /// Creates a data element based on element type, instance id, content type, content file name and file size. 
         /// </summary>
         /// <returns>DataElement</returns>
-        public static DataElement CreateDataElement(string elementType, List<Guid> refs, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user)
+        public static DataElement CreateDataElement(string dataType, List<Guid> refs, Instance instance, DateTime creationTime, string contentType, string contentFileName, long fileSize, string user)
         {
             string dataId = Guid.NewGuid().ToString();
             
@@ -24,14 +21,14 @@ namespace Altinn.Platform.Storage.Helpers
             {
                 // update data record
                 Id = dataId,
-                ElementType = elementType,
+                DataType = dataType,
                 ContentType = contentType,
                 CreatedBy = user,
-                CreatedDateTime = creationTime,
-                FileName = contentFileName,
+                Created = creationTime,
+                Filename = contentFileName,
                 LastChangedBy = user,
-                LastChangedDateTime = creationTime,
-                FileSize = fileSize,
+                LastChanged = creationTime,
+                Size = fileSize,
                 Refs = refs,
             };
 
@@ -43,7 +40,7 @@ namespace Altinn.Platform.Storage.Helpers
             }
 
             string filePath = DataFileName(instance.AppId, guidFromInstanceId, newData.Id);
-            newData.StorageUrl = filePath;
+            newData.BlobStoragePath = filePath;
             return newData;
         }
         

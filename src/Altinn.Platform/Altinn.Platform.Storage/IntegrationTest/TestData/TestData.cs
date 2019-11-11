@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Altinn.Platform.Storage.Models;
-using Storage.Interface.Models;
+using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Platform.Storage.IntegrationTest
 {
@@ -10,7 +9,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// </summary>
     public class TestData
     {
-        private static string instanceOwnerId_1 = "50000000";
+        private static string instanceOwnerPartyId_1 = "50000000";
         private static string userId_1 = "20000000";
 
         private static string org_1 = "TDD";
@@ -46,7 +45,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private static Application application_1 = new Application()
         {
             Id = AppId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
+            Created = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
             Org = org_1,
             Title = appTitles_App1
         };
@@ -54,7 +53,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private static Application application_2 = new Application()
         {
             Id = AppId_2,
-            CreatedDateTime = Convert.ToDateTime("2019-06-20T12:26:07.4135026Z"),
+            Created = Convert.ToDateTime("2019-06-20T12:26:07.4135026Z"),
             Org = org_1,
             Title = appTitles_App2
         };
@@ -62,7 +61,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private static Application application_3 = new Application()
         {
             Id = AppId_3,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
+            Created = Convert.ToDateTime("2019-08-20T12:26:07.4135026Z"),
             Org = org_2,
             Title = appTitles_App3
         };
@@ -72,16 +71,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             AppId = AppId_1,
             CreatedBy = userId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
-            InstanceState = new InstanceState()
-            {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
-            },
+            Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = org_1,
             Process = CreateProcessState()
         };
@@ -103,16 +97,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             AppId = AppId_1,
             CreatedBy = userId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Status = new InstanceStatus
             {
-                IsArchived = true,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
+                Archived = DateTime.UtcNow,
             },
             LastChangedBy = userId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
             Process = CreateProcessState(),
         };
@@ -122,16 +114,15 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             AppId = AppId_1,
             CreatedBy = userId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Status = new InstanceStatus
             {
-                IsArchived = true,
-                IsDeleted = true,
-                IsMarkedForHardDelete = false
+                Archived = DateTime.UtcNow,
+                SoftDeleted = DateTime.UtcNow,
             },
             LastChangedBy = userId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
             Process = CreateProcessState(),
         };
@@ -141,16 +132,16 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             AppId = AppId_1,
             CreatedBy = userId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Created = Convert.ToDateTime("2019-08-20T19:20:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Status = new InstanceStatus
             {
-                IsArchived = true,
-                IsDeleted = true,
-                IsMarkedForHardDelete = true
+                Archived = DateTime.UtcNow,
+                SoftDeleted = DateTime.UtcNow,
+                HardDeleted = DateTime.UtcNow,
             },
             LastChangedBy = userId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T21:19:22.2135489Z"),
             Org = org_1,
             Process = CreateProcessState(),
         };
@@ -160,16 +151,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             AppId = AppId_2,
             CreatedBy = userId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
-            InstanceState = new InstanceState()
+            Created = Convert.ToDateTime("2019-08-20T23:19:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Status = new InstanceStatus
             {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
             },
             LastChangedBy = userId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_1,
             Process = CreateProcessState(),
         };
@@ -179,16 +167,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             AppId = AppId_2,
             CreatedBy = userId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
-            InstanceState = new InstanceState()
-            {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
-            },
+            Created = Convert.ToDateTime("2019-08-20T19:19:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T19:19:22.2135489Z"),
             Org = org_1,
             Process = CreateProcessState(),
         };
@@ -198,16 +181,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             AppId = AppId_3,
             CreatedBy = userId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
-            InstanceState = new InstanceState()
-            {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
-            },
+            Created = Convert.ToDateTime("2019-08-20T17:19:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_2,
             Process = CreateProcessState(),
         };
@@ -216,16 +194,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             AppId = AppId_3,
             CreatedBy = userId_1,
-            CreatedDateTime = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
-            InstanceOwnerId = instanceOwnerId_1,
-            InstanceState = new InstanceState()
-            {
-                IsArchived = false,
-                IsDeleted = false,
-                IsMarkedForHardDelete = false
-            },
+            Created = Convert.ToDateTime("2019-08-20T17:21:21.7920255Z"),
+            InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId_1 },
+            Status = new InstanceStatus(),
             LastChangedBy = userId_1,
-            LastChangedDateTime = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
+            LastChanged = Convert.ToDateTime("2019-08-20T23:19:22.2135489Z"),
             Org = org_2,
             Process = CreateProcessState(),
         };
@@ -249,9 +222,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// Gets instance owner id for all test instances
         /// </summary>
         /// <returns></returns>
-        public string GetInstanceOwnerId()
+        public string GetInstanceOwnerPartyId()
         {
-            return instanceOwnerId_1.ToString();
+            return instanceOwnerPartyId_1.ToString();
         }
 
         /// <summary>

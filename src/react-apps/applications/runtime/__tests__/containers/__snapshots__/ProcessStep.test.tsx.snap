@@ -2,7 +2,7 @@
 
 exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 1`] = `
 <div
-  id="workflowContainer"
+  id="processContainer"
   style={
     Object {
       "backgroundColor": "#1EAEF7",

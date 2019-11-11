@@ -1,6 +1,7 @@
 import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../shared/src/utils/language';
 import { IFormData } from '../features/form/data/reducer';
 import { ILayout, ILayoutComponent } from '../features/form/layout/';
+import { IValidationIssue, Severity} from '../types';
 import { IComponentValidations, IDataModelFieldElement, IValidations } from '../types/global';
 import { getKeyWithoutIndex } from './databindings';
 
@@ -327,6 +328,69 @@ export function mapApiValidationsToRedux(
     }
     match = false;
   });
+  return validationResult;
+}
+
+/* Function to map the new data element validations to our internal redux structure*/
+export function mapDataElementValidationToRedux(validations: IValidationIssue[], layout: ILayout) {
+  const validationResult: IValidations = {};
+  if (!validations) {
+    return validationResult;
+  }
+  validations.forEach((validation) => {
+    // for each validation, map to correct component and field key
+    const componentValidations: IComponentValidations = {};
+    const component = layout.find((layoutElement) => {
+      const componentCandidate = layoutElement as ILayoutComponent;
+      let found = false;
+      Object.keys(componentCandidate.dataModelBindings).forEach((dataModelBindingKey) => {
+        if (componentCandidate.dataModelBindings[dataModelBindingKey] === validation.field) {
+          found = true;
+          if (!componentValidations[dataModelBindingKey]) {
+            componentValidations[dataModelBindingKey] = {errors: [], warnings: []};
+          }
+          if (validation.severity === Severity.Error) {
+            componentValidations[dataModelBindingKey].errors.push(validation.description);
+          } else {
+            componentValidations[dataModelBindingKey].warnings.push(validation.description);
+          }
+        }
+      });
+      return found;
+    });
+    if (component) {
+      // we have found a matching component
+      if (!validationResult[component.id]) {
+        validationResult[component.id] = componentValidations;
+      } else {
+        const currentValidations = validationResult[component.id];
+        Object.keys(componentValidations).forEach((key) => {
+          if (!currentValidations[key]) {
+            currentValidations[key] = componentValidations[key];
+          } else {
+            currentValidations[key].errors = currentValidations[key].errors.concat(componentValidations[key].errors);
+            // tslint:disable-next-line: max-line-length
+            currentValidations[key].warnings = currentValidations[key].warnings.concat(componentValidations[key].warnings);
+          }
+        });
+        validationResult[component.id] = currentValidations;
+      }
+    } else {
+      // unmapped error
+      if (!validationResult.unmapped) {
+        validationResult.unmapped = {};
+      }
+      if (!validationResult.unmapped[validation.field]) {
+        validationResult.unmapped[validation.field] = {errors: [], warnings: []};
+      }
+      if (validation.severity === Severity.Error) {
+        validationResult.unmapped[validation.field].errors.push(validation.description);
+      } else {
+        validationResult.unmapped[validation.field].warnings.push(validation.description);
+      }
+    }
+  });
+
   return validationResult;
 }
 

@@ -1,4 +1,3 @@
-import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -26,11 +25,11 @@ export class RenderComponent extends React.Component<IRenderProps, null> {
           } else {
             return (
               <Grid item={true} key={component.id} xs={12}>
-                <FormGroup>
+                <div className='a-form-group'>
                   <GenericComponent
                     {...component as ILayoutComponent}
                   />
-                </FormGroup>
+                </div>
               </Grid>
             );
           }

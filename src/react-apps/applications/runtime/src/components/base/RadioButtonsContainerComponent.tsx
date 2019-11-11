@@ -71,7 +71,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
           key={index}
           onClick={props.readOnly ?
             null : () => onDataChange(option.value)}
-          style={index !== 0 ? { marginTop: '2.4rem' } : {}}
+          style={index !== 0 && props.options.length > 2 ? { marginTop: '2.4rem' } : {}}
         >
           <input
             type='radio'
