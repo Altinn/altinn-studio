@@ -13,7 +13,7 @@ export interface IAltinnPopoverProps {
   btnSecondaryId?: string;
   handleClose: any;
   paperProps?: any;
-  transformOrigin: PopoverOrigin;
+  transformOrigin?: PopoverOrigin;
   backgroundColor?: string;
   children: React.ReactNode;
 }

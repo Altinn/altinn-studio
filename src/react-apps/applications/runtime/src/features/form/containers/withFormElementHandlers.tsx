@@ -217,7 +217,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
               paperProps={{
                 classes: {
                   paper: classes.helpTextPopoverText,
-                }
+                },
               }}
             >
               <Typography
