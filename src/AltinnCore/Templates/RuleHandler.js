@@ -1,9 +1,8 @@
 var ruleHandlerObject = {
   sum: (obj) => {
-    obj.a = +obj.a;
-    obj.b = +obj.b;
-    obj.c = +obj.c;
-    return obj.a + obj.b + obj.c;
+    obj.a = obj.a ? +obj.a : 0;
+    obj.b = obj.b ? +obj.b : 0;
+    return obj.a + obj.b;
   },
 
   fullName: (obj) => {
@@ -22,7 +21,6 @@ var ruleHandlerHelper = {
     return {
       a: "a",
       b: "b",
-      c: "c"
     }
   }
 }
