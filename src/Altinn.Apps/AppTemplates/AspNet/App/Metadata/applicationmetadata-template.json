@@ -6,7 +6,7 @@
   "lastChangedDateTime": "$time$",
   "lastChangedBy": "$username$",
   "title": { "nb": "titleName" },
-  "elementTypes": [
+  "dataTypes": [
     {
       "id": "default",
       "allowedContentType": [ "application/xml" ],

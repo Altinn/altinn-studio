@@ -1,16 +1,14 @@
 {
-  "id": "tdd/aa-template-test", 
+  "id": "tdd/aa-template-test",
   "org": "tdd",
   "createdDateTime": "2019-09-16T22:22:22",
   "createdBy": "username",
   "title": { "nb": "titleName" },
-  "elementTypes": [
+  "dataTypes": [
     {
       "id": "default",
       "allowedContentType": [ "application/xml" ],
-      "maxCount": 0,
-      "shouldSign": false,
-      "shouldEncrypt": true
+      "maxCount": 0
     }
   ],
   "partyTypesAllowed": {
