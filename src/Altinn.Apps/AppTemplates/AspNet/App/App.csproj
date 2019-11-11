@@ -12,7 +12,8 @@
 
   <ItemGroup>
     <Folder Include="Config\UI\Dynamics\" />
-    <Folder Include="wwwroot\" />
+    <Folder Include="wwwroot\css\" />
+    <Folder Include="wwwroot\script\" />
   </ItemGroup>
 
   <ItemGroup>
