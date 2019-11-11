@@ -48,7 +48,6 @@ namespace AltinnCore.UnitTest.Designer.Services
                 _releaseDbRepoMock.Object,
                 httpContextAccessorMock.Object,
                 _azureDevOpsBuildServiceMock.Object,
-                _sourceControlMock.Object,
                 optionsMonitorMock.Object);
         }
 
