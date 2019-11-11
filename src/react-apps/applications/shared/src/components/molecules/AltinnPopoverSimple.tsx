@@ -16,10 +16,6 @@ export interface IAltinnPopoverProps {
   transformOrigin: PopoverOrigin;
   backgroundColor?: string;
   children: React.ReactNode;
-  popoverClasses?: {
-    paper?: string;
-    root?: string;
-  };
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -84,7 +80,6 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
   const {
     anchorOrigin = defaultAnchorOrigin,
     transformOrigin = defaultTransformOrigin,
-    popoverClasses,
   } = props;
 
   const classes = useStyles(props);
@@ -109,7 +104,6 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
         transformOrigin={transformOrigin}
         anchorReference='anchorEl'
         PaperProps={{ square: true, ...props.paperProps }}
-        classes={popoverClasses}
       >
         <Grid container={true} direction='column' className={classes.popover}>
           <Grid item={true}>

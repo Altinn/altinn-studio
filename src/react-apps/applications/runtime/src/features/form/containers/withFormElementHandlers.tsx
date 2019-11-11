@@ -214,8 +214,10 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
               backgroundColor={theme.altinnPalette.primary.yellowLight.toString()}
               anchorEl={openPopover ? helpIconRef.current : null}
               handleClose={this.closePopover}
-              popoverClasses={{
-                paper: classes.helpTextPopoverPaper,
+              paperProps={{
+                classes: {
+                  paper: classes.helpTextPopoverText,
+                }
               }}
             >
               <Typography
