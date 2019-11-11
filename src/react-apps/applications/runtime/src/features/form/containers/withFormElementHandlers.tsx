@@ -201,7 +201,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
             />
             {this.errorMessage()}
           </Grid>
-          {!!helpIconRef ?
+          {!!helpIconRef &&
             <AltinnPopover
               anchorOrigin={{
                 horizontal: 'right',
@@ -226,7 +226,6 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
                 {this.getTextResource(this.props.textResourceBindings.help)}
               </Typography>
             </AltinnPopover>
-            : null
           }
         </>
       );
