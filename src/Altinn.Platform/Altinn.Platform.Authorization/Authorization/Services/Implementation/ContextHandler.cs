@@ -2,8 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Authorization.ABAC.Constants;
 using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Xacml;
+using Altinn.Platform.Authorization.Constants;
+using Altinn.Platform.Authorization.Models;
+using Altinn.Platform.Authorization.Repositories.Interface;
+using Altinn.Platform.Authorization.Services.Interface;
+using Altinn.Platform.Storage.Models;
+using Authorization.Interface.Models;
 
 namespace Altinn.Platform.Authorization.Services.Implementation
 {
@@ -18,6 +25,21 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class ContextHandler : IContextHandler
     {
+        private readonly IPolicyInformationRepository _policyInformationRepository;
+        private readonly IRoles _rolesWrapper;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ContextHandler"/> class
+        /// </summary>
+        /// <param name="policyInformationRepository">the policy information repository handler</param>
+        /// <param name="rolesWrapper">the roles handler</param>
+        public ContextHandler(
+            IPolicyInformationRepository policyInformationRepository, IRoles rolesWrapper)
+        {
+            _policyInformationRepository = policyInformationRepository;
+            _rolesWrapper = rolesWrapper;
+        }
+
         /// <summary>
         /// Ads needed information to the Context Request.
         /// </summary>
@@ -25,7 +47,135 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <returns></returns>
         public async Task<XacmlContextRequest> Enrich(XacmlContextRequest request)
         {
+            await EnrichResourceAttributes(request);
             return await Task.FromResult(request);
+        }
+
+        private async Task EnrichResourceAttributes(XacmlContextRequest request)
+        {
+            XacmlContextAttributes resourceContextAttributes = request.GetResourceAttributes();
+            XacmlResourceAttributes resourceAttributes = GetResourceAttributeValues(resourceContextAttributes);
+
+            bool resourceAttributeComplete = false;
+
+            if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.TaskValue))
+            {
+                // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
+            else if (!string.IsNullOrEmpty(resourceAttributes.OrgValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.AppValue) &&
+                string.IsNullOrEmpty(resourceAttributes.InstanceValue) &&
+                !string.IsNullOrEmpty(resourceAttributes.ResourcePartyValue) &&
+                string.IsNullOrEmpty(resourceAttributes.TaskValue))
+            {
+                // The resource attributes are complete
+                resourceAttributeComplete = true;
+            }
+
+            if (!resourceAttributeComplete && !string.IsNullOrEmpty(resourceAttributes.InstanceValue))
+            {
+                Instance instanceData = await _policyInformationRepository.GetInstance(resourceAttributes.InstanceValue);
+
+                AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.OrgAttribute, resourceAttributes.OrgValue, instanceData.Org);
+                string app = instanceData.AppId.Split("/")[1];
+                AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.AppAttribute, resourceAttributes.AppValue, app);
+                AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.TaskAttribute, resourceAttributes.TaskValue, instanceData.Process.CurrentTask.ElementId);
+                AddIfValueDoesNotExist(resourceContextAttributes, XacmlRequestAttribute.PartyAttribute, resourceAttributes.ResourcePartyValue, instanceData.InstanceOwnerId);
+                resourceAttributes.ResourcePartyValue = instanceData.InstanceOwnerId;
+            }
+
+            await EnrichSubjectAttributes(request, resourceAttributes.ResourcePartyValue);
+        }
+
+        private XacmlResourceAttributes GetResourceAttributeValues(XacmlContextAttributes resourceContextAttributes)
+        {
+            XacmlResourceAttributes resourceAttributes = new XacmlResourceAttributes();
+
+            foreach (XacmlAttribute attribute in resourceContextAttributes.Attributes)
+            {
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.OrgAttribute))
+                {
+                    resourceAttributes.OrgValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.AppAttribute))
+                {
+                    resourceAttributes.AppValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.InstanceAttribute))
+                {
+                    resourceAttributes.InstanceValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.PartyAttribute))
+                {
+                    resourceAttributes.ResourcePartyValue = attribute.AttributeValues.First().Value;
+                }
+
+                if (attribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.TaskAttribute))
+                {
+                    resourceAttributes.TaskValue = attribute.AttributeValues.First().Value;
+                }
+            }
+
+            return resourceAttributes;
+        }
+
+        private void AddIfValueDoesNotExist(XacmlContextAttributes resourceAttributes, string attributeId, string attributeValue, string newAttributeValue)
+        {
+            if (string.IsNullOrEmpty(attributeValue))
+            {
+                resourceAttributes.Attributes.Add(GetAttribute(attributeId, newAttributeValue));
+            }            
+        }
+
+        private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(attributeId), false);
+            attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), attributeValue));
+            return attribute;
+        }
+
+        private async Task EnrichSubjectAttributes(XacmlContextRequest request, string resourceParty)
+        {
+            XacmlContextAttributes subjectContextAttributes = request.GetSubjectAttributes();
+
+            int subjectUserId = 0;
+            int resourcePartyId = Convert.ToInt32(resourceParty);
+
+            foreach (XacmlAttribute xacmlAttribute in subjectContextAttributes.Attributes)
+            {
+                if (xacmlAttribute.AttributeId.OriginalString.Equals(XacmlRequestAttribute.UserAttribute))
+                {
+                    subjectUserId = Convert.ToInt32(xacmlAttribute.AttributeValues.First().Value);
+                }
+            }
+
+            if (subjectUserId == 0)
+            {
+                return;
+            }
+
+            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId);
+
+            subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
+        }
+
+        private XacmlAttribute GetRoleAttribute(List<Role> roles)
+        {
+            XacmlAttribute attribute = new XacmlAttribute(new Uri(XacmlRequestAttribute.RoleAttribute), false);
+            foreach (Role role in roles)
+            {
+                attribute.AttributeValues.Add(new XacmlAttributeValue(new Uri(XacmlConstants.DataTypes.XMLString), role.Value));
+            }
+
+            return attribute;
         }
     }
 }

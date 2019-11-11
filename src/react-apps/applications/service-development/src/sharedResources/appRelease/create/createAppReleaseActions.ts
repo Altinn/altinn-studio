@@ -1,11 +1,12 @@
 import { Action } from 'redux';
 import * as AppReleaseActionTypes from '../appReleaseActionTypes';
+import { IRelease } from '../types';
 
 export interface ICreateReleaseAction extends Action {
-  tag_name: string;
+  tagName: string;
   name: string;
   body: string;
-  target_commitish: string;
+  targetCommitish: string;
 }
 
 export function createAppRelease(
@@ -16,31 +17,31 @@ export function createAppRelease(
 ): ICreateReleaseAction {
   return {
     type: AppReleaseActionTypes.CREATE_APP_RELEASE,
-    tag_name: tagName,
-    target_commitish: targetCommitish,
+    tagName,
+    targetCommitish,
     name,
     body,
   };
 }
 
 export interface ICreateReleaseFulfilledAction extends Action {
-  id: string;
+  release: IRelease;
 }
 
-export function createAppReleaseFulfilled(id: string): ICreateReleaseFulfilledAction {
+export function createAppReleaseFulfilled(release: IRelease): ICreateReleaseFulfilledAction {
   return {
     type: AppReleaseActionTypes.CREATE_APP_RELEASE_FULFILLED,
-    id,
+    release,
   };
 }
 
 export interface ICreateReleaseRejectedActions extends Action {
-  error: Error;
+  errorCode: number;
 }
 
-export function createAppReleaseRejected(error: Error): ICreateReleaseRejectedActions {
+export function createAppReleaseRejected(errorCode: number): ICreateReleaseRejectedActions {
   return {
     type: AppReleaseActionTypes.CREATE_APP_RELEASE_REJECTED,
-    error,
+    errorCode,
   };
 }

@@ -1,16 +1,16 @@
 import * as React from 'react';
 import AttachmentActions from '../../../shared/resources/attachments/attachmentActions';
+import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import LanguageActions from '../../../shared/resources/language/languageActions';
+import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
+import { IAltinnWindow } from '../../../types';
 import FormDataActions from '../data/actions';
 import FormDataModelActions from '../datamodell/actions';
 import FormDynamicActions from '../dynamics/actions';
 import FormLayoutActions from '../layout/actions';
 import FormRuleActions from '../rules/actions';
-import FormWorkflowActions from '../workflow/actions';
 import FormFiller from './FormFiller';
-
-import { IAltinnWindow } from '../../../types';
 
 export default (props) => {
   const {
@@ -22,10 +22,10 @@ export default (props) => {
     },
   } = props;
 
-  (window as IAltinnWindow).instanceId = partyId  + '/' + instanceGuid;
+  (window as Window as IAltinnWindow).instanceId = partyId  + '/' + instanceGuid;
 
   React.useEffect(() => {
-    const { org, app, instanceId } = window as IAltinnWindow;
+    const { org, app, instanceId } = window as Window as IAltinnWindow;
     LanguageActions.fetchLanguage(
       `${window.location.origin}/${org}/${app}/api/Language/GetLanguageAsJSON`,
       'nb',
@@ -42,10 +42,10 @@ export default (props) => {
     FormRuleActions.fetchRuleModel(
       `${window.location.origin}/${org}/${app}/api/resource/RuleHandler.js`,
     );
-    FormWorkflowActions.getCurrentState(
-      // tslint:disable-next-line:max-line-length
-      `${window.location.origin}/${org}/${app}/api/workflow/${instanceId}/GetCurrentState`,
-    );
+
+    ProcessDispatcher.getProcessState();
+
+    InstanceDataActions.getInstanceData(partyId, instanceGuid);
 
     FormDynamicActions.fetchFormDynamics(
       `${window.location.origin}/${org}/${app}/api/resource/ServiceConfigurations.json`,
@@ -58,6 +58,7 @@ export default (props) => {
     AttachmentActions.fetchAttachments();
 
   }, []);
+
   return (
     <FormFiller />
   );

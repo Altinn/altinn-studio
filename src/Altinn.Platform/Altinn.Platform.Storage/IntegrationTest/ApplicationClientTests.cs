@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
-using Storage.Interface.Models;
 using Xunit;
 
 #pragma warning disable SA1600 // ElementsMustBeDocumented

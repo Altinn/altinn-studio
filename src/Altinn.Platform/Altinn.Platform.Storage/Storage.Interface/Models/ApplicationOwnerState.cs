@@ -1,9 +1,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Various fields that application owner can set. Some can be displayed to the user. Others dictate beahviour.
@@ -11,6 +10,12 @@ namespace Storage.Interface.Models
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
     public class ApplicationOwnerState
     {
+        /// <summary>
+        /// Label mechanism, can be used to set external system references
+        /// </summary>
+        [JsonProperty(PropertyName = "labels")]
+        public List<string> Labels { get; set; }
+
         /// <summary>
         /// List of messages that may be shown to user.
         /// </summary>

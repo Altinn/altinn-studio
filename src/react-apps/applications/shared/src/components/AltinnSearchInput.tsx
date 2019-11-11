@@ -9,6 +9,7 @@ export interface IAltinnSearchInputComponentProvidedProps {
   id: string;
   placeholder: any;
   onChangeFunction: any;
+  ariaLabel: string;
 }
 
 export interface IAltinnSearchInputComponentState {
@@ -49,6 +50,9 @@ export class AltinnSearchInput extends React.Component<IAltinnSearchInputCompone
           id={this.props.id}
           placeholder={this.props.placeholder}
           onChange={this.props.onChangeFunction}
+          inputProps={{
+            "aria-label": this.props.ariaLabel,
+          }}
           InputProps={{
             disableUnderline: true,
             startAdornment:
@@ -56,7 +60,11 @@ export class AltinnSearchInput extends React.Component<IAltinnSearchInputCompone
                 position={'end'}
                 classes={{ root: classNames(classes.searchBoxIcon) }}
               >
-                <i className={'fa fa-search'} />
+                <i
+                  className={'fa fa-search'}
+                  title={'Søkeikon'}
+                  aria-label={'Søkeikon'}
+                />
               </InputAdornment>,
             classes: { root: classNames(classes.searchBoxInput) },
           }}

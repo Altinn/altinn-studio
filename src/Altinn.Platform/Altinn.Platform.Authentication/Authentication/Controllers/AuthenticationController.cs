@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,17 +10,23 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+
 using Altinn.Platform.Authentication.Configuration;
+using Altinn.Platform.Authentication.Maskinporten;
 using Altinn.Platform.Authentication.Model;
+using Altinn.Platform.Authentication.Repositories;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.Platform.Authentication.Controllers
 {
@@ -30,21 +37,35 @@ namespace Altinn.Platform.Authentication.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
-        private readonly ILogger _logger;
-        private readonly GeneralSettings _generalSettings;
-        private readonly JwtCookieHandler _jwtHandler;
+        private const string OrganisationIdentity = "OrganisationLogin";
+        private static readonly HttpClient HttpClient = new HttpClient();
+
+        private readonly IOrganisationRepository organisationRepository;
+        private readonly ILogger logger;
+        private readonly GeneralSettings generalSettings;
+        private readonly JwtCookieHandler jwtHandler;
+        private readonly ISigningKeysRetriever signingKeysRetriever;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AuthenticationController"/> class
+        /// Initialises a new instance of the <see cref="AuthenticationController"/> class with the given dependencies.
         /// </summary>
-        /// <param name="logger">the logger</param>
-        /// <param name="generalSettings">the general settings</param>
+        /// <param name="logger">A generic logger</param>
+        /// <param name="generalSettings">Configuration for the authentication scope.</param>
         /// <param name="jwtHandler">the handler for jwt cookie authentication</param>
-        public AuthenticationController(ILogger<AuthenticationController> logger, IOptions<GeneralSettings> generalSettings, JwtCookieHandler jwtHandler)
+        /// <param name="signingKeysRetriever">The class to use to obtain the signing keys.</param>
+        /// <param name="organisationRepository">the repository object that holds valid organisations</param>
+        public AuthenticationController(
+            ILogger<AuthenticationController> logger,
+            IOptions<GeneralSettings> generalSettings,
+            JwtCookieHandler jwtHandler,
+            ISigningKeysRetriever signingKeysRetriever,
+            IOrganisationRepository organisationRepository)
         {
-            _logger = logger;
-            _generalSettings = generalSettings.Value;
-            _jwtHandler = jwtHandler;
+            this.logger = logger;
+            this.generalSettings = generalSettings.Value;
+            this.jwtHandler = jwtHandler;
+            this.signingKeysRetriever = signingKeysRetriever;
+            this.organisationRepository = organisationRepository;
         }
 
         /// <summary>
@@ -53,83 +74,74 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <param name="goTo">The url to redirect to if everything validates ok</param>
         /// <returns>redirect to correct url based on the validation of the form authentication sbl cookie</returns>
         [HttpGet("authentication")]
-        public async Task<ActionResult> Get(string goTo)
+        public async Task<ActionResult> AuthenticateUser(string goTo)
         {
             if (!IsValidRedirectUri(new Uri(goTo).Host))
             {
-                return Redirect($"{_generalSettings.GetBaseUrl}");
+                return Redirect($"{generalSettings.GetBaseUrl}");
             }
 
-            string encodedGoToUrl = HttpUtility.UrlEncode($"{_generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
-            if (Request.Cookies[_generalSettings.GetSBLCookieName] == null)
+            string encodedGoToUrl = HttpUtility.UrlEncode($"{generalSettings.GetPlatformEndpoint}authentication/api/v1/authentication?goto={goTo}");
+            if (Request.Cookies[generalSettings.GetSBLCookieName] == null)
             {
-                return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                return Redirect($"{generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
             }
-            else
+
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
+            Uri endpointUrl = new Uri($"{generalSettings.GetBridgeApiEndpoint}tickets");
+
+            logger.LogInformation($"Authentication - Before getting userdata");
+            string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[generalSettings.GetSBLCookieName] });
+            logger.LogInformation($"Authentication - endpoint {endpointUrl}");
+            HttpResponseMessage response = await HttpClient.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
+            logger.LogInformation($"Authentication - response {response.StatusCode}");
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                UserAuthenticationModel userAuthentication = null;
-                DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserAuthenticationModel));
-                Uri endpointUrl = new Uri($"{_generalSettings.GetBridgeApiEndpoint}tickets");
-                using (HttpClient client = new HttpClient())
+                Stream stream = await response.Content.ReadAsStreamAsync();
+                UserAuthenticationModel userAuthentication = serializer.ReadObject(stream) as UserAuthenticationModel;
+                logger.LogInformation($"USerAuthentication: {userAuthentication.IsAuthenticated}");
+                if (userAuthentication.IsAuthenticated)
                 {
-                    _logger.LogInformation($"Authentication - Before getting userdata");
-                    string userData = JsonConvert.SerializeObject(new UserAuthenticationModel() { EncryptedTicket = Request.Cookies[_generalSettings.GetSBLCookieName] });
-                    _logger.LogInformation($"Authentication - endpoint {endpointUrl}");
-                    HttpResponseMessage response = await client.PostAsync(endpointUrl, new StringContent(userData, Encoding.UTF8, "application/json"));
-                    _logger.LogInformation($"Authentication - response {response.StatusCode}");
-                    if (response.StatusCode == HttpStatusCode.OK)
-                    {
-                        Stream stream = await response.Content.ReadAsStreamAsync();
-                        userAuthentication = serializer.ReadObject(stream) as UserAuthenticationModel;
-                        _logger.LogInformation($"USerAuthentication: {userAuthentication.IsAuthenticated}");
-                        if (userAuthentication.IsAuthenticated)
+                    List<Claim> claims = new List<Claim>();
+                    string issuer = generalSettings.GetPlatformEndpoint;
+                    claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
+                    claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
+
+                    ClaimsIdentity identity = new ClaimsIdentity(generalSettings.GetClaimsIdentity);
+                    identity.AddClaims(claims);
+                    ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+                    logger.LogInformation($"Platform Authentication before signin async");
+                    await HttpContext.SignInAsync(
+                        JwtCookieDefaults.AuthenticationScheme,
+                        principal,
+                        new AuthenticationProperties
                         {
-                            List<Claim> claims = new List<Claim>();
-                            string issuer = _generalSettings.GetPlatformEndpoint;
-                            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, userAuthentication.UserID.ToString(), ClaimValueTypes.String, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, userAuthentication.Username, ClaimValueTypes.String, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, userAuthentication.PartyID.ToString(), ClaimValueTypes.Integer32, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, userAuthentication.AuthenticationMethod.ToString(), ClaimValueTypes.String, issuer));
-                            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, ((int)userAuthentication.AuthenticationLevel).ToString(), ClaimValueTypes.Integer32, issuer));
+                            ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(generalSettings.GetJwtCookieValidityTime)),
+                            IsPersistent = false,
+                            AllowRefresh = false,
+                        });
 
-                            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-                            identity.AddClaims(claims);
-                            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
-                            _logger.LogInformation($"Platform Authentication before signin async");
-                            await HttpContext.SignInAsync(
-                                JwtCookieDefaults.AuthenticationScheme,
-                                principal,
-                                new AuthenticationProperties
-                                {
-                                    ExpiresUtc = DateTime.UtcNow.AddMinutes(int.Parse(_generalSettings.GetJwtCookieValidityTime)),
-                                    IsPersistent = false,
-                                    AllowRefresh = false,
-                                });
-
-                            _logger.LogInformation($"Platform Authentication after signin async");
-                            _logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
-                            if (userAuthentication.TicketUpdated)
-                            {
-                                Response.Cookies.Append(_generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
-                            }
-
-                            return Redirect(goTo);
-                        }
-                        else
-                        {
-                            // If user is not authenticated redirect to login
-                            _logger.LogInformation($"USerNotauthenticated");
-                            _logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
-                            return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
-                        }
-                    }
-                    else
+                    logger.LogInformation($"Platform Authentication after signin async");
+                    logger.LogInformation($"TicketUpdated: {userAuthentication.TicketUpdated}");
+                    if (userAuthentication.TicketUpdated)
                     {
-                        return Redirect($"{_generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
+                        Response.Cookies.Append(generalSettings.GetSBLCookieName, userAuthentication.EncryptedTicket);
                     }
+
+                    return Redirect(goTo);
                 }
+
+                // If user is not authenticated redirect to login
+                logger.LogInformation($"UserNotAuthenticated");
+                logger.LogError($"Getting the authenticated user failed with statuscode {response.StatusCode}");
+                return Redirect($"{generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");
             }
+
+            return Redirect($"{generalSettings.GetSBLRedirectEndpoint}?goTo={encodedGoToUrl}");            
         }
 
         /// <summary>
@@ -138,15 +150,137 @@ namespace Altinn.Platform.Authentication.Controllers
         /// <returns>Ok response with the refreshed token appended.</returns>
         [Authorize]
         [HttpGet("refresh")]
-        public async Task<ActionResult> RefreshJWTCookie()
+        public ActionResult RefreshJWTCookie()
         {
-            _logger.LogInformation($"Starting to refresh token...");
+            logger.LogInformation($"Starting to refresh token...");
             ClaimsPrincipal principal = HttpContext.User;
-            _logger.LogInformation("Refreshing token....");
+            logger.LogInformation("Refreshing token....");
            
-            string token = _jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(_generalSettings.GetJwtCookieValidityTime), 0));
-            _logger.LogInformation($"End of refreshing token");
+            string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
+            logger.LogInformation($"End of refreshing token");
             return Ok(token);
+        }
+
+        /// <summary>
+        /// Action for converting a JWT generated by <c>Maskinporten</c> with a new JWT for further use as authentication against rest of Altinn.
+        /// </summary>
+        /// <returns>The result of the action. Contains the new token if the old token was valid and could be converted.</returns>
+        [HttpGet("convert")]
+        public async Task<IActionResult> AuthenticateOrganisation()
+        {
+            string originalToken = string.Empty;
+
+            string authorization = Request.Headers["Authorization"];
+
+            if (!string.IsNullOrEmpty(authorization))
+            {
+                logger.LogInformation($"Getting the token from Authorization header");
+                if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.LogInformation($"Bearer found");
+                    originalToken = authorization.Substring("Bearer ".Length).Trim();
+                }
+            }
+
+            if (string.IsNullOrEmpty(originalToken))
+            {
+                logger.LogInformation($"No token found");
+                return Unauthorized();
+            }
+
+            JwtSecurityTokenHandler validator = new JwtSecurityTokenHandler();
+
+            if (!validator.CanReadToken(originalToken))
+            {
+                logger.LogInformation($"Unable to read token");
+                return Unauthorized();
+            }
+
+            try
+            {
+                ICollection<SecurityKey> signingKeys =
+                    await signingKeysRetriever.GetSigningKeys(generalSettings.GetMaskinportenWellKnownConfigEndpoint);
+
+                logger.LogInformation($"Token to be validated {originalToken}");
+                TokenValidationParameters validationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKeys = signingKeys,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    RequireExpirationTime = true,
+                    ValidateLifetime = true
+                };
+
+                ClaimsPrincipal originalPrincipal = validator.ValidateToken(originalToken, validationParameters, out SecurityToken validatedToken);
+                logger.LogInformation($"validated token{validatedToken}");
+
+                string orgNumber = GetOrganisationNumberFromConsumerClaim(originalPrincipal);
+
+                if (string.IsNullOrEmpty(orgNumber))
+                {
+                    logger.LogInformation("Invalid consumer claim {");
+                    return Unauthorized();
+                }
+
+                List<Claim> claims = new List<Claim>();
+                foreach (Claim claim in originalPrincipal.Claims)
+                {
+                    claims.Add(claim);
+                }
+
+                string org = organisationRepository.LookupOrg(orgNumber);
+
+                claims.Add(new Claim("org", org, ClaimValueTypes.String));
+                claims.Add(new Claim("orgNumber", orgNumber, ClaimValueTypes.Integer32));
+
+                claims.Add(new Claim("iss", "https://platform.altinn.cloud/", ClaimValueTypes.String));
+
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticateMethod, "maskinporten", ClaimValueTypes.String));
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32));
+
+                string[] claimTypesToRemove = { "aud", "iss", "client_amr" };
+                foreach (string claimType in claimTypesToRemove)
+                {
+                    Claim audClaim = claims.Find(c => c.Type == claimType);
+                    claims.Remove(audClaim);
+                }
+
+                ClaimsIdentity identity = new ClaimsIdentity(OrganisationIdentity);
+               
+                identity.AddClaims(claims);
+                ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+                string token = jwtHandler.GenerateToken(principal, new TimeSpan(0, Convert.ToInt32(generalSettings.GetJwtCookieValidityTime), 0));
+
+                return Ok(token);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning($"Organisation authentication failed. {ex.Message}");
+                return Unauthorized();
+            }
+        }
+
+        /// <summary>
+        /// Assumes that the consumer claim follows the ISO 6523. {"Identifier": {"Authority": "iso6523-actorid-upis","ID": "9908:910075918"}}
+        /// </summary>
+        /// <returns>organisation number found in the ID property of the ISO 6523 record</returns>
+        private static string GetOrganisationNumberFromConsumerClaim(ClaimsPrincipal originalPrincipal)
+        {
+            string consumerJson = originalPrincipal.FindFirstValue("consumer");
+            JObject consumer = JObject.Parse(consumerJson);
+
+            string consumerAuthority = consumer["authority"].ToString();
+            if (!"iso6523-actorid-upis".Equals(consumerAuthority))
+            {
+                return null;
+            }
+
+            string consumerID = consumer["ID"].ToString();
+
+            string organisationNumber = consumerID.Split(":")[1];
+            return organisationNumber;
         }
 
         /// <summary>
@@ -154,15 +288,15 @@ namespace Altinn.Platform.Authentication.Controllers
         /// </summary>
         /// <param name="goToHost">The url to redirect to</param>
         /// <returns>Boolean verifying that goToHost is on current host. </returns>
-        public bool IsValidRedirectUri(string goToHost)
+        private bool IsValidRedirectUri(string goToHost)
         {
-            string validHost = _generalSettings.GetHostName;
-            int segments = _generalSettings.GetHostName.Split('.').Length;
+            string validHost = generalSettings.GetHostName;
+            int segments = generalSettings.GetHostName.Split('.').Length;
 
             List<string> goToList = Enumerable.Reverse(new List<string>(goToHost.Split('.'))).Take(segments).Reverse().ToList();
             string redirectHost = string.Join(".", goToList);
 
             return validHost.Equals(redirectHost);
-        }
+        }        
     }
 }

@@ -36,7 +36,10 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         size={'L'}
       />,
     );
-    expect(wrapper.contains(<h2 id={'mock-id'}>test</h2>)).toBe(true);
+    expect(wrapper.find('h2')).toHaveLength(1);
+    expect(wrapper.find(`h2[id='${mockId}']`)).toHaveLength(1);
+    expect(wrapper.find('h3')).toHaveLength(0);
+    expect(wrapper.find('h4')).toHaveLength(0);
   });
 
   it('+++ should render <h3> if size is \'M\'', () => {
@@ -47,7 +50,10 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         size={'M'}
       />,
     );
-    expect(wrapper.contains(<h3 id={'mock-id'}>test</h3>)).toBe(true);
+    expect(wrapper.find('h2')).toHaveLength(0);
+    expect(wrapper.find('h3')).toHaveLength(1);
+    expect(wrapper.find(`h3[id='${mockId}']`)).toHaveLength(1);
+    expect(wrapper.find('h4')).toHaveLength(0);
   });
 
   it('+++ should render <h4> if size is \'S\'', () => {
@@ -58,7 +64,12 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         size={'S'}
       />,
     );
-    expect(wrapper.contains(<h4 id={'mock-id'}>test</h4>)).toBe(true);
+
+    expect(wrapper.find('h2')).toHaveLength(0);
+    expect(wrapper.find('h3')).toHaveLength(0);
+    expect(wrapper.find(`h4[id='${mockId}']`)).toHaveLength(1);
+    expect(wrapper.find('h4')).toHaveLength(1);
+
   });
 
   it('+++ should render <h4> if size is not defined', () => {
@@ -68,6 +79,6 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         text={mockText}
       />,
     );
-    expect(wrapper.contains(<h4 id={'mock-id'}>test</h4>)).toBe(true);
+    expect(wrapper.find(`h4[id='${mockId}']`)).toHaveLength(1);
   });
 });

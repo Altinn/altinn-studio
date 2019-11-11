@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Helpers
 {
     /// <summary>
     /// Simplified instance class designed for Altinn 2 messagebox.

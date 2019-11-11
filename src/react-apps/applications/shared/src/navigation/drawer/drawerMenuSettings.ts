@@ -17,7 +17,6 @@ export interface IDrawerMenu {
   create: IMenuItem[];
   language: IMenuItem[];
   test: IMenuItem[];
-  publish: IMenuItem[];
   [key: string]: IMenuItem[];
 }
 
@@ -47,12 +46,6 @@ export const mainMenuSettings: IMainMenu = {
       activeSubHeaderSelection: 'Teste',
       navLink: '/test',
       menuType: 'test',
-    },
-    {
-      displayText: 'Publisere',
-      activeSubHeaderSelection: 'Publisere',
-      navLink: '/publish',
-      menuType: 'publish',
     },
   ],
 };
@@ -147,26 +140,6 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       displayText: 'Test',
       navLink: '/test',
       activeLeftMenuSelection: 'Test',
-      iconClass: 'fa fa-info-circle',
-    },
-    {
-      displayText: 'Test i testmiljø',
-      navLink: '/deploytotest',
-      activeLeftMenuSelection: 'Test i testmiljø',
-      iconClass: 'fa fa-integration-test',
-    },
-  ],
-  publish: [
-    {
-      displayText: 'Produksjonsette',
-      navLink: '/publish',
-      activeLeftMenuSelection: 'Produksjonsette',
-      iconClass: 'fa fa-settings',
-    },
-    {
-      displayText: 'Status',
-      navLink: '/status',
-      activeLeftMenuSelection: 'Status',
       iconClass: 'fa fa-info-circle',
     },
   ],

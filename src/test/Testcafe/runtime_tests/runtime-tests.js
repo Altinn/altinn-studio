@@ -1,6 +1,5 @@
 import App from '../app';
 import { Selector, t, ClientFunction } from 'testcafe';
-import axeCheck from 'axe-testcafe';
 import RunTimePage from '../page-objects/runTimePage';
 import { AutoTestUser } from '../TestData';
 
@@ -143,7 +142,7 @@ test('Attachment dropdown and download on receipt page', async () => {
     .expect(runtime.testUsers[1].exists).ok()
     .hover(runtime.testUsers[1])
     .click(runtime.testUsers[1])
-    .expect(runtime.startNewButton.exists).ok()
+    .expect(runtime.startNewButton.exists).ok({ timeout: 120000 })
     .click(runtime.startNewButton)
     .switchToMainWindow()
     .expect(runtime.testUserHeader[1].exists).ok()
@@ -198,6 +197,7 @@ test('Receipt page test', async t => {
     .expect(runtime.testUsers[1].exists).ok()
     .hover(runtime.testUsers[1])
     .click(runtime.testUsers[1])
+    .expect(runtime.messagesList.exists).ok( {timeout:120000} )
   await runtime.findAndOpenArchivedMessage(t);
   await t
     .switchToMainWindow()

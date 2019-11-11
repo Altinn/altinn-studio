@@ -2,10 +2,9 @@ import AltinnInformationCard from '../../../shared/src/components/AltinnInformat
 import uieditorApp from '../../../ux-editor/src/SubApp';
 import AccessControlContainer from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
-import DeployToTestEnvironment from '../features/deploy/containers/deployToTestContainer';
+import DeployPage from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
-import DeployPage from '../features/appPublish/pages/deployPage';
 
 export const routes = [
   {
@@ -58,14 +57,6 @@ export const routes = [
       shadow: true,
       iframeEndingUrl: 'ManualTesting/Users/',
     },
-  },
-  {
-    path: '/deploytotest',
-    exact: true,
-    activeSubHeaderSelection: 'Teste',
-    activeLeftMenuSelection: 'Test i testmiljø',
-    menu: 'test',
-    subapp: DeployToTestEnvironment,
   },
   {
     path: '/aboutservice',

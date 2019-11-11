@@ -1,0 +1,44 @@
+using System;
+using AltinnCore.Authentication.JwtCookie;
+using AltinnCore.Designer.Authorization;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace AltinnCore.Designer.Infrastructure
+{
+    /// <summary>
+    /// Contains extension methods for configuring authentication
+    /// </summary>
+    public static class AuthenticationConfiguration
+    {
+        /// <summary>
+        /// Extension method that configures authentication
+        /// </summary>
+        /// <param name="services">The Microsoft.Extensions.DependencyInjection.IServiceCollection for adding services.</param>
+        public static IServiceCollection ConfigureAuthentication(this IServiceCollection services)
+        {
+            // Configure Authentication
+            // Use [Authorize] to require login on MVC Controller Actions
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                {
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
+                })
+                .AddCookie(options =>
+                {
+                    options.AccessDeniedPath = "/Home/NotAuthorized/";
+                    options.LoginPath = "/Home/Login/";
+                    options.LogoutPath = "/Home/Logout/";
+                    options.Cookie.Name = Common.Constants.General.DesignerCookieName;
+                    options.Events = new CookieAuthenticationEvents
+                    {
+                        // Add Custom Event handler to be able to redirect users for authentication upgrade
+                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
+                    };
+                });
+
+            return services;
+        }
+    }
+}

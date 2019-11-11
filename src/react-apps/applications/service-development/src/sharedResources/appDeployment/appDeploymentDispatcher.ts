@@ -2,29 +2,36 @@ import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as CreateAppDeploymentActions from './create/createAppDeploymentActions';
 import * as GetAppDeploymentsActions from './get/getAppDeploymentActions';
-import { IDeployment } from './types';
+import { IDeployment, IDeploymentResults } from './types';
 
-export interface IAppReleaseActionDispatcher extends ActionCreatorsMapObject {
+export interface IAppDeploymenActionDispatcher extends ActionCreatorsMapObject {
   getAppDeployments: () => Action;
-  getAppDeploymentsFulfilled: (releases: IDeployment[]) => GetAppDeploymentsActions.IGetAppDeploymentsFulfilled;
+  getAppDeploymentsFulfilled: (deployments: IDeploymentResults) => GetAppDeploymentsActions.IGetAppDeploymentsFulfilled;
   getAppDeploymentsRejected: (error: Error) => GetAppDeploymentsActions.IGetAppDeploymentsRejected;
-  createAppDeployment: (tagName: string, envName: string) => CreateAppDeploymentActions.ICreateDeployment;
-  createAppDeploymentFulfilled: (id: string) => CreateAppDeploymentActions.ICreateDeploymentFulfilled;
-  createAppDeploymentRejected: (error: Error) => CreateAppDeploymentActions.ICreateDeploymentRejected;
+  getAppDeploymentsStartInterval: () => Action;
+  getAppDeploymentsStopInterval: () => Action;
+  createAppDeployment: (tagName: string, envObj: CreateAppDeploymentActions.ICreateAppDeploymentEnvObject) =>
+    CreateAppDeploymentActions.ICreateAppDeployment;
+  createAppDeploymentFulfilled: (result: IDeployment, envName: string) =>
+    CreateAppDeploymentActions.ICreateAppDeploymentFulfilled;
+  createAppDeploymentRejected: (error: Error, envName: string) =>
+    CreateAppDeploymentActions.ICreateAppDeploymentRejected;
 }
 
-const actions: IAppReleaseActionDispatcher = {
+const actions: IAppDeploymenActionDispatcher = {
   getAppDeployments: GetAppDeploymentsActions.getAppDeployments,
   getAppDeploymentsFulfilled: GetAppDeploymentsActions.getAppDeploymentsFulfilled,
   getAppDeploymentsRejected: GetAppDeploymentsActions.getAppDeploymentsRejected,
-  createAppDeployment: CreateAppDeploymentActions.createDeployment,
-  createAppDeploymentFulfilled: CreateAppDeploymentActions.createDeploymentFulfilled,
-  createAppDeploymentRejected: CreateAppDeploymentActions.createDeploymentRejected,
+  getAppDeploymentsStartInterval: GetAppDeploymentsActions.getAppDeploymentsStartInterval,
+  getAppDeploymentsStopInterval: GetAppDeploymentsActions.getAppDeploymentsStopInterval,
+  createAppDeployment: CreateAppDeploymentActions.createAppDeployment,
+  createAppDeploymentFulfilled: CreateAppDeploymentActions.createAppDeploymentFulfilled,
+  createAppDeploymentRejected: CreateAppDeploymentActions.createAppDeploymentRejected,
 };
 
-const AppReleaseActionDispatcher: IAppReleaseActionDispatcher = bindActionCreators<
-  IAppReleaseActionDispatcher,
-  IAppReleaseActionDispatcher
+const AppDeploymenActionDispatcher: IAppDeploymenActionDispatcher = bindActionCreators<
+  IAppDeploymenActionDispatcher,
+  IAppDeploymenActionDispatcher
 >(actions, store.dispatch);
 
-export default AppReleaseActionDispatcher;
+export default AppDeploymenActionDispatcher;

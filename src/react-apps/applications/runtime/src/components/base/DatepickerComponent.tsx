@@ -61,7 +61,7 @@ export class DatepickerComponent extends React.Component<IDatePickerProps, IDate
 
   public render() {
     return (
-      <div className='form-group a-form-group a-form-group-datepicker'>
+      <div className='form-group a-form-group a-form-group-datepicker' style={{ marginBottom: '0' }}>
         <div className={'input-group' + (this.props.readOnly ? ' disabled' : '')}>
           <input
             type='text'
