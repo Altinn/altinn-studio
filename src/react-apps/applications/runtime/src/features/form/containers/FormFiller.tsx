@@ -33,7 +33,7 @@ const FormFiller = (props: IFormFillerProps) => {
       }
       step={processStep}
     >
-      <div className='row'>
+      <div>
         <Render />
       </div>
     </ProcessStep>

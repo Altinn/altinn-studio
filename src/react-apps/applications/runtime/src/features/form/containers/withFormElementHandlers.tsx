@@ -1,5 +1,14 @@
+import { Grid, Typography } from '@material-ui/core';
+import {
+  createMuiTheme,
+  createStyles,
+  WithStyles,
+  withStyles,
+} from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import AltinnPopover from '../../../../../shared/src/components/molecules/AltinnPopoverSimple';
+import AppTheme from '../../../../../shared/src/theme/altinnAppTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { makeGetLayout } from '../../../selectors/getLayoutData';
 import { makeGetComponentValidationsSelector } from '../../../selectors/getValidations';
@@ -8,7 +17,7 @@ import { IComponentValidations } from '../../../types/global';
 import { renderValidationMessagesForComponent } from '../../../utils/render';
 import { IDataModelBindings, ILayout, ILayoutComponent, ITextResourceBindings } from '../layout';
 
-export interface IProvidedProps {
+export interface IProvidedProps extends WithStyles<typeof styles> {
   id: string;
   handleDataUpdate: (data: any) => void;
   dataModelBindings: IDataModelBindings;
@@ -25,8 +34,46 @@ export interface IProps extends IProvidedProps {
   textResources: any[];
 }
 
-export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
-  class FormComponentWithHandlers extends React.Component<IProps> {
+export interface IState {
+  helpIconRef: React.RefObject<HTMLDivElement>;
+  openPopover: boolean;
+}
+
+const theme = createMuiTheme(AppTheme);
+
+const styles = createStyles({
+  helpTextIcon: {
+    'width': '44px',
+    'height': '44px',
+    'paddingTop': '2rem',
+    'fontSize': '3rem',
+    'color': theme.altinnPalette.primary.blue,
+    '&:hover': {
+      color: theme.altinnPalette.primary.blueDarker,
+    },
+  },
+  helpTextPopoverPaper: {
+    backgroundColor: theme.altinnPalette.primary.yellowLight,
+    height: 'auto',
+    width: 'auto',
+  },
+  helpTextPopoverText: {
+    position: 'relative',
+    width: '100%',
+  },
+});
+
+export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): any => {
+  class FormComponentWithHandlers extends React.Component<IProps & WithStyles<typeof styles>, IState> {
+    constructor(props: IProps) {
+      super(props);
+
+      this.state = {
+        helpIconRef: !!props.textResourceBindings.help ? React.createRef() : null,
+        openPopover: false,
+      };
+    }
+
     public renderLabel = (): JSX.Element => {
       if (this.props.type === 'Header' ||
         this.props.type === 'Paragraph' ||
@@ -47,6 +94,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
             {this.props.required ? null :
               <span className='label-optional'>({getLanguageFromKey('general.optional', this.props.language)})</span>
             }
+            {this.renderHelpText()}
           </label>
         );
       }
@@ -67,6 +115,43 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       return null;
     }
 
+    public renderHelpText = (): JSX.Element => {
+      if (!!this.props.textResourceBindings.help) {
+        const { classes } = this.props;
+        const { helpIconRef, openPopover } = this.state;
+        return (
+          <i
+            className={`${classes.helpTextIcon} ${openPopover ? 'ai ai-circle-minus' : 'ai ai-circle-plus'}`}
+            tabIndex={0}
+            onClick={this.toggleClickPopover}
+            onKeyUp={this.toggleKeypressPopover}
+            ref={helpIconRef}
+          />
+        );
+      }
+      return null;
+    }
+
+    public toggleClickPopover = (): void => {
+      this.setState((prev: IState) => ({
+        openPopover: !prev.openPopover,
+      }));
+    }
+
+    public toggleKeypressPopover = (event: React.KeyboardEvent): void => {
+      if ((event.key === ' ' || event.key === 'Enter') && !this.state.openPopover) {
+        this.setState({
+          openPopover: true,
+        });
+      }
+    }
+
+    public closePopover = () => {
+      this.setState({
+        openPopover: false,
+      });
+    }
+
     public handleDataUpdate = (data: any) => this.props.handleDataUpdate(data);
 
     public getTextResource = (resourceKey: string): string => {
@@ -75,7 +160,8 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     }
 
     public render(): JSX.Element {
-      const { id, ...passThroughProps } = this.props;
+      const { helpIconRef, openPopover } = this.state;
+      const { id, classes, ...passThroughProps } = this.props;
       const text = this.getTextResource(this.props.textResourceBindings.title);
       const validations = this.getAdressComponentValidations();
       if (validations !== null) {
@@ -84,15 +170,63 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
 
       return (
         <>
-          {this.renderLabel()}
-          {this.renderDescription()}
-          <WrappedComponent
-            id={id}
-            text={text}
-            handleDataChange={this.handleDataUpdate}
-            {...passThroughProps}
-          />
-          {this.errorMessage()}
+          <Grid
+            container={true}
+            direction={'column'}
+          >
+            <Grid
+              container={true}
+              direction={'row'}
+              spacing={2}
+            >
+              <Grid item={true}>
+                <Grid
+                  container={true}
+                  direction={'column'}
+                >
+                  <Grid item={true}>
+                    {this.renderLabel()}
+                  </Grid>
+                  <Grid item={true}>
+                    {this.renderDescription()}
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+            <WrappedComponent
+              id={id}
+              text={text}
+              handleDataChange={this.handleDataUpdate}
+              {...passThroughProps}
+            />
+            {this.errorMessage()}
+          </Grid>
+          {!!helpIconRef &&
+            <AltinnPopover
+              anchorOrigin={{
+                horizontal: 'right',
+                vertical: 'top',
+              }}
+              transformOrigin={{
+                horizontal: 'right',
+                vertical: 'bottom',
+              }}
+              backgroundColor={theme.altinnPalette.primary.yellowLight.toString()}
+              anchorEl={openPopover ? helpIconRef.current : null}
+              handleClose={this.closePopover}
+              paperProps={{
+                classes: {
+                  paper: classes.helpTextPopoverText,
+                },
+              }}
+            >
+              <Typography
+                className={classes.helpTextPopoverText}
+              >
+                {this.getTextResource(this.props.textResourceBindings.help)}
+              </Typography>
+            </AltinnPopover>
+          }
         </>
       );
     }
@@ -153,5 +287,5 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     return mapStateToProps;
   };
 
-  return connect(makeMapStateToProps)(FormComponentWithHandlers);
+  return connect(makeMapStateToProps)(withStyles(styles)(FormComponentWithHandlers));
 };
