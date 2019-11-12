@@ -9,7 +9,6 @@ import FormDynamicsSagas from '../features/form/dynamics/sagas';
 import FormLayoutSagas from '../features/form/layout/sagas';
 import FormRulesSagas from '../features/form/rules/sagas';
 import FormValidationSagas from '../features/form/validation/sagas';
-import FormWorkflowSagas from '../features/form/workflow/sagas';
 import InstantiationSagas from '../features/instantiate/instantiation/sagas';
 import ApplicationMetadataSagas from '../shared/resources/applicationMetadata/sagas';
 import Attachments from '../shared/resources/attachments/attachmentSagas';
@@ -17,6 +16,7 @@ import InstanceDataSagas from '../shared/resources/instanceData/instanceDataSaga
 import LanguageSagas from '../shared/resources/language/languageSagas';
 import OrgsSagas from '../shared/resources/orgs/orgsSagas';
 import PartySagas from '../shared/resources/party/partySagas';
+import { processSagas } from '../shared/resources/process/processSagas';
 import ProfileSagas from '../shared/resources/profile/profileSagas';
 import TextResourcesSagas from '../shared/resources/textResources/sagas';
 
@@ -27,7 +27,6 @@ function* root(): SagaIterator {
   yield fork(Attachments);
   yield fork(FormLayoutSagas);
   yield fork(FormRulesSagas);
-  yield fork(FormWorkflowSagas);
   yield fork(FormDataModelSagas);
   yield fork(LanguageSagas);
   yield fork(TextResourcesSagas);
@@ -38,6 +37,7 @@ function* root(): SagaIterator {
   yield fork(InstantiationSagas);
   yield fork(OrgsSagas);
   yield fork(InstanceDataSagas);
+  yield fork(processSagas);
 }
 
 export const initSagas: () => Task = () => sagaMiddleware.run(root);

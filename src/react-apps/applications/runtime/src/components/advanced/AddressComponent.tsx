@@ -92,12 +92,12 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             this.onBlurField(AddressKeys.postPlace);
           });
         } else {
-          this.setState({
+          this.setState((_state, props) => ({
             postPlace: '',
             validations: {
-              zipCode: 'Postnummer er ikke gyldig',
+              zipCode: getLanguageFromKey('address_component.validation_error_zipcode', props.language),
             },
-          });
+          }));
         }
       } else {
         this.setState({
@@ -121,7 +121,9 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
       houseNumber: null,
     };
     if (zipCode !== null && zipCode !== '' && !zipCode.match(new RegExp('^[0-9]{4}$'))) {
-      validationErrors.zipCode = 'Postnummer er ikke gyldig';
+      validationErrors.zipCode = getLanguageFromKey(
+        'address_component.validation_error_zipcode', this.props.language,
+        );
       this.setState({
         postPlace: '',
       });
@@ -129,7 +131,9 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
       validationErrors.zipCode = null;
     }
     if (!houseNumber.match(new RegExp('^[a-z,A-Z]{1}[0-9]{4}$')) && houseNumber !== '') {
-      validationErrors.houseNumber = 'Bolignummer er ikke gyldig';
+      validationErrors.houseNumber = getLanguageFromKey(
+        'address_component.validation_error_house_number', this.props.language,
+        );
     } else {
       validationErrors.houseNumber = null;
     }
@@ -204,12 +208,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     const validations = this.joinValidationMessages();
 
     return(
-      <div className={'address-component pb-2'}>
-        {
-          this.props.textResourceBindings.title ?
-            <h4 className='mt-2'>{this.props.getTextResource(this.props.textResourceBindings.title)}</h4>
-          : null
-        }
+      <div className={'address-component'}>
         <label className={'address-component-label'}>
           {
             getLanguageFromKey('ux_editor.modal_configure_address_component_address', this.props.language)

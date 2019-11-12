@@ -20,7 +20,7 @@
     "Altinn.Platform.Authentication": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/authentication/v1/debug",
+      "launchUrl": "authentication/swagger",
       "applicationUrl": "http://localhost:5040",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

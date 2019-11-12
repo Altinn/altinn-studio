@@ -1,0 +1,20 @@
+version: '3.4'
+
+networks:
+  altinnplatform_network:
+    external: false
+
+services:
+  altinn_platform_pdf:
+    container_name: altinn-platform-pdf
+    image: altinn-platform-pdf:latest
+    restart: always
+    networks:
+      - altinnplatform_network
+    environment:
+      - SWAGGER_BASE_URL=localhost:5070
+    ports:
+      - "5070:5070"
+    build:
+      context: .
+      dockerfile: Dockerfile

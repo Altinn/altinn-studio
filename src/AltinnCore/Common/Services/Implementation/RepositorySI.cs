@@ -199,7 +199,8 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 Id = "default",
                 AllowedContentType = new List<string>() { "application/xml" },
-                AppLogic = true
+                AppLogic = true,
+                Task = "FormFilling_1",
             });
             appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
             string metaDataDir = _settings.GetMetadataPath(

@@ -334,26 +334,4 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     expect(mountedAddressComponent.find('h4').length).toBe(0);
   });
 
-  it('+++ It should show a component title if title is set', () => {
-    mocktextResourceBindings.title = 'test';
-    const mountedAddressComponent = mount(
-      <AddressComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
-        isValid={mockIsValid}
-        simplified={mockSimplified}
-        dataModelBindings={mockDataBinding}
-        validationMessages={mockValidationMessages}
-        readOnly={mockReadOnly}
-        required={mockRequired}
-        language={mockLanguage}
-        textResourceBindings={mocktextResourceBindings}
-      />,
-    );
-    expect(mountedAddressComponent.find('h4').length).toBe(1);
-    expect(mountedAddressComponent.contains(<h4 className='mt-2'>test</h4>)).toBe(true);
-  });
-
 });

@@ -83,7 +83,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound();
             }
 
-            string taskId = instance.Process.CurrentTask.ElementId;
+            string taskId = instance.Process?.CurrentTask?.ElementId;
             if (taskId == null)
             {
                 throw new ValidationException("Unable to validate instance without a started process.");
@@ -164,7 +164,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound();
             }
 
-            if (instance.Process?.CurrentTask == null)
+            if (instance.Process?.CurrentTask?.ElementId == null)
             {
                 throw new ValidationException("Unable to validate instance without a started process.");
             }
