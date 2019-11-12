@@ -25,7 +25,7 @@ export function* uploadAttachmentSaga(
     data.append('file', file);
 
     const fileUploadLink = `${appPath}/instances/` +
-      `${instanceId}/data/?elementType=${attachmentType}&attachmentName=${file.name}`;
+      `${instanceId}/data?elementType=${attachmentType}&attachmentName=${file.name}`;
 
     const response = yield call(post, fileUploadLink, null, data);
 

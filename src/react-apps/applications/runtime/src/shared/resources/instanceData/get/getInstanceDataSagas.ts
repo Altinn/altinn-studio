@@ -15,10 +15,8 @@ export function* getInstanceDataSaga({
   try {
     const url = `${instancesControllerUrl}/${instanceOwner}/${instanceId}`;
     const result = yield call(get, url);
-    // yield call(InstanceDataActions.getInstanceDataFulfilled, result);
-    console.log('#### result', result); // TODO: map to redux structre, filter out default
 
-    if(result) {
+    if (result) {
       const attachments = result.data.filter((att) => att.elementType !== 'default');
       yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
     }
