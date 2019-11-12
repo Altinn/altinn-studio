@@ -11,6 +11,7 @@ using Altinn.App.Services.Interface;
 using Altinn.App.Services.Interfaces;
 using Altinn.Common.PEP.Authorization;
 using AltinnCore.Authentication.JwtCookie;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -39,13 +40,13 @@ namespace Altinn.App
             services.AddControllersWithViews().AddApplicationPart(typeof(InstancesController).Assembly);
 
             // Dot net services
+            services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // Internal Application services
             services.AddTransient<IApplication, ApplicationAppSI>();
             services.AddTransient<IExecution, ExecutionAppSI>();
             services.AddTransient<IProcess, ProcessAppSI>();
-            services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
 
             // Services for Altinn Platform components

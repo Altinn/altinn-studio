@@ -31,8 +31,8 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstance instanceService;
         private readonly IData dataService;
 
+        private readonly IExecution executionService;
         private readonly IRegister registerService;
-        private readonly IRepository repositoryService;
         private readonly IAltinnApp altinnApp;
         private readonly IApplication appService;
 
@@ -44,16 +44,16 @@ namespace Altinn.App.Api.Controllers
             IRegister registerService,
             IInstance instanceService,
             IData dataService,
+            IExecution executionService,
             IProfile profileService,
-            IRepository repositoryService,
             IApplication appService,
             IAltinnApp altinnApp)
         {
             this.logger = logger;
             this.instanceService = instanceService;
             this.dataService = dataService;
+            this.executionService = executionService;
             this.registerService = registerService;
-            this.repositoryService = repositoryService;
             this.altinnApp = altinnApp;
             this.appService = appService;
         }
@@ -168,7 +168,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            Application application = repositoryService.GetApplication(org, app);
+            Application application = executionService.GetApplication(org, app);
             if (application == null)
             {
                 return NotFound($"AppId {org}/{app} was not found");
