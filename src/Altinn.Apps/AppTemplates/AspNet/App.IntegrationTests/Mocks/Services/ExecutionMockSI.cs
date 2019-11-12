@@ -1,5 +1,4 @@
 using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models.Workflow;
 using Altinn.App.Services.ServiceMetadata;
 using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
@@ -10,14 +9,29 @@ using System.Text;
 
 namespace App.IntegrationTests.Mocks.Services
 {
-    public class RepositoryMockSI : IRepository
+    public class ExecutionMockSI : IExecution
     {
         public Application GetApplication(string org, string app)
         {
             return GetTestApplication(org, app);
         }
 
+        public string GetCodelist(string org, string app, string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Guid GetNewServiceInstanceID()
+        {
+            throw new NotImplementedException();
+        }
+
         public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
+        {
+            throw new NotImplementedException();
+        }
+
+        public byte[] GetRuntimeResource(string resource)
         {
             throw new NotImplementedException();
         }
@@ -27,10 +41,11 @@ namespace App.IntegrationTests.Mocks.Services
             throw new NotImplementedException();
         }
 
-        public List<WorkFlowStep> GetWorkFlow(string org, string app)
+        public byte[] GetServiceResource(string org, string app, string resource)
         {
             throw new NotImplementedException();
         }
+
 
         private Application GetTestApplication(string org, string app)
         {

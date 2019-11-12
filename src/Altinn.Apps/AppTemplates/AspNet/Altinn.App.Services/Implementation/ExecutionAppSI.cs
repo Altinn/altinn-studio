@@ -5,8 +5,10 @@ using System.Text;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
 using Altinn.App.Services.Interface;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -20,6 +22,8 @@ namespace Altinn.App.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
@@ -32,11 +36,15 @@ namespace Altinn.App.Services.Implementation
         public ExecutionAppSI(
             IOptions<ServiceRepositorySettings> settings,
             IHttpContextAccessor httpContextAccessor,
-            IHostingEnvironment hostingEnvironment)
+            IHostingEnvironment hostingEnvironment,
+            ILoggerFactory loggerFactory,
+            ILogger<ExecutionAppSI> logger)
         {
             _settings = settings.Value;
             _httpContextAccessor = httpContextAccessor;
             _hostingEnvironment = hostingEnvironment;
+            _loggerFactory = loggerFactory;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -75,6 +83,28 @@ namespace Altinn.App.Services.Implementation
             return fileContent;
         }
 
+
+        public Application GetApplication(string org, string app)
+        {
+            string filedata = string.Empty;
+            string filename = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+            try
+            {
+                if (File.Exists(filename))
+                {
+                    filedata = File.ReadAllText(filename, Encoding.UTF8);
+                }
+
+                return JsonConvert.DeserializeObject<Application>(filedata);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Something went wrong when fetching application metadata. {0}", ex);
+                return null;
+            }
+        }
+
+
         /// <inheritdoc/>
         public ServiceMetadata.ServiceMetadata GetServiceMetaData(string org, string app)
         {
@@ -107,6 +137,18 @@ namespace Altinn.App.Services.Implementation
             }
 
             return fileContent;
+        }
+
+        public string GetPrefillJson(string org, string app, string dataModelName = "ServiceModel")
+        {
+            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + dataModelName + ".prefill.json";
+            string filedata = null;
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+
+            return filedata;
         }
     }
 }

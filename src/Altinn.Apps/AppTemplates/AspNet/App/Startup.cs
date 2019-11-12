@@ -46,7 +46,6 @@ namespace Altinn.App
             services.AddTransient<IApplication, ApplicationAppSI>();
             services.AddTransient<IExecution, ExecutionAppSI>();
             services.AddTransient<IProcess, ProcessAppSI>();
-            services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
 
             // Services for Altinn Platform components
