@@ -1,5 +1,3 @@
-using Altinn.Common.PEP.Implementation;
-using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

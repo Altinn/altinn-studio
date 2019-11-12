@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using AltinnCore.ServiceLibrary.Models;
-using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

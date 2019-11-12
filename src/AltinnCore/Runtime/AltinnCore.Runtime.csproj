@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
@@ -12,7 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Authorization.ABAC" Version="0.0.1-alpha" />
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.8-alpha" />
     <PackageReference Include="CompilerAttributes" Version="1.1.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.8.1" />

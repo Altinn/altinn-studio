@@ -117,7 +117,6 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IApplication, ApplicationAppSI>();
             }
 
-            //services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
             services.AddSingleton<IArchive, ArchiveStudioSI>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
