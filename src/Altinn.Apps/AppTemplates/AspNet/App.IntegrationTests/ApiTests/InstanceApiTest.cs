@@ -89,6 +89,7 @@ namespace App.IntegrationTests
                 {
                     services.AddSingleton<IInstance, InstanceMockSI>();
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
+                    services.AddSingleton<IApplication, ApplicationMockSI>();
                 });
             })
             .CreateClient();
