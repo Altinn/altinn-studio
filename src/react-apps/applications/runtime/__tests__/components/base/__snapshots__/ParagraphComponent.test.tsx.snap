@@ -3,6 +3,11 @@
 exports[`>>> components/base/ParagraphComponent.tsx --- Snapshot +++ should match snapshot 1`] = `
 <span
   id="mock-id"
+  style={
+    Object {
+      "marginTop": "2.4rem",
+    }
+  }
 >
   Here goes a paragraph
 </span>

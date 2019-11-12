@@ -7,21 +7,25 @@ import { IRelease } from './types';
 export interface IAppReleaseActionDispatcher extends ActionCreatorsMapObject {
   getAppReleases: () => Action;
   getAppReleasesFulfilled: (releases: IRelease[]) => GetAppReleaseActions.IGetReleaseActionFulfilled;
-  getAppReleasesRejected: (error: Error) => GetAppReleaseActions.IGetReleaseActionRejected;
+  getAppReleasesRejected: (errorCode: number) => GetAppReleaseActions.IGetReleaseActionRejected;
+  getAppReleasesIntervalStart: () => Action;
+  getAppReleasesIntervalStop: () => Action;
   createAppRelease: (
     tagName: string,
     name: string,
     body: string,
     targetCommitish: string,
   ) => CreateAppReleaseActions.ICreateReleaseAction;
-  createAppReleaseFulfilled: (id: string) => CreateAppReleaseActions.ICreateReleaseFulfilledAction;
-  createAppReleaseRejected: (error: Error) => CreateAppReleaseActions.ICreateReleaseRejectedActions;
+  createAppReleaseFulfilled: (release: IRelease) => CreateAppReleaseActions.ICreateReleaseFulfilledAction;
+  createAppReleaseRejected: (errorCode: number) => CreateAppReleaseActions.ICreateReleaseRejectedActions;
 }
 
 const actions: IAppReleaseActionDispatcher = {
   getAppReleases: GetAppReleaseActions.getAppReleases,
   getAppReleasesFulfilled: GetAppReleaseActions.getAppReleasesFulfilled,
   getAppReleasesRejected: GetAppReleaseActions.getAppReleasesRejected,
+  getAppReleasesIntervalStart: GetAppReleaseActions.startGetAppReleasesInterval,
+  getAppReleasesIntervalStop: GetAppReleaseActions.stopGetAppReleasesInterval,
   createAppRelease: CreateAppReleaseActions.createAppRelease,
   createAppReleaseFulfilled: CreateAppReleaseActions.createAppReleaseFulfilled,
   createAppReleaseRejected: CreateAppReleaseActions.createAppReleaseRejected,

@@ -566,103 +566,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
 
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is null should return an empty div when the menutype is null that matches the snapshot 1`] = `<div />`;
 
-exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish should render left drawer menu for publish option in header that matches the snapshot 1`] = `
-<div>
-  <div
-    className="MuiDrawer-root MuiDrawer-docked LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
-    onMouseLeave={[Function]}
-    onMouseOver={[Function]}
-  >
-    <div
-      className="MuiPaper-root MuiPaper-elevation0 MuiDrawer-paper LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft MuiDrawer-paperAnchorDockedLeft"
-    >
-      <hr
-        className="MuiDivider-root"
-      />
-      <ul
-        className="MuiList-root MuiList-padding"
-      >
-        <a
-          href="/publish"
-          onClick={[Function]}
-          style={
-            Object {
-              "borderBottom": 0,
-            }
-          }
-        >
-          <li
-            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
-            disabled={false}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-          >
-            <div
-              className="MuiListItemIcon-root"
-            >
-              <i
-                className="fa fa-settings"
-                style={
-                  Object {
-                    "color": "rgba(0, 0, 0, 0.54)",
-                    "fontSize": null,
-                    "fontWeight": null,
-                    "margin": null,
-                    "padding": null,
-                  }
-                }
-              />
-            </div>
-            <div
-              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
-            >
-              Produksjonsette
-            </div>
-          </li>
-        </a>
-        <a
-          href="/status"
-          onClick={[Function]}
-          style={
-            Object {
-              "borderBottom": 0,
-            }
-          }
-        >
-          <li
-            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
-            disabled={false}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-          >
-            <div
-              className="MuiListItemIcon-root"
-            >
-              <i
-                className="fa fa-info-circle"
-                style={
-                  Object {
-                    "color": "rgba(0, 0, 0, 0.54)",
-                    "fontSize": null,
-                    "fontWeight": null,
-                    "margin": null,
-                    "padding": null,
-                  }
-                }
-              />
-            </div>
-            <div
-              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
-            >
-              Status
-            </div>
-          </li>
-        </a>
-      </ul>
-    </div>
-  </div>
-</div>
-`;
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish should render left drawer menu for publish option in header that matches the snapshot 1`] = `<div />`;
 
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test should render left drawer menu for test option in header that matches the snapshot 1`] = `
 <div>
@@ -715,44 +619,6 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
               className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
             >
               Test
-            </div>
-          </li>
-        </a>
-        <a
-          href="/deploytotest"
-          onClick={[Function]}
-          style={
-            Object {
-              "borderBottom": 0,
-            }
-          }
-        >
-          <li
-            className="MuiListItem-root LeftDrawerMenu-listItem-1 MuiListItem-gutters"
-            disabled={false}
-            onMouseEnter={[Function]}
-            onMouseLeave={[Function]}
-          >
-            <div
-              className="MuiListItemIcon-root"
-            >
-              <i
-                className="fa fa-integration-test"
-                style={
-                  Object {
-                    "color": "rgba(0, 0, 0, 0.54)",
-                    "fontSize": null,
-                    "fontWeight": null,
-                    "margin": null,
-                    "padding": null,
-                  }
-                }
-              />
-            </div>
-            <div
-              className="MuiListItemText-root LeftDrawerMenu-listItemText-12"
-            >
-              Test i testmiljø
             </div>
           </li>
         </a>

@@ -11,7 +11,7 @@ export interface IGetDeploymentsFulfilled extends Action {
   env: string;
 }
 export interface IGetDeploymentsRejected extends Action {
-  result: Error;
+  error: Error;
   env: string;
 }
 export function getDeploymentsAction(env: string, org: string, repo: string): IGetDeployments {
@@ -29,10 +29,21 @@ export function getDeploymentsFulfilledAction(result: any, env: string): IGetDep
     env,
   };
 }
-export function getDeploymentsRejectedAction(result: Error, env: string): IGetDeploymentsRejected {
+export function getDeploymentsRejectedAction(error: Error, env: string): IGetDeploymentsRejected {
   return {
     type: ActionTypes.GET_DEPLOYMENTS_REJECTED,
-    result,
+    error,
     env,
+  };
+}
+
+export function getDeploymentsStartIntervalAction(): Action {
+  return {
+    type: ActionTypes.GET_DEPLOYMENTS_START_INTERVAL,
+  };
+}
+export function getDeploymentsStopIntervalAction(): Action {
+  return {
+    type: ActionTypes.GET_DEPLOYMENTS_STOP_INTERVAL,
   };
 }

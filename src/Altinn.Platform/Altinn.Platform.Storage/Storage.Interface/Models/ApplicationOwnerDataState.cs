@@ -1,9 +1,8 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
-namespace Storage.Interface.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Model to hold application owner state for a specific data element

@@ -43,6 +43,12 @@ const styles = () => createStyles({
     width: '100%',
   },
   subApp: {
+    [theme.breakpoints.up('xs')]: {
+      paddingTop: '55px',
+    },
+    [theme.breakpoints.up('md')]: {
+      paddingTop: '111px',
+    },
     background: theme.altinnPalette.primary.greyLight,
     height: '100%',
     width: '100%',
@@ -68,14 +74,14 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public checkForMergeConflict = () => {
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const repoStatusUrl = getRepoStatusUrl();
 
     HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, app);
   }
 
   public componentDidMount() {
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     fetchLanguageDispatcher.fetchLanguage(
       `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
     handleServiceInformationActionDispatchers.fetchServiceName(
@@ -102,7 +108,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public render() {
     const { classes, repoStatus } = this.props;
-    const { org, app } = window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
 
     return (
       <React.Fragment>

@@ -4,10 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
-using Altinn.Platform.Storage.Models;
-using Storage.Interface.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
@@ -19,7 +18,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private InstanceClient storage;
+        private readonly InstanceClient storage;
         private readonly string testInstanceId = "100/922e412e-0e7d-4af3-968f-10b372ec7fd9";
 
         /// <summary>
@@ -123,10 +122,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 InstanceId = testInstanceId,
                 EventType = "deleted",
-                InstanceOwnerId = "12346",
-                UserId = 0,
-                AuthenticationLevel = 4,
-                EndUserSystemId = 1,
+                InstanceOwnerPartyId = "12346",
+                User = new PlatformUser
+                {
+                    UserId = 0,
+                    AuthenticationLevel = 4,
+                    EndUserSystemId = 1,
+                },                
                 ProcessInfo = new ProcessState
                 {
                     CurrentTask = new ProcessElementInfo
@@ -140,10 +142,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 InstanceId = testInstanceId,
                 EventType = "submited",
-                InstanceOwnerId = "12346",
-                UserId = 0,
-                AuthenticationLevel = 4,
-                EndUserSystemId = 1,
+                InstanceOwnerPartyId = "12346",
+                User = new PlatformUser
+                {
+                    UserId = 0,
+                    AuthenticationLevel = 4,
+                    EndUserSystemId = 1,
+                },
                 ProcessInfo = new ProcessState
                 {
                     CurrentTask = new ProcessElementInfo
@@ -157,10 +162,13 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 InstanceId = testInstanceId,
                 EventType = "created",
-                InstanceOwnerId = "12346",
-                UserId = 0,
-                AuthenticationLevel = 4,
-                EndUserSystemId = 1,
+                InstanceOwnerPartyId = "12346",
+                User = new PlatformUser
+                {
+                    UserId = 0,
+                    AuthenticationLevel = 4,
+                    EndUserSystemId = 1,
+                },
                 ProcessInfo = new ProcessState
                 {
                     CurrentTask = new ProcessElementInfo

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.Extensions.Logging;
 
 namespace Altinn.App.Common.RequestHandling
 {
@@ -12,15 +11,15 @@ namespace Altinn.App.Common.RequestHandling
     /// </summary>
     public class RequestPartValidator
     {
-        private readonly Application _appInfo;
+        private readonly Application appInfo;
         /// <summary>
-        /// Initializes a new instance of the <see cref="RequestPartValidator"/> class with the given application info.
+        /// Initialises a new instance of the <see cref="RequestPartValidator"/> class with the given application info.
         /// </summary>
         /// <param name="appInfo">The application metadata to use when validating a <see cref="RequestPart"/>.</param>
         public RequestPartValidator(Application appInfo)
         {
     
-            _appInfo = appInfo;
+            this.appInfo = appInfo;
         }
 
         /// <summary>
@@ -43,14 +42,14 @@ namespace Altinn.App.Common.RequestHandling
             {
                 Console.WriteLine($"// {DateTime.Now} // Debug // Part : {part}");
                 Console.WriteLine($"// {DateTime.Now} // Debug // Part name: {part.Name}");
-                Console.WriteLine($"// {DateTime.Now} // Debug // appinfo : {_appInfo}");
-                Console.WriteLine($"// {DateTime.Now} // Debug // appinfo.Id : {_appInfo.Id}");
+                Console.WriteLine($"// {DateTime.Now} // Debug // appinfo : {appInfo}");
+                Console.WriteLine($"// {DateTime.Now} // Debug // appinfo.Id : {appInfo.Id}");
 
-                DataType elementType = _appInfo.DataTypes.Find(e => e.Id == part.Name);
+                DataType dataType = appInfo.DataTypes.Find(e => e.Id == part.Name);
 
-                Console.WriteLine($"// {DateTime.Now} // Debug // elementType : {elementType}");
+                Console.WriteLine($"// {DateTime.Now} // Debug // elementType : {dataType}");
 
-                if (elementType == null)
+                if (dataType == null)
                 {
                     return $"Multipart section named, '{part.Name}' does not correspond to an element type in application metadata";
                 }
@@ -64,9 +63,9 @@ namespace Altinn.App.Common.RequestHandling
                     string contentTypeWithoutEncoding = part.ContentType.Split(";")[0];
 
                     // TODO: Support for any content type?
-                    if (!elementType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
+                    if (!dataType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
                     {
-                        return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{elementType}'";
+                        return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{dataType}'";
                     }
                 }
 
@@ -77,9 +76,9 @@ namespace Altinn.App.Common.RequestHandling
                     return $"The multipart section named {part.Name} has no data. Cannot process empty part.";
                 }
 
-                if (elementType.MaxSize.HasValue && contentSize > elementType.MaxSize.Value)
+                if (dataType.MaxSize.HasValue && dataType.MaxSize > 0 && contentSize > (long)dataType.MaxSize.Value * 1024 * 1024)
                 {
-                    return $"The multipart section named {part.Name} exceeds the size limit of element type '{elementType}'";
+                    return $"The multipart section named {part.Name} exceeds the size limit of element type '{dataType}'";
                 }
             }
 
@@ -102,7 +101,7 @@ namespace Altinn.App.Common.RequestHandling
                 }
             }
 
-            foreach (DataType dataType in _appInfo.DataTypes)
+            foreach (DataType dataType in appInfo.DataTypes)
             {
                 if (dataType.MaxCount > 0)
                 {

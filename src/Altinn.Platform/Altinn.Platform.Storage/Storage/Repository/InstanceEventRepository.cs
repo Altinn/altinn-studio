@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -31,28 +31,17 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
         public InstanceEventRepository(IOptions<AzureCosmosSettings> cosmosettings)
         {
-            // Retrieve configuration values from appsettings.json
-            _cosmosettings = cosmosettings.Value;
-            databaseId = _cosmosettings.Database;
+            var database = new CosmosDatabaseHandler(cosmosettings.Value);
 
-            ConnectionPolicy connectionPolicy = new ConnectionPolicy
-            {
-                ConnectionMode = ConnectionMode.Gateway,
-                ConnectionProtocol = Protocol.Https,
-            };
+            _client = database.CreateDatabaseAndCollection(collectionId);
+            _collectionUri = database.CollectionUri;
+            Uri databaseUri = database.DatabaseUri;
+            databaseId = database.DatabaseName;
 
-            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
-
-            _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
-            _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, collectionId);
-
-            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseId }).GetAwaiter().GetResult();
-
-            DocumentCollection documentCollection = new DocumentCollection { Id = collectionId };
-            documentCollection.PartitionKey.Paths.Add(partitionKey);
+            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
-                _databaseUri,
+                databaseUri,
                 documentCollection).GetAwaiter().GetResult();
 
             _client.OpenAsync();
@@ -112,12 +101,12 @@ namespace Altinn.Platform.Storage.Repository
 
                 if (fromDateTime.HasValue)
                 {
-                    query = query.Where(i => i.CreatedDateTime > fromDateTime);
+                    query = query.Where(i => i.Created > fromDateTime);
                 }
 
                 if (toDateTime.HasValue)
                 {
-                    query = query.Where(i => i.CreatedDateTime < toDateTime);
+                    query = query.Where(i => i.Created < toDateTime);
                 }
 
                 FeedResponse<InstanceEvent> result = await query.AsDocumentQuery().ExecuteNextAsync<InstanceEvent>();

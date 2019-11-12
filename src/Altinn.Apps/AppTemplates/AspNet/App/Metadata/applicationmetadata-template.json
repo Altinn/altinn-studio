@@ -1,25 +1,26 @@
 {
   "id": "$appId$",
   "org": "$org$",
-  "createdDateTime": "$time$",
+  "created": "$time$",
   "createdBy": "$username$",
-  "lastChangedDateTime": "$time$",
+  "lastChanged": "$time$",
   "lastChangedBy": "$username$",
   "title": { "nb": "titleName" },
   "dataTypes": [
     {
       "id": "default",
-      "allowedContentType": [ "application/xml" ],
-      "applogic": true,
-      "maxCount": 0,
-      "shouldSign": false,
-      "shouldEncrypt": true
+      "allowedContentTypes": [ "application/xml" ],
+      "applogic": {
+        "autoCreate": true
+      },
+      "minCount": 1,
+      "maxCount": 1
     }
   ],
   "partyTypesAllowed": {
     "bankruptcyEstate": false,
     "organization": false,
-    "person": false,
+    "person": true,
     "subUnit": false
   }
 }

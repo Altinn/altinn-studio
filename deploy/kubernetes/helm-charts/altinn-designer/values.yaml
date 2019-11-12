@@ -22,6 +22,10 @@ environmentVariables:
       value: dev.altinn.studio
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -32,10 +36,6 @@ environmentVariables:
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000
-    - name: GeneralSettings__LanguageFilesLocation
-      value: Languages/
-    - name: GeneralSettings__DeploymentLocation
-      value: /Templates/deployment
     - name: PlatformSettings__ApiStorageEndpoint
       value: https://platform.at21.altinn.cloud/storage/api/v1/
     - name: PlatformSettings__ApiStorageEndpointHost
@@ -65,6 +65,10 @@ environmentVariables:
       value: altinn.studio
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -75,10 +79,6 @@ environmentVariables:
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000
-    - name: GeneralSettings__LanguageFilesLocation
-      value: Languages/
-    - name: GeneralSettings__DeploymentLocation
-      value: /Templates/deployment
     - name: PlatformSettings__ApiStorageEndpoint
       value: https://platform.at21.altinn.cloud/storage/api/v1/
     - name: PlatformSettings__ApiStorageEndpointHost
@@ -101,13 +101,17 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud
   staging:
     - name: ASPNETCORE_ENVIRONMENT
-      value: Development
+      value: Staging
     - name: ASPNETCORE_URLS
       value: http://+:5000
     - name: GeneralSettings__HostName
       value: staging.altinn.studio
     - name: GeneralSettings__AltinnPartyCookieName
       value: AltinnPartyId
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Templates/deployment
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -118,10 +122,6 @@ environmentVariables:
       value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000
-    - name: GeneralSettings__LanguageFilesLocation
-      value: Languages/
-    - name: GeneralSettings__DeploymentLocation
-      value: /Templates/deployment
     - name: PlatformSettings__ApiStorageEndpoint
       value: https://platform.at21.altinn.cloud/storage/api/v1/
     - name: PlatformSettings__ApiStorageEndpointHost

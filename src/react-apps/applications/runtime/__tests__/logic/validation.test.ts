@@ -1,5 +1,6 @@
 import 'jest';
 import { IFormData } from '../../src/features/form/data/reducer';
+import { IValidationIssue, Severity } from '../../src/types';
 import * as validation from '../../src/utils/validation';
 import { length, max, maxLength, min, minLength, pattern } from '../../src/utils/validation';
 
@@ -13,6 +14,7 @@ describe('>>> utils/validations.ts', () => {
   let mockFormValidationResult: any;
   let mockLanguage: any;
   let mockFormAttachments: any;
+  let mockDataElementValidations: IValidationIssue[];
 
   beforeEach(() => {
     mockApiResponse = {
@@ -173,6 +175,15 @@ describe('>>> utils/validations.ts', () => {
         },
       },
     };
+    mockDataElementValidations = [
+      // tslint:disable max-line-length
+      {field: 'dataModelField_1', severity: Severity.Error, scope: null, targetId: '', description: 'Error message 1', code: ''},
+      {field: 'dataModelField_1', severity: Severity.Error, scope: null, targetId: '', description: 'Error message 2', code: ''},
+      {field: 'dataModelField_2', severity: Severity.Warning, scope: null, targetId: '', description: 'Warning message 1', code: ''},
+      {field: 'dataModelField_2', severity: Severity.Warning, scope: null, targetId: '', description: 'Warning message 2', code: ''},
+      {field: 'random_key', severity: Severity.Warning, scope: null, targetId: '', description: 'test warning', code: ''},
+      {field: 'random_key', severity: Severity.Error, scope: null, targetId: '', description: 'test error', code: ''},
+    ];
   });
 
   it('+++ should map api response to redux format', () => {
@@ -348,5 +359,9 @@ describe('>>> utils/validations.ts', () => {
     const mockResult = { componentId_3: { simpleBinding: { errors: ['Feltet er påkrevd'], warnings: [] } } };
 
     expect(componentSpesificValidations).toEqual(mockResult);
+  });
+  it('+++ data element validations should be mapped correctly to our redux format', () => {
+    const mappedDataElementValidaitons = validation.mapDataElementValidationToRedux(mockDataElementValidations, mockLayoutState.layout);
+    expect(mappedDataElementValidaitons).toEqual(mockReduxFormat);
   });
 });

@@ -2,6 +2,7 @@ using Altinn.Authorization.ABAC.Interface;
 using Altinn.Authorization.ABAC.Utils;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Platform.Authorization.IntegrationTests.Fixtures;
 using Altinn.Platform.Authorization.IntegrationTests.Util;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -18,14 +19,12 @@ using Xunit;
 
 namespace Altinn.Platform.Authorization.IntegrationTests
 {
-    public class AltinnApps_DecisionTests : IClassFixture<CustomWebApplicationFactory<Altinn.Platform.Authorization.Startup>>
-    {
-       private readonly CustomWebApplicationFactory<Altinn.Platform.Authorization.Startup>
-            _factory;
-
-        public AltinnApps_DecisionTests(CustomWebApplicationFactory<Altinn.Platform.Authorization.Startup> factory)
+    public class AltinnApps_DecisionTests :IClassFixture<PlatformAuthorizationFixture>
+    { 
+        private readonly PlatformAuthorizationFixture _fixture;
+        public AltinnApps_DecisionTests(PlatformAuthorizationFixture fixture)
         {
-            _factory = factory;
+            _fixture = fixture;
         }
 
         [Fact]
@@ -210,20 +209,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests
 
         private HttpClient GetTestClient()
         {
-            HttpClient client = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureTestServices(services =>
-                {
-                    services.AddScoped<IContextHandler, IntegrationTests.MockServices.ContextHandler>();
-                    services.AddScoped<IPolicyRetrievalPoint, IntegrationTests.MockServices.PolicyRetrievalPoint>();
-                    services.AddScoped<IRoles, IntegrationTests.MockServices.PolicyInformationPoint>();
-                });
-            })
-            .CreateClient();
-
-            return client;
+            return _fixture.GetClient();
         }
-          
-  
     }
 }

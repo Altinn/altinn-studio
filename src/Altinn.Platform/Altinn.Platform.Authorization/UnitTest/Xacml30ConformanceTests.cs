@@ -95,11 +95,11 @@ namespace Altinn.Authorization.ABAC.UnitTest
             try
             {
                 policy = XacmlTestDataParser.ParsePolicy(testCase + "Policy.xml", GetConformancePath());
-                moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Returns(policy);
+                moqPRP.Setup(p => p.GetPolicyAsync(It.IsAny<XacmlContextRequest>())).ReturnsAsync(policy);
             }
             catch(XmlException ex)
             {
-                moqPRP.Setup(p => p.GetPolicy(It.IsAny<XacmlContextRequest>())).Throws(ex);
+                moqPRP.Setup(p => p.GetPolicyAsync(It.IsAny<XacmlContextRequest>())).Throws(ex);
             }
 
             PolicyDecisionPoint pdp = new PolicyDecisionPoint();

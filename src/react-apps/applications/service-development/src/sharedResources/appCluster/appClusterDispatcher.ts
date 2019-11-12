@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as AppClusterActions from './getDeployments/getDeploymentsInAppClusterActions';
 
@@ -11,16 +11,19 @@ export interface IAppClusterDispatcher extends ActionCreatorsMapObject {
   getDeployments: (env: string, org: string, repo: string) => AppClusterActions.IGetDeployments;
   getDeploymentsFulfilled: (result: any, env: string) => AppClusterActions.IGetDeploymentsFulfilled;
   getDeploymentsRejected: (result: Error, env: string) => AppClusterActions.IGetDeploymentsRejected;
+  getDeploymentsStartInterval: () => Action;
+  getDeploymentsStopInterval: () => Action;
 }
 
 /**
  * Define mapping between action and Action dispatcher method
  */
-
 const actions: IAppClusterDispatcher = {
   getDeployments: AppClusterActions.getDeploymentsAction,
   getDeploymentsFulfilled: AppClusterActions.getDeploymentsFulfilledAction,
   getDeploymentsRejected: AppClusterActions.getDeploymentsRejectedAction,
+  getDeploymentsStartInterval: AppClusterActions.getDeploymentsStartIntervalAction,
+  getDeploymentsStopInterval: AppClusterActions.getDeploymentsStopIntervalAction,
 };
 
 /**
