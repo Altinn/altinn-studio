@@ -1,0 +1,35 @@
+{
+  "id": "skd-taxreport",
+  "org": "skd",
+  "createdDateTime": "2019-10-15T06:51:42.3432016Z",
+  "lastChangedDateTime": "2019-10-15T06:51:42.3432016Z",
+  "title": {
+    "nb": "Kattepass"
+  },
+  "validFrom": "2019-10-15T06:51:42.3432016Z",
+  "elementTypes": [
+    {
+      "id": "form",
+      "allowedContentType": [
+        "application/xml"
+      ],
+      "appLogic": false,
+      "maxCount": 0,
+      "minCount": 0
+    },
+    {
+      "id": "cat",
+      "allowedContentType": [
+        "image/jpg"
+      ],
+      "appLogic": false,
+      "maxCount": 0,
+      "minCount": 0
+    }
+  ],
+  "_rid": "zCw6AOvqTEFDAQAAAAAAAA==",
+  "_self": "dbs/zCw6AA==/colls/zCw6AOvqTEE=/docs/zCw6AOvqTEFDAQAAAAAAAA==/",
+  "_etag": "\"00000000-0000-0000-8325-008de86a01d5\"",
+  "_attachments": "attachments/",
+  "_ts": 1571122302
+}
