@@ -7,7 +7,7 @@ import { formComponentWithHandlers } from '../features/form/containers/withFormE
 import FormDataActions from '../features/form/data/actions';
 import { IFormData } from '../features/form/data/reducer';
 import FormDynamicsActions from '../features/form/dynamics/actions';
-import { IDataModelBindings, ILayout, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
+import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindings } from '../features/form/layout';
 import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
