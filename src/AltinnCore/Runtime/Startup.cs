@@ -216,8 +216,6 @@ namespace AltinnCore.Runtime
 
             services.AddAuthorization(options =>
             {
-                //options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new AppAccessRequirement(ActionType.Read.ToString())));
-                //options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new AppAccessRequirement(ActionType.Write.ToString())));
                 options.AddPolicy("ServiceRead", policy => policy.Requirements.Add(new ServiceAccessRequirement(ActionType.Read)));
             });
 
