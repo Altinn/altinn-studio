@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Altinn.App.Common.Helpers;
 using Altinn.App.Common.Interface;
 using Altinn.App.Common.RequestHandling;
-using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
@@ -16,7 +15,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace Altinn.App.Api.Controllers
@@ -33,10 +31,10 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstance instanceService;
         private readonly IData dataService;
 
-        private readonly IExecution executionService;
         private readonly IRegister registerService;
         private readonly IRepository repositoryService;
         private readonly IAltinnApp altinnApp;
+        private readonly IApplication appService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -46,18 +44,18 @@ namespace Altinn.App.Api.Controllers
             IRegister registerService,
             IInstance instanceService,
             IData dataService,
-            IExecution executionService,
             IProfile profileService,
             IRepository repositoryService,
+            IApplication appService,
             IAltinnApp altinnApp)
         {
             this.logger = logger;
             this.instanceService = instanceService;
             this.dataService = dataService;
-            this.executionService = executionService;
             this.registerService = registerService;
             this.repositoryService = repositoryService;
             this.altinnApp = altinnApp;
+            this.appService = appService;
         }
 
         /// <summary>
@@ -154,6 +152,7 @@ namespace Altinn.App.Api.Controllers
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [RequestSizeLimit(1000)]
         public async Task<ActionResult<Instance>> Post(
             [FromRoute] string org,
             [FromRoute] string app,
@@ -187,7 +186,7 @@ namespace Altinn.App.Api.Controllers
 
             if (!instanceOwnerPartyId.HasValue && instanceTemplate == null)
             {
-                return BadRequest("Cannot create an instance without an instanceOwnerId. Either provide instanceOwnerId as a query parameter or an instanceTemplate object in the body.");
+                return BadRequest("Cannot create an instance without an instanceOwner.partyId. Either provide instanceOwner party Id as a query parameter or an instanceTemplate object in the body.");
             }
 
             if (instanceOwnerPartyId.HasValue && instanceTemplate != null)
@@ -225,16 +224,23 @@ namespace Altinn.App.Api.Controllers
 
             if (instanceOwner.PartyId != null)
             {
-                party = await registerService.GetParty(int.Parse(instanceTemplate.InstanceOwner.PartyId));
-                if (!string.IsNullOrEmpty(party.SSN))
+                try
                 {
-                    instanceOwner.PersonNumber = party.SSN;
-                    instanceOwner.OrganisationNumber = null;
+                    party = await registerService.GetParty(int.Parse(instanceTemplate.InstanceOwner.PartyId));
+                    if (!string.IsNullOrEmpty(party.SSN))
+                    {
+                        instanceOwner.PersonNumber = party.SSN;
+                        instanceOwner.OrganisationNumber = null;
+                    }
+                    else if (!string.IsNullOrEmpty(party.OrgNumber))
+                    {
+                        instanceOwner.PersonNumber = null;
+                        instanceOwner.OrganisationNumber = party.OrgNumber;
+                    }
                 }
-                else if (!string.IsNullOrEmpty(party.OrgNumber))
+                catch (Exception e)
                 {
-                    instanceOwner.PersonNumber = null;
-                    instanceOwner.OrganisationNumber = party.OrgNumber;
+                    logger.LogWarning($"Cannot lookup party id {instanceOwner.PartyId} due to {e.Message}");
                 }
             }
             else

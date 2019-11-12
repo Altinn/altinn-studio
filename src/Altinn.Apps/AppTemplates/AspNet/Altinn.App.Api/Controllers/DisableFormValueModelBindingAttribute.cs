@@ -18,6 +18,7 @@ namespace Altinn.App.Api.Controllers
         {
             var factories = context.ValueProviderFactories;
             factories.RemoveType<FormValueProviderFactory>();
+            factories.RemoveType<FormFileValueProviderFactory>();
             factories.RemoveType<JQueryFormValueProviderFactory>();
         }
 
