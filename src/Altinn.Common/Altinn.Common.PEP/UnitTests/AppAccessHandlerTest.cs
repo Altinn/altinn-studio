@@ -1,8 +1,10 @@
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Collections.Generic;
 using System.Reflection.Metadata;
@@ -16,13 +18,16 @@ namespace Altinn.Common.PEP.Authorization
     {
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IPDP> _pdpMock;
+        private readonly IOptions<GeneralSettings> _generalSettings;
         private readonly AppAccessHandler _aah;
 
         public AppAccessHandlerTest()
         {
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
             _pdpMock = new Mock<IPDP>();
-            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object);
+            _generalSettings = Options.Create(new GeneralSettings());
+            _generalSettings.Value.DisablePEP = false;
+            _aah = new AppAccessHandler(_httpContextAccessorMock.Object, _pdpMock.Object, _generalSettings);
         }
 
         /// <summary>
@@ -290,6 +295,32 @@ namespace Altinn.Common.PEP.Authorization
             // Assert
             Assert.False(context.HasSucceeded);
             Assert.True(context.HasFailed);
+        }
+
+        /// <summary>
+        /// Test case: Send request and get response where disablePEP is true
+        /// Expected: Context will succeed
+        /// </summary>
+        [Fact]
+        public async Task HandleRequirementAsync_TC08Async()
+        {
+            // Arrange
+            _generalSettings.Value.DisablePEP = true;
+            AppAccessRequirement requirement = new AppAccessRequirement("read");
+            ClaimsPrincipal user = CreateUser();
+            Document resource = new Document();
+            AuthorizationHandlerContext context = new AuthorizationHandlerContext(
+                new[] { requirement },
+                user,
+                resource
+                );
+
+            // Act
+            await _aah.HandleAsync(context);
+
+            // Assert
+            Assert.True(context.HasSucceeded);
+            Assert.False(context.HasFailed);
         }
 
         private ClaimsPrincipal CreateUser()
