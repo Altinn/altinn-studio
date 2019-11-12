@@ -78,7 +78,7 @@ namespace Altinn.Common.PEP.Authorization
 
             List<XacmlJsonResult> results = response.Response;
 
-            // We ask for decision for one request and then only want one result
+            // We request one thing and then only want one result
             if (results.Count != 1)
             {
                 context.Fail();
