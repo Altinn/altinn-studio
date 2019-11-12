@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace Altinn.Platform.Storage.Models
+namespace Altinn.Platform.Storage.Interface.Models
 {
     /// <summary>
     /// Model for application metadata.
     /// </summary>
     [JsonObject(ItemNullValueHandling = NullValueHandling.Ignore)]
-    public class Application
+    public class Application : ChangableElement
     {
         /// <summary>
         /// Unique id of the application, e.g. test/app-34
@@ -20,7 +17,7 @@ namespace Altinn.Platform.Storage.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// the application build version
+        /// the application version id.
         /// </summary>
         [JsonProperty(PropertyName = "versionId")]
         public string VersionId { get; set; }
@@ -29,31 +26,7 @@ namespace Altinn.Platform.Storage.Models
         /// Service owner code for the service, e.g. nav.
         /// </summary>
         [JsonProperty(PropertyName = "org")]
-        public string Org { get; set; }
-
-        /// <summary>
-        /// Creation date-time for the instance, first time application is deployed and registered in storage.
-        /// </summary>
-        [JsonProperty(PropertyName = "createdDateTime")]
-        public DateTime CreatedDateTime { get; set; }
-
-        /// <summary>
-        /// User id of the user who created (deployed) the application first time.
-        /// </summary>
-        [JsonProperty(PropertyName = "createdBy")]
-        public string CreatedBy { get; set; }
-
-        /// <summary>
-        /// Last changed date-time for the application.
-        /// </summary>
-        [JsonProperty(PropertyName = "lastChangedDateTime")]
-        public DateTime LastChangedDateTime { get; set; }
-
-        /// <summary>
-        /// User id of the user who last redeployed the application.
-        /// </summary>
-        [JsonProperty(PropertyName = "lastChangedBy")]
-        public string LastChangedBy { get; set; }
+        public string Org { get; set; }      
 
         /// <summary>
         /// Title of the application with language codes.
@@ -74,10 +47,10 @@ namespace Altinn.Platform.Storage.Models
         public DateTime? ValidTo { get; set; }
 
         /// <summary>
-        /// Identifier of the workflow that is used by the application
+        /// Identifier of the prosess model that is used by the application.
         /// </summary>
-        [JsonProperty(PropertyName = "WorkflowId")]
-        public string WorkflowId { get; set; }
+        [JsonProperty(PropertyName = "processId")]
+        public string ProcessId { get; set; }
 
         /// <summary>
         /// Maximum allowed size of all the data element files of an application instance in bytes.
@@ -87,10 +60,10 @@ namespace Altinn.Platform.Storage.Models
         public int? MaxSize { get; set; }
 
         /// <summary>
-        /// Gets or sets the data element types associated with the application
+        /// Gets or sets the data types, the allowed elements of an application instance.
         /// </summary>
-        [JsonProperty(PropertyName = "elementTypes")]
-        public List<ElementType> ElementTypes { get; set; }
+        [JsonProperty(PropertyName = "dataTypes")]
+        public List<DataType> DataTypes { get; set; }
 
         /// <summary>
         /// Gets of sets the different party types allowed to instantiate the application

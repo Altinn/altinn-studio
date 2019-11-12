@@ -5,7 +5,7 @@ namespace Altinn.Platform.Storage.Repository
     using System.Linq;
     using System.Threading.Tasks;
     using Altinn.Platform.Storage.Configuration;
-    using Altinn.Platform.Storage.Models;
+    using Altinn.Platform.Storage.Interface.Models;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
@@ -19,13 +19,12 @@ namespace Altinn.Platform.Storage.Repository
     /// </summary>
     public class ApplicationRepository : IApplicationRepository
     {
-        private readonly Uri _databaseUri;
+        private readonly Uri databaseUri;
         private readonly Uri _collectionUri;
         private readonly string databaseId;
         private readonly string collectionId = "applications";
         private readonly string partitionKey = "/org";
         private static DocumentClient _client;
-        private readonly AzureCosmosSettings _cosmosettings;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -35,30 +34,21 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="logger">dependency injection of logger</param>
         public ApplicationRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger<ApplicationRepository> logger)
         {
-            // Retrieve configuration values from appsettings.json
-            _cosmosettings = cosmosettings.Value;
-            databaseId = _cosmosettings.Database;
-
             _logger = logger;
 
-            ConnectionPolicy connectionPolicy = new ConnectionPolicy
-            {
-                ConnectionMode = ConnectionMode.Gateway,
-                ConnectionProtocol = Protocol.Https,
-            };
+            var database = new CosmosDatabaseHandler(cosmosettings.Value);
 
-            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
-            _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
-            _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, collectionId);
+            _client = database.CreateDatabaseAndCollection(collectionId);
+            _collectionUri = database.CollectionUri;
+            databaseUri = database.DatabaseUri;
+            databaseId = database.DatabaseName;
 
-            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseId }).GetAwaiter().GetResult();
-
-            DocumentCollection documentCollection = new DocumentCollection { Id = collectionId };
-            documentCollection.PartitionKey.Paths.Add(partitionKey);
+            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
-                _databaseUri,
+                databaseUri,
                 documentCollection).GetAwaiter().GetResult();
+
             _client.OpenAsync();
         }
 

@@ -5,7 +5,7 @@ import InstanceDataActions from '../../../shared/resources/instanceData/instance
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
 import ProfileActions from '../../../shared/resources/profile/profileActions';
-import { IAltinnWindow, IRuntimeState } from '../../../types';
+import { IAltinnWindow } from '../../../types';
 import FormDataActions from '../data/actions';
 import FormDataModelActions from '../datamodell/actions';
 import FormDynamicActions from '../dynamics/actions';

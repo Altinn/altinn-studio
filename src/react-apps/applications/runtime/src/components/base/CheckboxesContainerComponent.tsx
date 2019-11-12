@@ -89,7 +89,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
             className={classNames('custom-control', 'custom-checkbox', 'a-custom-checkbox', 'pl-0', 'pr-4 mr-3',
               { 'no-cursor': this.props.readOnly })}
             onClick={this.props.readOnly ? null : this.onDataChanged.bind(this, option.value, index, option.label)}
-            style={index !== 0 ? { marginTop: '2.4rem' } : {}}
+            style={index !== 0 && this.props.options.length > 2 ? { marginTop: '2.4rem' } : {}}
           >
             <input
               type='checkbox'

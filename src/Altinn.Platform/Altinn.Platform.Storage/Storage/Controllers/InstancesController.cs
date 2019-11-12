@@ -4,11 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using Altinn.Platform.Storage.Helpers;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Enums;
+using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
-using global::Storage.Interface.Enums;
-using global::Storage.Interface.Models;
-using Halcyon.HAL;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -51,17 +49,18 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Gets all instances for a given instance owner.
+        /// Gets all instances for a given instance owner. Currently a maximum of 100 instances will be returned.
         /// </summary>
-        /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <returns>list of instances</returns>
-        [HttpGet("{instanceOwnerId:int}")]
-        public async Task<ActionResult> GetInstanceOwners(int instanceOwnerId)
+        /// <param name="instanceOwnerPartyId">the instance owner party id</param>
+        /// <returns>list of instances</returns>        
+        [HttpGet("{instanceOwnerPartyId:int}")]
+        [ProducesResponseType(typeof(List<Instance>), 200)]
+        public async Task<ActionResult> GetInstanceOwners(int instanceOwnerPartyId)
         {
-            List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerId);
+            List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwner(instanceOwnerPartyId);
             if (result == null || result.Count == 0)
             {
-                return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
+                return NotFound($"Did not find any instances for instanceOwnerPartyId={instanceOwnerPartyId}");
             }
 
             result.ForEach(i => AddSelfLinks(Request, i));
@@ -70,38 +69,39 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Get all instances for a given org or appId. Only one parameter at the time.
+        /// Get all instances that match the given query parameters. Parameters can be combined. Unknown or illegal parameter values will result in 400 - bad request.
         /// </summary>
         /// <param name="org">application owner</param>
         /// <param name="appId">application id</param>
         /// <param name="currentTaskId">running process current task id</param>
         /// <param name="processIsComplete">is process complete</param>
-        /// <param name="processIsInError">is process in error</param>
-        /// <param name="processEndState">process end state</param>
-        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="processEndEvent">process end state</param>
+        /// <param name="processEnded">process ended value</param>
+        /// <param name="instanceOwnerPartyId">instance owner id</param>
         /// <param name="labels">labels</param>
-        /// <param name="lastChangedDateTime">last changed date</param>
-        /// <param name="createdDateTime">created time</param>
-        /// <param name="visibleDateTime">the visible date time</param>
-        /// <param name="dueDateTime">the due date time</param>
+        /// <param name="lastChanged">last changed date</param>
+        /// <param name="created">created time</param>
+        /// <param name="visibleAfter">the visible after date time</param>
+        /// <param name="dueBefore">the due before date time</param>
         /// <param name="continuationToken">continuation token</param>
         /// <param name="size">the page size</param>
         /// <returns>list of all instances for given instanceowner</returns>
         /// <!-- GET /instances?org=tdd or GET /instances?appId=tdd/app2 -->
         [HttpGet]
+        [ProducesResponseType(typeof(QueryResponse<Instance>), 200)]
         public async Task<ActionResult> GetInstances(
             string org,
             string appId,
             [FromQuery(Name = "process.currentTask")] string currentTaskId,
             [FromQuery(Name = "process.isComplete")] bool? processIsComplete,
-            [FromQuery(Name = "process.isInError")] bool? processIsInError,
-            [FromQuery(Name = "process.endState")] string processEndState,
-            [FromQuery] int? instanceOwnerId,
-            [FromQuery] string labels,
-            [FromQuery] string lastChangedDateTime,
-            [FromQuery] string createdDateTime,
-            [FromQuery] string visibleDateTime,
-            [FromQuery] string dueDateTime,
+            [FromQuery(Name = "process.endEvent")] string processEndEvent,
+            [FromQuery(Name = "process.ended")] string processEnded,
+            [FromQuery(Name = "instanceOwner.partyId")] int? instanceOwnerPartyId,
+            [FromQuery(Name = "appOwner.labels")] string labels,
+            [FromQuery] string lastChanged,
+            [FromQuery] string created,
+            [FromQuery(Name = "visibleAfter")] string visibleAfter,
+            [FromQuery] string dueBefore,
             string continuationToken,
             int? size)
         {
@@ -139,16 +139,17 @@ namespace Altinn.Platform.Storage.Controllers
                 string nextContinuationToken = HttpUtility.UrlEncode(result.ContinuationToken);
                 result.ContinuationToken = null;
 
-                HALResponse response = new HALResponse(result);
+                QueryResponse<Instance> response = new QueryResponse<Instance>
+                {
+                    Instances = result.Instances,
+                    Count = result.Instances.Count,
+                    TotalHits = result.TotalHits.Value,
+                };
 
                 if (continuationToken == null)
                 {
                     string selfUrl = $"{host}{url}{query}";
-
-                    result.Self = selfUrl;
-
-                    Link selfLink = new Link("self", selfUrl);
-                    response.AddLinks(selfLink);
+                    response.Self = selfUrl;
                 }
                 else
                 {
@@ -159,10 +160,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                     string selfUrl = $"{host}{url}{selfQueryString}";
 
-                    result.Self = selfUrl;
-
-                    Link selfLink = new Link("self", selfUrl);
-                    response.AddLinks(selfLink);
+                    response.Self = selfUrl;
                 }
 
                 if (nextContinuationToken != null)
@@ -174,33 +172,221 @@ namespace Altinn.Platform.Storage.Controllers
 
                     string nextUrl = $"{host}{url}{nextQueryString}";
 
-                    result.Next = nextUrl;
-
-                    Link nextLink = new Link("next", nextUrl);
-                    response.AddLinks(nextLink);
+                    response.Next = nextUrl;
                 }
 
                 // add self links to platform
                 result.Instances.ForEach(i => AddSelfLinks(Request, i));
 
-                StringValues acceptHeader = Request.Headers["Accept"];
-                if (acceptHeader.Any() && acceptHeader.Contains("application/hal+json"))
-                {
-                    /* Response object should be expressed as HAL (Hypertext Application Language) with _embedded and _links.
-                     * Thus we reset the response object's inline instances, next and self elements.*/
-
-                    response.AddEmbeddedCollection("instances", result.Instances);
-                    result.Instances = null;
-                    result.Next = null;
-                    result.Self = null;
-                }
-
                 return Ok(response);
             }
             catch (Exception e)
             {
-                logger.LogError("exception", e);
-                return StatusCode(500, $"Unable to perform query due to: {e.Message}");
+                logger.LogError($"Unable to perform query on instances due to: {e}");
+                return StatusCode(500, $"Unable to perform query on instances due to: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Gets an instance for a given instance id.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">instance owner id.</param>
+        /// <param name="instanceGuid">the guid of the instance.</param>
+        /// <returns>an instance.</returns>
+        [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [ProducesResponseType(typeof(Instance), 200)]
+        public async Task<ActionResult> Get(int instanceOwnerPartyId, Guid instanceGuid)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Instance result;
+            try
+            {
+                result = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+
+                AddSelfLinks(Request, result);
+
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return NotFound($"Unable to find instance {instanceId}: {e}");
+            }
+        }
+
+        /// <summary>
+        /// Inserts new instance into the instance collection.
+        /// </summary>
+        /// <param name="appId">the application id</param>
+        /// <param name="instance">instance</param>
+        /// <returns>instance object</returns>
+        /// <!-- POST /instances?appId={appId} -->
+        [HttpPost]
+        [Consumes("application/json")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(Instance), 201)]
+        public async Task<ActionResult> Post(string appId, [FromBody] Instance instance)
+        {
+            // check if metadata exists
+            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
+            if (appInfoError != null)
+            {
+                return appInfoError;
+            }
+
+            if (string.IsNullOrWhiteSpace(instance.InstanceOwner.PartyId))
+            {
+                return BadRequest("Cannot create an instance without an instanceOwner.PartyId.");
+            }
+
+            Instance storedInstance = new Instance();
+            try
+            {
+                DateTime creationTime = DateTime.UtcNow;
+                string userId = null;
+
+                Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
+                storedInstance = await _instanceRepository.Create(instanceToCreate);
+                await DispatchEvent(InstanceEventType.Created.ToString(), storedInstance);
+                logger.LogInformation($"Created instance: {storedInstance.Id}");
+
+                AddSelfLinks(Request, storedInstance);
+
+                return Created(storedInstance.SelfLinks.Platform, storedInstance);
+            }
+            catch (Exception storageException)
+            {
+                logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException}");
+
+                // compensating action - delete instance
+                await _instanceRepository.Delete(storedInstance);
+
+                logger.LogError($"Deleted instance {storedInstance.Id}");
+                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwner.PartyId} due to {storageException.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Updates an instance.
+        /// </summary>
+        /// <param name="instanceOwnerPartyId">instance owner party id</param>
+        /// <param name="instanceGuid">instance guid</param>
+        /// <param name="instance">instance with updated parameters</param>
+        /// <returns>The updated instance</returns>
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [ProducesResponseType(typeof(Instance), 200)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult> Put(int instanceOwnerPartyId, Guid instanceGuid, [FromBody] Instance instance)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Instance existingInstance;
+            try
+            {
+                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            }
+            catch (Exception e)
+            {
+                string message = $"Unable to find instance {instanceId} to update: {e}";
+                logger.LogError(message);
+
+                return NotFound(message);
+            }
+
+            existingInstance.AppOwner = instance.AppOwner;            
+            existingInstance.Process = instance.Process;
+            existingInstance.Status = instance.Status;
+
+            existingInstance.DueBefore = DateTimeHelper.ConvertToUniversalTime(instance.DueBefore);
+            
+            existingInstance.LastChangedBy = User.Identity.Name;
+            existingInstance.LastChanged = DateTime.UtcNow;
+
+            Instance result;
+            try
+            {
+                result = await _instanceRepository.Update(existingInstance);
+                await DispatchEvent(instance.Status.Archived.HasValue ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
+                AddSelfLinks(Request, result);
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Unable to update instance object {instanceId}. Due to {e}");
+                return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>.
+        /// Delete an instance
+        /// </summary>
+        /// <param name="instanceGuid">instance guid</param>
+        /// <param name="instanceOwnerPartyId">instance owner party id</param>
+        /// <param name="hard">if true hard delete will take place. if false, the instance gets its status.softDelete attribut set to todays date and time.</param>
+        /// <returns>(202) updated instance object or (204) no content if hard delete</returns>
+        [HttpDelete("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
+        [ProducesResponseType(typeof(Instance), 202)] // Accepted
+        [ProducesResponseType(204)] // No Content
+        [ProducesResponseType(404)]
+        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerPartyId, bool? hard)
+        {
+            string instanceId = $"{instanceOwnerPartyId}/{instanceGuid}";
+
+            Instance instance;
+            try
+            {
+                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerPartyId);
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
+                }
+
+                logger.LogError($"Cannot delete instance {instanceId}. Due to {dce}");
+                return StatusCode(500, $"Unknown database exception in delete: {dce}");
+            }
+            catch (Exception e)
+            {
+                logger.LogError($"Cannot delete instance {instanceId}. Due to {e}");
+                return StatusCode(500, $"Unknown exception in delete: {e}");
+            }
+
+            if (hard.HasValue && hard == true)
+            {
+                try
+                {
+                    await _instanceRepository.Delete(instance);
+
+                    return NoContent();
+                }
+                catch (Exception e)
+                {
+                    logger.LogError($"Unexpected exception in delete: {e}");
+                    return StatusCode(500, $"Unexpected exception in delete: {e.Message}");
+                }
+            }
+            else
+            {
+                DateTime now = DateTime.UtcNow;
+
+                instance.Status.SoftDeleted = now;
+                instance.LastChangedBy = User.Identity.Name;
+                instance.LastChanged = now;
+
+                try
+                {
+                    Instance softDeletedInstance = await _instanceRepository.Update(instance);
+
+                    return Accepted(softDeletedInstance);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError($"Unexpeced exception when updating instance after soft delete: {e}");
+                    return StatusCode(500, $"Unexpected exception when updating instance after soft delete: {e.Message}");
+                }
             }
         }
 
@@ -225,202 +411,9 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 foreach (DataElement dataElement in instance.Data)
                 {
-                    dataElement.DataLinks ??= new ResourceLinks();
+                    dataElement.SelfLinks ??= new ResourceLinks();
 
-                    dataElement.DataLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets an instance for a given instance id.
-        /// </summary>
-        /// <param name="instanceOwnerId">instance owner id.</param>
-        /// <param name="instanceGuid">the guid of the instance.</param>
-        /// <returns>an instance.</returns>
-        [HttpGet("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> Get(int instanceOwnerId, Guid instanceGuid)
-        {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
-
-            Instance result;
-            try
-            {
-                result = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
-
-                AddSelfLinks(Request, result);
-
-                return Ok(result);
-            }
-            catch (Exception e)
-            {
-                return NotFound($"Unable to find instance {instanceId}: {e}");
-            }
-        }
-
-        /// <summary>
-        /// Inserts new instance into the instance collection.
-        /// </summary>
-        /// <param name="appId">the application id</param>
-        /// <param name="instance">instance</param>
-        /// <returns>instance object</returns>
-        /// <!-- POST /instances?appId={appId} -->
-        [HttpPost]
-        [Consumes("application/json")]
-        [Produces("application/json")]
-        public async Task<ActionResult> Post(string appId, [FromBody] Instance instance)
-        {
-            // check if metadata exists
-            Application appInfo = GetApplicationOrError(appId, out ActionResult appInfoError);
-            if (appInfoError != null)
-            {
-                return appInfoError;
-            }
-
-            if (string.IsNullOrWhiteSpace(instance.InstanceOwnerId))
-            {
-                return BadRequest("Cannot create an instance without an instanceOwnerId.");
-            }
-
-            Instance storedInstance = new Instance();
-            try
-            {
-                DateTime creationTime = DateTime.UtcNow;
-                string userId = null;
-
-                Instance instanceToCreate = CreateInstanceFromTemplate(appInfo, instance, creationTime, userId);
-                storedInstance = await _instanceRepository.Create(instanceToCreate);
-                await DispatchEvent(InstanceEventType.Created.ToString(), storedInstance);
-                logger.LogInformation($"Created instance: {storedInstance.Id}");
-
-                AddSelfLinks(Request, storedInstance);
-
-                return Ok(storedInstance);
-            }
-            catch (Exception storageException)
-            {
-                logger.LogError($"Unable to create {appId} instance for {instance.InstanceOwnerId} due to {storageException}");
-
-                // compensating action - delete instance
-                await _instanceRepository.Delete(storedInstance);
-                logger.LogError($"Deleted instance {storedInstance.Id}");
-
-                return StatusCode(500, $"Unable to create {appId} instance for {instance.InstanceOwnerId} due to {storageException.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Updates an instance
-        /// </summary>
-        /// <param name="instanceOwnerId">instance owner</param>
-        /// <param name="instanceGuid">instance id</param>
-        /// <param name="instance">instance</param>
-        /// <returns>The updated instance</returns>
-        [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> Put(int instanceOwnerId, Guid instanceGuid, [FromBody] Instance instance)
-        {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
-
-            Instance existingInstance;
-            try
-            {
-                existingInstance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
-            }
-            catch (Exception e)
-            {
-                string message = $"Unable to find instance {instanceId} to update: {e}";
-                logger.LogError(message);
-
-                return NotFound(message);
-            }
-
-            existingInstance.AppOwnerState = instance.AppOwnerState;
-            existingInstance.Process = instance.Process;
-            existingInstance.InstanceState = instance.InstanceState;
-
-            existingInstance.PresentationField = instance.PresentationField;
-            existingInstance.DueDateTime = DateTimeHelper.ConvertToUniversalTime(instance.DueDateTime);
-            existingInstance.VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instance.VisibleDateTime);
-            existingInstance.Labels = instance.Labels;
-
-            existingInstance.LastChangedBy = User.Identity.Name;
-            existingInstance.LastChangedDateTime = DateTime.UtcNow;
-
-            Instance result;
-            try
-            {
-                result = await _instanceRepository.Update(existingInstance);
-                await DispatchEvent(instance.InstanceState.IsArchived ? InstanceEventType.Submited.ToString() : InstanceEventType.Saved.ToString(), result);
-                AddSelfLinks(Request, result);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
-            }
-
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Delete an instance
-        /// </summary>
-        /// <param name="instanceGuid">instance id</param>
-        /// <param name="instanceOwnerId">instance owner</param>
-        /// <param name="hard">if true hard delete will take place</param>
-        /// <returns>updated instance object</returns>
-        /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}
-        [HttpDelete("{instanceOwnerId:int}/{instanceGuid:guid}")]
-        public async Task<ActionResult> Delete(Guid instanceGuid, int instanceOwnerId, bool? hard)
-        {
-            string instanceId = $"{instanceOwnerId}/{instanceGuid}";
-
-            Instance instance;
-            try
-            {
-                instance = await _instanceRepository.GetOne(instanceId, instanceOwnerId);
-            }
-            catch (DocumentClientException dce)
-            {
-                if (dce.Error.Code.Equals("NotFound"))
-                {
-                    return NotFound($"Didn't find the object that should be deleted with instanceId={instanceId}");
-                }
-
-                return StatusCode(500, $"Unknown database exception in delete: {dce}");
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Unknown exception in delete: {e}");
-            }
-
-            if (hard.HasValue && hard == true)
-            {
-                try
-                {
-                    await _instanceRepository.Delete(instance);
-
-                    return Ok(true);
-                }
-                catch (Exception e)
-                {
-                    return StatusCode(500, $"Unknown exception in delete: {e}");
-                }
-            }
-            else
-            {
-                instance.InstanceState.IsDeleted = true;
-                instance.LastChangedBy = User.Identity.Name;
-                instance.LastChangedDateTime = instance.InstanceState.DeletedDateTime = DateTime.UtcNow;
-
-                try
-                {
-                    Instance softDeletedInstance = await _instanceRepository.Update(instance);
-
-                    return Ok(softDeletedInstance);
-                }
-                catch (Exception e)
-                {
-                    return StatusCode(500, $"Unknown exception in delete: {e}");
+                    dataElement.SelfLinks.Platform = $"{selfLink}/data/{dataElement.Id}";
                 }
             }
         }
@@ -429,22 +422,27 @@ namespace Altinn.Platform.Storage.Controllers
         {
             Instance createdInstance = new Instance()
             {
-                InstanceOwnerId = instanceTemplate.InstanceOwnerId.ToString(),
+                InstanceOwner = instanceTemplate.InstanceOwner,
                 CreatedBy = userId,
-                CreatedDateTime = creationTime,
+                Created = creationTime,
                 LastChangedBy = userId,
-                LastChangedDateTime = creationTime,
+                LastChanged = creationTime,
                 AppId = appInfo.Id,
                 Org = appInfo.Org,
-                VisibleDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleDateTime),
-                DueDateTime = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueDateTime),
-                Labels = instanceTemplate.Labels,
-                PresentationField = instanceTemplate.PresentationField,
-                InstanceState = new InstanceState { IsArchived = false, IsDeleted = false, IsMarkedForHardDelete = false },
+                VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
+                Title = instanceTemplate.Title,
+                Status = new InstanceStatus
+                {                    
+                },
+                DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
+                AppOwner = new ApplicationOwnerState
+                {
+                    Labels = instanceTemplate.AppOwner?.Labels,
+                },                               
             };
 
             // copy applications title to presentation field if not set by instance template
-            if (createdInstance.PresentationField == null && appInfo.Title != null)
+            if (createdInstance.Title == null && appInfo.Title != null)
             {
                 LanguageString presentation = new LanguageString();
 
@@ -453,7 +451,7 @@ namespace Altinn.Platform.Storage.Controllers
                     presentation.Add(title.Key, title.Value);
                 }
 
-                createdInstance.PresentationField = presentation;
+                createdInstance.Title = presentation;
             }
 
             createdInstance.Data = new List<DataElement>();
@@ -497,13 +495,17 @@ namespace Altinn.Platform.Storage.Controllers
         {
             InstanceEvent instanceEvent = new InstanceEvent
             {
-                AuthenticationLevel = 0, // update when authentication is turned on
                 EventType = eventType,
                 InstanceId = instance.Id,
-                InstanceOwnerId = instance.InstanceOwnerId,
-                UserId = 0, // update when authentication is turned on
+                InstanceOwnerPartyId = instance.InstanceOwner.PartyId,
+                User = new PlatformUser
+                {
+                    UserId = 0, // update when authentication is turned on
+                    AuthenticationLevel = 0, // update when authentication is turned on
+                },
+                
                 ProcessInfo = instance.Process,
-                CreatedDateTime = DateTime.UtcNow,
+                Created = DateTime.UtcNow,
             };
 
             await _instanceEventRepository.InsertInstanceEvent(instanceEvent);

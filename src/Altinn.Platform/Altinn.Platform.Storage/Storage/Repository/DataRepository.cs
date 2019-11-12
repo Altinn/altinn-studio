@@ -19,9 +19,9 @@ namespace Altinn.Platform.Storage.Repository
         private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
         private readonly string databaseId;
-        private readonly string collectionId;
+        private readonly string collectionId = "dataElements";
+        private readonly string partitionKey = "/instanceGuid";
         private static DocumentClient _client;
-        private readonly AzureCosmosSettings _cosmosettings;
         private readonly AzureStorageConfiguration _storageConfiguration;
         private CloudBlobClient blobClient;
         private CloudBlobContainer container;
@@ -33,17 +33,21 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="storageConfiguration">the storage configuration for azure blob storage</param>
         public DataRepository(IOptions<AzureCosmosSettings> cosmosettings, IOptions<AzureStorageConfiguration> storageConfiguration)
         {
-            // Retrieve configuration values from appsettings.json
-            _cosmosettings = cosmosettings.Value;
-            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey);
-            _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
-            _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, _cosmosettings.Collection);
-            databaseId = _cosmosettings.Database;
-            collectionId = _cosmosettings.Collection;
-            _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
+            var database = new CosmosDatabaseHandler(cosmosettings.Value);
+
+            _client = database.CreateDatabaseAndCollection(collectionId);
+            _collectionUri = database.CollectionUri;
+            Uri databaseUri = database.DatabaseUri;
+            databaseId = database.DatabaseName;
+
+            DocumentCollection documentCollection = database.CreateDocumentCollection(collectionId, partitionKey);
+
             _client.CreateDocumentCollectionIfNotExistsAsync(
-                _databaseUri,
-                new DocumentCollection { Id = _cosmosettings.Collection }).GetAwaiter().GetResult();
+                databaseUri,
+                documentCollection).GetAwaiter().GetResult();
+
+            _client.OpenAsync();
+         
             _storageConfiguration = storageConfiguration.Value;
 
             // connect to azure blob storage

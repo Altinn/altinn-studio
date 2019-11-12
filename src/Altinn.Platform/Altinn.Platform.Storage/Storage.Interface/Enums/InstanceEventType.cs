@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Storage.Interface.Enums
+namespace Altinn.Platform.Storage.Interface.Enums
 {
     /// <summary>
     /// This enum defines the Instance event types supported by the AltinnCore platform.

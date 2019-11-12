@@ -13,21 +13,14 @@ export function* watchFetchAttachmentsSaga(): SagaIterator {
 
 export function* fetchAttachments(): SagaIterator {
   try {
-    // console.error('**** INSIDE');
-    // const state: IRuntimeState = yield select();
-    // console.error('instance', state.instanceData);
-    // const attachments = state.instanceData.instance.data;
-    // console.error('**** attachments', attachments);
-
-    // const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-    // const { org, app, instanceId } = altinnWindow;
-    // const appId = `${org}/${app}`;
-    // const attachmentListUrl = `${altinnWindow.location.origin}/${appId}/api/attachment/` +
-    // `${instanceId}/GetFormAttachments`;
-    // const response = yield call(get, attachmentListUrl);
-    // const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
-    // yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
-
+    const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
+    const { org, app, instanceId } = altinnWindow;
+    const appId = `${org}/${app}`;
+    const attachmentListUrl = `${altinnWindow.location.origin}/${appId}/api/attachment/` +
+    `${instanceId}/GetFormAttachments`;
+    const response = yield call(get, attachmentListUrl);
+    const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
+    yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
   } catch (err) {
     // yield call(AttachmentDispatcher.fetchAttachmentsRejected, err);
   }
