@@ -1,24 +1,25 @@
 using System.Threading.Tasks;
 using AltinnCore.Designer.Services.Models;
 
-namespace AltinnCore.Designer.Services
+namespace AltinnCore.Designer.Services.Interfaces
 {
     /// <summary>
-    /// IApplicationMetadataService
+    /// IAuthorizationPolicyService
     /// </summary>
-    public interface IApplicationMetadataService
+    public interface IAuthorizationPolicyService
     {
         /// <summary>
-        /// Registers the metadata connected to a specific GITEA repository on a certain commitId
+        /// Updates the Authorization policy for an app
         /// </summary>
         /// <param name="org">Organisation</param>
         /// <param name="app">Application</param>
-        /// <param name="commitId">Commit Id</param>
+        /// <param name="fullCommitId">The full commit SHA</param>
         /// <param name="deploymentEnvironment">EnvironmentModel</param>
-        Task RegisterApplicationInStorageAsync(
+        /// <returns></returns>
+        Task UpdateApplicationAuthorizationPolicyAsync(
             string org,
             string app,
-            string commitId,
+            string fullCommitId,
             EnvironmentModel deploymentEnvironment);
     }
 }

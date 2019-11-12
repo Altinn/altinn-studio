@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
@@ -26,7 +27,7 @@ namespace AltinnCore.Designer.Services
         private readonly DeploymentRepository _deploymentRepository;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
-        private readonly IApplicationMetadataService _applicationMetadataService;
+        private readonly IApplicationInformationService _applicationInformationService;
         private readonly string _app;
         private readonly string _org;
 
@@ -39,12 +40,12 @@ namespace AltinnCore.Designer.Services
             IHttpContextAccessor httpContextAccessor,
             ReleaseRepository releaseRepository,
             DeploymentRepository deploymentRepository,
-            IApplicationMetadataService applicationMetadataService)
+            IApplicationInformationService applicationInformationService)
         {
             _azureDevOpsBuildService = azureDevOpsBuildService;
             _releaseRepository = releaseRepository;
             _deploymentRepository = deploymentRepository;
-            _applicationMetadataService = applicationMetadataService;
+            _applicationInformationService = applicationInformationService;
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _httpContext = httpContextAccessor.HttpContext;
             _org = _httpContext.GetRouteValue("org")?.ToString();
@@ -64,7 +65,8 @@ namespace AltinnCore.Designer.Services
                 deploymentEntity.App,
                 deploymentEntity.TagName);
 
-            await _applicationMetadataService.RegisterApplicationInStorageAsync(_org, _app, release.TargetCommitish, deployment.Environment);
+            await _applicationInformationService
+                .UpdateApplicationInformationAsync(_org, _app, release.TargetCommitish, deployment.Environment);
             Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.Environment.Hostname);
 
             deploymentEntity.Build = new BuildEntity

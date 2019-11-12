@@ -41,7 +41,7 @@ namespace AltinnCore.UnitTest.Designer.Services
             DefaultHttpContext context = new DefaultHttpContext();
             httpContextAccessorMock.Setup(_ => _.HttpContext).Returns(context);
             AzureDevOpsSettings azureDevOpsSettings = new AzureDevOpsSettings();
-            Mock<OptionsMonitor<AzureDevOpsSettings>> optionsMonitorMock = new Mock<OptionsMonitor<AzureDevOpsSettings>>();
+            Mock<IOptionsMonitor<AzureDevOpsSettings>> optionsMonitorMock = new Mock<IOptionsMonitor<AzureDevOpsSettings>>();
             optionsMonitorMock.Setup(x => x.CurrentValue).Returns(azureDevOpsSettings);
 
             _sut = new ReleaseService(

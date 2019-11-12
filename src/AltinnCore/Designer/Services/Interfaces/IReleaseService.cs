@@ -3,7 +3,7 @@ using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Response;
 
-namespace AltinnCore.Designer.Services
+namespace AltinnCore.Designer.Services.Interfaces
 {
     /// <summary>
     /// The interface for business logic service for release

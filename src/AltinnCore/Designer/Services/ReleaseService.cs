@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
