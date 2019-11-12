@@ -48,6 +48,10 @@ option {
   cursor: pointer;
 }
 
+.hidden-button-text {
+  display: none;
+}
+
 .react-modal {
   background: transparent;
   min-width: 600px;
