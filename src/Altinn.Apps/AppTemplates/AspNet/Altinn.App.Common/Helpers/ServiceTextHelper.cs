@@ -41,23 +41,5 @@ namespace Altinn.App.Common.Helpers
 
             return text;
         }
-
-        /// <summary>
-        /// Replaces the tags in service text with configured values in text from request context and service context
-        /// </summary>
-        /// <param name="serviceText">The service text</param>
-        /// <param name="requestContext">the request context</param>
-        /// <param name="serviceContext">the servie context</param>
-        /// <returns>The edited service text</returns>
-        public static string SetTextParams(string serviceText, RequestContext requestContext)
-        {
-            if (serviceText.Contains("{altinncore:"))
-            {
-                serviceText = serviceText.Replace("{altinncore:context.UserFirstName}", requestContext.UserContext.UserParty.Person.FirstName);
-                serviceText = serviceText.Replace("{altinncore:context.UserLastName}", requestContext.UserContext.UserParty.Person.LastName);
-            }
-
-            return serviceText;
-        }
     }
 }

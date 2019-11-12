@@ -1,3 +1,4 @@
+using Altinn.App.Api.Controllers;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
@@ -6,9 +7,12 @@ using App.IntegrationTests.Utils;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
+using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -70,7 +74,7 @@ namespace App.IntegrationTests
 
             HttpClient client = GetTestClient();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/skd/taxreport/instances/")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/skd/taxreport/instances?instanceOwnerPartyId=1000")
             {
             };
 
@@ -79,15 +83,63 @@ namespace App.IntegrationTests
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         }
 
+        /// <summary>
+        /// create a multipart request with instance and xml prefil.
+        /// </summary>
+        [Fact]
+        public async void Instance_Post_WithMultipartPrefill()
+        {
+            /* SETUP */
+            string instanceOwnerPartyId = "1000";
 
+            Instance instanceTemplate = new Instance()
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = instanceOwnerPartyId,
+                }                
+            };
 
-        private HttpClient GetTestClient()
+            string instance = JsonConvert.SerializeObject(instanceTemplate);
+            string xml = File.ReadAllText("Data/Files/data-element.xml");
+
+            string boundary = "abcdefgh";
+            MultipartFormDataContent formData = new MultipartFormDataContent(boundary)
+            {
+                { new StringContent(instance, Encoding.UTF8, "application/json"), "instance" },
+                { new StringContent(xml, Encoding.UTF8, "application/xml"), "default" }
+            };
+
+            Uri uri = new Uri("/tdd/endring-av-navn/instances", UriKind.Relative);
+          
+            /* TEST */
+
+            HttpClient client = GetTestClient();
+            HttpResponseMessage response =  await client.PostAsync(uri, formData);
+
+            response.EnsureSuccessStatusCode();
+
+            Assert.True(response.StatusCode == HttpStatusCode.Created);
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
+
+            Assert.NotNull(createdInstance);
+            Assert.Single(createdInstance.Data);
+            Assert.Equal("default", createdInstance.Data[0].DataType);
+
+        }
+
+            private HttpClient GetTestClient()
         {
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
                 {
                     services.AddSingleton<IInstance, InstanceMockSI>();
+                    services.AddSingleton<IRegister, RegisterMockSI>();
+                      
+                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
+                    services.AddSingleton<IApplication, ApplicationMockSI>();
                 });
             })
             .CreateClient();

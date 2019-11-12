@@ -29,7 +29,20 @@ namespace App.IntegrationTests.Mocks.Services
 
         public Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
-            throw new NotImplementedException();
+            string partyId = instanceTemplate.InstanceOwner.PartyId;
+            Guid instanceGuid = Guid.NewGuid();
+
+            Instance instance = new Instance
+            {
+                Id = $"{partyId}/{instanceGuid}",
+                AppId = $"{org}/{app}",
+                InstanceOwner = instanceTemplate.InstanceOwner,
+            };
+
+            string instancePath = GetInstancePath(app, org, int.Parse(partyId), instanceGuid);
+            File.WriteAllText(instancePath, instance.ToString());
+
+            return Task.FromResult(instance);
         }
 
         public Task<Instance> GetInstance(string app, string org, int instanceOwnerId, Guid instanceId)
@@ -55,7 +68,7 @@ namespace App.IntegrationTests.Mocks.Services
 
         private Instance GetTestInstance(string app, string org, int instanceOwnerId, Guid instanceId)
         {
-            string instancePath = Path.Combine(GetInstancePath(), org + @"\" + app + @"\" + instanceOwnerId + @"\" + instanceId.ToString() + ".json");
+            string instancePath = GetInstancePath(app, org, instanceOwnerId, instanceId);
             if (File.Exists(instancePath))
             {
                 string content = System.IO.File.ReadAllText(instancePath);
@@ -65,7 +78,12 @@ namespace App.IntegrationTests.Mocks.Services
             return null;
         }
 
-        private string GetInstancePath()
+        private string GetInstancePath(string app, string org, int instanceOwnerId, Guid instanceId)
+        {
+            return Path.Combine(GetInstancesPath(), org + @"\" + app + @"\" + instanceOwnerId + @"\" + instanceId.ToString() + ".json");
+        }
+
+        private string GetInstancesPath()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances");

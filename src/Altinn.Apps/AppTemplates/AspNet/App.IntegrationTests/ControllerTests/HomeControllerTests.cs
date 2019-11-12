@@ -1,4 +1,5 @@
 using Altinn.App.IntegrationTests;
+using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -63,7 +64,7 @@ namespace App.IntegrationTests.ControllerTests
             {
                 builder.ConfigureTestServices(services =>
                 {
-
+                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
                 });
             })
             .CreateClient();

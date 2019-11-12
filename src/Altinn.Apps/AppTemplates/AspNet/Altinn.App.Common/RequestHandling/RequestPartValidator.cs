@@ -46,11 +46,11 @@ namespace Altinn.App.Common.RequestHandling
                 Console.WriteLine($"// {DateTime.Now} // Debug // appinfo : {_appInfo}");
                 Console.WriteLine($"// {DateTime.Now} // Debug // appinfo.Id : {_appInfo.Id}");
 
-                DataType elementType = _appInfo.DataTypes.Find(e => e.Id == part.Name);
+                DataType dataType = _appInfo.DataTypes.Find(e => e.Id == part.Name);
 
-                Console.WriteLine($"// {DateTime.Now} // Debug // elementType : {elementType}");
+                Console.WriteLine($"// {DateTime.Now} // Debug // elementType : {dataType}");
 
-                if (elementType == null)
+                if (dataType == null)
                 {
                     return $"Multipart section named, '{part.Name}' does not correspond to an element type in application metadata";
                 }
@@ -64,9 +64,9 @@ namespace Altinn.App.Common.RequestHandling
                     string contentTypeWithoutEncoding = part.ContentType.Split(";")[0];
 
                     // TODO: Support for any content type?
-                    if (!elementType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
+                    if (!dataType.AllowedContentTypes.Contains(contentTypeWithoutEncoding))
                     {
-                        return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{elementType}'";
+                        return $"The multipart section named {part.Name} has a Content-Type '{part.ContentType}' which is invalid for element type '{dataType}'";
                     }
                 }
 
@@ -77,9 +77,9 @@ namespace Altinn.App.Common.RequestHandling
                     return $"The multipart section named {part.Name} has no data. Cannot process empty part.";
                 }
 
-                if (elementType.MaxSize.HasValue && contentSize > elementType.MaxSize.Value)
+                if (dataType.MaxSize.HasValue && contentSize > dataType.MaxSize.Value)
                 {
-                    return $"The multipart section named {part.Name} exceeds the size limit of element type '{elementType}'";
+                    return $"The multipart section named {part.Name} exceeds the size limit of element type '{dataType}'";
                 }
             }
 

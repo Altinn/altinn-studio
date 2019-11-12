@@ -10,10 +10,14 @@ using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Interfaces;
 using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,14 +42,15 @@ namespace Altinn.App
             services.AddControllersWithViews().AddApplicationPart(typeof(InstancesController).Assembly);
 
             // Dot net services
+            services.AddSingleton<IAuthorizationHandler, AppAccessHandler>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // Internal Application services
             services.AddTransient<IApplication, ApplicationAppSI>();
             services.AddTransient<IExecution, ExecutionAppSI>();
             services.AddTransient<IProcess, ProcessAppSI>();
-            services.AddTransient<IRepository, RepositorySI>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddTransient<Altinn.Common.PEP.Clients.IHttpClientAccessor, Altinn.Common.PEP.Clients.HttpClientAccessor>();
 
             // Services for Altinn Platform components
             services.AddTransient<IAuthentication, AuthenticationAppSI>();
@@ -58,6 +63,7 @@ namespace Altinn.App
             services.AddTransient<IProfile, ProfileAppSI>();
             services.AddTransient<IRegister, RegisterAppSI>();
             services.AddTransient<IReiseApi, ReiseApi>();
+            services.AddTransient<IPDP, PDPAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AltinnApp>();
