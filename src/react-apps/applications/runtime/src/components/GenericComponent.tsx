@@ -35,7 +35,6 @@ export const GenericComponent = (props: IGenericComponentProps) => {
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const layoutElement: ILayoutEntry = useSelector((state: IRuntimeState) => GetLayoutElementSelector(state, props));
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
-  // const unsavedChanges: any = useSelector((state: IRuntimeState) => state.formData.unsavedChanges);
 
   const handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
