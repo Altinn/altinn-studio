@@ -40,8 +40,8 @@ namespace Altinn.Common.PEP.Implementation
 
             try
             {
-                string jsonString = JsonConvert.SerializeObject(xacmlJsonRequest);
-                StringContent httpContent = new StringContent(jsonString, Encoding.UTF8, "application/json");
+                string requestJson = JsonConvert.SerializeObject(xacmlJsonRequest);
+                StringContent httpContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
                 HttpResponseMessage response = _authClient.PostAsync(apiUrl, httpContent).Result;
 
                 if (response.StatusCode == HttpStatusCode.OK)

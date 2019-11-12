@@ -5,17 +5,19 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Altinn.Authorization.ABAC.Xacml;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
+using Altinn.Common.PEP.Configuration;
 using Altinn.Common.PEP.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Options;
 using static Altinn.Authorization.ABAC.Constants.XacmlConstants;
 
 namespace Altinn.Common.PEP.Authorization
 {
     /// <summary>
-    /// AuthorizationHandler that is created for handling access to service instances.
-    /// Authorizes based om InstanceAccessRequirement and instance id from route
+    /// AuthorizationHandler that is created for handling access to app.
+    /// Authorizes based om AppAccessRequirement and app id from route
     /// <see href="https://docs.asp.net/en/latest/security/authorization/policies.html"/> for details about authorization
     /// in asp.net core
     /// </summary>
@@ -23,6 +25,7 @@ namespace Altinn.Common.PEP.Authorization
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IPDP _pdp;
+        private readonly GeneralSettings _generalSettings;
         private const string XacmlResourceInstanceId = "urn:altinn:instance-id";
         private const string XacmlResourceOrgId = "urn:altinn:org";
         private const string XacmlResourceAppId = "urn:altinn:app";
@@ -38,10 +41,15 @@ namespace Altinn.Common.PEP.Authorization
         /// </summary>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="pdp">The pdp</param>
-        public AppAccessHandler(IHttpContextAccessor httpContextAccessor, IPDP pdp)
+        /// <param name="generalSettings">The general settings</param>
+        public AppAccessHandler(
+            IHttpContextAccessor httpContextAccessor,
+            IPDP pdp,
+            IOptions<GeneralSettings> generalSettings)
         {
             _httpContextAccessor = httpContextAccessor;
             _pdp = pdp;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -53,6 +61,12 @@ namespace Altinn.Common.PEP.Authorization
         /// <returns>A Task</returns>
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AppAccessRequirement requirement)
         {
+            if (_generalSettings.DisablePEP)
+            {
+                context.Succeed(requirement);
+                return;
+            }
+
             XacmlJsonRequest request = CreateXacmlJsonRequest(context, requirement);
             XacmlJsonResponse response = await _pdp.GetDecisionForRequest(request);
 
@@ -62,32 +76,33 @@ namespace Altinn.Common.PEP.Authorization
                 return;
             }
 
-            // Get the list of results from response
             List<XacmlJsonResult> results = response.Response;
 
-            // We only ask for permission for one request and then only want one result
+            // We ask for decision for one request and then only want one result
             if (results.Count != 1)
             {
                 context.Fail();
             }
 
-            // Checks that the response is nothing else than "permit"
+            // Checks that the result is nothing else than "permit"
             if (!results.First().Decision.Equals(XacmlContextDecision.Permit.ToString()))
             {
                 context.Fail();
             }
 
-            // Checks that the user has the minimum authentication level if required 
+            // Checks if the result contains obligation
             if (results.First().Obligations != null && results.Count > 0)
             {
                 List<XacmlJsonObligationOrAdvice> obligationList = results.First().Obligations;
-                XacmlJsonAttributeAssignment attributeAssignment = obligationList.Select(a => a.AttributeAssignment.Find(a => a.Category.Equals("urn:altinn:minimum-authenticationlevel"))).FirstOrDefault();
+                XacmlJsonAttributeAssignment attributeMinLvAuth = obligationList.Select(a => a.AttributeAssignment.Find(a => a.Category.Equals("urn:altinn:minimum-authenticationlevel"))).FirstOrDefault();
 
-                if (attributeAssignment != null)
+                // Checks if the obligation contains a minimum authentication level attribute
+                if (attributeMinLvAuth != null)
                 {
-                    string minAuthenticationLevel = attributeAssignment.Value;
+                    string minAuthenticationLevel = attributeMinLvAuth.Value;
                     string usersAuthenticationLevel = context.User.Claims.FirstOrDefault(c => c.Type.Equals("AuthenticationLevel")).Value;
 
+                    // Checks that the user meets the minimum authentication level
                     if (Convert.ToInt32(usersAuthenticationLevel) < Convert.ToInt32(minAuthenticationLevel))
                     {
                         context.Fail();

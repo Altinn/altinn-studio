@@ -197,5 +197,10 @@ namespace Altinn.Common.PEP.Configuration
                 return Environment.GetEnvironmentVariable("GeneralSettings_SBLBaseAdress") ?? SBLBaseAdress;
             }
         }
+
+        /// <summary>
+        /// Gets or sets to disable pep er not
+        /// </summary>
+        public bool DisablePEP { get; set; }
     }
 }

@@ -6,10 +6,10 @@ namespace Altinn.Common.PEP.Interfaces
     public interface IPDP
     {
         /// <summary>
-        /// Sends in a request to check if the user is permitted to execute task
+        /// Sends in a request and get response with result of the request
         /// </summary>
         /// <param name="xacmlJsonRequest">The Xacml Json Request</param>
-        /// <returns>The Xacml Json response will tell if the user has permission or not</returns>
+        /// <returns>The Xacml Json response contains the result of the request</returns>
         Task<XacmlJsonResponse> GetDecisionForRequest(XacmlJsonRequest xacmlJsonRequest);
     }
 }
