@@ -37,7 +37,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         {
             // Arrange
             Stream dataStream = File.OpenRead("Data/policy.xml");
-            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")))).ReturnsAsync(dataStream);
+            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xml")))).ReturnsAsync(dataStream);
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
             // Act
@@ -56,7 +56,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         {
             // Arrange
             Stream dataStream = File.OpenRead("Data/policy.xml");
-            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy2.xacml")))).ReturnsAsync(dataStream);
+            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy2.xml")))).ReturnsAsync(dataStream);
             XacmlContextRequest request = new XacmlContextRequest(true, true, GetXacmlContextAttributesWithOrgAndApp());
 
             // Act
@@ -75,7 +75,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         {
             // Arrange
             Stream dataStream = File.OpenRead("Data/policy.xml");
-            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")))).ReturnsAsync(dataStream);
+            _policyRepositoryMock.Setup(p => p.GetPolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xml")))).ReturnsAsync(dataStream);
             XacmlContextRequest request = new XacmlContextRequest(true, true, new List<XacmlContextAttributes>());
 
             // Act & Assert
@@ -91,7 +91,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         {
             // Arrange
             Stream dataStream = File.OpenRead("Data/policy.xml");
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act
             bool successfullyStored = await _prp.WritePolicyAsync("org", "app", dataStream);
@@ -108,7 +108,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task WritePolicy_TC02()
         {
             // Arrange
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync("", "app", new MemoryStream()));
@@ -122,7 +122,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task WritePolicy_TC03()
         {
             // Arrange
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync("org", "", new MemoryStream()));
@@ -136,7 +136,7 @@ namespace Altinn.Platform.Authorization.UnitTest
         public async Task WritePolicy_TC04()
         {
             // Arrange
-            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xacml")), It.IsAny<Stream>())).ReturnsAsync(true);
+            _policyRepositoryMock.Setup(p => p.WritePolicyAsync(It.Is<string>(s => s.Equals("org/app/policy.xml")), It.IsAny<Stream>())).ReturnsAsync(true);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _prp.WritePolicyAsync("org", "app", null));

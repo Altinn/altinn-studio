@@ -133,8 +133,8 @@ export const DeployContainer = (props: IDeployContainer) => {
             key={index}
             envName={env.name}
             envObj={env}
-            urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}`}
-            urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}`}
+            urlToApp={`https://${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
+            urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             deploymentList={
               appCluster.deploymentList &&
               appCluster.deploymentList.find((elem: any) => elem.env === env.name)

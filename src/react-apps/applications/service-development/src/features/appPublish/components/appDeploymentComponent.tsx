@@ -315,7 +315,6 @@ const AppDeploymentComponent = (props: IReceiptContainerProps) => {
           id={`deploy-button-${envName.toLowerCase()}`}
         />
         <AltinnPopoverSimple
-          classes={{}}
           anchorEl={anchorEl}
           anchorOrigin={popoverState.anchorOrigin}
           btnCancelText={popoverState.btnCancelText}
