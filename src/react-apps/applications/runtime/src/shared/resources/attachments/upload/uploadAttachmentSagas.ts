@@ -24,6 +24,8 @@ export function* uploadAttachmentSaga(
     const data = new FormData();
     data.append('file', file);
 
+    console.log('#### attachmentType: ', attachmentType);
+
     const fileUploadLink = `${appPath}/instances/` +
       `${instanceId}/data?elementType=${attachmentType}&attachmentName=${file.name}`;
 

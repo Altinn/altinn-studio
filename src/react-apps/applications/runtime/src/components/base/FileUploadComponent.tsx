@@ -73,6 +73,7 @@ export class FileUploadComponentClass
 
   constructor(props: IFileUploadProps, state: IFileUploadState) {
     super(props, state);
+    console.log('### constructor: props.atts: ', props.attachments);
     this.state = {
       attachments: props.attachments || [],
       validations: [],
@@ -166,6 +167,7 @@ export class FileUploadComponentClass
   }
 
   public renderFileList = (): JSX.Element => {
+    console.log('###RENDERFILELIST: ', this.state.attachments);
     if (!this.state.attachments || this.state.attachments.length === 0) {
       return null;
     }
@@ -363,6 +365,10 @@ export class FileUploadComponentClass
 }
 
 const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps): IFileUploadProps => {
+  console.log('##### MAPSTATETOPROPS: state.attachments ', state.attachments);
+  console.log('##### MAPSTATETOPROPS : props.id ', props.id);
+  console.log('##### MAPSTATETOPROPS : fb72634f-5f80-4ec3-8ab4-c9fc9ffd120f ',
+    state.attachments.attachments['fb72634f-5f80-4ec3-8ab4-c9fc9ffd120f']);
   return {
     ...props,
     attachments: state.attachments.attachments[props.id] || [],

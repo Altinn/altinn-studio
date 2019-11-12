@@ -18,6 +18,10 @@ export function* getInstanceDataSaga({
 
     if (result) {
       const attachments = result.data.filter((att) => att.elementType !== 'default');
+
+      console.log('### result.data: ', result.data);
+      console.log('### attachments: ', attachments);
+
       yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
     }
 
