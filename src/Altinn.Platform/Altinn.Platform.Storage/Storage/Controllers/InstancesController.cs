@@ -431,9 +431,7 @@ namespace Altinn.Platform.Storage.Controllers
                 Org = appInfo.Org,
                 VisibleAfter = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.VisibleAfter),
                 Title = instanceTemplate.Title,
-                Status = new InstanceStatus
-                {                    
-                },
+                Status = instanceTemplate.Status,
                 DueBefore = DateTimeHelper.ConvertToUniversalTime(instanceTemplate.DueBefore),
                 AppOwner = new ApplicationOwnerState
                 {
