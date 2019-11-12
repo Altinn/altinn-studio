@@ -53,13 +53,6 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string ProcessId { get; set; }
 
         /// <summary>
-        /// Maximum allowed size of all the data element files of an application instance in bytes.
-        /// If not set there is no limit on file size.
-        /// </summary>
-        [JsonProperty(PropertyName = "maxSize")]
-        public int? MaxSize { get; set; }
-
-        /// <summary>
         /// Gets or sets the data types, the allowed elements of an application instance.
         /// </summary>
         [JsonProperty(PropertyName = "dataTypes")]
