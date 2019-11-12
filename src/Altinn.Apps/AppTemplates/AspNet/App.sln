@@ -5,12 +5,6 @@ VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "App", "App\App.csproj", "{DB6EF59F-1C26-4997-8571-C70F983B8759}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.Api", "Altinn.App.Api\Altinn.App.Api.csproj", "{A3F31DC9-3E83-4245-9563-93235167CF58}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.Services", "Altinn.App.Services\Altinn.App.Services.csproj", "{53470138-AE20-4DDD-A70F-3CDF22209966}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.Common", "Altinn.App.Common\Altinn.App.Common.csproj", "{1227E886-1DE1-4858-ABDC-94490A47D214}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "App.IntegrationTests", "App.IntegrationTests\App.IntegrationTests.csproj", "{0AF5CF24-F59E-4C6F-81C2-5BA659BE2EE6}"
 EndProject
 Global
@@ -23,18 +17,6 @@ Global
 		{DB6EF59F-1C26-4997-8571-C70F983B8759}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB6EF59F-1C26-4997-8571-C70F983B8759}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB6EF59F-1C26-4997-8571-C70F983B8759}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A3F31DC9-3E83-4245-9563-93235167CF58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A3F31DC9-3E83-4245-9563-93235167CF58}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A3F31DC9-3E83-4245-9563-93235167CF58}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A3F31DC9-3E83-4245-9563-93235167CF58}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53470138-AE20-4DDD-A70F-3CDF22209966}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53470138-AE20-4DDD-A70F-3CDF22209966}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53470138-AE20-4DDD-A70F-3CDF22209966}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53470138-AE20-4DDD-A70F-3CDF22209966}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1227E886-1DE1-4858-ABDC-94490A47D214}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1227E886-1DE1-4858-ABDC-94490A47D214}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1227E886-1DE1-4858-ABDC-94490A47D214}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1227E886-1DE1-4858-ABDC-94490A47D214}.Release|Any CPU.Build.0 = Release|Any CPU
 		{0AF5CF24-F59E-4C6F-81C2-5BA659BE2EE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0AF5CF24-F59E-4C6F-81C2-5BA659BE2EE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0AF5CF24-F59E-4C6F-81C2-5BA659BE2EE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
