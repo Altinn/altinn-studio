@@ -10,6 +10,8 @@ using Altinn.App.Services.Implementation;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Interfaces;
 using Altinn.Common.PEP.Authorization;
+using Altinn.Common.PEP.Implementation;
+using Altinn.Common.PEP.Interfaces;
 using AltinnCore.Authentication.JwtCookie;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -59,6 +61,7 @@ namespace Altinn.App
             services.AddTransient<IProfile, ProfileAppSI>();
             services.AddTransient<IRegister, RegisterAppSI>();
             services.AddTransient<IReiseApi, ReiseApi>();
+            services.AddTransient<IPDP, PDPAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
             services.AddTransient<IAltinnApp, AltinnApp>();
