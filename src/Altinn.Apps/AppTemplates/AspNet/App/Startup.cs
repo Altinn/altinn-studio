@@ -49,6 +49,7 @@ namespace Altinn.App
             services.AddTransient<IExecution, ExecutionAppSI>();
             services.AddTransient<IProcess, ProcessAppSI>();
             services.AddTransient<IHttpClientAccessor, HttpClientAccessor>();
+            services.AddTransient<Altinn.Common.PEP.Clients.IHttpClientAccessor, Altinn.Common.PEP.Clients.HttpClientAccessor>();
 
             // Services for Altinn Platform components
             services.AddTransient<IAuthentication, AuthenticationAppSI>();
