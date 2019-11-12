@@ -111,6 +111,12 @@ namespace App.IntegrationTests
             };
 
             Uri uri = new Uri("/tdd/endring-av-navn/instances", UriKind.Relative);
+
+            HttpRequestMessage request = new HttpRequestMessage
+            {
+                RequestUri = uri,
+                Content = formData,
+            };
           
             /* TEST */
 

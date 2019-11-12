@@ -20,6 +20,7 @@ namespace App.IntegrationTests.Mocks.Services
                 PartyId = partyId,
                 Name = "Test Lookup",
                 SSN = "12345678901",
+                PartyTypeName = Altinn.App.Services.Enums.PartyType.Person,
             };
 
             return Task.FromResult(party);
