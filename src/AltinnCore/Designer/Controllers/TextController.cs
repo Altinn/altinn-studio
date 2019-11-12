@@ -196,9 +196,9 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public void SetServiceName(string org, string app, [FromBody] dynamic serviceName)
         {
-            string defaultLang = "nb-NO";
+            string defaultLang = "nb";
             string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            string serviceResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
             {
                 string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
@@ -210,16 +210,16 @@ namespace AltinnCore.Designer.Controllers
                     textResourceObject.Add("ServiceName", serviceName.serviceName.ToString());
                 }
 
-                _repository.SaveResource(org, app, "nb-NO", JObject.FromObject(textResourceObject).ToString());
+                _repository.SaveResource(org, app, "nb", JObject.FromObject(textResourceObject).ToString());
             }
             else
             {
                 JObject json = JObject.FromObject(new
                 {
-                    language = "nb-NO",
+                    language = "nb",
                     resources = new[] { new { id = "ServiceName", value = serviceName.serviceName.ToString() } },
                 });
-                _repository.SaveResource(org, app, "nb-NO", json.ToString());
+                _repository.SaveResource(org, app, "nb", json.ToString());
             }
         }
     }
