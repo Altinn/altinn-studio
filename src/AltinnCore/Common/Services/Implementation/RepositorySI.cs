@@ -110,7 +110,7 @@ namespace AltinnCore.Common.Services.Implementation
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.AppLocation, _settings.GetAppFolderName());
             CopyFolderToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _generalSettings.IntegrationTestsLocation, _settings.GetIntergrationTestsFolderName());
             CopyFileToApp(serviceMetadata.Org, serviceMetadata.RepositoryName, _settings.AppSlnFileName);
-            CreateInitialAuthorizationPolicy(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            UpdateAuthorizationPolicyFile(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -1814,20 +1814,16 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         // IKKE SLETT
-        private void CreateInitialAuthorizationPolicy(string org, string app)
+        private void UpdateAuthorizationPolicyFile(string org, string app)
         {
             // Read the authorization policy template (XACML file).
-            string authorizationPolicyData = File.ReadAllText(_generalSettings.AuthorizationPolicyTemplate, Encoding.UTF8);
+            string path = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string policyPath = path + _generalSettings.AuthorizationPolicyTemplate;
+            string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
 
             // Replace "org" and "app" in the authorization policy file.
             authorizationPolicyData = authorizationPolicyData.Replace("[ORG]", org).Replace("[APP]", app);
-
-            // Create the Authorization folder.
-            Directory.CreateDirectory(_settings.GetAuthorizationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-
-            // Get the file path.
-            string authorizationPolicyFilePath = _settings.GetAuthorizationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.AuthorizationPolicyFileName;
-            File.WriteAllText(authorizationPolicyFilePath, authorizationPolicyData, Encoding.UTF8);
+            File.WriteAllText(policyPath, authorizationPolicyData, Encoding.UTF8);
         }
 
         private void CopyFolderToApp(string org, string app, string sourcePath, string path)
