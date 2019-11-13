@@ -1,5 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
+import { mapAttachmentListToAttachments } from './../../../../utils/attachment';
 import { get } from './../../../../utils/networking';
 import { instancesControllerUrl } from './../../../../utils/urlHelper';
 import { IAttachments } from './../../attachments';
@@ -17,27 +18,7 @@ export function* getInstanceDataSaga({
     const result = yield call(get, url);
 
     if (result) {
-      const attachments: IAttachments = {};
-      result.data.forEach((element: any) => {
-        if (element.elementType === 'default') {
-          return;
-        }
-
-        if (!attachments[element.elementType]) {
-          attachments[element.elementType] = [];
-        }
-
-        attachments[element.elementType].push(
-          {
-            uploaded: true,
-            deleting: false,
-            name: element.fileName,
-            size: element.fileSize,
-            id: element.id,
-          },
-        );
-      });
-
+      const attachments: IAttachments = mapAttachmentListToAttachments(result);
       yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
     }
 
