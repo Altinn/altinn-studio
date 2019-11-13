@@ -1,13 +1,13 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
-import { IAltinnWindow, IAttachment } from '..';
-import { getFileUploadComponentValidations } from '../../../../components/base/FileUploadComponent';
-import FormValidationsDispatcher from '../../../../features/form/validation/actions';
-import { IRuntimeState } from '../../../../types';
-import { post } from '../../../../utils/networking';
-import AttachmentDispatcher from '../attachmentActions';
-import * as AttachmentActionsTypes from '../attachmentActionTypes';
+import { IAltinnWindow, IAttachment } from './..';
+import { getFileUploadComponentValidations } from './../../../../components/base/FileUploadComponent';
+import FormValidationsDispatcher from './../../../../features/form/validation/actions';
+import { IRuntimeState } from './../../../../types';
+import { post } from './../../../../utils/networking';
 import { appPath } from './../../../../utils/urlHelper';
+import AttachmentDispatcher from './../attachmentActions';
+import * as AttachmentActionsTypes from './../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';
 
 export function* uploadAttachmentSaga(
@@ -23,8 +23,6 @@ export function* uploadAttachmentSaga(
 
     const data = new FormData();
     data.append('file', file);
-
-    console.log('#### attachmentType: ', attachmentType);
 
     const fileUploadLink = `${appPath}/instances/` +
       `${instanceId}/data?elementType=${attachmentType}&attachmentName=${file.name}`;
