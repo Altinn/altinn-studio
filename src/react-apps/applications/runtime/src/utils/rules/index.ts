@@ -35,18 +35,11 @@ export function checkIfRuleShouldRun(
     const connectionDef = ruleConnectionState[connection];
     const functionToRun: string = connectionDef.selectedFunction;
     let shouldRunFunction = false;
-    let numberOfInputFieldsFilledIn = 0;
     for (const inputParam in connectionDef.inputParams) {
       if (!inputParam) {
         continue;
       }
-      const inputParamBinding: string = connectionDef.inputParams[inputParam];
-      /* if (isPartOfRepeatingGroup) {
-        inputParamBinding = inputParamBinding.replace(dataModelGroup, dataModelGroupWithIndex);
-      } */
-      if (formDataState.formData[inputParamBinding]) {
-        numberOfInputFieldsFilledIn++;
-      }
+
       if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.DataBindingName) {
         shouldRunFunction = true;
       }
@@ -58,7 +51,7 @@ export function checkIfRuleShouldRun(
     }
     if (shouldRunFunction) {
       const objectToUpdate = (window as any).ruleHandlerHelper[functionToRun]();
-      if (Object.keys(objectToUpdate).length === numberOfInputFieldsFilledIn) {
+      if (Object.keys(objectToUpdate).length >= 1) {
         const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
           const inputParamBinding = connectionDef.inputParams[elem];
 

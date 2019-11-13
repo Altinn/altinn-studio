@@ -1,11 +1,7 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS build
 WORKDIR /
 
-COPY /App ./App
-# Once these are extracted in Nuget packages the three lines below  may be removed. 
-COPY /Altinn.App.Api ./Altinn.App.Api
-COPY /Altinn.App.Common ./Altinn.App.Common
-COPY /Altinn.App.Services ./Altinn.App.Services
+COPY / ./App
 
 WORKDIR /App
 

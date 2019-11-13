@@ -86,7 +86,7 @@ namespace Altinn.App.Common.RequestHandling
                         long fileSize = contentDisposition.Size ?? 0;
 
                         MemoryStream memoryStream = new MemoryStream();
-                        section.Body.CopyTo(memoryStream);
+                        await section.Body.CopyToAsync(memoryStream);
                         memoryStream.Position = 0;
 
                         Parts.Add(new RequestPart()

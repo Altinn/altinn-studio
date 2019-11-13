@@ -273,6 +273,35 @@ namespace Altinn.App.Services.Implementation
             }
         }
 
+        public async Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string fileName, Stream stream)
+        {          
+            string apiUrl = $"{_platformSettings.GetApiStorageEndpoint}instances/{instanceId}/data?dataType={dataType}";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            DataElement dataElement;
+
+            StreamContent content = new StreamContent(stream);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse($"attachment; filename={fileName}");
+
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpResponseMessage response = await _client.PostAsync(apiUrl, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string instancedata = await response.Content.ReadAsStringAsync();
+                dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata);
+
+                return dataElement;
+            }
+            else
+            {
+                _logger.LogError($"Storing attachment for instance {instanceId} failed with status code {response.StatusCode} - content {await response.Content.ReadAsStringAsync()}");
+                throw new PlatformClientException(response);
+            }
+        }
+
+
         /// <inheritdoc />
         public async Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {

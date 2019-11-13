@@ -3,7 +3,7 @@ import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
-export interface IAltinnPopoverProvidedProps {
+export interface IAltinnPopoverProps {
   anchorEl: any;
   anchorOrigin: PopoverOrigin;
   btnClick?: any;
@@ -13,15 +13,9 @@ export interface IAltinnPopoverProvidedProps {
   btnSecondaryId?: string;
   handleClose: any;
   paperProps?: any;
-  transformOrigin: PopoverOrigin;
-}
-
-export interface IAltinnPopoverProps extends IAltinnPopoverProvidedProps {
-
-}
-
-export interface IAltinnPopoverState {
-
+  transformOrigin?: PopoverOrigin;
+  backgroundColor?: string;
+  children: React.ReactNode;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -82,7 +76,7 @@ const defaultTransformOrigin: PopoverOrigin = {
   vertical: 'top',
 };
 
-const AltinnPopoverComponent = (props: any) => {
+const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
   const {
     anchorOrigin = defaultAnchorOrigin,
     transformOrigin = defaultTransformOrigin,

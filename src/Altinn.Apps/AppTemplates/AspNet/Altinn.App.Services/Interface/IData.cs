@@ -101,5 +101,17 @@ namespace Altinn.App.Services.Interface
         /// <param name="dataGuid">The data id</param>
         /// <param name="request">Http request containing the attachment to be saved</param>
         Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid, HttpRequest request);
+
+
+        /// <summary>
+        /// Updates a binary data element. 
+        /// </summary>
+        /// <param name="instanceId">isntanceId = {instanceOwnerPartyId}/{instanceGuid}</param>
+        /// <param name="dataType">data type</param>
+        /// <param name="contentType">content type</param>
+        /// <param name="filename">filename</param>
+        /// <param name="stream">the stream to stream</param>
+        /// <returns></returns>
+        Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream);
     }
 }

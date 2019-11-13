@@ -359,12 +359,26 @@ namespace Altinn.App.Api.Controllers
         private object ParseContentAndDeserializeServiceModel(Type modelType, out ActionResult error)
         {
             error = null;
+            object obj = ParseFormDataAndDeserialize(modelType, Request.ContentType, Request.Body, out string errorText);
+
+            if (!string.IsNullOrEmpty(errorText))
+            {
+                error = BadRequest(errorText);
+
+                return null;
+            }
+
+            return obj;
+        }
+
+        public static object ParseFormDataAndDeserialize(Type modelType, string contentType, Stream contentStream, out string error)
+        {
+            error = null;
             object serviceModel = null;
 
-            Stream contentStream = Request.Body;
             if (contentStream != null)
             {
-                if (Request.ContentType.Contains("application/json"))
+                if (contentType.Contains("application/json"))
                 {
                     try
                     {
@@ -374,11 +388,11 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception ex)
                     {
-                        error = BadRequest($"Cannot parse json content due to {ex.Message}");
+                        error = $"Cannot parse json content due to {ex.Message}";
                         return null;
                     }
                 }
-                else if (Request.ContentType.Contains("application/xml"))
+                else if (contentType.Contains("application/xml"))
                 {
                     try
                     {
@@ -387,9 +401,14 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception ex)
                     {
-                        error = BadRequest($"Cannot parse xml content due to {ex.Message}");
+                        error = $"Cannot parse xml content due to {ex.Message}";
                         return null;
                     }
+                }
+                else
+                {
+                    error = $"Unknown content type {contentType}. Cannot read form data.";
+                    return null;
                 }
             }
 

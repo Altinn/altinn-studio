@@ -10,11 +10,11 @@ export interface IButtonProvidedProps {
   text: string;
   disabled: boolean;
   handleDataChange: (value: any) => void;
-  unsavedChanges: boolean;
   formDataCount: number;
 }
 
 export interface IButtonProps extends IButtonProvidedProps {
+  unsavedChanges: boolean;
   validations: IValidations;
 }
 
@@ -72,11 +72,9 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
   public render() {
     return (
-      <div className='row'>
-        <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
-          {this.renderSaveButton()}
-          {this.renderSubmitButton()}
-        </div>
+      <div className='a-btn-group' style={{ marginTop: '3.6rem', marginBottom: '0' }}>
+        {this.renderSaveButton()}
+        {this.renderSubmitButton()}
       </div>
     );
   }
@@ -87,6 +85,7 @@ const makeMapStateToProps = () => {
   const mapStateToProps = (state: IRuntimeState, props: IButtonProvidedProps): IButtonProps => {
     return {
       validations: GetValidations(state),
+      unsavedChanges: state.formData.unsavedChanges,
       ...props,
     };
   };
