@@ -153,5 +153,10 @@ namespace App.IntegrationTests.Mocks.Services
 
             return dataElements;
         }
+
+        public Task<DataElement> InsertBinaryData(string instanceId, string dataType, string contentType, string filename, Stream stream)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
