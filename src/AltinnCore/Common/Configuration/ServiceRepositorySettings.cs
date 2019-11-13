@@ -688,7 +688,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetModelPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Model/";
+            return GetServicePath(org, app, developer) + "App/models/";
         }
 
         /// <summary>

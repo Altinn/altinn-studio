@@ -431,14 +431,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             switch (lang)
             {
                 case "NOB":
-                    langLocale = "nb-NO";
+                    langLocale = "nb";
                     break;
                 case "NNO":
                 case "NON":
-                    langLocale = "nn-NO";
+                    langLocale = "nn";
                     break;
                 case "SME":
-                    langLocale = "se-NO";
+                    langLocale = "se";
                     break;
                 case "EN":
                     langLocale = "en";

@@ -29,17 +29,17 @@
 
 <ul id="tabs" class="nav nav-tabs my-2">
   <li class="nav-item">
-    <a class="nav-link active" data-toggle="tab" id="nb-NO" href="#nb-NO" role="tab">Bokmål</a>
+    <a class="nav-link active" data-toggle="tab" id="nb" href="#nb" role="tab">Bokmål</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" id="nn-NO" href="#nn-NO" role="tab">Nynorsk</a>
+    <a class="nav-link" data-toggle="tab" id="nn" href="#nn" role="tab">Nynorsk</a>
   </li>
   <li class="nav-item">
     <a class="nav-link" data-toggle="tab" id="en" href="#en" role="tab">Engelsk</a>
   </li>
   @foreach (string language in Model)
   {
-    if (language != "nb-NO" && language != "nn-NO" && language != "en")
+    if (language != "nb" && language != "nn" && language != "en")
     {
       <li class="nav-item">
         <a class="nav-link" data-toggle="tab" id="@language" href="#@language" role="tab"></a>
@@ -74,7 +74,7 @@
     var _editor;
     var _holder = document.getElementById('editor_holder');
     var _schema;
-    var t = "nb-NO";
+    var t = "nb";
     var cultures = [];
 
 $(document).ready(function () {
@@ -196,11 +196,11 @@ $(document).ready(function () {
     });
 
     function submitForm() {
-        var errors = _editor.validate();
+      var errors = _editor.validate();
         if (errors.length) {
 
         } else {
-            var jsonData = _editor.getValue();
+          var jsonData = _editor.getValue();
             var jsonString = JSON.stringify(jsonData, null, 3);
 
             jQuery.post({
@@ -266,7 +266,7 @@ $(document).ready(function () {
     function deleteLanguage() {
         var currentTab = $("#" + t);
         var previousTab = currentTab.parent().prev().find("a");
-        var newTab = $("#nb-NO"); //default
+        var newTab = $("#nb"); //default
         if (previousTab) {
             newTab = previousTab;
         }
@@ -307,7 +307,7 @@ $(document).ready(function () {
     }
 
     function canDeleteLanguage(l) {
-        return l && l !== "nb-NO" && l !== "nn-NO" && l !== "en" && l !== "new";
+        return l && l !== "nb" && l !== "nn" && l !== "en" && l !== "new";
     }
 
     $(document).bind('keydown', function (e) {
