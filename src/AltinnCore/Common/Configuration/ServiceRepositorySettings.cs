@@ -24,6 +24,11 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
+        public const string FORMLAYOUT_RESOURCE_FOLDER_NAME = "App/Config/UI/";
+
+        /// <summary>
+        /// Constant for the location of language resource files
+        /// </summary>
         public const string LANGUAGE_RESOURCE_FOLDER_NAME = "App/Config/Textresources/";
 
         /// <summary>
@@ -154,7 +159,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets The name of the FormLayout json file Name
         /// </summary>
-        public string FormLayoutJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "FormLayout.json";
+        public string FormLayoutJSONFileName { get; set; } = FORMLAYOUT_RESOURCE_FOLDER_NAME + "FormLayout.json";
 
         /// <summary>
         /// Gets or sets The name of the ThirdPartyComponents json file Name
