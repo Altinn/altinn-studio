@@ -44,12 +44,17 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of calculation files
         /// </summary>
-        public const string CALCULATION_FOLDER_NAME = "Calculation/";
+        public const string CALCULATION_FOLDER_NAME = "App/logic/Calculation/";
 
         /// <summary>
         /// Constant for the location of validation files
         /// </summary>
-        public const string VALIDATION_FOLDER_NAME = "Validation/";
+        public const string VALIDATION_FOLDER_NAME = "App/logic/Validation/";
+
+        /// <summary>
+        /// Constant for the location of app logic files
+        /// </summary>
+        public const string APPLOGIC_FOLDER_NAME = "App/logic/";
 
         /// <summary>
         /// Constant for the location of the testdata for parties folder
@@ -222,9 +227,9 @@ namespace AltinnCore.Common.Configuration
         public string DefaultBootstrapUrl { get; set; } = "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";
 
         /// <summary>
-        /// Gets or sets the filename for serviceImplementation
+        /// Gets or sets the filename for app implementation
         /// </summary>
-        public string ServiceImplementationFileName { get; set; } = "ServiceImplementation.cs";
+        public string AppImplementationFileName { get; set; } = "App.cs";
 
         /// <summary>
         /// Gets or sets the filename for calculation handler
@@ -504,7 +509,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path to the calculation folder, ending with '/'</returns>
         public string GetCalculationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + IMPLEMENTATION_FOLDER_NAME + CALCULATION_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + CALCULATION_FOLDER_NAME;
         }
 
         /// <summary>
@@ -516,7 +521,19 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path to the validation folder, ending with '/'</returns>
         public string GetValidationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + IMPLEMENTATION_FOLDER_NAME + VALIDATION_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + VALIDATION_FOLDER_NAME;
+        }
+        
+        /// <summary>
+        /// Gets the full path to InstantiationHandler.cs
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path to the validation folder, ending with '/'</returns>
+        public string GetAppLogicPath(string org, string app, string developer)
+        {
+            return GetServicePath(org, app, developer) + APPLOGIC_FOLDER_NAME;
         }
 
         /// <summary>

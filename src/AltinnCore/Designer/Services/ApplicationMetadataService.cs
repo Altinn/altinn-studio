@@ -43,7 +43,7 @@ namespace AltinnCore.Designer.Services
             if (applicationFromRepository == null)
             {
                 // TODO: Application title handling (issue #2053/#1725)
-                _repository.CreateApplication(org, app, app);
+                _repository.CreateApplicationMetadata(org, app, app);
                 applicationFromRepository = _repository.GetApplication(org, app);
             }
 
