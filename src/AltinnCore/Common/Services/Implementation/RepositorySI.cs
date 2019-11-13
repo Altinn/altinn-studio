@@ -121,7 +121,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation., e.g. "app-name-with-spaces".</param>
         /// <param name="appTitle">The application title in default language (nb), e.g. "App name with spaces"</param>
-        public void CreateApplication(string org, string app, string appTitle)
+        public void CreateApplicationMetadata(string org, string app, string appTitle)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             Application appMetadata = new Application
@@ -157,14 +157,14 @@ namespace AltinnCore.Common.Services.Implementation
             // This creates metadata dir if not exists
             if (!metaDirectoryInfo.Exists)
             {
-                //metaDirectoryInfo.Create();
+                metaDirectoryInfo.Create();
             }
 
             string metadata = JsonConvert.SerializeObject(appMetadata);
             string filePath = metaDataDir + _settings.ApplicationMetadataFileName;
 
             // This creates metadata
-            //File.WriteAllText(filePath, metadata, Encoding.UTF8);
+            File.WriteAllText(filePath, metadata, Encoding.UTF8);
         }
 
         /// <inheritdoc/>
@@ -1082,7 +1082,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                 // This creats alle files?!
                 CreateServiceMetadata(metadata);
-                CreateApplication(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
+                CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
                 if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
                 {
@@ -1091,11 +1091,11 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         resources = new[]
                         {
-                            new { id = "ServiceName", value = serviceConfig.ServiceName }                         
+                            new { id = "ServiceName", value = serviceConfig.ServiceName }
                         },
                     });
 
-                    // SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
+                    SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
                 }
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };

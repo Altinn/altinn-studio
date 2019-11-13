@@ -466,7 +466,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation., e.g. "app-name-with-spaces".</param>
         /// <param name="appTitle">The application title in default language (nb), e.g. "App name with spaces"</param>
-        void CreateApplication(string org, string app, string appTitle);
+        void CreateApplicationMetadata(string org, string app, string appTitle);
 
         /// <summary>
         /// Updates application metadata
