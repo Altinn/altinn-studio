@@ -17,7 +17,6 @@ export function* getInstanceDataSaga({
     const result = yield call(get, url);
 
     if (result) {
-
       const attachments: IAttachments = {};
       result.data.forEach((element: any) => {
         if (element.elementType === 'default') {
