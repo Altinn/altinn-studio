@@ -39,7 +39,7 @@ namespace Altinn.App.Api.Controllers
         public async Task<ActionResult> GetUser()
         {
             int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
-            UserProfile user = null;
+            UserProfile user;
             if (userId != 0)
             {
                 try

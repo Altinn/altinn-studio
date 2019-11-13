@@ -13,20 +13,6 @@ namespace App.IntegrationTests.Mocks.Services
 {
     public class InstanceMockSI : IInstance
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public InstanceMockSI(IHttpContextAccessor httpContextAccessor)
-        {
-            _httpContextAccessor = httpContextAccessor;
-
-        }
-
-
-        public Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string app, string org, int instanceOwnerId, Guid instanceId)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<Instance> CreateInstance(string org, string app, Instance instanceTemplate)
         {
             string partyId = instanceTemplate.InstanceOwner.PartyId;
@@ -57,12 +43,7 @@ namespace App.IntegrationTests.Mocks.Services
             return Task.FromResult(instance);
         }
 
-        public Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Instance> UpdateInstance(object dataToSerialize, string app, string org, int instanceOwnerId, Guid instanceId)
+        public Task<Instance> UpdateInstance(Instance instance)
         {
             throw new NotImplementedException();
         }
@@ -117,5 +98,9 @@ namespace App.IntegrationTests.Mocks.Services
             return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @"\");
         }
 
+        public Task<List<Instance>> GetInstances(int instanceOwnerPartyId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

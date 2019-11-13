@@ -125,7 +125,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // trigger start event
-            Instance updatedInstance = await StartProcessOfInstance(org, app, instanceOwnerId, instanceGuid, instance, validStartElement);
+            Instance updatedInstance = await StartProcessOfInstance(org, app, instance, validStartElement);
 
             // trigger next task
             string nextValidElement = GetValidNextElementOrError(validStartElement, out ActionResult nextElementError);
@@ -134,13 +134,14 @@ namespace Altinn.App.Api.Controllers
                 return nextElementError;
             }
 
-            updatedInstance = await UpdateProcessStateToNextElement(org, app, updatedInstance, instanceOwnerId, instanceGuid, nextValidElement);
+            updatedInstance = await UpdateProcessStateToNextElement(org, app, updatedInstance, nextValidElement);
 
             if (updatedInstance != null)
             {
                 return Ok(updatedInstance.Process);
             }
 
+            logger.LogError($"Unknown error. Unable to update next process state for instance {instance.Id}!");
             return StatusCode(500, $"Unknown error. Cannot change process state!");
         }
 
@@ -259,14 +260,14 @@ namespace Altinn.App.Api.Controllers
                 return nextElementError;
             }
 
-            if (InstanceIsValid(instance))
+            if (CanCompleteTask(instance))
             {
-                Instance changedInstance = await UpdateProcessStateToNextElement(org, app, instance, instanceOwnerId, instanceGuid, nextElement);
+                Instance changedInstance = await UpdateProcessStateToNextElement(org, app, instance, nextElement);
 
                 return Ok(changedInstance.Process);
             }
             else
-            {
+            {               
                 return Conflict("Cannot complete/close current task {currentTaskId}. Task is not valid!");
             }
         }
@@ -322,7 +323,7 @@ namespace Altinn.App.Api.Controllers
             int counter = 0;
             do
             {
-                if (!InstanceIsValid(instance))
+                if (!CanCompleteTask(instance))
                 {
                     return Conflict($"Instance is not valid in task {currentTaskId}. Automatic completion of process is stopped");
                 }
@@ -336,7 +337,7 @@ namespace Altinn.App.Api.Controllers
 
                 string nextElement = nextElements.First();
 
-                instance = await UpdateProcessStateToNextElement(org, app, instance, instanceOwnerId, instanceGuid, nextElement);
+                instance = await UpdateProcessStateToNextElement(org, app, instance, nextElement);
 
                 currentTaskId = instance.Process.CurrentTask?.ElementId;
             }
@@ -344,6 +345,7 @@ namespace Altinn.App.Api.Controllers
 
             if (counter > 1000)
             {
+                logger.LogError($"More than {counter} iterations detected in process. Possible loop. Fix app {org}/{app}'s process definition!");
                 return StatusCode(500, $"More than {counter} iterations detected in process. Possible loop. Fix app process definition!");
             }
 
@@ -352,10 +354,9 @@ namespace Altinn.App.Api.Controllers
 
         private void LoadProcessModel(string org, string app)
         {
-            using (Stream definitions = processService.GetProcessDefinition(org, app))
-            {
-                ProcessModel = BpmnReader.Create(definitions);
-            }
+            using Stream definitions = processService.GetProcessDefinition(org, app);
+            
+            ProcessModel = BpmnReader.Create(definitions);
         }
 
         private string GetValidNextElementOrError(string currentElement, out ActionResult nextElementError)
@@ -412,7 +413,7 @@ namespace Altinn.App.Api.Controllers
             }
         }
 
-        private async Task<Instance> StartProcessOfInstance(string org, string app, int instanceOwnerId, Guid instanceGuid, Instance instance, string validStartElement)
+        private async Task<Instance> StartProcessOfInstance(string org, string app, Instance instance, string validStartElement)
         {
             DateTime now = DateTime.UtcNow;
 
@@ -421,7 +422,7 @@ namespace Altinn.App.Api.Controllers
                 Started = now,
                 StartEvent = validStartElement,
             };
-            Instance updatedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceGuid);
+            Instance updatedInstance = await instanceService.UpdateInstance(instance);
             List<InstanceEvent> events = new List<InstanceEvent>
             {
                 GenerateProcessChangeEvent("process:StartEvent", updatedInstance, now)
@@ -432,11 +433,11 @@ namespace Altinn.App.Api.Controllers
             return updatedInstance;
         }
 
-        private async Task<Instance> UpdateProcessStateToNextElement(string org, string app, Instance instance, int instanceOwnerId, Guid instanceGuid, string nextElementId)
+        private async Task<Instance> UpdateProcessStateToNextElement(string org, string app, Instance instance, string nextElementId)
         {
             List<InstanceEvent> events = ChangeProcessStateAndGenerateEvents(instance, nextElementId);
 
-            Instance changedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceGuid);
+            Instance changedInstance = await instanceService.UpdateInstance(instance);
 
             await DispatchEvents(org, app, events);
 
@@ -491,12 +492,19 @@ namespace Altinn.App.Api.Controllers
         }
 
         /// <summary>
-        ///  Todo: Fix validation code of the instance's currentTask.
+        ///  Check if the current task can be completed.
         /// </summary>        
-        /// <returns>try if validation is OK, false otherwise</returns>
-        private bool InstanceIsValid(Instance instance)
+        /// <returns>true if validation is OK, false otherwise</returns>
+        private bool CanCompleteTask(Instance instance)
         {
-            return true;            
+            if (instance.Process?.CurrentTask?.Validated != null)
+            {
+                ValidationStatus validationStatus = instance.Process.CurrentTask.Validated;
+
+                return validationStatus.CanCompleteTask;
+            }
+
+            return false;            
         }
 
         private List<InstanceEvent> ChangeProcessStateAndGenerateEvents(Instance instance, string nextElementId)

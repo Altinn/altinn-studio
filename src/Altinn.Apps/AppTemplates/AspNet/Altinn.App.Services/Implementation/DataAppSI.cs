@@ -16,7 +16,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -36,8 +35,6 @@ namespace Altinn.App.Services.Implementation
         private readonly HttpClient _client;
 
         private const string FORM_ID = "default";
-
-        private static readonly ConcurrentDictionary<object, SemaphoreSlim> _instanceLocks = new ConcurrentDictionary<object, SemaphoreSlim>();
 
         /// <summary>
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
@@ -148,10 +145,9 @@ namespace Altinn.App.Services.Implementation
                 XmlSerializer serializer = new XmlSerializer(type);
                 try
                 {
-                    using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
-                    {
-                        return serializer.Deserialize(stream);
-                    }
+                    using Stream stream = response.Result.Content.ReadAsStreamAsync().Result;
+                    
+                    return serializer.Deserialize(stream);                    
                 }
                 catch
                 {
@@ -172,7 +168,7 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
-            List<DataElement> dataList = null;
+            List<DataElement> dataList;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
 
             HttpResponseMessage response = await _client.GetAsync(apiUrl);

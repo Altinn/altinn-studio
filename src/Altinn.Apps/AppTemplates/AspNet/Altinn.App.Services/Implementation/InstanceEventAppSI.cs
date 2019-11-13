@@ -21,7 +21,6 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class InstanceEventAppSI : IInstanceEvent
     {
-        private readonly PlatformSettings _platformSettings;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
@@ -36,13 +35,11 @@ namespace Altinn.App.Services.Implementation
         /// <param name="cookieOptions">The cookie options </param>
         /// <param name="httpClientAccessor">The Http client accessor </param>
         public InstanceEventAppSI(
-            IOptions<PlatformSettings> platformSettings,
             ILogger<InstanceEventAppSI> logger,
             IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions,
             IHttpClientAccessor httpClientAccessor)
         {
-            _platformSettings = platformSettings.Value;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
@@ -73,7 +70,6 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string org, string app, string[] eventTypes, string from, string to)
         {
-            string instanceIdentifier = $"{instanceOwnerId}/{instanceId}";
             string apiUrl = $"{instanceOwnerId}/{instanceId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);

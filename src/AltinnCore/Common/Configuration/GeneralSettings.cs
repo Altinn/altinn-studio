@@ -81,7 +81,7 @@ namespace AltinnCore.Common.Configuration
         {
             get
             {
-                return TemplateLocation + "/policy.xml";
+                return "App/Config/Authorization/policy.xml";
             }
         }
 

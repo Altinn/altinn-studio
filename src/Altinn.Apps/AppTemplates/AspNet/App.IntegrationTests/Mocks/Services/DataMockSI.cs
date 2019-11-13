@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
@@ -42,12 +41,11 @@ namespace App.IntegrationTests.Mocks.Services
             XmlSerializer serializer = new XmlSerializer(type);
             try
             {
-                using (FileStream SourceStream = File.Open(dataPath, FileMode.OpenOrCreate))
-                {
-                    return serializer.Deserialize(SourceStream);
-                }
+                using FileStream SourceStream = File.Open(dataPath, FileMode.OpenOrCreate);
+                
+                return serializer.Deserialize(SourceStream);                
             }
-            catch(Exception ex)
+            catch
             {
                 return Activator.CreateInstance(type);
             }
@@ -79,13 +77,13 @@ namespace App.IntegrationTests.Mocks.Services
                 }
 
                 string jsonData = JsonConvert.SerializeObject(dataElement);
-                using (StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json"))
-                {
-                    sw.Write(jsonData.ToString());
-                    sw.Close();
-                }
+                using StreamWriter sw = new StreamWriter(dataPath + dataGuid.ToString() + @".json");
+                
+                sw.Write(jsonData.ToString());
+                sw.Close();
+                
             }
-            catch (Exception ex)
+            catch
             {
             }
             
@@ -93,9 +91,6 @@ namespace App.IntegrationTests.Mocks.Services
 
             return dataElement;
         }
-
-
-
         
         public Task<DataElement> UpdateBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, Guid dataGuid, HttpRequest request)
         {

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
@@ -15,14 +16,13 @@ using IRegister = Altinn.App.Services.Interface.IRegister;
 namespace Altinn.App.Services.Implementation
 {
     /// <summary>
-    /// App implementation of the register service, for app development. Uses local disk to store register data.
+    /// App implementation of the register service, for app development. Calls the platform register service.
     /// </summary>
     public class RegisterAppSI : IRegister
     {
         private readonly IDSF _dsf;
         private readonly IER _er;
         private readonly ILogger _logger;
-        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
         private readonly HttpClient _client;
@@ -33,7 +33,6 @@ namespace Altinn.App.Services.Implementation
         /// <param name="dsf">The dsf</param>
         /// <param name="er">The er</param>
         /// <param name="logger">The logger</param>
-        /// <param name="platformSettings">The platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
         /// <param name="httpClientAccessor">The http client accessor </param>
@@ -41,7 +40,6 @@ namespace Altinn.App.Services.Implementation
             IDSF dsf,
             IER er,
             ILogger<RegisterAppSI> logger,
-            IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions,
             IHttpClientAccessor httpClientAccessor)
@@ -49,7 +47,6 @@ namespace Altinn.App.Services.Implementation
             _dsf = dsf;
             _er = er;
             _logger = logger;
-            _platformSettings = platformSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
             _client = httpClientAccessor.RegisterClient;
@@ -75,7 +72,6 @@ namespace Altinn.App.Services.Implementation
         public async Task<Party> GetParty(int partyId)
         {
             Party party = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
 
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
@@ -91,6 +87,38 @@ namespace Altinn.App.Services.Implementation
             }
 
             return party;
+        }
+
+        /// <inheritdoc/>
+        public async Task<Party> LookupParty(string personOrOrganisationNumber)
+        {
+            Party party;
+
+            string endpointUrl = "parties/lookupObject";
+            string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
+            JwtTokenUtil.AddTokenToRequestHeader(_client, token);
+
+            HttpRequestMessage request = new HttpRequestMessage
+            {
+                RequestUri = new System.Uri(endpointUrl, System.UriKind.Relative),
+                Method = HttpMethod.Get,
+                Content = new StringContent(personOrOrganisationNumber),
+            };
+
+            HttpResponseMessage response = await _client.SendAsync(request);
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                party = await response.Content.ReadAsAsync<Party>();               
+            }
+            else
+            {
+                string reason = await response.Content.ReadAsStringAsync();
+                _logger.LogError($"// Getting party with personOrOrganisationNumber {personOrOrganisationNumber} failed with statuscode {response.StatusCode} - {reason}");
+
+                throw new PlatformClientException($"Failed to lookup party in platform register. {response.StatusCode} - {reason}.");
+            }
+
+            return party;            
         }
     }
 }
