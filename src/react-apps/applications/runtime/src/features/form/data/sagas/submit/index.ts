@@ -5,7 +5,7 @@ import { IRuntimeState } from 'src/types';
 import ProcessDispatcher from '../../../../../shared/resources/process/processDispatcher';
 import { IRuntimeStore } from '../../../../../types/global';
 import { convertDataBindingToModel } from '../../../../../utils/databindings';
-import { getDataElementUrl, getValidationUrl } from '../../../../../utils/urlHelper';
+import { dataElementUrl, getValidationUrl } from '../../../../../utils/urlHelper';
 import {
   canFormBeSaved,
   mapDataElementValidationToRedux,
@@ -42,7 +42,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     if (canFormBeSaved(validations)) {
       // updates the default data element
       const defaultDataElementGuid = state.instanceData.instance.data.find((e) => e.elementType === 'default').id;
-      yield call(put, getDataElementUrl(defaultDataElementGuid), model);
+      yield call(put, dataElementUrl(defaultDataElementGuid), model);
 
       if (apiMode === 'Complete') {
         // run validations against the datamodel
