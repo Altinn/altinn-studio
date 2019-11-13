@@ -698,13 +698,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                             if (language == "NOB")
                             {
-                                cultureString.Add("nb", text);
+                                cultureString.Add("nb-NO", text);
                             }
                             else
                             {
                                 if (language == "NON")
                                 {
-                                    cultureString.Add("nn", text);
+                                    cultureString.Add("nn-NO", text);
                                 }
                                 else
                                 {

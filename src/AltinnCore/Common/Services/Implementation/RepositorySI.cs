@@ -99,7 +99,7 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(orgPath);
             }
 
-            // Creates the directory for app? 
+            // Creates the directory for app?
             if (!Directory.Exists(appPath))
             {
                 Directory.CreateDirectory(appPath);
@@ -528,7 +528,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            string resourcePath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             foreach (KeyValuePair<string, Dictionary<string, JObject>> processedResource in resourceTextsAsJson)
             {
@@ -905,20 +905,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            string resourceDirectory = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (!Directory.Exists(resourceDirectory))
-            {
-                throw new Exception("Resource directory missing.");
-            }
-
-            string implementationDirectory = _settings.GetImplementationPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (!Directory.Exists(implementationDirectory))
-            {
-                throw new Exception("Implementation directory missing.");
-            }
-
             // Update the ServiceImplementation class with the correct model type name
-            string serviceImplementationPath = implementationDirectory + _settings.ServiceImplementationFileName;
+            string serviceImplementationPath = _settings.GetAppLogicPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.AppImplementationFileName;
             File.WriteAllText(
                 serviceImplementationPath,
                 File.ReadAllText(serviceImplementationPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
@@ -933,7 +921,7 @@ namespace AltinnCore.Common.Services.Implementation
                 validationHandlerPath,
                 File.ReadAllText(validationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
-            string instansiationHandlerPath = implementationDirectory + _settings.InstantiationHandlerFileName;
+            string instansiationHandlerPath = _settings.GetAppLogicPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
             File.WriteAllText(
                 instansiationHandlerPath,
                 File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
@@ -1047,7 +1035,7 @@ namespace AltinnCore.Common.Services.Implementation
                     // Verify if directory exist. Should Exist if Cloning of new repository worked
                     if (!new FileInfo(filename).Directory.Exists)
                     {
-                        // This creates directory 
+                        // This creates directory
                         //new FileInfo(filename).Directory.Create();
                     }
 
@@ -1056,7 +1044,7 @@ namespace AltinnCore.Common.Services.Implementation
                     // This creates the config file
                     /*try
                     {
-                        
+
                         fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite);
                         using (StreamWriter streamWriter = new StreamWriter(fileStream))
                         {
@@ -1089,6 +1077,7 @@ namespace AltinnCore.Common.Services.Implementation
                     // This creates the language resources file for nb-NO
                     JObject json = JObject.FromObject(new
                     {
+                        language = "nb",
                         resources = new[]
                         {
                             new { id = "ServiceName", value = serviceConfig.ServiceName }

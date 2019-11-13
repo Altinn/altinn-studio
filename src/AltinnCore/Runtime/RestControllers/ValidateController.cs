@@ -104,7 +104,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceContext.ServiceText, null, "nb")
+                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceContext.ServiceText, null, "nb-NO")
                     };
                     messages.Add(message);
                 }
@@ -117,7 +117,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, serviceContext.ServiceText, null, "nb")
+                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, serviceContext.ServiceText, null, "nb-NO")
                     };
                     messages.Add(message);
                 }
@@ -199,7 +199,7 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = element.Id,
                     Severity = ValidationIssueSeverity.Warning,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceContext.ServiceText, null, "nb")
+                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceContext.ServiceText, null, "nb-NO")
                 };
                 messages.Add(message);
             }
@@ -220,7 +220,7 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceContext.ServiceText, null, "nb")
+                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceContext.ServiceText, null, "nb-NO")
                 };
                 messages.Add(message);
             }
@@ -237,7 +237,7 @@ namespace AltinnCore.Runtime.RestControllers
                         TargetId = dataElement.Id,
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceContext.ServiceText, null, "nb")
+                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceContext.ServiceText, null, "nb-NO")
                     };
                     messages.Add(message);
                 }
@@ -252,7 +252,7 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceContext.ServiceText, null, "nb")
+                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceContext.ServiceText, null, "nb-NO")
                 };
                 messages.Add(message);
             }
@@ -296,7 +296,7 @@ namespace AltinnCore.Runtime.RestControllers
                             TargetId = elementId,
                             Field = modelKey,
                             Severity = ValidationIssueSeverity.Error,
-                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb")
+                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO")
                         };
                         messages.Add(message);
                     }
