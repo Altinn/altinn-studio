@@ -25,11 +25,11 @@ namespace AltinnCore.Designer.Infrastructure
                         {
                             // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
-                            new CultureInfo("nb-NO"),
+                            new CultureInfo("nb"),
                             new CultureInfo("nn-NO"),
                         };
 
-                    options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
+                    options.DefaultRequestCulture = new RequestCulture(culture: "nb", uiCulture: "nb");
                     options.SupportedCultures = supportedCultures;
                     options.SupportedUICultures = supportedCultures;
                 });

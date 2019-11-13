@@ -98,7 +98,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb-NO")
+                            ValidationIssueCodes.InstanceCodes.TooManyDataElementsOfType, serviceText, null, "nb")
                     };
                     messages.Add(message);
                 }
@@ -111,7 +111,7 @@ namespace AltinnCore.Runtime.RestControllers
                         Scope = "INSTANCE",
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb-NO")
+                            ValidationIssueCodes.InstanceCodes.TooFewDataElementsOfType, null, null, "nb")
                     };
                     messages.Add(message);
                 }
@@ -194,7 +194,7 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = element.Id,
                     Severity = ValidationIssueSeverity.Warning,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb-NO")
+                        ValidationIssueCodes.DataElementCodes.DataElementValidatedAtWrongTask, serviceText, null, "nb")
                 };
                 messages.Add(message);
             }
@@ -215,7 +215,7 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceText, null, "nb-NO")
+                        ValidationIssueCodes.DataElementCodes.MissingContentType, serviceText, null, "nb")
                 };
                 messages.Add(message);
             }
@@ -232,7 +232,7 @@ namespace AltinnCore.Runtime.RestControllers
                         TargetId = dataElement.Id,
                         Severity = ValidationIssueSeverity.Error,
                         Description = ServiceTextHelper.GetServiceText(
-                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb-NO")
+                            ValidationIssueCodes.DataElementCodes.ContentTypeNotAllowed, serviceText, null, "nb")
                     };
                     messages.Add(message);
                 }
@@ -247,11 +247,11 @@ namespace AltinnCore.Runtime.RestControllers
                     TargetId = dataElement.Id,
                     Severity = ValidationIssueSeverity.Error,
                     Description = ServiceTextHelper.GetServiceText(
-                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb-NO")
+                        ValidationIssueCodes.DataElementCodes.DataElementTooLarge, serviceText, null, "nb")
                 };
                 messages.Add(message);
             }
-          
+
             if (dataType.AppLogic != null)
             {
                 // TODO. Figure out this datamodel type thing
@@ -289,7 +289,7 @@ namespace AltinnCore.Runtime.RestControllers
                             TargetId = elementId,
                             Field = modelKey,
                             Severity = ValidationIssueSeverity.Error,
-                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceText, null, "nb-NO")
+                            Description = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceText, null, "nb")
                         };
                         messages.Add(message);
                     }

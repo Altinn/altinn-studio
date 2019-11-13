@@ -132,7 +132,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 if (File.Exists(_settings.GetDynamicsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
                 {
-                    fileContent = File.ReadAllBytes( _settings.GetDynamicsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
+                    fileContent = File.ReadAllBytes(_settings.GetDynamicsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
                 }
             }
             else
