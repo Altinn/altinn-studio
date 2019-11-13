@@ -18,6 +18,16 @@ namespace AltinnCore.Common.Configuration
         public string DeploymentLocation { get; set; }
 
         /// <summary>
+        /// Gets or sets the location for the app
+        /// </summary>
+        public string AppLocation { get; set; }
+
+        /// <summary>
+        /// Gets or sets the location for the intergrationtests
+        /// </summary>
+        public string IntegrationTestsLocation { get; set; }
+
+        /// <summary>
         /// Gets or sets the location to search for language files
         /// </summary>
         public string LanguageFilesLocation { get; set; }
@@ -83,6 +93,17 @@ namespace AltinnCore.Common.Configuration
             get
             {
                 return TemplateLocation + "/CalculationHandler.cs";
+            }
+        }
+
+        /// <summary>
+        /// Gets the path to the app.snl file.
+        /// </summary>
+        public string DefaultAppSnlFile
+        {
+            get
+            {
+                return TemplateLocation + "/App.sln";
             }
         }
 

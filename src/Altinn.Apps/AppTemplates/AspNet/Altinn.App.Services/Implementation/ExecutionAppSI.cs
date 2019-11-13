@@ -19,7 +19,7 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ExecutionAppSI : IExecution
     {
-        private readonly ServiceRepositorySettings _settings;
+        private readonly AppSettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
         private readonly ILoggerFactory _loggerFactory;
@@ -34,7 +34,7 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
         public ExecutionAppSI(
-            IOptions<ServiceRepositorySettings> settings,
+            IOptions<AppSettings> settings,
             IHttpContextAccessor httpContextAccessor,
             IHostingEnvironment hostingEnvironment,
             ILoggerFactory loggerFactory,

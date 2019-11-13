@@ -234,7 +234,7 @@ namespace AltinnCore.Runtime
                             new CultureInfo("nn-NO"),
                         };
 
-                    options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
+                    options.DefaultRequestCulture = new RequestCulture(culture: "nb", uiCulture: "nb");
                     options.SupportedCultures = supportedCultures;
                     options.SupportedUICultures = supportedCultures;
                 });

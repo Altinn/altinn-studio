@@ -12,14 +12,14 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ProcessAppSI : IProcess
     {
-        private readonly ServiceRepositorySettings repositorySettings;
+        private readonly AppSettings repositorySettings;
         private readonly ILogger<ProcessAppSI> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessAppSI"/> class.
         /// </summary>
         public ProcessAppSI(
-            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<AppSettings> repositorySettings,
             ILogger<ProcessAppSI> logger)
         {
             this.repositorySettings = repositorySettings.Value;

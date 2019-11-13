@@ -592,7 +592,7 @@ namespace AltinnCore.Runtime.Controllers
                             string errorMesssage = error.ErrorMessage.Substring(9);
                             if (apiResult.ValidationResult.Messages.ContainsKey(modelKey))
                             {
-                                apiResult.ValidationResult.Messages[modelKey].Warnings.Add(ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb-NO"));
+                                apiResult.ValidationResult.Messages[modelKey].Warnings.Add(ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb"));
                             }
                             else
                             {
@@ -601,7 +601,7 @@ namespace AltinnCore.Runtime.Controllers
                                     Errors = new List<string>(),
                                     Warnings = new List<string>
                                     {
-                                        ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb-NO")
+                                        ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb")
                                     }
                                 });
                             }
@@ -611,7 +611,7 @@ namespace AltinnCore.Runtime.Controllers
                             containsErrors = true;
                             if (apiResult.ValidationResult.Messages.ContainsKey(modelKey))
                             {
-                                apiResult.ValidationResult.Messages[modelKey].Errors.Add(ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO"));
+                                apiResult.ValidationResult.Messages[modelKey].Errors.Add(ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb"));
                             }
                             else
                             {
@@ -619,7 +619,7 @@ namespace AltinnCore.Runtime.Controllers
                                 {
                                     Errors = new List<string>
                                     {
-                                        ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO")
+                                        ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb")
                                     },
                                     Warnings = new List<string>(),
                                 });
@@ -663,7 +663,7 @@ namespace AltinnCore.Runtime.Controllers
                     };
                     foreach (ModelError error in entry.Errors)
                     {
-                        apiEntry.Errors.Add(new ApiModelError() { ErrorMessage = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO") });
+                        apiEntry.Errors.Add(new ApiModelError() { ErrorMessage = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb") });
                     }
 
                     apiResult.ModelStateEntries.Add(apiEntry);

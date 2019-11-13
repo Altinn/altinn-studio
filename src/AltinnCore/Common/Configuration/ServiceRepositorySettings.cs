@@ -24,7 +24,12 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
-        public const string LANGUAGE_RESOURCE_FOLDER_NAME = "Config/Textresources/";
+        public const string FORMLAYOUT_RESOURCE_FOLDER_NAME = "App/ui/";
+
+        /// <summary>
+        /// Constant for the location of language resource files
+        /// </summary>
+        public const string LANGUAGE_RESOURCE_FOLDER_NAME = "App/Config/texts/";
 
         /// <summary>
         /// Constant for the location of implementation files
@@ -62,6 +67,16 @@ namespace AltinnCore.Common.Configuration
         public const string DEPLOYMENT_FOLDER_NAME = "deployment/";
 
         /// <summary>
+        /// Constant for the location of service deployment charts
+        /// </summary>
+        public const string APP_FOLDER_NAME = "App/";
+
+        /// <summary>
+        /// Constant for the location of service intergrationtests charts
+        /// </summary>
+        public const string INTERGRATIONTESTS_FOLDER_NAME = "App.IntegrationTests/";
+
+        /// <summary>
         /// Constant for the service binaries
         /// </summary>
         public const string BINARY_FOLDER_NAME = "bin/";
@@ -79,7 +94,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of app metadata
         /// </summary>
-        public const string METADATA_FOLDER_NAME = "Metadata/";
+        public const string METADATA_FOLDER_NAME = "App/Metadata/";
 
         private const string PACKAGES_LOCATION = "Packages/";
         private const string TEMP_LOCATION = "Temp/";
@@ -154,7 +169,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets The name of the FormLayout json file Name
         /// </summary>
-        public string FormLayoutJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "FormLayout.json";
+        public string FormLayoutJSONFileName { get; set; } = FORMLAYOUT_RESOURCE_FOLDER_NAME + "FormLayout.json";
 
         /// <summary>
         /// Gets or sets The name of the ThirdPartyComponents json file Name
@@ -390,7 +405,7 @@ namespace AltinnCore.Common.Configuration
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
-        
+
             if (developer != null)
             {
                 developer += "/";
@@ -456,7 +471,6 @@ namespace AltinnCore.Common.Configuration
             return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME;
         }
 
-
         /// <summary>
         /// Gets the full path to ResourceDirectory
         /// </summary>
@@ -466,7 +480,7 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetLanguageResourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + LANGUAGE_RESOURCE_FOLDER_NAME;
         }
 
         /// <summary>
@@ -524,10 +538,39 @@ namespace AltinnCore.Common.Configuration
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetDeploymentPath(string org, string app, string developer)
+        public string GetDeploymentFolderName()
         {
-            return GetServicePath(org, app, developer) + DEPLOYMENT_FOLDER_NAME;
+            return DEPLOYMENT_FOLDER_NAME;
         }
+
+        /// <summary>
+        /// Gets the full path to deployment directory
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetAppFolderName()
+        {
+            return APP_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets the full path to intergrationtests directory
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetIntergrationTestsFolderName()
+        {
+            return INTERGRATIONTESTS_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets or sets the filename for the App.Sln file
+        /// </summary>
+        public string AppSlnFileName { get; set; } = "App.sln";
 
         /// <summary>
         /// Gets The full path to TestDataDirectory
