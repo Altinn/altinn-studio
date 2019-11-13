@@ -19,7 +19,7 @@ export function* uploadAttachmentSaga(
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
-    const { org, app, instanceId } = window as Window as IAltinnWindow;
+    const { instanceId } = window as Window as IAltinnWindow;
 
     const data = new FormData();
     data.append('file', file);
