@@ -62,6 +62,16 @@ namespace AltinnCore.Common.Configuration
         public const string DEPLOYMENT_FOLDER_NAME = "deployment/";
 
         /// <summary>
+        /// Constant for the location of service deployment charts
+        /// </summary>
+        public const string APP_FOLDER_NAME = "App/";
+
+        /// <summary>
+        /// Constant for the location of service intergrationtests charts
+        /// </summary>
+        public const string INTERGRATIONTESTS_FOLDER_NAME = "App.IntegrationTests/";
+
+        /// <summary>
         /// Constant for the service binaries
         /// </summary>
         public const string BINARY_FOLDER_NAME = "bin/";
@@ -456,7 +466,6 @@ namespace AltinnCore.Common.Configuration
             return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME;
         }
 
-
         /// <summary>
         /// Gets the full path to ResourceDirectory
         /// </summary>
@@ -524,10 +533,39 @@ namespace AltinnCore.Common.Configuration
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="developer">the developer for the current app.</param>
         /// <returns>The full path, ending with "/"</returns>
-        public string GetDeploymentPath(string org, string app, string developer)
+        public string GetDeploymentFolderName()
         {
-            return GetServicePath(org, app, developer) + DEPLOYMENT_FOLDER_NAME;
+            return DEPLOYMENT_FOLDER_NAME;
         }
+
+        /// <summary>
+        /// Gets the full path to deployment directory
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetAppFolderName()
+        {
+            return APP_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets the full path to intergrationtests directory
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetIntergrationTestsFolderName()
+        {
+            return INTERGRATIONTESTS_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets or sets the filename for the App.Sln file
+        /// </summary>
+        public string AppSlnFileName { get; set; } = "App.sln";
 
         /// <summary>
         /// Gets The full path to TestDataDirectory
