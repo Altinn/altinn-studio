@@ -83,7 +83,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 },
                 ValidFrom = new DateTime(2019, 07, 01),
                 ValidTo = new DateTime(2020, 06, 30),
-                MaxSize = 200000,
+                MaxSize = 10,
             };
 
             Application result = applicationClient.CreateApplication(application);
