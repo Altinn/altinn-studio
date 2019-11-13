@@ -20,7 +20,7 @@ export function* getInstanceDataSaga({
 
       const attachments: IAttachments = {};
       result.data.forEach((element: any) => {
-        if(element.elementType === 'default') {
+        if (element.elementType === 'default') {
           return;
         }
 
@@ -29,7 +29,13 @@ export function* getInstanceDataSaga({
         }
 
         attachments[element.elementType].push(
-          { uploaded: true, deleting: false, name: element.fileName, size: element.fileSize, id: element.id },
+          {
+            uploaded: true,
+            deleting: false,
+            name: element.fileName,
+            size: element.fileSize,
+            id: element.id,
+          },
         );
       });
 
