@@ -78,7 +78,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/></param>
         /// <returns>A boolean indicating if creation of service metadata went ok</returns>
-        #region Service metadata0
+        #region Service metadata
         public bool CreateServiceMetadata(ServiceMetadata serviceMetadata)
         {
             string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
@@ -384,9 +384,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>The resource file content</returns>
-        public string GetResource(string org, string app, string id)
+        public string GetLanguageResource(string org, string app, string id)
         {
-            string filename = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
+            string filename = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
             string filedata = null;
 
             if (File.Exists(filename))
@@ -409,7 +409,7 @@ namespace AltinnCore.Common.Services.Implementation
                 new Dictionary<string, Dictionary<string, string>>();
 
             // Get app level text resources
-            string resourcePath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             appTextsAllLanguages = GetResourceTexts(resourcePath, appTextsAllLanguages);
 
             // Get Org level text resources
@@ -478,7 +478,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<string> languages = new List<string>();
 
-            string resourcePath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourcePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(resourcePath))
             {
                 Directory.CreateDirectory(resourcePath);
@@ -796,9 +796,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveResource(string org, string app, string id, string resource)
+        public bool SaveLanguageResource(string org, string app, string id, string resource)
         {
-            string filePath = _settings.GetResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
+            string filePath = _settings.GetLanguageResourcePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id.AsFileName()}.json";
             new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
@@ -1080,7 +1080,7 @@ namespace AltinnCore.Common.Services.Implementation
                     RepositoryName = serviceConfig.RepositoryName,
                 };
 
-                //This creats alle files?!
+                // This creats alle files?!
                 CreateServiceMetadata(metadata);
                 CreateApplication(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
 
@@ -1089,20 +1089,13 @@ namespace AltinnCore.Common.Services.Implementation
                     // This creates the language resources file for nb-NO
                     JObject json = JObject.FromObject(new
                     {
-                        language = "nb-NO",
                         resources = new[]
                         {
-                            new { id = "ServiceName", value = serviceConfig.ServiceName },
-                            new { id = "subscription_hook_error_title", value = string.Empty },
-                            new { id = "subscription_hook_error_content", value = string.Empty },
-                            new { id = "subscription_hook_error_url", value = string.Empty },
-                            new { id = "subscription_hook_error_urlText", value = string.Empty },
-                            new { id = "subscription_hook_error_urlTextSuffix", value = string.Empty },
-                            new { id = "subscription_hook_error_statusCode", value = string.Empty }
+                            new { id = "ServiceName", value = serviceConfig.ServiceName }                         
                         },
                     });
 
-                    //SaveResource(org, serviceConfig.RepositoryName, "nb-NO", json.ToString());
+                    // SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
                 }
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };

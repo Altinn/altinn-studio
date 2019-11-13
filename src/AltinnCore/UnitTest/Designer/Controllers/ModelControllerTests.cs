@@ -60,7 +60,7 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             ServiceMetadata serviceMetadata = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
-            moqRepository.Setup(r => r.SaveServiceTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, Dictionary<string, string>>>()))        
+            moqRepository.Setup(r => r.SaveServiceTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, Dictionary<string, string>>>()))
                 .Callback<string, string, Dictionary<string, Dictionary<string, string>>>((o, s, d) =>
                 {
                     dictionary = d;
@@ -83,12 +83,12 @@ namespace AltinnCore.UnitTest.Designer.Controllers
 
             Assert.True(serviceMetadata.Elements.ContainsKey("Skjema.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPostnummerdatadef10441.value"));
 
-            Assert.NotNull(dictionary);        
+            Assert.NotNull(dictionary);
 
-            string lookupValue = dictionary.GetValueOrDefault("10441.KontaktpersonPostnummerdatadef10441.Label").GetValueOrDefault("nb-NO");
+            string lookupValue = dictionary.GetValueOrDefault("10441.KontaktpersonPostnummerdatadef10441.Label").GetValueOrDefault("nb");
 
             // Text should be without extra withespaces
-            Assert.Equal("Postnummer", lookupValue);           
+            Assert.Equal("Postnummer", lookupValue);
         }
 
         private IFormFile AsMockIFormFile(string file)
@@ -111,7 +111,7 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             fileMock.Setup(m => m.OpenReadStream()).Returns(ms);
             fileMock.Setup(m => m.ContentDisposition).Returns(string.Format("inline; filename={0}", fileName));
 
-            return fileMock.Object;           
+            return fileMock.Object;
         }
     }
 }
