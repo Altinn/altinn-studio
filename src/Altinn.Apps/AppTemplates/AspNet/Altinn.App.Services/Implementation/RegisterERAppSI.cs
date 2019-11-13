@@ -1,10 +1,7 @@
-using System;
-using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
-using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using Altinn.App.Services.Models;
 using AltinnCore.Authentication.JwtCookie;
@@ -19,7 +16,6 @@ namespace Altinn.App.Services.Implementation
     public class RegisterERAppSI : IER
     {
         private readonly ILogger _logger;
-        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
         private readonly HttpClient _client;
@@ -28,19 +24,16 @@ namespace Altinn.App.Services.Implementation
         /// Initializes a new instance of the <see cref="RegisterERAppSI"/> class
         /// </summary>
         /// <param name="logger">the logger</param>
-        /// <param name="platformSettings">the platform settings</param>
         /// <param name="httpContextAccessor">The http context accessor </param>
         /// <param name="cookieOptions">The cookie options </param>
         /// <param name="httpClientAccessor">The http client accessor </param>
         public RegisterERAppSI(
             ILogger<RegisterERAppSI> logger,
-            IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions,
             IHttpClientAccessor httpClientAccessor)
         {
             _logger = logger;
-            _platformSettings = platformSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
             _client = httpClientAccessor.RegisterClient;
@@ -50,7 +43,6 @@ namespace Altinn.App.Services.Implementation
         public async Task<Organization> GetOrganization(string OrgNr)
         {
             Organization organization = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));
 
             string endpointUrl = $"organizations/{OrgNr}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);

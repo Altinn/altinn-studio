@@ -24,5 +24,12 @@ namespace Altinn.App.Services.Interface
         /// <param name="partyId">The partyId</param>
         /// <returns>The party for the given partyId</returns>
         Task<Party> GetParty(int partyId);
+
+        /// <summary>
+        /// Looks up a party by person or organisation number.
+        /// </summary>
+        /// <param name="personOrOrganisationNumber"></param>
+        /// <returns>The party for the given person or organisation</returns>
+        Task<Party> LookupParty(string personOrOrganisationNumber);
     }
 }

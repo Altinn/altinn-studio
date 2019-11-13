@@ -19,7 +19,6 @@ namespace Altinn.App.Services.Implementation
     public class ProfileAppSI : IProfile
     {
         private readonly ILogger _logger;
-        private readonly PlatformSettings _platformSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly JwtCookieOptions _cookieOptions;
         private readonly HttpClient _client;
@@ -34,13 +33,11 @@ namespace Altinn.App.Services.Implementation
         /// <param name="httpClientAccessor">The http client accessor </param>
         public ProfileAppSI(
             ILogger<ProfileAppSI> logger,
-            IOptions<PlatformSettings> platformSettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<JwtCookieOptions> cookieOptions,
             IHttpClientAccessor httpClientAccessor)
         {
             _logger = logger;
-            _platformSettings = platformSettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _cookieOptions = cookieOptions.Value;
             _client = httpClientAccessor.ProfileClient;
@@ -50,7 +47,6 @@ namespace Altinn.App.Services.Implementation
         public async Task<UserProfile> GetUserProfile(int userId)
         {
             UserProfile userProfile = null;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
             string endpointUrl = $"users/{userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);

@@ -37,8 +37,10 @@ namespace Altinn.App.Services.Clients
             {
                 if (_registerClient == null)
                 {
-                    _registerClient = new HttpClient();
-                    _registerClient.BaseAddress = new Uri($"{_platformSettings.GetApiRegisterEndpoint}");
+                    _registerClient = new HttpClient
+                    {
+                        BaseAddress = new Uri($"{_platformSettings.GetApiRegisterEndpoint}")
+                    };
                     _registerClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
 
                 }
@@ -54,8 +56,10 @@ namespace Altinn.App.Services.Clients
             {
                 if (_profileClient == null)
                 {
-                    _profileClient = new HttpClient();
-                    _profileClient.BaseAddress = new Uri($"{_platformSettings.GetApiProfileEndpoint}");
+                    _profileClient = new HttpClient
+                    {
+                        BaseAddress = new Uri($"{_platformSettings.GetApiProfileEndpoint}")
+                    };
                     _profileClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                 }
 
@@ -70,8 +74,10 @@ namespace Altinn.App.Services.Clients
             {
                 if (_storageClient == null)
                 {
-                    _storageClient = new HttpClient();
-                    _storageClient.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
+                    _storageClient = new HttpClient
+                    {
+                        BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}")
+                    };
                     _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
                 }
@@ -87,8 +93,10 @@ namespace Altinn.App.Services.Clients
             {
                 if (_authorizationClient == null)
                 {
-                    _authorizationClient = new HttpClient();
-                    _authorizationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}");
+                    _authorizationClient = new HttpClient
+                    {
+                        BaseAddress = new Uri($"{_platformSettings.GetApiAuthorizationEndpoint}")
+                    };
                     _authorizationClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 }
 
@@ -103,8 +111,10 @@ namespace Altinn.App.Services.Clients
             {
                 if (_authenticationClient == null)
                 {
-                    _authenticationClient = new HttpClient();
-                    _authenticationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthenticationEndpoint}");
+                    _authenticationClient = new HttpClient
+                    {
+                        BaseAddress = new Uri($"{_platformSettings.GetApiAuthenticationEndpoint}")
+                    };
                     _authenticationClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 }
 
