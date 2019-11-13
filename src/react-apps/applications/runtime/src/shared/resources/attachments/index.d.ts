@@ -5,7 +5,7 @@ export interface IAttachment {
   size: number;
   id: string;
 }
-export interface IAttachments {
+export interface    IAttachments {
   [attachmentType: string]: IAttachment[];
 }
 
