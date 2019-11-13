@@ -1,6 +1,4 @@
 import * as React from 'react';
-import { useSelector } from 'react-redux';
-import AttachmentActions from '../../../shared/resources/attachments/attachmentActions';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
