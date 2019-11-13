@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { GenericComponent, isComponentValid } from '../../src/components/GenericComponent';
+import GenericComponent, { isComponentValid } from '../../src/components/GenericComponent';
 
 describe('>>> components/GenericComponent.tsx', () => {
 

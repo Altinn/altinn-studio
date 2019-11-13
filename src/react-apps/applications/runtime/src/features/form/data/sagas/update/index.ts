@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { actionChannel, call, select, take } from 'redux-saga/effects';
 
 import { IRuntimeState } from '../../../../../types';
 import { IComponentValidations } from '../../../../../types/global';
@@ -23,9 +23,11 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
       state.language.language,
       state.formValidations.validations[componentId],
     );
+
     if (state.formData.formData[field] !== data) {
       yield call(FormDataActions.updateFormDataFulfilled, field, data);
     }
+
     yield call(FormValidationActions.updateComponentValidations, componentValidations, componentId);
     yield call(FormDynamicActions.checkIfConditionalRulesShouldRun);
   } catch (err) {
@@ -35,5 +37,9 @@ function* updateFormDataSaga({ field, data, componentId }: IUpdateFormData): Sag
 }
 
 export function* watchUpdateFormDataSaga(): SagaIterator {
-  yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA, updateFormDataSaga);
+  const requestChan = yield actionChannel(FormDataActionTypes.UPDATE_FORM_DATA);
+  while (true) {
+    const value = yield take(requestChan);
+    yield call(updateFormDataSaga, value);
+  }
 }

@@ -79,6 +79,9 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
               <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
               <i className='ai-stack-1x ai ai-back' aria-hidden='true' />
             </span>
+            <span className='hidden-button-text'>
+              {getLanguageFromKey('general.back', this.props.language)}
+            </span>
           </button>
         }
         <button
@@ -90,6 +93,9 @@ class ProcessStepComponent extends React.Component<IProcessStepProps, IProcessSt
           <span className='ai-stack'>
             <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
             <i className='ai-stack-1x ai ai-exit  a-modal-close-icon' aria-hidden='true' />
+          </span>
+          <span className='hidden-button-text'>
+            {getLanguageFromKey('general.close', this.props.language)}
           </span>
         </button>
       </div>
