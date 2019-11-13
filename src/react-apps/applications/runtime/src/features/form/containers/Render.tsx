@@ -1,7 +1,7 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { GenericComponent } from '../../../components/GenericComponent';
+import GenericComponent from '../../../components/GenericComponent';
 import { makeGetLayout } from '../../../selectors/getLayoutData';
 import { IRuntimeState } from '../../../types';
 import { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';

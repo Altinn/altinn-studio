@@ -18,7 +18,7 @@ import AltinnStudioTheme from '../../../../../shared/src/theme/altinnStudioTheme
 import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../../../shared/src/utils/language';
 import AppReleaseActions from '../../../sharedResources/appRelease/appReleaseDispatcher';
 import { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseReducer';
-import { BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
+import { BuildResult, BuildStatus, IRelease } from '../../../sharedResources/appRelease/types';
 import RepoStatusActionDispatchers from '../../../sharedResources/repoStatus/repoStatusDispatcher';
 import { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusReducer';
 import FetchLanguageActionDispatchers from '../../../utils/fetchLanguage/fetchLanguageDispatcher';
@@ -206,7 +206,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     return (
       <Grid
         container={true}
-        direction={'column'}
+        direction={'row'}
         className={classes.cannotCreateReleaseContainer}
         spacing={1}
       >
@@ -223,7 +223,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
             />
           </Grid>
         </Hidden>
-        <Grid item={true} xs={12} md={11}>
+        <Grid item={true} xs={12} md={10}>
           <Grid
             container={true}
             direction={'column'}
@@ -254,7 +254,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
 
   function renderCreateRelease() {
     if (appReleases.errors.fetchReleaseErrorCode !== null) {
-      return null;
+      return renderCannotCreateRelease();
     }
     if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus) {
       return (
@@ -314,23 +314,15 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     // Check if latest
     if (
       !!appReleases.releases[0] &&
-      appReleases.releases[0].build.status !== BuildStatus.completed
+      appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
+      (appReleases.releases[0].build.status === BuildStatus.completed &&
+      appReleases.releases[0].build.result === BuildResult.succeeded)
     ) {
       return null;
     }
-    if (
-      !!appReleases.releases[0] &&
-      appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id
-    ) {
+    if (appReleases.releases[0].build.status !== BuildStatus.completed) {
       return null;
     }
-    if (
-      !!appReleases.releases[0] &&
-      appReleases.releases[0].build.status !== BuildStatus.completed
-    ) {
-      return null;
-    }
-
     return (
       <CreateReleaseComponent />
     );
@@ -388,6 +380,55 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     }
     return null;
   }
+
+  function renderCreateReleaseTitle() {
+    if (
+      !!appReleases.errors.fetchReleaseErrorCode ||
+      !repoStatus.branch.master ||
+      !handleMergeConflict.repoStatus.contentStatus
+    ) {
+      return null;
+    }
+    const latestRelease: IRelease = !!appReleases.releases[0] ? appReleases.releases[0] : null;
+    if (
+      !latestRelease ||
+      (latestRelease.targetCommitish !== repoStatus.branch.master.commit.id) ||
+      !!!handleMergeConflict.repoStatus.contentStatus
+    ) {
+      return (
+        <Typography>
+          {getLanguageFromKey('app_release.release_title', language)} &nbsp;
+            {!!repoStatus.branch.master ?
+              <a
+                href={getGitCommitLink(repoStatus.branch.master.commit.id)}
+                target={'_blank'}
+                rel='noopener noreferrer'
+              >
+                {getLanguageFromKey('app_release.release_title_link', language)}
+              </a> :
+              null
+            }
+        </Typography>
+      );
+    }
+    if (latestRelease.targetCommitish === repoStatus.branch.master.commit.id) {
+      return (
+        <>
+          {getLanguageFromKey('general.version', language)}
+          &nbsp;
+          {appReleases.releases[0].tagName}
+          &nbsp;
+          {getLanguageFromKey('general.contains', language)}
+          &nbsp;
+          <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
+            {getLanguageFromKey('app_release.release_title_link', language)}
+          </a>
+        </>
+      );
+    }
+    return null;
+  }
+
   return (
     <>
       <Grid
@@ -419,52 +460,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               direction={'row'}
               justify={'space-between'}
             >
-              {appReleases.errors.fetchReleaseErrorCode === null ?
                 <Grid
                   item={true}
                   xs={10}
                 >
                   <Typography className={classes.appCreateReleaseTitle}>
-                    {
-                      !!repoStatus.branch.master &&
-                        !!repoStatus.branch.master.commit &&
-                        !!appReleases.releases &&
-                        !!appReleases.releases.length &&
-                        appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
-                        !!!handleMergeConflict.repoStatus.contentStatus ?
-                        <>
-                          {getLanguageFromKey('general.version', language)}
-                          &nbsp;
-                      {appReleases.releases[0].tagName}
-                          {getLanguageFromKey('general.contains', language)}
-                          &nbsp;
-                      {!!repoStatus.branch.master ?
-                            <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
-                              {getLanguageFromKey('app_release.release_title_link', language)}
-                            </a> :
-                            null
-                          }
-                        </>
-                        :
-                        <>
-                          {getLanguageFromKey('app_release.release_title', language)}
-                          &nbsp;
-                      {!!repoStatus.branch.master ?
-                            <a
-                              href={getGitCommitLink(repoStatus.branch.master.commit.id)}
-                              target={'_blank'}
-                              rel='noopener noreferrer'
-                            >
-                              {getLanguageFromKey('app_release.release_title_link', language)}
-                            </a> :
-                            null
-                          }
-                        </>
-                    }
+                    {renderCreateReleaseTitle()}
                   </Typography>
-                </Grid> :
-                renderCannotCreateRelease()
-              }
+                </Grid>
               <Grid
                 item={true}
                 className={classes.appCreateReleaseStatusIcon}

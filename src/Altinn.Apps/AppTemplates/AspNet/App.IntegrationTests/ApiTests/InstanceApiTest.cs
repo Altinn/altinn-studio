@@ -155,16 +155,13 @@ namespace App.IntegrationTests
             };
 
             Uri uri = new Uri("/tdd/endring-av-navn/instances", UriKind.Relative);
-
-            HttpRequestMessage request = new HttpRequestMessage
-            {
-                RequestUri = uri,
-                Content = formData,
-            };
           
             /* TEST */
 
             HttpClient client = GetTestClient();
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             HttpResponseMessage response =  await client.PostAsync(uri, formData);
 
             response.EnsureSuccessStatusCode();
