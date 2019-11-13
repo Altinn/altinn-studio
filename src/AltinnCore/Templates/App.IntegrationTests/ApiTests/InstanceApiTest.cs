@@ -1,9 +1,14 @@
 using Altinn.App.Api.Controllers;
+using Altinn.App.Common.Interface;
 using Altinn.App.IntegrationTests;
 using Altinn.App.Services.Interface;
 using Altinn.Platform.Storage.Interface.Models;
+using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -21,6 +26,8 @@ namespace App.IntegrationTests
     public class InstanceApiTest: IClassFixture<CustomWebApplicationFactory<Altinn.App.Startup>>
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
+
+        private readonly string appId = "tdd/aa-template-test";
 
         public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
@@ -68,7 +75,7 @@ namespace App.IntegrationTests
         }
 
         [Fact]
-        public async Task Instance_Post_Ok()
+        public async Task Instance_Post_WithQueryParamOk()
         {
             string token = PrincipalUtil.GetToken(1);
 
@@ -81,6 +88,43 @@ namespace App.IntegrationTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        }
+
+        [Fact]
+        public async void Instance_Post_With_InstanceTemplate()
+        {
+            string token = PrincipalUtil.GetToken(1);
+
+            Instance instanceTemplate = new Instance
+            {
+                InstanceOwner = new InstanceOwner
+                {
+                    PartyId = "1000",
+                },
+                DueBefore = DateTime.Parse("2020-01-01"),
+            };
+
+            HttpClient client = GetTestClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+
+            StringContent content = new StringContent(instanceTemplate.ToString(), Encoding.UTF8);
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
+
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/skd/taxreport/instances")
+            {                
+                Content = content,
+            };            
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseContent = await response.Content.ReadAsStringAsync();
+
+            response.EnsureSuccessStatusCode();
+
+            Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
+
+            Assert.Equal("1000", createdInstance.InstanceOwner.PartyId);
+
         }
 
         /// <summary>
@@ -111,16 +155,13 @@ namespace App.IntegrationTests
             };
 
             Uri uri = new Uri("/tdd/endring-av-navn/instances", UriKind.Relative);
-
-            HttpRequestMessage request = new HttpRequestMessage
-            {
-                RequestUri = uri,
-                Content = formData,
-            };
           
             /* TEST */
 
             HttpClient client = GetTestClient();
+            string token = PrincipalUtil.GetToken(1);
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
             HttpResponseMessage response =  await client.PostAsync(uri, formData);
 
             response.EnsureSuccessStatusCode();
@@ -135,17 +176,22 @@ namespace App.IntegrationTests
 
         }
 
-            private HttpClient GetTestClient()
+        private HttpClient GetTestClient()
         {
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
                 builder.ConfigureTestServices(services =>
                 {
+                
                     services.AddSingleton<IInstance, InstanceMockSI>();
+                    services.AddSingleton<IData, DataMockSI>();
                     services.AddSingleton<IRegister, RegisterMockSI>();
                       
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
+
+                    services.AddSingleton<IAltinnApp, AltinnApp>();
+
                 });
             })
             .CreateClient();

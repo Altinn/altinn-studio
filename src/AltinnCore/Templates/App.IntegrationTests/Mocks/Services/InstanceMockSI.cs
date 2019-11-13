@@ -36,6 +36,7 @@ namespace App.IntegrationTests.Mocks.Services
             {
                 Id = $"{partyId}/{instanceGuid}",
                 AppId = $"{org}/{app}",
+                Org = org,
                 InstanceOwner = instanceTemplate.InstanceOwner,
             };
 
