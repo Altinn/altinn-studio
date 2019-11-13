@@ -175,7 +175,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             MultipartRequestReader parsedRequest = new MultipartRequestReader(Request);
-            parsedRequest.Read().Wait();
+            await parsedRequest.Read();
 
             if (parsedRequest.Errors.Any())
             {
@@ -275,7 +275,7 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                DataElement dataElement = await StorePrefillParts(instance, parsedRequest.Parts);
+                DataElement dataElement = await StorePrefillParts(instance, application, parsedRequest.Parts);
 
                 // get the updated instance
                 instance = await instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
@@ -295,34 +295,51 @@ namespace Altinn.App.Api.Controllers
             return Created(url, instance);
         }
 
-        private async Task<DataElement> StorePrefillParts(Instance instance, List<RequestPart> parts)
+        private async Task<DataElement> StorePrefillParts(Instance instance, Application appInfo, List<RequestPart> parts)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwner.PartyId);
             DataElement dataElement = null;
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
+          
 
             foreach (RequestPart part in parts)
             {
-                logger.LogInformation($"Storing part {part.Name}");
-                object data = new StreamReader(part.Stream).ReadToEnd();
+                DataType dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
 
-                // TODO. Datatype
+                if (dataType.AppLogic != null)
+                {
+                    logger.LogInformation($"Storing part {part.Name}");
 
-                dataElement = await dataService.InsertFormData(
-                    data,
-                    instanceGuid,
-                    altinnApp.GetAppModelType("default"),
-                    org,
-                    app,
-                    instanceOwnerIdAsInt,
-                    "default");
+                    Type type = altinnApp.GetAppModelType(part.Name);
+                    object data = DataController.ParseFormDataAndDeserialize(type, part.ContentType, part.Stream, out string errorText);
+
+                    if (!string.IsNullOrEmpty(errorText))
+                    {
+                        throw new InvalidOperationException(errorText);
+                    }
+
+                    dataElement = await dataService.InsertFormData(
+                        data,
+                        instanceGuid,
+                        type,
+                        org,
+                        app,
+                        instanceOwnerIdAsInt,
+                        part.Name);                 
+                }
+                else
+                {
+
+                    dataElement = await dataService.InsertBinaryData(instance.Id, part.Name, part.ContentType, part.FileName, part.Stream);
+                }
 
                 if (dataElement == null)
                 {
                     throw new InvalidOperationException($"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
                 }
+
             }
 
             return dataElement;
@@ -353,7 +370,7 @@ namespace Altinn.App.Api.Controllers
                 reader.Parts.Remove(instancePart);
 
                 StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
-                string content = streamReader.ReadToEnd();
+                string content = streamReader.ReadToEndAsync().Result;
 
                 instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);                
             }                        
