@@ -69,9 +69,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>The resource file content</returns>
-        string GetResource(string org, string app, string id);
+        string GetLanguageResource(string org, string app, string id);
 
         /// <summary>
         /// Gets the raw content of a code list
@@ -130,17 +130,17 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveResource(string org, string app, string id, string resource);
+        bool SaveLanguageResource(string org, string app, string id, string resource);
 
         /// <summary>
         /// Deletes the resource for a given language id
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
+        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>A boolean indicating if delete was ok</returns>
         bool DeleteLanguage(string org, string app, string id);
 

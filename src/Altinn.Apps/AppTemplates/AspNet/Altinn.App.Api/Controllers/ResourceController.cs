@@ -48,7 +48,7 @@ namespace Altinn.App.Api.Controllers
         /// Method to retrieve the runtime resources
         /// </summary>
         /// <returns>File content with content type set</returns>
-      
+
         [Route("{org}/{app}/api/runtimeresources/{id}/")]
         public IActionResult RuntimeResource(string id)
         {
@@ -70,7 +70,7 @@ namespace Altinn.App.Api.Controllers
         /// <returns>The text resource file content or 404</returns>
         public IActionResult TextResources(string org, string app)
         {
-            string defaultLang = "nb-NO";
+            string defaultLang = "nb";
             string culture = CultureInfo.CurrentUICulture.Name;
             string id = $"resource.{culture}.json";
             byte[] fileContent = _execution.GetServiceResource(org, app, id);
