@@ -287,7 +287,6 @@ namespace Altinn.App.Api.Controllers
             Instance instance,
             string dataType)
         {
-            bool startService = true;
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             
             object appModel;
@@ -382,8 +381,8 @@ namespace Altinn.App.Api.Controllers
                 {
                     try
                     {
-                        StreamReader reader = new StreamReader(contentStream, Encoding.UTF8);
-                        string content = reader.ReadToEnd();
+                        using StreamReader reader = new StreamReader(contentStream, Encoding.UTF8);
+                        string content = reader.ReadToEndAsync().Result;
                         serviceModel = JsonConvert.DeserializeObject(content, modelType);
                     }
                     catch (Exception ex)

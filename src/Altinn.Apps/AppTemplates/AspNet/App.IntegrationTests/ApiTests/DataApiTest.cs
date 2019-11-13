@@ -149,7 +149,6 @@ namespace App.IntegrationTests.ApiTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }

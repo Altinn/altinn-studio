@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 
-namespace AltinnCoreServiceImplementation.Template
+namespace Altinn.App.AppLogic.Calculation
 {
 
     public class CalculationHandler
     {
-        public CalculationHandler()
+        /*public CalculationHandler()
         {
         }
 
         public void Calculate(SERVICE_MODEL_NAME SERVICE_MODEL_NAME)
         {
 
-        }
+        }*/
     }
 }

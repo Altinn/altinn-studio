@@ -1,17 +1,17 @@
-﻿using System;
+using System;
 
-namespace AltinnCoreServiceImplementation.Template
+namespace Altinn.App.AppLogic
 {
     public class InstantiationHandler
     {
-        public InstantiationHandler()
+        /*public InstantiationHandler()
         {
         }
 
         public void Instansiate(SERVICE_MODEL_NAME SERVICE_MODEL_NAME)
         {
 
-        }
+        }*/
 
     }
 }

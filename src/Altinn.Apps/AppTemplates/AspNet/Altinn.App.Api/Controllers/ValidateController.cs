@@ -59,16 +59,16 @@ namespace AltinnCore.Runtime.RestControllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation</param>
-        /// <param name="instanceOwnerId">Unique id of the party that is the owner of the instance.</param>
+        /// <param name="instanceOwnerPartyId">Unique id of the party that is the owner of the instance.</param>
         /// <param name="instanceId">Unique id to identify the instance</param>
-        [Route("{org}/{app}/instances/{instanceOwnerId:int}/{instanceId:guid}/validate")]
+        [Route("{org}/{app}/instances/{instanceOwnerPartyId:int}/{instanceId:guid}/validate")]
         public async Task<IActionResult> ValidateInstance(
             [FromRoute] string org,
             [FromRoute] string app,
-            [FromRoute] int instanceOwnerId,
+            [FromRoute] int instanceOwnerPartyId,
             [FromRoute] Guid instanceId)
         {
-            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceId);
+            Instance instance = await instanceService.GetInstance(app, org, instanceOwnerPartyId, instanceId);
             if (instance == null)
             {
                 return NotFound();
@@ -118,17 +118,21 @@ namespace AltinnCore.Runtime.RestControllers
 
                 foreach (DataElement dataElement in elements)
                 {
-                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerId, instanceId, dataType, dataElement, serviceText));
+                    messages.AddRange(await ValidateDataElement(org, app, instanceOwnerPartyId, instanceId, dataType, dataElement, serviceText));
                 }
             }
 
             if (messages.Count == 0)
             {
                 instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = true, Timestamp = DateTime.Now };
-
-                await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceId);
+            }
+            else
+            {
+                instance.Process.CurrentTask.Validated = new ValidationStatus { CanCompleteTask = false, Timestamp = DateTime.Now };
             }
 
+            await instanceService.UpdateInstance(instance);
+            
             return Ok(messages);
         }
 

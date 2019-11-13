@@ -117,7 +117,7 @@ namespace Altinn.App.Services.Implementation
         public byte[] GetRuntimeResource(string resource)
         {
             byte[] fileContent = null;
-            string path = string.Empty;
+            string path;
             if (resource == _settings.RuntimeAppFileName)
             {
                 path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);

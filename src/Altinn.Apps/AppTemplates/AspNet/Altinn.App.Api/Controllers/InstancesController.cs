@@ -34,7 +34,6 @@ namespace Altinn.App.Api.Controllers
         private readonly IExecution executionService;
         private readonly IRegister registerService;
         private readonly IAltinnApp altinnApp;
-        private readonly IApplication appService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -45,8 +44,6 @@ namespace Altinn.App.Api.Controllers
             IInstance instanceService,
             IData dataService,
             IExecution executionService,
-            IProfile profileService,
-            IApplication appService,
             IAltinnApp altinnApp)
         {
             this.logger = logger;
@@ -55,7 +52,6 @@ namespace Altinn.App.Api.Controllers
             this.executionService = executionService;
             this.registerService = registerService;
             this.altinnApp = altinnApp;
-            this.appService = appService;
         }
 
         /// <summary>
@@ -118,18 +114,23 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromBody] Instance instance)
         {
+            if (instance == null || !org.Equals(instance.Org) || !instance.AppId.EndsWith(app) || !instanceOwnerPartyId.Equals(instance.InstanceOwner.PartyId) || !instance.Id.EndsWith(instanceGuid.ToString()))
+            {
+                return BadRequest($"Inconsistent values between path params and instance attributes");
+            }
+
             try
             {
-                Instance updatedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerPartyId, instanceGuid);
+                Instance updatedInstance = await instanceService.UpdateInstance(instance);
 
-                if (instance == null)
+                if (updatedInstance == null)
                 {
                     return NotFound();
                 }
 
-                SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
+                SelfLinkHelper.SetInstanceAppSelfLinks(updatedInstance, Request);
 
-                return Ok(instance);
+                return Ok(updatedInstance);
             }
             catch (Exception ex)
             {
@@ -147,6 +148,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <returns>the created instance</returns>
+        [Authorize]
         [HttpPost]
         [DisableFormValueModelBinding]
         [Produces("application/json")]
@@ -189,9 +191,9 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("Cannot create an instance without an instanceOwner.partyId. Either provide instanceOwner party Id as a query parameter or an instanceTemplate object in the body.");
             }
 
-            if (instanceOwnerPartyId.HasValue && instanceTemplate != null)
+            if (instanceOwnerPartyId.HasValue && instanceTemplate?.InstanceOwner?.PartyId != null)
             {
-                return BadRequest("You cannot provide an instanceOwnerId as a query param as well as an instance template in the body. Choose one or the other.");
+                return BadRequest("You cannot provide an instanceOwnerPartyId as a query param as well as an instance template in the body. Choose one or the other.");
             }
 
             RequestPartValidator requestValidator = new RequestPartValidator(application);
@@ -215,38 +217,21 @@ namespace Altinn.App.Api.Controllers
             }
             else
             {
-                instanceTemplate = new Instance();
-                instanceTemplate.InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() };
+                instanceTemplate = new Instance
+                {
+                    InstanceOwner = new InstanceOwner { PartyId = instanceOwnerPartyId.Value.ToString() }
+                };
             }
 
-            Party party = null;
-            InstanceOwner instanceOwner = instanceTemplate.InstanceOwner;
-
-            if (instanceOwner.PartyId != null)
+            Party party;
+            try
             {
-                try
-                {
-                    party = await registerService.GetParty(int.Parse(instanceTemplate.InstanceOwner.PartyId));
-                    if (!string.IsNullOrEmpty(party.SSN))
-                    {
-                        instanceOwner.PersonNumber = party.SSN;
-                        instanceOwner.OrganisationNumber = null;
-                    }
-                    else if (!string.IsNullOrEmpty(party.OrgNumber))
-                    {
-                        instanceOwner.PersonNumber = null;
-                        instanceOwner.OrganisationNumber = party.OrgNumber;
-                    }
-                }
-                catch (Exception e)
-                {
-                    logger.LogWarning($"Cannot lookup party id {instanceOwner.PartyId} due to {e.Message}");
-                }
+                party = await LookupParty(instanceTemplate);
             }
-            else
+            catch (Exception partyLookupException)
             {
-                /* todo - lookup personNumber or organisationNumber - awaiting registry endpoint implementation */
-            }
+                return NotFound($"Cannot lookup party: {partyLookupException.Message}");
+            }            
 
             if (!InstantiationHelper.IsPartyAllowedToInstantiate(party, application.PartyTypesAllowed))
             {
@@ -256,7 +241,7 @@ namespace Altinn.App.Api.Controllers
             // use process controller to start process
             instanceTemplate.Process = null;
 
-            Instance instance = null;
+            Instance instance;
             try
             {
                 instance = await instanceService.CreateInstance(org, app, instanceTemplate);
@@ -295,6 +280,66 @@ namespace Altinn.App.Api.Controllers
             return Created(url, instance);
         }
 
+        private async Task<Party> LookupParty(Instance instanceTemplate)
+        {
+            InstanceOwner instanceOwner = instanceTemplate.InstanceOwner;
+
+            Party party;
+            if (instanceOwner.PartyId != null)
+            {
+                try
+                {
+                    party = await registerService.GetParty(int.Parse(instanceOwner.PartyId));
+                    if (!string.IsNullOrEmpty(party.SSN))
+                    {
+                        instanceOwner.PersonNumber = party.SSN;
+                        instanceOwner.OrganisationNumber = null;
+                    }
+                    else if (!string.IsNullOrEmpty(party.OrgNumber))
+                    {
+                        instanceOwner.PersonNumber = null;
+                        instanceOwner.OrganisationNumber = party.OrgNumber;
+                    }
+                }
+                catch (Exception e)
+                {
+                    logger.LogWarning($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was {e.Message}");
+                    throw new PlatformClientException($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was {e.Message}");
+                }
+            }
+            else
+            {
+                string lookupNumber = "personNumber or organisationNumber";
+                string personOrOrganisationNumber = instanceOwner.PersonNumber ?? instanceOwner.OrganisationNumber;
+                try
+                {
+                    if (!string.IsNullOrEmpty(instanceOwner.PersonNumber))
+                    {
+                        lookupNumber = "personNumber";
+                        party = await registerService.LookupParty(instanceOwner.PersonNumber);
+                    }
+                    else if (!string.IsNullOrEmpty(instanceOwner.OrganisationNumber))
+                    {
+                        lookupNumber = "organisationNumber";
+                        party = await registerService.LookupParty(instanceOwner.OrganisationNumber);
+                    }
+                    else
+                    {
+                        throw new PlatformClientException("Neither personNumber or organisationNumber has value in instanceOwner");
+                    }
+
+                    instanceOwner.PartyId = party.PartyId.ToString();
+                }
+                catch (Exception e)
+                {
+                    logger.LogWarning($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was {e}");
+                    throw new PlatformClientException($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was {e.Message}");
+                }
+            }
+
+            return party;
+        }
+
         private async Task<DataElement> StorePrefillParts(Instance instance, Application appInfo, List<RequestPart> parts)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
@@ -303,7 +348,6 @@ namespace Altinn.App.Api.Controllers
             string org = instance.Org;
             string app = instance.AppId.Split("/")[1];
           
-
             foreach (RequestPart part in parts)
             {
                 DataType dataType = appInfo.DataTypes.Find(d => d.Id == part.Name);
@@ -369,7 +413,7 @@ namespace Altinn.App.Api.Controllers
             {
                 reader.Parts.Remove(instancePart);
 
-                StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
+                using StreamReader streamReader = new StreamReader(instancePart.Stream, Encoding.UTF8);
                 string content = streamReader.ReadToEndAsync().Result;
 
                 instanceTemplate = JsonConvert.DeserializeObject<Instance>(content);                

@@ -6,15 +6,12 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Net.Http;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using AltinnCore.ServiceLibrary;
-using AltinnCore.ServiceLibrary.Enums;
-using AltinnCore.ServiceLibrary.Models;
 
-namespace AltinnCoreServiceImplementation.Template
+namespace Altinn.App.AppLogic.Validation
 {
     public class ValidationHandler
     {
-        public ValidationHandler()
+        /*public ValidationHandler()
         {
 
         }
@@ -28,7 +25,7 @@ namespace AltinnCoreServiceImplementation.Template
         public void Validate(SERVICE_MODEL_NAME SERVICE_MODEL_NAME, RequestContext requestContext, ModelStateDictionary modelState)
         {
 
-        }
+        }*/
     }
 
 }

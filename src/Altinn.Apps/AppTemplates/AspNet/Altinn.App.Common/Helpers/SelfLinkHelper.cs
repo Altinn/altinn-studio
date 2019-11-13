@@ -34,14 +34,14 @@ namespace Altinn.App.Common.Helpers
                 selfLink += instance.Id;
             }
 
-            instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
+            instance.SelfLinks ??= new ResourceLinks();
             instance.SelfLinks.Apps = selfLink;
 
             if (instance.Data != null)
             {
                 foreach (DataElement dataElement in instance.Data)
                 {
-                    dataElement.SelfLinks = dataElement.SelfLinks ?? new ResourceLinks();
+                    dataElement.SelfLinks ??= new ResourceLinks();
                     dataElement.SelfLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
                 }
             }
@@ -69,7 +69,7 @@ namespace Altinn.App.Common.Helpers
 
             selfLink += $"/{instanceOwnerPartyId}/{instanceGuid.ToString()}";
 
-            dataElement.SelfLinks = dataElement.SelfLinks ?? new ResourceLinks();
+            dataElement.SelfLinks ??= new ResourceLinks();
 
             dataElement.SelfLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
         }

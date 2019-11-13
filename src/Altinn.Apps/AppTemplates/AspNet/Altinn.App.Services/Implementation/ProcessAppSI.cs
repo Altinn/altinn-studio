@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
@@ -30,9 +31,17 @@ namespace Altinn.App.Services.Implementation
         {
             string bpmnFilePath = repositorySettings.GetWorkflowPath(org, app, null) + repositorySettings.WorkflowFileName;
 
-            Stream processModel = File.OpenRead(bpmnFilePath);
+            try
+            {                
+                Stream processModel = File.OpenRead(bpmnFilePath);
 
-            return processModel;
+                return processModel;
+            }
+            catch (Exception processDefinitionException)
+            {
+                logger.LogError($"Cannot find process definition file for {org}/{app}. Have tried file location {bpmnFilePath}. Exception {processDefinitionException}");
+                throw;
+            }            
         }
     }
 }

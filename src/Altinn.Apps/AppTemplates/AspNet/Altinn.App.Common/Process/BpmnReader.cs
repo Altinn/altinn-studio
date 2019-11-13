@@ -35,10 +35,9 @@ namespace Altinn.App.Common.Process
         public static BpmnReader Create(string definitions)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
-            using (TextReader tr = new StringReader(definitions))
-            {
-                return new BpmnReader((Definitions)serializer.Deserialize(tr));
-            }
+            using TextReader tr = new StringReader(definitions);
+
+            return new BpmnReader((Definitions)serializer.Deserialize(tr));
         }
 
         /// <summary>

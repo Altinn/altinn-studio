@@ -16,19 +16,14 @@ namespace Altinn.App.Services.Interface
         Task<Instance> GetInstance(string app, string org, int instanceOwnerPartyId, Guid instanceId);
 
         /// <summary>
-        /// Gets the instance list
+        /// Gets the instance list of a given instance owner.
         /// </summary>
-        Task<List<Instance>> GetInstances(string app, string org, int instanceOwnerPartyId);
+        Task<List<Instance>> GetInstances(int instanceOwnerPartyId);
 
         /// <summary>
         /// update instance metadata
         /// </summary>
-        Task<Instance> UpdateInstance(object dataToSerialize, string app, string org, int instanceOwnerPartyId, Guid instanceId);
-
-        /// <summary>
-        /// update instance metadata
-        /// </summary>
-        Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string app, string org, int instanceOwnerPartyId, Guid instanceId);
+        Task<Instance> UpdateInstance(Instance instance);
 
         /// <summary>
         /// Creates an instance of an application with no data.

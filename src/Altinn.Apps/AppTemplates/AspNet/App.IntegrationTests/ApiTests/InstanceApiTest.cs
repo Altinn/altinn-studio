@@ -27,8 +27,6 @@ namespace App.IntegrationTests
     {
         private readonly CustomWebApplicationFactory<Altinn.App.Startup> _factory;
 
-        private readonly string appId = "tdd/aa-template-test";
-
         public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.Startup> factory)
         {
             _factory = factory;
@@ -70,7 +68,6 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = response.Content.ReadAsStringAsync().Result;
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -86,8 +83,12 @@ namespace App.IntegrationTests
             };
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
             string responseContent = response.Content.ReadAsStringAsync().Result;
+            Instance instance = JsonConvert.DeserializeObject<Instance>(responseContent);
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            Assert.NotNull(instance);
+            Assert.Equal("1000", instance.InstanceOwner.PartyId);
         }
 
         [Fact]
