@@ -21,7 +21,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn
             return typeof(Skjema);
         }
 
-        public Task<bool> RunAppEvent(AppEventType appEvent, object model)
+        public Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null)
         {
             return Task.FromResult(true);
         }

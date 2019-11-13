@@ -24,7 +24,7 @@ namespace Altinn.App.Common.Interface
         /// </summary>
         /// <param name="serviceEvent">The service event</param>
         /// <returns>Task to indicate when the event is completed</returns>
-        Task<bool> RunAppEvent(AppEventType appEvent, object model);
+        Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState = null);
 
         /// <summary>
         /// Get the service Type

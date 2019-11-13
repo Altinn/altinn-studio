@@ -260,7 +260,7 @@ namespace AltinnCore.Runtime.RestControllers
 
                 TryValidateModel(data);
 
-                await altinnApp.RunAppEvent(AppEventType.Validation, data);
+                await altinnApp.RunAppEvent(AppEventType.Validation, data, ModelState);
 
                 if (!ModelState.IsValid)
                 {

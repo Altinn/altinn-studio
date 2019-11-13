@@ -31,6 +31,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="id">The name of the resource</param>
         /// <returns>File content with content type set</returns>
+        [Route("{org}/{app}/api/resource/{id}")]
         public IActionResult Index(string org, string app, string id)
         {
             byte[] fileContent = _execution.GetServiceResource(org, app, id);
@@ -47,6 +48,8 @@ namespace Altinn.App.Api.Controllers
         /// Method to retrieve the runtime resources
         /// </summary>
         /// <returns>File content with content type set</returns>
+      
+        [Route("{org}/{app}/api/runtimeresources/{id}/")]
         public IActionResult RuntimeResource(string id)
         {
             byte[] fileContent = _execution.GetRuntimeResource(id);

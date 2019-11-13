@@ -21,7 +21,7 @@ namespace Altinn.App.AppLogic
             throw new NotImplementedException();
         }
 
-        public Task<bool> RunAppEvent(AppEventType appEvent, object model)
+        public Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState)
         {
             throw new NotImplementedException();
         }

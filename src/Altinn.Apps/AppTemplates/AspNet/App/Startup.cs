@@ -74,7 +74,7 @@ namespace Altinn.App
             });
 
             // Application Settings 
-            services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
