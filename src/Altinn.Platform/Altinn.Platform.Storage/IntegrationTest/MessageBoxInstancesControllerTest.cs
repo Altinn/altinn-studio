@@ -28,14 +28,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly ApplicationClient appClient;
         private readonly TestData testdata;
         private readonly List<string> appIds;
-        private static DocumentClient _client;
-        private readonly AzureCosmosSettings _cosmosSettings = new AzureCosmosSettings()
-        {
-            Collection = "instances",
-            Database = "ServiceEngine",
-            EndpointUri = "https://localhost:8081",
-            PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
-        };
 
         private readonly string versionPrefix = "/storage/api/v1";
 
@@ -49,12 +41,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.client = this.fixture.Client;
             this.instanceClient = new InstanceClient(this.client);
             this.appClient = new ApplicationClient(this.client);
-
-            _client = new DocumentClient(new Uri(_cosmosSettings.EndpointUri), _cosmosSettings.PrimaryKey, new ConnectionPolicy
-            {
-                ConnectionMode = ConnectionMode.Gateway,
-                ConnectionProtocol = Protocol.Https,
-            });
 
             testdata = new TestData();
             appIds = testdata.GetAppIds();
@@ -173,13 +159,16 @@ namespace Altinn.Platform.Storage.IntegrationTest
             List<Instance> testInstances = testdata.GetInstances_App1();
             foreach (Instance item in testInstances)
             {
-                await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_cosmosSettings.Database, _cosmosSettings.Collection), item);
+                await instanceClient.PostInstances(item.AppId, item);
             }
 
             int expectedCount = 1;
 
             // Act
             HttpResponseMessage response = await client.GetAsync($"{versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerPartyId()}?state=archived");
+
+            response.EnsureSuccessStatusCode();
+
             string responseJson = await response.Content.ReadAsStringAsync();
             List<MessageBoxInstance> messageBoxInstances = JsonConvert.DeserializeObject<List<MessageBoxInstance>>(responseJson);
 
@@ -222,7 +211,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
             // Act
-            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}/undelete", null);
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.Id}/undelete", null);
             HttpStatusCode actualStatusCode = response.StatusCode;
             string responseJson = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
@@ -249,7 +238,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string expectedMsg = "Instance was permanently deleted and cannot be restored.";
 
             // Act
-            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}/undelete", null);
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.Id}/undelete", null);
             string actualMgs = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             HttpStatusCode actualStatusCode = response.StatusCode;
 
@@ -275,7 +264,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             bool expectedResult = true;
 
             // Act
-            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}/undelete", null);
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{instance.Id}/undelete", null);
             HttpStatusCode actualStatusCode = response.StatusCode;
             string responseJson = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
@@ -297,12 +286,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
         public async void RestoreInstance_TC04()
         {
             // Arrange
-            string instanceId = Guid.NewGuid().ToString();
-            string expectedMsg = $"Didn't find the object that should be restored with instanceId={testdata.GetInstanceOwnerPartyId()}/{instanceId}";
+            string instanceGuid = Guid.NewGuid().ToString();
+            string expectedMsg = $"Didn't find the object that should be restored with instanceId={testdata.GetInstanceOwnerPartyId()}/{instanceGuid}";
             HttpStatusCode expectedStatusCode = HttpStatusCode.NotFound;
 
             // Act
-            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerPartyId()}/{instanceId}/undelete", null);
+            HttpResponseMessage response = await this.client.PutAsync($"{this.versionPrefix}/sbl/instances/{testdata.GetInstanceOwnerPartyId()}/{instanceGuid}/undelete", null);
             HttpStatusCode actualStatusCode = response.StatusCode;
             string actualMgs = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
 
@@ -325,12 +314,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
             bool expectedResult = true;
 
             // Act
-            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}?hard=false");        
+            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.Id}?hard=false");        
             HttpStatusCode actualStatusCode = response.StatusCode;
             string responseJson = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
 
-            Instance storedInstance = await GetInstance(instance.Id, instance.InstanceOwner.PartyId);
+            Instance storedInstance = await GetInstance(instance.Id);
 
             // Assert
             Assert.Equal(expectedResult, actualResult);
@@ -356,12 +345,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
             bool expectedResult = true;
 
             // Act
-            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.InstanceOwner.PartyId}/{instance.Id}?hard=true");
+            HttpResponseMessage response = await this.client.DeleteAsync($"{this.versionPrefix}/sbl/instances/{instance.Id}?hard=true");
             HttpStatusCode actualStatusCode = response.StatusCode;
             string responseJson = await response.Content.ReadAsStringAsync();
             bool actualResult = JsonConvert.DeserializeObject<bool>(responseJson);
 
-            Instance storedInstance = await GetInstance(instance.Id, instance.InstanceOwner.PartyId);
+            Instance storedInstance = await GetInstance(instance.Id);
 
             // Assert
             Assert.Equal(expectedResult, actualResult);
@@ -372,20 +361,18 @@ namespace Altinn.Platform.Storage.IntegrationTest
             await this.DeleteInstance(instance);
         }
 
-        private async Task<Instance> GetInstance(string instanceGuid, string instanceOwnerId)
+        private async Task<Instance> GetInstance(string instanceId)
         {
-            Instance instance = await _client
-                  .ReadDocumentAsync<Instance>(
-                      UriFactory.CreateDocumentUri(_cosmosSettings.Database, _cosmosSettings.Collection, instanceGuid),
-                      new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
-
+            Instance instance = await instanceClient.GetInstances(instanceId);
+ 
             return instance;
         }
 
         private async Task<Instance> UploadInstance(Instance instance)
         {
-            ResourceResponse<Document> res = await _client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(_cosmosSettings.Database, _cosmosSettings.Collection), instance);
-            return JsonConvert.DeserializeObject<Instance>(res.Resource.ToString());
+            Instance res = await instanceClient.PostInstances(instance.AppId, instance);
+                
+            return res;
         }
 
         private async Task<bool> UploadInstances(List<Instance> instances)

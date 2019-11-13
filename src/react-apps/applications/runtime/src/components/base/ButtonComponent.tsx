@@ -10,11 +10,11 @@ export interface IButtonProvidedProps {
   text: string;
   disabled: boolean;
   handleDataChange: (value: any) => void;
-  unsavedChanges: boolean;
   formDataCount: number;
 }
 
 export interface IButtonProps extends IButtonProvidedProps {
+  unsavedChanges: boolean;
   validations: IValidations;
 }
 
@@ -85,6 +85,7 @@ const makeMapStateToProps = () => {
   const mapStateToProps = (state: IRuntimeState, props: IButtonProvidedProps): IButtonProps => {
     return {
       validations: GetValidations(state),
+      unsavedChanges: state.formData.unsavedChanges,
       ...props,
     };
   };

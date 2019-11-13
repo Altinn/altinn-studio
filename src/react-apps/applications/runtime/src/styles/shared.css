@@ -17,6 +17,6 @@
     #fff 5px
   );
 }
-input:hover {
+input:hover:not(.disabled) {
   border-color: #0062ba !important;
 }
