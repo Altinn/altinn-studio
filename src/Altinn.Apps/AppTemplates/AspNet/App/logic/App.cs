@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Altinn.App.AppLogic
 {
-    public class AltinnApp : IAltinnApp
+    public class App : IAltinnApp
     {
         public object CreateNewAppModel(string elementType)
         {
