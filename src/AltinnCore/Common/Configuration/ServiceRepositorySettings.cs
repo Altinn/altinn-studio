@@ -24,12 +24,12 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
-        public const string FORMLAYOUT_RESOURCE_FOLDER_NAME = "App/Config/UI/";
+        public const string FORMLAYOUT_RESOURCE_FOLDER_NAME = "App/ui/";
 
         /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
-        public const string LANGUAGE_RESOURCE_FOLDER_NAME = "App/Config/Textresources/";
+        public const string LANGUAGE_RESOURCE_FOLDER_NAME = "App/Config/texts/";
 
         /// <summary>
         /// Constant for the location of implementation files
