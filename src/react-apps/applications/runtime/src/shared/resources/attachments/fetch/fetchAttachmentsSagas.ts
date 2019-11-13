@@ -22,6 +22,6 @@ export function* fetchAttachments(): SagaIterator {
     const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
     yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
   } catch (err) {
-    // yield call(AttachmentDispatcher.fetchAttachmentsRejected, err);
+    yield call(AttachmentDispatcher.fetchAttachmentsRejected, err);
   }
 }
