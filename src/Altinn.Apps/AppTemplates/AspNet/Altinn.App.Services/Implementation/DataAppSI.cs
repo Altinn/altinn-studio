@@ -277,7 +277,10 @@ namespace Altinn.App.Services.Implementation
 
             StreamContent content = new StreamContent(stream);
             content.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-            content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse($"attachment; filename={fileName}");
+            if (!string.IsNullOrEmpty(fileName))
+            {
+                content.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse($"attachment; filename={fileName}");
+            }            
 
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 

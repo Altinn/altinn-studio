@@ -1,4 +1,6 @@
 using Altinn.App.Common.Interface;
+using Altinn.App.models;
+using Altinn.App.Models;
 using Altinn.App.Services.Enums;
 using Altinn.App.Services.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -11,13 +13,18 @@ namespace Altinn.App.AppLogic
 {
     public class App : IAltinnApp
     {
-        public object CreateNewAppModel(string elementType)
+        public object CreateNewAppModel(string dataType)
         {
             throw new NotImplementedException();
         }
 
         public Type GetAppModelType(string dataType)
         {
+            if ("default".Equals(dataType))
+            {
+                return typeof(Bestilling);
+            }
+
             throw new NotImplementedException();
         }
 

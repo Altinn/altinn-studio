@@ -1,15 +1,17 @@
 {
-  "id": "tdd/aa-template-test",
+  "id": "tdd/bestilling",
   "org": "tdd",
   "created": "2019-09-16T22:22:22",
   "createdBy": "username",
-  "title": { "nb": "titleName" },
+  "title": { "nb": "Bestillingseksempelapp" },
   "dataTypes": [
     {
       "id": "default",
       "allowedContentTypes": [ "application/xml" ],
       "appLogic": {
-        "autoCreate": true
+        "autoCreate": true,
+        "SchemaRef": "models/default/bestilling.xsd",
+        "ClassRef": "Altinn.Apps.Models.Bestilling"
       },
       "minCount": 1,
       "maxCount": 1

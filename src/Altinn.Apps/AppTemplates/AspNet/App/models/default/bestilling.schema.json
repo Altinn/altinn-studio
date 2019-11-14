@@ -1,0 +1,88 @@
+﻿{
+	"$schema" : "http://json-schema.org/schema#",
+	"$id" : "schema.json",
+	"type" : "object",
+	"properties" : {
+			"bestilling" : {
+					"$ref" : "#/definitions/Bestilling"
+				}
+		},
+	"definitions" : {
+			"Bestilling" : {
+					"properties" : {
+							"orderid" : {
+									"type" : "string",
+									"@xsdType" : "XmlAttribute"
+								},
+							"dato" : {
+									"type" : "string",
+									"format" : "date-time"
+								},
+							"referanse" : {
+									"type" : "string"
+								},
+							"postadresse" : {
+									"$ref" : "#/definitions/Adresse"
+								},
+							"ordrelinje" : {
+									"type" : "array",
+									"minItems" : 1,
+									"items" : {
+											"$ref" : "#/definitions/Ordrelinje"
+										}
+								}
+						},
+					"required" : [
+							"orderid",
+							"dato",
+							"referanse",
+							"postadresse",
+							"ordrelinje"
+						]
+				},
+			"Ordrelinje" : {
+					"properties" : {
+							"produkt" : {
+									"type" : "string"
+								},
+							"note" : {
+									"type" : "string"
+								},
+							"antall" : {
+									"type" : "integer",
+									"minimum" : 0
+								},
+							"pris" : {
+									"type" : "number"
+								}
+						},
+					"required" : [
+							"produkt",
+							"antall",
+							"pris"
+						]
+				},
+			"Adresse" : {
+					"properties" : {
+							"navn" : {
+									"type" : "string"
+								},
+							"adresse" : {
+									"type" : "string"
+								},
+							"postNummber" : {
+									"type" : "integer"
+								},
+							"postSted" : {
+									"type" : "string"
+								}
+						},
+					"required" : [
+							"navn",
+							"adresse",
+							"postNummber",
+							"postSted"
+						]
+				}
+		}
+}
