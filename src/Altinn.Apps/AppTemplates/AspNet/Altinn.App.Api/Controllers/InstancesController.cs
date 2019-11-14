@@ -23,6 +23,7 @@ namespace Altinn.App.Api.Controllers
     /// Controller for application instances for app-backend.
     /// You can create a new instance (POST), update it (PUT) and retreive a specific instance (GET).
     /// </summary>
+    [Authorize]
     [Route("{org}/{app}/instances")]
     [ApiController]
     public class InstancesController : ControllerBase
@@ -30,6 +31,7 @@ namespace Altinn.App.Api.Controllers
         private readonly ILogger<InstancesController> logger;
         private readonly IInstance instanceService;
         private readonly IData dataService;
+        private readonly IApplication applicationService;
 
         private readonly IExecution executionService;
         private readonly IRegister registerService;
@@ -44,6 +46,7 @@ namespace Altinn.App.Api.Controllers
             IInstance instanceService,
             IData dataService,
             IExecution executionService,
+            IApplication applicationService,
             IAltinnApp altinnApp)
         {
             this.logger = logger;
@@ -51,6 +54,7 @@ namespace Altinn.App.Api.Controllers
             this.dataService = dataService;
             this.executionService = executionService;
             this.registerService = registerService;
+            this.applicationService = applicationService;
             this.altinnApp = altinnApp;
         }
 
@@ -62,7 +66,6 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>the instance</returns>
-        [Authorize]
         [HttpGet("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
@@ -101,8 +104,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="instance">the instance with attributes that should be updated</param>
         /// <returns>the updated instance</returns>
-        [Authorize]
-        [HttpPut("{instanceOwnerId:int}/{instanceGuid:guid}")]
+        [HttpPut("{instanceOwnerPartyId:int}/{instanceGuid:guid}")]
         [Produces("application/json")]
         [Consumes("application/json")]
         [ProducesResponseType(typeof(Instance), StatusCodes.Status200OK)]
@@ -114,7 +116,11 @@ namespace Altinn.App.Api.Controllers
             [FromRoute] Guid instanceGuid,
             [FromBody] Instance instance)
         {
-            if (instance == null || !org.Equals(instance.Org) || !instance.AppId.EndsWith(app) || !instanceOwnerPartyId.Equals(instance.InstanceOwner.PartyId) || !instance.Id.EndsWith(instanceGuid.ToString()))
+            if (instance == null ||
+                !org.Equals(instance.Org) ||
+                !instance.AppId.EndsWith(app) ||
+                !instanceOwnerPartyId.Equals(int.Parse(instance.InstanceOwner.PartyId)) ||
+                !instance.Id.EndsWith(instanceGuid.ToString()))
             {
                 return BadRequest($"Inconsistent values between path params and instance attributes");
             }
@@ -148,7 +154,6 @@ namespace Altinn.App.Api.Controllers
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerPartyId">unique id of the party that is the owner of the instance</param>
         /// <returns>the created instance</returns>
-        [Authorize]
         [HttpPost]
         [DisableFormValueModelBinding]
         [Produces("application/json")]
@@ -170,7 +175,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("The path parameter 'app' cannot be empty");
             }
 
-            Application application = executionService.GetApplication(org, app);
+            Application application = await applicationService.GetApplication(org, app);
             if (application == null)
             {
                 return NotFound($"AppId {org}/{app} was not found");
@@ -181,7 +186,7 @@ namespace Altinn.App.Api.Controllers
 
             if (parsedRequest.Errors.Any())
             {
-                return BadRequest($"Error when reading content: {parsedRequest.Errors}");
+                return BadRequest($"Error when reading content: {JsonConvert.SerializeObject(parsedRequest.Errors)}");
             }
 
             Instance instanceTemplate = ExtractInstanceTemplate(parsedRequest);
@@ -252,7 +257,7 @@ namespace Altinn.App.Api.Controllers
             }
             catch (Exception instanceException)
             {
-                string message = $"Failure in multipart prefil. Could not create an instance of {org}/{app} for {instanceOwnerPartyId}. App-backend has problem accessing platform storage.";
+                string message = $"Failure in multipart prefil. Could not create an instance of {org}/{app} for party {instanceTemplate.InstanceOwner.PartyId}.";
 
                 logger.LogError($"{message} - {instanceException}");
                 return StatusCode(500, $"{message} - {instanceException.Message}");
@@ -260,18 +265,18 @@ namespace Altinn.App.Api.Controllers
 
             try
             {
-                DataElement dataElement = await StorePrefillParts(instance, application, parsedRequest.Parts);
+                await StorePrefillParts(instance, application, parsedRequest.Parts);
 
                 // get the updated instance
                 instance = await instanceService.GetInstance(app, org, int.Parse(instance.InstanceOwner.PartyId), Guid.Parse(instance.Id.Split("/")[1]));
             }
             catch (Exception dataException)
             {
-                string message = $"Failure storing multipart prefil. Could not create a data element for {instance.Id} of {org}/{app}. App-backend has problem accessing platform storage.";
+                string message = $"Failure storing multipart prefil data. Could not create a data element for {instance.Id} of {org}/{app}.";
                 logger.LogError($"{message} - {dataException}");
 
                 // todo add compensating transaction (delete instance)                
-                return StatusCode(500, $"{message} - {dataException.Message}");
+                return StatusCode(500, $"{message} Exception: {dataException.Message}");
             }
 
             SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
@@ -303,8 +308,8 @@ namespace Altinn.App.Api.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.LogWarning($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was {e.Message}");
-                    throw new PlatformClientException($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was {e.Message}");
+                    logger.LogWarning($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
+                    throw new PlatformClientException($"Failed to lookup party by partyId: {instanceOwner.PartyId}. The exception was: {e.Message}");
                 }
             }
             else
@@ -332,15 +337,15 @@ namespace Altinn.App.Api.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.LogWarning($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was {e}");
-                    throw new PlatformClientException($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was {e.Message}");
+                    logger.LogWarning($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e}");
+                    throw new PlatformClientException($"Failed to lookup party by {lookupNumber}: {personOrOrganisationNumber}. The exception was: {e.Message}");
                 }
             }
 
             return party;
         }
 
-        private async Task<DataElement> StorePrefillParts(Instance instance, Application appInfo, List<RequestPart> parts)
+        private async Task StorePrefillParts(Instance instance, Application appInfo, List<RequestPart> parts)
         {
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             int instanceOwnerIdAsInt = int.Parse(instance.InstanceOwner.PartyId);
@@ -356,7 +361,16 @@ namespace Altinn.App.Api.Controllers
                 {
                     logger.LogInformation($"Storing part {part.Name}");
 
-                    Type type = altinnApp.GetAppModelType(part.Name);
+                    Type type;
+                    try
+                    {
+                        type = altinnApp.GetAppModelType(part.Name);
+                    }
+                    catch (Exception altinnAppException)
+                    {
+                        throw new ApplicationException($"App.GetAppModelType failed: {altinnAppException.Message}");
+                    }
+                    
                     object data = DataController.ParseFormDataAndDeserialize(type, part.ContentType, part.Stream, out string errorText);
 
                     if (!string.IsNullOrEmpty(errorText))
@@ -375,7 +389,6 @@ namespace Altinn.App.Api.Controllers
                 }
                 else
                 {
-
                     dataElement = await dataService.InsertBinaryData(instance.Id, part.Name, part.ContentType, part.FileName, part.Stream);
                 }
 
@@ -383,10 +396,7 @@ namespace Altinn.App.Api.Controllers
                 {
                     throw new InvalidOperationException($"Dataservice did not return a valid instance metadata when attempt to store data element {part.Name}");
                 }
-
             }
-
-            return dataElement;
         }
 
         /// <summary>
