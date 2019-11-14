@@ -5,6 +5,7 @@ using Altinn.App.Services.Interface;
 using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -40,7 +41,7 @@ namespace App.IntegrationTests.ApiTests
 
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd", "endring-av-navn");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances/1000/36133fb5-a9f2-45d4-90b1-f6d93ad40713/data?dataType=default")
             {
@@ -62,7 +63,7 @@ namespace App.IntegrationTests.ApiTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd", "endring-av-navn");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
             {
@@ -83,7 +84,7 @@ namespace App.IntegrationTests.ApiTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd","no-access");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "no-access");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/no-access/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
             {
@@ -104,7 +105,7 @@ namespace App.IntegrationTests.ApiTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd", "multiple-results");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "multiple-results"); 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/multiple-results/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
             {
@@ -125,7 +126,7 @@ namespace App.IntegrationTests.ApiTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd", "auth-level-2");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "auth-level-2");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/auth-level-2/instances/1000/1916cd18-3b8e-46f8-aeaf-4bc3397ddd08/data/1fdd55c0-2016-49e0-97de-54b4abd1caa0")
             {
@@ -146,7 +147,7 @@ namespace App.IntegrationTests.ApiTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd","auth-level-3");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "auth-level-3"); 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/auth-level-3/instances/1000/1c3a4b9d-cbbe-4146-b370-4164e925812b/data/ee60b341-fbc6-4bff-ade5-8f049555e1e6")
             {
@@ -155,50 +156,6 @@ namespace App.IntegrationTests.ApiTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
 
             Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-        }
-
-
-        private HttpClient GetTestClient(string org, string app)
-        {
-            HttpClient client = _factory.WithWebHostBuilder(builder =>
-            {
-
-                string path = GetAppPath(org, app);
-
-                var configuration = new ConfigurationBuilder()
-                .AddJsonFile(path + "appsettings.json")
-                .Build();
-
-                configuration.GetSection("AppSettings:AppBasePath").Value = path;
-
-                IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
-
-
-                builder.ConfigureTestServices(services =>
-                {
-                    services.Configure<AppSettings>(appSettingSection);
-
-                    services.AddSingleton<IInstance, InstanceMockSI>();
-                    services.AddSingleton<IData, DataMockSI>();
-                    services.AddSingleton<IRegister, RegisterMockSI>();
-
-                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
-                    services.AddSingleton<IApplication, ApplicationMockSI>();
-
-                    services.AddSingleton<IAltinnApp, AltinnApp>();
-
-                });
-            })
-            .CreateClient();
-
-            return client;
-        }
-
-
-        private string GetAppPath(string org, string app)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Apps\", org + @"\", app + @"\");
         }
 
     }
