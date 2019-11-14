@@ -7,6 +7,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
 using App.IntegrationTests.Mocks.Services;
 using App.IntegrationTests.Utils;
+using App.IntegrationTestsRef.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -43,7 +44,7 @@ namespace App.IntegrationTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd", "endring-av-navn");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1000/26133fb5-a9f2-45d4-90b1-f6d93ad40713")
             {
@@ -63,7 +64,7 @@ namespace App.IntegrationTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd", "endring-av-navn");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/endring-av-navn/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713")
             {
@@ -78,7 +79,7 @@ namespace App.IntegrationTests
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = GetTestClient("tdd", "endring-av-navn");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/tdd/endring-av-navn/instances?instanceOwnerPartyId=1000")
             {
@@ -107,7 +108,7 @@ namespace App.IntegrationTests
                 DueBefore = DateTime.Parse("2020-01-01"),
             };
 
-            HttpClient client = GetTestClient("tdd", "endring-av-navn");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
 
@@ -161,7 +162,7 @@ namespace App.IntegrationTests
           
             /* TEST */
 
-            HttpClient client = GetTestClient("tdd", "endring-av-navn");
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "endring-av-navn");
             string token = PrincipalUtil.GetToken(1);
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -177,49 +178,6 @@ namespace App.IntegrationTests
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
 
-        }
-
-        private HttpClient GetTestClient(string org, string app)
-        {
-            HttpClient client = _factory.WithWebHostBuilder(builder =>
-            {
-
-                string path = GetAppPath(org, app);
-
-                var configuration = new ConfigurationBuilder()
-                .AddJsonFile(path + "appsettings.json")
-                .Build();
-
-                configuration.GetSection("AppSettings:AppBasePath").Value = path;
-        
-                IConfigurationSection appSettingSection = configuration.GetSection("AppSettings");
-               
-             
-                builder.ConfigureTestServices(services =>
-                {
-                    services.Configure<AppSettings>(appSettingSection);
-
-                    services.AddSingleton<IInstance, InstanceMockSI>();
-                    services.AddSingleton<IData, DataMockSI>();
-                    services.AddSingleton<IRegister, RegisterMockSI>();
-                      
-                    services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
-                    services.AddSingleton<IApplication, ApplicationMockSI>();
-
-                    services.AddSingleton<IAltinnApp, AltinnApp>();
-
-                });
-            })
-            .CreateClient();
-
-            return client;
-        }
-
-
-        private string GetAppPath(string org, string app)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
-            return Path.Combine(unitTestFolder, @"..\..\..\Data\Apps\", org + @"\", app + @"\");
         }
     }
 }
