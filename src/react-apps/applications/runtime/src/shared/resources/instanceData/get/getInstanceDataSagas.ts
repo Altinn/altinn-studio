@@ -18,7 +18,7 @@ export function* getInstanceDataSaga({
     const result = yield call(get, url);
 
     if (result) {
-      const attachments: IAttachments = mapAttachmentListToAttachments(result);
+      const attachments: IAttachments = mapAttachmentListToAttachments(result.data);
       yield call(AttachmentDispatcher.fetchAttachmentsFulfilled, attachments);
     }
 

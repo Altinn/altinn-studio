@@ -3,7 +3,7 @@ import { IAttachmentListApiResponse, IAttachments } from '../shared/resources/at
 export function mapAttachmentListToAttachments(response: IAttachmentListApiResponse[]): IAttachments {
   const attachments: IAttachments = {};
 
-  response.data.forEach((element: any) => {
+  response.forEach((element: any) => {
       if (element.elementType === 'default') {
         return;
       }
