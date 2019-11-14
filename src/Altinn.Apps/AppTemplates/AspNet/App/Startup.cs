@@ -66,7 +66,7 @@ namespace Altinn.App
             services.AddTransient<IPDP, PDPAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
-            services.AddTransient<IAltinnApp, App>();
+            services.AddTransient<IAltinnApp,App.AppLogic.App>();
 
             services.Configure<KestrelServerOptions>(options =>
             {

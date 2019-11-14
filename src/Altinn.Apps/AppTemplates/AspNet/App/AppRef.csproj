@@ -7,8 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="ui\Dynamics\" />
-    <Folder Include="models\" />
+    <Compile Remove="ui\Dynamics\**" />
+    <Content Remove="ui\Dynamics\**" />
+    <EmbeddedResource Remove="ui\Dynamics\**" />
+    <None Remove="ui\Dynamics\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\script\" />
   </ItemGroup>
