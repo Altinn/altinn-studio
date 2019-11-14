@@ -40,7 +40,7 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ISourceControl, SourceControlSI>();
+            services.AddTransient<ISourceControl, SourceControlSI>();
             services.AddSingleton<ITestdata, TestdataStudioSI>();
             services.AddSingleton<IApplication, ApplicationStudioSI>();
 
