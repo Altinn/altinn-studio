@@ -68,7 +68,7 @@ namespace AltinnCore.Runtime.RequestHandling
                     return $"The multipart section named {part.Name} has no data. Cannot process empty part.";
                 }
 
-                if (elementType.MaxSize.HasValue && contentSize > elementType.MaxSize.Value)
+                if (elementType.MaxSize.HasValue && elementType.MaxSize.Value > 0 && contentSize > (long)elementType.MaxSize.Value * 1024 * 1024)
                 {
                     return $"The multipart section named {part.Name} exceeds the size limit of element type '{elementType}'";
                 }
