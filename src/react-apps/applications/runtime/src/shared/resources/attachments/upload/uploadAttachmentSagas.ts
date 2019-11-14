@@ -5,7 +5,7 @@ import { getFileUploadComponentValidations } from './../../../../components/base
 import FormValidationsDispatcher from './../../../../features/form/validation/actions';
 import { IRuntimeState } from './../../../../types';
 import { post } from './../../../../utils/networking';
-import { appPath } from './../../../../utils/urlHelper';
+import { appPath, fileUploadUrl } from './../../../../utils/urlHelper';
 import AttachmentDispatcher from './../attachmentActions';
 import * as AttachmentActionsTypes from './../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';
@@ -24,9 +24,7 @@ export function* uploadAttachmentSaga(
     const data = new FormData();
     data.append('file', file);
 
-    const fileUploadLink = `${appPath}/instances/` +
-      `${instanceId}/data?elementType=${attachmentType}&attachmentName=${file.name}`;
-
+    const fileUploadLink = fileUploadUrl(attachmentType, file.name);
     const response = yield call(post, fileUploadLink, null, data);
 
     if (response.status === 200) {
