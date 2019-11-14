@@ -41,6 +41,7 @@ namespace Altinn.Platform.Register
                                 .CreateLogger();
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-                .UseStartup<Startup>();
+            .UseUrls("http://*:5020")
+            .UseStartup<Startup>();
     }
 }

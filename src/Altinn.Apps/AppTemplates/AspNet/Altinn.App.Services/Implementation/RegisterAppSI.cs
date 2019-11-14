@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
 using Altinn.App.Services.Clients;
@@ -11,6 +12,7 @@ using AltinnCore.Authentication.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using IRegister = Altinn.App.Services.Interface.IRegister;
 
 namespace Altinn.App.Services.Implementation
@@ -98,12 +100,14 @@ namespace Altinn.App.Services.Implementation
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _cookieOptions.Cookie.Name);
             JwtTokenUtil.AddTokenToRequestHeader(_client, token);
 
+            StringContent content = new StringContent(JsonConvert.SerializeObject(personOrOrganisationNumber));
+            content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
             HttpRequestMessage request = new HttpRequestMessage
             {
                 RequestUri = new System.Uri(endpointUrl, System.UriKind.Relative),
                 Method = HttpMethod.Get,
-                Content = new StringContent(personOrOrganisationNumber),
-            };
+                Content = content,
+            };            
 
             HttpResponseMessage response = await _client.SendAsync(request);
             if (response.StatusCode == HttpStatusCode.OK)
