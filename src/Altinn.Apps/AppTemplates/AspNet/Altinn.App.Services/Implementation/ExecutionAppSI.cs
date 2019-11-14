@@ -48,15 +48,24 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public byte[] GetServiceResource(string org, string app, string resource)
+        public byte[] GetAppResource(string org, string app, string resource)
         {
             byte[] fileContent = null;
 
+           Application application = GetApplication(org, app);
+ 
             if (resource == _settings.RuleHandlerFileName)
             {
-                if (File.Exists(_settings.GetDynamicsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
+                if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
                 {
-                    fileContent = File.ReadAllBytes( _settings.GetDynamicsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
+                    fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
+                }
+            }
+            else if (resource == _settings.FormLayoutJSONFileName)
+            {
+                if (File.Exists(_settings.AppBasePath + _settings.UiFolder + resource))
+                {
+                    fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.UiFolder + resource);
                 }
             }
             else
@@ -67,6 +76,18 @@ namespace Altinn.App.Services.Implementation
                 }
             }
 
+            return fileContent;
+        }
+
+        public byte[] GetText(string org, string app, string textResource)
+        {
+            byte[] fileContent = null;
+
+            if (File.Exists(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + textResource))
+            {
+                fileContent = File.ReadAllBytes(_settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder + textResource);
+            }
+          
             return fileContent;
         }
 
@@ -95,7 +116,18 @@ namespace Altinn.App.Services.Implementation
         /// <inheritdoc/>
         public ServiceMetadata.ServiceMetadata GetServiceMetaData(string org, string app)
         {
-            string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.ServiceMetadataFileName;
+            Application applicationMetadata = GetApplication(org, app);
+
+            string dataTypeId = string.Empty;
+            foreach (DataType data in applicationMetadata.DataTypes)
+            {
+                if (data.AppLogic != null && !string.IsNullOrEmpty(data.AppLogic.ClassRef))
+                {
+                    dataTypeId = data.Id;
+                }
+            }
+
+            string filename = _settings.AppBasePath + _settings.ModelsFolder + dataTypeId +"." +  _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
             return JsonConvert.DeserializeObject<ServiceMetadata.ServiceMetadata>(filedata);
         }

@@ -104,6 +104,16 @@ namespace Altinn.App.Services.Configuration
         public string UiFolder { get; set; }
 
         /// <summary>
+        /// The models folder
+        /// </summary>
+        public string ModelsFolder { get; set; }
+
+        /// <summary>
+        /// The text folder
+        /// </summary>
+        public string TextFolder { get; set; }
+
+        /// <summary>
         /// Gets or sets the Repository Location
         /// </summary>
         public string RepositoryLocation { get; set; }
@@ -116,7 +126,7 @@ namespace Altinn.App.Services.Configuration
         /// <summary>
         /// Gets or sets The name of the FormLayout json file Name
         /// </summary>
-        public string FormLayoutJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "FormLayout.json";
+        public string FormLayoutJSONFileName { get; set; } = "FormLayout.json";
 
         /// <summary>
         /// Gets or sets The name of the ThirdPartyComponents json file Name
