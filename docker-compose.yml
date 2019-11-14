@@ -65,6 +65,10 @@ services:
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:LanguageFilesLocation=Languages/
+      - GeneralSettings:TemplateLocation=Templates/AspNet
+      - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
+      - GeneralSettings:AppLocation=Templates/AspNet/App
+      - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
       - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:

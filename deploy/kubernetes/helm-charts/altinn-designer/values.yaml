@@ -25,13 +25,13 @@ environmentVariables:
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__TemplateLocation
-      value: app/Templates/AspNet
+      value: Templates/AspNet
     - name: GeneralSettings__DeploymentLocation
-      value: app/Templates/AspNet/deployment
+      value: Templates/AspNet/deployment
     - name: GeneralSettings__AppLocation
-      value: app/Templates/AspNet/App
+      value: Templates/AspNet/App
     - name: GeneralSettings__IntegrationTestsLocation
-      value: app/Templates/AspNet/App.IntegrationTests
+      value: Templates/AspNet/App.IntegrationTests
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -74,13 +74,13 @@ environmentVariables:
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__TemplateLocation
-      value: app/Templates/AspNet
+      value: Templates/AspNet
     - name: GeneralSettings__DeploymentLocation
-      value: app/Templates/AspNet/deployment
+      value: Templates/AspNet/deployment
     - name: GeneralSettings__AppLocation
-      value: app/Templates/AspNet/App
+      value: Templates/AspNet/App
     - name: GeneralSettings__IntegrationTestsLocation
-      value: app/Templates/AspNet/App.IntegrationTests
+      value: Templates/AspNet/App.IntegrationTests
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -123,13 +123,13 @@ environmentVariables:
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__TemplateLocation
-      value: app/Templates/AspNet
+      value: Templates/AspNet
     - name: GeneralSettings__DeploymentLocation
-      value: app/Templates/AspNet/deployment
+      value: Templates/AspNet/deployment
     - name: GeneralSettings__AppLocation
-      value: app/Templates/AspNet/App
+      value: Templates/AspNet/App
     - name: GeneralSettings__IntegrationTestsLocation
-      value: app/Templates/AspNet/App.IntegrationTests
+      value: Templates/AspNet/App.IntegrationTests
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
