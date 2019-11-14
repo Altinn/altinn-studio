@@ -2,7 +2,7 @@ import * as React from 'react';
 import DropZone from 'react-dropzone';
 import { connect } from 'react-redux';
 import uuid = require('uuid');
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import altinnTheme from '../../../../shared/src/theme/altinnAppTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { IAttachment } from '../../shared/resources/attachments';
 import AttachmentDispatcher from '../../shared/resources/attachments/attachmentActions';
@@ -43,7 +43,7 @@ const baseStyle = {
   width: 'auto',
   height: '15.6rem',
   borderWidth: '2px',
-  borderColor: altinnTheme.altinnPalette.primary.blue,
+  borderColor: altinnTheme.altinnPalette.primary.blueMedium,
   borderStyle: 'dashed',
   cursor: 'pointer',
 };

@@ -44,6 +44,14 @@ option {
   padding-left: 0.6rem;
 }
 
+.a-form-group .form-control {
+  border: 2px solid #008FD6;
+}
+
+.a-form-group .input-group .input-group-prepend {
+  border: 2px solid #008FD6;
+}
+
 .cursorPointer {
   cursor: pointer;
 }
