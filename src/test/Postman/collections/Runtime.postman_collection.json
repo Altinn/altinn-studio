@@ -1628,49 +1628,6 @@
 					"response": []
 				},
 				{
-					"name": "GET Current Process",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
-								"exec": [
-									"if (pm.response.code == 200)\r",
-									"{\r",
-									"    var jsonData = pm.response.json();\r",
-									"    var elementId = jsonData.currentTask.elementId;\r",
-									"    pm.environment.set(\"processElementId\", elementId);\r",
-									"}\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process",
-							"protocol": "https",
-							"host": [
-								"{{org}}",
-								"apps",
-								"{{envUrl}}"
-							],
-							"path": [
-								"{{org}}",
-								"{{app}}",
-								"instances",
-								"{{instanceOwnerId}}",
-								"{{instanceId}}",
-								"process"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "POST Start Process",
 					"event": [
 						{
@@ -1719,6 +1676,49 @@
 								"{{instanceId}}",
 								"process",
 								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Current Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
+								"exec": [
+									"pm.test(\"Runtime - Process - Get Current Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var elementId = jsonData.currentTask.elementId;\r",
+									"    pm.environment.set(\"processElementId\", elementId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process"
 							]
 						}
 					},
