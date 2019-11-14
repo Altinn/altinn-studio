@@ -11,8 +11,6 @@ namespace Altinn.App.Services.Configuration
     /// </summary>
     public class AppSettings
     {
-
-
         public const string CONFIG_FOLDER_NAME = "Codelists/";
 
         /// <summary>
@@ -88,7 +86,6 @@ namespace Altinn.App.Services.Configuration
         /// Constant for the location of service metadata file
         /// </summary>
         public const string METADATA_FILENAME = "ServiceMetadata.json";
-        private const string GENERATED_METHODS_FILENAME = "GeneratedMethods.cs";
 
         /// <summary>
         /// Gets or sets the Repository Location
@@ -170,7 +167,7 @@ namespace Altinn.App.Services.Configuration
         /// </summary>
         public string RuleHandlerFileName { get; set; } = "RuleHandler.js";
 
-               
+
         /// <summary>
         /// Gets the styles config element
         /// </summary>
@@ -248,7 +245,7 @@ namespace Altinn.App.Services.Configuration
         {
             return METADATA_FOLDER_NAME;
         }
-        
+
         /// <summary>
         /// Gets the full path to model directory
         /// </summary>

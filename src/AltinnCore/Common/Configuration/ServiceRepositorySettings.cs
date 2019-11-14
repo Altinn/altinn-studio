@@ -109,7 +109,6 @@ namespace AltinnCore.Common.Configuration
         /// Constant for the location of service metadata file
         /// </summary>
         public const string METADATA_FILENAME = "ServiceMetadata.json";
-        private const string GENERATED_METHODS_FILENAME = "GeneratedMethods.cs";
 
         /// <summary>
         /// Gets or sets the Repository Location
@@ -295,11 +294,6 @@ namespace AltinnCore.Common.Configuration
         /// Gets or sets the repo search page count used for searching repos
         /// </summary>
         public int RepoSearchPageCount { get; set; } = 1337;
-
-        /// <summary>
-        /// Gets or sets the filename for the generated methods class
-        /// </summary>
-        public string GeneratedMethodsFileName { get; set; } = GENERATED_METHODS_FILENAME;
 
         /// <summary>
         /// Gets the styles config element
@@ -523,7 +517,7 @@ namespace AltinnCore.Common.Configuration
         {
             return GetServicePath(org, app, developer) + VALIDATION_FOLDER_NAME;
         }
-        
+
         /// <summary>
         /// Gets the full path to InstantiationHandler.cs
         /// </summary>

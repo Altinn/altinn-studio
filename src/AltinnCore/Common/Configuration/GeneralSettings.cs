@@ -141,17 +141,6 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the generated methods template.
-        /// </summary>
-        public string GeneratedMethodsTemplate
-        {
-            get
-            {
-                return TemplateLocation + "/GeneratedMethods.cs";
-            }
-        }
-
-        /// <summary>
         /// Gets the path to the default Dockerfile file.
         /// </summary>
         public string DefaultRepoDockerfile
@@ -206,7 +195,7 @@ namespace AltinnCore.Common.Configuration
         public string SBLBaseAdress { get; set; }
 
         /// <summary>
-        /// Get the base adress for SBL from kubernetes environment variables and appsettings is environment variable is not set. 
+        /// Get the base adress for SBL from kubernetes environment variables and appsettings is environment variable is not set.
         /// </summary>
         public string GetSBLBaseAdress
         {
