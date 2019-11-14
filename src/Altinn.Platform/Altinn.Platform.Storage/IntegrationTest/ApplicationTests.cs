@@ -171,7 +171,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string json = await getResponse.Content.ReadAsStringAsync();
             Application application = JsonConvert.DeserializeObject<Application>(json);                
 
-            application.MaxSize = 2000;
+            application.MaxSize = 2;
 
             // update it
             HttpResponseMessage putResponse = await client.PutAsync(requestUri, application.AsJson());

@@ -7,10 +7,9 @@ import { getLanguageFromKey } from './../../../../shared/src/utils/language';
 import { IAttachment } from './../../shared/resources/attachments';
 import AttachmentDispatcher from './../../shared/resources/attachments/attachmentActions';
 import './../../styles/FileUploadComponent.css';
-import { renderValidationMessagesForComponent } from './../../utils/render';
-
 import { IRuntimeState } from './../../types';
 import { IComponentValidations } from './../../types/global';
+import { renderValidationMessagesForComponent } from './../../utils/render';
 
 export interface IFileUploadProvidedProps {
   displayMode: string;
@@ -43,7 +42,7 @@ const baseStyle = {
   width: 'auto',
   height: '15.6rem',
   borderWidth: '2px',
-  borderColor: altinnTheme.altinnPalette.primary.blue,
+  borderColor: altinnTheme.altinnPalette.primary.blueMedium,
   borderStyle: 'dashed',
   cursor: 'pointer',
 };
