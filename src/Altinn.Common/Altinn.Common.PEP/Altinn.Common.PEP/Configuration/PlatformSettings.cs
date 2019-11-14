@@ -24,22 +24,6 @@ namespace Altinn.Common.PEP.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the url host for API storage
-        /// </summary>
-        public string ApiStorageEndpointHost { get; set; }
-
-        /// <summary>
-        /// Gets the url host for API storage by looking into environment variables
-        /// </summary>
-        public string GetApiStorageEndpointHost
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("PlatformSettings__ApiStorageEndpointHost") ?? ApiStorageEndpointHost;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the url for the API register endpoint
         /// </summary>
         public string ApiRegisterEndpoint { get; set; }
@@ -52,22 +36,6 @@ namespace Altinn.Common.PEP.Configuration
             get
             {
                 return Environment.GetEnvironmentVariable("PlatformSettings__ApiRegisterEndpoint") ?? ApiRegisterEndpoint;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the url host for API register
-        /// </summary>
-        public string ApiRegisterEndpointHost { get; set; }
-
-        /// <summary>
-        /// Gets the url host for API register by looking into environment variables
-        /// </summary>
-        public string GetApiRegisterEndpointHost
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("PlatformSettings__ApiRegisterEndpointHost") ?? ApiRegisterEndpointHost;
             }
         }
 
@@ -88,22 +56,6 @@ namespace Altinn.Common.PEP.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the url host for API profile
-        /// </summary>
-        public string ApiProfileEndpointHost { get; set; }
-
-        /// <summary>
-        /// Gets the url host for API profile by looking into environment variables
-        /// </summary>
-        public string GetApiProfileEndpointHost
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("PlatformSettings__ApiProfileEndpointHost") ?? ApiProfileEndpointHost;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the url for the API Authentication endpoint
         /// </summary>
         public string ApiAuthenticationEndpoint { get; set; }
@@ -120,22 +72,6 @@ namespace Altinn.Common.PEP.Configuration
         }
 
         /// <summary>
-        /// Gets or sets the url host for API Authentication
-        /// </summary>
-        public string ApiAuthenticationEndpointHost { get; set; }
-
-        /// <summary>
-        /// Gets the url host for API Authentication by looking into environment variables
-        /// </summary>
-        public string GetApiAuthenticationEndpointHost
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthenticationEndpointHost") ?? ApiAuthenticationEndpointHost;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the url for the API Authorization endpoint
         /// </summary>
         public string ApiAuthorizationEndpoint { get; set; }
@@ -148,22 +84,6 @@ namespace Altinn.Common.PEP.Configuration
             get
             {
                 return Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthorizationEndpoint") ?? ApiAuthorizationEndpoint;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the url host for API Authorization
-        /// </summary>
-        public string ApiAuthorizationEndpointHost { get; set; }
-
-        /// <summary>
-        /// Gets the url host for API Authorization by looking into environment variables
-        /// </summary>
-        public string GetApiAuthorizationEndpointHost
-        {
-            get
-            {
-                return Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthorizationEndpointHost") ?? ApiAuthorizationEndpointHost;
             }
         }
     }

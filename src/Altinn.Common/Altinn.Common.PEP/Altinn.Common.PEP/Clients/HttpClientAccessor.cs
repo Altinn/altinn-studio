@@ -31,55 +31,6 @@ namespace Altinn.Common.PEP.Clients
         }
 
         /// <inheritdoc />
-        public HttpClient RegisterClient
-        {
-            get
-            {
-                if (_registerClient == null)
-                {
-                    _registerClient = new HttpClient();
-                    _registerClient.BaseAddress = new Uri($"{_platformSettings.GetApiRegisterEndpoint}");
-                    _registerClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                }
-
-                return _registerClient;
-            }
-        }
-
-        /// <inheritdoc />
-        public HttpClient ProfileClient
-        {
-            get
-            {
-                if (_profileClient == null)
-                {
-                    _profileClient = new HttpClient();
-                    _profileClient.BaseAddress = new Uri($"{_platformSettings.GetApiProfileEndpoint}");
-                    _profileClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                }
-
-                return _profileClient;
-            }
-        }
-
-        /// <inheritdoc />
-        public HttpClient StorageClient
-        {
-            get
-            {
-                if (_storageClient == null)
-                {
-                    _storageClient = new HttpClient();
-                    _storageClient.BaseAddress = new Uri($"{_platformSettings.GetApiStorageEndpoint}");
-                    _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                    _storageClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
-                }
-
-                return _storageClient;
-            }
-        }
-
-        /// <inheritdoc />
         public HttpClient AuthorizationClient
         {
             get
@@ -92,22 +43,6 @@ namespace Altinn.Common.PEP.Clients
                 }
 
                 return _authorizationClient;
-            }
-        }
-
-        /// <inheritdoc />
-        public HttpClient AuthenticationClient
-        {
-            get
-            {
-                if (_authenticationClient == null)
-                {
-                    _authenticationClient = new HttpClient();
-                    _authenticationClient.BaseAddress = new Uri($"{_platformSettings.GetApiAuthenticationEndpoint}");
-                    _authenticationClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                }
-
-                return _authenticationClient;
             }
         }
     }
