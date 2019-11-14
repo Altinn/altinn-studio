@@ -1,5 +1,3 @@
-using System;
-using Altinn.App.Services.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Services.Interface
@@ -9,21 +7,6 @@ namespace Altinn.App.Services.Interface
     /// </summary>
     public interface IExecution
     {
-        /// <summary>
-        /// Returns a new instanceId for an app.
-        /// </summary>
-        /// <returns>The instanceId.</returns>
-        Guid GetNewServiceInstanceID();
-
-        /// <summary>
-        /// Gets the raw content of a code list.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="name">The name of the code list to retrieve.</param>
-        /// <returns>Raw contents of a code list file.</returns>
-        string GetCodelist(string org, string app, string name);
-
         /// <summary>
         /// Get the app resource for the given parameters.
         /// </summary>

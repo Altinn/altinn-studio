@@ -32,6 +32,7 @@ namespace Altinn.App.Api.Controllers
         private readonly IInstance instanceService;
         private readonly IApplication appService;
         private readonly IAltinnApp altinnApp;
+        private readonly IExecution executionService;
 
         private const long REQUEST_SIZE_LIMIT = 2000 * 1024 * 1024;
 
@@ -43,12 +44,14 @@ namespace Altinn.App.Api.Controllers
         /// <param name="dataService">dataservice</param>
         /// <param name="appService">application service for accessing application metadata.</param>
         /// <param name="altinnApp">The app logic for current service</param>
+        /// <param name="executionService">The execution service</param>
         public DataController(
             ILogger<DataController> logger,
             IInstance instanceService,
             IData dataService,
             IApplication appService,
-            IAltinnApp altinnApp)
+            IAltinnApp altinnApp,
+            IExecution executionService)
         {
             this.logger = logger;
 
@@ -56,6 +59,7 @@ namespace Altinn.App.Api.Controllers
             this.dataService = dataService;
             this.appService = appService;
             this.altinnApp = altinnApp;
+            this.executionService = executionService;
         }
 
         /// <summary>
@@ -84,7 +88,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("Element type must be provided.");
             }
 
-            Application application = await appService.GetApplication(org, app);
+            Application application = executionService.GetApplication(org, app);
             if (application == null)
             {
                 return NotFound($"AppId {org}/{app} was not found");
@@ -420,7 +424,7 @@ namespace Altinn.App.Api.Controllers
             
             try
             {
-                Application application = await appService.GetApplication(org, app);
+                Application application = executionService.GetApplication(org, app);
                 appLogic = application.DataTypes.Where(e => e.Id == dataType).Select(e => e.AppLogic != null).First();
             }
             catch (Exception)
