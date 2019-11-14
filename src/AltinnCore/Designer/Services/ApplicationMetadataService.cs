@@ -61,14 +61,9 @@ namespace AltinnCore.Designer.Services
             _httpClient = GetHttpClientFromHttpClientFactory(deploymentEnvironment);
 
             Application applicationFromRepository = await GetApplicationMetadataFileFromRepository();
-            Application application;
-            try
+            Application application = await GetApplicationMetadataFromStorage();
+            if (application == null)
             {
-                application = await GetApplicationMetadataFromStorage();
-            }
-            catch (HttpRequestWithStatusException e) when (e.StatusCode == HttpStatusCode.NotFound)
-            {
-                _logger.LogError(e.Message);
                 await CreateApplicationMetadata(applicationFromRepository);
                 return;
             }
@@ -105,7 +100,20 @@ namespace AltinnCore.Designer.Services
         private async Task<Application> GetApplicationMetadataFromStorage()
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"{_org}/{_app}");
-            return await response.Content.ReadAsAsync<Application>();
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsAsync<Application>();
+            }
+
+            if (response.StatusCode != HttpStatusCode.NotFound)
+            {
+                throw new HttpRequestWithStatusException(response.ReasonPhrase)
+                {
+                    StatusCode = response.StatusCode
+                };
+            }
+
+            return null;
         }
 
         private async Task CreateApplicationMetadata(Application applicationFromRepository)
