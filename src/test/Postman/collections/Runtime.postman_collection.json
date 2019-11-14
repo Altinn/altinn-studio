@@ -2374,6 +2374,49 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "GET Instance by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
