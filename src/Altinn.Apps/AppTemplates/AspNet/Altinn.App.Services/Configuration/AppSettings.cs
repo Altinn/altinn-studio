@@ -13,6 +13,9 @@ namespace Altinn.App.Services.Configuration
     {
 
 
+
+
+
         public const string CONFIG_FOLDER_NAME = "Codelists/";
 
         /// <summary>
@@ -90,30 +93,26 @@ namespace Altinn.App.Services.Configuration
         public const string METADATA_FILENAME = "ServiceMetadata.json";
         private const string GENERATED_METHODS_FILENAME = "GeneratedMethods.cs";
 
+
+        /// <summary>
+        /// The app configuration baseUrl where files are stored in the container
+        /// </summary>
+        public string AppBasePath { get; set; }
+
+        /// <summary>
+        /// The app configuration baseUrl where files are stored in the container
+        /// </summary>
+        public string ConfigurationFolder { get; set; }
+
+        /// <summary>
+        /// The ui configuration baseUrl where files are stored in the container
+        /// </summary>
+        public string UiFolder { get; set; }
+
         /// <summary>
         /// Gets or sets the Repository Location
         /// </summary>
         public string RepositoryLocation { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Repository Base URL
-        /// </summary>
-        public string RepositoryBaseURL { get; set; }
-
-        /// <summary>
-        /// Gets or sets the GiteaCookieName
-        /// </summary>
-        public string GiteaCookieName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the GiteaLoginUrl
-        /// </summary>
-        public string GiteaLoginUrl { get; set; }
-
-        /// <summary>
-        /// Gets or sets the DeployCookieName
-        /// </summary>
-        public string DeployCookieName { get; set; }
 
         /// <summary>
         /// Gets or sets the BaseResourceFolderContainer that identifes where in the docker container the runtime can find files needed

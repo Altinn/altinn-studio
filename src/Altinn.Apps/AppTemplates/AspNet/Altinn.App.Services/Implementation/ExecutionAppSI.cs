@@ -48,19 +48,6 @@ namespace Altinn.App.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Guid GetNewServiceInstanceID()
-        {
-            return Guid.NewGuid();
-        }
-
-        /// <inheritdoc/>
-        public string GetCodelist(string org, string app, string name)
-        {
-            // Not relevant in an app scenario.
-            return null;
-        }
-
-        /// <inheritdoc/>
         public byte[] GetServiceResource(string org, string app, string resource)
         {
             byte[] fileContent = null;
@@ -87,7 +74,7 @@ namespace Altinn.App.Services.Implementation
         public Application GetApplication(string org, string app)
         {
             string filedata = string.Empty;
-            string filename = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
+            string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ApplicationMetadataFileName;
             try
             {
                 if (File.Exists(filename))
