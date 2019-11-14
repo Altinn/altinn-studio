@@ -404,7 +404,7 @@ namespace Altinn.App.Api.Controllers
                     }
                     catch (Exception ex)
                     {
-                        error = $"Cannot parse xml content due to {ex.Message}";
+                        error = $"Cannot parse xml content: {ex.Message}, {ex.InnerException}";
                         return null;
                     }
                 }
