@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
@@ -80,6 +81,7 @@ namespace AltinnCore.Designer.Services
             HttpClient httpClient = _httpClientFactory.CreateClient(deploymentEnvironment.Hostname);
             string uri = $"https://{deploymentEnvironment.PlatformPrefix}.{deploymentEnvironment.Hostname}/storage/api/v1/applications/";
             httpClient.BaseAddress = new Uri(uri);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
             return httpClient;
         }
