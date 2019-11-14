@@ -14,7 +14,19 @@ namespace Altinn.App.Services.Interface
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="resource">the resource.</param>
         /// <returns>The app resource.</returns>
-        byte[] GetServiceResource(string org, string app, string resource);
+        byte[] GetAppResource(string org, string app, string resource);
+
+
+
+        /// <summary>
+        /// Get the app resource for the given parameters.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="resource">the resource.</param>
+        /// <returns>The app resource.</returns>
+        byte[] GetText(string org, string app, string textResource);
+
 
         /// <summary>
         /// Returns the ServiceMetadata for an app.

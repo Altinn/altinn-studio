@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.IO;
 using Altinn.App.Services.Helpers;
@@ -11,7 +12,7 @@ namespace Altinn.App.Api.Controllers
     /// <summary>
     /// Controller to handle resources like css, images, javascript included in an app
     /// </summary>
-    public class ResourceController : Controller
+    public class ResourceController : ControllerBase
     {
         private readonly IExecution _execution;
 
@@ -34,7 +35,7 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/resource/{id}")]
         public IActionResult Index(string org, string app, string id)
         {
-            byte[] fileContent = _execution.GetServiceResource(org, app, id);
+            byte[] fileContent = _execution.GetAppResource(org, app, id);
 
             if (fileContent != null)
             {
@@ -68,19 +69,20 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The text resource file content or 404</returns>
+        [Route("{org}/{app}/api/textresources/{id}")]
         public IActionResult TextResources(string org, string app)
         {
             string defaultLang = "nb-NO";
             string culture = CultureInfo.CurrentUICulture.Name;
             string id = $"resource.{culture}.json";
-            byte[] fileContent = _execution.GetServiceResource(org, app, id);
+            byte[] fileContent = _execution.GetText(org, app, id);
             if (fileContent != null)
             {
               return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
             }
 
             id = $"resource.{defaultLang}.json";
-            fileContent = _execution.GetServiceResource(org, app, id);
+            fileContent = _execution.GetText(org, app, id);
             if (fileContent != null)
             {
               return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
@@ -99,10 +101,11 @@ namespace Altinn.App.Api.Controllers
         /// <param name="attributes">whether attributes are set</param>
         /// <returns>The service metadata</returns>
         [HttpGet]
-        public ActionResult ServiceMetaData(string org, string app, bool texts = true, bool restrictions = true, bool attributes = true)
+        [Route("{org}/{app}/api/metadata/{id}")]
+        public ActionResult ServiceMetaData([FromRoute] string org, [FromRoute] string app, [FromRoute] string id)
         {
             ServiceMetadata metadata = _execution.GetServiceMetaData(org, app);
-            return Json(metadata, new JsonSerializerSettings() { Formatting = Formatting.Indented });
+            return Ok(metadata);
         }
   }
 }
