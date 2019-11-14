@@ -46,7 +46,7 @@ namespace Altinn.Platform.Storage.Interface.Models
         public string TaskId { get; set; }
 
         /// <summary>
-        /// Maximum allowed size of the file in bytes. If missing there is no limit on file size.
+        /// Maximum allowed size of the file in mega bytes. If missing there is no limit on file size.
         /// </summary>
         [JsonProperty(PropertyName = "maxSize")]
         public int? MaxSize { get; set; }

@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Altinn.App.Api.Controllers;
-using Altinn.App.AppLogic;
 using Altinn.App.Common.Interface;
 using Altinn.App.Services.Clients;
 using Altinn.App.Services.Configuration;
@@ -66,7 +65,7 @@ namespace Altinn.App
             services.AddTransient<IPDP, PDPAppSI>();
 
             // Altinn App implementation service (The concrete implementation of logic from Application repsitory)
-            services.AddTransient<IAltinnApp,App.AppLogic.App>();
+            services.AddTransient<IAltinnApp, AppLogic.App>();
 
             services.Configure<KestrelServerOptions>(options =>
             {
