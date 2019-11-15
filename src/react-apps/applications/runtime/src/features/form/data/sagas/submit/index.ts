@@ -50,8 +50,8 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
         const validationResult = yield call(get, getValidationUrl(instanceId, defaultDataElementGuid));
         if (validationResult && validationResult.length > 0) {
           // we have validation errors, update validations and return
-          const layoutState = yield select(LayoutSelector);
-          const mappedValidations = mapDataElementValidationToRedux(validationResult, layoutState);
+          const layoutState: ILayoutState = yield select(LayoutSelector);
+          const mappedValidations = mapDataElementValidationToRedux(validationResult, layoutState.layout);
           FormValidationActions.updateValidations(mappedValidations);
           return yield call(FormDataActions.submitFormDataRejected, null);
         } else {
