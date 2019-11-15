@@ -4,7 +4,7 @@ import { IData } from './../../../shared/src/types';
 export function mapAttachmentListToAttachments(data: IData[]): IAttachments {
   const attachments: IAttachments = {};
 
-  data.forEach((element: any) => {
+  data.forEach((element: IData) => {
       if (element.elementType === 'default') {
         return;
       }
