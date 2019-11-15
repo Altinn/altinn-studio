@@ -1,6 +1,5 @@
 {{- $serviceName := include "altinn-designer.fullname" . }}
 {{- $servicePort := .Values.service.externalPort }}
-{{- $host := .Values.host }}
 {{- range $ingress := .Values.ingress }}
 apiVersion: extensions/v1beta1
 kind: Ingress
@@ -12,6 +11,10 @@ metadata:
   {{- end }}
 spec:
   rules:
+  {{- if not (hasKey $.Values.hosts $.Values.environment) }}
+    {{ fail "the chosen environment has no host" }}
+  {{- end }}
+  {{- $host := index $.Values.hosts $.Values.environment }}
   - host: {{ $host }}
     http:
       backend:

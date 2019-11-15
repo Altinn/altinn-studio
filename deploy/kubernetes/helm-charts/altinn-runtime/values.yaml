@@ -7,7 +7,10 @@ image:
   imagePullSecret: acrsecret
   pullPolicy: Always
 
-host: staging.altinn.studio
+hosts:
+  development: dev.altinn.studio
+  staging: staging.altinn.studio
+  production: altinn.studio
 
 service:
   externalPort: 3000
@@ -58,51 +61,6 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud/authorization/api/v1/
     - name: PlatformSettings__ApiAuthorizationEndpointHost
       value: https://platform.at21.altinn.cloud
-  production:
-    - name: ASPNETCORE_ENVIRONMENT
-      value: Production
-    - name: ASPNETCORE_URLS
-      value: http://+:5005
-    - name: GeneralSettings__HostName
-      value: altinn.studio
-    - name: GeneralSettings__AltinnPartyCookieName
-      value: AltinnPartyId
-    - name: ServiceRepositorySettings__ApiEndPointHost
-      value: altinn-repositories
-    - name: ServiceRepositorySettings__ApiEndPoint
-      value: http://altinn-repositories:3000/api/v1
-    - name: ServiceRepositorySettings__GiteaLoginUrl
-      value: https://altinn.studio/repos/user/login
-    - name: ServiceRepositorySettings__RepositoryLocation
-      value: /AltinnCore/Repos/
-    - name: ServiceRepositorySettings__RepositoryBaseURL
-      value: http://altinn-repositories:3000
-    - name:  TestdataRepositorySettings__DesignerInternalHost
-      value: "altinn-designer"
-    - name: GeneralSettings__AltinnStudioEndpoint
-      value: https://altinn.studio/
-    - name: GeneralSettings__LanguageFilesLocation
-      value: Languages/
-    - name: PlatformSettings__ApiStorageEndpoint
-      value: https://platform.at21.altinn.cloud/storage/api/v1/
-    - name: PlatformSettings__ApiStorageEndpointHost
-      value: https://platform.at21.altinn.cloud
-    - name: PlatformSettings__ApiRegisterEndpoint
-      value: https://platform.at21.altinn.cloud/register/api/v1/
-    - name: PlatformSettings__ApiRegisterEndpointHost
-      value: https://platform.at21.altinn.cloud
-    - name: PlatformSettings__ApiProfileEndpoint
-      value: https://platform.at21.altinn.cloud/profile/api/v1/
-    - name: PlatformSettings__ApiProfileEndpointHost
-      value: https://platform.at21.altinn.cloud
-    - name: PlatformSettings__ApiAuthenticationEndpoint
-      value: https://platform.at21.altinn.cloud/authentication/api/v1/
-    - name: PlatformSettings__ApiAuthenticationEndpointHost
-      value: https://platform.at21.altinn.cloud
-    - name: PlatformSettings__ApiAuthorizationEndpoint
-      value: https://platform.at21.altinn.cloud/authorization/api/v1/
-    - name: PlatformSettings__ApiAuthorizationEndpointHost
-      value: https://platform.at21.altinn.cloud
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -126,6 +84,51 @@ environmentVariables:
       value: "altinn-designer"
     - name: GeneralSettings__AltinnStudioEndpoint
       value: https://staging.altinn.studio/
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: PlatformSettings__ApiStorageEndpoint
+      value: https://platform.at21.altinn.cloud/storage/api/v1/
+    - name: PlatformSettings__ApiStorageEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiRegisterEndpoint
+      value: https://platform.at21.altinn.cloud/register/api/v1/
+    - name: PlatformSettings__ApiRegisterEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiProfileEndpoint
+      value: https://platform.at21.altinn.cloud/profile/api/v1/
+    - name: PlatformSettings__ApiProfileEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthenticationEndpoint
+      value: https://platform.at21.altinn.cloud/authentication/api/v1/
+    - name: PlatformSettings__ApiAuthenticationEndpointHost
+      value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiAuthorizationEndpoint
+      value: https://platform.at21.altinn.cloud/authorization/api/v1/
+    - name: PlatformSettings__ApiAuthorizationEndpointHost
+      value: https://platform.at21.altinn.cloud
+  production:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Production
+    - name: ASPNETCORE_URLS
+      value: http://+:5005
+    - name: GeneralSettings__HostName
+      value: altinn.studio
+    - name: GeneralSettings__AltinnPartyCookieName
+      value: AltinnPartyId
+    - name: ServiceRepositorySettings__ApiEndPointHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__ApiEndPoint
+      value: http://altinn-repositories:3000/api/v1
+    - name: ServiceRepositorySettings__GiteaLoginUrl
+      value: https://altinn.studio/repos/user/login
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000
+    - name:  TestdataRepositorySettings__DesignerInternalHost
+      value: "altinn-designer"
+    - name: GeneralSettings__AltinnStudioEndpoint
+      value: https://altinn.studio/
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: PlatformSettings__ApiStorageEndpoint

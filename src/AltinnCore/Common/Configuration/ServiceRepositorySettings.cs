@@ -81,6 +81,11 @@ namespace AltinnCore.Common.Configuration
         private const string TESTDATA_FOLDER_NAME = "Data/";
 
         /// <summary>
+        /// constant for the location of authorization policies
+        /// </summary>
+        public const string AUTHORIZATION_FOLDER_NAME = "Authorization/";
+
+        /// <summary>
         /// Constant for the location of service metadata file
         /// </summary>
         public const string METADATA_FILENAME = "ServiceMetadata.json";

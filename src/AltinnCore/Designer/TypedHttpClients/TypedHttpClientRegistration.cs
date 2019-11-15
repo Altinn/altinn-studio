@@ -7,13 +7,11 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
-using AltinnCore.Designer.TypedHttpClients.AltinnStorage;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.DelegatingHandlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.TypedHttpClients
 {
@@ -34,7 +32,8 @@ namespace AltinnCore.Designer.TypedHttpClients
 
             services.AddAzureDevOpsTypedHttpClient(config);
             services.AddGiteaTypedHttpClient(config);
-            services.AddAltinnStorageTypedHttpClient();
+
+            services.AddHttpClient();
 
             return services;
         }
@@ -55,9 +54,8 @@ namespace AltinnCore.Designer.TypedHttpClients
             => services.AddHttpClient<IGitea, GiteaAPIWrapper>((sp, httpClient) =>
                 {
                     IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
-                    IConfigurationSection serviceRepSettings = config.GetSection("ServiceRepositorySettings");
-                    string uriString = serviceRepSettings["ApiEndPoint"];
-                    Uri uri = new Uri(uriString + "/");
+                    ServiceRepositorySettings serviceRepSettings = config.GetSection("ServiceRepositorySettings").Get<ServiceRepositorySettings>();
+                    Uri uri = new Uri(serviceRepSettings.ApiEndPoint);
                     httpClient.BaseAddress = uri;
                     httpClient.DefaultRequestHeaders.Add(
                         General.AuthorizationTokenHeaderName,
@@ -69,12 +67,5 @@ namespace AltinnCore.Designer.TypedHttpClients
                     {
                         AllowAutoRedirect = true
                     });
-
-        private static IHttpClientBuilder AddAltinnStorageTypedHttpClient(this IServiceCollection services)
-            => services.AddHttpClient<IAltinnApplicationStorageService, AltinnApplicationStorageService>((sp, client) =>
-            {
-                PlatformSettings platformSettings = sp.GetRequiredService<IOptions<PlatformSettings>>().Value;
-                client.BaseAddress = new Uri($"{platformSettings.GetApiStorageEndpoint}applications/");
-            }).AddHttpMessageHandler<EnsureSuccessHandler>();
     }
 }
