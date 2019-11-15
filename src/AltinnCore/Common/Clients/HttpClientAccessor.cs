@@ -122,7 +122,7 @@ namespace AltinnCore.Common.Clients
                 if (_pdfClient == null)
                 {
                     _pdfClient = new HttpClient();
-                    _pdfClient.BaseAddress = new Uri($"{_platformSettings.GetApiPdfEndpoint}");
+                    _pdfClient.BaseAddress = new Uri($"{_platformSettings.ApiPdfEndpoint}");
                 }
 
                 return _pdfClient;
