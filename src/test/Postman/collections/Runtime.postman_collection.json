@@ -1076,8 +1076,13 @@
 						"method": "POST",
 						"header": [
 							{
-								"key": "Content-Type",
+								"key": "Content-Disposition",
 								"name": "Content-Type",
+								"value": "attachment; filename=test.pdf",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
 								"value": "application/octet-stream",
 								"type": "text"
 							}
@@ -1094,7 +1099,7 @@
 							}
 						},
 						"url": {
-							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=f550edf8-31f7-457e-8f81-af11e87289c0&attachmentName=test.pdf",
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType={{attachmentElementType}}",
 							"protocol": "https",
 							"host": [
 								"{{org}}",
@@ -1112,12 +1117,171 @@
 							"query": [
 								{
 									"key": "elementType",
-									"value": "f550edf8-31f7-457e-8f81-af11e87289c0"
-								},
-								{
-									"key": "attachmentName",
-									"value": "test.pdf"
+									"value": "{{attachmentElementType}}"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Attachment Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"exec": [
+									"pm.test(\"Runtime - Data - Get Attachment Data - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var responseHeader = pm.response.headers.get(\"Content-Disposition\");\r",
+									"    responseHeader = responseHeader.toString();\r",
+									"    pm.expect(responseHeader).to.have.string('test.pdf');\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Edit Attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "68318696-e879-4d73-ac94-439390675fac",
+								"exec": [
+									"pm.test(\"Runtime - Data - Edit Attachment Data - Status - 201\", function () {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var envDataId = pm.environment.get(\"dataGuid\");\r",
+									"    pm.expect(jsonData[0].id).to.equal(envDataId);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/octet-stream"
+							},
+							{
+								"key": "Content-Disposition",
+								"value": "attachment; filename=test12.pdf",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "test_file_pdf.pdf"
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "68318696-e879-4d73-ac94-439390675fac",
+								"exec": [
+									"pm.test(\"Runtime - Data - Delete Attachment - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/octet-stream"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": ""
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
 							]
 						}
 					},
@@ -1139,23 +1303,37 @@
 								"exec": [
 									"pm.test(\"Runtime - Instances - Create app instance with multipart data - Status - 201\", function () {\r",
 									"    pm.response.to.have.status(201);\r",
-									"    var jsonData = pm.response.json();\r",
-									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"    if (pm.response.code == 201)\r",
 									"    {\r",
-									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
-									"        var instanceId = jsonData.id;\r",
-									"        instanceId = instanceId.toString();\r",
-									"        instanceId = instanceId.split('/');\r",
-									"        instanceId = instanceId[1];\r",
-									"        pm.environment.set('instanceId',instanceId);\r",
-									"    }\r",
-									"    if (pm.expect(jsonData.data[0].id).not.eql(null))\r",
-									"    {\r",
-									"        var dataId = jsonData.data[0].id;\r",
-									"        pm.environment.set('dataGuid',dataId);\r",
+									"        var jsonData = pm.response.json();\r",
+									"        if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"        {\r",
+									"            pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+									"            var instanceId = jsonData.id;\r",
+									"            instanceId = instanceId.toString();\r",
+									"            instanceId = instanceId.split('/');\r",
+									"            instanceId = instanceId[1];\r",
+									"            pm.environment.set('instanceId',instanceId);\r",
+									"        }\r",
+									"        if (pm.expect(jsonData.data[0].id).not.eql(null))\r",
+									"        {\r",
+									"            var dataId = jsonData.data[0].id;\r",
+									"            pm.environment.set('dataGuid',dataId);\r",
+									"        }\r",
 									"    }\r",
 									"});\r",
 									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "988e199b-4635-4921-9809-0be0197b3d4b",
+								"exec": [
+									"pm.environment.set(\"instanceId\",\"\");",
+									"pm.environment.set(\"dataGuid\",\"\");"
 								],
 								"type": "text/javascript"
 							}
@@ -1296,6 +1474,945 @@
 								"{{instanceId}}",
 								"data",
 								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "End2End Test",
+			"item": [
+				{
+					"name": "POST Create Instance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "41557434-30fd-44d6-b2fa-6248c0635824",
+								"exec": [
+									"if(pm.response.code == 201)\r",
+									"{\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+									"        var instanceId = jsonData.id;\r",
+									"        instanceId = instanceId.toString();\r",
+									"        instanceId = instanceId.split('/');\r",
+									"        instanceId = instanceId[1];\r",
+									"        pm.environment.set('instanceId',instanceId);\r",
+									"    }\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9c84f949-10f6-4b99-a342-b7cb58641ee2",
+								"exec": [
+									"pm.environment.set(\"instanceId\",\"\");",
+									"pm.environment.set(\"dataGuid\",\"\");",
+									"pm.environment.set(\"processElementId\",\"\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{org}}/{{app}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Empty Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dd484dcc-cd50-417c-9601-7b971fe28e68",
+								"exec": [
+									"if (pm.response.code == 201)\r",
+									"{\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"    }\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data"
+							],
+							"query": [
+								{
+									"key": "elementType",
+									"value": "default"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Start Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "709bf4db-92f0-4803-b802-cd5605187d00",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/start",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Current Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e57feb48-7aed-48de-bb57-ed220bb65e9d",
+								"exec": [
+									"pm.test(\"Runtime - Process - Get Current Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var elementId = jsonData.currentTask.elementId;\r",
+									"    pm.environment.set(\"processElementId\", elementId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Validate Instance - Not OK",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Get Validate Instance - Not OK - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Runtime - Instances - Get Validate Instance - Not OK - Content - Matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData[0].code).to.equal(\"TooFewDataElementsOfType\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/validate",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Add Form Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dd484dcc-cd50-417c-9601-7b971fe28e68",
+								"exec": [
+									"if (pm.response.code == 201)\r",
+									"{\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var dataGuid = pm.environment.get(\"dataGuid\");\r",
+									"    pm.expect(jsonData.id).to.equal(dataGuid);\r",
+									"}\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\"?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" skjemanummer=\"1243\" spesifikasjonsnummer=\"10702\" blankettnummer=\"RF-1117\" tittel=\"Klage på likningen\" gruppeid=\"5800\">\r\n  <Skattyterinfor-grp-5801 gruppeid=\"5801\">\r\n    <info-grp-5802 gruppeid=\"5802\">\r\n      <OppgavegiverNavnPreutfylt-datadef-25795 orid=\"25795\">test</OppgavegiverNavnPreutfylt-datadef-25795>\r\n    </info-grp-5802>\r\n  </Skattyterinfor-grp-5801>\r\n</Skjema>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Add Big attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8c637fd5-88b9-4aec-9bdc-d6a566a131e1",
+								"exec": [
+									"if (pm.response.code == 201)\r",
+									"{\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"    }\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Disposition",
+								"name": "Content-Type",
+								"value": "attachment; filename=test.txt",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/octet-stream",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "test_file_morethan_1mb.txt"
+							},
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType={{attachmentElementType}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data"
+							],
+							"query": [
+								{
+									"key": "elementType",
+									"value": "{{attachmentElementType}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Validate Data - Not OK",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Get Validate Instance Data - Not OK - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Runtime - Instances - Get Validate Instance Data - Not OK - Content - Matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData[0].code).to.equal(\"DataElementTooLarge\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}/validate",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Big Attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "68318696-e879-4d73-ac94-439390675fac",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/octet-stream"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": ""
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "POST Add attachment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8c637fd5-88b9-4aec-9bdc-d6a566a131e1",
+								"exec": [
+									"if (pm.response.code == 201)\r",
+									"{\r",
+									"    var jsonData = pm.response.json();\r",
+									"    if(pm.expect(jsonData[0].id).not.eql(null))\r",
+									"    {\r",
+									"        pm.environment.set('dataGuid', jsonData[0].id);\r",
+									"    }\r",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Disposition",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "attachment; filename=test.pdf"
+							},
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/octet-stream"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "test_file_pdf.pdf"
+							},
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType={{attachmentElementType}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data"
+							],
+							"query": [
+								{
+									"key": "elementType",
+									"value": "{{attachmentElementType}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Validate Data - OK",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e7bec04f-fad2-4065-8dd0-93aa98d2e734",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Get Validate Instance Data - OK - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Runtime - Instances - Get Validate Instance Data - OK - Content - Matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataGuid}}/validate",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"data",
+								"{{dataGuid}}",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Validate Instance - OK",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Get Validate Instance - OK - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Runtime - Instances - Get Validate Instance - OK - Content - Matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.empty;\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/validate",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"validate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Next Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ebe6fdbe-764b-4809-93f3-7869055f3f52",
+								"exec": [
+									"pm.test(\"Runtime - E2E Test - Get Next Process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    var jsonData = pm.response.json();\r",
+									"    var nextProcessElementId = jsonData[0];\r",
+									"    pm.environment.set(\"processElementId\", nextProcessElementId);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "54d89139-1280-4e3f-9918-2a7437d77c0e",
+								"exec": [
+									"pm.environment.set(\"processElementId\",\"\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"next"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Next Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "94e0d202-99c7-4371-91e9-412910df847a",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Move instance to next process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/next?elementId={{processElementId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"next"
+							],
+							"query": [
+								{
+									"key": "elementId",
+									"value": "{{processElementId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Complete Process",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "96a3194f-30c7-42c6-9a0d-5deef80d7d44",
+								"exec": [
+									"pm.test(\"Runtime - Instances - Complete process - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}/process/completeProcess",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}",
+								"process",
+								"completeProcess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Instance by Id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8f68df12-4c76-469e-9d25-970fc02a5a08",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "https://{{org}}.apps.{{envUrl}}/{{org}}/{{app}}/instances/{{instanceOwnerId}}/{{instanceId}}",
+							"protocol": "https",
+							"host": [
+								"{{org}}",
+								"apps",
+								"{{envUrl}}"
+							],
+							"path": [
+								"{{org}}",
+								"{{app}}",
+								"instances",
+								"{{instanceOwnerId}}",
+								"{{instanceId}}"
 							]
 						}
 					},
