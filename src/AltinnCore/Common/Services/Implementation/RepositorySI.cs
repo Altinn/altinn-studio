@@ -202,6 +202,14 @@ namespace AltinnCore.Common.Services.Implementation
                 AppLogic = true,
                 Task = "FormFilling_1",
             });
+            appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
+            {
+                Id = "ref-data-as-pdf",
+                AllowedContentType = new List<string>() { "application/pdf" },
+                Task = "FormFilling_1",
+                MaxCount = 1,
+                MinCount = 1,
+            });
             appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
             string metaDataDir = _settings.GetMetadataPath(
                                     org,

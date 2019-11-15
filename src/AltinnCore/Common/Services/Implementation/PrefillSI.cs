@@ -164,7 +164,7 @@ namespace AltinnCore.Common.Services.Implementation
                 else
                 {
                     if (propertyValue == null)
-                    { 
+                    {
                         // the object does not exsist, create a new one with the property type
                         var instance = Activator.CreateInstance(property.PropertyType);
                         property.SetValue(currentObject, instance, null);

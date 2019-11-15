@@ -34,5 +34,10 @@ namespace AltinnCore.Common.Clients
         /// An Http authenication client that communicates with the Altinn Platform Authentication component.
         /// </summary>
         HttpClient AuthenticationClient { get; }
+
+        /// <summary>
+        /// An Http pdf client that communicates with the Altinn Platform PDF component.
+        /// </summary>
+        HttpClient PdfClient {get; }
     }
 }
