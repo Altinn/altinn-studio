@@ -97,7 +97,8 @@ namespace AltinnCore.Common.Services.Implementation
                 _logger.LogError($"Could not store pdf for {instance.Id}, failed with message {exception.Message}");
                 return;
             }
-            finally {
+            finally
+            {
                 pdfContent.Dispose();
             }
         }
