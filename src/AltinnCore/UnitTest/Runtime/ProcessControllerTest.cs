@@ -246,7 +246,7 @@ namespace AltinnCore.UnitTest.Runtime
                 .Setup(x => x.GetUserProfile(It.IsAny<int>()))
                 .Returns(Task.FromResult(new UserProfile() { UserId = int.Parse(userId) }));
 
-            MockContext<IPDF> pdfServiceMock = new Mock<IPDF>();
+            Mock<IPDF> pdfServiceMock = new Mock<IPDF>();
             pdfServiceMock
                 .Setup(x => x.GenerateAndStoreReceiptPDF(instance, userContext))
                 .Returns(Task.Complete));
