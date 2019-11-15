@@ -32,7 +32,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
-      value: http://altinn-repositories:3000/api/v1
+      value: http://altinn-repositories:3000/api/v1/
     - name: ServiceRepositorySettings__GiteaLoginUrl
       value: https://dev.altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
@@ -75,7 +75,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
-      value: http://altinn-repositories:3000/api/v1
+      value: http://altinn-repositories:3000/api/v1/
     - name: ServiceRepositorySettings__GiteaLoginUrl
       value: https://staging.altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
@@ -118,7 +118,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
-      value: http://altinn-repositories:3000/api/v1
+      value: http://altinn-repositories:3000/api/v1/
     - name: ServiceRepositorySettings__GiteaLoginUrl
       value: https://altinn.studio/repos/user/login
     - name: ServiceRepositorySettings__RepositoryLocation
