@@ -12,6 +12,10 @@ metadata:
   {{- end }}
 spec:
   rules:
+  {{- if not (hasKey $.Values.hosts $.Values.environment) }}
+    {{ fail "the chosen environment has no host" }}
+  {{- end }}
+  {{- $host := index $.Values.hosts $.Values.environment }}
   - host: {{ $host }}
     http:
       backend:

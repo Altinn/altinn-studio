@@ -1,16 +1,21 @@
 replicaCount: 1
 
+environment: development
 image:
-  repositoryDev: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev
-  repositoryProd: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-prod
-  repositoryStaging: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-staging
+  repository:
+    development: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev
+    staging: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-staging
+    production: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-prod
   tag: latest
   pullPolicy: Always
   containerPort: 3000
   imagePullSecret: acrsecret
   lifecyclePostStartCommand: "adduser git -D"
 
-host: staging.altinn.studio
+hosts:
+  development: dev.altinn.studio
+  staging: staging.altinn.studio
+  production: altinn.studio
 
 service:
   externalPort: 3000

@@ -1,20 +1,19 @@
-﻿using AltinnCore.Common.Enums;
 using Microsoft.AspNetCore.Authorization;
 
-namespace AltinnCore.Runtime.Authorization
+namespace Altinn.Common.PEP.Authorization
 {
     /// <summary>
-    /// Requirement uses for authorization policies used for accessing service instances
+    /// Requirement uses for authorization policies used for accessing apps
     /// <see href="https://docs.asp.net/en/latest/security/authorization/policies.html"/> for details about authorization
     /// in asp.net core
     /// </summary>
-    public class InstanceAccessRequirement : IAuthorizationRequirement
+    public class AppAccessRequirement : IAuthorizationRequirement
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceAccessRequirement"/> class
+        /// Initializes a new instance of the <see cref="AppAccessRequirement"/> class
         /// </summary>
         /// <param name="actionType">The Action type for this requirement</param>
-        public InstanceAccessRequirement(ActionType actionType)
+        public AppAccessRequirement(string actionType)
         {
             this.ActionType = actionType;
         }
@@ -22,6 +21,6 @@ namespace AltinnCore.Runtime.Authorization
         /// <summary>
         /// Gets or sets The Action type defined for the policy using this requirement
         /// </summary>
-        public ActionType ActionType { get; set; }
+        public string ActionType { get; set; }
     }
 }

@@ -224,6 +224,11 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
                 className="ai-stack-1x ai ai-back"
               />
             </span>
+            <span
+              className="hidden-button-text"
+            >
+              general.back
+            </span>
           </button>
           <button
             aria-label="general.close"
@@ -242,6 +247,11 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
                 aria-hidden="true"
                 className="ai-stack-1x ai ai-exit  a-modal-close-icon"
               />
+            </span>
+            <span
+              className="hidden-button-text"
+            >
+              general.close
             </span>
           </button>
         </div>

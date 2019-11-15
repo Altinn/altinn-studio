@@ -2,6 +2,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -15,18 +16,22 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
     {
         private readonly HttpClient _httpClient;
         private readonly GeneralSettings _generalSettings;
+        private readonly ISourceControl _sourceControl;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="httpClient">System.Net.Http.HttpClient</param>
         /// <param name="generalSettingsOptions">IOptionsMonitor of Type GeneralSettings</param>
+        /// <param name="sourceControl">ISourceControl</param>
         public AzureDevOpsBuildService(
             HttpClient httpClient,
-            IOptionsMonitor<GeneralSettings> generalSettingsOptions)
+            IOptionsMonitor<GeneralSettings> generalSettingsOptions,
+            ISourceControl sourceControl)
         {
             _generalSettings = generalSettingsOptions.CurrentValue;
             _httpClient = httpClient;
+            _sourceControl = sourceControl;
         }
 
         /// <inheritdoc/>
@@ -35,6 +40,7 @@ namespace AltinnCore.Designer.TypedHttpClients.AzureDevOps
             int buildDefinitionId)
         {
             queueBuildParameters.GiteaEnvironment = $"{_generalSettings.HostName}/repos";
+            queueBuildParameters.AppDeployToken = _sourceControl.GetDeployToken();
 
             QueueBuildRequest queueBuildRequest = CreateBuildRequest(queueBuildParameters, buildDefinitionId);
             return await SendRequest(queueBuildRequest);

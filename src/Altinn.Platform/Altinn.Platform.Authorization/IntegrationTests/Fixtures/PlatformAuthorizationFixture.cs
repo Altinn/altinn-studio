@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using Altinn.Authorization.ABAC.Interface;
+using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Interface;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
@@ -29,10 +30,11 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Fixtures
             IWebHostBuilder builder = new WebHostBuilder()
                 .ConfigureTestServices(services =>
                 {
-                    services.AddScoped<IContextHandler, MockServices.ContextHandler>();
+                    //services.AddScoped<IContextHandler, MockServices.ContextHandler>();
+                    services.AddScoped<IPolicyInformationRepository, MockServices.PolicyInformationRepository>();
                     services.AddScoped<IPolicyRetrievalPoint, MockServices.PolicyRetrievalPoint>();
                     services.AddScoped<IRoles, MockServices.PolicyInformationPoint>();
-                    services.AddScoped<IContextHandler, IntegrationTests.MockServices.ContextHandler>();
+                    //services.AddScoped<IContextHandler, IntegrationTests.MockServices.ContextHandler>();
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {

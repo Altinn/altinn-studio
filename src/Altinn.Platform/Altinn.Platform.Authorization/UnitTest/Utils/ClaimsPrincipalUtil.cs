@@ -13,7 +13,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
         {
             List<Claim> claims = new List<Claim>
             {
-                new Claim("urn:altinn:userid", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
+                new Claim("urn:altinn:user-id", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
                 new Claim("urn:altinn:rolecode", "DAGL", ClaimValueTypes.String, "Altinn"),
                 new Claim("urn:altinn:rolecode", "UTINN", ClaimValueTypes.String, "Altinn")
             };
@@ -30,7 +30,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
 
             List<Claim> claims = new List<Claim>
             {
-                new Claim("urn:altinn:userid", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
+                new Claim("urn:altinn:user-id", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
             };
 
             foreach(string role in roleList)
@@ -50,7 +50,7 @@ namespace Altinn.Authorization.ABAC.UnitTest.Utils
 
             List<Claim> claims = new List<Claim>
             {
-                new Claim("urn:altinn:userid", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
+                new Claim("urn:altinn:user-id", userId.ToString(), ClaimValueTypes.Integer, "Altinn"),
             };
 
             claims.AddRange(givenClaims);

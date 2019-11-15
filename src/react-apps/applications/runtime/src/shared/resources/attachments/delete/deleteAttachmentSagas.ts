@@ -1,12 +1,12 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
-import { IAltinnWindow } from '..';
-import { getFileUploadComponentValidations } from '../../../../components/base/FileUploadComponent';
-import FormValidationsDispatcher from '../../../../features/form/validation/actions';
-import { IRuntimeState } from '../../../../types';
-import { post } from '../../../../utils/networking';
-import AttachmentDispatcher from '../attachmentActions';
-import * as AttachmentActionsTypes from '../attachmentActionTypes';
+import { getFileUploadComponentValidations } from './../../../../components/base/FileUploadComponent';
+import FormValidationsDispatcher from './../../../../features/form/validation/actions';
+import { IRuntimeState } from './../../../../types';
+import { httpDelete } from './../../../../utils/networking';
+import { dataElementUrl } from './../../../../utils/urlHelper';
+import AttachmentDispatcher from './../attachmentActions';
+import * as AttachmentActionsTypes from './../attachmentActionTypes';
 import * as deleteActions from './deleteAttachmentActions';
 
 export function* watchDeleteAttachmentSaga(): SagaIterator {
@@ -21,12 +21,8 @@ export function* deleteAttachmentSaga(
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, app, instanceId, reportee } = altinnWindow;
-    const appId = `${org}/${app}`;
-    const deleteUrl = `${altinnWindow.location.origin}/${appId}/api/attachment/` +
-    `${instanceId}/DeleteFormAttachment?attachmentType=${attachmentType}&attachmentId=${attachment.id}`;
-    const response = yield call(post, deleteUrl);
+
+    const response = yield call(httpDelete, dataElementUrl(attachment.id));
     if (response.status === 200) {
       yield call(AttachmentDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
     } else {
