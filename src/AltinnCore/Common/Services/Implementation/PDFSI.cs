@@ -90,12 +90,15 @@ namespace AltinnCore.Common.Services.Implementation
 
             try
             {
-                DataElement dataElement = await StorePDF(pdfContent, instance);
+               await StorePDF(pdfContent, instance);
             }
             catch (Exception exception)
             {
                 _logger.LogError($"Could not store pdf for {instance.Id}, failed with message {exception.Message}");
                 return;
+            }
+            finally {
+                pdfContent.Dispose();
             }
         }
 
@@ -104,7 +107,9 @@ namespace AltinnCore.Common.Services.Implementation
             HttpContent data = new StringContent(JObject.FromObject(pdfContext, _camelCaseSerializer).ToString(), Encoding.UTF8, "application/json");
             HttpResponseMessage response = await _pdfClient.PostAsync("generate", data);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStreamAsync();
+            Stream pdfContent = await response.Content.ReadAsStreamAsync();
+            data.Dispose();
+            return pdfContent;
         }
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
