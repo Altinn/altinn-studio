@@ -182,16 +182,3 @@ export interface IAttachment {
 export interface IAttachments {
   [attachmentType: string]: IAttachment[];
 }
-
-export interface IAttachmentListStoreResponse {
-  type: string;
-  attachments: IAttachmentStoreResponse[];
-}
-
-export interface IAttachmentStoreResponse {
-  uploaded: boolean;
-  deleting: false;
-  name: string;
-  size: number;
-  id: string;
-}

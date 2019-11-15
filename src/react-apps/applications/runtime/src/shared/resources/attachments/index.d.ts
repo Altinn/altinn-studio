@@ -15,18 +15,3 @@ export interface IAltinnWindow extends Window {
   instanceId: string;
   reportee: string;
 }
-
-export interface IDataElement {
-  contentType: string;
-  createdBy: number;
-  createdDateTime: string;
-  dataLinks: object;
-  elementType: string;
-  fileName: string;
-  fileSize: number;
-  id: string;
-  isLocked: boolean;
-  lastChangedBy: string;
-  lastChangedDateTime: string;
-  storageUrl: string;
-}
