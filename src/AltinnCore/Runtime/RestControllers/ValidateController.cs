@@ -243,7 +243,7 @@ namespace AltinnCore.Runtime.RestControllers
                 }
             }
 
-            if (elementType.MaxSize.HasValue && elementType.MaxSize > 0 && elementType.MaxSize < dataElement.FileSize)
+            if (elementType.MaxSize.HasValue && elementType.MaxSize > 0 && (long)elementType.MaxSize * 1024 * 1024 < dataElement.FileSize)
             {
                 ValidationIssue message = new ValidationIssue
                 {

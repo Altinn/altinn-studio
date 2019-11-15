@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.Services.Models;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
-using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Response;
@@ -24,12 +23,11 @@ namespace AltinnCore.Designer.Services
     public class DeploymentService : IDeploymentService
     {
         private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
-        private readonly ISourceControl _sourceControl;
         private readonly ReleaseRepository _releaseRepository;
         private readonly DeploymentRepository _deploymentRepository;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
-        private readonly IApplicationMetadataService _applicationMetadataService;
+        private readonly IApplicationInformationService _applicationInformationService;
         private readonly string _app;
         private readonly string _org;
 
@@ -40,16 +38,14 @@ namespace AltinnCore.Designer.Services
             IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions,
             IAzureDevOpsBuildService azureDevOpsBuildService,
             IHttpContextAccessor httpContextAccessor,
-            ISourceControl sourceControl,
             ReleaseRepository releaseRepository,
             DeploymentRepository deploymentRepository,
-            IApplicationMetadataService applicationMetadataService)
+            IApplicationInformationService applicationInformationService)
         {
             _azureDevOpsBuildService = azureDevOpsBuildService;
-            _sourceControl = sourceControl;
             _releaseRepository = releaseRepository;
             _deploymentRepository = deploymentRepository;
-            _applicationMetadataService = applicationMetadataService;
+            _applicationInformationService = applicationInformationService;
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _httpContext = httpContextAccessor.HttpContext;
             _org = _httpContext.GetRouteValue("org")?.ToString();
@@ -64,9 +60,13 @@ namespace AltinnCore.Designer.Services
             deploymentEntity.TagName = deployment.TagName;
             deploymentEntity.EnvironmentName = deployment.Environment.Name;
 
-            ReleaseEntity release = await GetSucceededReleaseFromDb(deploymentEntity);
-            await _applicationMetadataService.RegisterApplicationInStorageAsync(_org, _app, release.TargetCommitish);
+            ReleaseEntity release = await _releaseRepository.GetSucceededReleaseFromDb(
+                deploymentEntity.Org,
+                deploymentEntity.App,
+                deploymentEntity.TagName);
 
+            await _applicationInformationService
+                .UpdateApplicationInformationAsync(_org, _app, release.TargetCommitish, deployment.Environment);
             Build queuedBuild = await QueueDeploymentBuild(release, deploymentEntity, deployment.Environment.Hostname);
 
             deploymentEntity.Build = new BuildEntity
@@ -113,29 +113,6 @@ namespace AltinnCore.Designer.Services
             await _deploymentRepository.UpdateAsync(deploymentEntity);
         }
 
-        private async Task<ReleaseEntity> GetSucceededReleaseFromDb(DeploymentEntity deploymentEntity)
-        {
-            SqlQuerySpec sqlQuerySpec = CreateSqlQueryToGetSucceededRelease(deploymentEntity);
-            IEnumerable<ReleaseEntity> releases = await _releaseRepository.GetWithSqlAsync<ReleaseEntity>(sqlQuerySpec);
-            return releases.Single();
-        }
-
-        private static SqlQuerySpec CreateSqlQueryToGetSucceededRelease(DeploymentEntity deploymentEntity)
-            => new SqlQuerySpec
-            {
-                QueryText = $"SELECT * FROM db WHERE " +
-                            $"db.app = @app AND " +
-                            $"db.org = @org AND " +
-                            $"db.tagName = @tagName AND " +
-                            $"db.build.result = '{BuildResult.Succeeded.ToEnumMemberAttributeValue()}'",
-                Parameters = new SqlParameterCollection
-                {
-                    new SqlParameter("@org", deploymentEntity.Org),
-                    new SqlParameter("@app", deploymentEntity.App),
-                    new SqlParameter("@tagName", deploymentEntity.TagName),
-                }
-            };
-
         private async Task<Build> QueueDeploymentBuild(
             ReleaseEntity release,
             DeploymentEntity deploymentEntity,
@@ -148,7 +125,6 @@ namespace AltinnCore.Designer.Services
                 AppRepo = deploymentEntity.App,
                 AppEnvironment = deploymentEntity.EnvironmentName,
                 Hostname = environmentHostname,
-                AppDeployToken = _sourceControl.GetDeployToken(),
                 TagName = deploymentEntity.TagName
             };
 

@@ -627,6 +627,252 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "PDP - XML Data - Permit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "432d032b-28b3-4e81-9881-9c0a02ab26a2",
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Content - Matches\", function () {\r",
+									"    pm.expect(pm.response.text()).to.contain(\"Permit\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:user-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{app}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">formfilling</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">read</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDP - XML Data - NotApplicable",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "432d032b-28b3-4e81-9881-9c0a02ab26a2",
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Content - Permit\", function () {\r",
+									"    pm.expect(pm.response.text()).to.contain(\"NotApplicable\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:user-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{app}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">formfilling</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">sign</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDP - Json Data - Permit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "08fe8021-758e-4b6f-9756-51443cb3f78d",
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Content - Permit\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.response[0].decision).to.equal(\"Permit\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"read\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{app}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDP - Json Data - NotApplicable",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "08fe8021-758e-4b6f-9756-51443cb3f78d",
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Content - Matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.response[0].decision).to.equal(\"NotApplicable\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"sign\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{app}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
@@ -1437,6 +1683,11 @@
 										"name": "Content-Type",
 										"type": "text",
 										"value": "application/octet-stream"
+									},
+									{
+										"key": "Content-Disposition",
+										"value": "attachment; filename=test.pdf",
+										"type": "text"
 									}
 								],
 								"body": {

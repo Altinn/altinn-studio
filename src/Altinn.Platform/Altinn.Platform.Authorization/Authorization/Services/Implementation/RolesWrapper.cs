@@ -29,10 +29,10 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <inheritdoc />
         public async Task<List<Role>> GetDecisionPointRolesForUser(int coveredByUserId, int offeredByPartyId)
         {
-            List<Role> decisionPointRoles = null;
+            List<Role> decisionPointRoles = new List<Role>();
             string apiurl = $"roles?coveredByUserId={coveredByUserId}&offeredByPartyId={offeredByPartyId}";
 
-            HttpResponseMessage response = await _rolesClient.Client.GetAsync(apiurl);           
+            HttpResponseMessage response = await _rolesClient.Client.GetAsync(apiurl);
             string roleList = await response.Content.ReadAsStringAsync();
             if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {

@@ -17,9 +17,12 @@ spec:
           image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
           ports:
             - containerPort: {{ .Values.image.containerPort }}
-          {{- if eq (required "evironment not set" .Values.environment) "development"}}
           env:
-            {{- range $variable := .Values.environmentVariables.development }}
+            {{- if not (hasKey $.Values.environmentVariables $.Values.environment) }}
+              {{ fail "the chosen environment does not exist" }}
+            {{- end }}
+            {{- $environmentVariables := index $.Values.environmentVariables $.Values.environment }}
+            {{- range $variable := $environmentVariables }}
             - name: {{ $variable.name }}
               {{- if $variable.value }}
               value: {{ $variable.value}}
@@ -33,41 +36,6 @@ spec:
                 {{- end }}
               {{- end }}
             {{- end }}
-          {{- end }}
-          {{- if eq (required "evironment not set" .Values.environment) "production"}}
-          env:
-            {{- range $variable := .Values.environmentVariables.production }}
-            - name: {{ $variable.name }}
-              {{- if $variable.value }}
-              value: {{ $variable.value}}
-              {{- end }}
-              {{- if $variable.valueFrom }}
-              valueFrom:
-                {{- if $variable.valueFrom.secretKeyRef}}
-                secretKeyRef:
-                  name: {{ $variable.valueFrom.secretKeyRef.name }}
-                  key: {{ $variable.valueFrom.secretKeyRef.key }}
-                {{- end }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
-          {{- if eq (required "evironment not set" .Values.environment) "staging"}}
-          env:
-            {{- range $variable := .Values.environmentVariables.staging }}
-            - name: {{ $variable.name }}
-              {{- if $variable.value }}
-              value: {{ $variable.value}}
-              {{- end }}
-              {{- if $variable.valueFrom }}
-              valueFrom:
-                {{- if $variable.valueFrom.secretKeyRef}}
-                secretKeyRef:
-                  name: {{ $variable.valueFrom.secretKeyRef.name }}
-                  key: {{ $variable.valueFrom.secretKeyRef.key }}
-                {{- end }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
           {{- if .Values.volumeMounts}}
           volumeMounts:
             {{- range $volume := .Values.volumeMounts }}
