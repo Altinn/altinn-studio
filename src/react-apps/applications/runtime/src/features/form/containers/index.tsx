@@ -1,5 +1,4 @@
 import * as React from 'react';
-import AttachmentActions from '../../../shared/resources/attachments/attachmentActions';
 import InstanceDataActions from '../../../shared/resources/instanceData/instanceDataActions';
 import LanguageActions from '../../../shared/resources/language/languageActions';
 import ProcessDispatcher from '../../../shared/resources/process/processDispatcher';
@@ -54,8 +53,6 @@ export default (props) => {
     ProfileActions.fetchProfile(
       `${window.location.origin}/${org}/${app}/api/v1/profile/user`,
     );
-
-    AttachmentActions.fetchAttachments();
 
   }, []);
 

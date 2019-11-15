@@ -38,7 +38,6 @@ export interface IInstance {
   data: IData[];
 }
 
-
 export interface IPerson {
   ssn: string;
   name: string;
@@ -99,13 +98,11 @@ export interface ITitle {
   nb: string;
 }
 
-
 export interface IAttachment {
   name: string;
   iconClass: string;
   url: string;
 }
-
 
 export interface IData {
   id: string;

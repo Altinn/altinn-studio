@@ -47,6 +47,18 @@ export async function put(
   }
 }
 
+export async function httpDelete(
+  url: string,
+  options?: AxiosRequestConfig,
+): Promise<AxiosResponse<any>> {
+  try {
+    const response: AxiosResponse = await axios.delete(url, options ? options : null);
+    return response;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function putWithoutConfig<ReturnType>(
   url: string,
 ): Promise<AxiosResponse<ReturnType>> {
