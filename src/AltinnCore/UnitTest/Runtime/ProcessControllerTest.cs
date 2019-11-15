@@ -248,8 +248,8 @@ namespace AltinnCore.UnitTest.Runtime
 
             Mock<IPDF> pdfServiceMock = new Mock<IPDF>();
             pdfServiceMock
-                .Setup(x => x.GenerateAndStoreReceiptPDF(instance, userContext))
-                .Returns(Task.Complete));
+                .Setup(x => x.GenerateAndStoreReceiptPDF(It.IsAny<Instance>(), It.IsAny<UserContext>()))
+                .Returns(Task.CompletedTask);
 
             Mock<IOptions<GeneralSettings>> generalSettingsMock = new Mock<IOptions<GeneralSettings>>();
             generalSettingsMock.Setup(s => s.Value).Returns(new GeneralSettings()
@@ -264,6 +264,7 @@ namespace AltinnCore.UnitTest.Runtime
                 eventServiceMock.Object,
                 profileServiceMock.Object,
                 registerServiceMock.Object,
+                pdfServiceMock.Object,
                 generalSettingsMock.Object)
             {
                 ControllerContext = new ControllerContext()
