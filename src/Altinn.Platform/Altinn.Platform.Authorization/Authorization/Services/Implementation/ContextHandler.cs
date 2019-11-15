@@ -132,7 +132,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
             if (string.IsNullOrEmpty(attributeValue))
             {
                 resourceAttributes.Attributes.Add(GetAttribute(attributeId, newAttributeValue));
-            }            
+            }
         }
 
         private XacmlAttribute GetAttribute(string attributeId, string attributeValue)
@@ -168,7 +168,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
                 return;
             }
 
-            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId);
+            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId) ?? new List<Role>();
 
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }
