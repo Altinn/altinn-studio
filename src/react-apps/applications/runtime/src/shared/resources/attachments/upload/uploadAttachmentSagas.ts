@@ -5,7 +5,7 @@ import { getFileUploadComponentValidations } from './../../../../components/base
 import FormValidationsDispatcher from './../../../../features/form/validation/actions';
 import { IRuntimeState } from './../../../../types';
 import { post } from './../../../../utils/networking';
-import { appPath, fileUploadUrl } from './../../../../utils/urlHelper';
+import { fileUploadUrl } from './../../../../utils/urlHelper';
 import AttachmentDispatcher from './../attachmentActions';
 import * as AttachmentActionsTypes from './../attachmentActionTypes';
 import * as uploadActions from './uploadAttachmentActions';
@@ -19,7 +19,6 @@ export function* uploadAttachmentSaga(
     // Sets validations to empty.
     const newValidations = getFileUploadComponentValidations(null, null);
     yield call(FormValidationsDispatcher.updateComponentValidations, newValidations, componentId);
-    const { instanceId } = window as Window as IAltinnWindow;
 
     const data = new FormData();
     data.append('file', file);
