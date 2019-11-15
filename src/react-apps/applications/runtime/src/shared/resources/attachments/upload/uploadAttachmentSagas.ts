@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
-import { IAltinnWindow, IAttachment } from './..';
+import { IAttachment } from './..';
 import { getFileUploadComponentValidations } from './../../../../components/base/FileUploadComponent';
 import FormValidationsDispatcher from './../../../../features/form/validation/actions';
 import { IRuntimeState } from './../../../../types';
