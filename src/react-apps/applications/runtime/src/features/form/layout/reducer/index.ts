@@ -1,5 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { IUiConfig } from 'src/types/global';
 import {
   ILayout,
 } from '../';
@@ -8,16 +9,21 @@ import {
   IFetchFormLayoutRejected,
 } from '../actions/fetch';
 import * as ActionTypes from '../actions/types';
-import { IUpdateFormLayout } from '../actions/update';
+import { IUpdateFocusFulfilled, IUpdateFormLayout, IUpdateHiddenComponents } from '../actions/update';
 
 export interface ILayoutState {
   layout: ILayout;
   error: Error;
+  uiConfig: IUiConfig;
 }
 
 const initialState: ILayoutState = {
   layout: null,
   error: null,
+  uiConfig: {
+    focus: null,
+    hiddenFields: [],
+  },
 };
 
 const LayoutReducer: Reducer<ILayoutState> = (
@@ -48,12 +54,30 @@ const LayoutReducer: Reducer<ILayoutState> = (
         },
       });
     }
+    case ActionTypes.UPDATE_FOCUS_FULFUILLED: {
+      const { focusComponentId } = action as IUpdateFocusFulfilled;
+      return update<ILayoutState>(state, {
+        focus: {
+          $set: focusComponentId,
+        },
+      });
+    }
     case ActionTypes.UPDATE_FORM_LAYOUT: {
       const { layoutElement, index } = action as IUpdateFormLayout;
       return update<ILayoutState>(state, {
         layout: {
           [index]: {
             $set: layoutElement,
+          },
+        },
+      });
+    }
+    case ActionTypes.UPDATE_HIDDEN_COMPONENTS: {
+      const { componentsToHide } = action as IUpdateHiddenComponents;
+      return update<ILayoutState>(state, {
+        uiConfig: {
+          hiddenFields: {
+            $set: componentsToHide,
           },
         },
       });

@@ -25,15 +25,16 @@ function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
   try {
     const conditionalRenderingState: IConditionalRenderingRules = yield select(ConditionalRenderingSelector);
     const formData: IFormData = yield select(FormDataSelector);
-    const formLayout: ILayout = yield select(FormLayoutSelector);
     const formValidations: IValidations = yield select(FormValidationSelector);
-    const updatedElements = runConditionalRenderingRules(conditionalRenderingState, formData, formLayout);
-    updatedElements.forEach((element) => {
-      const index = getLayoutElementIndexById(element.id, formLayout);
-      FormLayoutActions.updateFormLayout(element, index);
-      if (element.hidden && formValidations[element.id]) {
+    const componentsToHide = runConditionalRenderingRules(
+        conditionalRenderingState,
+        formData,
+    );
+    FormLayoutActions.updateHiddenComponents(componentsToHide);
+    componentsToHide.forEach((componentId) => {
+      if (formValidations[componentId]) {
         const newFormValidations = formValidations;
-        delete formValidations[element.id];
+        delete formValidations[componentId];
         FormValidationActions.updateValidations(newFormValidations);
       }
     });
