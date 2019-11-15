@@ -12,24 +12,24 @@ namespace Altinn.App.Services.Implementation
     /// </summary>
     public class ProcessAppSI : IProcess
     {
-        private readonly AppSettings repositorySettings;
+        private readonly AppSettings appSettings;
         private readonly ILogger<ProcessAppSI> logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessAppSI"/> class.
         /// </summary>
         public ProcessAppSI(
-            IOptions<AppSettings> repositorySettings,
+            IOptions<AppSettings> appSettings,
             ILogger<ProcessAppSI> logger)
         {
-            this.repositorySettings = repositorySettings.Value;
+            this.appSettings = appSettings.Value;
             this.logger = logger;
         }
 
         /// <inheritdoc/>
         public Stream GetProcessDefinition(string org, string app)
         {
-            string bpmnFilePath = repositorySettings.GetWorkflowPath(org, app, null) + repositorySettings.WorkflowFileName;
+            string bpmnFilePath = appSettings.AppBasePath + appSettings.ConfigurationFolder + appSettings.ProcessFolder + appSettings.ProcessFileName;
 
             try
             {                
