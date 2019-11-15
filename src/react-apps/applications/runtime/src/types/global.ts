@@ -183,12 +183,14 @@ export interface IAttachments {
   [attachmentType: string]: IAttachment[];
 }
 
-export interface IAttachmentListApiResponse {
+export interface IAttachmentListStoreResponse {
   type: string;
-  attachments: IAttachmentApiResponse[];
+  attachments: IAttachmentStoreResponse[];
 }
 
-export interface IAttachmentApiResponse {
+export interface IAttachmentStoreResponse {
+  uploaded: boolean;
+  deleting: false;
   name: string;
   size: number;
   id: string;

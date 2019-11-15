@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { bytesInOneMB, FileUploadComponent, FileUploadComponentClass, getFileUploadComponentValidations } from '../../../src/components/base/FileUploadComponent';
-import { mapAttachmentListApiResponseToAttachments } from '../../../src/utils/attachment';
+import { mapAttachmentListToAttachments } from '../../../src/utils/attachment';
 
 describe('>>> components/base/FileUploadComponent.tsx', () => {
   let mockDisplayMode: string;
@@ -248,7 +248,7 @@ describe('>>> components/base/FileUploadComponent.tsx', () => {
         // mapper should handle empty response
       },
     ];
-    const mappedResponse = mapAttachmentListApiResponseToAttachments(mockApiResponse);
+    const mappedResponse = mapAttachmentListToAttachments(mockApiResponse);
 
     expect(mappedResponse.mockType.length).toBe(1);
     expect(mappedResponse.mockType[0].name).toBe('name1');

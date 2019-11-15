@@ -1,9 +1,10 @@
-import { IAttachmentListApiResponse, IAttachments } from '../shared/resources/attachments';
+import { IAttachments } from '../shared/resources/attachments';
+import { IData } from './../../../shared/src/types';
 
-export function mapAttachmentListToAttachments(response: IAttachmentListApiResponse[]): IAttachments {
+export function mapAttachmentListToAttachments(data: IData[]): IAttachments {
   const attachments: IAttachments = {};
 
-  response.forEach((element: any) => {
+  data.forEach((element: any) => {
       if (element.elementType === 'default') {
         return;
       }
@@ -23,26 +24,5 @@ export function mapAttachmentListToAttachments(response: IAttachmentListApiRespo
       );
     });
 
-  return attachments;
-}
-
-export function mapAttachmentListApiResponseToAttachments(response: IAttachmentListApiResponse[]): IAttachments {
-  const attachments: IAttachments = {};
-  if (!response) {
-    return attachments;
-  }
-  response.forEach((attachmentsByType: IAttachmentListApiResponse) => {
-    if (!attachmentsByType.type) {
-      return;
-    }
-    attachments[attachmentsByType.type] = [];
-    if (!attachmentsByType.attachments) {
-      return;
-    }
-    attachmentsByType.attachments.forEach((attachment) => {
-      attachments[attachmentsByType.type].push(
-        { ...attachment, uploaded: true, deleting: false });
-    });
-  });
   return attachments;
 }
