@@ -24,6 +24,14 @@ environmentVariables:
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: GeneralSettings__IntegrationTestsLocation
+      value: Templates/AspNet/App.IntegrationTests
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -65,6 +73,14 @@ environmentVariables:
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: GeneralSettings__IntegrationTestsLocation
+      value: Templates/AspNet/App.IntegrationTests
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint
@@ -106,6 +122,14 @@ environmentVariables:
       value: AltinnPartyId
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
+    - name: GeneralSettings__TemplateLocation
+      value: Templates/AspNet
+    - name: GeneralSettings__DeploymentLocation
+      value: Templates/AspNet/deployment
+    - name: GeneralSettings__AppLocation
+      value: Templates/AspNet/App
+    - name: GeneralSettings__IntegrationTestsLocation
+      value: Templates/AspNet/App.IntegrationTests
     - name: ServiceRepositorySettings__ApiEndPointHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__ApiEndPoint

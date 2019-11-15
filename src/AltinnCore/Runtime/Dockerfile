@@ -4,7 +4,6 @@ WORKDIR /src/AltinnCore/
 COPY src/AltinnCore/Common ./Common
 COPY src/AltinnCore/Authentication ./Authentication
 COPY src/AltinnCore/ServiceLibrary ./ServiceLibrary
-COPY src/AltinnCore/Templates ./Templates
 COPY src/AltinnCore/Testdata ./Testdata
 COPY src/AltinnCore/RepositoryClient ./RepositoryClient
 COPY src/AltinnCore/Altinn.Process ./Altinn.Process
@@ -21,7 +20,6 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.0-alpine AS final
 EXPOSE 80
 WORKDIR /AltinnService
 COPY src/AltinnCore/Testdata /Testdata
-COPY src/AltinnCore/Templates /Templates
 WORKDIR /app
 COPY --from=build /app_output .
 COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot/runtime/js/react/runtime.js
