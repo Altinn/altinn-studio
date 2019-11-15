@@ -82,7 +82,7 @@ namespace AltinnCore.UnitTest.Runtime
             List<string> startEvents = (List<string>)((OkObjectResult)result.Result).Value;
 
             Assert.NotNull(startEvents);
-            Assert.Contains("StartEvent_1", startEvents[0]);           
+            Assert.Contains("StartEvent_1", startEvents[0]);
         }
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             ProcessController processController = NewProcessController(MockContext(), processState);
 
-            ActionResult<ProcessState> result = processController.CompleteProcess(org, app, int.Parse(instanceOwnerId), instanceGuid).Result;            
+            ActionResult<ProcessState> result = processController.CompleteProcess(org, app, int.Parse(instanceOwnerId), instanceGuid).Result;
             ProcessState state = (ProcessState)((OkObjectResult)result.Result).Value;
 
             Assert.NotNull(state);
@@ -124,7 +124,7 @@ namespace AltinnCore.UnitTest.Runtime
 
             ActionResult<ProcessState> result = processController.CompleteProcess(org, app, int.Parse(instanceOwnerId), instanceGuid).Result;
 
-            Assert.IsType<ConflictObjectResult>(result.Result);            
+            Assert.IsType<ConflictObjectResult>(result.Result);
         }
 
         /// <summary>
@@ -142,7 +142,7 @@ namespace AltinnCore.UnitTest.Runtime
                     ElementId = "FormFilling_1",
                     AltinnTaskType = "data",
                     Flow = 1,
-                },                
+                },
             };
 
             ProcessController processController = NewProcessController(MockContext(), currentState);
@@ -246,11 +246,16 @@ namespace AltinnCore.UnitTest.Runtime
                 .Setup(x => x.GetUserProfile(It.IsAny<int>()))
                 .Returns(Task.FromResult(new UserProfile() { UserId = int.Parse(userId) }));
 
+            MockContext<IPDF> pdfServiceMock = new Mock<IPDF>();
+            pdfServiceMock
+                .Setup(x => x.GenerateAndStoreReceiptPDF(instance, userContext))
+                .Returns(Task.Complete));
+
             Mock<IOptions<GeneralSettings>> generalSettingsMock = new Mock<IOptions<GeneralSettings>>();
             generalSettingsMock.Setup(s => s.Value).Returns(new GeneralSettings()
             {
                 AltinnPartyCookieName = "AltinnPartyId",
-            });         
+            });
 
             return new ProcessController(
                 new Mock<ILogger<ProcessController>>().Object,

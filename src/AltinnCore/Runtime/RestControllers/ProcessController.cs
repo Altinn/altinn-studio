@@ -52,8 +52,6 @@ namespace AltinnCore.Runtime.RestControllers
             IProfile profileService,
             IRegister registerService,
             IPDF pdfService,
-            IRepository repositoryService,
-            IData dataService,
             IOptions<GeneralSettings> generalSettings)
         {
             this.logger = logger;
