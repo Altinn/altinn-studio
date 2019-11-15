@@ -47,7 +47,7 @@ export async function put(
   }
 }
 
-export async function restDelete(
+export async function httpDelete(
   url: string,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<any>> {
