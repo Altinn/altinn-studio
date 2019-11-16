@@ -105,25 +105,28 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<Stream> GeneratePDF(PDFContext pdfContext)
         {
-            HttpContent data = new StringContent(JObject.FromObject(pdfContext, _camelCaseSerializer).ToString(), Encoding.UTF8, "application/json");
-            HttpResponseMessage response = await _pdfClient.PostAsync("generate", data);
-            response.EnsureSuccessStatusCode();
-            Stream pdfContent = await response.Content.ReadAsStreamAsync();
-            data.Dispose();
-            return pdfContent;
+            using (HttpContent data = new StringContent(JObject.FromObject(pdfContext, _camelCaseSerializer).ToString(), Encoding.UTF8, "application/json"))
+            {
+                HttpResponseMessage response = await _pdfClient.PostAsync("generate", data);
+                response.EnsureSuccessStatusCode();
+                Stream pdfContent = await response.Content.ReadAsStreamAsync();
+                return pdfContent;
+            }
         }
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
-            StreamContent content = new StreamContent(pdfStream);
-            return await _dataService.InsertBinaryData(
-                instance.Org,
-                instance.AppId.Split("/")[1],
-                int.Parse(instance.InstanceOwnerId),
-                Guid.Parse(instance.Id.Split("/")[1]),
-                pdfElementType,
-                pdfFileName,
-                content);
+            using (StreamContent content = new StreamContent(pdfStream))
+            {
+                return await _dataService.InsertBinaryData(
+                    instance.Org,
+                    instance.AppId.Split("/")[1],
+                    int.Parse(instance.InstanceOwnerId),
+                    Guid.Parse(instance.Id.Split("/")[1]),
+                    pdfElementType,
+                    pdfFileName,
+                    content);
+            }
         }
     }
 }
