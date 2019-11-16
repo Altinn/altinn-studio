@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.2.8-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.3.8" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.4" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
     <PackageReference Include="Manatee.Json" Version="10.1.2" />
@@ -45,8 +45,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Helpers\InstantiationHelper.cs" />
     <Compile Remove="Models\Data.cs" />
     <Compile Remove="Models\Instance.cs" />
+    <Compile Remove="Services\Implementation\ApplicationStudioSI.cs" />
+    <Compile Remove="Services\Implementation\ArchiveStudioSI.cs" />
+    <Compile Remove="Services\Implementation\AuthenticationStudioSI.cs" />
+    <Compile Remove="Services\Implementation\AuthorizationStudioSI.cs" />
+    <Compile Remove="Services\Implementation\DataAppSI.cs" />
+    <Compile Remove="Services\Implementation\DataStudioSI.cs" />
+    <Compile Remove="Services\Implementation\ExecutionStudioSI.cs" />
+    <Compile Remove="Services\Implementation\InstanceAppSI.cs" />
+    <Compile Remove="Services\Implementation\InstanceEventStudioSI.cs" />
+    <Compile Remove="Services\Implementation\InstanceStudioSI.cs" />
+    <Compile Remove="Services\Implementation\TestdataStudioSI.cs" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

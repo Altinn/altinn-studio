@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Factories.ModelFactory;
@@ -131,28 +131,28 @@ namespace AltinnCore.Common.Services.Implementation
                 VersionId = null,
                 Org = org,
 
-                CreatedDateTime = DateTime.UtcNow,
+                Created = DateTime.UtcNow,
                 CreatedBy = developer,
-                LastChangedDateTime = DateTime.UtcNow,
+                LastChanged = DateTime.UtcNow,
                 LastChangedBy = developer
             };
 
             appMetadata.Title = new Dictionary<string, string>();
             appMetadata.Title.Add("nb", appTitle ?? app);
 
-            appMetadata.ElementTypes = new List<Altinn.Platform.Storage.Models.ElementType>();
-            appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
+            appMetadata.DataTypes = new List<DataType>();
+            appMetadata.DataTypes.Add(new DataType
             {
                 Id = "default",
-                AllowedContentType = new List<string>() { "application/xml" },
-                AppLogic = true,
-                Task = "FormFilling_1",
+                AllowedContentTypes = new List<string>() { "application/xml" },
+                AppLogic = new ApplicationLogic() { },
+                TaskId = "FormFilling_1",
             });
-            appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
+            appMetadata.DataTypes.Add(new DataType
             {
                 Id = "ref-data-as-pdf",
-                AllowedContentType = new List<string>() { "application/pdf" },
-                Task = "FormFilling_1",
+                AllowedContentTypes = new List<string>() { "application/pdf" },
+                TaskId = "FormFilling_1",
                 MaxCount = 1,
                 MinCount = 1,
             });
@@ -222,9 +222,9 @@ namespace AltinnCore.Common.Services.Implementation
         {
             try
             {
-                Altinn.Platform.Storage.Models.ElementType formMetadata = JsonConvert.DeserializeObject<Altinn.Platform.Storage.Models.ElementType>(applicationMetadata);
+                DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
                 Application existingApplicationMetadata = GetApplication(org, app);
-                existingApplicationMetadata.ElementTypes.Add(formMetadata);
+                existingApplicationMetadata.DataTypes.Add(formMetadata);
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
                 string filePath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
@@ -248,15 +248,15 @@ namespace AltinnCore.Common.Services.Implementation
                 string attachmentId = attachmentMetadata.GetValue("id").Value;
                 string fileTypes = attachmentMetadata.GetValue("fileType") == null ? "all" : attachmentMetadata.GetValue("fileType").Value;
                 string[] fileType = fileTypes.Split(",");
-                Altinn.Platform.Storage.Models.ElementType applicationForm = new Altinn.Platform.Storage.Models.ElementType();
-                if (applicationForm.AllowedContentType == null)
+                DataType applicationForm = new DataType();
+                if (applicationForm.AllowedContentTypes == null)
                 {
-                    applicationForm.AllowedContentType = new List<string>();
+                    applicationForm.AllowedContentTypes = new List<string>();
                 }
 
                 foreach (string type in fileType)
                 {
-                    applicationForm.AllowedContentType.Add(MimeTypeMap.GetMimeType(type));
+                    applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type));
                 }
 
                 applicationForm.Id = attachmentMetadata.GetValue("id").Value;
@@ -282,10 +282,10 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 Application existingApplicationMetadata = GetApplication(org, app);
 
-                if (existingApplicationMetadata.ElementTypes != null)
+                if (existingApplicationMetadata.DataTypes != null)
                 {
-                    Altinn.Platform.Storage.Models.ElementType removeForm = existingApplicationMetadata.ElementTypes.Find(m => m.Id == id);
-                    existingApplicationMetadata.ElementTypes.Remove(removeForm);
+                    DataType removeForm = existingApplicationMetadata.DataTypes.Find(m => m.Id == id);
+                    existingApplicationMetadata.DataTypes.Remove(removeForm);
                 }
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);

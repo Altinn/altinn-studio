@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
@@ -59,9 +59,9 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string app = instance.AppId.Split("/")[1];
             string org = instance.Org;
-            int instanceOwnerId = int.Parse(instance.InstanceOwnerId);
+            int instanceOwnerId = int.Parse(instance.InstanceOwner.PartyId);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
-            Guid defaultDataElementGuid = Guid.Parse(instance.Data.Find(element => element.ElementType.Equals("default"))?.Id);
+            Guid defaultDataElementGuid = Guid.Parse(instance.Data.Find(element => element.DataType.Equals("default"))?.Id);
             Stream dataStream = await _dataService.GetBinaryData(org, app, instanceOwnerId, instanceGuid, defaultDataElementGuid);
             byte[] dataAsBytes = new byte[dataStream.Length];
             dataStream.Read(dataAsBytes);
@@ -74,7 +74,7 @@ namespace AltinnCore.Common.Services.Implementation
                 TextResources = _repositoryService.GetServiceTexts(org, app),
                 Party = await _registerService.GetParty(instanceOwnerId),
                 UserParty = userContext.Party,
-                Instance = instance
+                Instance = instance                
             };
 
             Stream pdfContent;
@@ -121,7 +121,7 @@ namespace AltinnCore.Common.Services.Implementation
                 return await _dataService.InsertBinaryData(
                     instance.Org,
                     instance.AppId.Split("/")[1],
-                    int.Parse(instance.InstanceOwnerId),
+                    int.Parse(instance.InstanceOwner.PartyId),
                     Guid.Parse(instance.Id.Split("/")[1]),
                     pdfElementType,
                     pdfFileName,
