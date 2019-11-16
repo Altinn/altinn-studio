@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Services.Interfaces;
@@ -123,8 +123,8 @@ namespace AltinnCore.Designer.Services
                 Id = $"{_org}/{_app}",
                 Org = applicationFromRepository.Org,
                 CreatedBy = applicationFromRepository.CreatedBy,
-                CreatedDateTime = applicationFromRepository.CreatedDateTime,
-                ElementTypes = applicationFromRepository.ElementTypes,
+                Created = applicationFromRepository.Created,
+                DataTypes = applicationFromRepository.DataTypes,
                 Title = applicationFromRepository.Title,
                 PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed,
                 VersionId = _fullCommitSha
@@ -136,7 +136,7 @@ namespace AltinnCore.Designer.Services
         {
             application.Title = applicationFromRepository.Title;
             application.VersionId = _fullCommitSha;
-            application.ElementTypes = applicationFromRepository.ElementTypes;
+            application.DataTypes = applicationFromRepository.DataTypes;
             application.PartyTypesAllowed = applicationFromRepository.PartyTypesAllowed;
             await _httpClient.PutAsJsonAsync($"{_org}/{_app}", application);
         }
