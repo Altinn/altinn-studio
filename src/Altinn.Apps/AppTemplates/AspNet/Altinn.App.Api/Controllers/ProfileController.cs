@@ -14,6 +14,8 @@ namespace Altinn.App.Api.Controllers
     /// Controller that exposes profile
     /// </summary>
     [Authorize]
+    [Route("{org}/{app}/profile/api/v1")]
+    [ApiController]
     public class ProfileController : Controller
     {
         private readonly IProfile _profile;
@@ -36,6 +38,7 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Method that returns the user information about the user that is logged in
         /// </summary>
+       [HttpGet("user")]
         public async Task<ActionResult> GetUser()
         {
             int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
