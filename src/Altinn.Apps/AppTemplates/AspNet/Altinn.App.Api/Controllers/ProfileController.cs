@@ -14,7 +14,7 @@ namespace Altinn.App.Api.Controllers
     /// Controller that exposes profile
     /// </summary>
     [Authorize]
-    [Route("{org}/{app}/profile/api/v1")]
+    [Route("{org}/{app}/api/v1/profile")]
     [ApiController]
     public class ProfileController : Controller
     {
