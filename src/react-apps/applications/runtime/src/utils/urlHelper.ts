@@ -24,7 +24,12 @@ export const partySelectionUrl: string = `${appPath}/#/partyselection`;
 export const refreshJwtTokenUrl: string = `${appPath}/api/authentication/keepAlive`;
 export const reactErrorPage: string = `${appPath}/#/error`;
 
-export function getDataElementUrl(dataGuid: string) {
+export function fileUploadUrl(attachmentType: string, attachmentName: string) {
+  return `${appPath}/instances/` +
+  `${altinnWindow.instanceId}/data?elementType=${attachmentType}&attachmentName=${attachmentName}`;
+}
+
+export function dataElementUrl(dataGuid: string) {
   return `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
 }
 
@@ -65,6 +70,7 @@ export const getEnvironmentLoginUrl: () => string = () => {
     return `https://platform${domainSplitted[2]}.${domainSplitted[3]}` +
       `/authentication/api/v1/authentication?goto=${window.location.href}`;
   } else {
+    // TODO: what if altinn3?
     throw new Error('Unknown domain');
   }
 };

@@ -3,6 +3,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Services;
+using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Configuration;
@@ -39,7 +40,7 @@ namespace AltinnCore.Designer.Infrastructure
             services.AddSingleton<IForm, FormStudioSI>();
             services.AddTransient<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ISourceControl, SourceControlSI>();
+            services.AddTransient<ISourceControl, SourceControlSI>();
             services.AddSingleton<ITestdata, TestdataStudioSI>();
             services.AddSingleton<IApplication, ApplicationStudioSI>();
 
@@ -49,7 +50,9 @@ namespace AltinnCore.Designer.Infrastructure
 
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
+            services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
+            services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
 
             return services;
         }

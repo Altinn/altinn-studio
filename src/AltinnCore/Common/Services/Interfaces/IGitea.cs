@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AltinnCore.Common.Models;
 using AltinnCore.RepositoryClient.Model;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -79,5 +80,23 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <returns>A newly generated token</returns>
         Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null);
+
+        /// <summary>
+        /// Gets the git tree in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">The name of repository</param>
+        /// <param name="commitId">Sha of the commit, short / long version</param>
+        /// <returns></returns>
+        Task<GitTreeStructure> GetGitTreeAsync(string org, string app, string commitId);
+
+        /// <summary>
+        /// Gets a file from a filepath
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">The name of repository</param>
+        /// <param name="filePath">Path to a file, may start with full commit sha</param>
+        /// <returns></returns>
+        Task<string> GetFileAsync(string org, string app, string filePath);
     }
 }

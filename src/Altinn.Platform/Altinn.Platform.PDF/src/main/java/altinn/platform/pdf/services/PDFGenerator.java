@@ -116,6 +116,9 @@ public class PDFGenerator {
 
     // Loop through all pdfLayout elements and draws them
     for (FormLayoutElement element : formLayout.getData().getLayout()) {
+      if (element.getType().equals("Button")) {
+        continue;
+      }
       float elementHeight = LayoutUtils.getElementHeight(element, font, fontSize, width, leading, textFieldMargin, textResources, formData, instance);
       if ((yPoint - elementHeight) < (0 + margin)) {
         // the element would fall outside the page, we create new page and start from there
@@ -163,7 +166,7 @@ public class PDFGenerator {
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
-    currentContent.showText(instance.getOrg() + " - " + instance.getPresentationField().getNb());
+    currentContent.showText(instance.getOrg());
     yPoint -= leading;
     currentContent.endText();
     yPoint -= textFieldMargin;

@@ -134,7 +134,7 @@ namespace AltinnCore.Runtime.RestControllers
 
         /// <summary>
         /// Gets a data element from storage and applies business logic if nessesary.
-        /// </summary>     
+        /// </summary>
         /// <param name="org">unique identfier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
         /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
@@ -403,7 +403,7 @@ namespace AltinnCore.Runtime.RestControllers
         }
 
         private object ParseContentAndDeserializeServiceModel(Type modelType, out ActionResult error)
-        {            
+        {
             Stream contentStream = Request.Body;
             string contentType = Request.ContentType;
             error = null;
@@ -485,7 +485,7 @@ namespace AltinnCore.Runtime.RestControllers
         private async Task<bool?> RequiresAppLogic(string org, string app, string elementTypeId)
         {
             bool? appLogic = false;
-            
+
             try
             {
                 Application application = await appService.GetApplication(org, app);
@@ -502,7 +502,7 @@ namespace AltinnCore.Runtime.RestControllers
         /// <summary>
         ///  Gets a data element (form data) from storage and performs business logic on it (e.g. to calculate certain fields) before it is returned.
         ///  If more there are more data elements of the same elementType only the first one is returned. In that case use the more spesific
-        ///  GET method to fetch a particular data element. 
+        ///  GET method to fetch a particular data element.
         /// </summary>
         /// <returns>data element is returned in response body</returns>
         private async Task<ActionResult> GetFormData(

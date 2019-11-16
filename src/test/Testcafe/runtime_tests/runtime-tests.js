@@ -21,7 +21,6 @@ fixture('Regression tests of apps in runtime')
       .resizeWindow(1536, 864)
   });
 
-
 test('Instantiate an app in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime2#/test')
@@ -128,10 +127,7 @@ test('Fill out, save, and submit an instance of an app', async () => {
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.saveButton)
     .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
-    .click(runtime.sendInnButton)
-    .expect(runtime.workflowSubmit.exists).ok({ timeout: 120000 })
-    .expect(runtime.workflowSubmit.visible).ok()
-    .click(runtime.workflowSubmit)
+    .click(runtime.sendInnButton)    
     .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
 });
 
@@ -164,10 +160,7 @@ test('Attachment dropdown and download on receipt page', async () => {
     .expect(runtime.saveButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 1000 })
     .click(runtime.saveButton)
     .expect(runtime.sendInnButton.getStyleProperty("background-color")).eql("rgb(23, 201, 107)","check element color", { timeout: 240000 })
-    .click(runtime.sendInnButton)
-    .expect(runtime.workflowSubmit.exists).ok({ timeout: 120000 })
-    .expect(runtime.workflowSubmit.visible).ok()
-    .click(runtime.workflowSubmit)
+    .click(runtime.sendInnButton)    
     .expect(runtime.receiptContainer.find('h2').withText('sendt inn').exists).ok({ timeout: 120000 })
     .expect(runtime.AttachmentDropDown.visible).ok()
     .doubleClick(runtime.AttachmentDropDown)
