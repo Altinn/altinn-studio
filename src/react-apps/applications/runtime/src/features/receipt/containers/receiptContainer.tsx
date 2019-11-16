@@ -106,7 +106,7 @@ const ReceiptContainer = (props: IReceiptContainerProps ) => {
       setAttachments(attachmentsResult);
 
       const defaultDataElementLastChangedDateTime = instance.data
-        .filter((elem) => elem.elementType === 'default')[0]
+        .filter((elem) => elem.dataType === 'default')[0]
         .lastChangedDateTime;
 
       setLastChangedDateTime(moment(defaultDataElementLastChangedDateTime).format('DD.MM.YYYY / HH:mm'));

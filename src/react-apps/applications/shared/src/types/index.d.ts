@@ -16,7 +16,7 @@ export interface IDataLinks {
 
 export interface IData {
   id: string;
-  elementType: string;
+  dataType: string;
   fileName: string;
   contentType: string;
   storageUrl: string;

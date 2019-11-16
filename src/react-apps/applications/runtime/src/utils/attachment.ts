@@ -5,15 +5,15 @@ export function mapAttachmentListToAttachments(data: IData[]): IAttachments {
   const attachments: IAttachments = {};
 
   data.forEach((element: IData) => {
-      if (element.elementType === 'default') {
+      if (element.dataType === 'default') {
         return;
       }
 
-      if (!attachments[element.elementType]) {
-        attachments[element.elementType] = [];
+      if (!attachments[element.dataType]) {
+        attachments[element.dataType] = [];
       }
 
-      attachments[element.elementType].push(
+      attachments[element.dataType].push(
         {
           uploaded: true,
           deleting: false,
