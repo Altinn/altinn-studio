@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using Storage.Interface.Models;
 
 namespace AltinnCore.Runtime.RestControllers
@@ -38,6 +39,8 @@ namespace AltinnCore.Runtime.RestControllers
 
         private BpmnReader ProcessModel { get; set; }
 
+        private IPDF pdfService;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ProcessController"/>
         /// </summary>
@@ -48,13 +51,14 @@ namespace AltinnCore.Runtime.RestControllers
             IInstanceEvent eventService,
             IProfile profileService,
             IRegister registerService,
+            IPDF pdfService,
             IOptions<GeneralSettings> generalSettings)
         {
             this.logger = logger;
             this.instanceService = instanceService;
             this.processService = processService;
             this.eventService = eventService;
-
+            this.pdfService = pdfService;
             userHelper = new UserHelper(profileService, registerService, generalSettings);
         }
 
@@ -74,7 +78,7 @@ namespace AltinnCore.Runtime.RestControllers
             [FromRoute] string app,
             [FromRoute] int instanceOwnerId,
             [FromRoute] Guid instanceGuid)
-        {            
+        {
             Instance instance = await instanceService.GetInstance(app, org, instanceOwnerId, instanceGuid);
 
             if (instance == null)
@@ -192,7 +196,7 @@ namespace AltinnCore.Runtime.RestControllers
                 return NotFound("Cannot find any valid process elements that can be reached from current task");
             }
 
-            return Ok(nextElementIds);           
+            return Ok(nextElementIds);
         }
 
         /// <summary>
@@ -275,7 +279,7 @@ namespace AltinnCore.Runtime.RestControllers
 
         /// <summary>
         /// Attemts to end the process by running next until an end event is reached.
-        /// Notice that process must have been started.       
+        /// Notice that process must have been started.
         /// </summary>
         /// <param name="org">unique identifier of the organisation responsible for the app</param>
         /// <param name="app">application identifier which is unique within an organisation</param>
@@ -436,7 +440,7 @@ namespace AltinnCore.Runtime.RestControllers
 
         private async Task<Instance> UpdateProcessStateToNextElement(string org, string app, Instance instance, int instanceOwnerId, Guid instanceGuid, string nextElementId)
         {
-            List<InstanceEvent> events = ChangeProcessStateAndGenerateEvents(instance, nextElementId);
+            List<InstanceEvent> events = await ChangeProcessStateAndGenerateEvents(instance, nextElementId);
 
             Instance changedInstance = await instanceService.UpdateInstance(instance, app, org, instanceOwnerId, instanceGuid);
 
@@ -466,7 +470,7 @@ namespace AltinnCore.Runtime.RestControllers
                     return proposedElementId;
                 }
                 else
-                {                    
+                {
                     nextElementError = Conflict($"The proposed next element id '{proposedElementId}' is not among the available next process elements");
                     return null;
                 }
@@ -476,7 +480,7 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 return possibleNextElements.First();
             }
-            
+
             if (possibleNextElements.Count > 1)
             {
                 nextElementError = Conflict($"There are more than one outgoing sequence flows, please select one '{possibleNextElements}'");
@@ -494,14 +498,14 @@ namespace AltinnCore.Runtime.RestControllers
 
         /// <summary>
         ///  Todo: Fix validation code of the instance's currentTask.
-        /// </summary>        
+        /// </summary>
         /// <returns>try if validation is OK, false otherwise</returns>
         private bool InstanceIsValid(Instance instance)
         {
-            return true;            
+            return true;
         }
 
-        private List<InstanceEvent> ChangeProcessStateAndGenerateEvents(Instance instance, string nextElementId)
+        private async Task<List<InstanceEvent>> ChangeProcessStateAndGenerateEvents(Instance instance, string nextElementId)
         {
             List<InstanceEvent> events = new List<InstanceEvent>();
 
@@ -533,7 +537,7 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 currentState.CurrentTask = null;
                 currentState.Ended = now;
-                currentState.EndEvent = nextElementId;                
+                currentState.EndEvent = nextElementId;
 
                 events.Add(GenerateProcessChangeEvent("process:EndEvent", instance, now));
             }
@@ -541,7 +545,7 @@ namespace AltinnCore.Runtime.RestControllers
             {
                 currentState.CurrentTask = new ProcessElementInfo
                 {
-                    Flow = flow + 1, 
+                    Flow = flow + 1,
                     ElementId = nextElementId,
                     Name = nextElementInfo.Name,
                     Started = now,
@@ -550,6 +554,12 @@ namespace AltinnCore.Runtime.RestControllers
                 };
 
                 events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now));
+            }
+
+            if (previousElementId != null && previousElementId.Equals("FormFilling_1"))
+            {
+                UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
+                await pdfService.GenerateAndStoreReceiptPDF(instance, userContext);
             }
 
             // current state points to the instance's process object. The following statement is unnecessary, but clarifies logic.
@@ -579,7 +589,7 @@ namespace AltinnCore.Runtime.RestControllers
         private bool IsTask(string nextElementId)
         {
             List<string> tasks = ProcessModel.Tasks();
-            return tasks.Contains(nextElementId);            
+            return tasks.Contains(nextElementId);
         }
 
         private bool IsStartEvent(string startEventId)
@@ -593,7 +603,7 @@ namespace AltinnCore.Runtime.RestControllers
         {
             List<string> endEvents = ProcessModel.EndEvents();
 
-            return endEvents.Contains(nextElementId);            
+            return endEvents.Contains(nextElementId);
         }
-    }   
+    }
 }

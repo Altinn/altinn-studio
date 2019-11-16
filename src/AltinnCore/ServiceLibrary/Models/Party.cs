@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AltinnCore.ServiceLibrary.Enums;
+using Newtonsoft.Json;
 
 namespace AltinnCore.ServiceLibrary.Models
 {

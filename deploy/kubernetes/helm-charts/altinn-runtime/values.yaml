@@ -61,6 +61,8 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud/authorization/api/v1/
     - name: PlatformSettings__ApiAuthorizationEndpointHost
       value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiPdfEndpoint
+      value: https://platform.at21.altinn.cloud/pdf/api/v1/
   staging:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -106,6 +108,8 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud/authorization/api/v1/
     - name: PlatformSettings__ApiAuthorizationEndpointHost
       value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiPdfEndpoint
+      value: https://platform.at21.altinn.cloud/pdf/api/v1/
   production:
     - name: ASPNETCORE_ENVIRONMENT
       value: Production
@@ -151,6 +155,8 @@ environmentVariables:
       value: https://platform.at21.altinn.cloud/authorization/api/v1/
     - name: PlatformSettings__ApiAuthorizationEndpointHost
       value: https://platform.at21.altinn.cloud
+    - name: PlatformSettings__ApiPdfEndpoint
+      value: https://platform.at21.altinn.cloud/pdf/api/v1/
 
 volumeMounts:
   - name: altinn-runtime-repo-storage

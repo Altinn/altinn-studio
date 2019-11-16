@@ -20,6 +20,7 @@ namespace AltinnCore.Common.Clients
         private HttpClient _profileClient;
         private HttpClient _authorizationClient;
         private HttpClient _authenticationClient;
+        private HttpClient _pdfClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpClientAccessor"/> class.
@@ -110,6 +111,21 @@ namespace AltinnCore.Common.Clients
                 }
 
                 return _authenticationClient;
+            }
+        }
+
+        /// <inheritdoc />
+        public HttpClient PdfClient
+        {
+            get
+            {
+                if (_pdfClient == null)
+                {
+                    _pdfClient = new HttpClient();
+                    _pdfClient.BaseAddress = new Uri($"{_platformSettings.ApiPdfEndpoint}");
+                }
+
+                return _pdfClient;
             }
         }
     }

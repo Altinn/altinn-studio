@@ -128,6 +128,7 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton<IPrefill, PrefillSI>();
+            services.AddSingleton<IPDF, PDFSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddResponseCompression();
