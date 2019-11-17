@@ -835,7 +835,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="serviceMetadata">The serviceMetadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
         /// <returns>A value indicating if everything went ok</returns>
-        public bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd)
+        public bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd, string fileName)
         {
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
 
@@ -860,7 +860,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Create the .cs file for the model
             try
             {
-                string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
+                string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName + ".cs";
                 new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, classes, Encoding.UTF8);
             }
@@ -876,7 +876,7 @@ namespace AltinnCore.Common.Services.Implementation
                 // Create the .xsd file for the model
                 try
                 {
-                    string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
+                    string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName + ".xsd";
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
                 }
@@ -896,7 +896,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                     JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-                    string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
+                    string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName + ".schema.json";
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
                 }
@@ -927,7 +927,32 @@ namespace AltinnCore.Common.Services.Implementation
                 instansiationHandlerPath,
                 File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
+            UpdateApplicationMetadata(org, app, fileName);
+
             return true;
+        }
+
+        private bool UpdateApplicationMetadata(string org, string app, string fileName)
+        {
+            string filePath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "App/Metadata/applicationmetadata.json";
+            string fileContent = File.ReadAllText(filePath);
+            Application appMetadata = JsonConvert.DeserializeObject<Application>(fileContent);
+
+            // Get the element that contains the name of the data model
+            List<Altinn.Platform.Storage.Models.ElementType> elementTypes = appMetadata.ElementTypes;
+            Altinn.Platform.Storage.Models.ElementType elementType = elementTypes.FirstOrDefault(e => e.AppLogic == true);
+
+            if (elementType != null)
+            {
+                // Update the id to be the file name of the data model
+                elementType.Id = fileName;
+                string metadata = JsonConvert.SerializeObject(appMetadata);
+                File.WriteAllText(filePath, metadata, Encoding.UTF8);
+
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -938,7 +963,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Service model content.</returns>
         public string GetServiceModel(string org, string app)
         {
-            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
+            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName; 
             string filedata = null;
 
             if (File.Exists(filename))

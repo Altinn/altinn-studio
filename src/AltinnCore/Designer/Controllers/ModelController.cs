@@ -88,7 +88,7 @@ namespace AltinnCore.Designer.Controllers
 
             HandleTexts(org, app, converter.GetTexts());
 
-            if (_repository.CreateModel(org, app, serviceMetadata, mainXsd))
+            if (_repository.CreateModel(org, app, serviceMetadata, mainXsd, Path.GetFileNameWithoutExtension(mainFileName)))
             {
                 return RedirectToAction("Index", new { org, app });
             }
@@ -159,7 +159,7 @@ namespace AltinnCore.Designer.Controllers
 
             if (_repository.UpdateServiceMetadata(org, app, serviceMetadataObject))
             {
-                _repository.CreateModel(org, app, serviceMetadataObject, null);
+                _repository.CreateModel(org, app, serviceMetadataObject, null, null);
                 return Ok("Metadata was saved and model re-generated");
             }
             else

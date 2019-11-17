@@ -23,7 +23,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="serviceMetadata">The <see cref="ServiceMetadata"/> to generate the model based on.</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
         /// <returns>A boolean indicating the result</returns>
-        bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd);
+        bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd, string fileName);
 
         /// <summary>
         /// Method that creates service metadata for a new app
