@@ -893,7 +893,7 @@ namespace AltinnCore.Common.Services.Implementation
                     return false;
                 }
 
-                // Create the json schema file for the model
+                // Create the schema.json schema file for the model
                 try
                 {
                     XsdToJsonSchema xsdToJsonSchemaConverter;
@@ -942,7 +942,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private bool UpdateApplicationMetadata(string org, string app, string fileName)
         {
-            string filePath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "App/Metadata/applicationmetadata.json";
+            /*string filePath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "App/Metadata/applicationmetadata.json";
             string fileContent = File.ReadAllText(filePath);
             Application appMetadata = JsonConvert.DeserializeObject<Application>(fileContent);
 
@@ -958,7 +958,7 @@ namespace AltinnCore.Common.Services.Implementation
                 File.WriteAllText(filePath, metadata, Encoding.UTF8);
 
                 return true;
-            }
+            }*/
 
             return false;
         }
