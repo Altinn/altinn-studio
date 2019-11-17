@@ -57,10 +57,11 @@ public class FormDataUtils {
     for (int i = 0; i < childNodes.getLength(); i++) {
       Node childNode = childNodes.item(i);
       String nodeName = childNode.getNodeName();
+      nodeName = nodeName.replace("-", "").toLowerCase();
       if (nodeName == null) {
         continue;
       }
-      if (nodeName.equals(keys[keyIndex])) {
+      if (nodeName.equals(keys[keyIndex].toLowerCase())) {
         if ((keys.length - 1) == keyIndex) {
           // If no more partial keys we have reached bottom node, return value if present
           String value = childNode.getFirstChild().getNodeValue();

@@ -91,27 +91,32 @@ namespace Altinn.App.Services.Configuration
         /// <summary>
         /// The app configuration baseUrl where files are stored in the container
         /// </summary>
-        public string AppBasePath { get; set; }
+        public string AppBasePath { get; set; } = "app/";
 
         /// <summary>
         /// The app configuration baseUrl where files are stored in the container
         /// </summary>
-        public string ConfigurationFolder { get; set; }
+        public string ConfigurationFolder { get; set; } = "configuration/";
 
         /// <summary>
         /// The ui configuration baseUrl where files are stored in the container
         /// </summary>
-        public string UiFolder { get; set; }
+        public string UiFolder { get; set; } = "ui/";
 
         /// <summary>
         /// The models folder
         /// </summary>
-        public string ModelsFolder { get; set; }
+        public string ModelsFolder { get; set; } = "models/";
 
         /// <summary>
         /// The text folder
         /// </summary>
-        public string TextFolder { get; set; }
+        public string TextFolder { get; set; } = "texts/";
+
+        /// <summary>
+        /// The process folder
+        /// </summary>
+        public string ProcessFolder { get; set; } = "process/";
 
         /// <summary>
         /// Gets or sets the Repository Location
@@ -144,9 +149,9 @@ namespace Altinn.App.Services.Configuration
         public string ApplicationMetadataFileName { get; set; } = "applicationmetadata.json";
 
         /// <summary>
-        /// Gets or sets the filename for workflow file
+        /// Gets or sets the filename for process file
         /// </summary>
-        public string WorkflowFileName { get; set; } = "workflow.bpmn";
+        public string ProcessFileName { get; set; } = "process.bpmn";
 
         /// <summary>
         /// Gets or sets React file name

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services;
+using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
 using AltinnCore.Designer.ViewModels.Request;

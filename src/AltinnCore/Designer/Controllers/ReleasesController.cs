@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AltinnCore.Designer.ModelBinding.Constants;
 using AltinnCore.Designer.Repository.Models;
 using AltinnCore.Designer.Services;
+using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.ViewModels.Request;
 using AltinnCore.Designer.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;

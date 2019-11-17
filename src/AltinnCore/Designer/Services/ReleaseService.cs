@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Infrastructure.Models;
 using AltinnCore.Designer.Repository;
 using AltinnCore.Designer.Repository.Models;
+using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Enums;
 using AltinnCore.Designer.TypedHttpClients.AzureDevOps.Models;
@@ -28,7 +28,6 @@ namespace AltinnCore.Designer.Services
     {
         private readonly ReleaseRepository _releaseRepository;
         private readonly IAzureDevOpsBuildService _azureDevOpsBuildService;
-        private readonly ISourceControl _sourceControl;
         private readonly AzureDevOpsSettings _azureDevOpsSettings;
         private readonly HttpContext _httpContext;
         private readonly string _org;
@@ -40,19 +39,16 @@ namespace AltinnCore.Designer.Services
         /// <param name="releaseRepository">Document db repository</param>
         /// <param name="httpContextAccessor">IHttpContextAccessor</param>
         /// <param name="azureDevOpsBuildService">IAzureDevOpsBuildService</param>
-        /// <param name="sourceControl">ISourceControl</param>
         /// <param name="azureDevOpsOptions">IOptionsMonitor of Type AzureDevOpsSettings</param>
         public ReleaseService(
             ReleaseRepository releaseRepository,
             IHttpContextAccessor httpContextAccessor,
             IAzureDevOpsBuildService azureDevOpsBuildService,
-            ISourceControl sourceControl,
             IOptionsMonitor<AzureDevOpsSettings> azureDevOpsOptions)
         {
             _azureDevOpsSettings = azureDevOpsOptions.CurrentValue;
             _releaseRepository = releaseRepository;
             _azureDevOpsBuildService = azureDevOpsBuildService;
-            _sourceControl = sourceControl;
             _httpContext = httpContextAccessor.HttpContext;
             _org = _httpContext.GetRouteValue("org")?.ToString();
             _app = _httpContext.GetRouteValue("app")?.ToString();
@@ -68,7 +64,6 @@ namespace AltinnCore.Designer.Services
             QueueBuildParameters queueBuildParameters = new QueueBuildParameters
             {
                 AppCommitId = release.TargetCommitish,
-                AppDeployToken = _sourceControl.GetDeployToken(),
                 AppOwner = release.Org,
                 AppRepo = release.App,
                 TagName = release.TagName

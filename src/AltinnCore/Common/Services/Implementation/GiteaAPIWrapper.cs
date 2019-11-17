@@ -69,12 +69,7 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
-        /// <summary>
-        /// Create repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="createRepoOption">the options for creating repository</param>
-        /// <returns>The newly created repository</returns>
+        /// <inheritdoc />
         public async Task<Repository> CreateRepository(string org, CreateRepoOption createRepoOption)
         {
             Repository repository = new Repository();
@@ -222,10 +217,7 @@ namespace AltinnCore.Common.Services.Implementation
             return returnRepository;
         }
 
-        /// <summary>
-        /// Gets a list over the organisations that the current user has access to.
-        /// </summary>
-        /// <returns>A list over all</returns>
+        /// <inheritdoc />
         public async Task<List<Organization>> GetUserOrganizations()
         {
             HttpResponseMessage response = await _httpClient.GetAsync("user/orgs");
@@ -239,12 +231,7 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
-        /// <summary>
-        /// Returns all branch information for a repository
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repo">The name of the repo</param>
-        /// <returns>The branches</returns>
+        /// <inheritdoc />
         public async Task<List<Branch>> GetBranches(string org, string repo)
         {
             HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{repo}/branches");
@@ -272,13 +259,7 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
-        /// <summary>
-        /// This method screen scrapes the user from the profile ui in GITEA.
-        /// This was needed when GITEA changed their API policy in 1.5.2 and requiring
-        /// only API calls with token. This is currently the only known way to get
-        /// info about the logged in user in GITEA.
-        /// </summary>
-        /// <returns>Returns the logged in user</returns>
+        /// <inheritdoc />
         public async Task<string> GetUserNameFromUI()
         {
             Uri giteaUrl = BuildGiteaUrl("/user/settings/");
@@ -296,12 +277,7 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
-        /// <summary>
-        /// This method generates a application key in GITEA with
-        /// help of screen scraping the Application form in GITEA
-        /// This is the only  way (currently) to generate a APP key without involving the user in
-        /// </summary>
-        /// <returns>A newly generated token</returns>
+        /// <inheritdoc />
         public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
         {
             string csrf = GetCsrf().Result;
@@ -340,6 +316,20 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<GitTreeStructure> GetGitTreeAsync(string org, string app, string commitId)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/git/trees/{commitId}");
+            return await response.Content.ReadAsAsync<GitTreeStructure>();
+        }
+
+        /// <inheritdoc />
+        public async Task<string> GetFileAsync(string org, string app, string filePath)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync($"repos/{org}/{app}/raw/{filePath}");
+            return await response.Content.ReadAsStringAsync();
         }
 
         private async Task<Organization> GetOrganization(string name)

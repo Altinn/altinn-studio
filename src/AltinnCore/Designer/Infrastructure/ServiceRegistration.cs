@@ -3,6 +3,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Services;
+using AltinnCore.Designer.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Configuration;
@@ -23,25 +24,28 @@ namespace AltinnCore.Designer.Infrastructure
         public static IServiceCollection RegisterServiceImplementations(this IServiceCollection services, IConfiguration configuration)
         {
             // Adding services to Dependency Injection TODO: Make this environment specific
-            services.AddSingleton<IExecution, ExecutionStudioSI>();
-            services.AddSingleton<IInstance, InstanceStudioSI>();
-            services.AddSingleton<IData, DataStudioSI>();
+            // services.AddSingleton<IExecution, ExecutionStudioSI>();
+            // services.AddSingleton<IInstance, InstanceStudioSI>();
+            // services.AddSingleton<IData, DataStudioSI>();
             services.AddSingleton<IWorkflow, WorkflowStudioSI>();
-            services.AddSingleton<ITestdata, TestdataStudioSI>();
+
+            // services.AddSingleton<ITestdata, TestdataStudioSI>();
             services.AddSingleton<IDSF, RegisterDSFStudioSI>();
             services.AddSingleton<IER, RegisterERStudioSI>();
             services.AddSingleton<IRegister, RegisterStudioSI>();
             services.AddSingleton<IProfile, ProfileStudioSI>();
 
-            services.AddSingleton<IArchive, ArchiveStudioSI>();
-            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
+            // services.AddSingleton<IArchive, ArchiveStudioSI>();
+            // services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
-            services.AddSingleton<IForm, FormStudioSI>();
+
+            // services.AddSingleton<IForm, FormStudioSI>();
             services.AddTransient<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ISourceControl, SourceControlSI>();
-            services.AddSingleton<ITestdata, TestdataStudioSI>();
-            services.AddSingleton<IApplication, ApplicationStudioSI>();
+            services.AddTransient<ISourceControl, SourceControlSI>();
+
+            // services.AddSingleton<ITestdata, TestdataStudioSI>();
+            // services.AddSingleton<IApplication, ApplicationStudioSI>();
 
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
@@ -49,7 +53,9 @@ namespace AltinnCore.Designer.Infrastructure
 
             services.AddTransient<IReleaseService, ReleaseService>();
             services.AddTransient<IDeploymentService, DeploymentService>();
+            services.AddTransient<IApplicationInformationService, ApplicationInformationService>();
             services.AddTransient<IApplicationMetadataService, ApplicationMetadataService>();
+            services.AddTransient<IAuthorizationPolicyService, AuthorizationPolicyService>();
 
             return services;
         }

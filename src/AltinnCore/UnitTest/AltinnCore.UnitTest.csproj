@@ -18,6 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Runtime\**" />
+    <EmbeddedResource Remove="Runtime\**" />
+    <None Remove="Runtime\**" />
+  </ItemGroup>
+
+  <ItemGroup>
       <None Remove="Common\edag.melding.schema.json" />
   </ItemGroup>
 
@@ -125,21 +131,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Designer\Controllers\Edag-latin1.xsd">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\CreatedInstanceFromStorage.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\data-element.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\ServiceModel.xsd">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\data\workflow.bpmn">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Runtime\ServiceModels\default\Metadata\applicationmetadata.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;

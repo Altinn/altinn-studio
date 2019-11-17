@@ -177,7 +177,7 @@ namespace Altinn.Platform.Authorization.IntegrationTests.MockServices
                 return; 
             }
 
-            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId);
+            List<Role> roleList = await _rolesWrapper.GetDecisionPointRolesForUser(subjectUserId, resourcePartyId) ?? new List<Role>();
 
             subjectContextAttributes.Attributes.Add(GetRoleAttribute(roleList));
         }

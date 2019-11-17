@@ -24,7 +24,12 @@ export const partySelectionUrl: string = `${appPath}/#/partyselection`;
 export const refreshJwtTokenUrl: string = `${appPath}/api/authentication/keepAlive`;
 export const reactErrorPage: string = `${appPath}/#/error`;
 
-export function getDataElementUrl(dataGuid: string) {
+export function fileUploadUrl(attachmentType: string, attachmentName: string) {
+  return `${appPath}/instances/` +
+  `${altinnWindow.instanceId}/data?dataType=${attachmentType}&attachmentName=${attachmentName}`;
+}
+
+export function dataElementUrl(dataGuid: string) {
   return `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
 }
 
@@ -40,11 +45,11 @@ export function getStartProcessUrl(instanceId?: string) {
 }
 
 export function getCreateInstancesUrl(partyId: string) {
-  return `${appPath}/instances?instanceOwnerId=${partyId}`;
+  return `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 }
 
-export function getCreateDataElementUrl(instanceId: string, elementType: string) {
-  return `${appPath}/instances/${instanceId}/data?elementType=${elementType}`;
+export function getCreateDataElementUrl(instanceId: string, dataType: string) {
+  return `${appPath}/instances/${instanceId}/data?dataType=${dataType}`;
 }
 
 export function getValidationUrl(instanceId: string, dataElementId: string) {
@@ -65,6 +70,7 @@ export const getEnvironmentLoginUrl: () => string = () => {
     return `https://platform${domainSplitted[2]}.${domainSplitted[3]}` +
       `/authentication/api/v1/authentication?goto=${window.location.href}`;
   } else {
+    // TODO: what if altinn3?
     throw new Error('Unknown domain');
   }
 };

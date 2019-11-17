@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Models;
-using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

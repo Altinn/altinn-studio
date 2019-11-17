@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.ServiceLibrary.Enums;
 
 namespace AltinnCore.ServiceLibrary.Api

@@ -72,8 +72,8 @@ namespace Altinn.App.Api.Controllers
         [Route("{org}/{app}/api/textresources/{id}")]
         public IActionResult TextResources(string org, string app)
         {
-            string defaultLang = "nb-NO";
-            string culture = CultureInfo.CurrentUICulture.Name;
+            string defaultLang = "nb";
+            string culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             string id = $"resource.{culture}.json";
             byte[] fileContent = _execution.GetText(org, app, id);
             if (fileContent != null)
