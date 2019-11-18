@@ -3,7 +3,6 @@ import { all, call, select, take, takeLatest } from 'redux-saga/effects';
 import { IRuntimeState } from '../../../../../types';
 import { IValidations } from '../../../../../types/global';
 import { runConditionalRenderingRules } from '../../../../../utils/conditionalRendering';
-import { getLayoutElementIndexById } from '../../../../../utils/formLayout';
 import * as FormConfigActionTypes from '../../../config/actions/types';
 import * as FormDataActionTypes from '../../../data/actions/types';
 import { IFormData } from '../../../data/reducer';

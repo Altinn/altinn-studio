@@ -1,8 +1,6 @@
 import { IFormData } from '../features/form/data/reducer';
 import { IConditionalRenderingRule, IConditionalRenderingRules } from '../features/form/dynamics/types';
-import { ILayout } from '../features/form/layout/';
 import { IAltinnWindow } from '../types/global';
-import { getLayoutElementById, getLayoutElementIndexById } from './formLayout';
 
 /*
 * Runs conditional rendering rules, returns array of affected layout elements
@@ -11,7 +9,6 @@ export function runConditionalRenderingRules(
   rules: IConditionalRenderingRules,
   formData: IFormData,
 ): any[] {
-  const updatedElements: any[] = [];
   const componentsToHide: string[] = [];
   if (!(window as Window as IAltinnWindow).conditionalRuleHandlerHelper) {
     // rules have not been initialized
