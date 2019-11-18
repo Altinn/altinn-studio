@@ -71,7 +71,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataType">identifies the data element type to create</param>
         /// <returns>A list is returned if multiple elements are created.</returns>
-        [Authorize]
+        [Authorize(Policy = "InstanceWrite")]
         [HttpPost]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
@@ -177,7 +177,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <returns>The updated data element.</returns>
-        [Authorize]
+        [Authorize(Policy = "InstanceRead")]
         [HttpPut("{dataGuid:guid}")]
         [DisableFormValueModelBinding]
         [RequestSizeLimit(REQUEST_SIZE_LIMIT)]
@@ -228,7 +228,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <param name="dataGuid">unique id to identify the data element to update</param>
         /// <returns>The updated data element.</returns>
-        [Authorize]
+        [Authorize(Policy = "InstanceRead")]
         [HttpDelete("{dataGuid:guid}")]
         public async Task<ActionResult> Delete(
             [FromRoute] string org,

@@ -67,6 +67,7 @@ namespace Altinn.App.Api.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Authorize(Policy = "InstanceRead")]
         public async Task<ActionResult<ProcessState>> GetProcessState(
             [FromRoute] string org,
             [FromRoute] string app,
