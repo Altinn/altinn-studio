@@ -2,7 +2,7 @@
 import 'jest';
 import * as React from 'react';
 
-import { mount, shallow } from 'enzyme';
+import { shallow } from 'enzyme';
 import { ButtonComponentClass } from '../../../src/components/base/ButtonComponent';
 
 describe('>>> components/base/ButtonComponent.tsx', () => {
@@ -32,26 +32,8 @@ describe('>>> components/base/ButtonComponent.tsx', () => {
         formDataCount={formDataCount}
       />,
     );
-    const submitBtn = wrapper.find('.disabled');
+    const submitBtn = wrapper.find('button#' + mockId);
     expect(submitBtn.text()).toEqual(mockText);
 
   });
-
-  it('+++ should disable submit button and add class disabled if there are unsaved changes', () => {
-    const wrapper = mount(
-      <ButtonComponentClass
-        id={mockId}
-        text={mockText}
-        handleDataChange={mockHandleDataChange}
-        disabled={mockDisabled}
-        validations={{}}
-        unsavedChanges={true}
-        formDataCount={formDataCount}
-      />,
-    );
-    const submitBtn = wrapper.find('button#' + mockId);
-    expect(submitBtn.hasClass('disabled')).toEqual(true);
-    expect(submitBtn.prop('disabled')).toBe(true);
-  });
-
 });
