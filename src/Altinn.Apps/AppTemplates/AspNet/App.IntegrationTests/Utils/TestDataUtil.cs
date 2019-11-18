@@ -10,6 +10,17 @@ namespace App.IntegrationTests.Utils
     {
 
 
+        public static void DeletInstanceAndData(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        {
+           DeleteDataForInstance(org, app, instanceOwnerId, instanceGuid);
+
+            string instancePath = GetInstancePath(org, app, instanceOwnerId, instanceGuid);
+            if (File.Exists(instancePath))
+            {
+                File.Delete(instancePath);
+            }
+        }
+
         public static void DeleteDataForInstance(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {
             string path = GetDataPath(org, app, instanceOwnerId, instanceGuid);
@@ -18,6 +29,14 @@ namespace App.IntegrationTests.Utils
                 Directory.Delete(path, true);
             }
         }
+
+        private static string GetInstancePath(string org, string app, int instanceOwnerId, Guid instanceGuid)
+        {
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(InstanceMockSI).Assembly.CodeBase).LocalPath);
+            return Path.Combine(unitTestFolder, @"..\..\..\Data\Instances\", org + @"\", app + @"\", instanceOwnerId + @"\", instanceGuid.ToString() + @".json");
+        }
+
+
 
         private static string GetDataPath(string org, string app, int instanceOwnerId, Guid instanceGuid)
         {

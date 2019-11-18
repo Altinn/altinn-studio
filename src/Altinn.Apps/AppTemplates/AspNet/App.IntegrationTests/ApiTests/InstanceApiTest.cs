@@ -92,6 +92,8 @@ namespace App.IntegrationTests
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
             Assert.NotNull(instance);
             Assert.Equal("1000", instance.InstanceOwner.PartyId);
+
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new Guid(instance.Id.Split('/')[1]));
         }
 
         [Fact]
@@ -128,6 +130,7 @@ namespace App.IntegrationTests
             Instance createdInstance = JsonConvert.DeserializeObject<Instance>(responseContent);
 
             Assert.Equal("1000", createdInstance.InstanceOwner.PartyId);
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn",1000, new Guid(createdInstance.Id.Split('/')[1]));
 
         }
 
@@ -178,6 +181,7 @@ namespace App.IntegrationTests
             Assert.Single(createdInstance.Data);
             Assert.Equal("default", createdInstance.Data[0].DataType);
 
+            TestDataUtil.DeletInstanceAndData("tdd", "endring-av-navn", 1000, new Guid(createdInstance.Id.Split('/')[1]));
         }
     }
 }
