@@ -29,7 +29,12 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
-        public const string LANGUAGE_RESOURCE_FOLDER_NAME = "App/Config/texts/";
+        public const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
+
+        /// <summary>
+        /// Constant for the location of config folder
+        /// </summary>
+        public const string CONFIG_FOLDER_PATH = "App/config/";
 
         /// <summary>
         /// Constant for the location of implementation files
@@ -484,7 +489,19 @@ namespace AltinnCore.Common.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetLanguageResourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + LANGUAGE_RESOURCE_FOLDER_NAME;
+            return GetServicePath(org, app, developer) + CONFIG_FOLDER_PATH + LANGUAGE_RESOURCE_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets the full path to applicationmetadata.jons
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetAppMetadataFilePath(string org, string app, string developer)
+        {
+            return GetServicePath(org, app, developer) + CONFIG_FOLDER_PATH + ApplicationMetadataFileName;
         }
 
         /// <summary>
