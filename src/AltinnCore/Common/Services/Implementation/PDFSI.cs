@@ -142,6 +142,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 return null;
             }
+
             byte[] utf8Preamble = Encoding.UTF8.GetPreamble();
             bool hasPreamble = utf8Preamble[0] == data[0];
             if (hasPreamble)
