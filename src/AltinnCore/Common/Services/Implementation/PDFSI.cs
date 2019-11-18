@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using System.Linq;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -138,7 +139,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private static string GetUTF8String(byte[] data)
         {
-            if (data == null || data.Length < 1)
+            if (data == null || !data.Any())
             {
                 return null;
             }
