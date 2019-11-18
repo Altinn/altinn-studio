@@ -1,20 +1,18 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using System.Linq;
 
 namespace AltinnCore.Common.Services.Implementation
 {
