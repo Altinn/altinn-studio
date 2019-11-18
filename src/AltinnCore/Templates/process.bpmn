@@ -11,7 +11,7 @@ targetNamespace="http://bpmn.io/schema/bpmn" >
 		<bpmn:startEvent id="StartEvent_1">
 			<bpmn:outgoing>SequenceFlow_1n56yn5</bpmn:outgoing>
 		</bpmn:startEvent>
-		<bpmn:task id="Task_1" name="Fyll ut" altinn:tasktype="data">
+		<bpmn:task id="Task_1" name="Utfylling" altinn:tasktype="data">
 			<bpmn:incoming>SequenceFlow_1n56yn5</bpmn:incoming>
 			<bpmn:outgoing>SequenceFlow_1oot28q</bpmn:outgoing>
 		</bpmn:task>
