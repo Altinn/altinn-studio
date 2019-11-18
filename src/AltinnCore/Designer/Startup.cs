@@ -1,27 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using AltinnCore.Authentication.Constants;
-using AltinnCore.Authentication.JwtCookie;
-using AltinnCore.Common.Backend;
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Services.Implementation;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.Designer.Authorization;
-using AltinnCore.Designer.ModelBinding;
-using AltinnCore.ServiceLibrary.Services.Interfaces;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Reflection;
+using AltinnCore.Designer.Infrastructure;
+using AltinnCore.Designer.Infrastructure.Authorization;
+using AltinnCore.Designer.TypedHttpClients;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
+using Microsoft.AspNetCore.Http.Headers;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
 
 namespace AltinnCore.Designer
 {
@@ -52,35 +44,154 @@ namespace AltinnCore.Designer
         /// <param name="services">The services available for asp.net Core</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            // Adding services to Dependency Injection TODO: Make this environment specific
-            services.AddSingleton<IExecution, ExecutionStudioSI>();
-            services.AddSingleton<IInstance, InstanceStudioSI>();
-            services.AddSingleton<IData, DataStudioSI>();
-            services.AddSingleton<IWorkflow, WorkflowStudioSI>();
-            services.AddSingleton<ITestdata, TestdataStudioSI>();
-            services.AddSingleton<IDSF, RegisterDSFStudioSI>();
-            services.AddSingleton<IER, RegisterERStudioSI>();
-            services.AddSingleton<IRegister, RegisterStudioSI>();
-            services.AddSingleton<IProfile, ProfileStudioSI>();
+            services.Configure<KestrelServerOptions>(options =>
+            {
+                options.AllowSynchronousIO = true;
+            });
 
-            services.AddSingleton<IArchive, ArchiveStudioSI>();
-            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
-            services.AddSingleton<ICompilation, CompilationSI>();
-            services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IForm, FormStudioSI>();
-            services.AddSingleton<IRepository, RepositorySI>();
-            services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<IGitea, GiteaAPIWrapper>();
-            services.AddSingleton<ISourceControl, SourceControlSI>();
-            services.AddSingleton<ITestdata, TestdataStudioSI>();
-            services.AddSingleton<IApplication, ApplicationStudioSI>();
-            services.AddSingleton(Configuration);
-            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.RegisterServiceImplementations(Configuration);
+            services.RegisterIntegrations(Configuration);
 
+            services.AddHttpContextAccessor();
             services.AddMemoryCache();
             services.AddResponseCompression();
 
+            CreateDirectory();
+
+            services.ConfigureMvc();
+            services.ConfigureSettings(Configuration);
+            services.RegisterTypedHttpClients(Configuration);
+            services.ConfigureAuthentication();
+            services.ConfigureApplicationInsight();
+            services.ConfigureLocalization();
+            services.AddPolicyBasedAuthorization();
+            
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn Designer API", Version = "v1" });
+                try
+                {
+                    c.IncludeXmlComments(GetXmlCommentsPathForControllers());
+                }
+                catch
+                {
+                    // Catch swashbuckle exception if it doesn't find the generated XML documentation file
+                }
+            });
+        }
+
+        /// <summary>
+        /// Configure the application.
+        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/>
+        /// </summary>
+        /// <param name="appBuilder">The application builder</param>
+        /// <param name="env">Hosting environment</param>
+        public void Configure(IApplicationBuilder appBuilder, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                appBuilder.UseExceptionHandler("/error-local-development");
+            }
+            else
+            {
+                appBuilder.UseExceptionHandler("/error");
+            }
+
+            appBuilder.UseStaticFiles(new StaticFileOptions
+            {
+                OnPrepareResponse = context =>
+                {
+                    ResponseHeaders headers = context.Context.Response.GetTypedHeaders();
+                    headers.CacheControl = new CacheControlHeaderValue
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromMinutes(60),
+                    };
+                },
+            });
+
+            const string swaggerRoutePrefix = "designer/swagger";
+            appBuilder.UseSwagger(c =>
+            {
+                c.RouteTemplate = swaggerRoutePrefix + "/{documentName}/swagger.json";
+            });
+            appBuilder.UseSwaggerUI(c =>
+            {
+                c.RoutePrefix = swaggerRoutePrefix;
+                c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
+            });
+
+            appBuilder.UseRouting();
+
+            // appBuilder.UseHsts();
+            // appBuilder.UseHttpsRedirection();
+            appBuilder.UseAuthentication();
+            appBuilder.UseAuthorization();
+
+            appBuilder.UseResponseCompression();
+            appBuilder.UseRequestLocalization();
+            
+            appBuilder.UseEndpoints(endpoints =>
+            {
+                // ------------------------- DEV ----------------------------- //
+                endpoints.MapControllerRoute(
+                    name: "orgRoute",
+                    pattern: "designer/{org}/{controller}/{action=Index}/",
+                    defaults: new { controller = "Config" },
+                    constraints: new
+                    {
+                        controller = "Codelist|Config",
+                    });
+
+                endpoints.MapControllerRoute(
+                        name: "serviceDevelopmentRoute",
+                        pattern: "designer/{org}/{app}",
+                        defaults: new { controller = "ServiceDevelopment", action = "index" });
+
+                endpoints.MapControllerRoute(
+                    name: "designerApiRoute",
+                    pattern: "designerapi/{controller}/{action=Index}/{id?}",
+                    defaults: new { controller = "Repository" },
+                    constraints: new
+                    {
+                        controller = @"(Repository|Language|User)",
+                    });
+                endpoints.MapControllerRoute(
+                          name: "serviceRoute",
+                          pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
+                          defaults: new { controller = "Service" },
+                          constraints: new
+                          {
+                              controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
+                              app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                              id = "[a-zA-Z0-9_\\-]{1,30}",
+                          });
+
+                endpoints.MapControllerRoute(
+                       name: "applicationMetadataApiRoute",
+                       pattern: "designer/api/v1/{org}/{app}",
+                       defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
+
+                endpoints.MapControllerRoute(
+                        name: "reposRoute",
+                        pattern: "{controller}/{action}/",
+                        defaults: new { controller = "RedirectController" });
+
+                // -------------------------- DEFAULT ------------------------- //
+                endpoints.MapControllerRoute(
+                   name: "defaultRoute2",
+                   pattern: "{controller}/{action=StartPage}/{id?}",
+                   defaults: new { controller = "Home" });
+
+                endpoints.MapControllerRoute(
+                    name: "defaultRoute",
+                    pattern: "{action=StartPage}/{id?}",
+                    defaults: new { controller = "Home" });
+            });
+        }
+
+        private void CreateDirectory()
+        {
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             string repoLocation = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
@@ -91,185 +202,15 @@ namespace AltinnCore.Designer
             {
                 Directory.CreateDirectory(repoLocation);
             }
-
-            services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
-            services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
-            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
-            services.Configure<CertificateSettings>(Configuration);
-            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
-
-            // Configure Authentication
-            // Use [Authorize] to require login on MVC Controller Actions
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
-                {
-                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
-                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
-                })
-                .AddCookie(options =>
-                {
-                    options.AccessDeniedPath = "/Home/NotAuthorized/";
-                    options.LoginPath = "/Home/Login/";
-                    options.LogoutPath = "/Home/Logout/";
-                    options.Cookie.Name = Common.Constants.General.DesignerCookieName;
-                    options.Events = new CookieAuthenticationEvents
-                    {
-                        // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
-                    };
-                });
-
-            string applicationInsightTelemetryKey = GetApplicationInsightsKeyFromEnvironment();
-            if (!string.IsNullOrEmpty(applicationInsightTelemetryKey))
-            {
-                services.AddApplicationInsightsTelemetry(applicationInsightTelemetryKey);
-                services.AddApplicationInsightsKubernetesEnricher();
-            }
-
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-            mvc.Services.Configure<MvcOptions>(options =>
-            {
-                // Adding custom modelbinders
-                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
-                options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
-            });
-            mvc.AddXmlSerializerFormatters();
-
-            services.AddLocalization();
-            services.Configure<RequestLocalizationOptions>(
-                options =>
-                {
-                    var supportedCultures = new List<CultureInfo>
-                        {
-                            // The current supported languages. Can easily be added more.
-                            new CultureInfo("en-US"),
-                            new CultureInfo("nb-NO"),
-                            new CultureInfo("nn-NO"),
-                        };
-
-                    options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
-                    options.SupportedCultures = supportedCultures;
-                    options.SupportedUICultures = supportedCultures;
-                });
-            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
         }
 
-        /// <summary>
-        /// Configure the application.
-        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/>
-        /// </summary>
-        /// <param name="appBuilder">The application builder</param>
-        /// <param name="env">Hosting environment</param>
-        public void Configure(IApplicationBuilder appBuilder, IHostingEnvironment env)
+        private static string GetXmlCommentsPathForControllers()
         {
-            if (env.IsDevelopment())
-            {
-                appBuilder.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                appBuilder.UseExceptionHandler("/Error");
-            }
+            // locate the xml file being generated by .NET
+            string xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.XML";
+            string xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
 
-            // appBuilder.UseHsts();
-            // appBuilder.UseHttpsRedirection();
-            appBuilder.UseAuthentication();
-
-            appBuilder.UseResponseCompression();
-            appBuilder.UseRequestLocalization();
-            appBuilder.UseStaticFiles(new StaticFileOptions()
-            {
-                OnPrepareResponse = (context) =>
-                {
-                    var headers = context.Context.Response.GetTypedHeaders();
-                    headers.CacheControl = new CacheControlHeaderValue()
-                    {
-                        Public = true,
-                        MaxAge = TimeSpan.FromMinutes(60),
-                    };
-                },
-            });
-
-            appBuilder.UseMvc(routes =>
-            {
-                // ------------------------- DEV ----------------------------- //
-                routes.MapRoute(
-                    name: "orgRoute",
-                    template: "designer/{org}/{controller}/{action=Index}/",
-                    defaults: new { controller = "Config" },
-                    constraints: new
-                    {
-                        controller = "Codelist|Config",
-                    });
-
-                routes.MapRoute(
-                        name: "serviceDevelopmentRoute",
-                        template: "designer/{org}/{app}",
-                        defaults: new { controller = "ServiceDevelopment", action = "index" });
-
-                routes.MapRoute(
-                    name: "designerApiRoute",
-                    template: "designerapi/{controller}/{action=Index}/{id?}",
-                    defaults: new { controller = "Repository" },
-                    constraints: new
-                    {
-                        controller = @"(Repository|Language|User)",
-                    });
-                routes.MapRoute(
-                          name: "serviceRoute",
-                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
-                          defaults: new { controller = "Service" },
-                          constraints: new
-                          {
-                              controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
-                              app = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                              id = "[a-zA-Z0-9_\\-]{1,30}",
-                          });
-                routes.MapRoute(
-                          name: "appRoute",
-                          template: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
-                          defaults: new { controller = "Deploy" },
-                          constraints: new
-                          {
-                              controller = @"(Deploy)",
-                          });
-                routes.MapRoute(
-                        name: "applicationMetadataApiRoute",
-                        template: "designer/api/v1/{org}/{app}",
-                        defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
-
-                routes.MapRoute(
-                        name: "reposRoute",
-                        template: "{controller}/{action}/",
-                        defaults: new { controller = "RedirectController" });
-
-                // -------------------------- DEFAULT ------------------------- //
-                routes.MapRoute(
-                   name: "defaultRoute2",
-                   template: "{controller}/{action=StartPage}/{id?}",
-                   defaults: new { controller = "Home" });
-
-                routes.MapRoute(
-                    name: "defaultRoute",
-                    template: "{action=StartPage}/{id?}",
-                    defaults: new { controller = "Home" });
-            });
-        }
-
-        /// <summary>
-        ///  Gets telemetry instrumentation key from environment, which we set in Program.cs
-        /// </summary>
-        /// <returns>Telemetry instrumentation key</returns>
-        public string GetApplicationInsightsKeyFromEnvironment()
-        {
-            string evironmentKey = Environment.GetEnvironmentVariable("ApplicationInsights--InstrumentationKey");
-            if (string.IsNullOrEmpty(evironmentKey))
-            {
-                return null;
-            }
-
-            return evironmentKey;
+            return xmlPath;
         }
     }
 }

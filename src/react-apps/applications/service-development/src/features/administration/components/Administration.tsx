@@ -120,14 +120,14 @@ export class AdministrationComponent extends
 
   public componentDidMount() {
     const altinnWindow: any = window;
-    const { org, service } = altinnWindow;
+    const { org, app } = altinnWindow;
 
     handleServiceInformationActionDispatchers.fetchService(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${service}`);
+      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?org=${org}&repository=${app}`);
     handleServiceInformationActionDispatchers.fetchInitialCommit(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${service}`);
+      `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?org=${org}&repository=${app}`);
     handleServiceInformationActionDispatchers.fetchServiceConfig(
-      `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceConfig`);
+      `${altinnWindow.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`);
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -144,12 +144,11 @@ export class AdministrationComponent extends
         serviceNameAnchorEl: document.getElementById('administrationInputServicename'),
       });
     } else {
-      const altinnWindow: any = window;
-      const { org, service } = altinnWindow;
+      const { org, app } = window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
-      handleServiceInformationActionDispatchers.saveServiceName(`${altinnWindow.location.origin}/designer/${org}/${service}/Text/SetServiceName`, this.state.serviceName);
+      handleServiceInformationActionDispatchers.saveServiceName(`${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`, this.state.serviceName);
       handleServiceInformationActionDispatchers.saveServiceConfig(
-        `${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`,
+        `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
         this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
       this.setState({ editServiceName: false });
     }
@@ -161,11 +160,10 @@ export class AdministrationComponent extends
 
   public onBlurServiceDescription = () => {
     if (this.state.editServiceDescription) {
-      const altinnWindow: any = window;
-      const { org, service } = altinnWindow;
+      const { org, app } = window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceConfig(
-        `${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`,
+        `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
         this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
       this.setState({ editServiceDescription: false });
     }
@@ -177,11 +175,10 @@ export class AdministrationComponent extends
 
   public onBlurServiceId = () => {
     if (this.state.editServiceId) {
-      const altinnWindow: any = window;
-      const { org, service } = altinnWindow;
+      const { org, app } = window as IAltinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceConfig(
-        `${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`,
+        `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
         this.state.serviceDescription, this.state.serviceId, this.state.serviceName);
       this.setState({ editServiceId: false });
     }

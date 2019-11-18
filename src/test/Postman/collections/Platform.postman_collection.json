@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "aad4d690-36b7-4fff-9097-3f1d51f333bd",
+		"_postman_id": "39ff785a-dcc0-4165-ab13-c427b4b78e6f",
 		"name": "Platform",
 		"description": "Collection that tests the full integration between current Altinn platform and SBL bridge",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -34,9 +34,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/organizations/{{orgNr}}",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/organizations/{{orgNr}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -74,9 +76,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/{{partyID}}",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/{{partyID}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -124,9 +128,11 @@
 							"raw": "\"{{SSN}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/persons",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/persons",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -173,9 +179,11 @@
 							"raw": "\"{{SSN}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/lookup",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookup",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -223,9 +231,11 @@
 							"raw": "\"{{orgNr}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/lookup",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookup",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -277,9 +287,11 @@
 							"raw": "\"{{SSN}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/lookupobject",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookupobject",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -331,9 +343,11 @@
 							"raw": "\"{{orgNr}}\""
 						},
 						"url": {
-							"raw": "{{platformUrl}}/register/api/v1/parties/lookupobject",
+							"raw": "https://platform.{{envUrl}}/register/api/v1/parties/lookupobject",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"register",
@@ -346,7 +360,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Profile",
@@ -372,9 +387,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/profile/api/v1/users/{{userID}}",
+							"raw": "https://platform.{{envUrl}}/profile/api/v1/users/{{userID}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"profile",
@@ -388,7 +405,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Authentication",
@@ -428,9 +446,11 @@
 							"raw": "{\r\n    \"encryptedTicket\": \"CD4E027814113A483207C670A4\"\r\n}"
 						},
 						"url": {
-							"raw": "{{platformUrl}}/authentication/api/v1/authentication?goto=http://www.vg.no",
+							"raw": "https://platform.{{envUrl}}/authentication/api/v1/authentication?goto=https://www.altinn.no",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"authentication",
@@ -441,14 +461,15 @@
 							"query": [
 								{
 									"key": "goto",
-									"value": "http://www.vg.no"
+									"value": "https://www.altinn.no"
 								}
 							]
 						}
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Authorization",
@@ -474,9 +495,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/authorization/api/v1/parties?userid={{userID}}",
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/parties?userid={{userID}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"authorization",
@@ -515,9 +538,11 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/authorization/api/v1/roles?coveredbyuserid={{userID}}&offeredbypartyid={{partyID}}",
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/roles?coveredbyuserid={{userID}}&offeredbypartyid={{partyID}}",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"authorization",
@@ -538,8 +563,319 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "POST Upload Policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "72982299-cf05-46fd-bda1-7c358d148ded",
+								"exec": [
+									"pm.test(\"Platform - Authorization - Post Upload Policy xacml - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {
+								"src": "policy.xml"
+							},
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/policies?org={{org}}&app={{app}}",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"policies"
+							],
+							"query": [
+								{
+									"key": "org",
+									"value": "{{org}}"
+								},
+								{
+									"key": "app",
+									"value": "{{app}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDP - XML Data - Permit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "432d032b-28b3-4e81-9881-9c0a02ab26a2",
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Content - Matches\", function () {\r",
+									"    pm.expect(pm.response.text()).to.contain(\"Permit\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:user-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{app}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">formfilling</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">read</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDP - XML Data - NotApplicable",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "432d032b-28b3-4e81-9881-9c0a02ab26a2",
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Content - Permit\", function () {\r",
+									"    pm.expect(pm.response.text()).to.contain(\"NotApplicable\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/xml"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Request xsi:schemaLocation=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17 http://docs.oasis-open.org/xacml/3.0/xacml-core-v3-schema-wd-17.xsd\" ReturnPolicyIdList=\"false\" CombinedDecision=\"false\" xmlns=\"urn:oasis:names:tc:xacml:3.0:core:schema:wd-17\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:1.0:subject-category:access-subject\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:user-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{userID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:partyid\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{partyID}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:org\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{org}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:app\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">{{app}}</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:resource\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:altinn:task\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">formfilling</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:action\">\r\n    <Attribute IncludeInResult=\"false\" AttributeId=\"urn:oasis:names:tc:xacml:1.0:action:action-id\">\r\n      <AttributeValue DataType=\"http://www.w3.org/2001/XMLSchema#string\">sign</AttributeValue>\r\n    </Attribute>\r\n  </Attributes>\r\n  <Attributes Category=\"urn:oasis:names:tc:xacml:3.0:attribute-category:environment\" />\r\n</Request>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDP - Json Data - Permit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "08fe8021-758e-4b6f-9756-51443cb3f78d",
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - Permit - Content - Permit\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.response[0].decision).to.equal(\"Permit\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"read\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{app}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PDP - Json Data - NotApplicable",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "08fe8021-758e-4b6f-9756-51443cb3f78d",
+								"exec": [
+									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - Authorization - PDP - XML Data - NotApplicable - Content - Matches\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.response[0].decision).to.equal(\"NotApplicable\");\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"Request\": {\r\n    \"ReturnPolicyIdList\": true,\r\n    \"AccessSubject\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Action\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:oasis:names:tc:xacml:1.0:action:action-id\",\r\n            \"Value\": \"sign\",\r\n            \"DataType\": \"http://www.w3.org/2001/XMLSchema#string\"\r\n          }\r\n        ]\r\n      }\r\n    ],\r\n    \"Resource\": [\r\n      {\r\n        \"Attribute\": [\r\n          {\r\n            \"AttributeId\": \"urn:altinn:app\",\r\n            \"Value\": \"{{app}}\"\r\n          },\r\n          {\r\n            \"AttributeId\": \"urn:altinn:org\",\r\n            \"Value\": \"{{org}}\"\r\n          }\r\n        ]\r\n      }\r\n    ]\r\n  }\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/authorization/api/v1/decision",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"authorization",
+								"api",
+								"v1",
+								"decision"
+							]
+						}
+					},
+					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "Storage",
@@ -593,12 +929,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"appId\": \"tdd/postmantest\",\r\n  \"versionId\": \"\",\r\n  \"org\": \"tdd\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"\",\r\n  \"title\": {\r\n    \"nb\": \"postmanapp\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    }\r\n  ]\r\n}"
+									"raw": "{\r\n  \"appId\": \"{{appId}}\",\r\n  \"versionId\": \"1\",\r\n  \"org\": \"{{org}}\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"AutomatedTest\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"AutomatedTest\",\r\n  \"title\": {\r\n    \"nb\": \"{{app}}\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    },\r\n    {\r\n    \"id\": \"attachment\",\r\n    \"allowedContentType\": [\r\n    \t\"application/octet-stream\"\r\n    ],\r\n    \"appLogic\": true,\r\n    \"maxSize\": 25,\r\n    \"maxCount\": 5,\r\n    \"minCount\": 0\r\n}\r\n  ]\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -636,9 +974,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -665,7 +1005,8 @@
 											"\r",
 											"pm.test(\"Platform - Storage - Applications - Get App by name - Content - Matches\", function () {\r",
 											"    var jsonData = pm.response.json();\r",
-											"    pm.expect(jsonData.id).to.eql(\"tdd/postmanapp\");\r",
+											"    var expectedAppName = pm.environment.get(\"appId\");\r",
+											"    pm.expect(jsonData.id).to.eql(expectedAppName);\r",
 											"});"
 										],
 										"type": "text/javascript"
@@ -676,9 +1017,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -724,12 +1067,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n  \"appId\": \"tdd/postmanapp\",\t\r\n  \"org\": \"tdd\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 100,\r\n      \"maxCount\": 50,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    }\r\n  ]\r\n}"
+									"raw": "{\r\n  \"appId\": \"{{appId}}\",\r\n  \"versionId\": \"2\",\r\n  \"org\": \"{{org}}\",\r\n  \"createdDateTime\": \"{{current_timestamp}}\",\r\n  \"createdBy\": \"AutomatedTest\",\r\n  \"lastChangedDateTime\": \"{{current_timestamp}}\",\r\n  \"lastChangedBy\": \"AutomatedTest\",\r\n  \"title\": {\r\n    \"nb\": \"{{app}}\"\r\n  },\r\n  \"validFrom\": \"{{current_timestamp}}\",\r\n  \"validTo\": \"\",\r\n  \"WorkflowId\": \"\",\r\n  \"maxSize\": 0,\r\n  \"elementTypes\": [\r\n    {\r\n      \"id\": \"default\",\r\n      \"description\": \"\",\r\n      \"allowedContentType\": [\r\n        \"application/xml\"\r\n      ],\r\n      \"maxSize\": 25,\r\n      \"maxCount\": 5,\r\n      \"shouldSign\": false,\r\n      \"shouldEncrypt\": false\r\n    },\r\n    {\r\n    \"id\": \"attachment\",\r\n    \"allowedContentType\": [\r\n    \t\"application/octet-stream\"\r\n    ],\r\n    \"appLogic\": true,\r\n    \"maxSize\": 25,\r\n    \"maxCount\": 5,\r\n    \"minCount\": 0\r\n}\r\n  ]\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/applications?appId={{org}}%2F{{app}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -748,6 +1093,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -779,6 +1125,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "d7b24a19-9093-462e-9b6f-a6fd1d7df287",
+										"exec": [
+											"pm.environment.set(\"instanceId\",\"\");"
+										],
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
@@ -793,12 +1149,14 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&instanceOwnerId={{instanceOwnerId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -810,10 +1168,6 @@
 										{
 											"key": "appId",
 											"value": "{{appId}}"
-										},
-										{
-											"key": "instanceOwnerId",
-											"value": "{{instanceOwnerId}}"
 										}
 									]
 								}
@@ -846,9 +1200,11 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -893,9 +1249,11 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -903,60 +1261,6 @@
 										"v1",
 										"instances",
 										"{{instanceOwnerId}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "GET Instances with process filters",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
-										"exec": [
-											"pm.test(\"Platform - Storage - Instances - Get Instances with Process filter - Status - 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [
-									{
-										"key": "Accept",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&process.isComplete=false&process.currentTask=FormFilling",
-									"host": [
-										"{{platformUrl}}"
-									],
-									"path": [
-										"storage",
-										"api",
-										"v1",
-										"instances"
-									],
-									"query": [
-										{
-											"key": "appId",
-											"value": "{{appId}}"
-										},
-										{
-											"key": "process.isComplete",
-											"value": "false"
-										},
-										{
-											"key": "process.currentTask",
-											"value": "FormFilling"
-										}
 									]
 								}
 							},
@@ -988,9 +1292,11 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}&createdDateTime=gt:{{current_timestamp}}&lastChangedDateTime=gte:2019-08-12T11:20:10.2003387Z",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}&createdDateTime=gt:{{current_timestamp}}&lastChangedDateTime=gte:2019-08-12T11:20:10.2003387Z",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1048,9 +1354,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1099,9 +1407,11 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1116,6 +1426,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1132,6 +1443,16 @@
 											"pm.test(\"Platform - Storage - Instance Data - Add Instance Data - Status - 200\", function () {\r",
 											"    pm.response.to.have.status(200);\r",
 											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "864b3eba-7a74-4650-9406-35b0797e1b4a",
+										"exec": [
+											"pm.environment.set(\"dataId\",\"\");"
 										],
 										"type": "text/javascript"
 									}
@@ -1152,9 +1473,11 @@
 									"raw": "{}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=default",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1200,9 +1523,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1248,9 +1573,11 @@
 									"raw": "{}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1286,9 +1613,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1324,9 +1653,178 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data",
+										"{{dataId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "POST Add attachment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "4e0a8157-5f87-46a5-8df1-f3097c021797",
+										"exec": [
+											"pm.test(\"Platform - Storage - Instance Data - Add attachment - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"     var jsonData = pm.response.json();\r",
+											"    if(pm.expect(jsonData.data[0].id).not.eql(null))\r",
+											"    {\r",
+											"        pm.environment.set('dataId',jsonData.data[0].id);\r",
+											"    }\r",
+											"    pm.expect(jsonData.data[0].refs.length).to.equal(1);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "74e5cd5e-6bcf-41be-98dd-6c142716bcdf",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/octet-stream"
+									},
+									{
+										"key": "Content-Disposition",
+										"value": "attachment; filename=test.pdf",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "file",
+									"file": {
+										"src": "test_file_pdf.pdf"
+									}
+								},
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data?elementType=attachment&refs={{dataId}}",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data"
+									],
+									"query": [
+										{
+											"key": "elementType",
+											"value": "attachment"
+										},
+										{
+											"key": "refs",
+											"value": "{{dataId}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Attachment Data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "62cd01a6-9c8c-4d36-8134-f51512efb018",
+										"exec": [
+											"pm.test(\"Platform - Storage - Instance Data - Get Attachment Data - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"data",
+										"{{dataId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE Attachment Data",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "cc714784-7a38-4224-aad8-11d36fe6c540",
+										"exec": [
+											"pm.test(\"Platform - Storage - Instance Data - Delete Attachment Data - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Platform - Storage - Instance Data - Delete Attachment Data - Status - Content\", function (){\r",
+											"    var jsonData = pm.response.json();\r",
+											"    pm.expect(jsonData.data.length).to.equal(0);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/data/{{dataId}}",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1343,6 +1841,7 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -1369,6 +1868,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "86d4fdf9-388d-4841-bbeb-3ad6cecf94a1",
+										"exec": [
+											"pm.environment.set(\"EventId\",\"\");"
+										],
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
@@ -1386,9 +1895,11 @@
 									"raw": "{    \n   \"instanceOwnerId\": \"{{instanceOwnerId}}\",\n   \"instanceId\": \"{{instanceOwnerId}}/{{instanceId}}\",\n   \"eventType\": \"created\",\n   \"userId\": 3,\n   \"authenticationLevel\": 1,\n   \"workflowStep\": \"8\",\n   \"enduserSystemId\": 2\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1423,9 +1934,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/{{EventId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/{{EventId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1479,9 +1992,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1531,9 +2046,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?eventTypes=created",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?eventTypes=created",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1585,7 +2102,6 @@
 											"pm.environment.set(\"fromDate\", currentDate);",
 											"var currentDate1 = new Date();",
 											"var hoursToAdd = currentDate1.getHours() + 5;",
-											"console.log(hoursToAdd);",
 											"currentDate1.setHours(hoursToAdd);",
 											"pm.environment.set(\"toDate\", currentDate1);"
 										],
@@ -1597,9 +2113,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events/?from=2018-05-22T08:42:53&to=2018-06-22T08:42:53",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1652,9 +2170,11 @@
 									"raw": ""
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1670,96 +2190,41 @@
 							"response": []
 						}
 					],
-					"_postman_isSubFolder": true
-				},
-				{
-					"name": "CleanUp",
-					"item": [
-						{
-							"name": "DELETE App Instance by Id",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
-										"exec": [
-											"pm.test(\"Platform - Storage - Instance - Delete Instance - Status - 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"    pm.expect(pm.response.text()).equal('true');\r",
-											"});\r",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [
-									{
-										"key": "Content-Type",
-										"name": "Content-Type",
-										"value": "application/json",
-										"type": "text"
-									}
-								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
-								},
-								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
-									"host": [
-										"{{platformUrl}}"
-									],
-									"path": [
-										"storage",
-										"api",
-										"v1",
-										"instances",
-										"{{instanceOwnerId}}",
-										"{{instanceId}}"
-									],
-									"query": [
-										{
-											"key": "hard",
-											"value": "true"
-										}
-									]
-								}
-							},
-							"response": []
-						}
-					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
 					"name": "SBL",
 					"item": [
 						{
-							"name": "POST Add instance with multipart data",
+							"name": "POST Add instance",
 							"event": [
 								{
 									"listen": "test",
 									"script": {
 										"id": "73bb7aa7-5269-42fc-ae97-b51511a8d97e",
 										"exec": [
-											"pm.test(\"Platform - Storage - Instance - Add Instance with multipart data - Status - 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"    var jsonData = pm.response.json();\r",
-											"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
-											"    {\r",
-											"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
-											"        pm.environment.set('appId',jsonData.appId);\r",
-											"        var instanceId = jsonData.id;\r",
-											"        instanceId = instanceId.toString();\r",
-											"        instanceId = instanceId.split('/');\r",
-											"        instanceId = instanceId[1];\r",
-											"        pm.environment.set('instanceId',instanceId);\r",
-											"    }\r",
-											"    pm.expect(jsonData.data[0].id).not.equal(null);\r",
-											"});\r",
-											""
+											"var jsonData = pm.response.json();\r",
+											"if(pm.response.code == 200)\r",
+											"{\r",
+											"    pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
+											"    pm.environment.set('appId',jsonData.appId);\r",
+											"    var instanceId = jsonData.id;\r",
+											"    instanceId = instanceId.toString();\r",
+											"    instanceId = instanceId.split('/');\r",
+											"    instanceId = instanceId[1];\r",
+											"    pm.environment.set('instanceId',instanceId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "e1f629f2-d9d1-4cc5-9698-9c83bf385f43",
+										"exec": [
+											"pm.environment.set(\"instanceId\",\"\");"
 										],
 										"type": "text/javascript"
 									}
@@ -1770,18 +2235,26 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"value": "multipart/form-data; boundary=\"abcdefg\"",
+										"name": "Content-Type",
+										"value": "application/json",
 										"type": "text"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n                <Skattyterinfor-grp-5801 gruppeid=\"5801\">                               \r\n                               <klagefrist-grp-5804 gruppeid=\"5804\">\r\n                                               <KlageGjeldendeInntektsar-datadef-25455 orid=\"25455\">2010</KlageGjeldendeInntektsar-datadef-25455>\r\n                                               <KlagemeldingSendtInnenKlagefrist-datadef-25454 orid=\"25454\" xsi:nil=\"true\" />\r\n                                               <KlageUtloptKlagefristBegrunnelse-datadef-25456 orid=\"25456\">åøæ123£$</KlageUtloptKlagefristBegrunnelse-datadef-25456>\r\n                               </klagefrist-grp-5804>\r\n                </Skattyterinfor-grp-5801>\r\n                <klage-grp-5805 gruppeid=\"5805\">\r\n                               <spesifisering-grp-5836 gruppeid=\"5836\">\r\n                                               <KlageSpesifisering-datadef-25457 orid=\"25457\">Orker ikke.</KlageSpesifisering-datadef-25457>\r\n                               </spesifisering-grp-5836>\r\n                </klage-grp-5805>\r\n</Skjema>\r\n--abcdefg--"
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1807,22 +2280,25 @@
 									"script": {
 										"id": "4081c1b5-a9a1-4b52-95b3-6b89964d2fb6",
 										"exec": [
-											"pm.test(\"Platform - Storage - Instance - Add Instance with future visibleDateTime - Status - 200\", function () {\r",
-											"    pm.response.to.have.status(200);\r",
-											"    var jsonData = pm.response.json();\r",
-											"    if(pm.expect(jsonData.instanceOwnerId).not.eql(null))\r",
-											"    {\r",
-											"        pm.environment.set('instanceOwnerId', jsonData.instanceOwnerId);\r",
-											"        pm.environment.set('appId',jsonData.appId);\r",
-											"        var instanceId = jsonData.id;\r",
-											"        instanceId = instanceId.toString();\r",
-											"        instanceId = instanceId.split('/');\r",
-											"        instanceId = instanceId[1];\r",
-											"        pm.environment.set('FutureDateinstanceId',instanceId);\r",
-											"    }\r",
-											"    pm.expect(jsonData.data[0].id).not.equal(null);\r",
-											"});\r",
-											""
+											"var jsonData = pm.response.json();\r",
+											"if(pm.response.code == 200)\r",
+											"{\r",
+											"    var instanceId = jsonData.id;\r",
+											"    instanceId = instanceId.toString();\r",
+											"    instanceId = instanceId.split('/');\r",
+											"    instanceId = instanceId[1];\r",
+											"    pm.environment.set('FutureDateinstanceId',instanceId);\r",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "4ead76e4-8ea2-4551-81ed-2dc459e8f380",
+										"exec": [
+											"pm.environment.set(\"FutureDateinstanceId\",\"\");"
 										],
 										"type": "text/javascript"
 									}
@@ -1833,18 +2309,26 @@
 								"header": [
 									{
 										"key": "Content-Type",
-										"value": "multipart/form-data; boundary=\"abcdefg\"",
+										"name": "Content-Type",
+										"value": "application/json",
 										"type": "text"
 									}
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "--abcdefg\r\nContent-Type: application/json; charset=utf-8\r\nContent-Disposition: form-data; name=\"instance\"\r\n\r\n{\r\n    \"instanceOwnerLookup\": { \"OrganisationNumber\": \"910026755\"},\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}\r\n--abcdefg\r\nContent-Type: application/xml\r\nContent-Disposition: form-data; name=\"default\"\r\n\r\n<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\r\n<Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n                <Skattyterinfor-grp-5801 gruppeid=\"5801\">                               \r\n                               <klagefrist-grp-5804 gruppeid=\"5804\">\r\n                                               <KlageGjeldendeInntektsar-datadef-25455 orid=\"25455\">2010</KlageGjeldendeInntektsar-datadef-25455>\r\n                                               <KlagemeldingSendtInnenKlagefrist-datadef-25454 orid=\"25454\" xsi:nil=\"true\" />\r\n                                               <KlageUtloptKlagefristBegrunnelse-datadef-25456 orid=\"25456\">åøæ123£$</KlageUtloptKlagefristBegrunnelse-datadef-25456>\r\n                               </klagefrist-grp-5804>\r\n                </Skattyterinfor-grp-5801>\r\n                <klage-grp-5805 gruppeid=\"5805\">\r\n                               <spesifisering-grp-5836 gruppeid=\"5836\">\r\n                                               <KlageSpesifisering-datadef-25457 orid=\"25457\">Orker ikke.</KlageSpesifisering-datadef-25457>\r\n                               </spesifisering-grp-5836>\r\n                </klage-grp-5805>\r\n</Skjema>\r\n--abcdefg--"
+									"raw": "{\r\n    \"instanceOwnerId\": \"{{instanceOwnerId}}\",\r\n    \"labels\" : [ \"gr\", \"x2\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances?appId={{appId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1878,7 +2362,7 @@
 											"pm.test(\"Platform - Storage - SBL - GET Instances for SBL - Content - Does not contain future visible instances\", function () {\r",
 											"    var jsonData = pm.response.json();\r",
 											"    pm.expect(jsonData).to.not.contain(pm.environment.get(\"FutureDateinstanceId\"));\r",
-											"})"
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -1899,9 +2383,11 @@
 									}
 								],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}?state=active&language=nb",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -1937,8 +2423,7 @@
 											"    pm.response.to.have.status(200);\r",
 											"});\r",
 											"pm.test(\"Platform - Storage - SBL - Soft Delete Instance - Content - Matches\", function () {\r",
-											"    var jsonData = pm.response.json();\r",
-											"    pm.expect(jsonData.instanceState.isDeleted).equal(true);\r",
+											"    pm.expect(pm.response.text()).equal('true');\r",
 											"});"
 										],
 										"type": "text/javascript"
@@ -1960,14 +2445,17 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=false",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}?hard=false",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
 										"api",
 										"v1",
+										"sbl",
 										"instances",
 										"{{instanceOwnerId}}",
 										"{{instanceId}}"
@@ -2004,9 +2492,11 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2048,9 +2538,11 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2066,6 +2558,51 @@
 							"response": []
 						},
 						{
+							"name": "GET Instance Events",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "0967cde0-022c-4148-b82d-5d490cd417e5",
+										"exec": [
+											"pm.test(\"Platform - Storage - SBL - Get Instance events - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"pm.test(\"Platform - Storage - SBL - Get Instance Events for SBL - Status - Content\", function (){\r",
+											"    var jsonData = pm.response.json();\r",
+											"    var eventsCount = jsonData.length;\r",
+											"    pm.expect(eventsCount).to.equal(3);\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/events",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"sbl",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}",
+										"events"
+									]
+								}
+							},
+							"response": []
+						},
+						{
 							"name": "DELETE Hard Delete Instance",
 							"event": [
 								{
@@ -2073,7 +2610,10 @@
 									"script": {
 										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
 										"exec": [
-											""
+											"pm.test(\"Platform - Storage - Instance - Delete Instance - Status - 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"    pm.expect(pm.response.text()).equal('true');\r",
+											"});"
 										],
 										"type": "text/javascript"
 									}
@@ -2094,14 +2634,17 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
 										"api",
 										"v1",
+										"sbl",
 										"instances",
 										"{{instanceOwnerId}}",
 										"{{instanceId}}"
@@ -2145,14 +2688,17 @@
 									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2021-06-20T12:00:00Z\",\r\n    \"visibleDateTime\": \"2021-06-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
 								},
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{FutureDateinstanceId}}?hard=true",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{FutureDateinstanceId}}?hard=true",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
 										"api",
 										"v1",
+										"sbl",
 										"instances",
 										"{{instanceOwnerId}}",
 										"{{FutureDateinstanceId}}"
@@ -2175,9 +2721,9 @@
 									"script": {
 										"id": "3d1598d9-8cc0-418f-9171-22db9db7659c",
 										"exec": [
-											"pm.test(\"Platform - Storage - SBL - Restore Instance - Status - 404\", function () {\r",
-											"    pm.response.to.have.status(404);\r",
-											"    pm.expect(pm.response.text()).to.include(\"Didn't find the object\");\r",
+											"pm.test(\"Platform - Storage - SBL - Restore Instance - Status - 400\", function () {\r",
+											"    pm.response.to.have.status(400);\r",
+											"    pm.expect(pm.response.text()).to.include(\"Instance was permanently deleted and cannot be restored\");\r",
 											"});"
 										],
 										"type": "text/javascript"
@@ -2188,9 +2734,11 @@
 								"method": "PUT",
 								"header": [],
 								"url": {
-									"raw": "{{platformUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/sbl/instances/{{instanceOwnerId}}/{{instanceId}}/undelete",
+									"protocol": "https",
 									"host": [
-										"{{platformUrl}}"
+										"platform",
+										"{{envUrl}}"
 									],
 									"path": [
 										"storage",
@@ -2207,6 +2755,176 @@
 							"response": []
 						}
 					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "CleanUp",
+					"item": [
+						{
+							"name": "GET Instances by InstanceOwnerID",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+										"exec": [
+											"if (pm.response.code == 200)",
+											"{",
+											"    var jsonData = pm.response.json();",
+											"    var instanceCount = jsonData.length;",
+											"    if (instanceCount !== 0)",
+											"    {",
+											"        var instanceId = jsonData[0].id;",
+											"        instanceId = instanceId.split('/');",
+											"        instanceId = instanceId[1];",
+											"        pm.environment.set('instanceId', instanceId);",
+											"    }",
+											"    else",
+											"    {",
+											"        postman.setNextRequest(\"DELETE App\");",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/hal+json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "CleanUp App instances",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f0c6b00b-4213-4095-8a83-f9cf7cc5769e",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"labels\" : [ \"gr\", \"asdf\" ],\r\n    \"appId\" : \"{{appId}}\",\r\n    \"dueDateTime\": \"2019-06-01T12:00:00Z\",\r\n    \"visibleDateTime\": \"2019-05-20T00:00:00Z\",\r\n    \"presentationField\": { \"nb\": \"Arbeidsmelding\" }\r\n}"
+								},
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}/{{instanceId}}?hard=true",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}",
+										"{{instanceId}}"
+									],
+									"query": [
+										{
+											"key": "hard",
+											"value": "true"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Check for more instances",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "d46ea587-c309-4247-a8f5-4a36f278ff82",
+										"exec": [
+											"if (pm.response.code == 200)",
+											"    {",
+											"    var jsonData = pm.response.json();",
+											"    var instanceCount = jsonData.length;",
+											"    if (instanceCount !== 0)",
+											"    {",
+											"        var instanceId = jsonData[0].id;",
+											"        instanceId = instanceId.split('/');",
+											"        instanceId = instanceId[1];",
+											"        pm.environment.set('instanceId', instanceId);",
+											"        postman.setNextRequest(\"CleanUp App instances\");",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"type": "text",
+										"value": "application/hal+json"
+									}
+								],
+								"url": {
+									"raw": "https://platform.{{envUrl}}/storage/api/v1/instances/{{instanceOwnerId}}",
+									"protocol": "https",
+									"host": [
+										"platform",
+										"{{envUrl}}"
+									],
+									"path": [
+										"storage",
+										"api",
+										"v1",
+										"instances",
+										"{{instanceOwnerId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
 					"_postman_isSubFolder": true
 				},
 				{
@@ -2229,9 +2947,11 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{platformUrl}}/storage/api/v1/applications/{{org}}/{{app}}?hard=true",
+							"raw": "https://platform.{{envUrl}}/storage/api/v1/applications/{{org}}/{{app}}?hard=true",
+							"protocol": "https",
 							"host": [
-								"{{platformUrl}}"
+								"platform",
+								"{{envUrl}}"
 							],
 							"path": [
 								"storage",
@@ -2251,7 +2971,74 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "PDF",
+			"item": [
+				{
+					"name": "POST Generate PDF",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8193fe76-6379-4222-9bb9-55f751c9fd8e",
+								"exec": [
+									"pm.test(\"Platform - PDF - Generate - Status - 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Platform - PDF - Generate - File generated\", function () {\r",
+									"   pm.response.to.have.header(\"Content-Disposition\");\r",
+									"   pm.response.to.be.header(\"Content-Disposition\", \"attachment; filename=receipt.pdf\");\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"textResources\": {\r\n\t  \"language\": \"nn-NO\",\r\n\t  \"resources\": [\r\n\t    {\r\n\t      \"id\": \"25795.OppgavegiverNavnPreutfyltdatadef25795.Label\",\r\n\t      \"value\": \"Namn\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25796.OppgavegiverAdressePreutfyltdatadef25796.Label\",\r\n\t      \"value\": \"Adresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25797.OppgavegiverPostnummerPreutfyltdatadef25797.Label\",\r\n\t      \"value\": \"Postnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25798.OppgavegiverPoststedPreutfyltdatadef25798.Label\",\r\n\t      \"value\": \"Poststad med veldig mange ord slik at linjen må splittes men det er bare gøy det da Poststad med veldig mange ord slik at linjen må splittes men det er bare gøy det da \"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"26.OppgavegiverFodselsnummerdatadef26.Label\",\r\n\t      \"value\": \"Fødselsnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"18.EnhetOrganisasjonsnummerdatadef18.Label\",\r\n\t      \"value\": \"Organisasjonsnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"17.EnhetKommunenummerdatadef17.Label\",\r\n\t      \"value\": \"Kommune\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"17.EnhetKommunenummerdatadef17.PlaceHolder\",\r\n\t      \"value\": \"Kontorkommuna til selskapet\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"2.KontaktpersonNavndatadef2.Label\",\r\n\t      \"value\": \"Namn\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"2751.KontaktpersonAdressedatadef2751.Label\",\r\n\t      \"value\": \"Adresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"10441.KontaktpersonPostnummerdatadef10441.Label\",\r\n\t      \"value\": \"Postnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"10442.KontaktpersonPoststeddatadef10442.Label\",\r\n\t      \"value\": \"Poststed\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"27688.KontaktpersonEPostdatadef27688.Label\",\r\n\t      \"value\": \"Epostadresse\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"3.KontaktpersonTelefonnummerdatadef3.Label\",\r\n\t      \"value\": \"Telefonnummer\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t      \"value\": \"Klaga/oppmodninga om endring gjeld inntektsåret:\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\",\r\n\t      \"value\": \"Gjeld klaga andre inntektsår enn siste år er klagefristen utløypt og  du har ikkje rett til å få ho behandla. Klaga blir i staden behandla  som ei oppmoding om å endre likninga.  Gjeld klaga/oppmoding fleire inntektsår treng du berre å oppgi det  siste av inntektsåra. Det må imidlertid gå klart fram av grunngivinga  kva inntektsår klaga/oppmodinga gjeld.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25455.KlageGjeldendeInntektsardatadef25455.PlaceHolder\",\r\n\t      \"value\": \"NB! Klageskjemaet skal du bare bruke for å klage på feil/endringar i  skatteoppgjeret du har mottatt.  Gi opp kva år klaga/oppmodninga om endring gjeld.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label\",\r\n\t      \"value\": \"Klaga er sendt innan fristen\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Help\",\r\n\t      \"value\": \"Leveres klaga innan klagefristen?  For å klage over ligninga må du levere klaga innan seks veker etter at  skatteoppgjeret er sendt skattytar. Klagefristen går likevel ikkje ut  tidlegare enn før 10.august.  Se lignl. § 9-2 nr 4 og 5.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.Label\",\r\n\t      \"value\": \"Grunngiving for at likninga skal tas opp til endring sjølv om  klagefristen er utløypt.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.Help\",\r\n\t      \"value\": \"Er klagefristen oversittet har du ikkje rett til å få klaga behandla.  Det same gjeld om likninga er fastsett ved skjønn etter ligningslova  § 8-2.  Du kan oppmode skattekontoret om å behandle klaga. Ei slik oppmoding  må grunngivast. Ved vurderinga av om klaga skal behandlast skal det  mellom anna takast omsyn til spørsmålet si betydning, skattytaren  sine\\n                                    forhold, opplysning av saka og den tida som er gått.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25456.KlageUtloptKlagefristBegrunnelsedatadef25456.PlaceHolder\",\r\n\t      \"value\": \"Grunngi kvifor skattekontoret skal behandle klaga sjølv om  klagefristen er utløypt.  NB! Inneheld grunngivinga sensitive opplysningar (t.d. om sjukdom) må  du sende klaga i brev til skattekontoret.\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"25457.KlageSpesifiseringdatadef25457.Label\",\r\n\t      \"value\": \"123456789123456789123456789123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789abcdefghijklmnopqrst123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789 test test 123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"12345.KlageSpesifiseringgdatadef12345.Label\",\r\n\t      \"value\": \"Noe annet\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"23456.KlageSpesifiseringggdatadef23456.Label\",\r\n\t      \"value\": \"Og en tulleting til slutt\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"Skjema.Label\",\r\n\t      \"value\": \"RF-1117 Klage på likninga\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"Skjema.Help\",\r\n\t      \"value\": \"Klageskjemaet gjeld for alle grupper av skattytarar. NB! Inneheld  klaga sensitive opplysningar (t.d om sjukdom) kan du ikkje levere  klaga elektronisk. Ho må sendast i brev til skattekontoret.\"\r\n\t    }\r\n\t  ]\r\n\t},\r\n\t\"formLayout\": {\r\n\t  \"data\": {\r\n\t    \"layout\": [\r\n\t      {\r\n\t        \"id\": \"0d292a83-fe66-4f20-a40a-8b5d42520ccb\",\r\n\t        \"type\": \"Input\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"Skjema.Label\",\r\n\t          \"description\": \"Skjema.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5801.info-grp-5802.OppgavegiverNavnPreutfylt-datadef-25795.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"componentType\": 8,\r\n\t        \"dataModelBindings\": {},\r\n\t        \"displayMode\": \"list\",\r\n\t        \"id\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t        \"maxFileSizeInMB\": 25,\r\n\t        \"maxNumberOfAttachments\": \"15\",\r\n\t        \"minNumberOfAttachments\": 1,\r\n\t        \"required\": true,\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"Vedlegg\",\r\n\t          \"description\": \"Vennligst last opp de vedleggene du mener beskriver situasjonen din best.\"},\r\n\t        \"title\": \"Vedlegg\",\r\n\t        \"type\": \"FileUpload\"\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77fbb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"28ff99b3-0d48-484a-8a6d-123123123\",\r\n\t        \"type\": \"CheckBoxes\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"3.KontaktpersonTelefonnummerdatadef3.Label\",\r\n\t          \"description\": \"25454.KlagemeldingSendtInnenKlagefristdatadef25454.Label\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5803.info-grp-5804.OppgavegiverNavnPreutfylt-datadef-25797.value\"\r\n\t        },\r\n\t        \"textResourceId\": \"Standard.Button.Button\",\r\n\t        \"customType\": \"Standard\",\r\n\t        \"options\": [{\"label\": \"Valg 1\", \"value\": \"Verdi\"}, {\"label\": \"Valg 2\", \"value\": \"Verdi 2\"}]\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebc\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebd\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ebf\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77ecb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      },\r\n\t      {\r\n\t        \"id\": \"20158575-6db3-429a-95d6-c49e57d77edb\",\r\n\t        \"type\": \"TextField\",\r\n\t        \"textResourceBindings\": {\r\n\t          \"title\": \"25455.KlageGjeldendeInntektsardatadef25455.Label\",\r\n\t          \"description\": \"25455.KlageGjeldendeInntektsardatadef25455.Help\"\r\n\t        },\r\n\t        \"dataModelBindings\": {\r\n\t          \"simpleBinding\": \"Skattyterinfor-grp-5802.info-grp-5803.OppgavegiverNavnPreutfylt-datadef-25796.value\"\r\n\t        },\r\n\t        \"required\": true,\r\n\t        \"readOnly\": false\r\n\t      }\r\n\t    ]\r\n\t  }\r\n\t},\r\n\t\"data\": \"PD94bWwgdmVyc2lvbj0iMS4wIj8+CjxTa2plbWEgeG1sbnM6eHNpPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSIgeG1sbnM6eHNkPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYSIgc2tqZW1hbnVtbWVyPSIxMjQzIiBzcGVzaWZpa2Fzam9uc251bW1lcj0iMTA3MDIiIGJsYW5rZXR0bnVtbWVyPSJSRi0xMTE3IiB0aXR0ZWw9IktsYWdlIHDDpSBsaWtuaW5nZW4iIGdydXBwZWlkPSI1ODAwIj4KPFNrYXR0eXRlcmluZm9yLWdycC01ODAxIGdydXBwZWlkPSI1ODAxIj4KICA8aW5mby1ncnAtNTgwMiBncnVwcGVpZD0iNTgwMiI+CiAgICA8T3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk1IG9yaWQ9IjI1Nzk1Ij5Ob2UgZGF0YTwvT3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk1PgogIDwvaW5mby1ncnAtNTgwMj4KPC9Ta2F0dHl0ZXJpbmZvci1ncnAtNTgwMT4KPFNrYXR0eXRlcmluZm9yLWdycC01ODAyIGdydXBwZWlkPSI1ODAyIj4KICA8aW5mby1ncnAtNTgwMyBncnVwcGVpZD0iNTgwMiI+CiAgICA8T3BwZ2F2ZWdpdmVyTmF2blByZXV0ZnlsdC1kYXRhZGVmLTI1Nzk2IG9yaWQ9IjI1Nzk2Ij5EZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIGZha3Rpc2sgZW5kYSBsaXR0IGxlbmdlciBtZW4gc2xpayBlciBkZXQgbsOlIGJhcmUuIFPDpW5uIGthbiBkZXQgZ8OlIGthbiBtYW4gc2kuPC9PcHBnYXZlZ2l2ZXJOYXZuUHJldXRmeWx0LWRhdGFkZWYtMjU3OTY+CiAgPC9pbmZvLWdycC01ODAzPgo8L1NrYXR0eXRlcmluZm9yLWdycC01ODAyPgo8U2thdHR5dGVyaW5mb3ItZ3JwLTU4MDMgZ3J1cHBlaWQ9IjU4MDMiPgogIDxpbmZvLWdycC01ODA0IGdydXBwZWlkPSI1ODAyIj4KICAgIDxPcHBnYXZlZ2l2ZXJOYXZuUHJldXRmeWx0LWRhdGFkZWYtMjU3OTcgb3JpZD0iMjU3OTciPkRldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci4gRGV0dGUgZXIgb2dzw6UgaGVudGV0IGZyYSB4bWwuIERldHRlIGVyIGV0IGxhbmd0IHN2YXIuIERldHRlIGVyIG9nc8OlIGhlbnRldCBmcmEgeG1sLiBEZXR0ZSBlciBldCBsYW5ndCBzdmFyLiBEZXR0ZSBlciBvZ3PDpSBoZW50ZXQgZnJhIHhtbC4gRGV0dGUgZXIgZXQgbGFuZ3Qgc3Zhci48L09wcGdhdmVnaXZlck5hdm5QcmV1dGZ5bHQtZGF0YWRlZi0yNTc5Nz4KICA8L2luZm8tZ3JwLTU4MDQ+CjwvU2thdHR5dGVyaW5mb3ItZ3JwLTU4MDM+CjwvU2tqZW1hPgo=\",\r\n\t\"instance\": {\r\n\t  \"id\": \"ef417f14-65b6-4504-b082-14b40bd2bb74\",\r\n\t  \"instanceOwnerId\": \"50002121\",\r\n\t  \"appId\": \"tdd/sefiiler\",\r\n\t  \"org\": \"tdd\",\r\n\t  \"createdDateTime\": \"2019-10-14T10:09:04.2558408Z\",\r\n\t  \"lastChangedDateTime\": \"2019-10-14T10:12:27.7933369Z\",\r\n\t  \"presentationField\": {\r\n\t    \"nb\": \"sefiiler\"\r\n\t  },\r\n\t  \"process\": {\r\n\t    \"started\": \"2019-10-14T10:12:25.4503562Z\",\r\n\t    \"currentTask\": {\r\n\t      \"elementId\": \"Archived\"\r\n\t    },\r\n\t    \"ended\": \"2019-10-14T10:12:27.7835428Z\"\r\n\t  },\r\n\t  \"instanceState\": {\r\n\t    \"isDeleted\": false,\r\n\t    \"isMarkedForHardDelete\": false,\r\n\t    \"isArchived\": true,\r\n\t    \"archivedDateTime\": \"2019-10-14T10:12:27.7835455Z\"\r\n\t  },\r\n\t  \"data\": [\r\n\t    {\r\n\t      \"id\": \"021b7c7e-03df-4cf3-a880-57a331060db3\",\r\n\t      \"elementType\": \"default\",\r\n\t      \"contentType\": \"application/xml\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/021b7c7e-03df-4cf3-a880-57a331060db3\",\r\n\t      \"fileSize\": 250,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:09:04.5363251Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:12:25.2930356Z\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"86055078-61cd-4306-9df1-1ce6e5e1f905\",\r\n\t      \"elementType\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t      \"fileName\": \"scorereport.pdf\",\r\n\t      \"contentType\": \"application/pdf\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/86055078-61cd-4306-9df1-1ce6e5e1f905\",\r\n\t      \"fileSize\": 21099,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:11:54.2414985Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:11:54.2414985Z\"\r\n\t    },\r\n\t    {\r\n\t      \"id\": \"b3f5701b-b34d-4010-8a1e-c213d9d82a73\",\r\n\t      \"elementType\": \"00389210-7f6d-4bf0-8a6e-a995c71d0f5e\",\r\n\t      \"fileName\": \"IMG_2034_2333.jpeg\",\r\n\t      \"contentType\": \"application/pdf\",\r\n\t      \"storageUrl\": \"tdd/sefiiler/ef417f14-65b6-4504-b082-14b40bd2bb74/data/b3f5701b-b34d-4010-8a1e-c213d9d82a73\",\r\n\t      \"fileSize\": 22021,\r\n\t      \"isLocked\": false,\r\n\t      \"createdDateTime\": \"2019-10-14T10:12:15.7301267Z\",\r\n\t      \"lastChangedDateTime\": \"2019-10-14T10:12:15.7301267Z\"\r\n\t    }\r\n\t  ],\r\n\t  \"_rid\": \"HQQcAPp2ENibAQAAAAAAAA==\",\r\n\t  \"_self\": \"dbs/HQQcAA==/colls/HQQcAPp2ENg=/docs/HQQcAPp2ENibAQAAAAAAAA==/\",\r\n\t  \"_etag\": \"\\\"0800bba6-0000-0d00-0000-5da44a0b0000\\\"\",\r\n\t  \"_attachments\": \"attachments/\",\r\n\t  \"_ts\": 1571047947\r\n\t},\r\n\t\"party\": {\"name\": \"Ola Nordmann\", \"ssn\": \"1234\"},\r\n\t\"userParty\": {\"name\": \"Kari Nordmann\", \"ssn\": \"123224\"}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://platform.{{envUrl}}/pdf/api/v1/generate",
+							"protocol": "https",
+							"host": [
+								"platform",
+								"{{envUrl}}"
+							],
+							"path": [
+								"pdf",
+								"api",
+								"v1",
+								"generate"
+							]
+						},
+						"description": "API for creating a receipt pdf for an archived altinn app."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

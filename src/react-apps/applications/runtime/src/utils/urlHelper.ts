@@ -1,25 +1,64 @@
-const altinnWindow = window as any;
-const { org, service, reportee } = altinnWindow;
+import { IAltinnWindow } from 'src/types';
+
+const altinnWindow = window as Window as IAltinnWindow;
+const { org, app, reportee } = altinnWindow;
 const origin = window.location.origin;
 
-export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${service}/verifySubscription?partyId=${reportee}`;
-export const languageUrl = `${origin}/${org}/${service}/api/Language/GetLanguageAsJSON`;
-export const profileApiUrl = `${origin}/${org}/${service}/api/v1/profile/user`;
-export const applicationMetadataApiUrl = `${origin}/${org}/${service}/api/v1/applicationmetadata`;
-export const textResourcesUrl = `${origin}/${org}/${service}/api/textresources`;
+export const appPath = `${origin}/${org}/${app}`;
+export const verifySubscriptionUrl = `${origin}/api/v1/${org}/${app}/verifySubscription?partyId=${reportee}`;
+export const languageUrl = `${appPath}/api/Language/GetLanguageAsJSON`;
+export const profileApiUrl = `${appPath}/api/v1/profile/user`;
+export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
+export const textResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const updateCookieUrl: (partyId: string) => string = (partyId: string) => `
-  ${origin}/${org}/${service}/api/v1/parties/${partyId}
+  ${appPath}/api/v1/parties/${partyId}
 `;
 export const validPartiesUrl: string =
-  `${origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=true`;
+  `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const allPartiesUrl: string =
-`${origin}/${org}/${service}/api/v1/parties?allowedtoinstantiatefilter=false`;
-export const instantiateUrl: string = `${origin}/${org}/${service}/Instance/InstantiateApp`;
-export const currentPartyUrl: string = `${origin}/${org}/${service}/api/authorization/parties/current`;
-export const instancesControllerUrl: string = `${origin}/${org}/${service}/instances`;
-export const partySelectionUrl: string = `${origin}/${org}/${service}/#/partyselection`;
-export const refreshJwtTokenUrl: string = `${origin}/${org}/${service}/api/authentication/keepAlive`;
-export const reactErrorPage: string = `${origin}/${org}/${service}/#/error`;
+`${appPath}/api/v1/parties?allowedtoinstantiatefilter=false`;
+export const instantiateUrl: string = `${appPath}/instances`;
+export const currentPartyUrl: string = `${appPath}/api/authorization/parties/current`;
+export const instancesControllerUrl: string = `${appPath}/instances`;
+export const partySelectionUrl: string = `${appPath}/#/partyselection`;
+export const refreshJwtTokenUrl: string = `${appPath}/api/authentication/keepAlive`;
+export const reactErrorPage: string = `${appPath}/#/error`;
+
+export function fileUploadUrl(attachmentType: string, attachmentName: string) {
+  return `${appPath}/instances/` +
+  `${altinnWindow.instanceId}/data?elementType=${attachmentType}&attachmentName=${attachmentName}`;
+}
+
+export function dataElementUrl(dataGuid: string) {
+  return `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
+}
+
+export function getProcessStateUrl() {
+  return `${appPath}/instances/${altinnWindow.instanceId}/process`;
+}
+
+export function getStartProcessUrl(instanceId?: string) {
+  if (!instanceId) {
+    instanceId = altinnWindow.instanceId;
+  }
+  return `${appPath}/instances/${instanceId}/process/start`;
+}
+
+export function getCreateInstancesUrl(partyId: string) {
+  return `${appPath}/instances?instanceOwnerId=${partyId}`;
+}
+
+export function getCreateDataElementUrl(instanceId: string, elementType: string) {
+  return `${appPath}/instances/${instanceId}/data?elementType=${elementType}`;
+}
+
+export function getValidationUrl(instanceId: string, dataElementId: string) {
+  return `${appPath}/instances/${instanceId}/data/${dataElementId}/validate`;
+}
+
+export function getCompleteProcessUrl() {
+ return `${appPath}/instances/${altinnWindow.instanceId}/process/completeProcess`;
+}
 
 export const getEnvironmentLoginUrl: () => string = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
@@ -31,6 +70,7 @@ export const getEnvironmentLoginUrl: () => string = () => {
     return `https://platform${domainSplitted[2]}.${domainSplitted[3]}` +
       `/authentication/api/v1/authentication?goto=${window.location.href}`;
   } else {
+    // TODO: what if altinn3?
     throw new Error('Unknown domain');
   }
 };

@@ -1,14 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Newtonsoft.Json;
-using Storage.Interface.Clients;
-using Storage.Interface.Models;
 
-namespace Altinn.Platform.Storage.Client
+namespace Altinn.Platform.Storage.Clients
 {
     /// <summary>
     /// Client for managing application metadata.
@@ -42,18 +37,18 @@ namespace Altinn.Platform.Storage.Client
             {
                 Id = appId,
                 Title = title,
-                ElementTypes = new List<ElementType>()
+                DataTypes = new List<DataType>()
             };
 
-            ElementType defaultElementType = new ElementType
+            DataType defaultElementType = new DataType
             {
                 Id = "default",
-                AllowedContentType = new List<string>() { "application/xml" }
+                AllowedContentTypes = new List<string>() { "application/xml" }
             };
 
-            application.ElementTypes.Add(defaultElementType);
+            application.DataTypes.Add(defaultElementType);
 
-            return CreateApplication(application) ;                     
+            return CreateApplication(application);                     
         }
 
         /// <summary>
@@ -69,7 +64,7 @@ namespace Altinn.Platform.Storage.Client
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new StorageClientException($"POST failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new StorageClientException($"POST failed: {response.StatusCode} - {response.Content?.ReadAsStringAsync()}");
             }
             
             string json = response.Content.ReadAsStringAsync().Result;
@@ -93,7 +88,7 @@ namespace Altinn.Platform.Storage.Client
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new StorageClientException($"PUT failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new StorageClientException($"PUT failed: {response.StatusCode} - {response.Content?.ReadAsStringAsync()}");
             }
             
             string json = response.Content.ReadAsStringAsync().Result;        
@@ -115,7 +110,7 @@ namespace Altinn.Platform.Storage.Client
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new StorageClientException($"GET failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new StorageClientException($"GET failed: {response.StatusCode} - {response.Content?.ReadAsStringAsync()}");
             }
 
             string json = response.Content.ReadAsStringAsync().Result;
@@ -137,7 +132,7 @@ namespace Altinn.Platform.Storage.Client
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new StorageClientException($"DELETE failed: {response.StatusCode} - {response.ReasonPhrase}");
+                throw new StorageClientException($"DELETE failed: {response.StatusCode} - {response.Content?.ReadAsStringAsync()}");
             }
             
             string json = response.Content.ReadAsStringAsync().Result;

@@ -145,10 +145,9 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
   public componentDidMount() {
     if (!this.props.loadFile) {
-      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-      const { org, service } = altinnWindow;
-      const servicePath = `${org}/${service}`;
-      get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
+      const { org, app } = window as IAltinnWindow;
+      const appId = `${org}/${app}`;
+      get(`${window.location.origin}/designer/${appId}/ServiceDevelopment` +
         `/GetServiceFiles?fileEditorMode=${this.props.mode}`).then((response) => {
           const files = response.split(',');
           this.loadFileContent(files[0]);
@@ -176,10 +175,9 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     this.setState({
       isLoading: true,
     });
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
-    const servicePath = `${org}/${service}`;
-    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
+    const { org, app } = window as IAltinnWindow;
+    const appId = `${org}/${app}`;
+    get(`${window.location.origin}/designer/${appId}/ServiceDevelopment` +
       `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
       .then((logicFileContent) => {
         this.setState((prevState: IFileEditorState) => {
@@ -206,10 +204,9 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       stageFile = true;
     }
 
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
-    const servicePath = `${org}/${service}`;
-    const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
+    const { org, app } = window as IAltinnWindow;
+    const appId = `${org}/${app}`;
+    const postUrl = `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
       `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
 
     const saveRes: any = await post(postUrl, this.state.value, {

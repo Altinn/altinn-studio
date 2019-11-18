@@ -1,17 +1,16 @@
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+using System;
 using System.Linq;
-using AltinnCore.Authentication.JwtCookie;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.Utils;
-using System.Net.Http;
-using AltinnCore.ServiceLibrary.Models;
-using System.Net.Http.Headers;
-using Microsoft.Extensions.Logging;
 using AltinnCore.Common.Configuration;
+using AltinnCore.ServiceLibrary.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
 
 namespace Altinn.Platform.Receipt
 {
@@ -29,8 +28,8 @@ namespace Altinn.Platform.Receipt
         /// <summary>
         /// Initializes a new instance of the <see cref="ReceiptController"/> class
         /// </summary>
-        /// <param name="platformSettings"></param>
-        /// <param name="logger"></param>
+        /// <param name="platformSettings">the platform settings</param>
+        /// <param name="logger">the logger</param>
         public ReceiptController(IOptions<PlatformSettings> platformSettings, ILogger<ReceiptController> logger)
         {
             _platformSettings = platformSettings.Value;
@@ -62,6 +61,7 @@ namespace Altinn.Platform.Receipt
         [Route("receipt/api/v1/users/current")]
         public async Task<IActionResult> GetCurrentUser()
         {
+            _logger.LogInformation($"// ReceiptController // GetCurrentUser // Claim count: {Request.HttpContext.User.Claims.Count()}");
             string userIdString = Request.HttpContext.User.Claims.Where(c => c.Type == AltinnCoreClaimTypes.UserId)
            .Select(c => c.Value).SingleOrDefault();
 
@@ -70,10 +70,9 @@ namespace Altinn.Platform.Receipt
                 return BadRequest("Invalid request context. UserId must be provided in claims.");
             }
 
-
             int userId = int.Parse(userIdString);
             string userUrl = string.Empty;
-            if( Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint") != null)
+            if (Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint") != null)
             {
                 userUrl = $"{Environment.GetEnvironmentVariable("Platformsettings__ApiProfileEndpoint")}users/{userId}";
             }
@@ -92,7 +91,7 @@ namespace Altinn.Platform.Receipt
             }
             else
             {
-               _logger.LogError($"Getting user profile with userId {userId} failed with statuscode {response.StatusCode}");
+                _logger.LogError($"Getting user profile with userId {userId} failed with statuscode {response.StatusCode}");
             }
 
             return Ok(userProfile);

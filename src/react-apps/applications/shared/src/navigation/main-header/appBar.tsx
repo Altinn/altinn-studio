@@ -23,7 +23,7 @@ export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   classes: any;
   logoutButton?: boolean;
   org?: string;
-  service?: string;
+  app?: string;
   showBreadcrumbOnTablet?: boolean;
   showSubHeader?: boolean;
 }
@@ -44,6 +44,7 @@ const styles = createStyles({
     borderBottom: '1px solid',
     borderBottomColor: '#C9C9C9',
     color: altinnTheme.altinnPalette.primary.black,
+    position: 'fixed',
   },
   breadCrumb: {
     paddingLeft: 30,
@@ -117,7 +118,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
       classes,
       logoutButton,
       org,
-      service,
+      app,
       showBreadcrumbOnTablet,
     } = this.props;
 
@@ -148,7 +149,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               </Grid>
               <Hidden smDown>
                 <Grid xs={true} item={true} className={classes.paper}>
-                  {service ? service : 'WARNING: NO SERVICE NAME'}
+                  {app ? app : 'WARNING: NO APP NAME'}
                 </Grid>
               </Hidden>
               <Grid item={true} xs={true} container={true} direction='row' alignItems='center' justify='flex-end'>
@@ -158,7 +159,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                   </Hidden>
                   <Hidden mdUp>
                     <div className={classes.topRightService}>
-                      {service ? service : 'WARNING: NO SERVICE NAME'}
+                      {app ? app : 'WARNING: NO APP NAME'}
                     </div>
                   </Hidden>
                 </Grid>

@@ -81,6 +81,11 @@ namespace AltinnCore.Common.Configuration
         private const string TESTDATA_FOLDER_NAME = "Data/";
 
         /// <summary>
+        /// constant for the location of authorization policies
+        /// </summary>
+        public const string AUTHORIZATION_FOLDER_NAME = "Authorization/";
+
+        /// <summary>
         /// Constant for the location of service metadata file
         /// </summary>
         public const string METADATA_FILENAME = "ServiceMetadata.json";
@@ -260,6 +265,11 @@ namespace AltinnCore.Common.Configuration
         /// Gets or sets the filename for the git ignore file
         /// </summary>
         public string GitIgnoreFileName { get; set; } = ".gitignore";
+
+        /// <summary>
+        /// Gets or sets the filename for the authorization policy file (XACML)
+        /// </summary>
+        public string AuthorizationPolicyFileName { get; set; } = "policy.xml";
 
         /// <summary>
         /// Gets or sets the repo search page count used for searching repos
@@ -630,6 +640,18 @@ namespace AltinnCore.Common.Configuration
         public string GetWorkflowPath(string org, string app, string developer)
         {
             return GetServicePath(org, app, developer) + "Workflow/";
+        }
+
+        /// <summary>
+        /// Gets the full path to the Authorization directory
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="developer">the developer for the current app.</param>
+        /// <returns>The full path to the Authorization directory, ending with "/"</returns>
+        public string GetAuthorizationPath(string org, string app, string developer)
+        {
+            return GetServicePath(org, app, developer) + "Authorization/";
         }
 
         /// <summary>

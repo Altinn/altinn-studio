@@ -9,6 +9,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.Runtime.Helpers;
 using AltinnCore.Runtime.RequestHandling;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
@@ -95,7 +96,7 @@ namespace AltinnCore.Runtime.RestControllers
                     return NotFound();
                 }
 
-                SetAppSelfLinks(instance, Request);
+                SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 return Ok(instance);
             }
@@ -135,7 +136,7 @@ namespace AltinnCore.Runtime.RestControllers
                     return NotFound();
                 }
 
-                SetAppSelfLinks(instance, Request);
+                SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
 
                 return Ok(instance);
             }
@@ -157,7 +158,6 @@ namespace AltinnCore.Runtime.RestControllers
         /// <returns>the created instance</returns>
         [HttpPost]
         [DisableFormValueModelBinding]
-        [Consumes("application/json", otherContentTypes: new string[] { "multipart/form-data", })]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -279,9 +279,9 @@ namespace AltinnCore.Runtime.RestControllers
 
                 // todo add compensating transaction (delete instance)                
                 return StatusCode(500, $"{message} - {dataException.Message}");
-            }            
+            }
 
-            SetAppSelfLinks(instance, Request);
+            SelfLinkHelper.SetInstanceAppSelfLinks(instance, Request);
             string url = instance.SelfLinks.Apps;
 
             return Created(url, instance);
@@ -298,9 +298,14 @@ namespace AltinnCore.Runtime.RestControllers
             foreach (RequestPart part in parts)
             {
                 logger.LogInformation($"Storing part {part.Name}");
-                object data = new StreamReader(part.Stream).ReadToEnd();
-
+                
                 IServiceImplementation serviceImplementation = await PrepareServiceImplementation(org, app, part.Name, true);
+                object data = DataController.DeserializeModel(part.Stream, part.ContentType, serviceImplementation.GetServiceModelType(), out string errorText);
+
+                if (!string.IsNullOrEmpty(errorText))
+                {
+                    throw new InvalidOperationException(errorText);
+                }
 
                 instanceWithData = await dataService.InsertFormData(
                     data,
@@ -350,45 +355,6 @@ namespace AltinnCore.Runtime.RestControllers
             }                        
 
             return instanceTemplate;
-        }
-
-        /// <summary>
-        /// Sets the application specific self links.
-        /// </summary>
-        /// <param name="instance">the instance to set links for</param>
-        /// <param name="request">the http request to extract host and path name</param>
-        internal static void SetAppSelfLinks(Instance instance, HttpRequest request)
-        {
-            string host = $"https://{request.Host.ToUriComponent()}";
-            string url = request.Path;
-
-            string selfLink = $"{host}{url}";
-
-            int start = selfLink.IndexOf("/instances");
-            if (start > 0)
-            {
-                selfLink = selfLink.Substring(0, start) + "/instances";
-            }
-
-            selfLink += $"/{instance.Id}";            
-
-            if (!selfLink.EndsWith(instance.Id))
-            {
-                selfLink += instance.Id;
-            }
-
-            instance.SelfLinks = instance.SelfLinks ?? new ResourceLinks();
-            instance.SelfLinks.Apps = selfLink;
-
-            if (instance.Data != null)
-            {
-                foreach (DataElement dataElement in instance.Data)
-                {
-                    dataElement.DataLinks = dataElement.DataLinks ?? new ResourceLinks();
-
-                    dataElement.DataLinks.Apps = $"{selfLink}/data/{dataElement.Id}";
-                }
-            }
         }
 
         /// <summary>

@@ -60,8 +60,8 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
 
   public shouldShowRepositoryLink = () => {
     if (window) {
-      const {org, service} = (window as IAltinnWindow);
-      if (!org || !service) {
+      const {org, app} = (window as IAltinnWindow);
+      if (!org || !app) {
         return false;
       } else {
         return true;
@@ -88,9 +88,14 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
         <IconButton
           aria-owns={anchorEl ? 'simple-menu' : undefined}
           aria-haspopup='true'
+          aria-label={"profilikon knapp"}
           onClick={this.handleClick}
         >
-          <AccountCircle fontSize='large' />
+          <AccountCircle
+            fontSize='large'
+            titleAccess={"profilikon"}
+            aria-label={"profilikon"}
+          />
         </IconButton>
         <Menu
           id='simple-menu'

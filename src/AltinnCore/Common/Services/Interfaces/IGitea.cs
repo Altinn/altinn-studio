@@ -1,7 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using AltinnCore.Common.Models;
 using AltinnCore.RepositoryClient.Model;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -15,7 +14,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Get the current user
         /// </summary>
         /// <returns>The current user</returns>
-        Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser();
+        Task<User> GetCurrentUser();
 
         /// <summary>
         /// Create repository for the org.
@@ -23,7 +22,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="createRepoOption">the options for creating repository.</param>
         /// <returns>The newly created repository object.</returns>
-        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
+        Task<Repository> CreateRepository(string org, CreateRepoOption createRepoOption);
 
         /// <summary>
         /// Search the repository for the given parameters
@@ -46,14 +45,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Returns organisation that user has access to
         /// </summary>
         /// <returns>A list over organisations</returns>
-        Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations();
-
-        /// <summary>
-        /// Returns information about a organisation based on name
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <returns>The organisation object</returns>
-        Task<Organization> GetOrganization(string org);
+        Task<List<Organization>> GetUserOrganizations();
 
         /// <summary>
         /// List all branches with commit for a repo
@@ -88,5 +80,23 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <returns>A newly generated token</returns>
         Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null);
+
+        /// <summary>
+        /// Gets the git tree in the repository
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">The name of repository</param>
+        /// <param name="commitId">Sha of the commit, short / long version</param>
+        /// <returns></returns>
+        Task<GitTreeStructure> GetGitTreeAsync(string org, string app, string commitId);
+
+        /// <summary>
+        /// Gets a file from a filepath
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">The name of repository</param>
+        /// <param name="filePath">Path to a file, may start with full commit sha</param>
+        /// <returns></returns>
+        Task<string> GetFileAsync(string org, string app, string filePath);
     }
 }

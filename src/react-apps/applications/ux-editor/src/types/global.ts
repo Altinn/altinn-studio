@@ -221,7 +221,7 @@ declare global {
 
   export interface IAltinnWindow extends Window {
     org: string;
-    service: string;
+    app: string;
     instanceId: string;
     reportee: string;
   }

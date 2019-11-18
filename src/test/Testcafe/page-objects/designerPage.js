@@ -90,19 +90,23 @@ export default class DesignerPage {
 
     //"teste" navigation tab selectors
     this.testeNavigationTab = Selector('div > a').withExactText('Teste');
-    this.deployButton = Selector('#deployButton');
     this.testeLeftMenuItems = [
-      this.leftMenuList.withExactText('Test'),
-      this.leftMenuList.withExactText('Test i testmiljø')
+      this.leftMenuList.withExactText('Test')
     ];
 
-    //"publisere" navigation tab selectors
-    this.publisereNavigationTab = Selector('div > a').withExactText('Publisere');
-    this.publisereButton = Selector('#startDeploymentBtn'); //.withText('Start deployment');
-    this.publisereLeftMenuItems = [
-      this.leftMenuList.withExactText('Produksjonsette'),
-      this.leftMenuList.withExactText('Status')
-    ];
+    //"Deploy" navigation tab selectors
+    this.deployNavigationTab = Selector('div > a').withExactText('Deploy');  
+    this.versionNumber = Selector('div > div').withAttribute('aria-label', 'Versjonsnummer'); 
+    this.versionDescription = Selector('div > textarea');
+    this.buildButton = Selector('button').withExactText('Bygg versjon');
+    this.latestBuilds = Selector('.MuiGrid-root').withText('Tidligere bygg av applikasjonen').parent(0).sibling(3);
+    this.deployButton = Selector('button').withExactText('Deploy ny versjon');
+    this.deployVersionDropDown = Selector('#deploy-select-at21');
+    this.deployVersionOptions = Selector('.select__menu-list');
+    this.at21DeployTable = Selector('#deploy-history-table-at21');
+    this.deployConfirm = Selector("#deployPopover");
+    this.deployStatus = Selector('p').withText('deployer versjon');
+
 
     //preview tab
     this.previewSaveButton = Selector(".a-btn-success").withText("Save");

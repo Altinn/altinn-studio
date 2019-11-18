@@ -43,6 +43,12 @@ const styles = () => createStyles({
     width: '100%',
   },
   subApp: {
+    [theme.breakpoints.up('xs')]: {
+      paddingTop: '55px',
+    },
+    [theme.breakpoints.up('md')]: {
+      paddingTop: '111px',
+    },
     background: theme.altinnPalette.primary.greyLight,
     height: '100%',
     width: '100%',
@@ -68,20 +74,18 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public checkForMergeConflict = () => {
-    const altinnWindow: any = window;
-    const { org, service } = altinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     const repoStatusUrl = getRepoStatusUrl();
 
-    HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, service);
+    HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, app);
   }
 
   public componentDidMount() {
-    const altinnWindow: any = window;
-    const { org, service } = altinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
     fetchLanguageDispatcher.fetchLanguage(
-      `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+      `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
     handleServiceInformationActionDispatchers.fetchServiceName(
-      `${altinnWindow.location.origin}/designer/${org}/${service}/Text/GetServiceName`);
+      `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`);
     applicationMetadataDispatcher.getApplicationMetadata();
 
     this.checkForMergeConflict();
@@ -104,7 +108,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public render() {
     const { classes, repoStatus } = this.props;
-    const { org, service } = window as Window as IAltinnWindow;
+    const { org, app } = window as Window as IAltinnWindow;
 
     return (
       <React.Fragment>
@@ -138,7 +142,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                         activeSubHeaderSelection={route.activeSubHeaderSelection}
                         logoutButton={repoStatus.hasMergeConflict}
                         org={org}
-                        service={this.props.serviceName || service}
+                        app={app}
                         showBreadcrumbOnTablet={true}
                         showSubHeader={repoStatus.hasMergeConflict ? false : true}
                       />}
@@ -195,7 +199,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                             render={(props) => <route.subapp
                               {...props}
                               {...route.props}
-                              name={route.path}
                               language={this.props.language}
                             />}
                           />

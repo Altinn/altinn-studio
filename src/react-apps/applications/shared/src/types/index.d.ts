@@ -1,6 +1,6 @@
 export interface IAltinnWindow extends Window {
   org: string;
-  service: string;
+  app: string;
 }
 
 export interface IInstanceState {
@@ -37,7 +37,6 @@ export interface IInstance {
   instanceState: IInstanceState;
   data: IData[];
 }
-
 
 export interface IPerson {
   ssn: string;
@@ -99,13 +98,11 @@ export interface ITitle {
   nb: string;
 }
 
-
 export interface IAttachment {
   name: string;
   iconClass: string;
   url: string;
 }
-
 
 export interface IData {
   id: string;

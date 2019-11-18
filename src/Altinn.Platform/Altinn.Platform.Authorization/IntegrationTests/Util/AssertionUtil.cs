@@ -54,6 +54,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 return;
             }
 
+            Assert.NotNull(actual);
+
             Assert.Equal(expected.Count, actual.Count);
 
             AssertEqual(expected.FirstOrDefault(), actual.FirstOrDefault());
@@ -66,6 +68,8 @@ namespace Altinn.Platform.Authorization.IntegrationTests.Util
                 Assert.Null(actual);
                 return;
             }
+
+            Assert.NotNull(actual);
 
             Assert.Equal(expected.Count, actual.Count);
             for (int i = 0; i < expected.Count; i++)

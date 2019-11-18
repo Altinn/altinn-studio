@@ -2,7 +2,7 @@ import AltinnInformationCard from '../../../shared/src/components/AltinnInformat
 import uieditorApp from '../../../ux-editor/src/SubApp';
 import AccessControlContainer from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
-import DeployToTestEnvironment from '../features/deploy/containers/deployToTestContainer';
+import DeployPage from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
 
@@ -57,14 +57,6 @@ export const routes = [
       shadow: true,
       iframeEndingUrl: 'ManualTesting/Users/',
     },
-  },
-  {
-    path: '/deploytotest',
-    exact: true,
-    activeSubHeaderSelection: 'Teste',
-    activeLeftMenuSelection: 'Test i testmiljø',
-    menu: 'test',
-    subapp: DeployToTestEnvironment,
   },
   {
     path: '/aboutservice',
@@ -241,22 +233,12 @@ export const routes = [
     },
   },
   {
-    path: '/publish',
+    path: '/deploy',
     exact: true,
-    activeSubHeaderSelection: 'Publisere',
-    activeLeftMenuSelection: 'Produksjonsette',
-    menu: 'publish',
-    subapp: AltinnInformationCard,
-    props: {
-      headerTextKey: 'shared.wip_title',
-      subtext1TextKey: 'shared.wip_subtext_1',
-      subtext2TextKey: 'shared.wip_subtext_2',
-      linkTextKey: 'shared.wip_link_text',
-      urlKey: 'shared.wip_link_github_url',
-      imageSource: '../../designer/img/illustration-help-circle.svg',
-      shadow: true,
-      iframeEndingUrl: 'Deploy',
-    },
+    activeSubHeaderSelection: 'Deploy',
+    activeLeftMenuSelection: '',
+    menu: 'deploy',
+    subapp: DeployPage,
   },
   {
     path: '/status',

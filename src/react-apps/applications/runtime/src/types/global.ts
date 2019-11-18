@@ -3,7 +3,6 @@ import { IFormDataState } from '../features/form/data/reducer';
 import { IDataModelState } from '../features/form/datamodell/reducer';
 import { IFormDynamicState } from '../features/form/dynamics';
 import { ILayoutState } from '../features/form/layout/reducer';
-import { IWorkflowState } from '../features/form/workflow/reducer';
 import { IAttachmentState } from '../shared/resources/attachments/attachmentReducer';
 import { ILanguageState } from '../shared/resources/language/languageReducers';
 
@@ -11,7 +10,6 @@ export interface IRuntimeStore {
   formLayout: ILayoutState;
   formData: IFormDataState;
   formConfig: IFormConfigState;
-  formWorkflow: IWorkflowState;
   formDataModel: IDataModelState;
   attachments: IAttachmentState;
   formDynamics: IFormDynamicState;
@@ -20,7 +18,7 @@ export interface IRuntimeStore {
 
 export interface IAltinnWindow extends Window {
   org: string;
-  service: string;
+  app: string;
   instanceId: string;
   reportee: string;
   conditionalRuleHandlerHelper: IRules;
@@ -185,13 +183,7 @@ export interface IAttachments {
   [attachmentType: string]: IAttachment[];
 }
 
-export interface IAttachmentListApiResponse {
-  type: string;
-  attachments: IAttachmentApiResponse[];
-}
-
-export interface IAttachmentApiResponse {
-  name: string;
-  size: number;
-  id: string;
+export interface IUiConfig {
+  focus: boolean;
+  hiddenFields: string[];
 }

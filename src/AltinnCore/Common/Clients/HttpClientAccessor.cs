@@ -20,6 +20,7 @@ namespace AltinnCore.Common.Clients
         private HttpClient _profileClient;
         private HttpClient _authorizationClient;
         private HttpClient _authenticationClient;
+        private HttpClient _pdfClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpClientAccessor"/> class.
@@ -42,7 +43,6 @@ namespace AltinnCore.Common.Clients
                     _registerClient = new HttpClient();
                     _registerClient.BaseAddress = new Uri($"{_platformSettings.GetApiRegisterEndpoint}");
                     _registerClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
                 }
 
                 return _registerClient;
@@ -111,6 +111,21 @@ namespace AltinnCore.Common.Clients
                 }
 
                 return _authenticationClient;
+            }
+        }
+
+        /// <inheritdoc />
+        public HttpClient PdfClient
+        {
+            get
+            {
+                if (_pdfClient == null)
+                {
+                    _pdfClient = new HttpClient();
+                    _pdfClient.BaseAddress = new Uri($"{_platformSettings.ApiPdfEndpoint}");
+                }
+
+                return _pdfClient;
             }
         }
     }

@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { GenericComponent, isComponentValid } from '../../src/components/GenericComponent';
+import GenericComponent, { isComponentValid } from '../../src/components/GenericComponent';
 
 describe('>>> components/GenericComponent.tsx', () => {
 
@@ -19,6 +19,10 @@ describe('>>> components/GenericComponent.tsx', () => {
         layout: [
           { type: 'Input', id: 'mockId', hidden: false },
         ],
+        uiConfig: {
+          focus: null,
+          hiddenFields: [],
+        },
       },
       formDataModel: {},
       language: {

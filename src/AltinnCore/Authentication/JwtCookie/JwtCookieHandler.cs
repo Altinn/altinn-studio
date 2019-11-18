@@ -68,31 +68,37 @@ namespace AltinnCore.Authentication.JwtCookie
         {
             try
             {
-                // Get the cookie from request
-                string token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
+                string token = string.Empty;
 
-                // If no cookie present
-                if (string.IsNullOrEmpty(token))
+                // First get the token from authorization header
+                string authorization = Request.Headers["Authorization"];
+
+                // If no authorization header found, get the token
+                if (!string.IsNullOrEmpty(authorization))
                 {
-                    string authorization = Request.Headers["Authorization"];
-
-                    // If no authorization header found, nothing to process further
-                    if (string.IsNullOrEmpty(authorization))
-                    {
-                        return AuthenticateResult.NoResult();
-                    }
-
+                    Logger.LogInformation($"Getting the token from Authorization header");
                     if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
                     {
+                        Logger.LogInformation($"Bearer found");
                         token = authorization.Substring("Bearer ".Length).Trim();
                     }
-
-                    // If no token found, no further work possible
-                    if (string.IsNullOrEmpty(token))
-                    {
-                        return AuthenticateResult.NoResult();
-                    }
                 }
+
+                // If the token is not found in authorization header, get the token from cookie
+                if (string.IsNullOrEmpty(token))
+                {
+                    Logger.LogInformation($"Getting the token from cookie");
+
+                    // Get the cookie from request
+                    token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
+                }
+
+                // If no token found, return no result
+                if (string.IsNullOrEmpty(token))
+                {
+                    Logger.LogInformation($"No token found");
+                    return AuthenticateResult.NoResult();
+                }               
 
                 TokenValidationParameters validationParameters = Options.TokenValidationParameters.Clone();
 
@@ -104,8 +110,9 @@ namespace AltinnCore.Authentication.JwtCookie
                 {
                     try
                     {
+                        Logger.LogInformation($"Token to be validated{token}");
                         principal = validator.ValidateToken(token, validationParameters, out validatedToken);
-
+                        Logger.LogInformation($"validated token{validatedToken}");
                         JwtCookieValidatedContext jwtCookieValidatedContext = new JwtCookieValidatedContext(Context, Scheme, Options)
                         {
                             Principal = principal,
@@ -124,13 +131,14 @@ namespace AltinnCore.Authentication.JwtCookie
                     }
                     catch (Exception ex)
                     {
+                        Logger.LogInformation($"Token validation Exception {ex}");
                         JwtCookieFailedContext jwtCookieFailedContext = new JwtCookieFailedContext(Context, Scheme, Options)
                         {
                             Exception = ex
                         };
 
                         await Events.AuthenticationFailed(jwtCookieFailedContext);
-
+                        Logger.LogInformation($"Failecontext result {jwtCookieFailedContext.Result}");
                         if (jwtCookieFailedContext.Result != null)
                         {
                             return jwtCookieFailedContext.Result;
@@ -211,7 +219,7 @@ namespace AltinnCore.Authentication.JwtCookie
                 signInContext.CookieOptions.Expires = expiresUtc.ToUniversalTime();
             }
 
-            string jwtToken = GetToken(user, Options.ExpireTimeSpan);
+            string jwtToken = GenerateToken(user, Options.ExpireTimeSpan);
 
             Options.CookieManager.AppendResponseCookie(
             Context,
@@ -243,7 +251,13 @@ namespace AltinnCore.Authentication.JwtCookie
             throw new NotImplementedException();
         }
 
-        private string GetToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
+        /// <summary>
+        /// Generates a token
+        /// </summary>
+        /// <param name="principal">the claims principal</param>
+        /// <param name="tokenExipry">validity time span for the token</param>
+        /// <returns></returns>
+        public string GenerateToken(ClaimsPrincipal principal, TimeSpan tokenExipry)
         {
             // authentication successful so generate jwt token
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();

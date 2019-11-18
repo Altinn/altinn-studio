@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -58,7 +57,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (partyList.Count > 0)
             {
-                result = partyList.Any(p => p.PartyId == partyId) || partyList.Any( p => p.ChildParties != null && p.ChildParties.Count > 0 && p.ChildParties.Any(cp => cp.PartyId == partyId));
+                result = partyList.Any(p => p.PartyId == partyId) || partyList.Any(p => p.ChildParties != null && p.ChildParties.Count > 0 && p.ChildParties.Any(cp => cp.PartyId == partyId));
             }
 
             return await Task.FromResult(result);

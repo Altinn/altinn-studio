@@ -36,7 +36,7 @@ export function* saveJsonFileSaga({ url }: ManageJsonFileActions.ISaveJsonFileAc
     // create new serviceConfigurations object without manageServiceConfiguration status
     const newServiceConfigurationsObj = Object.keys(serviceConfigurationState)
       .filter((elem: any) => elem !== 'manageServiceConfiguration')
-      .reduce((acc: any, elem: any, service) => {
+      .reduce((acc: any, elem: any) => {
         acc[elem] = serviceConfigurationState[elem];
         return acc;
       }, {});

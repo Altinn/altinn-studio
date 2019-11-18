@@ -8,6 +8,12 @@
   "org": "tdd",
   "createdDateTime": "2019-07-10T21:01:59.0693105Z",
   "lastChangedDateTime": "2019-07-10T21:01:59.0693105Z",
+  "process": {
+    "currentTask": {
+      "started": "2019-10-08T10:37:15.6890217Z",
+      "elementId": "FormFilling_1"
+    }
+  },
   "instanceState": {
     "isDeleted": false,
     "isMarkedForHardDelete": false,
