@@ -179,7 +179,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets the filename for workflow file
         /// </summary>
-        public string WorkflowFileName { get; set; } = "workflow.bpmn";
+        public string WorkflowFileName { get; set; } = "process.bpmn";
 
         /// <summary>
         /// Gets or sets React file name
