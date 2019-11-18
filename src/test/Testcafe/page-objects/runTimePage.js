@@ -31,8 +31,7 @@ export default class RunTimePage {
     this.addressComponent = Selector('input').withAttribute('type', 'text');
     this.inputButton = Selector('input').withAttribute('type', 'Input');
     this.saveButton = Selector("#saveBtn");
-    this.sendInnButton = Selector('button').withAttribute('type','submit').withExactText('Send inn');
-    this.workflowSubmit = Selector("#processSubmitStepButton");
+    this.sendInnButton = Selector('button').withAttribute('type','submit').withExactText('Send inn');    
     //file component error message
     this.errorMessage = Selector('.field-validation-error.a-message.a-message-error');
     //Receipt Page

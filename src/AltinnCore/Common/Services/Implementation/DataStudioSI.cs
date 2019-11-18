@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
@@ -383,6 +384,61 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _logger.LogError($"Updating attachment {dataGuid} for instance {instanceGuid} failed. Exception message: {ex.Message}");
                 return null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<DataElement> InsertBinaryData(string org, string app, int instanceOwnerId, Guid instanceGuid, string attachmentType, string attachmentName, StreamContent content)
+        {
+           string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Guid dataId = Guid.NewGuid();
+            long filesize;
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, app, developer)}{instanceOwnerId}/{instanceGuid}/data";
+            Directory.CreateDirectory(pathToSaveTo);
+            string fileToWriteTo = $"{pathToSaveTo}/{dataId}";
+            using (Stream streamToWriteTo = File.Open(fileToWriteTo, FileMode.OpenOrCreate))
+            {
+                await content.CopyToAsync(streamToWriteTo);
+                await streamToWriteTo.FlushAsync();
+                filesize = streamToWriteTo.Length;
+            }
+
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, app, developer);
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceGuid}/{instanceGuid}.json";
+            FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
+            provider.TryGetContentType(attachmentName, out string contentType);
+
+            lock (Guard(instanceGuid))
+            {
+                string instanceData = File.ReadAllText(instanceFilePath);
+
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+                DataElement data = new DataElement
+                {
+                    Id = dataId.ToString(),
+                    ElementType = attachmentType,
+                    ContentType = contentType,
+                    FileName = attachmentName,
+                    StorageUrl = $"{app}/{instanceGuid}/data/{dataId}",
+                    CreatedBy = instanceOwnerId.ToString(),
+                    CreatedDateTime = DateTime.UtcNow,
+                    LastChangedBy = instanceOwnerId.ToString(),
+                    LastChangedDateTime = DateTime.UtcNow,
+                    FileSize = filesize
+                };
+
+                if (instance.Data == null)
+                {
+                    instance.Data = new List<DataElement>();
+                }
+
+                instance.Data.Add(data);
+
+                string instanceDataAsString = JsonConvert.SerializeObject(instance);
+
+                File.WriteAllText(instanceFilePath, instanceDataAsString);
+                return data;
             }
         }
     }

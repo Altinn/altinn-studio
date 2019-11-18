@@ -119,7 +119,6 @@ namespace AltinnCore.Runtime
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
             services.AddSingleton<IArchive, ArchiveStudioSI>();
-            services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
@@ -129,6 +128,7 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton<IPrefill, PrefillSI>();
+            services.AddSingleton<IPDF, PDFSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddResponseCompression();
@@ -137,7 +137,7 @@ namespace AltinnCore.Runtime
                     IHttpContextAccessor httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
                     IConfigurationSection serviceRepSettings = Configuration.GetSection("ServiceRepositorySettings");
                     string uriString = serviceRepSettings["ApiEndPoint"];
-                    Uri uri = new Uri(uriString + "/");
+                    Uri uri = new Uri(uriString);
                     httpClient.BaseAddress = uri;
                     httpClient.DefaultRequestHeaders.Add(
                         General.AuthorizationTokenHeaderName,
@@ -217,8 +217,6 @@ namespace AltinnCore.Runtime
 
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new InstanceAccessRequirement(ActionType.Read)));
-                options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new InstanceAccessRequirement(ActionType.Write)));
                 options.AddPolicy("ServiceRead", policy => policy.Requirements.Add(new ServiceAccessRequirement(ActionType.Read)));
             });
 
