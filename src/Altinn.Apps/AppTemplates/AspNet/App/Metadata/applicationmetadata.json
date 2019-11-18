@@ -13,6 +13,7 @@
         "SchemaRef": "models/default/bestilling.xsd",
         "ClassRef": "Altinn.Apps.Models.Bestilling"
       },
+      "taskId":  "Task_1",
       "minCount": 1,
       "maxCount": 1
     },
