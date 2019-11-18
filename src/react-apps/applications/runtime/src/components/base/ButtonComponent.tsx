@@ -2,7 +2,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { makeGetValidationsSelector } from '../../selectors/getValidations';
 import { IValidations } from '../../types/global';
-import { canFormBeSaved, getErrorCount } from '../../utils/validation';
 import FormDataActions from './../../features/form/data/actions/index';
 import { IAltinnWindow, IRuntimeState } from './../../types';
 export interface IButtonProvidedProps {
@@ -22,13 +21,11 @@ export interface IButtonState { }
 
 export class ButtonComponentClass extends React.Component<IButtonProps, IButtonState> {
   public renderSubmitButton = () => {
-    const disabled = (getErrorCount(this.props.validations) > 0) || this.props.unsavedChanges;
     return (
       <button
         type='submit'
-        className={disabled ? 'a-btn a-btn-success disabled' : 'a-btn a-btn-success'}
+        className={'a-btn a-btn-success'}
         onClick={this.submitForm}
-        disabled={disabled}
         id={this.props.id}
         style={{ marginBottom: '0' }}
       >
@@ -39,14 +36,11 @@ export class ButtonComponentClass extends React.Component<IButtonProps, IButtonS
 
   // TODO: Remove saveButton and functions (and sagas) when we have implemented automatic save.
   public renderSaveButton = () => {
-    const disabled = !this.props.unsavedChanges || !canFormBeSaved(this.props.validations);
     return (
       <button
         type='submit'
-        className={disabled ?
-          'a-btn a-btn-success disabled' : 'a-btn a-btn-success'}
+        className={'a-btn a-btn-success'}
         onClick={this.saveFormData}
-        disabled={disabled}
         id='saveBtn'
         style={{ marginBottom: '0' }}
       >
