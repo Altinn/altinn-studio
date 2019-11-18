@@ -16,7 +16,7 @@ export interface IDataLinks {
 
 export interface IData {
   id: string;
-  elementType: string;
+  dataType: string;
   fileName: string;
   contentType: string;
   storageUrl: string;
@@ -37,7 +37,6 @@ export interface IInstance {
   instanceState: IInstanceState;
   data: IData[];
 }
-
 
 export interface IPerson {
   ssn: string;
@@ -99,13 +98,11 @@ export interface ITitle {
   nb: string;
 }
 
-
 export interface IAttachment {
   name: string;
   iconClass: string;
   url: string;
 }
-
 
 export interface IData {
   id: string;

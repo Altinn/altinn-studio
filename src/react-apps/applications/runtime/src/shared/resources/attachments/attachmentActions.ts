@@ -3,7 +3,7 @@ import { IAttachment, IAttachments } from '.';
 import { store } from '../../../store';
 
 import * as deleteActions from './delete/deleteAttachmentActions';
-import * as fetchActions from './fetch/fetchAttachmentsActions';
+import * as mapActions from './map/mapAttachmentsActions';
 import * as uploadActions from './upload/uploadAttachmentActions';
 
 export interface IAttachmentActions extends ActionCreatorsMapObject {
@@ -39,9 +39,9 @@ export interface IAttachmentActions extends ActionCreatorsMapObject {
     attachmentType: string,
     componentId: string,
   ) => deleteActions.IDeleteAttachmentActionRejected;
-  fetchAttachments: () => Action;
-  fetchAttachmentsFulfilled: (attachments: IAttachments) => fetchActions.IFetchAttachmentsActionFulfilled;
-  fetchAttachmentsRejected: (error: Error) => fetchActions.IFetchAttachmentsActionRejected;
+  mapAttachments: () => Action;
+  mapAttachmentsFulfilled: (attachments: IAttachments) => mapActions.IMapAttachmentsActionFulfilled;
+  mapAttachmentsRejected: (error: Error) => mapActions.IMapAttachmentsActionRejected;
 }
 
 const actions: IAttachmentActions = {
@@ -51,9 +51,9 @@ const actions: IAttachmentActions = {
   deleteAttachment: deleteActions.deleteAttachment,
   deleteAttachmentFulfilled: deleteActions.deleteAttachmentFulfilled,
   deleteAttachmentRejected: deleteActions.deleteAttachmentRejected,
-  fetchAttachments: fetchActions.fetchAttachments,
-  fetchAttachmentsFulfilled: fetchActions.fetchAttachmentsFulfilled,
-  fetchAttachmentsRejected: fetchActions.fetchAttachmentsRejected,
+  mapAttachments: mapActions.mapAttachments,
+  mapAttachmentsFulfilled: mapActions.mapAttachmentsFulfilled,
+  mapAttachmentsRejected: mapActions.mapAttachmentsRejected,
 };
 
 const AttachmentDispatcher: IAttachmentActions = bindActionCreators<any, any>(actions, store.dispatch);

@@ -32,7 +32,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
 
   mockId = 'mock-id';
   mockFormData = { address: 'adresse 1' };
-  mockHandleDataChange = (data: any) => null;
+  mockHandleDataChange = (data: any) => '';
   mockGetTextResource = (resourceKey: string) => 'test';
   mockIsValid = true;
   mockSimplified = true;
@@ -312,26 +312,6 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
     });
     const result = instance.joinValidationMessages();
     expect(result).toEqual(mockResult);
-  });
-
-  it('+++ It should *not* show a component title if title is not set', () => {
-    const mountedAddressComponent = mount(
-      <AddressComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        getTextResource={mockGetTextResource}
-        isValid={mockIsValid}
-        simplified={mockSimplified}
-        dataModelBindings={mockDataBinding}
-        validationMessages={mockValidationMessages}
-        readOnly={mockReadOnly}
-        required={mockRequired}
-        language={mockLanguage}
-        textResourceBindings={mocktextResourceBindings}
-      />,
-    );
-    expect(mountedAddressComponent.find('h4').length).toBe(0);
   });
 
 });

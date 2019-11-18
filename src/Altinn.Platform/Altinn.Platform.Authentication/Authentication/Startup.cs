@@ -62,9 +62,10 @@ namespace Altinn.Platform.Authentication
             services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
                 .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
                     {
+                        var generalSettings = Configuration.GetSection("GeneralSettings").Get<GeneralSettings>();
                         options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
                         options.Cookie.Name = "AltinnStudioRuntime";
-                        options.Cookie.Domain = "at21.altinn.cloud";
+                        options.Cookie.Domain = generalSettings.HostName;
                         options.TokenValidationParameters = new TokenValidationParameters
                         {
                             ValidateIssuerSigningKey = true,

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using Altinn.Platform.Storage.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Factories.ModelFactory;
@@ -131,22 +131,30 @@ namespace AltinnCore.Common.Services.Implementation
                 VersionId = null,
                 Org = org,
 
-                CreatedDateTime = DateTime.UtcNow,
+                Created = DateTime.UtcNow,
                 CreatedBy = developer,
-                LastChangedDateTime = DateTime.UtcNow,
+                LastChanged = DateTime.UtcNow,
                 LastChangedBy = developer
             };
 
             appMetadata.Title = new Dictionary<string, string>();
             appMetadata.Title.Add("nb", appTitle ?? app);
 
-            appMetadata.ElementTypes = new List<Altinn.Platform.Storage.Models.ElementType>();
-            appMetadata.ElementTypes.Add(new Altinn.Platform.Storage.Models.ElementType
+            appMetadata.DataTypes = new List<DataType>();
+            appMetadata.DataTypes.Add(new DataType
             {
                 Id = "default",
-                AllowedContentType = new List<string>() { "application/xml" },
-                AppLogic = true,
-                Task = "FormFilling_1",
+                AllowedContentTypes = new List<string>() { "application/xml" },
+                AppLogic = new ApplicationLogic() { },
+                TaskId = "FormFilling_1",
+            });
+            appMetadata.DataTypes.Add(new DataType
+            {
+                Id = "ref-data-as-pdf",
+                AllowedContentTypes = new List<string>() { "application/pdf" },
+                TaskId = "FormFilling_1",
+                MaxCount = 1,
+                MinCount = 1,
             });
             appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
             string metaDataDir = _settings.GetMetadataPath(
@@ -214,9 +222,9 @@ namespace AltinnCore.Common.Services.Implementation
         {
             try
             {
-                Altinn.Platform.Storage.Models.ElementType formMetadata = JsonConvert.DeserializeObject<Altinn.Platform.Storage.Models.ElementType>(applicationMetadata);
+                DataType formMetadata = JsonConvert.DeserializeObject<DataType>(applicationMetadata);
                 Application existingApplicationMetadata = GetApplication(org, app);
-                existingApplicationMetadata.ElementTypes.Add(formMetadata);
+                existingApplicationMetadata.DataTypes.Add(formMetadata);
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
                 string filePath = _settings.GetMetadataPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ApplicationMetadataFileName;
@@ -240,15 +248,15 @@ namespace AltinnCore.Common.Services.Implementation
                 string attachmentId = attachmentMetadata.GetValue("id").Value;
                 string fileTypes = attachmentMetadata.GetValue("fileType") == null ? "all" : attachmentMetadata.GetValue("fileType").Value;
                 string[] fileType = fileTypes.Split(",");
-                Altinn.Platform.Storage.Models.ElementType applicationForm = new Altinn.Platform.Storage.Models.ElementType();
-                if (applicationForm.AllowedContentType == null)
+                DataType applicationForm = new DataType();
+                if (applicationForm.AllowedContentTypes == null)
                 {
-                    applicationForm.AllowedContentType = new List<string>();
+                    applicationForm.AllowedContentTypes = new List<string>();
                 }
 
                 foreach (string type in fileType)
                 {
-                    applicationForm.AllowedContentType.Add(MimeTypeMap.GetMimeType(type));
+                    applicationForm.AllowedContentTypes.Add(MimeTypeMap.GetMimeType(type));
                 }
 
                 applicationForm.Id = attachmentMetadata.GetValue("id").Value;
@@ -274,10 +282,10 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 Application existingApplicationMetadata = GetApplication(org, app);
 
-                if (existingApplicationMetadata.ElementTypes != null)
+                if (existingApplicationMetadata.DataTypes != null)
                 {
-                    Altinn.Platform.Storage.Models.ElementType removeForm = existingApplicationMetadata.ElementTypes.Find(m => m.Id == id);
-                    existingApplicationMetadata.ElementTypes.Remove(removeForm);
+                    DataType removeForm = existingApplicationMetadata.DataTypes.Find(m => m.Id == id);
+                    existingApplicationMetadata.DataTypes.Remove(removeForm);
                 }
 
                 string metadataAsJson = JsonConvert.SerializeObject(existingApplicationMetadata);
@@ -835,7 +843,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="serviceMetadata">The serviceMetadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current app</param>
         /// <returns>A value indicating if everything went ok</returns>
-        public bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd)
+        public bool CreateModel(string org, string app, ServiceMetadata serviceMetadata, XDocument mainXsd, string fileName)
         {
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
 
@@ -860,7 +868,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Create the .cs file for the model
             try
             {
-                string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
+                string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName + ".cs";
                 new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, classes, Encoding.UTF8);
             }
@@ -876,7 +884,7 @@ namespace AltinnCore.Common.Services.Implementation
                 // Create the .xsd file for the model
                 try
                 {
-                    string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
+                    string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName + ".xsd";
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
                 }
@@ -885,7 +893,7 @@ namespace AltinnCore.Common.Services.Implementation
                     return false;
                 }
 
-                // Create the json schema file for the model
+                // Create the schema.json schema file for the model
                 try
                 {
                     XsdToJsonSchema xsdToJsonSchemaConverter;
@@ -896,7 +904,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                     JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-                    string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
+                    string filePath = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName + ".schema.json";
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
                 }
@@ -927,7 +935,32 @@ namespace AltinnCore.Common.Services.Implementation
                 instansiationHandlerPath,
                 File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
+            UpdateApplicationMetadata(org, app, fileName);
+
             return true;
+        }
+
+        private bool UpdateApplicationMetadata(string org, string app, string fileName)
+        {
+            /*string filePath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "App/Metadata/applicationmetadata.json";
+            string fileContent = File.ReadAllText(filePath);
+            Application appMetadata = JsonConvert.DeserializeObject<Application>(fileContent);
+
+            // Get the element that contains the name of the data model
+            List<Altinn.Platform.Storage.Models.ElementType> elementTypes = appMetadata.ElementTypes;
+            Altinn.Platform.Storage.Models.ElementType elementType = elementTypes.FirstOrDefault(e => e.AppLogic == true);
+
+            if (elementType != null)
+            {
+                // Update the id to be the file name of the data model
+                elementType.Id = fileName;
+                string metadata = JsonConvert.SerializeObject(appMetadata);
+                File.WriteAllText(filePath, metadata, Encoding.UTF8);
+
+                return true;
+            }*/
+
+            return false;
         }
 
         /// <summary>
@@ -938,7 +971,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Service model content.</returns>
         public string GetServiceModel(string org, string app)
         {
-            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
+            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName; 
             string filedata = null;
 
             if (File.Exists(filename))

@@ -3,7 +3,7 @@ import { Action, Reducer } from 'redux';
 import { IAttachments } from '.';
 import * as AttachmentActionsTypes from './attachmentActionTypes';
 import * as deleteActions from './delete/deleteAttachmentActions';
-import * as fetchActions from './fetch/fetchAttachmentsActions';
+import * as mapActions from './map/mapAttachmentsActions';
 import * as uploadActions from './upload/uploadAttachmentActions';
 
 export interface IAttachmentState {
@@ -97,8 +97,8 @@ const attachmentReducer: Reducer<IAttachmentState> = (
       });
     }
 
-    case (AttachmentActionsTypes.FETCH_ATTACHMENTS_FULFILLED): {
-      const { attachments } = action as fetchActions.IFetchAttachmentsActionFulfilled;
+    case (AttachmentActionsTypes.MAP_ATTACHMENTS_FULFILLED): {
+      const { attachments } = action as mapActions.IMapAttachmentsActionFulfilled;
       return update<IAttachmentState>(state, {
         attachments: {
           $set: attachments,

@@ -2,15 +2,14 @@ import * as React from 'react';
 import DropZone from 'react-dropzone';
 import { connect } from 'react-redux';
 import uuid = require('uuid');
-import altinnTheme from '../../../../shared/src/theme/altinnAppTheme';
-import { getLanguageFromKey } from '../../../../shared/src/utils/language';
-import { IAttachment } from '../../shared/resources/attachments';
-import AttachmentDispatcher from '../../shared/resources/attachments/attachmentActions';
-import '../../styles/FileUploadComponent.css';
-import { renderValidationMessagesForComponent } from '../../utils/render';
-
-import { IRuntimeState } from '../../types';
-import { IComponentValidations } from '../../types/global';
+import altinnTheme from './../../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from './../../../../shared/src/utils/language';
+import { IAttachment } from './../../shared/resources/attachments';
+import AttachmentDispatcher from './../../shared/resources/attachments/attachmentActions';
+import './../../styles/FileUploadComponent.css';
+import { IRuntimeState } from './../../types';
+import { IComponentValidations } from './../../types/global';
+import { renderValidationMessagesForComponent } from './../../utils/render';
 
 export interface IFileUploadProvidedProps {
   displayMode: string;
@@ -362,13 +361,6 @@ export class FileUploadComponentClass
   }
 }
 
-const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps): IFileUploadProps => {
-  return {
-    ...props,
-    attachments: state.attachments.attachments[props.id] || [],
-  };
-};
-
 export function getFileUploadComponentValidations(validationError: string, language: any): IComponentValidations {
   const componentValidations: any = {
     ['simpleBinding']: {
@@ -387,5 +379,12 @@ export function getFileUploadComponentValidations(validationError: string, langu
   }
   return componentValidations;
 }
+
+const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps): IFileUploadProps => {
+  return {
+    ...props,
+    attachments: state.attachments.attachments[props.id] || [],
+  };
+};
 
 export const FileUploadComponent = connect(mapStateToProps)(FileUploadComponentClass);

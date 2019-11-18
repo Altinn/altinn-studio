@@ -28,7 +28,7 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             XDocument xmlDocument = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
-            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>()))
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>(), It.IsAny<string>()))
                 .Returns(true)
                 .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
                 {
@@ -68,7 +68,7 @@ namespace AltinnCore.UnitTest.Designer.Controllers
             moqRepository.Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(existingDictionary);
 
-            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>()))
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>(), It.IsAny<string>()))
                 .Returns(true)
                 .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
                 {

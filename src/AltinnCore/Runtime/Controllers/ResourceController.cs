@@ -68,7 +68,7 @@ namespace AltinnCore.Runtime.Controllers
         public IActionResult TextResources(string org, string app)
         {
             string defaultLang = "nb";
-            string culture = CultureInfo.CurrentUICulture.Name;
+            string culture = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
             string id = $"resource.{culture}.json";
             byte[] fileContent = _execution.GetServiceResource(org, app, id);
             if (fileContent != null)

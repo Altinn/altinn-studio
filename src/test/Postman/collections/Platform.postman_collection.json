@@ -1125,6 +1125,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "d7b24a19-9093-462e-9b6f-a6fd1d7df287",
+										"exec": [
+											"pm.environment.set(\"instanceId\",\"\");"
+										],
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
@@ -1436,6 +1446,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "864b3eba-7a74-4650-9406-35b0797e1b4a",
+										"exec": [
+											"pm.environment.set(\"dataId\",\"\");"
+										],
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
@@ -1673,6 +1693,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "74e5cd5e-6bcf-41be-98dd-6c142716bcdf",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
@@ -1835,6 +1865,16 @@
 											"        pm.environment.set('EventId', jsonData.id);",
 											"    }",
 											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "86d4fdf9-388d-4841-bbeb-3ad6cecf94a1",
+										"exec": [
+											"pm.environment.set(\"EventId\",\"\");"
 										],
 										"type": "text/javascript"
 									}
@@ -2178,6 +2218,16 @@
 										],
 										"type": "text/javascript"
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "e1f629f2-d9d1-4cc5-9698-9c83bf385f43",
+										"exec": [
+											"pm.environment.set(\"instanceId\",\"\");"
+										],
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
@@ -2239,6 +2289,16 @@
 											"    instanceId = instanceId[1];\r",
 											"    pm.environment.set('FutureDateinstanceId',instanceId);\r",
 											"}"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "4ead76e4-8ea2-4551-81ed-2dc459e8f380",
+										"exec": [
+											"pm.environment.set(\"FutureDateinstanceId\",\"\");"
 										],
 										"type": "text/javascript"
 									}
