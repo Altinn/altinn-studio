@@ -79,7 +79,8 @@ namespace App.IntegrationTests.ApiTests
         /// Test case: Send request to get app
         /// Expected: Response with result deny returns status Forbidden
         /// </summary>
-   
+
+        [Fact]
         public async Task Data_Get_Forbidden()
         {
             string token = PrincipalUtil.GetToken(1);
@@ -93,21 +94,22 @@ namespace App.IntegrationTests.ApiTests
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
             string responseContent = response.Content.ReadAsStringAsync().Result;
 
-            // Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
         }
 
         /// <summary>
         /// Test case: Send request to get app
         /// Expected: Response with two result will return status Forbidden
         /// </summary>
-      
+
+        [Fact]
         public async Task Data_Get_Forbidden2()
         {
             string token = PrincipalUtil.GetToken(1);
 
-            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "multiple-results"); 
+            HttpClient client = SetupUtil.GetTestClient(_factory, "tdd", "no-access"); 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/multiple-results/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "/tdd/no-access/instances/1000/46133fb5-a9f2-45d4-90b1-f6d93ad40713/data/4b9b5802-861b-4ca3-b757-e6bd5f582bf9")
             {
             };
 
