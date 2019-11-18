@@ -172,7 +172,7 @@ test('Attachment dropdown and download on receipt page', async () => {
 test('Check that cookie for Altinn Party is set correctly', async () => {
 
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/test')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/formfilling#/test')
     .switchToIframe(runtime.testBrukerIframe)
     .expect(runtime.testUsers[0].exists).ok()
     .hover(runtime.testUsers[0])
