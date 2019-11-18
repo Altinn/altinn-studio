@@ -27,7 +27,7 @@ fixture('Deploy of app to a test environment tests')
       .resizeWindow(1536, 864)
   });
 
-  test.only('Happy case; build and deploy an app after a change', async () => {
+  test('Happy case; build and deploy an app after a change', async () => {
     await t
       .useRole(AutoTestUser)
       .navigateTo(app.baseUrl + 'designer/ttd/autotestdeploy#/uieditor')
