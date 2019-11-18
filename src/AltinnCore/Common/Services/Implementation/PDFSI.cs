@@ -1,15 +1,14 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Clients;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -25,7 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
         private HttpClient _storageClient;
 
         private IData _dataService;
-        private IRepository _repositoryService;
+        private IExecution _executionService;
         private IRegister _registerService;
         private JsonSerializer _camelCaseSerializer;
         private string pdfElementType = "ref-data-as-pdf";
@@ -37,15 +36,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="logger">The logger</param>
         /// <param name="httpClientAccessor">The http client accessor</param>
         /// <param name="dataService">The data service</param>
-        /// <param name="repositoryService">The repository service</param>
+        /// <param name="executionService">The excution service</param>
         /// <param name="registerService">The register service</param>
-        public PDFSI(ILogger<PrefillSI> logger, IHttpClientAccessor httpClientAccessor, IData dataService, IRepository repositoryService, IRegister registerService)
+        public PDFSI(ILogger<PrefillSI> logger, IHttpClientAccessor httpClientAccessor, IData dataService, IExecution executionService, IRegister registerService)
         {
             _logger = logger;
             _pdfClient = httpClientAccessor.PdfClient;
             _storageClient = httpClientAccessor.StorageClient;
             _dataService = dataService;
-            _repositoryService = repositoryService;
+            _executionService = executionService;
             _registerService = registerService;
             _camelCaseSerializer = JsonSerializer.Create(
                 new JsonSerializerSettings
@@ -62,16 +61,23 @@ namespace AltinnCore.Common.Services.Implementation
             int instanceOwnerId = int.Parse(instance.InstanceOwnerId);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
             Guid defaultDataElementGuid = Guid.Parse(instance.Data.Find(element => element.ElementType.Equals("default"))?.Id);
+
             Stream dataStream = await _dataService.GetBinaryData(org, app, instanceOwnerId, instanceGuid, defaultDataElementGuid);
             byte[] dataAsBytes = new byte[dataStream.Length];
             dataStream.Read(dataAsBytes);
             string encodedXml = System.Convert.ToBase64String(dataAsBytes);
 
+            byte[] formLayout = _executionService.GetServiceResource(org, app, "FormLayout.json");
+            byte[] textResources = _executionService.GetServiceResource(org, app, "resource.nb-NO.json");
+
+            string formLayoutString = GetUTF8String(formLayout);
+            string textResourcesString = GetUTF8String(textResources);
+
             PDFContext pdfContext = new PDFContext
             {
                 Data = encodedXml,
-                FormLayout = JObject.Parse(_repositoryService.GetJsonFormLayout(org, app)),
-                TextResources = _repositoryService.GetServiceTexts(org, app),
+                FormLayout = JsonConvert.DeserializeObject(formLayoutString),
+                TextResources = JsonConvert.DeserializeObject(textResourcesString),
                 Party = await _registerService.GetParty(instanceOwnerId),
                 UserParty = userContext.Party,
                 Instance = instance
@@ -126,6 +132,25 @@ namespace AltinnCore.Common.Services.Implementation
                     pdfElementType,
                     pdfFileName,
                     content);
+            }
+        }
+
+        private static string GetUTF8String(byte[] data)
+        {
+            if (data == null || !data.Any())
+            {
+                return null;
+            }
+
+            byte[] utf8Preamble = Encoding.UTF8.GetPreamble();
+            bool hasPreamble = utf8Preamble[0] == data[0];
+            if (hasPreamble)
+            {
+                return Encoding.UTF8.GetString(data, utf8Preamble.Length, data.Length - utf8Preamble.Length);
+            }
+            else
+            {
+                return Encoding.UTF8.GetString(data);
             }
         }
     }
