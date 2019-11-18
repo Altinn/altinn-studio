@@ -108,7 +108,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// constant for the location of authorization policies
         /// </summary>
-        public const string AUTHORIZATION_FOLDER_NAME = "Authorization/";
+        public const string AUTHORIZATION_FOLDER_NAME = "App/config/authorization/";
 
         /// <summary>
         /// Constant for the location of service metadata file
