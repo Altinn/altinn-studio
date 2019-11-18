@@ -155,6 +155,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="instanceOwnerId">unique id of the party that is the owner of the instance</param>
         /// <param name="instanceGuid">unique id to identify the instance</param>
         /// <returns>list of next process element identifiers (tasks or events)</returns>
+        [Authorize(Policy = "InstanceRead")]
         [HttpGet("next")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
