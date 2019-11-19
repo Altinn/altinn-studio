@@ -123,7 +123,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
-            using (StreamContent content = CreateDataStream(pdfStream))
+            using (StreamContent content = CreateStreamContent(pdfStream))
             {
                 return await _dataService.InsertBinaryData(
                     instance.Org,
@@ -155,7 +155,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        private StreamContent CreateDataStream(Stream stream)
+        private StreamContent CreateStreamContent(Stream stream)
         {
             StreamContent streamContent = new StreamContent(stream);
             streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
