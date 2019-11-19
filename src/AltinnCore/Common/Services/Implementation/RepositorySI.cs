@@ -156,7 +156,7 @@ namespace AltinnCore.Common.Services.Implementation
                 MaxCount = 1,
                 MinCount = 1,
             });
-            appMetadata.PartyTypesAllowed = new PartyTypesAllowed();            
+            appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
 
             string metadata = JsonConvert.SerializeObject(appMetadata);
             string filePath = _settings.GetAppMetadataFilePath(org, app, developer);
@@ -924,32 +924,37 @@ namespace AltinnCore.Common.Services.Implementation
                 instansiationHandlerPath,
                 File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
-            UpdateApplicationMetadata(org, app, fileName);
+            UpdateApplicationWithAppLogicModel(org, app, fileName, "Altinn.App.Models." + newRoot);
 
             return true;
         }
 
-        private bool UpdateApplicationMetadata(string org, string app, string fileName)
+        /// <summary>
+        ///  This logic is limited to having one datamodel per app. Needs to be updated for expaned functionality
+        /// </summary>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
+        /// <param name="dataTypeId">The dataTypeId for the new app logic datamodel</param>
+        /// <param name="classRef">The class ref</param>
+        /// <returns></returns>
+        private bool UpdateApplicationWithAppLogicModel(string org, string app, string dataTypeId, string classRef)
         {
-            /*string filePath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "App/Metadata/applicationmetadata.json";
-            string fileContent = File.ReadAllText(filePath);
-            Application appMetadata = JsonConvert.DeserializeObject<Application>(fileContent);
-
-            // Get the element that contains the name of the data model
-            List<Altinn.Platform.Storage.Models.ElementType> elementTypes = appMetadata.ElementTypes;
-            Altinn.Platform.Storage.Models.ElementType elementType = elementTypes.FirstOrDefault(e => e.AppLogic == true);
-
-            if (elementType != null)
+            Application application = GetApplication(org, app);
+            if (application.DataTypes == null)
             {
-                // Update the id to be the file name of the data model
-                elementType.Id = fileName;
-                string metadata = JsonConvert.SerializeObject(appMetadata);
-                File.WriteAllText(filePath, metadata, Encoding.UTF8);
+                application.DataTypes = new List<DataType>();
+            }
 
-                return true;
-            }*/
+            DataType logicElement = application.DataTypes.Single(d => d.AppLogic != null);
 
-            return false;
+            logicElement.Id = dataTypeId;
+            logicElement.AppLogic = new ApplicationLogic();
+            logicElement.AppLogic.AutoCreate = true;
+            logicElement.AppLogic.ClassRef = classRef;
+
+            UpdateApplication(org, app, application);
+
+            return true;
         }
 
         /// <summary>
@@ -960,7 +965,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Service model content.</returns>
         public string GetServiceModel(string org, string app)
         {
-            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName; 
+            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
             string filedata = null;
 
             if (File.Exists(filename))
@@ -1861,7 +1866,7 @@ namespace AltinnCore.Common.Services.Implementation
         private void CopyFileToApp(string org, string app, string fileName)
         {
             string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Copy(_generalSettings.DefaultAppSnlFile, appPath + fileName);
+            File.Copy($"{_generalSettings.TemplatePath}/{fileName}", appPath + fileName);
         }
 
         /// <summary>

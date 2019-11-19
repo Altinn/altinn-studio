@@ -66,7 +66,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (_assemblyNames.ContainsKey(assemblykey))
             {
-                implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(app)) + ".ServiceImplementation," + _assemblyNames[assemblykey];
+                implementationTypeName = string.Format(CodeGeneration.AppNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(app)) + ".ServiceImplementation," + _assemblyNames[assemblykey];
 
                 type = Type.GetType(implementationTypeName);
 
@@ -76,7 +76,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(app)) + ".ServiceImplementation";
+            implementationTypeName = string.Format(CodeGeneration.AppNamespaceTemplate, org, CompileHelper.GetCSharpValidAppId(app)) + ".ServiceImplementation";
 
             Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(_settings.BaseResourceFolderContainer + _settings.GetBinaryFolder() + "AltinnService.dll");
 
