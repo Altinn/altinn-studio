@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
@@ -28,7 +29,7 @@ namespace AltinnCore.Common.Services.Implementation
         private IRegister _registerService;
         private JsonSerializer _camelCaseSerializer;
         private string pdfElementType = "ref-data-as-pdf";
-        private string pdfFileName = "receipt.pdf";
+        private string pdfFileName = "kvittering.pdf";
 
         /// <summary>
         /// Creates a new instance of the <see cref="PDFSI"/> class
@@ -122,7 +123,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<DataElement> StorePDF(Stream pdfStream, Instance instance)
         {
-            using (StreamContent content = new StreamContent(pdfStream))
+            using (StreamContent content = CreateStreamContent(pdfStream))
             {
                 return await _dataService.InsertBinaryData(
                     instance.Org,
@@ -152,6 +153,16 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 return Encoding.UTF8.GetString(data);
             }
+        }
+
+        private StreamContent CreateStreamContent(Stream stream)
+        {
+            StreamContent streamContent = new StreamContent(stream);
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+            streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data");
+            streamContent.Headers.ContentDisposition.FileName = pdfFileName;
+            streamContent.Headers.ContentDisposition.Size = stream.Length;
+            return streamContent;
         }
     }
 }
