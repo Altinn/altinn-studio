@@ -97,13 +97,13 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the path to the app.snl file.
+        /// Gets the path to the app templates
         /// </summary>
-        public string DefaultAppSnlFile
+        public string TemplatePath
         {
             get
             {
-                return TemplateLocation + "/App.sln";
+               return TemplateLocation;
             }
         }
 

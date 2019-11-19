@@ -156,7 +156,7 @@ namespace AltinnCore.Common.Services.Implementation
                 MaxCount = 1,
                 MinCount = 1,
             });
-            appMetadata.PartyTypesAllowed = new PartyTypesAllowed();            
+            appMetadata.PartyTypesAllowed = new PartyTypesAllowed();
 
             string metadata = JsonConvert.SerializeObject(appMetadata);
             string filePath = _settings.GetAppMetadataFilePath(org, app, developer);
@@ -965,7 +965,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Service model content.</returns>
         public string GetServiceModel(string org, string app)
         {
-            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName; 
+            string filename = _settings.GetModelPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
             string filedata = null;
 
             if (File.Exists(filename))
@@ -1866,8 +1866,7 @@ namespace AltinnCore.Common.Services.Implementation
         private void CopyFileToApp(string org, string app, string fileName)
         {
             string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Copy(_generalSettings.DefaultAppSnlFile, appPath + fileName);
-            _logger.LogInformation(File.ReadAllText(appPath + fileName));
+            File.Copy($"{_generalSettings.TemplatePath}/{fileName}", appPath + fileName);
         }
 
         /// <summary>
