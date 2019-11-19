@@ -10,15 +10,15 @@ namespace Altinn.App.AppLogic
 {
     public class App : AppBase, IAltinnApp
     {
-
-        public Type GetAppModelType(string dataType)
+        public object CreateNewAppModel(string classRef)
         {
-            if ("default".Equals(dataType))
-            {
-                return typeof(Bestilling);
-            }
+           Type appType = Type.GetType(classRef);
+           return Activator.CreateInstance(appType);
+        }
 
-            throw new NotImplementedException();
+        public Type GetAppModelType(string classRef)
+        {
+            return Type.GetType(classRef);
         }
 
         public Task<bool> RunAppEvent(AppEventType appEvent, object model, ModelStateDictionary modelState)

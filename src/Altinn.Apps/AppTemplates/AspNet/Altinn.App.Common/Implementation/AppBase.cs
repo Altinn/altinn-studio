@@ -9,9 +9,15 @@ namespace Altinn.App.Common.Implementation
 {
     public class AppBase : IAltinnApp
     {
-        public object CreateNewAppModel(string dataType)
+        public object CreateNewAppModel(string classRef)
         {
-            throw new NotImplementedException();
+            Type appType = Type.GetType(classRef);
+            return Activator.CreateInstance(appType);
+        }
+
+        public Type GetAppModelType(string classRef)
+        {
+            return Type.GetType(classRef);
         }
 
         public Task OnEndProcess(string endEvent, Instance instance)
@@ -20,11 +26,6 @@ namespace Altinn.App.Common.Implementation
         }
 
         public Task OnEndProcessTask(string taskId, Instance instance)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Type GetAppModelType(string dataType)
         {
             throw new NotImplementedException();
         }

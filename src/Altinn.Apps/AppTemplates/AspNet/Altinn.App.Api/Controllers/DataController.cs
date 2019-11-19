@@ -295,13 +295,16 @@ namespace Altinn.App.Api.Controllers
             
             object appModel;
 
+        
+            string classRef = executionService.GetClassRefForLogicDataType(org, app, dataType);
+            
             if (Request.ContentType == null)
             {
-                appModel = altinnApp.CreateNewAppModel(dataType);;
+                appModel = altinnApp.CreateNewAppModel(classRef);
             }
             else
             {
-                appModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(dataType), out ActionResult contentError);
+                appModel = ParseContentAndDeserializeServiceModel(altinnApp.GetAppModelType(classRef), out ActionResult contentError);
                 if (contentError != null)
                 {
                     return contentError;
@@ -314,7 +317,7 @@ namespace Altinn.App.Api.Controllers
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
-            DataElement dataElement = await dataService.InsertFormData(appModel, instanceGuid, altinnApp.GetAppModelType(dataType), org, app, instanceOwnerPartyId, dataType);
+            DataElement dataElement = await dataService.InsertFormData(appModel, instanceGuid, altinnApp.GetAppModelType(classRef), org, app, instanceOwnerPartyId, dataType);
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
             return Created(dataElement.SelfLinks.Apps, dataElement);
@@ -449,10 +452,13 @@ namespace Altinn.App.Api.Controllers
         Guid dataGuid,
         string dataType)
         {
+
+            string appModelclassRef = executionService.GetClassRefForLogicDataType(org, app, dataType);
+
              // Get Form Data from data service. Assumes that the data element is form data.
             object appModel = dataService.GetFormData(
                 instanceGuid,
-                altinnApp.GetAppModelType(dataType),
+                altinnApp.GetAppModelType(appModelclassRef),
                 org,
                 app,
                 instanceOwnerId,

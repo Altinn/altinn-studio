@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Helpers;
@@ -168,6 +169,31 @@ namespace Altinn.App.Services.Implementation
             }
 
             return filedata;
+        }
+
+        public string GetClassRefForLogicDataType(string org, string app, string dataType)
+        {
+            Application application = GetApplication(org, app);
+            string classRef = string.Empty;
+
+            DataType element = application.DataTypes.Single(d => d.Id.Equals(dataType));
+
+            if (element != null)
+            {
+                classRef = element.AppLogic.ClassRef;
+            }
+            else
+            {
+                foreach (DataType dataTypeElement in application.DataTypes)
+                {
+                    if (dataTypeElement.AppLogic != null)
+                    {
+                        classRef = dataTypeElement.AppLogic.ClassRef;
+                    }
+                }
+            }
+
+            return classRef;
         }
     }
 }
