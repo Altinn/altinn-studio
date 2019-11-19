@@ -67,7 +67,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
-                .AppendLine("namespace " + string.Format(CodeGeneration.ServiceNamespaceTemplate, serviceMetadata.Org, CompileHelper.GetCSharpValidAppId(serviceMetadata.RepositoryName)))
+                .AppendLine("namespace " + string.Format(CodeGeneration.AppNamespaceTemplate + ".Models"))
                 .AppendLine("{")
                 ////Append all classes
                 .Append(string.Concat(classes.Values))
