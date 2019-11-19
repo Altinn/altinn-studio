@@ -45,6 +45,11 @@ public class LayoutUtils {
       height += textMargin;
     }
 
+    if (element.getType().equalsIgnoreCase("paragrah") || element.getType().equalsIgnoreCase("header")) {
+      // have no content, return height
+      return height;
+    }
+
     if (element.getType().equalsIgnoreCase("fileupload")) {
       List<String> lines = InstanceUtils.getAttachmentsByComponentId(element.getId(), instance);
       for (String line: lines) {

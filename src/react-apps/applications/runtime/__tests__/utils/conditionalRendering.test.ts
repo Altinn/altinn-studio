@@ -95,40 +95,39 @@ describe('>>> utils/conditionalRendering.ts', () => {
   });
 
   it('+++ should HIDE element when rule is set to HIDE and condition is TRUE', () => {
-    const result = runConditionalRenderingRules(mockHideRules, mockValidFormData, mockLayout);
-    expect(result[0].hidden).toBe(true);
+    const result = runConditionalRenderingRules(mockHideRules, mockValidFormData);
+    expect(result.findIndex((e) => e === 'layoutElement_2') >= 0).toBe(true);
   });
 
   it('+++ should SHOW element when rule is set to HIDE and condition is FALSE', () => {
-    const result = runConditionalRenderingRules(mockHideRules, mockInvalidFormData, mockLayout);
-    expect(result[0].hidden).toBe(false);
+    const result = runConditionalRenderingRules(mockHideRules, mockInvalidFormData);
+    expect(result.findIndex((e) => e === 'layoutElement_2') >= 0).toBe(false);
   });
 
   it('+++ should SHOW element when rule is set to SHOW and condition is TRUE', () => {
-    const result = runConditionalRenderingRules(mockShowRules, mockValidFormData, mockLayout);
-    expect(result[0].hidden).toBe(false);
+    const result = runConditionalRenderingRules(mockShowRules, mockValidFormData);
+    expect(result.findIndex((e) => e === 'layoutElement_1') >= 0).toBe(false);
   });
 
   it('+++ should HIDE element when rule is set to SHOW and condition is FALSE', () => {
-    const result = runConditionalRenderingRules(mockShowRules, mockInvalidFormData, mockLayout);
-    expect(result[0].hidden).toBe(true);
+    const result = runConditionalRenderingRules(mockShowRules, mockInvalidFormData);
+    expect(result.findIndex((e) => e === 'layoutElement_1') >= 0).toBe(true);
   });
 
-  it('+++ conditional rendering rules should only be applied to connected elements', () => {
-    const result = runConditionalRenderingRules(mockShowRules, mockValidFormData, mockLayout);
-    expect(result.length).toBe(1);
-    expect(result[0].id).toBe('layoutElement_1');
+  it('+++ conditional rendering rules should only return elements to hide', () => {
+    const result = runConditionalRenderingRules(mockShowRules, mockValidFormData);
+    expect(result.length).toBe(0);
   });
 
   it('+++ conditional rendering rules with several targets should be applied to all connected elements', () => {
-    const result = runConditionalRenderingRules(mockHideRules, mockValidFormData, mockLayout);
+    const result = runConditionalRenderingRules(mockHideRules, mockValidFormData);
     expect(result.length).toBe(2);
-    expect(result[0].id).toBe('layoutElement_2');
-    expect(result[1].id).toBe('layoutElement_3');
+    expect(result[0]).toBe('layoutElement_2');
+    expect(result[1]).toBe('layoutElement_3');
   });
 
   it('+++ should run and return empty result array on null values', () => {
-    const result = runConditionalRenderingRules(null, null, null);
+    const result = runConditionalRenderingRules(null, null);
     expect(result.length).toBe(0);
   });
 
