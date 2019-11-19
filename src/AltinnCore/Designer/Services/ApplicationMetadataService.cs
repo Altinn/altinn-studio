@@ -92,9 +92,9 @@ namespace AltinnCore.Designer.Services
 
         private string GetApplicationMetadataFilePath()
         {
-            const string metadataFolderName = ServiceRepositorySettings.METADATA_FOLDER_NAME;
+            const string configFolderPath = ServiceRepositorySettings.CONFIG_FOLDER_PATH;
             string applicationMetadataFileName = _serviceRepositorySettings.ApplicationMetadataFileName;
-            return $"{_fullCommitSha}/{metadataFolderName}{applicationMetadataFileName}";
+            return $"{_fullCommitSha}/{configFolderPath}{applicationMetadataFileName}";
         }
 
         private async Task<Application> GetApplicationMetadataFromStorage()

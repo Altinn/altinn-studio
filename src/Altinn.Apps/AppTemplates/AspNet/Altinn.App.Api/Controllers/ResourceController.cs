@@ -69,7 +69,7 @@ namespace Altinn.App.Api.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The text resource file content or 404</returns>
-        [Route("{org}/{app}/api/textresources/{id}")]
+        [Route("{org}/{app}/api/textresources")]
         public IActionResult TextResources(string org, string app)
         {
             string defaultLang = "nb";

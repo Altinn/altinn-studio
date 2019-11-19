@@ -96,7 +96,7 @@ namespace Altinn.App.Services.Configuration
         /// <summary>
         /// The app configuration baseUrl where files are stored in the container
         /// </summary>
-        public string ConfigurationFolder { get; set; } = "configuration/";
+        public string ConfigurationFolder { get; set; } = "config/";
 
         /// <summary>
         /// The ui configuration baseUrl where files are stored in the container
