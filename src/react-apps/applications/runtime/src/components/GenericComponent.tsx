@@ -11,7 +11,7 @@ import { IDataModelBindings, ILayoutComponent, ILayoutEntry, ITextResourceBindin
 import RuleActions from '../features/form/rules/actions';
 import ValidationActions from '../features/form/validation/actions';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
-import { makeGetLayoutElement } from '../selectors/getLayoutData';
+import { makeGetHidden, makeGetLayoutElement } from '../selectors/getLayoutData';
 import { IAltinnWindow, IRuntimeState } from '../types';
 import { IDataModelFieldElement, ITextResource } from '../types/global';
 import { IComponentValidations } from '../types/global';
@@ -27,6 +27,7 @@ export const GenericComponent = (props: IGenericComponentProps) => {
 
   const GetFormDataSelector = makeGetFormDataSelector();
   const GetLayoutElementSelector = makeGetLayoutElement();
+  const GetHiddenSelector = makeGetHidden();
 
   const dataModel: IDataModelFieldElement[] = useSelector((state: IRuntimeState) => state.formDataModel.dataModel);
   const formData: IFormData = useSelector((state: IRuntimeState) => GetFormDataSelector(state, props));
@@ -35,6 +36,7 @@ export const GenericComponent = (props: IGenericComponentProps) => {
   const language: ILanguageState = useSelector((state: IRuntimeState) => state.language.language);
   const layoutElement: ILayoutEntry = useSelector((state: IRuntimeState) => GetLayoutElementSelector(state, props));
   const textResources: ITextResource[] = useSelector((state: IRuntimeState) => state.textResources.resources);
+  const hidden: boolean = useSelector((state: IRuntimeState) => GetHiddenSelector(state, props));
 
   const handleDataUpdate = (value: any, key: string = 'simpleBinding') => {
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
@@ -85,7 +87,7 @@ export const GenericComponent = (props: IGenericComponentProps) => {
 
   };
 
-  if (layoutElement.hidden) {
+  if (hidden) {
     return null;
   }
 

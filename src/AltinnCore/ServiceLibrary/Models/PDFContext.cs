@@ -23,13 +23,13 @@ namespace AltinnCore.ServiceLibrary.Models
         /// Gets or sets the form layout
         /// </summary>
         [JsonProperty(PropertyName = "formLayout")]
-        public JObject FormLayout {get; set;}
+        public object FormLayout {get; set;}
 
         /// <summary>
         /// Gets or sets the text resources
         /// </summary>
         [JsonProperty(PropertyName = "textResources")]
-        public IDictionary TextResources {get; set;}
+        public object TextResources {get; set;}
 
         /// <summary>
         /// Gets or sets the data, note that this should be base64 encoded

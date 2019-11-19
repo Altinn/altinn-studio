@@ -13,4 +13,10 @@ export const FETCH_ATTACHMENTS: string = `${moduleName}.FETCH_ATTACHMENTS`;
 export const FETCH_ATTACHMENTS_FULFILLED: string = `${moduleName}.FETCH_ATTACHMENTS_FULFILLED`;
 export const FETCH_ATTACHMENTS_REJECTED: string = `${moduleName}.FETCH_ATTACHMENTS_REJECTED`;
 
+export const UPDATE_FOCUS: string = `${moduleName}.UPDATE_FOCUS`;
+export const UPDATE_FOCUS_FULFUILLED: string = `${moduleName}.UPDATE_FOCUS_FULFILLED`;
+export const UPDATE_FOCUS_REJECTED: string = `${moduleName}.UPDATE_FOCUS_REJECTED`;
+
+export const UPDATE_HIDDEN_COMPONENTS: string = `${moduleName}.UPDATE_HIDDEN_COMPONENTS`;
+
 export const UPDATE_FORM_LAYOUT: string = `${moduleName}.UPDATE_FORM_LAYOUT`;
