@@ -7,7 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Config\UI\Dynamics\" />
+    <Compile Remove="Config\UI\**" />
+    <Content Remove="Config\UI\**" />
+    <EmbeddedResource Remove="Config\UI\**" />
+    <None Remove="Config\UI\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\script\" />
   </ItemGroup>
@@ -22,6 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="config\process\process.bpmn">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="JWTValidationCert.cer">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -1,0 +1,41 @@
+{
+  "id": "tdd/bestilling",
+  "org": "tdd",
+  "created": "2019-09-16T22:22:22",
+  "createdBy": "username",
+  "title": { "nb": "Bestillingseksempelapp" },
+  "dataTypes": [
+    {
+      "id": "default",
+      "allowedContentTypes": [ "application/xml" ],
+      "appLogic": {
+        "autoCreate": true,
+        "SchemaRef": "models/default/bestilling.xsd",
+        "ClassRef": "Altinn.Apps.Models.Bestilling"
+      },
+      "taskId":  "Task_1",
+      "minCount": 1,
+      "maxCount": 1
+    },
+    {
+      "id": "vedlegg",
+      "allowedContentTypes": [ "application/pdf", "image/png", "image/jpeg" ],
+      "minCount": 0
+    },
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [ "application/pdf" ],
+      "minCount":  0
+    }
+  ],
+  "partyTypesAllowed": {
+    "bankruptcyEstate": true,
+    "organization": true,
+    "person": true,
+    "subUnit": true
+  },
+  "subscriptionHook": {
+    "serviceCode": "",
+    "editionCode": ""
+  }
+}
