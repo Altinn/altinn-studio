@@ -208,29 +208,6 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
           className="a-modal-navbar"
         >
           <button
-            aria-label="general.back"
-            className="a-modal-back a-js-tabable-popover"
-            type="button"
-          >
-            <span
-              className="ai-stack"
-            >
-              <i
-                aria-hidden="true"
-                className="ai ai-stack-1x ai-plain-circle-big"
-              />
-              <i
-                aria-hidden="true"
-                className="ai-stack-1x ai ai-back"
-              />
-            </span>
-            <span
-              className="hidden-button-text"
-            >
-              general.back
-            </span>
-          </button>
-          <button
             aria-label="general.close"
             className="a-modal-close a-js-tabable-popover"
             onClick={[Function]}
