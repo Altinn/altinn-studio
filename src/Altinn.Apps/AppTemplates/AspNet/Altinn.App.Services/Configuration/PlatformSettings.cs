@@ -166,5 +166,10 @@ namespace Altinn.App.Services.Configuration
                 return Environment.GetEnvironmentVariable("PlatformSettings__ApiAuthorizationEndpointHost") ?? ApiAuthorizationEndpointHost;
             }
         }
+
+        /// <summary>
+        /// Gets or sets the the url for the API PDF
+        /// </summary>
+        public string ApiPdfEndpoint { get; set; }
     }
 }

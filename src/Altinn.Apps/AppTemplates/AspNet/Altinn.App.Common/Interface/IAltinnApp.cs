@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Altinn.App.Services.Enums;
 using Altinn.App.Services.Models;
+using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Altinn.App.Common.Interface
@@ -31,5 +32,12 @@ namespace Altinn.App.Common.Interface
         /// </summary>
         /// <returns>The Type of the service model for the current service</returns>
         Type GetAppModelType(string dataType);
+
+        Task OnInstantiate(Instance instance);
+        Task OnStartProcess(string startEvent, Instance instance);
+        Task OnStartProcessTask(string taskId, Instance instance);
+        Task OnEndProcessTask(string taskId, Instance instance);
+        Task OnEndProcess(string endEvent, Instance instance);        
+
     }
 }

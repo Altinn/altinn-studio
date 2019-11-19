@@ -1,22 +1,15 @@
 using Altinn.App.Common.Interface;
-using Altinn.App.models;
 using Altinn.App.Models;
 using Altinn.App.Services.Enums;
-using Altinn.App.Services.Models;
+using Altinn.App.Common.Implementation;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Altinn.App.AppLogic
 {
-    public class App : IAltinnApp
+    public class App : AppBase, IAltinnApp
     {
-        public object CreateNewAppModel(string dataType)
-        {
-            throw new NotImplementedException();
-        }
 
         public Type GetAppModelType(string dataType)
         {
