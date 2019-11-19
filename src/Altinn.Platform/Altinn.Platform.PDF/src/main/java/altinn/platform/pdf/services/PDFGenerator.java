@@ -152,8 +152,13 @@ public class PDFGenerator {
       renderText(description, font, fontSize);
     }
 
+    String elementType = element.getType();
     // Render content
-    if (element.getType().equalsIgnoreCase("fileupload")) {
+    if (elementType.equalsIgnoreCase("paragraph") || elementType.equals("header")) {
+      // has no content, ignore
+      return;
+    }
+    else if (elementType.equalsIgnoreCase("fileupload")) {
       // different view for file upload
       renderFileUploadContent(element);
     } else {
