@@ -21,6 +21,11 @@
       "id": "vedlegg",
       "allowedContentTypes": [ "application/pdf", "image/png", "image/jpeg" ],
       "minCount": 0
+    },
+    {
+      "id": "ref-data-as-pdf",
+      "allowedContentTypes": [ "application/pdf" ],
+      "minCount":  0
     }
   ],
   "partyTypesAllowed": {
