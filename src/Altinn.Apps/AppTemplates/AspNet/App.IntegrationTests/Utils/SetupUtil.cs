@@ -4,6 +4,7 @@ using Altinn.App.Services.Configuration;
 using Altinn.App.Services.Interface;
 using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
 using App.IntegrationTests.Mocks.Services;
+using App.IntegrationTestsRef.Mocks.Services;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,6 +42,7 @@ namespace App.IntegrationTestsRef.Utils
                     services.AddSingleton<Altinn.Common.PEP.Interfaces.IPDP, PepAuthorizationMockSI>();
                     services.AddSingleton<IApplication, ApplicationMockSI>();
                     services.AddSingleton<IAltinnApp, AltinnApp>();
+                    services.AddTransient<IProfile, ProfileMockSI>();
                 });
             })
             .CreateClient();
