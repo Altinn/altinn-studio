@@ -49,7 +49,7 @@ namespace App.IntegrationTests.ApiTests
 
           
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal("formfilling", processState.CurrentTask.ElementId);
+            Assert.Equal("Task_1", processState.CurrentTask.ElementId);
         }
 
         [Fact]

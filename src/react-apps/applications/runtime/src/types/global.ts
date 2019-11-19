@@ -182,3 +182,8 @@ export interface IAttachment {
 export interface IAttachments {
   [attachmentType: string]: IAttachment[];
 }
+
+export interface IUiConfig {
+  focus: boolean;
+  hiddenFields: string[];
+}

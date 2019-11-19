@@ -70,7 +70,7 @@ namespace Altinn.App.Services.Implementation
             string encodedXml = System.Convert.ToBase64String(dataAsBytes);
 
             byte[] formLayout = _executionService.GetAppResource(org, app, "FormLayout.json");            
-            byte[] textResources = _executionService.GetText(org, app, "resource.nb-NO.json");
+            byte[] textResources = _executionService.GetText(org, app, "resource.nb.json");
             
             string formLayoutString = GetUTF8String(formLayout);
             string textResourcesString = GetUTF8String(textResources);

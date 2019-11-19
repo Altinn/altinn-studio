@@ -556,7 +556,7 @@ namespace AltinnCore.Runtime.RestControllers
                 events.Add(GenerateProcessChangeEvent("process:StartTask", instance, now));
             }
 
-            if (previousElementId != null && previousElementId.Equals("FormFilling_1"))
+            if (previousElementId != null && previousElementId.Equals("Task_1"))
             {
                 UserContext userContext = userHelper.GetUserContext(HttpContext).Result;
                 await pdfService.GenerateAndStoreReceiptPDF(instance, userContext);

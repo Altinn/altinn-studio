@@ -186,14 +186,22 @@ namespace Altinn.App.Api.Controllers
                 return Conflict($"Instance does not have valid info about currentTask");
             }
 
-            List<string> nextElementIds = ProcessModel.NextElements(currentTaskId);
-
-            if (nextElementIds.Count == 0)
+            try
             {
-                return NotFound("Cannot find any valid process elements that can be reached from current task");
-            }
+                List<string> nextElementIds = ProcessModel.NextElements(currentTaskId);
 
-            return Ok(nextElementIds);           
+                if (nextElementIds.Count == 0)
+                {
+                    return NotFound("Cannot find any valid process elements that can be reached from current task");
+                }
+
+                return Ok(nextElementIds);
+            }
+            catch (Exception processException)
+            {
+                logger.LogError($"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. {processException}");
+                return Conflict($"Unable to find next process element for instance {instance.Id} and current task {currentTaskId}. Exception was {processException.Message}. Is the process file OK?");
+            }
         }
 
         /// <summary>
