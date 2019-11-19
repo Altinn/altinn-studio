@@ -158,7 +158,8 @@ namespace AltinnCore.Common.Services.Implementation
         private StreamContent CreateDataStream(Stream stream)
         {
             StreamContent streamContent = new StreamContent(stream);
-            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf; charset=utf-8;");
+            streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+            streamContent.Headers.ContentDisposition = ContentDispositionHeaderValue.Parse("form-data");
             streamContent.Headers.ContentDisposition.FileName = pdfFileName;
             streamContent.Headers.ContentDisposition.Size = stream.Length;
             return streamContent;
